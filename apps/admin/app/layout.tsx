@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { AdminLocaleProvider } from '../hooks/useAdminLocale';
+import { AdminThemeProvider } from '../hooks/useAdminTheme';
 
 export const metadata: Metadata = {
   title: 'ishoot — لوحة العمليات والتحكم الإداري | Executive Operations',
@@ -16,11 +17,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl">
-      <body className="min-h-screen bg-[#050807] text-[#F2F6F5] antialiased font-sans selection:bg-[#09937F]/30 selection:text-white">
-        <AdminLocaleProvider>
-          {children}
-        </AdminLocaleProvider>
+    <html lang="ar" dir="rtl" className="dark">
+      <body className="min-h-screen bg-[#050807] text-[#F2F6F5] antialiased font-sans selection:bg-[#09937F]/30 selection:text-white transition-colors duration-200">
+        <AdminThemeProvider>
+          <AdminLocaleProvider>
+            {children}
+          </AdminLocaleProvider>
+        </AdminThemeProvider>
       </body>
     </html>
   );

@@ -131,7 +131,7 @@ export function InvoicesListView({ initialInvoices, finance }: InvoicesListViewP
               <tr>
                 <th className="p-4 text-start">{t.finance.invoiceNumber}</th>
                 <th className="p-4 text-start">{t.finance.client}</th>
-                <th className="p-4 text-start">{t.finance.issueDate} / {t.finance.dueDate}</th>
+                <th className="p-4 text-start">{t.finance.issueDate}</th>
                 <th className="p-4 text-end">{t.finance.totalAmount}</th>
                 <th className="p-4 text-end">{t.finance.balanceDue}</th>
                 <th className="p-4 text-center">{t.finance.status}</th>

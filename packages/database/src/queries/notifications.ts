@@ -45,6 +45,21 @@ export async function markNotificationRead(id: string): Promise<boolean> {
   }
 }
 
+export async function markAllNotificationsRead(userId?: string): Promise<boolean> {
+  try {
+    const where: any = { isRead: false };
+    if (userId) where.userId = userId;
+    await db.notification.updateMany({
+      where,
+      data: { isRead: true },
+    });
+    return true;
+  } catch (e) {
+    console.error('Error marking all notifications read:', e);
+    return false;
+  }
+}
+
 export async function createNotification(data: {
   user_id: string;
   title: string;

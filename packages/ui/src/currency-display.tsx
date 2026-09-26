@@ -11,7 +11,8 @@ export function formatCurrencyValue(amount: number | string, currency: string = 
   const num = typeof amount === 'number' ? amount : parseFloat(amount) || 0;
   const decimals = (currency === 'BHD' || currency === 'KWD' || currency === 'OMR') ? 3 : 2;
 
-  const formattedNum = num.toLocaleString(isAr ? 'ar-BH' : 'en-US', {
+  // Always use standard Western Arabic numerals (0-9) for currency and financial figures
+  const formattedNum = num.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
@@ -27,7 +28,7 @@ export function formatCurrencyValue(amount: number | string, currency: string = 
   };
 
   const symbol = symbols[currency] ? (isAr ? symbols[currency].ar : symbols[currency].en) : currency;
-  return isAr ? `${formattedNum} ${symbol}` : `${formattedNum} ${symbol}`;
+  return `${formattedNum} ${symbol}`;
 }
 
 export function CurrencyDisplay({ amount, currency = 'BHD', locale = 'en', className = '' }: CurrencyDisplayProps) {

@@ -9,7 +9,7 @@ import type {
   CompanySettings,
   CalendarEvent,
 } from '@ishoot/database/types';
-import { Card, Button, CurrencyDisplay, StatusBadge } from '@ishoot/ui';
+import { Card, Button, CurrencyDisplay, DateDisplay, StatusBadge } from '@ishoot/ui';
 import {
   DollarSign,
   Briefcase,
@@ -405,9 +405,7 @@ export function ExecutiveDashboardView({
                       >
                         {event.event_type}
                       </span>
-                      <span className="text-[10px] font-mono text-[#9EADA9]">
-                        {new Date(event.start_date).toLocaleDateString(locale === 'ar' ? 'ar-BH' : 'en-US')}
-                      </span>
+                      <DateDisplay date={event.start_date} locale={locale} className="text-[10px] text-[#9EADA9]" />
                     </div>
                     <div className="text-xs font-bold text-white line-clamp-1">
                       {locale === 'ar' && event.title_ar ? event.title_ar : event.title}

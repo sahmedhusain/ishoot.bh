@@ -6,6 +6,7 @@ export * from './input';
 export * from './textarea';
 export * from './select';
 export * from './currency-display';
+export * from './date-display';
 export * from './status-badge';
 export * from './modal';
 export * from './separator';

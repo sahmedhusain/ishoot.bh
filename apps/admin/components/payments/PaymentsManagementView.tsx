@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { Payment, CompanySettings, Invoice } from '@ishoot/database/types';
-import { Card, Button, Modal, CurrencyDisplay, Input, Select, Badge } from '@ishoot/ui';
+import { Card, Button, Modal, CurrencyDisplay, DateDisplay, Input, Select, Badge } from '@ishoot/ui';
 import { ReceiptTemplate } from './ReceiptTemplate';
 import { DeliveryToolbar } from '../shared/DeliveryToolbar';
 import { CreditCard, Eye, Plus, Search, CheckCircle2 } from 'lucide-react';
@@ -179,7 +179,7 @@ export function PaymentsManagementView({
                   {payment.invoice?.contact?.full_name || 'Direct Settlement'}
                 </td>
                 <td className="p-4 font-mono text-[#9EADA9]">
-                  {new Date(payment.payment_date).toLocaleDateString(locale === 'ar' ? 'ar-BH' : 'en-GB')}
+                  <DateDisplay date={payment.payment_date} locale={locale} />
                 </td>
                 <td className="p-4">
                   <Badge variant="outline">

@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS company_settings (
   default_currency TEXT NOT NULL DEFAULT 'BHD',
   currency_decimals INT NOT NULL DEFAULT 3,
   address_en TEXT DEFAULT 'Office 42, Building 892, Road 2819, Block 428, Seef District, Kingdom of Bahrain',
-  address_ar TEXT DEFAULT 'مكتب ٤٢، مبنى ٨٩٢، طريق ٢٨١٩، مجمع ٤٢٨، ضاحية السيف، مملكة البحرين',
+  address_ar TEXT DEFAULT 'مكتب 42، مبنى 892، طريق 2819، مجمع 428، ضاحية السيف، مملكة البحرين',
   phone TEXT DEFAULT '+973 1700 0000',
   email TEXT DEFAULT 'hello@ishoot.bh',
   website TEXT DEFAULT 'https://ishoot.bh',

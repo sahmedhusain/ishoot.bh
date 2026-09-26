@@ -19,12 +19,15 @@ import {
   Wrench,
   ShieldCheck,
   Building2,
+  Sliders,
+  History,
+  Share2,
 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { t, isRTL } = useAdminLocale();
+  const { t, locale, isRTL } = useAdminLocale();
 
   const navGroups = [
     {
@@ -64,7 +67,10 @@ export function Sidebar() {
       label: t.nav.system,
       items: [
         { href: '/dashboard/users', label: t.nav.users, icon: ShieldCheck },
+        { href: '/dashboard/settings/preferences', label: locale === 'ar' ? 'المظهر واللغة' : 'Appearance & Language', icon: Sliders },
         { href: '/dashboard/settings/company', label: t.nav.companySettings, icon: Building2 },
+        { href: '/dashboard/settings/audit', label: locale === 'ar' ? 'سجل العمليات والجلسات' : 'Audit Logs & Sessions', icon: History },
+        { href: '/dashboard/settings/integrations', label: locale === 'ar' ? 'ربط منصات ميتا' : 'Meta & Integrations', icon: Share2 },
       ],
     },
   ];

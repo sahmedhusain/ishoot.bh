@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { Expense, ExpenseCategory, CRMDeal } from '@ishoot/database/types';
-import { Card, Button, Input, Select, Modal, CurrencyDisplay, Badge } from '@ishoot/ui';
+import { Card, Button, Input, Select, Modal, CurrencyDisplay, DateDisplay, Badge } from '@ishoot/ui';
 import { Plus, Receipt, Tag, TrendingDown, Trash2, CheckCircle2 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { createExpenseAction, deleteExpenseAction } from '../../app/actions/finance';
@@ -186,7 +186,7 @@ export function ExpensesManagementView({
                   {expense.deal?.title || '—'}
                 </td>
                 <td className="p-4 text-[#9EADA9] font-mono">
-                  {new Date(expense.expense_date).toLocaleDateString(locale === 'ar' ? 'ar-BH' : 'en-GB')}
+                  <DateDisplay date={expense.expense_date} locale={locale} />
                 </td>
                 <td className="p-4 text-end font-mono font-bold text-rose-400">
                   -<CurrencyDisplay amount={Number(expense.amount)} currency="BHD" />

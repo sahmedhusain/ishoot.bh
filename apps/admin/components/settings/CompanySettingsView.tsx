@@ -13,6 +13,8 @@ import {
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { updateCompanySettingsAction } from '../../app/actions/settings';
 
+import { SettingsNavTabs } from './SettingsNavTabs';
+
 interface CompanySettingsViewProps {
   initialSettings: CompanySettings;
 }
@@ -43,6 +45,9 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16">
+      {/* Top Navigation Tabs */}
+      <SettingsNavTabs />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -84,7 +89,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
               <h2 className="text-base font-bold text-white">{t.settings.vatTitle}</h2>
               <p className="text-xs text-[#9EADA9]">
                 {locale === 'ar'
-                  ? 'التحويل بين نظام المنشأة غير الخاضعة للضريبة ونظام ضريبة القيمة المضافة (١٠٪).'
+                  ? 'التحويل بين نظام المنشأة غير الخاضعة للضريبة ونظام ضريبة القيمة المضافة (10%).'
                   : 'Toggle between Non-VAT entity (0%) and 10% Bahrain VAT compliance.'}
               </p>
             </div>
@@ -101,16 +106,16 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
                     ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                     : 'bg-white/5 text-[#9EADA9] border border-white/10'
                 }`}>
-                  {settings.vat_enabled ? (locale === 'ar' ? 'ضريبة ١٠٪' : '10% VAT') : (locale === 'ar' ? 'معفى ٠٪' : '0% Non-VAT')}
+                  {settings.vat_enabled ? (locale === 'ar' ? 'ضريبة 10%' : '10% VAT') : (locale === 'ar' ? 'معفى 0%' : '0% Non-VAT')}
                 </span>
               </div>
               <p className="text-xs text-[#9EADA9] mt-1 max-w-xl">
                 {settings.vat_enabled
                   ? (locale === 'ar'
-                      ? 'سيتم احتساب ١٠٪ ضريبة قيمة مضافة على جميع الفواتير الجديدة وإظهار الرقم الضريبي الرسمي.'
+                      ? 'سيتم احتساب 10% ضريبة قيمة مضافة على جميع الفواتير الجديدة وإظهار الرقم الضريبي الرسمي.'
                       : 'All new invoices will compute 10% VAT and render official tax registration.')
                   : (locale === 'ar'
-                      ? 'ستظهر الفواتير عبارة "ضريبة القيمة المضافة: غير مطبقة" بمعدل ضريبة ٠٪.'
+                      ? 'ستظهر الفواتير عبارة "ضريبة القيمة المضافة: غير مطبقة" بمعدل ضريبة 0%.'
                       : 'Invoices will state "VAT: Not Applicable" and calculate totals with 0% tax.')}
               </p>
             </div>

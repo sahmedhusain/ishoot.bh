@@ -110,7 +110,7 @@ async function main() {
       defaultCurrency: 'BHD',
       currencyDecimals: 3,
       addressEn: 'Office 402, Platinum Tower, Seef District, Manama, Kingdom of Bahrain',
-      addressAr: 'مكتب ٤٠٢، برج بلاتينيوم، ضاحية السيف، المنامة، مملكة البحرين',
+      addressAr: 'مكتب 402، برج بلاتينيوم، ضاحية السيف، المنامة، مملكة البحرين',
       phone: '+973 1700 0000',
       email: 'hello@ishoot.bh',
       website: 'https://ishoot.bh',
@@ -150,7 +150,7 @@ async function main() {
       titleEn: 'PRECISION CINEMATOGRAPHY',
       titleAr: 'دقة بصرية سينمائية متناهية',
       subtitleEn: 'Equipped with RED V-Raptor 8K and ARRI optical primes for prestigious brand anthems.',
-      subtitleAr: 'مجهزون بأحدث كاميرات ريد في-رابتور ٨ كي وعدسات آرّي للعلامات التجارية الرائدة.',
+      subtitleAr: 'مجهزون بأحدث كاميرات ريد في-رابتور 8 كي وعدسات آرّي للعلامات التجارية الرائدة.',
       mediaType: 'image',
       mediaUrl: '/banners/Web Banner 04.jpg',
       posterUrl: '/banners/Web Banner 04.jpg',
@@ -224,7 +224,7 @@ async function main() {
         'https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=800&q=80',
       ],
       descriptionEn: 'A high-impact cinematic commercial capturing the heritage and technological future of Bahrain across 6 iconic locations.',
-      descriptionAr: 'عمل سينمائي فخم يوثق أصالة وتطور مملكة البحرين عبر ٦ مواقع تاريخية وحديثة.',
+      descriptionAr: 'عمل سينمائي فخم يوثق أصالة وتطور مملكة البحرين عبر 6 مواقع تاريخية وحديثة.',
       credits: {
         director: 'Sayed Ahmed Husain',
         dop: 'Ali Alsamaheji',
@@ -338,7 +338,7 @@ async function main() {
       id: 'eq-01',
       category: 'cameras',
       nameEn: 'RED V-Raptor XL 8K VV Cinema Package',
-      nameAr: 'كاميرا ريد في-رابتور إكس إل ٨ كي',
+      nameAr: 'كاميرا ريد في-رابتور إكس إل 8 كي',
       brand: 'RED Digital Cinema',
       specification: '8K VistaVision multi-format sensor, up to 120fps at 8K, 17+ stops dynamic range, PL mount.',
       dailyRateBhd: 450.000,
@@ -348,7 +348,7 @@ async function main() {
       id: 'eq-02',
       category: 'cameras',
       nameEn: 'Sony FX6 Full-Frame Cinema Line',
-      nameAr: 'كاميرا سوني إف إكس ٦ سينمائية',
+      nameAr: 'كاميرا سوني إف إكس 6 سينمائية',
       brand: 'Sony Cinema',
       specification: '4K full-frame sensor, 15+ stops dynamic range, electronic variable ND filter, dual base ISO.',
       dailyRateBhd: 180.000,
@@ -378,7 +378,7 @@ async function main() {
       id: 'eq-05',
       category: 'lighting',
       nameEn: 'Aputure Electro Storm CS15 1500W RGB Spotlight',
-      nameAr: 'إضاءة أباتشر إليكترو ستورم ١٥٠٠ واط ملونة',
+      nameAr: 'إضاءة أباتشر إليكترو ستورم 1500 واط ملونة',
       brand: 'Aputure Pro',
       specification: '1500W full-color point source with dual accessory mount, IP65 weather resistant.',
       dailyRateBhd: 120.000,
@@ -388,7 +388,7 @@ async function main() {
       id: 'eq-06',
       category: 'lighting',
       nameEn: 'Astera Titan Tube FP1 8-Light Kit with PowerBox',
-      nameAr: 'طقم أنابيب أستيرا تايتان ٨ لمبات لاسلكية',
+      nameAr: 'طقم أنابيب أستيرا تايتان 8 لمبات لاسلكية',
       brand: 'Astera',
       specification: 'Wireless RGBMintAmber LED tubes, CRMX wireless control, 20h internal battery.',
       dailyRateBhd: 95.000,
@@ -398,7 +398,7 @@ async function main() {
       id: 'eq-07',
       category: 'grip',
       nameEn: 'DJI Ronin 2 3-Axis Professional Gimbal System',
-      nameAr: 'مثبت كاميرا دي جي آي رونين ٢ احترافي',
+      nameAr: 'مثبت كاميرا دي جي آي رونين 2 احترافي',
       brand: 'DJI Pro',
       specification: 'Heavy-payload 13.6kg motor support, dual battery hot-swap, ready for crane, vehicle, or handheld.',
       dailyRateBhd: 110.000,
@@ -408,7 +408,7 @@ async function main() {
       id: 'eq-08',
       category: 'stages',
       nameEn: 'Soundstage A — 250m² Acoustically Treated Cyclorama',
-      nameAr: 'استوديو أ — استوديو عازل للصوت ٢٥٠ م² مع سايك مقوس',
+      nameAr: 'استوديو أ — استوديو عازل للصوت 250 م² مع سايك مقوس',
       brand: 'ishoot Soundstage',
       specification: 'Infinity curve cyclorama, 6m overhead lighting grid, 60kW 3-phase power, soundproof control booth.',
       dailyRateBhd: 550.000,
@@ -616,7 +616,7 @@ async function main() {
         create: [
           {
             descriptionEn: 'Principal Cinematography & Director of Photography Package (3 Days)',
-            descriptionAr: 'حزمة التصوير السينمائي وإدارة التصوير (٣ أيام تصوير)',
+            descriptionAr: 'حزمة التصوير السينمائي وإدارة التصوير (3 أيام تصوير)',
             quantity: 3.00,
             unitPrice: 1800.000,
             lineTotal: 5400.000,
@@ -624,7 +624,7 @@ async function main() {
           },
           {
             descriptionEn: 'RED 8K Camera, ARRI Primes & Master Lighting Package',
-            descriptionAr: 'طقم كاميرا ريد ٨ كي وعدسات آرّي مع طاقم الإضاءة الكامل',
+            descriptionAr: 'طقم كاميرا ريد 8 كي وعدسات آرّي مع طاقم الإضاءة الكامل',
             quantity: 3.00,
             unitPrice: 800.000,
             lineTotal: 2400.000,
@@ -632,7 +632,7 @@ async function main() {
           },
           {
             descriptionEn: 'DaVinci Resolve Studio Color Grading & 4K Mastering',
-            descriptionAr: 'تصحيح ألوان سينمائي في استوديو دافينشي وتصدير ماستر ٤ كي',
+            descriptionAr: 'تصحيح ألوان سينمائي في استوديو دافينشي وتصدير ماستر 4 كي',
             quantity: 1.00,
             unitPrice: 2000.000,
             lineTotal: 2000.000,
@@ -720,7 +720,7 @@ async function main() {
           },
           {
             descriptionEn: '4 Production Shoot Days with Cinema Dual-Camera Crews',
-            descriptionAr: '٤ أيام تصوير سينمائي مع طاقمي كاميرا كاملين',
+            descriptionAr: '4 أيام تصوير سينمائي مع طاقمي كاميرا كاملين',
             quantity: 4.00,
             unitPrice: 2500.000,
             lineTotal: 10000.000,
@@ -795,7 +795,7 @@ async function main() {
       categoryId: 'expcat-02',
       dealId: 'deal-07',
       descriptionEn: 'Steadicam Operator & 1st AC Wages (3 Shoot Days)',
-      descriptionAr: 'أجور مشغل ستيديكام ومساعد المصور الأول (٣ أيام)',
+      descriptionAr: 'أجور مشغل ستيديكام ومساعد المصور الأول (3 أيام)',
       amount: 1050.000,
       currency: 'BHD',
       expenseDate: new Date('2026-08-16'),
@@ -831,7 +831,7 @@ async function main() {
       id: 'exp-04',
       categoryId: 'expcat-05',
       descriptionEn: 'DaVinci Resolve Studio Cloud & LucidLink 10TB Cinema Cloud',
-      descriptionAr: 'اشتراك سحابة دافينشي ومساحة تخزين لوسيد لينك ١٠ تيرابايت',
+      descriptionAr: 'اشتراك سحابة دافينشي ومساحة تخزين لوسيد لينك 10 تيرابايت',
       amount: 280.000,
       currency: 'BHD',
       expenseDate: new Date('2026-09-03'),
@@ -960,24 +960,87 @@ async function main() {
   console.log('✅ Created 2 Production Leads / Inquiries');
 
   // 16. Activity Logs & Notifications
-  await prisma.activityLog.create({
-    data: {
-      userId: createdUsers.super_admin.id,
-      action: 'seed_init',
-      entityType: 'system',
-      details: { message: 'Database initialized with enterprise mock dataset' },
-      ipAddress: '127.0.0.1',
-    },
+  await prisma.activityLog.createMany({
+    data: [
+      {
+        userId: createdUsers.super_admin.id,
+        action: 'login',
+        entityType: 'auth',
+        details: { device: 'Chrome on macOS (Manama, BH)', session: 'sess_live_94820' },
+        ipAddress: '185.120.45.12',
+      },
+      {
+        userId: createdUsers.finance_manager.id,
+        action: 'create',
+        entityType: 'invoice',
+        entityId: 'inv-001',
+        details: { invoiceNumber: 'ISH-2026-001', amount: 9800.000, client: 'National Bank of Bahrain' },
+        ipAddress: '185.120.45.14',
+      },
+      {
+        userId: createdUsers.producer.id,
+        action: 'stage_change',
+        entityType: 'deal',
+        entityId: 'deal-07',
+        details: { dealTitle: 'Bapco Energies Sustainability Film', from: 'contract_signed', to: 'production' },
+        ipAddress: '89.148.33.20',
+      },
+      {
+        userId: createdUsers.finance_manager.id,
+        action: 'create',
+        entityType: 'payment',
+        entityId: 'pay-001',
+        details: { receiptNumber: 'RCT-2026-001', amount: 9800.000, method: 'bank_transfer' },
+        ipAddress: '185.120.45.14',
+      },
+      {
+        userId: createdUsers.super_admin.id,
+        action: 'update',
+        entityType: 'company_settings',
+        details: { vat_enabled: true, vat_percentage: 10.00 },
+        ipAddress: '185.120.45.12',
+      },
+    ],
   });
 
-  await prisma.notification.create({
-    data: {
-      userId: createdUsers.super_admin.id,
-      title: 'مرحباً بك في نظام آي شوت Odoo المتكامل',
-      message: 'تم تفعيل جميع الوحدات الإدارية، وإعدادات الضرائب، والصلاحيات بنجاح.',
-      type: 'success',
-      isRead: false,
-    },
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: createdUsers.super_admin.id,
+        title: 'استلام دفعة مالية جديدة',
+        message: 'تم استلام دفعة مسجلة بقيمة 4,250 د.ب عبر تحويل بنك البحرين والكويت (إيصال RCT-2026-002).',
+        type: 'success',
+        entityType: 'payment',
+        entityId: 'pay-002',
+        isRead: false,
+      },
+      {
+        userId: createdUsers.super_admin.id,
+        title: 'تذكير موعد تصوير سينمائي',
+        message: 'جلسة تصوير الحملة الإعلانية لبنك البحرين الوطني مجدولة في تقويم الإنتاج غداً.',
+        type: 'action',
+        entityType: 'calendar',
+        entityId: 'evt-01',
+        isRead: false,
+      },
+      {
+        userId: createdUsers.super_admin.id,
+        title: 'طلب إنتاج جديد عبر الموقع',
+        message: 'ورد استفسار إنتاجي جديد من شركة بتلكو لإنتاج إعلان تلفزيوني 4K.',
+        type: 'info',
+        entityType: 'lead',
+        entityId: 'inq-01',
+        isRead: false,
+      },
+      {
+        userId: createdUsers.super_admin.id,
+        title: 'مرحباً بك في نظام آي شوت المتكامل',
+        message: 'تم تفعيل جميع الوحدات الإدارية، وإعدادات الضرائب، والصلاحيات بنجاح.',
+        type: 'info',
+        entityType: 'system',
+        isRead: true,
+      },
+    ],
   });
 
   console.log('✨ Database seed completed successfully!');
