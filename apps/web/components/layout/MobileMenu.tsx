@@ -10,12 +10,13 @@ import { LanguageSwitcher } from './LanguageSwitcher';
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
+  links?: { href: string; label: string }[];
 }
 
-export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
+export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
   const { t, locale, isRTL } = useTranslation();
 
-  const navLinks = [
+  const navLinks = links || [
     { href: `/${locale}`, label: t('nav.home') },
     { href: `/${locale}/works`, label: t('nav.works') },
     { href: `/${locale}/about`, label: t('nav.about') },

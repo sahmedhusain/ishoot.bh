@@ -4,7 +4,6 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslation } from '../../hooks/useTranslation';
-import { Button } from '@ishoot/ui';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { MobileMenu } from './MobileMenu';
 import { Menu } from 'lucide-react';
@@ -14,10 +13,11 @@ export function Navbar() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const isRTL = locale === 'ar';
 
   React.useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 25);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -33,31 +33,31 @@ export function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'py-3 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-sm'
-            : 'py-4 bg-white/90 backdrop-blur-md border-b border-slate-100'
+            ? 'py-3.5 bg-[#050807]/90 backdrop-blur-2xl border-b border-white/10 shadow-2xl'
+            : 'py-5 bg-transparent border-b border-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
-          {/* Official Brand Logo with Standalone Icon + SVG Wordmark */}
+        <div className="shell flex items-center justify-between">
+          {/* Logo with Smoothly Rotating 45-degree Aperture on Hover */}
           <Link href={`/${locale}`} className="flex items-center gap-3 group">
-            <div className="relative h-10 w-10 flex items-center justify-center shrink-0">
+            <div className="relative h-9 w-9 flex items-center justify-center shrink-0">
               <img
                 src="/icon.svg"
-                alt="ishoot Icon"
-                className="h-9 w-auto object-contain transition-transform group-hover:scale-105 duration-200"
+                alt="ishoot"
+                className="h-full w-full object-contain transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-45 filter drop-shadow-[0_0_8px_rgba(9,147,127,0.3)]"
               />
             </div>
             <img
               src="/images/logo-color.svg"
               alt="ishoot"
-              className="h-7 w-auto object-contain transition-opacity group-hover:opacity-90"
+              className="h-6 w-auto object-contain brightness-110"
             />
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100/80 border border-slate-200/60 backdrop-blur-md">
+          {/* Centered Desktop Navigation with Animated Hairline Reveal */}
+          <nav className="hidden lg:flex items-center gap-9">
             {navLinks.map((link) => {
               const isActive =
                 link.href === `/${locale}`
@@ -68,46 +68,66 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
-                    isActive
-                      ? 'bg-[#014842] text-white shadow-sm'
-                      : 'text-slate-700 hover:text-[#014842] hover:bg-slate-200/60'
+                  className={`group relative text-sm tracking-wide font-medium transition-colors duration-300 ${
+                    isActive ? 'text-white' : 'text-[#9EADA9] hover:text-white'
                   }`}
                 >
-                  {link.label}
+                  <span className="relative pb-1">
+                    {link.label}
+                    <span
+                      className={`absolute -bottom-0.5 left-0 h-[1.5px] w-full origin-left bg-[#09937F] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                        isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                      }`}
+                    />
+                  </span>
                 </Link>
               );
             })}
           </nav>
 
-          {/* Right Actions */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Right Action Buttons */}
+          <div className="hidden lg:flex items-center gap-4">
             <LanguageSwitcher />
-            <Link href={`/${locale}/contact`}>
-              <Button variant="primary" size="md" className="bg-[#014842] hover:bg-[#02665D] text-white">
-                {t('nav.bookNow')}
-              </Button>
+
+            {/* Starscasting-inspired Morphing Circular CTA Button */}
+            <Link
+              href={`/${locale}/contact`}
+              className="group inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] py-1.5 ps-1.5 pe-5 font-sans text-xs font-semibold text-white transition-all duration-300 hover:bg-white hover:text-black hover:border-white shadow-lg"
+            >
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-[#014842] text-white transition-colors duration-500 group-hover:bg-black group-hover:text-white">
+                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110">
+                  <path
+                    d={isRTL ? "M19 12H5M5 12L12 19M5 12L12 5" : "M5 12H19M19 12L12 5M19 12L12 19"}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+              <span>{t('nav.bookNow')}</span>
             </Link>
           </div>
 
-          {/* Mobile Hamburger */}
-          <div className="flex items-center gap-3 md:hidden">
+          {/* Mobile Actions */}
+          <div className="flex items-center gap-3 lg:hidden">
             <LanguageSwitcher />
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-800 hover:text-[#014842] transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
               aria-label="Open menu"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4 h-4" />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Slide-out Mobile Menu */}
+      {/* Mobile Drawer */}
       <MobileMenu
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
+        links={navLinks}
       />
     </>
   );

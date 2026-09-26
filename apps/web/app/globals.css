@@ -123,3 +123,130 @@ html.lenis {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+
+/* =========================================================================
+   STARSCASING INSPIRED DESIGN TOKENS & CINEMATOGRAPHY ANIMATIONS
+   ========================================================================= */
+
+/* The Container Shell */
+.shell {
+  width: 100%;
+  max-width: 1380px;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+/* Diagonal Katana Razor Cut */
+.katana-top {
+  --katana-drop: clamp(2rem, 4vw, 4rem);
+  margin-top: calc(-1 * var(--katana-drop));
+  clip-path: polygon(0 var(--katana-drop), 100% 0, 100% 100%, 0 100%);
+}
+
+[dir="rtl"] .katana-top {
+  clip-path: polygon(0 0, 100% var(--katana-drop), 100% 100%, 0 100%);
+}
+
+/* Paper Theme Sections */
+.bg-paper {
+  background-color: #F8FAFC;
+  color: #0F172A;
+}
+
+.bg-paper-dark {
+  background-color: #0B1210;
+  color: #F2F6F5;
+}
+
+.bg-hero {
+  background-color: #050807;
+}
+
+/* Kinetic Word Slot-Machine Slider */
+@keyframes rw-slide-4 {
+  0.00% { transform: translateY(0.00%); }
+  20.00% { transform: translateY(0.00%); }
+  25.00% { transform: translateY(-25.00%); }
+  45.00% { transform: translateY(-25.00%); }
+  50.00% { transform: translateY(-50.00%); }
+  70.00% { transform: translateY(-50.00%); }
+  75.00% { transform: translateY(-75.00%); }
+  95.00% { transform: translateY(-75.00%); }
+  100.00% { transform: translateY(-100.00%); }
+}
+
+.rw-slide-4 {
+  animation: rw-slide-4 8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rw-slide-4 {
+    animation: none;
+  }
+}
+
+/* Emerald & Gold Foil Metallic Shine */
+@keyframes emerald-shimmer-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 250% 0; }
+}
+
+.bg-emerald-shine {
+  background-image: linear-gradient(115deg, #014842 0%, #09937F 35%, #5EEAD4 52%, #09937F 68%, #002D29 100%);
+  background-size: 260% 100%;
+}
+
+.text-emerald-shine {
+  background-image: linear-gradient(115deg, #09937F 0%, #5EEAD4 35%, #FFFFFF 50%, #5EEAD4 65%, #09937F 100%);
+  background-size: 260% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.emerald-shine-once {
+  animation: emerald-shimmer-sweep 2.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+
+.mask-shine {
+  -webkit-mask-position: 50%;
+  mask-position: 50%;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Continuous Infinite Marquee */
+@keyframes marquee-forward {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee {
+  animation: marquee-forward var(--marquee-duration, 30s) linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse var(--marquee-duration, 30s) linear infinite;
+}
+
+.marquee-paused:hover .animate-marquee,
+.marquee-paused:hover .animate-marquee-reverse {
+  animation-play-state: paused;
+}
+
+/* Floating animation */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-floaty {
+  animation: floaty 5s ease-in-out infinite;
+}

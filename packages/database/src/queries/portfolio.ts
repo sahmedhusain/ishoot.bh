@@ -15,6 +15,7 @@ function mapItem(item: any): PortfolioItem {
   return {
     id: item.id,
     category_id: item.categoryId || '',
+    category: item.category ? mapCategory(item.category) : undefined,
     slug: item.slug,
     title_en: item.titleEn,
     title_ar: item.titleAr,
@@ -106,6 +107,7 @@ export async function getPortfolioItems(categorySlug?: string): Promise<Portfoli
 
     const items = await db.portfolioItem.findMany({
       where: whereCondition,
+      include: { category: true },
       orderBy: { displayOrder: 'asc' },
     });
     return items.map(mapItem);

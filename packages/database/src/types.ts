@@ -98,6 +98,7 @@ export interface PortfolioCategory {
 export interface PortfolioItem {
   id: string;
   category_id?: string;
+  category?: PortfolioCategory;
   slug: string;
   title_en: string;
   title_ar: string;

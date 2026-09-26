@@ -7,10 +7,11 @@ import { X, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
 interface CinemaLightboxProps {
   item: PortfolioItem | null;
+  isOpen?: boolean;
   onClose: () => void;
 }
 
-export function CinemaLightbox({ item, onClose }: CinemaLightboxProps) {
+export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
   const { isRTL } = useLocale();
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = React.useState(true);
@@ -34,7 +35,7 @@ export function CinemaLightbox({ item, onClose }: CinemaLightboxProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [item, onClose]);
 
-  if (!item) return null;
+  if (!item || isOpen === false) return null;
 
   const title = isRTL ? item.title_ar : item.title_en;
   const description = isRTL ? item.description_ar : item.description_en;
