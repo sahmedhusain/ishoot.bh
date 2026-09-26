@@ -1,7 +1,6 @@
 import type { Config } from 'tailwindcss';
 
 const config: Omit<Config, 'content'> = {
-  darkMode: ['class'],
   theme: {
     extend: {
       colors: {
@@ -16,22 +15,22 @@ const config: Omit<Config, 'content'> = {
           hover: '#0BB49B',
           glow: 'rgba(9, 147, 127, 0.35)',
         },
-        // Obsidian dark surfaces
+        // Light surfaces for light mode
         bg: {
-          base: '#050807',      // Deepest cinematic black
-          surface: '#0B1210',   // Card & modal surfaces
-          elevated: '#111C19',  // Dropdowns & active elements
+          base: '#ffffff',      // Pure white
+          surface: '#F8FAFC',   // Light gray for cards & modals
+          elevated: '#F1F5F9',  // Hover states & secondary backgrounds
         },
         // Borders
         border: {
-          subtle: 'rgba(255, 255, 255, 0.08)',
+          subtle: '#E2E8F0',
           emerald: 'rgba(9, 147, 127, 0.20)',
           active: '#09937F',
         },
         // Typography
         text: {
-          primary: '#F2F6F5',   // Soft silver-white
-          secondary: '#9EADA9', // Muted caption grey
+          primary: '#0F172A',   // Slate 900 for high contrast text
+          secondary: '#475569', // Slate 600 for secondary text
           accent: '#09937F',
         },
       },

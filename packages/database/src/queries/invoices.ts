@@ -1,4 +1,4 @@
-import { isLiveSupabaseConfigured, createBrowserClient } from '../client';
+import { db } from '../db';
 import { mockInvoices } from '../mock-data';
 import { Invoice, InvoiceLineItem, DiscountType, SupportedCurrency, CURRENCY_CONFIGS } from '../types';
 
@@ -41,29 +41,108 @@ export function calculateInvoiceTotals(
   };
 }
 
+function mapPrismaInvoiceToInvoice(inv: any): Invoice {
+  const subtotal = Number(inv.subtotal);
+  const discountAmount = Number(inv.discountAmount);
+  const afterDiscount = Math.max(0, subtotal - discountAmount);
+  const vatAmount = Number(inv.vatAmount);
+  const totalAmount = Number(inv.totalAmount);
+  const amountPaid = 0;
+  const amountDue = Math.max(0, totalAmount - amountPaid);
+
+  return {
+    id: inv.id,
+    invoice_number: inv.invoiceNumber,
+    contact_id: inv.deal?.contactId || inv.clientId || '',
+    deal_id: inv.dealId || undefined,
+    issue_date: inv.issueDate.toISOString().split('T')[0],
+    due_date: inv.dueDate.toISOString().split('T')[0],
+    subtotal,
+    discount_type: 'fixed',
+    discount_value: discountAmount,
+    discount_amount: discountAmount,
+    after_discount: afterDiscount,
+    vat_enabled: vatAmount > 0,
+    vat_percentage: 10,
+    vat_amount: vatAmount,
+    total_amount: totalAmount,
+    amount_paid: amountPaid,
+    amount_due: amountDue,
+    currency: inv.currency as SupportedCurrency,
+    language: 'ar',
+    status: inv.status as any,
+    pdf_storage_path: inv.pdfStoragePath || undefined,
+    delivery_channel: (inv.deliveryChannel as any) || undefined,
+    delivered_at: inv.deliveredAt ? inv.deliveredAt.toISOString() : undefined,
+    notes_en: inv.notesEn || undefined,
+    notes_ar: inv.notesAr || undefined,
+    created_by: inv.createdById || undefined,
+    created_at: inv.createdAt.toISOString(),
+    updated_at: inv.updatedAt.toISOString(),
+    line_items: inv.lineItems
+      ? inv.lineItems.map((li: any) => ({
+          id: li.id,
+          invoice_id: li.invoiceId,
+          description_en: li.descriptionEn,
+          description_ar: li.descriptionAr || undefined,
+          quantity: Number(li.quantity),
+          unit_price: Number(li.unitPrice),
+          line_total: Number(li.lineTotal),
+          display_order: li.displayOrder,
+        }))
+      : [],
+    contact: inv.deal?.contact
+      ? {
+          id: inv.deal.contact.id,
+          full_name: `${inv.deal.contact.firstName} ${inv.deal.contact.lastName || ''}`.trim(),
+          email: inv.deal.contact.email || '',
+          phone: inv.deal.contact.phone || undefined,
+          company: inv.deal.contact.companyName || undefined,
+          job_title: inv.deal.contact.jobTitle || undefined,
+          notes: inv.deal.contact.notes || undefined,
+          created_at: inv.deal.contact.createdAt.toISOString(),
+          updated_at: inv.deal.contact.updatedAt.toISOString(),
+        }
+      : undefined,
+  };
+}
+
 export async function getAllInvoices(): Promise<Invoice[]> {
-  if (!isLiveSupabaseConfigured()) {
-    return mockInvoices;
+  try {
+    const invoices = await db.invoice.findMany({
+      include: {
+        lineItems: true,
+        deal: {
+          include: { contact: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (invoices && invoices.length > 0) {
+      return invoices.map(mapPrismaInvoiceToInvoice);
+    }
+  } catch (e) {
+    console.error('Error fetching invoices from DB:', e);
   }
-  const supabase = createBrowserClient();
-  const { data, error } = await supabase
-    .from('invoices')
-    .select('*, contact:crm_contacts(*), deal:crm_deals(*), line_items:invoice_line_items(*)')
-    .order('created_at', { ascending: false });
-  if (error || !data) return mockInvoices;
-  return data as Invoice[];
+  return mockInvoices;
 }
 
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
-  if (!isLiveSupabaseConfigured()) {
-    return mockInvoices.find((inv) => inv.id === id) || null;
+  try {
+    const inv = await db.invoice.findUnique({
+      where: { id },
+      include: {
+        lineItems: true,
+        deal: {
+          include: { contact: true },
+        },
+      },
+    });
+    if (inv) {
+      return mapPrismaInvoiceToInvoice(inv);
+    }
+  } catch (e) {
+    console.error('Error fetching invoice by id from DB:', e);
   }
-  const supabase = createBrowserClient();
-  const { data, error } = await supabase
-    .from('invoices')
-    .select('*, contact:crm_contacts(*), deal:crm_deals(*), line_items:invoice_line_items(*)')
-    .eq('id', id)
-    .single();
-  if (error || !data) return mockInvoices.find((inv) => inv.id === id) || null;
-  return data as Invoice;
+  return mockInvoices.find((inv) => inv.id === id) || null;
 }

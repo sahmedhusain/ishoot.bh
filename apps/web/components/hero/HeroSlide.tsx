@@ -71,9 +71,8 @@ export function HeroSlide({ banner, isActive, isMuted, locale, isRTL }: HeroSlid
           />
         )}
 
-        {/* Cinematic Vignette & Color Grading Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050807] via-[#050807]/50 to-[#050807]/30" />
-        <div className="absolute inset-0 bg-radial-vignette opacity-70" />
+        {/* Clean Hero Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/40 to-black/20" />
       </div>
 
       {/* Hero Content */}
@@ -88,21 +87,21 @@ export function HeroSlide({ banner, isActive, isMuted, locale, isRTL }: HeroSlid
           </h1>
 
           {subtitle && (
-            <p className="text-base sm:text-lg md:text-xl text-[#9EADA9] max-w-2xl leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-slate-200 max-w-2xl leading-relaxed">
               {subtitle}
             </p>
           )}
 
           <div className="pt-2 flex flex-wrap items-center gap-4">
             <Link href={ctaLink}>
-              <Button variant="primary" size="lg" className="group">
+              <Button variant="primary" size="lg" className="group bg-[#09937F] hover:bg-[#0BB49B] text-white">
                 <span>{ctaLabel}</span>
                 <ArrowIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
 
             <Link href={`/${locale}/contact`}>
-              <Button variant="secondary" size="lg">
+              <Button variant="secondary" size="lg" className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md">
                 {isRTL ? 'ابدأ مشروعك' : 'Start a Project'}
               </Button>
             </Link>

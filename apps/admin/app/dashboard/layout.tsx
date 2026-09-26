@@ -8,8 +8,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-[#050807] text-[#F2F6F5]">
-      {/* Twenty-inspired Collapsible Sidebar */}
+    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+      {/* Sidebar */}
       <Sidebar />
 
       {/* Main Workspace Frame */}

@@ -20,7 +20,7 @@ export const mockCompanySettings: CompanySettings = {
   company_name_ar: 'آي شوت للإنتاج السينمائي',
   cr_number: 'CR-142859-1',
   vat_id: null,
-  vat_enabled: false, // Default is non-VAT
+  vat_enabled: false,
   vat_percentage: 10.0,
   default_currency: 'BHD',
   currency_decimals: 3,
@@ -33,12 +33,12 @@ export const mockCompanySettings: CompanySettings = {
   bank_iban: 'BH64NBOB00000012345678',
   bank_account_number: '0012345678',
   bank_swift: 'NBOBBHBM',
-  logo_url: '/images/logo-color.svg',
+  logo_url: '/logo.svg',
   payment_terms_days: 30,
   invoice_prefix: 'ISH',
-  invoice_next_number: 16,
+  invoice_next_number: 25,
   receipt_prefix: 'RCT',
-  receipt_next_number: 9,
+  receipt_next_number: 18,
   updated_at: new Date().toISOString(),
 };
 
@@ -197,12 +197,14 @@ export const mockPortfolioItems: PortfolioItem[] = [
 ];
 
 export const mockClientLogos: ClientLogo[] = [
-  { id: 'l1', client_name: 'Batelco', logo_svg_url: '/images/icon.svg', is_active: true, display_order: 1, created_at: new Date().toISOString() },
-  { id: 'l2', client_name: 'Four Seasons', logo_svg_url: '/images/icon.svg', is_active: true, display_order: 2, created_at: new Date().toISOString() },
-  { id: 'l3', client_name: 'National Bank of Bahrain', logo_svg_url: '/images/icon.svg', is_active: true, display_order: 3, created_at: new Date().toISOString() },
-  { id: 'l4', client_name: 'EDB Bahrain', logo_svg_url: '/images/icon.svg', is_active: true, display_order: 4, created_at: new Date().toISOString() },
-  { id: 'l5', client_name: 'Gulf Air', logo_svg_url: '/images/icon.svg', is_active: true, display_order: 5, created_at: new Date().toISOString() },
-  { id: 'l6', client_name: 'Al Zain', logo_svg_url: '/images/icon.svg', is_active: true, display_order: 6, created_at: new Date().toISOString() },
+  { id: 'l1', client_name: 'Batelco', logo_svg_url: '/icon.svg', is_active: true, display_order: 1, created_at: new Date().toISOString() },
+  { id: 'l2', client_name: 'Four Seasons', logo_svg_url: '/icon.svg', is_active: true, display_order: 2, created_at: new Date().toISOString() },
+  { id: 'l3', client_name: 'National Bank of Bahrain', logo_svg_url: '/icon.svg', is_active: true, display_order: 3, created_at: new Date().toISOString() },
+  { id: 'l4', client_name: 'EDB Bahrain', logo_svg_url: '/icon.svg', is_active: true, display_order: 4, created_at: new Date().toISOString() },
+  { id: 'l5', client_name: 'Gulf Air', logo_svg_url: '/icon.svg', is_active: true, display_order: 5, created_at: new Date().toISOString() },
+  { id: 'l6', client_name: 'Al Zain Jewellery', logo_svg_url: '/icon.svg', is_active: true, display_order: 6, created_at: new Date().toISOString() },
+  { id: 'l7', client_name: 'Diyar Al Muharraq', logo_svg_url: '/icon.svg', is_active: true, display_order: 7, created_at: new Date().toISOString() },
+  { id: 'l8', client_name: 'stc Bahrain', logo_svg_url: '/icon.svg', is_active: true, display_order: 8, created_at: new Date().toISOString() },
 ];
 
 export const mockStudioEquipment: StudioEquipment[] = [
@@ -222,6 +224,9 @@ export const mockContacts: CRMContact[] = [
   { id: 'c2', full_name: 'Marcus Vance', email: 'marcus.vance@fourseasons.com', phone: '+973 3611 2233', company: 'Four Seasons Bahrain Bay', job_title: 'Head of PR & Brand', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
   { id: 'c3', full_name: 'Noor Al-Hassan', email: 'n.hassan@alzainjewellery.com', phone: '+973 3822 3344', company: 'Al Zain Jewellery', job_title: 'Creative Manager', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
   { id: 'c4', full_name: 'Khalid Al-Aali', email: 'khalid@edb.bh', phone: '+973 3933 4455', company: 'EDB Bahrain', job_title: 'Senior Communications Lead', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'c5', full_name: 'Fatima Al-Khooheji', email: 'f.khooheji@gulfair.com', phone: '+973 3944 5566', company: 'Gulf Air', job_title: 'Brand Communications Manager', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'c6', full_name: 'Jassim Al-Serafi', email: 'j.serafi@nbbonline.com', phone: '+973 3955 6677', company: 'National Bank of Bahrain', job_title: 'Head of Corporate Affairs', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  { id: 'c7', full_name: 'Sarah Jenkins', email: 's.jenkins@diyar.bh', phone: '+973 3966 7788', company: 'Diyar Al Muharraq', job_title: 'Marketing Lead', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
 ];
 
 export const mockDeals: CRMDeal[] = [
@@ -229,6 +234,8 @@ export const mockDeals: CRMDeal[] = [
   { id: 'd2', contact_id: 'c2', title: 'Winter Island Campaign Reel', value: 2800.0, currency: 'BHD', stage: 'proposal_sent', probability: 50, target_close_date: '2026-10-25', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), contact: mockContacts[1] },
   { id: 'd3', contact_id: 'c3', title: 'Spring Lookbook Macro Shoot', value: 1650.0, currency: 'BHD', stage: 'contract_signed', probability: 90, shoot_date: '2026-10-18', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), contact: mockContacts[2] },
   { id: 'd4', contact_id: 'c4', title: 'Global Tourism Campaign FPV', value: 6200.0, currency: 'BHD', stage: 'closed_won', probability: 100, shoot_date: '2026-09-10', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), contact: mockContacts[3] },
+  { id: 'd5', contact_id: 'c5', title: 'In-Flight Luxury Brand Film', value: 5500.0, currency: 'BHD', stage: 'proposal_sent', probability: 60, target_close_date: '2026-11-01', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), contact: mockContacts[4] },
+  { id: 'd6', contact_id: 'c6', title: 'Annual Report Cinematic Video', value: 3400.0, currency: 'BHD', stage: 'closed_won', probability: 100, shoot_date: '2026-08-20', created_at: new Date().toISOString(), updated_at: new Date().toISOString(), contact: mockContacts[5] },
 ];
 
 export const mockInvoices: Invoice[] = [
@@ -244,7 +251,7 @@ export const mockInvoices: Invoice[] = [
     discount_value: 0,
     discount_amount: 0,
     after_discount: 6200.0,
-    vat_enabled: false, // Non-VAT default
+    vat_enabled: false,
     vat_percentage: 0,
     vat_amount: 0,
     total_amount: 6200.0,
@@ -295,6 +302,37 @@ export const mockInvoices: Invoice[] = [
       { id: 'li3', description_en: 'Production Advance: RED V-Raptor 8K Camera Package & Lighting Rig', description_ar: 'دفعة مقدمة: حزمة كاميرا RED 8K ومعدات الإضاءة', quantity: 1, unit_price: 4500.0, line_total: 4500.0 },
     ],
   },
+  {
+    id: 'inv3',
+    invoice_number: 'ISH-2026-003',
+    contact_id: 'c6',
+    deal_id: 'd6',
+    issue_date: '2026-08-25',
+    due_date: '2026-09-25',
+    subtotal: 3400.0,
+    discount_type: 'none',
+    discount_value: 0,
+    discount_amount: 0,
+    after_discount: 3400.0,
+    vat_enabled: false,
+    vat_percentage: 0,
+    vat_amount: 0,
+    total_amount: 3400.0,
+    amount_paid: 3400.0,
+    amount_due: 0.0,
+    currency: 'BHD',
+    language: 'ar',
+    status: 'paid',
+    delivery_channel: 'email',
+    delivered_at: '2026-08-25T09:00:00Z',
+    created_at: '2026-08-25T09:00:00Z',
+    updated_at: '2026-08-28T16:00:00Z',
+    contact: mockContacts[5],
+    deal: mockDeals[5],
+    line_items: [
+      { id: 'li4', description_en: 'Annual Corporate Video Production & Editing', description_ar: 'إنتاج ومونتاج الفيديو السنوي للشركة', quantity: 1, unit_price: 3400.0, line_total: 3400.0 },
+    ],
+  },
 ];
 
 export const mockPayments: Payment[] = [
@@ -328,6 +366,21 @@ export const mockPayments: Payment[] = [
     created_at: '2026-09-22T09:15:00Z',
     invoice: mockInvoices[1],
   },
+  {
+    id: 'pay3',
+    invoice_id: 'inv3',
+    receipt_number: 'RCT-2026-003',
+    payment_date: '2026-08-28',
+    amount: 3400.0,
+    currency: 'BHD',
+    payment_method: 'bank_transfer',
+    reference_number: 'NBB-CORP-7712',
+    notes: 'Full payment received.',
+    notification_channel: 'email',
+    notification_sent: true,
+    created_at: '2026-08-28T16:00:00Z',
+    invoice: mockInvoices[2],
+  },
 ];
 
 export const mockExpenseCategories: ExpenseCategory[] = [
@@ -344,20 +397,37 @@ export const mockExpenses: Expense[] = [
   { id: 'e2', category_id: 'ec2', deal_id: 'd4', description_en: 'Precision Gaffer & Focus Puller Crew Fee', description_ar: 'أتعاب مساعد المصور وفني الإضاءة الأول', amount: 650.0, currency: 'BHD', expense_date: '2026-09-11', vendor_name: 'Freelance Crew', is_recurring: false, created_at: new Date().toISOString(), category: mockExpenseCategories[1] },
   { id: 'e3', category_id: 'ec5', description_en: 'Studio Monthly Rent — Seef District', description_ar: 'إيجار الاستوديو الشهري — ضاحية السيف', amount: 800.0, currency: 'BHD', expense_date: '2026-09-01', vendor_name: 'Seef Properties', is_recurring: true, recurrence_interval: 'monthly', created_at: new Date().toISOString(), category: mockExpenseCategories[4] },
   { id: 'e4', category_id: 'ec6', description_en: 'Adobe Creative Cloud & DaVinci Resolve Studio Licenses', description_ar: 'تراخيص برامج أدوبي ودافينشي ريزولف', amount: 120.0, currency: 'BHD', expense_date: '2026-09-05', vendor_name: 'Adobe Systems', is_recurring: true, recurrence_interval: 'monthly', created_at: new Date().toISOString(), category: mockExpenseCategories[5] },
+  { id: 'e5', category_id: 'ec3', deal_id: 'd1', description_en: 'Civil Aviation & Ministry Location Permits', description_ar: 'تصاريح الطيران المدني والوزارة لتصوير الموقع', amount: 250.0, currency: 'BHD', expense_date: '2026-09-18', vendor_name: 'Ministry of Information', is_recurring: false, created_at: new Date().toISOString(), category: mockExpenseCategories[2] },
 ];
 
 export const mockInquiries: Inquiry[] = [
   {
     id: 'inq1',
-    full_name: 'Hamad Al-Khalifa',
+    full_name: 'حمد الخليفة',
     email: 'hamad@gulfholding.bh',
     phone: '+973 3999 8877',
-    company: 'Gulf Holding Group',
+    company: 'مجموعة الخليج القابضة',
     services_requested: ['Commercial Cinematography', 'Aerial & FPV Cinematography'],
     budget_range: 'BHD 2,500 – 5,000',
     target_timeline: 'Q4 2026',
-    message: 'We are launching a flagship commercial real estate development in Diyar Al Muharraq and need a high-impact video campaign with cinematic FPV drone perspectives.',
+    message: 'نبحث عن شركة إنتاج سينمائي لتصوير إعلان تجاري ضخم لمشروع ديار المحرق الجديد بأسلوب إف بي في سينمائي.',
     status: 'new',
+    confirmation_sent: true,
+    notification_sent: true,
+    locale: 'ar',
+    created_at: new Date().toISOString(),
+  },
+  {
+    id: 'inq2',
+    full_name: 'Reem Al-Hashimi',
+    email: 'reem@stc.com.bh',
+    phone: '+973 3888 7766',
+    company: 'stc Bahrain',
+    services_requested: ['Commercial Cinematography', 'Color Grading'],
+    budget_range: 'BHD 5,000+',
+    target_timeline: 'Q1 2027',
+    message: 'We want to produce an 8K commercial video suite for our upcoming 5G Advanced network launch.',
+    status: 'contacted',
     confirmation_sent: true,
     notification_sent: true,
     locale: 'en',

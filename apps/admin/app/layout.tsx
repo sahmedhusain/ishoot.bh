@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'ishoot Admin Portal — Workspace & Operations',
-  description: 'Executive management portal for ishoot: CMS, Twenty-style CRM pipeline, invoices, payments, expenses, and financial intelligence.',
+  description: 'Executive management portal for ishoot: CMS, CRM pipeline, invoices, payments, expenses, and financial intelligence.',
   icons: {
-    icon: '/images/icon.svg',
+    icon: '/icon.svg',
   },
 };
 
@@ -15,8 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen bg-[#050807] text-[#F2F6F5] antialiased">
+    <html lang="ar" dir="rtl">
+      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased font-sans">
         {children}
       </body>
     </html>

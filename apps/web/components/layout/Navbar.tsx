@@ -10,7 +10,7 @@ import { MobileMenu } from './MobileMenu';
 import { Menu } from 'lucide-react';
 
 export function Navbar() {
-  const { t, locale, isRTL } = useTranslation();
+  const { t, locale } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -33,25 +33,30 @@ export function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'py-3.5 bg-[#050807]/85 backdrop-blur-2xl border-b border-white/10 shadow-2xl shadow-black/50'
-            : 'py-6 bg-gradient-to-b from-[#050807]/90 via-[#050807]/40 to-transparent'
+            ? 'py-3 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-sm'
+            : 'py-4 bg-white/90 backdrop-blur-md border-b border-slate-100'
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
-          {/* Logo with Brand Aperture Glyph */}
-          <Link href={`/${locale}`} className="group flex items-center gap-3">
-            <div className="relative w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-[#014842] border border-[#09937F]/40 group-hover:border-[#09937F] transition-all duration-300">
-              <span className="w-3 h-3 rounded-full bg-[#09937F] group-hover:scale-125 transition-transform" />
+          {/* Official Brand Logo with Standalone Icon + Typography */}
+          <Link href={`/${locale}`} className="flex items-center gap-3 group">
+            <div className="relative h-10 w-10 flex items-center justify-center">
+              <img
+                src="/icon.svg"
+                alt="ishoot Icon"
+                className="h-9 w-auto object-contain transition-transform group-hover:scale-105 duration-200"
+              />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-white font-display">
-              ishoot<span className="text-[#09937F]">.</span>
+            <span className="text-2xl font-bold tracking-tight text-[#014842] font-display">
+              {locale === 'ar' ? 'آي شوت' : 'ishoot'}
+              <span className="text-[#09937F]">.</span>
             </span>
           </Link>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md">
+          <nav className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100/80 border border-slate-200/60 backdrop-blur-md">
             {navLinks.map((link) => {
               const isActive =
                 link.href === `/${locale}`
@@ -62,10 +67,10 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ${
                     isActive
-                      ? 'bg-[#09937F]/15 text-[#09937F] border border-[#09937F]/30'
-                      : 'text-[#9EADA9] hover:text-white hover:bg-white/5'
+                      ? 'bg-[#014842] text-white shadow-sm'
+                      : 'text-slate-700 hover:text-[#014842] hover:bg-slate-200/60'
                   }`}
                 >
                   {link.label}
@@ -78,7 +83,7 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             <LanguageSwitcher />
             <Link href={`/${locale}/contact`}>
-              <Button variant="primary" size="md">
+              <Button variant="primary" size="md" className="bg-[#014842] hover:bg-[#02665D] text-white">
                 {t('nav.bookNow')}
               </Button>
             </Link>
@@ -89,7 +94,7 @@ export function Navbar() {
             <LanguageSwitcher />
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:text-[#09937F] transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-800 hover:text-[#014842] transition-colors"
               aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />

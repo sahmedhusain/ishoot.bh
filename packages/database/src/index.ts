@@ -1,5 +1,5 @@
 export * from './types';
-export * from './client';
+export * from './db';
 export * from './mock-data';
 export * from './queries/banners';
 export * from './queries/portfolio';

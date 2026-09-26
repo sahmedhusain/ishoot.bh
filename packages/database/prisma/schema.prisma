@@ -1,0 +1,258 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  fullName       String
+  passwordHash   String
+  role           String    @default("editor") // "super_admin", "producer", "editor"
+  avatarUrl      String?
+  resetToken     String?
+  resetExpiresAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  invoicesCreated Invoice[]
+  paymentsCreated Payment[]
+  expensesCreated Expense[]
+}
+
+model CompanySetting {
+  id                  String   @id @default(uuid())
+  companyNameEn       String   @default("ishoot Cinema Production")
+  companyNameAr       String   @default("آي شوت للإنتاج السينمائي")
+  crNumber            String?  @default("CR-142859-1")
+  vatId               String?
+  vatEnabled          Boolean  @default(false)
+  vatPercentage       Decimal  @default(10.00) @db.Decimal(5, 2)
+  defaultCurrency     String   @default("BHD")
+  currencyDecimals    Int      @default(3)
+  addressEn           String?
+  addressAr           String?
+  phone               String?
+  email               String?
+  website             String?
+  bankName            String?
+  bankIban            String?
+  bankAccountNumber   String?
+  bankSwift           String?
+  logoUrl             String?  @default("/images/logo-color.svg")
+  paymentTermsDays    Int      @default(30)
+  invoicePrefix       String   @default("ISH")
+  invoiceNextNumber   Int      @default(1)
+  receiptPrefix       String   @default("RCT")
+  receiptNextNumber   Int      @default(1)
+  updatedAt           DateTime @updatedAt
+}
+
+model HeroBanner {
+  id           String   @id @default(uuid())
+  titleEn      String
+  titleAr      String
+  subtitleEn   String?
+  subtitleAr   String?
+  mediaType    String   // "video", "image"
+  mediaUrl     String
+  posterUrl    String?
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+  ctaLabelEn   String?
+  ctaLabelAr   String?
+  ctaLink      String?
+  createdAt    DateTime @default(now())
+}
+
+model PortfolioCategory {
+  id           String          @id @default(uuid())
+  slug         String          @unique
+  nameEn       String
+  nameAr       String
+  displayOrder Int             @default(0)
+  items        PortfolioItem[]
+}
+
+model PortfolioItem {
+  id              String             @id @default(uuid())
+  categoryId      String?
+  category        PortfolioCategory? @relation(fields: [categoryId], references: [id])
+  slug            String             @unique
+  titleEn         String
+  titleAr         String
+  clientName      String
+  year            Int
+  aspectRatio     String             @default("16:9")
+  thumbnailUrl    String
+  previewVideoUrl String?
+  fullVideoUrl    String?
+  galleryUrls     String[]           @default([])
+  descriptionEn   String?
+  descriptionAr   String?
+  credits         Json               @default("{}")
+  isFeatured      Boolean            @default(false)
+  displayOrder    Int                @default(0)
+  createdAt       DateTime           @default(now())
+}
+
+model ClientLogo {
+  id           String   @id @default(uuid())
+  name         String
+  logoUrl      String
+  isDarkLogo   Boolean  @default(false)
+  displayOrder Int      @default(0)
+  isActive     Boolean  @default(true)
+}
+
+model StudioEquipment {
+  id           String   @id @default(uuid())
+  category     String   // "cameras", "lenses", "lighting", "grip", "audio"
+  nameEn       String
+  nameAr       String
+  brand        String?
+  quantity     Int      @default(1)
+  descriptionEn String?
+  descriptionAr String?
+  imageUrl     String?
+  displayOrder Int      @default(0)
+}
+
+model Inquiry {
+  id           String   @id @default(uuid())
+  name         String
+  email        String
+  phone        String?
+  companyName  String?
+  serviceType  String?
+  budgetRange  String?
+  message      String
+  status       String   @default("new") // "new", "contacted", "qualified", "archived"
+  createdAt    DateTime @default(now())
+}
+
+model CrmContact {
+  id            String    @id @default(uuid())
+  firstName     String
+  lastName      String?
+  email         String?
+  phone         String?
+  companyName   String?
+  jobTitle      String?
+  contactType   String    @default("client") // "client", "vendor", "freelancer", "agency"
+  notes         String?
+  deals         CrmDeal[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model CrmDeal {
+  id                String       @id @default(uuid())
+  contactId         String?
+  contact           CrmContact?  @relation(fields: [contactId], references: [id])
+  title             String
+  dealStage         String       @default("lead") // "lead", "proposal", "negotiation", "won", "lost"
+  dealValue         Decimal      @default(0.000) @db.Decimal(12, 3)
+  currency          String       @default("BHD")
+  probability       Int          @default(50)
+  expectedCloseDate DateTime?    @db.Date
+  notes             String?
+  invoices          Invoice[]
+  expenses          Expense[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+model Invoice {
+  id               String            @id @default(uuid())
+  dealId           String?
+  deal             CrmDeal?          @relation(fields: [dealId], references: [id])
+  invoiceNumber    String            @unique
+  clientId         String?
+  issueDate        DateTime          @default(now()) @db.Date
+  dueDate          DateTime          @db.Date
+  subtotal         Decimal           @default(0.000) @db.Decimal(12, 3)
+  vatAmount        Decimal           @default(0.000) @db.Decimal(12, 3)
+  discountAmount   Decimal           @default(0.000) @db.Decimal(12, 3)
+  totalAmount      Decimal           @default(0.000) @db.Decimal(12, 3)
+  currency         String            @default("BHD")
+  status           String            @default("draft") // "draft", "sent", "partially_paid", "paid", "overdue", "void"
+  pdfStoragePath   String?
+  deliveryChannel  String?
+  deliveredAt      DateTime?         @db.Timestamptz
+  notesEn          String?
+  notesAr          String?
+  createdById      String?
+  createdBy        User?             @relation(fields: [createdById], references: [id])
+  lineItems        InvoiceLineItem[]
+  payments         Payment[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model InvoiceLineItem {
+  id            String   @id @default(uuid())
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  descriptionEn String
+  descriptionAr String?
+  quantity      Decimal  @default(1.00) @db.Decimal(10, 2)
+  unitPrice     Decimal  @default(0.000) @db.Decimal(12, 3)
+  lineTotal     Decimal  @default(0.000) @db.Decimal(12, 3)
+  displayOrder  Int      @default(0)
+}
+
+model Payment {
+  id                  String    @id @default(uuid())
+  invoiceId           String
+  invoice             Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  receiptNumber       String    @unique
+  paymentDate         DateTime  @default(now()) @db.Date
+  amount              Decimal   @db.Decimal(12, 3)
+  currency            String    @default("BHD")
+  paymentMethod       String    @default("bank_transfer") // "bank_transfer", "cash", "cheque", "card", "online"
+  referenceNumber     String?
+  notes               String?
+  receiptPdfPath      String?
+  notificationChannel String?
+  notificationSent    Boolean   @default(false)
+  createdById         String?
+  createdBy           User?     @relation(fields: [createdById], references: [id])
+  createdAt           DateTime  @default(now())
+}
+
+model ExpenseCategory {
+  id           String    @id @default(uuid())
+  slug         String    @unique
+  nameEn       String
+  nameAr       String
+  color        String    @default("#9EADA9")
+  displayOrder Int       @default(0)
+  expenses     Expense[]
+}
+
+model Expense {
+  id                 String           @id @default(uuid())
+  categoryId         String?
+  category           ExpenseCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  dealId             String?
+  deal               CrmDeal?         @relation(fields: [dealId], references: [id])
+  descriptionEn      String
+  descriptionAr      String?
+  amount             Decimal          @db.Decimal(12, 3)
+  currency           String           @default("BHD")
+  expenseDate        DateTime         @default(now()) @db.Date
+  vendorName         String?
+  receiptUrl         String?
+  isRecurring        Boolean          @default(false)
+  recurrenceInterval String?          // "monthly", "quarterly", "yearly"
+  notes              String?
+  createdById        String?
+  createdBy          User?            @relation(fields: [createdById], references: [id])
+  createdAt          DateTime         @default(now())
+}

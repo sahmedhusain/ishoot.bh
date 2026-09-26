@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const locales = ['en', 'ar'];
-const defaultLocale = 'en';
+const defaultLocale = 'ar';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
   if (!pathnameHasLocale) {
     // Detect preferred locale from header or fallback to en
     const acceptLang = request.headers.get('accept-language') || '';
-    const detectedLocale = acceptLang.includes('ar') ? 'ar' : defaultLocale;
+    const detectedLocale = acceptLang.startsWith('en') ? 'en' : 'ar';
 
     return NextResponse.redirect(
       new URL(`/${detectedLocale}${pathname.startsWith('/') ? pathname : `/${pathname}`}`, request.url)

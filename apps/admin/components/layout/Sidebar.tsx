@@ -15,9 +15,9 @@ import {
   Receipt,
   PieChart,
   Building2,
-  Settings,
   LogOut,
   LayoutDashboard,
+  ShieldCheck,
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -25,68 +25,73 @@ export function Sidebar() {
 
   const navGroups = [
     {
-      label: 'OVERVIEW',
+      label: 'نظرة عامة / OVERVIEW',
       items: [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/dashboard', label: 'لوحة التحكم / Dashboard', icon: LayoutDashboard },
       ],
     },
     {
-      label: 'CMS CONTENT',
+      label: 'إدارة المحتوى / CMS',
       items: [
-        { href: '/dashboard/cms/banners', label: 'Hero Banners', icon: Film },
-        { href: '/dashboard/cms/portfolio', label: 'Portfolio Works', icon: Camera },
-        { href: '/dashboard/cms/clients', label: 'Client Logos', icon: Layers },
-        { href: '/dashboard/cms/equipment', label: 'Gear Locker', icon: Camera },
+        { href: '/dashboard/cms/banners', label: 'بنرات الهيرو / Banners', icon: Film },
+        { href: '/dashboard/cms/portfolio', label: 'معرض الأعمال / Portfolio', icon: Camera },
+        { href: '/dashboard/cms/clients', label: 'شعارات العملاء / Clients', icon: Layers },
+        { href: '/dashboard/cms/equipment', label: 'المعدات والإنتاج / Gear', icon: Camera },
       ],
     },
     {
-      label: 'CRM PIPELINE',
+      label: 'إدارة العملاء / CRM',
       items: [
-        { href: '/dashboard/crm/leads', label: 'Inquiries & Leads', icon: Inbox },
-        { href: '/dashboard/crm/deals', label: 'Deals Kanban', icon: Kanban },
-        { href: '/dashboard/crm/contacts', label: 'Client Directory', icon: Users },
+        { href: '/dashboard/crm/leads', label: 'الطلبات والاستفسارات / Leads', icon: Inbox },
+        { href: '/dashboard/crm/deals', label: 'الصفقات / Deals Kanban', icon: Kanban },
+        { href: '/dashboard/crm/contacts', label: 'دليل العملاء / Contacts', icon: Users },
       ],
     },
     {
-      label: 'FINANCIAL STUDIO',
+      label: 'المالية والإنتاج / FINANCE',
       items: [
-        { href: '/dashboard/invoices', label: 'Invoices', icon: FileText },
-        { href: '/dashboard/payments', label: 'Payments & Receipts', icon: CreditCard },
-        { href: '/dashboard/expenses', label: 'Operating Expenses', icon: Receipt },
-        { href: '/dashboard/finance', label: 'P&L & Analytics', icon: PieChart },
+        { href: '/dashboard/invoices', label: 'الفواتير / Invoices', icon: FileText },
+        { href: '/dashboard/payments', label: 'المقبوضات والسندات / Payments', icon: CreditCard },
+        { href: '/dashboard/expenses', label: 'المصروفات / Expenses', icon: Receipt },
+        { href: '/dashboard/finance', label: 'التقارير الأرباح / Analytics', icon: PieChart },
       ],
     },
     {
-      label: 'SYSTEM',
+      label: 'النظام والإعدادات / SYSTEM',
       items: [
-        { href: '/dashboard/settings/company', label: 'Company Settings', icon: Building2 },
+        { href: '/dashboard/settings/company', label: 'إعدادات الشركة / Settings', icon: Building2 },
+        { href: '/dashboard/users', label: 'إدارة المستخدمين / Users', icon: ShieldCheck },
       ],
     },
   ];
 
   return (
-    <aside className="w-64 bg-[#0B1210] border-r border-white/10 flex flex-col justify-between shrink-0 select-none min-h-screen">
+    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 select-none min-h-screen shadow-sm">
       {/* Brand Header */}
       <div>
-        <div className="h-16 px-6 flex items-center gap-3 border-b border-white/10">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#014842] border border-[#09937F]/50">
-            <span className="w-3 h-3 rounded-full bg-[#09937F]" />
+        <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-100">
+          <div className="relative w-8 h-8 flex items-center justify-center">
+            <img
+              src="/icon.svg"
+              alt="ishoot Icon"
+              className="h-7 w-auto object-contain"
+            />
           </div>
           <div>
-            <span className="text-xl font-bold tracking-tight text-white font-display">
-              ishoot<span className="text-[#09937F]">.</span>
+            <span className="text-xl font-bold tracking-tight text-[#014842] font-display">
+              آي شوت<span className="text-[#09937F]">.</span>
             </span>
-            <span className="text-[10px] text-[#9EADA9] block uppercase tracking-widest font-mono">
-              Admin Suite
+            <span className="text-[10px] text-slate-500 block font-semibold">
+              لوحة الإدارة — Admin
             </span>
           </div>
         </div>
 
         {/* Navigation Menus */}
-        <nav className="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-130px)]">
+        <nav className="p-4 space-y-5 overflow-y-auto max-h-[calc(100vh-130px)]">
           {navGroups.map((group) => (
             <div key={group.label} className="space-y-1">
-              <div className="px-3 text-[10px] font-mono tracking-widest text-[#9EADA9]/60 font-semibold mb-2">
+              <div className="px-3 text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
                 {group.label}
               </div>
               {group.items.map((item) => {
@@ -97,10 +102,10 @@ export function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
                       isActive
-                        ? 'bg-[#09937F]/15 text-[#09937F] border border-[#09937F]/30 font-semibold shadow-sm'
-                        : 'text-[#9EADA9] hover:text-white hover:bg-white/5 border border-transparent'
+                        ? 'bg-[#014842] text-white shadow-sm'
+                        : 'text-slate-600 hover:text-[#014842] hover:bg-slate-100/80 border border-transparent'
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
@@ -114,13 +119,13 @@ export function Sidebar() {
       </div>
 
       {/* Logout Action */}
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-slate-100">
         <Link
           href="/login"
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
         >
           <LogOut className="w-4 h-4" />
-          <span>Exit Workspace</span>
+          <span>تسجيل الخروج / Exit</span>
         </Link>
       </div>
     </aside>

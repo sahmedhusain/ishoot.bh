@@ -8,13 +8,26 @@
     "dev": "turbo run dev --parallel",
     "dev:web": "turbo run dev --filter=@ishoot/web",
     "dev:admin": "turbo run dev --filter=@ishoot/admin",
+    "db:push": "prisma db push --schema=packages/database/prisma/schema.prisma",
+    "db:seed": "ts-node packages/database/prisma/seed.ts",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
   },
   "devDependencies": {
+    "@types/dotenv": "^8.2.3",
     "prettier": "^3.5.1",
+    "prisma": "^5.22.0",
+    "ts-node": "^10.9.2",
     "turbo": "^2.4.4",
     "typescript": "^5.7.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "*"
+    ]
+  },
+  "dependencies": {
+    "dotenv": "^18.0.4"
   }
 }
