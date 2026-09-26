@@ -30,5 +30,5 @@ export async function getAllInquiries(): Promise<Inquiry[]> {
   const supabase = createBrowserClient();
   const { data, error } = await supabase.from('inquiries').select('*').order('created_at', { ascending: false });
   if (error || !data) return mockInquiries;
-  return data as Inquiry;
+  return data as Inquiry[];
 }

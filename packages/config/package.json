@@ -2,6 +2,7 @@
   "name": "@ishoot/config",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "main": "./tailwind.config.ts",
   "types": "./tailwind.config.ts",
   "dependencies": {

@@ -70,3 +70,11 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 node_modules/
+.next/
+*/.next/
+apps/*/.next/
+.turbo/
+*/.turbo/
+*.tsbuildinfo
+dist/
+.env*.local
