@@ -20,41 +20,74 @@
 
 @font-face {
   font-family: 'IBM Plex Sans Arabic';
+  src: url('/fonts/IBMPlexSansArabic-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
   src: url('/fonts/IBMPlexSansArabic-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'IBM Plex Sans Arabic';
+  src: url('/fonts/IBMPlexSansArabic-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --ishoot-primary: #014842;
+  --ishoot-primary-light: #02665D;
+  --ishoot-primary-dark: #002D29;
   --ishoot-accent: #09937F;
-  --ishoot-bg-base: #ffffff;
-  --ishoot-bg-surface: #f8fafc;
-  --ishoot-bg-elevated: #f1f5f9;
+  --ishoot-accent-hover: #0BB49B;
+  --ishoot-accent-glow: rgba(9, 147, 127, 0.35);
+
+  --ishoot-bg-base: #050807;
+  --ishoot-bg-surface: #0B1210;
+  --ishoot-bg-elevated: #111C19;
+
+  --ishoot-text-primary: #F2F6F5;
+  --ishoot-text-secondary: #9EADA9;
+  --ishoot-text-accent: #09937F;
 }
 
 html, body {
-  background-color: #f8fafc;
-  color: #0f172a;
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: #050807;
+  color: #F2F6F5;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-/* Custom scrollbars for admin data tables */
+/* Custom dark scrollbars for enterprise admin tables */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #050807;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #09937F;
+}
+
+/* Card glass aesthetics */
+.glass-panel {
+  background: rgba(11, 18, 16, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }

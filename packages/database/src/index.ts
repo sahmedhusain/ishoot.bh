@@ -1,6 +1,5 @@
 export * from './types';
 export * from './db';
-export * from './mock-data';
 export * from './queries/banners';
 export * from './queries/portfolio';
 export * from './queries/clients';
@@ -12,3 +11,7 @@ export * from './queries/payments';
 export * from './queries/expenses';
 export * from './queries/company-settings';
 export * from './queries/finance';
+export * from './queries/calendar';
+export * from './queries/users';
+export * from './queries/notifications';
+export * from './queries/activity';

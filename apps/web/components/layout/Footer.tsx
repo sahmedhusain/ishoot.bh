@@ -17,13 +17,19 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           {/* Brand Column */}
           <div className="md:col-span-2 space-y-4">
-            <Link href={`/${locale}`} className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#014842] border border-[#09937F]/40">
-                <span className="w-3 h-3 rounded-full bg-[#09937F]" />
+            <Link href={`/${locale}`} className="flex items-center gap-3 group">
+              <div className="relative h-9 w-9 flex items-center justify-center shrink-0">
+                <img
+                  src="/icon.svg"
+                  alt="ishoot"
+                  className="h-8 w-auto object-contain"
+                />
               </div>
-              <span className="text-3xl font-bold tracking-tight text-white font-display">
-                ishoot<span className="text-[#09937F]">.</span>
-              </span>
+              <img
+                src="/images/logo-color.svg"
+                alt="ishoot"
+                className="h-7 w-auto object-contain brightness-125"
+              />
             </Link>
             <p className="text-sm text-[#9EADA9] max-w-md leading-relaxed">
               {t('footer.tagline')}

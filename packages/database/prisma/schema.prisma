@@ -13,8 +13,13 @@ model User {
   email          String    @unique
   fullName       String
   passwordHash   String
-  role           String    @default("editor") // "super_admin", "producer", "editor"
+  role           String    @default("viewer") // "super_admin", "admin", "finance_manager", "production_manager", "producer", "editor", "accountant", "viewer"
+  permissions    Json?     // custom granular override
   avatarUrl      String?
+  phone          String?
+  department     String?   // production, finance, marketing, executive
+  isActive       Boolean   @default(true)
+  lastLoginAt    DateTime?
   resetToken     String?
   resetExpiresAt DateTime?
   createdAt      DateTime  @default(now())
@@ -23,6 +28,10 @@ model User {
   invoicesCreated Invoice[]
   paymentsCreated Payment[]
   expensesCreated Expense[]
+  calendarEvents  CalendarEvent[]
+  activities      ActivityLog[]
+  notifications   Notification[]
+  attachments     Attachment[]
 }
 
 model CompanySetting {
@@ -105,22 +114,26 @@ model ClientLogo {
   id           String   @id @default(uuid())
   name         String
   logoUrl      String
+  websiteUrl   String?
   isDarkLogo   Boolean  @default(false)
   displayOrder Int      @default(0)
   isActive     Boolean  @default(true)
 }
 
 model StudioEquipment {
-  id           String   @id @default(uuid())
-  category     String   // "cameras", "lenses", "lighting", "grip", "audio"
-  nameEn       String
-  nameAr       String
-  brand        String?
-  quantity     Int      @default(1)
+  id            String   @id @default(uuid())
+  category      String   // "cameras", "lenses", "lighting", "grip", "audio", "stages"
+  nameEn        String
+  nameAr        String
+  brand         String?
+  dailyRateBhd  Decimal? @db.Decimal(10, 3)
+  quantity      Int      @default(1)
+  specification String?
   descriptionEn String?
   descriptionAr String?
-  imageUrl     String?
-  displayOrder Int      @default(0)
+  imageUrl      String?
+  displayOrder  Int      @default(0)
+  createdAt     DateTime @default(now())
 }
 
 model Inquiry {
@@ -131,8 +144,10 @@ model Inquiry {
   companyName  String?
   serviceType  String?
   budgetRange  String?
+  timeline     String?
   message      String
   status       String   @default("new") // "new", "contacted", "qualified", "archived"
+  locale       String   @default("ar")
   createdAt    DateTime @default(now())
 }
 
@@ -152,20 +167,24 @@ model CrmContact {
 }
 
 model CrmDeal {
-  id                String       @id @default(uuid())
+  id                String          @id @default(uuid())
   contactId         String?
-  contact           CrmContact?  @relation(fields: [contactId], references: [id])
+  contact           CrmContact?     @relation(fields: [contactId], references: [id])
   title             String
-  dealStage         String       @default("lead") // "lead", "proposal", "negotiation", "won", "lost"
-  dealValue         Decimal      @default(0.000) @db.Decimal(12, 3)
-  currency          String       @default("BHD")
-  probability       Int          @default(50)
-  expectedCloseDate DateTime?    @db.Date
+  dealStage         String          @default("lead") // "lead", "proposal_sent", "contract_signed", "production", "post_production", "delivered", "invoiced", "closed_won", "closed_lost"
+  dealValue         Decimal         @default(0.000) @db.Decimal(12, 3)
+  currency          String          @default("BHD")
+  probability       Int             @default(50)
+  expectedCloseDate DateTime?       @db.Date
+  shootDate         DateTime?       @db.Date
+  lostReason        String?
+  assignedTo        String?
   notes             String?
   invoices          Invoice[]
   expenses          Expense[]
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  calendarEvents    CalendarEvent[]
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 }
 
 model Invoice {
@@ -178,9 +197,12 @@ model Invoice {
   dueDate          DateTime          @db.Date
   subtotal         Decimal           @default(0.000) @db.Decimal(12, 3)
   vatAmount        Decimal           @default(0.000) @db.Decimal(12, 3)
+  discountType     String            @default("none") // "none", "percentage", "fixed"
+  discountValue    Decimal           @default(0.000) @db.Decimal(12, 3)
   discountAmount   Decimal           @default(0.000) @db.Decimal(12, 3)
   totalAmount      Decimal           @default(0.000) @db.Decimal(12, 3)
   currency         String            @default("BHD")
+  language         String            @default("ar") // "ar", "en"
   status           String            @default("draft") // "draft", "sent", "partially_paid", "paid", "overdue", "void"
   pdfStoragePath   String?
   deliveryChannel  String?
@@ -255,4 +277,75 @@ model Expense {
   createdById        String?
   createdBy          User?            @relation(fields: [createdById], references: [id])
   createdAt          DateTime         @default(now())
+}
+
+model CalendarEvent {
+  id               String    @id @default(uuid())
+  title            String
+  titleAr          String?
+  description      String?
+  startDate        DateTime
+  endDate          DateTime
+  allDay           Boolean   @default(false)
+  location         String?
+  color            String?   @default("#09937F")
+  eventType        String    @default("meeting") // "meeting", "shoot", "deadline", "reminder"
+  dealId           String?
+  deal             CrmDeal?  @relation(fields: [dealId], references: [id])
+  createdById      String?
+  createdBy        User?     @relation(fields: [createdById], references: [id])
+  googleEventId    String?
+  googleCalendarId String?
+  recurrence       String?
+  reminders        Json?
+  attendees        Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String   // "create", "update", "delete", "login", "export", "stage_change"
+  entityType String   // "invoice", "deal", "contact", "expense", "user", "banner"
+  entityId   String?
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  title      String
+  message    String
+  type       String   @default("info") // "info", "warning", "success", "action"
+  entityType String?
+  entityId   String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Tag {
+  id         String   @id @default(uuid())
+  name       String
+  nameAr     String?
+  color      String   @default("#09937F")
+  entityType String   // "deal", "contact", "invoice", "expense"
+  createdAt  DateTime @default(now())
+}
+
+model Attachment {
+  id           String   @id @default(uuid())
+  fileName     String
+  fileUrl      String
+  fileSize     Int?
+  mimeType     String?
+  entityType   String
+  entityId     String
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
 }

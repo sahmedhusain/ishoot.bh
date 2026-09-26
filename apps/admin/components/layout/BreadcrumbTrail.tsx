@@ -3,30 +3,56 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { useAdminLocale } from '../../hooks/useAdminLocale';
 
 export function BreadcrumbTrail() {
   const pathname = usePathname();
+  const { t, isRTL } = useAdminLocale();
   const segments = pathname.split('/').filter(Boolean);
+
+  const segmentLabels: Record<string, string> = {
+    dashboard: t.nav.overview,
+    calendar: t.nav.calendar,
+    crm: t.nav.crm,
+    deals: t.nav.deals,
+    contacts: t.nav.contacts,
+    leads: t.nav.leads,
+    finance: t.nav.finance,
+    invoices: t.nav.invoices,
+    payments: t.nav.payments,
+    expenses: t.nav.expenses,
+    cms: t.nav.cms,
+    banners: t.nav.banners,
+    portfolio: t.nav.portfolio,
+    clients: t.nav.clients,
+    equipment: t.nav.equipment,
+    users: t.nav.users,
+    settings: t.nav.system,
+    company: t.nav.companySettings,
+    new: t.actions.newInvoice,
+  };
+
+  const Chevron = isRTL ? ChevronLeft : ChevronRight;
 
   return (
     <nav className="flex items-center gap-1.5 text-xs text-[#9EADA9]">
-      <Link href="/dashboard" className="hover:text-white transition-colors">
-        ishoot
+      <Link href="/dashboard" className="hover:text-white transition-colors font-medium">
+        {isRTL ? 'الرئيسية' : 'Home'}
       </Link>
       {segments.map((segment, index) => {
         const url = `/${segments.slice(0, index + 1).join('/')}`;
         const isLast = index === segments.length - 1;
-        const formatted = segment.charAt(0).toUpperCase() + segment.slice(1).replace('-', ' ');
+        const label = segmentLabels[segment] || segment;
 
         return (
           <React.Fragment key={url}>
-            <ChevronRight className="w-3.5 h-3.5 text-white/20" />
+            <Chevron className="w-3.5 h-3.5 text-white/20" />
             {isLast ? (
-              <span className="text-[#F2F6F5] font-medium">{formatted}</span>
+              <span className="text-[#09937F] font-semibold">{label}</span>
             ) : (
               <Link href={url} className="hover:text-white transition-colors">
-                {formatted}
+                {label}
               </Link>
             )}
           </React.Fragment>

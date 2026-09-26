@@ -8,14 +8,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-[#050807] text-[#F2F6F5]">
+      {/* Odoo Module Sidebar */}
       <Sidebar />
 
       {/* Main Workspace Frame */}
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar />
-        <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
+        <main className="flex-1 p-5 sm:p-8 overflow-y-auto">
           {children}
         </main>
       </div>

@@ -1,9 +1,10 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import { AdminLocaleProvider } from '../hooks/useAdminLocale';
 
 export const metadata: Metadata = {
-  title: 'ishoot Admin Portal — Workspace & Operations',
-  description: 'Executive management portal for ishoot: CMS, CRM pipeline, invoices, payments, expenses, and financial intelligence.',
+  title: 'ishoot — لوحة العمليات والتحكم الإداري | Executive Operations',
+  description: 'Enterprise operations portal for ishoot Cinema Production House.',
   icons: {
     icon: '/icon.svg',
   },
@@ -16,8 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased font-sans">
-        {children}
+      <body className="min-h-screen bg-[#050807] text-[#F2F6F5] antialiased font-sans selection:bg-[#09937F]/30 selection:text-white">
+        <AdminLocaleProvider>
+          {children}
+        </AdminLocaleProvider>
       </body>
     </html>
   );

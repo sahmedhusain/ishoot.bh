@@ -40,19 +40,20 @@ export function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
-          {/* Official Brand Logo with Standalone Icon + Typography */}
+          {/* Official Brand Logo with Standalone Icon + SVG Wordmark */}
           <Link href={`/${locale}`} className="flex items-center gap-3 group">
-            <div className="relative h-10 w-10 flex items-center justify-center">
+            <div className="relative h-10 w-10 flex items-center justify-center shrink-0">
               <img
                 src="/icon.svg"
                 alt="ishoot Icon"
                 className="h-9 w-auto object-contain transition-transform group-hover:scale-105 duration-200"
               />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-[#014842] font-display">
-              {locale === 'ar' ? 'آي شوت' : 'ishoot'}
-              <span className="text-[#09937F]">.</span>
-            </span>
+            <img
+              src="/images/logo-color.svg"
+              alt="ishoot"
+              className="h-7 w-auto object-contain transition-opacity group-hover:opacity-90"
+            />
           </Link>
 
           {/* Desktop Navigation Links */}

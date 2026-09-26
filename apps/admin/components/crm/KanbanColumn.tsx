@@ -2,9 +2,10 @@
 
 import * as React from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { CRMDeal, DealStage } from '@ishoot/database';
+import type { CRMDeal, DealStage } from '@ishoot/database/types';
 import { DealCard } from './DealCard';
 import { CurrencyDisplay } from '@ishoot/ui';
+import { useAdminLocale } from '../../hooks/useAdminLocale';
 
 interface KanbanColumnProps {
   stage: DealStage;
@@ -14,6 +15,7 @@ interface KanbanColumnProps {
 }
 
 export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: KanbanColumnProps) {
+  const { locale } = useAdminLocale();
   const { setNodeRef, isOver } = useDroppable({
     id: stage,
   });
@@ -45,7 +47,7 @@ export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: K
         </div>
 
         <div className="text-[11px] font-mono text-[#9EADA9] flex justify-between items-center pt-1">
-          <span>Stage Sum:</span>
+          <span>{locale === 'ar' ? 'مجموع المرحلة:' : 'Stage Sum:'}</span>
           <span className="text-white font-bold">
             <CurrencyDisplay amount={totalValue} currency="BHD" />
           </span>
@@ -59,8 +61,8 @@ export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: K
         ))}
 
         {deals.length === 0 && (
-          <div className="h-24 border border-dashed border-white/10 rounded-xl flex items-center justify-center text-xs text-[#9EADA9]/40">
-            Empty Stage
+          <div className="h-24 border border-dashed border-white/10 rounded-xl flex items-center justify-center text-[11px] text-[#9EADA9]/40">
+            {locale === 'ar' ? 'لا توجد صفقات هنا' : 'No deals in this stage'}
           </div>
         )}
       </div>

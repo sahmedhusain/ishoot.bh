@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@12.6.0",
   "scripts": {
-    "build": "turbo run build",
+    "build": "turbo run build --concurrency=1",
     "dev": "turbo run dev --parallel",
     "dev:web": "turbo run dev --filter=@ishoot/web",
     "dev:admin": "turbo run dev --filter=@ishoot/admin",

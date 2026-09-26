@@ -30,10 +30,17 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     <div className="fixed inset-0 z-50 flex flex-col justify-between bg-[#050807]/95 backdrop-blur-2xl p-6 sm:p-10 animate-fade-in">
       {/* Top Bar */}
       <div className="flex items-center justify-between">
-        <Link href={`/${locale}`} onClick={onClose} className="flex items-center gap-2">
-          <span className="text-2xl font-bold tracking-tight text-white font-display">
-            ishoot<span className="text-[#09937F]">.</span>
-          </span>
+        <Link href={`/${locale}`} onClick={onClose} className="flex items-center gap-2.5">
+          <img
+            src="/icon.svg"
+            alt="ishoot Icon"
+            className="h-8 w-auto object-contain"
+          />
+          <img
+            src="/images/logo-color.svg"
+            alt="ishoot"
+            className="h-6 w-auto object-contain brightness-125"
+          />
         </Link>
         <div className="flex items-center gap-4">
           <LanguageSwitcher />

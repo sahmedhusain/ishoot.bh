@@ -2,15 +2,17 @@
 
 import * as React from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { CRMDeal } from '@ishoot/database';
+import type { CRMDeal } from '@ishoot/database/types';
 import { Card, CurrencyDisplay } from '@ishoot/ui';
 import { Calendar, User } from 'lucide-react';
+import { useAdminLocale } from '../../hooks/useAdminLocale';
 
 interface DealCardProps {
   deal: CRMDeal;
 }
 
 export function DealCard({ deal }: DealCardProps) {
+  const { locale } = useAdminLocale();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: deal.id,
     data: { deal },
@@ -41,20 +43,26 @@ export function DealCard({ deal }: DealCardProps) {
         {/* Client Tag */}
         <div className="flex items-center gap-1.5 text-xs text-[#9EADA9]">
           <User className="w-3.5 h-3.5 text-[#09937F]" />
-          <span className="truncate">{deal.contact?.company || deal.contact?.full_name || 'Direct Client'}</span>
+          <span className="truncate">
+            {deal.contact?.company || deal.contact?.full_name || (locale === 'ar' ? 'عميل مباشر' : 'Direct Client')}
+          </span>
         </div>
 
         {/* Date if any */}
         {deal.shoot_date && (
           <div className="flex items-center gap-1.5 text-[11px] text-[#9EADA9]/70 font-mono">
             <Calendar className="w-3 h-3 text-[#9EADA9]" />
-            <span>Shoot: {deal.shoot_date}</span>
+            <span>
+              {locale === 'ar' ? 'التصوير:' : 'Shoot:'} {deal.shoot_date}
+            </span>
           </div>
         )}
 
         {/* Value Footer */}
         <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
-          <span className="text-[#9EADA9]/60 font-mono">Deal Value</span>
+          <span className="text-[#9EADA9]/60 font-mono">
+            {locale === 'ar' ? 'قيمة الصفقة' : 'Deal Value'}
+          </span>
           <span className="font-mono font-bold text-[#09937F]">
             <CurrencyDisplay amount={deal.value} currency={deal.currency} />
           </span>

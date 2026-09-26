@@ -1,26 +1,66 @@
 import { db } from '../db';
-import { mockExpenses, mockExpenseCategories } from '../mock-data';
-import { Expense, ExpenseCategory } from '../types';
+import { Expense, ExpenseCategory, SupportedCurrency } from '../types';
+
+function mapCategory(c: any): ExpenseCategory {
+  return {
+    id: c.id,
+    slug: c.slug,
+    name_en: c.nameEn,
+    name_ar: c.nameAr,
+    color: c.color,
+    display_order: c.displayOrder,
+  };
+}
+
+function mapExpense(e: any): Expense {
+  return {
+    id: e.id,
+    category_id: e.categoryId || '',
+    category: e.category ? mapCategory(e.category) : undefined,
+    deal_id: e.dealId || undefined,
+    description_en: e.descriptionEn,
+    description_ar: e.descriptionAr || undefined,
+    amount: Number(e.amount),
+    currency: (e.currency as SupportedCurrency) || 'BHD',
+    expense_date: e.expenseDate.toISOString().split('T')[0],
+    vendor_name: e.vendorName || undefined,
+    receipt_url: e.receiptUrl || undefined,
+    is_recurring: e.isRecurring,
+    recurrence_interval: (e.recurrenceInterval as any) || undefined,
+    notes: e.notes || undefined,
+    created_at: e.createdAt.toISOString(),
+  };
+}
 
 export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
   try {
     const categories = await db.expenseCategory.findMany({
       orderBy: { displayOrder: 'asc' },
     });
-    if (categories && categories.length > 0) {
-      return categories.map((c) => ({
-        id: c.id,
-        slug: c.slug,
-        name_en: c.nameEn,
-        name_ar: c.nameAr,
-        color: c.color,
-        display_order: c.displayOrder,
-      }));
-    }
+    return categories.map(mapCategory);
   } catch (e) {
     console.error('Error fetching expense categories from DB:', e);
+    return [];
   }
-  return mockExpenseCategories;
+}
+
+export async function createExpenseCategory(data: {
+  slug: string;
+  name_en: string;
+  name_ar?: string;
+  color?: string;
+  display_order?: number;
+}): Promise<ExpenseCategory> {
+  const created = await db.expenseCategory.create({
+    data: {
+      slug: data.slug,
+      nameEn: data.name_en,
+      nameAr: data.name_ar || data.name_en,
+      color: data.color || '#09937F',
+      displayOrder: data.display_order ?? 0,
+    },
+  });
+  return mapCategory(created);
 }
 
 export async function getAllExpenses(): Promise<Expense[]> {
@@ -32,95 +72,82 @@ export async function getAllExpenses(): Promise<Expense[]> {
       },
       orderBy: { expenseDate: 'desc' },
     });
-    if (expenses && expenses.length > 0) {
-      return expenses.map((e) => ({
-        id: e.id,
-        category_id: e.categoryId || '',
-        category: e.category
-          ? {
-              id: e.category.id,
-              slug: e.category.slug,
-              name_en: e.category.nameEn,
-              name_ar: e.category.nameAr,
-              color: e.category.color,
-              display_order: e.category.displayOrder,
-            }
-          : undefined,
-        deal_id: e.dealId || undefined,
-        description_en: e.descriptionEn,
-        description_ar: e.descriptionAr || undefined,
-        amount: Number(e.amount),
-        currency: e.currency as any,
-        expense_date: e.expenseDate.toISOString().split('T')[0],
-        vendor_name: e.vendorName || undefined,
-        receipt_url: e.receiptUrl || undefined,
-        is_recurring: e.isRecurring,
-        recurrence_interval: (e.recurrenceInterval as any) || undefined,
-        notes: e.notes || undefined,
-        created_at: e.createdAt.toISOString(),
-      }));
-    }
+    return expenses.map(mapExpense);
   } catch (e) {
     console.error('Error fetching expenses from DB:', e);
+    return [];
   }
-  return mockExpenses;
 }
 
-export async function createExpense(expense: Omit<Expense, 'id' | 'created_at'>): Promise<Expense> {
+export async function createExpense(expense: {
+  category_id?: string;
+  deal_id?: string;
+  description_en: string;
+  description_ar?: string;
+  amount: number;
+  currency?: SupportedCurrency;
+  expense_date?: string;
+  vendor_name?: string;
+  receipt_url?: string;
+  is_recurring?: boolean;
+  recurrence_interval?: string;
+  notes?: string;
+  is_billable?: boolean;
+}): Promise<Expense> {
+  const created = await db.expense.create({
+    data: {
+      categoryId: expense.category_id || null,
+      dealId: expense.deal_id || null,
+      descriptionEn: expense.description_en,
+      descriptionAr: expense.description_ar || null,
+      amount: expense.amount,
+      currency: expense.currency || 'BHD',
+      expenseDate: expense.expense_date ? new Date(expense.expense_date) : new Date(),
+      vendorName: expense.vendor_name || null,
+      receiptUrl: expense.receipt_url || null,
+      isRecurring: expense.is_recurring || false,
+      recurrenceInterval: expense.recurrence_interval || null,
+      notes: expense.notes || null,
+    },
+    include: { category: true, deal: true },
+  });
+  return mapExpense(created);
+}
+
+export async function updateExpense(id: string, data: Partial<Expense>): Promise<Expense | null> {
   try {
-    const created = await db.expense.create({
-      data: {
-        categoryId: expense.category_id || null,
-        dealId: expense.deal_id || null,
-        descriptionEn: expense.description_en,
-        descriptionAr: expense.description_ar || null,
-        amount: expense.amount,
-        currency: expense.currency,
-        expenseDate: new Date(expense.expense_date),
-        vendorName: expense.vendor_name || null,
-        receiptUrl: expense.receipt_url || null,
-        isRecurring: expense.is_recurring || false,
-        recurrenceInterval: expense.recurrence_interval || null,
-        notes: expense.notes || null,
-      },
-      include: { category: true },
+    const updateData: any = {};
+    if (data.category_id !== undefined) updateData.categoryId = data.category_id;
+    if (data.deal_id !== undefined) updateData.dealId = data.deal_id;
+    if (data.description_en !== undefined) updateData.descriptionEn = data.description_en;
+    if (data.description_ar !== undefined) updateData.descriptionAr = data.description_ar;
+    if (data.amount !== undefined) updateData.amount = data.amount;
+    if (data.currency !== undefined) updateData.currency = data.currency;
+    if (data.expense_date !== undefined) updateData.expenseDate = new Date(data.expense_date);
+    if (data.vendor_name !== undefined) updateData.vendorName = data.vendor_name;
+    if (data.receipt_url !== undefined) updateData.receiptUrl = data.receipt_url;
+    if (data.is_recurring !== undefined) updateData.isRecurring = data.is_recurring;
+    if (data.recurrence_interval !== undefined) updateData.recurrenceInterval = data.recurrence_interval;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+
+    const updated = await db.expense.update({
+      where: { id },
+      data: updateData,
+      include: { category: true, deal: true },
     });
-
-    return {
-      id: created.id,
-      category_id: created.categoryId || '',
-      category: created.category
-        ? {
-            id: created.category.id,
-            slug: created.category.slug,
-            name_en: created.category.nameEn,
-            name_ar: created.category.nameAr,
-            color: created.category.color,
-            display_order: created.category.displayOrder,
-          }
-        : undefined,
-      deal_id: created.dealId || undefined,
-      description_en: created.descriptionEn,
-      description_ar: created.descriptionAr || undefined,
-      amount: Number(created.amount),
-      currency: created.currency as any,
-      expense_date: created.expenseDate.toISOString().split('T')[0],
-      vendor_name: created.vendorName || undefined,
-      receipt_url: created.receiptUrl || undefined,
-      is_recurring: created.isRecurring,
-      recurrence_interval: (created.recurrenceInterval as any) || undefined,
-      notes: created.notes || undefined,
-      created_at: created.createdAt.toISOString(),
-    };
+    return mapExpense(updated);
   } catch (e) {
-    console.error('Error creating expense in DB:', e);
+    console.error(`Error updating expense ${id}:`, e);
+    return null;
   }
+}
 
-  const newExpense: Expense = {
-    ...expense,
-    id: `exp-${Date.now()}`,
-    created_at: new Date().toISOString(),
-  };
-  mockExpenses.unshift(newExpense);
-  return newExpense;
+export async function deleteExpense(id: string): Promise<boolean> {
+  try {
+    await db.expense.delete({ where: { id } });
+    return true;
+  } catch (e) {
+    console.error(`Error deleting expense ${id}:`, e);
+    return false;
+  }
 }

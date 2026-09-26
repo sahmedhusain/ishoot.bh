@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Payment, CompanySettings } from '@ishoot/database';
+import type { Payment, CompanySettings } from '@ishoot/database/types';
 import { formatCurrencyValue } from '@ishoot/ui';
 
 interface ReceiptTemplateProps {

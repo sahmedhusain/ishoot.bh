@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Button } from '@ishoot/ui';
 import { Mail, MessageCircle, Printer, Download, Check } from 'lucide-react';
+import { useAdminLocale } from '../../hooks/useAdminLocale';
 
 interface DeliveryToolbarProps {
   documentType: 'invoice' | 'receipt';
@@ -25,6 +26,7 @@ export function DeliveryToolbar({
   onSendEmail,
   className = '',
 }: DeliveryToolbarProps) {
+  const { t, locale } = useAdminLocale();
   const [emailSending, setEmailSending] = React.useState(false);
   const [emailSent, setEmailSent] = React.useState(false);
 
@@ -42,8 +44,15 @@ export function DeliveryToolbar({
       }
     } else {
       // Direct mailto fallback
-      const subject = encodeURIComponent(`${documentType.toUpperCase()} ${documentNumber} from ishoot`);
-      const body = encodeURIComponent(`Dear ${clientName},\n\nPlease find your ${documentType} ${documentNumber} for ${amountFormatted}.\n\nWarm regards,\nishoot Production`);
+      const docLabel = documentType === 'invoice'
+        ? (locale === 'ar' ? 'فاتورة' : 'INVOICE')
+        : (locale === 'ar' ? 'إيصال سداد' : 'RECEIPT');
+      const subject = encodeURIComponent(`${docLabel} ${documentNumber} - ishoot`);
+      const body = encodeURIComponent(
+        locale === 'ar'
+          ? `عزيزنا ${clientName}،\n\nيرجى الاطلاع على مستند ${docLabel} رقم ${documentNumber} بمبلغ ${amountFormatted}.\n\nمع التحية،\nشركة آي شوت للإنتاج السينمائي`
+          : `Dear ${clientName},\n\nPlease find your ${documentType} ${documentNumber} for ${amountFormatted}.\n\nWarm regards,\nishoot Production`
+      );
       window.open(`mailto:${clientEmail || ''}?subject=${subject}&body=${body}`);
       setEmailSent(true);
       setTimeout(() => setEmailSent(false), 3000);
@@ -51,10 +60,15 @@ export function DeliveryToolbar({
   };
 
   const handleWhatsApp = () => {
-    // Sanitize phone number or default to blank
     const cleanPhone = (clientPhone || '').replace(/[^0-9]/g, '');
+    const docLabel = documentType === 'invoice'
+      ? (locale === 'ar' ? 'فاتورة' : 'INVOICE')
+      : (locale === 'ar' ? 'إيصال سداد' : 'RECEIPT');
+
     const message = encodeURIComponent(
-      `Hello ${clientName},\n\nPlease find your official ${documentType.toUpperCase()} *${documentNumber}* from *ishoot Cinema Production* in the amount of *${amountFormatted}*.\n\nThank you for choosing ishoot.`
+      locale === 'ar'
+        ? `مرحباً ${clientName}،\n\nنرفق لكم مستند ${docLabel} رقم *${documentNumber}* من *آي شوت للإنتاج السينمائي* بمبلغ *${amountFormatted}*.\n\nشكراً لتعاملكم معنا.`
+        : `Hello ${clientName},\n\nPlease find your official ${documentType.toUpperCase()} *${documentNumber}* from *ishoot Cinema Production* in the amount of *${amountFormatted}*.\n\nThank you for choosing ishoot.`
     );
     const waUrl = cleanPhone
       ? `https://wa.me/${cleanPhone}?text=${message}`
@@ -78,7 +92,13 @@ export function DeliveryToolbar({
         className="gap-2"
       >
         {emailSent ? <Check className="w-4 h-4 text-emerald-400" /> : <Mail className="w-4 h-4" />}
-        <span>{emailSending ? 'Dispatching...' : emailSent ? 'Email Dispatched!' : 'Send via Email'}</span>
+        <span>
+          {emailSending
+            ? (locale === 'ar' ? 'جارٍ الإرسال...' : 'Dispatching...')
+            : emailSent
+            ? (locale === 'ar' ? 'تم الإرسال بنجاح!' : 'Email Dispatched!')
+            : (locale === 'ar' ? 'إرسال بالبريد' : 'Send via Email')}
+        </span>
       </Button>
 
       {/* 2. Send via WhatsApp (Direct wa.me) */}
@@ -89,7 +109,7 @@ export function DeliveryToolbar({
         className="gap-2 hover:border-[#25D366]/40 hover:text-[#25D366]"
       >
         <MessageCircle className="w-4 h-4 text-[#25D366]" />
-        <span>WhatsApp Dispatch</span>
+        <span>{locale === 'ar' ? 'إرسال عبر واتساب' : 'WhatsApp Dispatch'}</span>
       </Button>
 
       {/* 3. Print A4 */}
@@ -100,7 +120,7 @@ export function DeliveryToolbar({
         className="gap-2"
       >
         <Printer className="w-4 h-4 text-[#9EADA9]" />
-        <span>Print Document</span>
+        <span>{locale === 'ar' ? 'طباعة المستند' : 'Print Document'}</span>
       </Button>
 
       {/* 4. Direct Download */}
@@ -111,7 +131,7 @@ export function DeliveryToolbar({
         className="gap-2"
       >
         <Download className="w-4 h-4 text-[#9EADA9]" />
-        <span>Save PDF</span>
+        <span>{locale === 'ar' ? 'حفظ كملف PDF' : 'Save PDF'}</span>
       </Button>
     </div>
   );

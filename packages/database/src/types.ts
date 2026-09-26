@@ -1,4 +1,12 @@
-export type UserRole = 'super_admin' | 'producer' | 'editor';
+export type UserRole =
+  | 'super_admin'
+  | 'admin'
+  | 'finance_manager'
+  | 'production_manager'
+  | 'producer'
+  | 'editor'
+  | 'accountant'
+  | 'viewer';
 
 export interface Profile {
   id: string;
@@ -6,6 +14,11 @@ export interface Profile {
   email: string;
   role: UserRole;
   avatar_url?: string;
+  phone?: string;
+  department?: string;
+  is_active?: boolean;
+  last_login_at?: string;
+  permissions?: Record<string, boolean> | any;
   created_at: string;
   updated_at: string;
 }
@@ -122,13 +135,21 @@ export interface ClientLogo {
 
 export interface StudioEquipment {
   id: string;
-  category: 'cameras' | 'lenses' | 'lighting' | 'audio_grading' | 'stages';
+  category: 'cameras' | 'lenses' | 'lighting' | 'audio_grading' | 'stages' | 'grip' | 'audio';
   model_name: string;
+  name_ar?: string;
+  brand?: string;
   specification: string;
+  description_en?: string;
+  description_ar?: string;
+  image_url?: string;
+  quantity?: number;
   daily_rate_bhd?: number;
   display_order: number;
   created_at: string;
 }
+
+export type InquiryStatus = 'new' | 'contacted' | 'qualified' | 'archived';
 
 export interface Inquiry {
   id: string;
@@ -140,7 +161,7 @@ export interface Inquiry {
   budget_range?: string;
   target_timeline?: string;
   message?: string;
-  status: 'new' | 'contacted' | 'qualified' | 'archived';
+  status: InquiryStatus;
   confirmation_sent: boolean;
   notification_sent: boolean;
   locale: string;
@@ -150,10 +171,13 @@ export interface Inquiry {
 export interface CRMContact {
   id: string;
   full_name: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
   phone?: string;
   company?: string;
   job_title?: string;
+  contact_type?: 'client' | 'vendor' | 'freelancer' | 'agency';
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -182,9 +206,11 @@ export interface CRMDeal {
   shoot_date?: string;
   lost_reason?: string;
   assigned_to?: string;
+  notes?: string;
   created_at: string;
   updated_at: string;
   contact?: CRMContact;
+  calendar_events?: CalendarEvent[];
 }
 
 export type InvoiceStatus = 'draft' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'void';
@@ -200,6 +226,45 @@ export interface InvoiceLineItem {
   unit_price: number;
   line_total: number;
   display_order?: number;
+}
+
+export function calculateInvoiceTotals(
+  lineItems: InvoiceLineItem[],
+  discountType: DiscountType,
+  discountValue: number,
+  vatEnabled: boolean,
+  vatPercentage: number,
+  currency: SupportedCurrency = 'BHD'
+) {
+  const currencyConfig = CURRENCY_CONFIGS[currency] || CURRENCY_CONFIGS.BHD;
+  const factor = Math.pow(10, currencyConfig.decimals);
+
+  const subtotalRaw = lineItems.reduce((acc, item) => acc + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0);
+  const subtotal = Math.round(subtotalRaw * factor) / factor;
+
+  let discountAmount = 0;
+  if (discountType === 'percentage') {
+    discountAmount = Math.round(((subtotal * discountValue) / 100) * factor) / factor;
+  } else if (discountType === 'fixed') {
+    discountAmount = Math.min(subtotal, Math.round(discountValue * factor) / factor);
+  }
+
+  const afterDiscount = Math.max(0, Math.round((subtotal - discountAmount) * factor) / factor);
+
+  let vatAmount = 0;
+  if (vatEnabled) {
+    vatAmount = Math.round(((afterDiscount * vatPercentage) / 100) * factor) / factor;
+  }
+
+  const totalAmount = Math.round((afterDiscount + vatAmount) * factor) / factor;
+
+  return {
+    subtotal,
+    discountAmount,
+    afterDiscount,
+    vatAmount,
+    totalAmount,
+  };
 }
 
 export interface Invoice {
@@ -295,4 +360,72 @@ export interface FinancialSummary {
   discountsGiven: number;
   vatCollected: number;
   currency: SupportedCurrency;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  title_ar?: string;
+  description?: string;
+  start_date: string;
+  end_date: string;
+  all_day: boolean;
+  location?: string;
+  color?: string;
+  event_type: 'meeting' | 'shoot' | 'deadline' | 'reminder';
+  deal_id?: string;
+  created_by?: string;
+  google_event_id?: string;
+  google_calendar_id?: string;
+  recurrence?: string;
+  reminders?: Array<{ minutes: number; method: string }>;
+  attendees?: Array<{ email: string; name: string; status?: string }>;
+  created_at: string;
+  updated_at: string;
+  deal?: CRMDeal;
+}
+
+export interface ActivityLog {
+  id: string;
+  user_id: string;
+  user?: Profile;
+  action: string;
+  entity_type: string;
+  entity_id?: string;
+  details?: any;
+  ip_address?: string;
+  created_at: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'success' | 'action';
+  entity_type?: string;
+  entity_id?: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  name_ar?: string;
+  color: string;
+  entity_type: string;
+  created_at: string;
+}
+
+export interface Attachment {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_size?: number;
+  mime_type?: string;
+  entity_type: string;
+  entity_id: string;
+  uploaded_by?: string;
+  created_at: string;
 }
