@@ -32,6 +32,8 @@ export function HeroBanner({ banners }: HeroBannerProps) {
 
   return (
     <section
+      id="home"
+      data-hero="true"
       className="relative w-full h-[92vh] min-h-[640px] max-h-[1080px] overflow-hidden select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}

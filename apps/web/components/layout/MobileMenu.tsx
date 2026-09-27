@@ -4,7 +4,6 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useTranslation } from '../../hooks/useTranslation';
 import { X, ArrowRight, ArrowLeft } from 'lucide-react';
-import { Button } from '@ishoot/ui';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface MobileMenuProps {
@@ -38,13 +37,12 @@ export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
             className="h-8 w-auto object-contain"
           />
           <img
-            src="/images/logo-color.svg"
+            src="/images/logo-wordmark.svg"
             alt="ishoot"
-            className="h-6 w-auto object-contain brightness-125"
+            className="h-8 w-auto object-contain"
           />
         </Link>
         <div className="flex items-center gap-4">
-          <LanguageSwitcher />
           <button
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:text-[#09937F] transition-colors"
@@ -70,13 +68,11 @@ export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
         ))}
       </nav>
 
-      {/* Bottom CTA */}
+      {/* Bottom meta */}
       <div className="space-y-4 pt-4 border-t border-white/10">
-        <Link href={`/${locale}/contact`} onClick={onClose} className="block w-full">
-          <Button variant="primary" size="lg" className="w-full">
-            {t('nav.bookNow')}
-          </Button>
-        </Link>
+        <div className="flex justify-center">
+          <LanguageSwitcher />
+        </div>
         <div className="text-center text-xs text-[#9EADA9]">
           {isRTL ? 'المنامة، مملكة البحرين' : 'Manama, Kingdom of Bahrain'}
         </div>

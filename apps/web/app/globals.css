@@ -3,40 +3,40 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Virtual';
-  src: url('/fonts/Virtual.otf') format('opentype');
+  font-family: "Virtual";
+  src: url("/fonts/Virtual.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IBM Plex Sans Arabic';
-  src: url('/fonts/IBMPlexSansArabic-Regular.ttf') format('truetype');
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/IBMPlexSansArabic-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IBM Plex Sans Arabic';
-  src: url('/fonts/IBMPlexSansArabic-Medium.ttf') format('truetype');
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/IBMPlexSansArabic-Medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IBM Plex Sans Arabic';
-  src: url('/fonts/IBMPlexSansArabic-SemiBold.ttf') format('truetype');
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/IBMPlexSansArabic-SemiBold.ttf") format("truetype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IBM Plex Sans Arabic';
-  src: url('/fonts/IBMPlexSansArabic-Bold.ttf') format('truetype');
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/IBMPlexSansArabic-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -44,33 +44,33 @@
 
 :root {
   --ishoot-primary: #014842;
-  --ishoot-primary-light: #02665D;
-  --ishoot-primary-dark: #002D29;
-  --ishoot-accent: #09937F;
-  --ishoot-accent-hover: #0BB49B;
+  --ishoot-primary-light: #02665d;
+  --ishoot-primary-dark: #002d29;
+  --ishoot-accent: #09937f;
+  --ishoot-accent-hover: #0bb49b;
   --ishoot-accent-glow: rgba(9, 147, 127, 0.35);
 
   --ishoot-bg-base: #050807;
-  --ishoot-bg-surface: #0B1210;
-  --ishoot-bg-elevated: #111C19;
+  --ishoot-bg-surface: #0b1210;
+  --ishoot-bg-elevated: #111c19;
 
-  --ishoot-text-primary: #F2F6F5;
-  --ishoot-text-secondary: #9EADA9;
-  --ishoot-text-accent: #09937F;
+  --ishoot-text-primary: #f2f6f5;
+  --ishoot-text-secondary: #9eada9;
+  --ishoot-text-accent: #09937f;
 }
 
 html {
   background-color: #050807;
-  color: #F2F6F5;
-  scroll-behavior: smooth;
+  color: #f2f6f5;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
   padding: 0;
   background-color: #050807;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Glassmorphism utility classes */
@@ -125,6 +125,62 @@ html.lenis {
 }
 
 /* =========================================================================
+   ZERO-GUTTER OVERLAY SCROLLBARS (Front Layer Overlay, Zero Layout Shift)
+   ========================================================================= */
+
+/* Eliminate native window scrollbar gutter and prevent any body layout shift */
+html,
+body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none;
+  overflow-x: clip;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* For internal scrollable sub-containers (modals, dropdowns, code blocks) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: rgba(9, 147, 127, 0.5) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background-color: transparent !important;
+}
+
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner {
+  background: transparent !important;
+  border: none !important;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+*:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(9, 147, 127, 0.5);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(9, 147, 127, 0.9) !important;
+}
+
+/* =========================================================================
    STARSCASING INSPIRED DESIGN TOKENS & CINEMATOGRAPHY ANIMATIONS
    ========================================================================= */
 
@@ -149,13 +205,13 @@ html.lenis {
 
 /* Paper Theme Sections */
 .bg-paper {
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
 .bg-paper-dark {
-  background-color: #0B1210;
-  color: #F2F6F5;
+  background-color: #0b1210;
+  color: #f2f6f5;
 }
 
 .bg-hero {
@@ -164,15 +220,33 @@ html.lenis {
 
 /* Kinetic Word Slot-Machine Slider */
 @keyframes rw-slide-4 {
-  0.00% { transform: translateY(0.00%); }
-  20.00% { transform: translateY(0.00%); }
-  25.00% { transform: translateY(-25.00%); }
-  45.00% { transform: translateY(-25.00%); }
-  50.00% { transform: translateY(-50.00%); }
-  70.00% { transform: translateY(-50.00%); }
-  75.00% { transform: translateY(-75.00%); }
-  95.00% { transform: translateY(-75.00%); }
-  100.00% { transform: translateY(-100.00%); }
+  0.00% {
+    transform: translateY(0%);
+  }
+  20.00% {
+    transform: translateY(0%);
+  }
+  25.00% {
+    transform: translateY(-25%);
+  }
+  45.00% {
+    transform: translateY(-25%);
+  }
+  50.00% {
+    transform: translateY(-50%);
+  }
+  70.00% {
+    transform: translateY(-50%);
+  }
+  75.00% {
+    transform: translateY(-75%);
+  }
+  95.00% {
+    transform: translateY(-75%);
+  }
+  100.00% {
+    transform: translateY(-100%);
+  }
 }
 
 .rw-slide-4 {
@@ -187,17 +261,35 @@ html.lenis {
 
 /* Emerald & Gold Foil Metallic Shine */
 @keyframes emerald-shimmer-sweep {
-  0% { background-position: -200% 0; }
-  100% { background-position: 250% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 250% 0;
+  }
 }
 
 .bg-emerald-shine {
-  background-image: linear-gradient(115deg, #014842 0%, #09937F 35%, #5EEAD4 52%, #09937F 68%, #002D29 100%);
+  background-image: linear-gradient(
+    115deg,
+    #014842 0%,
+    #09937f 35%,
+    #5eead4 52%,
+    #09937f 68%,
+    #002d29 100%
+  );
   background-size: 260% 100%;
 }
 
 .text-emerald-shine {
-  background-image: linear-gradient(115deg, #09937F 0%, #5EEAD4 35%, #FFFFFF 50%, #5EEAD4 65%, #09937F 100%);
+  background-image: linear-gradient(
+    115deg,
+    #09937f 0%,
+    #5eead4 35%,
+    #ffffff 50%,
+    #5eead4 65%,
+    #09937f 100%
+  );
   background-size: 260% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -219,13 +311,21 @@ html.lenis {
 
 /* Continuous Infinite Marquee */
 @keyframes marquee-forward {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes marquee-reverse {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0%); }
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
 }
 
 .animate-marquee {
@@ -239,14 +339,4 @@ html.lenis {
 .marquee-paused:hover .animate-marquee,
 .marquee-paused:hover .animate-marquee-reverse {
   animation-play-state: paused;
-}
-
-/* Floating animation */
-@keyframes floaty {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-}
-
-.animate-floaty {
-  animation: floaty 5s ease-in-out infinite;
 }

@@ -4,8 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { HeroBanner as HeroBannerType } from '@ishoot/database';
 import { useLocale } from '../../hooks/useLocale';
-import { useTranslation } from '../../hooks/useTranslation';
-import { Play, Sparkles, Video, Camera, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Sparkles, Video, Camera, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface StarscastingHeroProps {
   banners: HeroBannerType[];
@@ -13,7 +12,6 @@ interface StarscastingHeroProps {
 
 export function StarscastingHero({ banners }: StarscastingHeroProps) {
   const { locale, isRTL } = useLocale();
-  const { t } = useTranslation();
   const [currentIdx, setCurrentIdx] = React.useState(0);
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
@@ -36,7 +34,7 @@ export function StarscastingHero({ banners }: StarscastingHeroProps) {
   }, [banners.length]);
 
   return (
-    <section id="home" className="relative isolate z-[1] flex min-h-[100svh] flex-col overflow-x-clip bg-hero text-[#F2F6F5] select-none">
+    <section id="home" data-hero="true" className="relative isolate z-[1] flex min-h-[100svh] flex-col overflow-x-clip bg-hero text-[#F2F6F5] select-none">
       {/* Background Media with Deep Cinematic Overlays */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {activeBanner.media_type === 'video' ? (
@@ -69,25 +67,8 @@ export function StarscastingHero({ banners }: StarscastingHeroProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-[#050807] via-[#050807]/60 to-transparent" />
       </div>
 
-      {/* Floating CEO / Director Badge (Starscasting Inspired) */}
-      <div className="shell relative z-20 pt-28 sm:pt-32">
-        <div className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] backdrop-blur-xl py-1.5 ps-1.5 pe-5 animate-floaty shadow-xl">
-          <div className="w-8 h-8 rounded-full bg-[#014842] border border-[#09937F]/50 flex items-center justify-center text-xs font-mono font-bold text-white shadow-inner">
-            SA
-          </div>
-          <div className="text-start leading-tight">
-            <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#09937F] font-bold block">
-              {isRTL ? 'إدارة الإخراج والتصوير' : 'DIRECTOR OF PHOTOGRAPHY'}
-            </span>
-            <span className="text-xs font-bold text-white">
-              {isRTL ? 'سيد أحمد حسين · المؤسس ومدير التصوير' : 'Sayed Ahmed Husain · Founder & DOP'}
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Main Kinetic Typography Hero */}
-      <div className="shell relative z-20 flex-1 flex flex-col justify-center py-12 md:py-16">
+      <div className="shell relative z-20 flex-1 flex flex-col justify-center pt-28 sm:pt-32 pb-12 md:pb-16">
         <div className="max-w-4xl space-y-6">
           {/* Animated Slot Machine Headline */}
           <h1 className="font-grotesk text-[clamp(2.2rem,6.8vw,5.5rem)] leading-[1.02] tracking-[-0.03em] font-bold text-white">

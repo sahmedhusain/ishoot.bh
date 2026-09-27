@@ -5,8 +5,9 @@ import { locales, Locale, isValidLocale } from '../../lib/i18n';
 import { Navbar } from '../../components/layout/Navbar';
 import { Footer } from '../../components/layout/Footer';
 import { SmoothScroll } from '../../components/layout/SmoothScroll';
-
+import { FloatingScrollbar } from '../../components/layout/FloatingScrollbar';
 import { CinematicPreloader } from '../../components/layout/CinematicPreloader';
+import { BackToTop } from '../../components/layout/BackToTop';
 
 export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -31,9 +32,11 @@ export default async function LocaleLayout({
     <html dir={isRTL ? 'rtl' : 'ltr'} lang={locale}>
       <body className={`min-h-screen bg-[#050807] text-[#F2F6F5] selection:bg-[#09937F]/40 selection:text-white ${isRTL ? 'font-arabic' : 'font-sans'}`}>
         <CinematicPreloader isRTL={isRTL} />
+        <FloatingScrollbar />
+        <BackToTop />
         <SmoothScroll>
           <Navbar />
-          <main className="min-h-screen">
+          <main className="w-full">
             {children}
           </main>
           <Footer />

@@ -86,34 +86,73 @@ html, body {
   min-height: 100vh;
 }
 
-/* Custom scrollbars */
+/* =========================================================================
+   ZERO-GUTTER OVERLAY SCROLLBARS (Visible ONLY on Hover)
+   ========================================================================= */
+
+/* Modern Standard CSS (Firefox, Chrome 121+, Safari 18+) */
+html,
+body,
+* {
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+
+html:hover,
+body:hover,
+*:hover {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(9, 147, 127, 0.5) transparent;
+}
+
+.light html:hover,
+.light body:hover,
+.light *:hover {
+  scrollbar-color: rgba(1, 72, 66, 0.45) transparent;
+}
+
+/* WebKit / Blink Engine (Chrome, Safari, Edge, Opera) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
+  background-color: transparent !important;
 }
 
-.dark ::-webkit-scrollbar-track,
-html:not(.light) ::-webkit-scrollbar-track {
-  background: #050807;
+/* Scroller track area completely invisible – No background, no gutter */
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
 }
 
-.dark ::-webkit-scrollbar-thumb,
-html:not(.light) ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 999px;
+/* Scroller thumb invisible by default */
+::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease-in-out;
 }
 
-.light ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+/* Scroller thumb visible ONLY when hovering the window or container */
+html:hover::-webkit-scrollbar-thumb,
+body:hover::-webkit-scrollbar-thumb,
+*:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(9, 147, 127, 0.45);
 }
 
-.light ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
-  border-radius: 999px;
+.light html:hover::-webkit-scrollbar-thumb,
+.light body:hover::-webkit-scrollbar-thumb,
+.light *:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(1, 72, 66, 0.4);
 }
 
+/* Scroller thumb active hover state */
 ::-webkit-scrollbar-thumb:hover {
-  background: #09937F !important;
+  background-color: rgba(9, 147, 127, 0.85) !important;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(1, 72, 66, 0.8) !important;
 }
 
 /* Card glass aesthetics */

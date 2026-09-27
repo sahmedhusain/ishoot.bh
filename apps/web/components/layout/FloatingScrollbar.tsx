@@ -1,0 +1,143 @@
+'use client';
+
+import * as React from 'react';
+
+/**
+ * FloatingFrontLayerScrollbar
+ * Renders an ultra-sleek, overlay scrollbar in the front-most layer (z-[9999]).
+ * - ZERO layout shift: Body and page elements never move left/right on hover.
+ * - ZERO track area: No background strip or gutter cut out from the body.
+ * - Visible ONLY on hover or during active scrolling.
+ * - Supports drag-scrubbing and track-click jumping.
+ */
+export function FloatingScrollbar() {
+  const [scrollProgress, setScrollProgress] = React.useState(0);
+  const [thumbHeight, setThumbHeight] = React.useState(70);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [isScrolling, setIsScrolling] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
+
+  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const trackRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    setMounted(true);
+
+    const updateScrollMetrics = () => {
+      const scrollHeight = document.documentElement.scrollHeight;
+      const clientHeight = window.innerHeight;
+      const totalScroll = scrollHeight - clientHeight;
+
+      if (totalScroll <= 0) {
+        setScrollProgress(0);
+        return;
+      }
+
+      const currentScroll = window.scrollY;
+      const progress = Math.min(1, Math.max(0, currentScroll / totalScroll));
+      setScrollProgress(progress);
+
+      // Proportional thumb height (clamped between 48px and 240px)
+      const ratio = clientHeight / scrollHeight;
+      const height = Math.max(48, Math.min(240, clientHeight * ratio));
+      setThumbHeight(height);
+
+      // Flash visible on scroll
+      setIsScrolling(true);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+      }, 1200);
+    };
+
+    window.addEventListener('scroll', updateScrollMetrics, { passive: true });
+    window.addEventListener('resize', updateScrollMetrics, { passive: true });
+    updateScrollMetrics();
+
+    return () => {
+      window.removeEventListener('scroll', updateScrollMetrics);
+      window.removeEventListener('resize', updateScrollMetrics);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
+  }, []);
+
+  // Handle Dragging
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+
+    const startY = e.clientY;
+    const startScroll = window.scrollY;
+    const scrollHeight = document.documentElement.scrollHeight;
+    const clientHeight = window.innerHeight;
+    const totalScroll = scrollHeight - clientHeight;
+    const availableTrack = clientHeight - thumbHeight - 16;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      moveEvent.preventDefault();
+      const deltaY = moveEvent.clientY - startY;
+      const scrollRatio = deltaY / availableTrack;
+      const targetScroll = Math.min(totalScroll, Math.max(0, startScroll + scrollRatio * totalScroll));
+      window.scrollTo({ top: targetScroll, behavior: 'instant' });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // Click on Track to jump
+  const handleTrackClick = (e: React.MouseEvent) => {
+    if (e.target !== trackRef.current) return;
+    const clickY = e.clientY;
+    const clientHeight = window.innerHeight;
+    const totalScroll = document.documentElement.scrollHeight - clientHeight;
+    const targetProgress = Math.min(1, Math.max(0, (clickY - thumbHeight / 2) / (clientHeight - thumbHeight)));
+    window.scrollTo({ top: targetProgress * totalScroll, behavior: 'smooth' });
+  };
+
+  if (!mounted) return null;
+
+  const isVisible = isHovered || isScrolling || isDragging;
+  const availableDistance = typeof window !== 'undefined' ? window.innerHeight - thumbHeight - 16 : 0;
+  const translateY = scrollProgress * availableDistance + 8;
+
+  return (
+    <aside
+      ref={trackRef}
+      onClick={handleTrackClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      aria-hidden="true"
+      className="fixed top-0 bottom-0 end-1 z-[9999] w-4 flex justify-center pointer-events-auto select-none"
+      style={{
+        background: 'transparent',
+      }}
+    >
+      {/* Front-Layer Overlay Floating Pill */}
+      <div
+        onMouseDown={handleMouseDown}
+        className={`w-1.5 rounded-full cursor-grab active:cursor-grabbing transition-all duration-300 ease-out will-change-transform ${
+          isVisible ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-50 pointer-events-none'
+        } ${
+          isDragging
+            ? 'bg-[#09937F] shadow-[0_0_12px_rgba(9,147,127,0.9)] scale-x-125'
+            : isHovered
+            ? 'bg-[#09937F]/90 shadow-[0_0_8px_rgba(9,147,127,0.6)] scale-x-110'
+            : 'bg-white/30'
+        }`}
+        style={{
+          height: `${thumbHeight}px`,
+          transform: `translateY(${translateY}px)`,
+        }}
+      />
+    </aside>
+  );
+}

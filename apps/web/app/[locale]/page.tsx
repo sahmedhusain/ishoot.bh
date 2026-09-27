@@ -24,7 +24,7 @@ export default async function HomePage({
   ]);
 
   return (
-    <div className="flex flex-col w-full overflow-x-hidden">
+    <div className="flex flex-col w-full">
       {/* 1. Cinematic Hero with Dynamic Slot-Machine Kinetic Typography */}
       <StarscastingHero banners={banners} />
 
