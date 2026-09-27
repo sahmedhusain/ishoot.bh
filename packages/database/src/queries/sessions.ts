@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { Session, Profile, UserRole } from '../types';
+import { db } from "../db";
+import { Session, Profile, UserRole } from "../types";
 
 function mapSession(s: any): Session {
   return {
@@ -51,7 +51,9 @@ export async function createSession(data: {
   return mapSession(session);
 }
 
-export async function getSessionByToken(token: string): Promise<(Session & { user: Profile }) | null> {
+export async function getSessionByToken(
+  token: string,
+): Promise<(Session & { user: Profile }) | null> {
   try {
     const session = await db.session.findUnique({
       where: { token },
@@ -60,9 +62,7 @@ export async function getSessionByToken(token: string): Promise<(Session & { use
 
     if (!session) return null;
 
-    // Check expiration
     if (new Date() > session.expiresAt) {
-      // Invalidate expired session asynchronously
       db.session.delete({ where: { token } }).catch(() => {});
       return null;
     }
@@ -73,7 +73,7 @@ export async function getSessionByToken(token: string): Promise<(Session & { use
 
     return mapSession(session) as Session & { user: Profile };
   } catch (err) {
-    console.error('Error fetching session by token:', err);
+    console.error("Error fetching session by token:", err);
     return null;
   }
 }
@@ -83,7 +83,7 @@ export async function deleteSession(token: string): Promise<boolean> {
     await db.session.delete({ where: { token } });
     return true;
   } catch (err) {
-    console.error('Error deleting session:', err);
+    console.error("Error deleting session:", err);
     return false;
   }
 }
@@ -93,7 +93,7 @@ export async function deleteUserSessions(userId: string): Promise<boolean> {
     await db.session.deleteMany({ where: { userId } });
     return true;
   } catch (err) {
-    console.error('Error deleting user sessions:', err);
+    console.error("Error deleting user sessions:", err);
     return false;
   }
 }
@@ -109,12 +109,12 @@ export async function getAllActiveSessions(): Promise<Session[]> {
       include: {
         user: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     return sessions.map(mapSession);
   } catch (err) {
-    console.error('Error fetching active sessions:', err);
+    console.error("Error fetching active sessions:", err);
     return [];
   }
 }
@@ -130,7 +130,7 @@ export async function cleanExpiredSessions(): Promise<number> {
     });
     return res.count;
   } catch (err) {
-    console.error('Error cleaning expired sessions:', err);
+    console.error("Error cleaning expired sessions:", err);
     return 0;
   }
 }

@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { getPortfolioItems, getPortfolioCategories } from '@ishoot/database';
-import { PortfolioGrid } from '../../../components/portfolio/PortfolioGrid';
-import { SectionBadge } from '../../../components/shared/SectionBadge';
-import { getTranslations, Locale } from '@ishoot/locales';
+import * as React from "react";
+import { getPortfolioItems, getPortfolioCategories } from "@ishoot/database";
+import { PortfolioGrid } from "../../../components/portfolio/PortfolioGrid";
+import { SectionBadge } from "../../../components/shared/SectionBadge";
+import { getTranslations, Locale } from "@ishoot/locales";
 
 export default async function WorksPage({
   params,
@@ -19,7 +19,6 @@ export default async function WorksPage({
 
   return (
     <div className="py-20 max-w-7xl mx-auto px-6 sm:px-8">
-      {/* Page Header */}
       <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
         <SectionBadge>{t.portfolio.badge}</SectionBadge>
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-display">
@@ -30,7 +29,6 @@ export default async function WorksPage({
         </p>
       </div>
 
-      {/* Interactive Filterable Works Grid */}
       <PortfolioGrid items={items} categories={categories} />
     </div>
   );

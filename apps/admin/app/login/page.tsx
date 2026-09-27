@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Input, Button, Card } from '@ishoot/ui';
-import { Lock, Mail, ArrowRight, AlertCircle, Globe } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
+import * as React from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Input, Button, Card } from "@ishoot/ui";
+import { Lock, Mail, ArrowRight, AlertCircle, Globe } from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const { t, locale, setLocale, isRTL } = useAdminLocale();
 
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   const handleToggleLocale = () => {
-    setLocale(locale === 'ar' ? 'en' : 'ar');
+    setLocale(locale === "ar" ? "en" : "ar");
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -27,9 +27,9 @@ function LoginForm() {
     setErrorMessage(null);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
       });
 
@@ -39,13 +39,12 @@ function LoginForm() {
         setErrorMessage(
           res.status === 401
             ? t.loginView.errorInvalid
-            : data.error || t.loginView.errorGeneric
+            : data.error || t.loginView.errorGeneric,
         );
         setLoading(false);
         return;
       }
 
-      // Successful login
       router.push(callbackUrl);
       router.refresh();
     } catch {
@@ -56,13 +55,11 @@ function LoginForm() {
 
   return (
     <div
-      dir={isRTL ? 'rtl' : 'ltr'}
+      dir={isRTL ? "rtl" : "ltr"}
       className="min-h-screen flex items-center justify-center p-6 bg-[#050807] relative overflow-hidden"
     >
-      {/* Background Ambient Radial Glow */}
       <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-[#014842]/30 via-[#09937F]/10 to-transparent blur-3xl pointer-events-none" />
 
-      {/* Language Switcher Top Corner */}
       <div className="absolute top-6 end-6 z-20">
         <button
           type="button"
@@ -75,7 +72,6 @@ function LoginForm() {
       </div>
 
       <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-[#09937F]/30 shadow-2xl rounded-3xl space-y-8">
-        {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center bg-[#014842] border border-[#09937F]/50 shadow-lg shadow-[#014842]/50">
             <span className="w-4 h-4 rounded-full bg-[#09937F]" />
@@ -88,7 +84,6 @@ function LoginForm() {
           </p>
         </div>
 
-        {/* Error Banner */}
         {errorMessage && (
           <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
@@ -104,7 +99,7 @@ function LoginForm() {
             <div className="relative">
               <Mail
                 className={`w-4 h-4 absolute top-3.5 text-[#9EADA9] ${
-                  isRTL ? 'right-3.5' : 'left-3.5'
+                  isRTL ? "right-3.5" : "left-3.5"
                 }`}
               />
               <Input
@@ -112,7 +107,7 @@ function LoginForm() {
                 required
                 autoComplete="email"
                 placeholder={t.loginView.emailPlaceholder}
-                className={isRTL ? 'pr-10' : 'pl-10'}
+                className={isRTL ? "pr-10" : "pl-10"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -126,7 +121,7 @@ function LoginForm() {
             <div className="relative">
               <Lock
                 className={`w-4 h-4 absolute top-3.5 text-[#9EADA9] ${
-                  isRTL ? 'right-3.5' : 'left-3.5'
+                  isRTL ? "right-3.5" : "left-3.5"
                 }`}
               />
               <Input
@@ -134,7 +129,7 @@ function LoginForm() {
                 required
                 autoComplete="current-password"
                 placeholder={t.loginView.passwordPlaceholder}
-                className={isRTL ? 'pr-10' : 'pl-10'}
+                className={isRTL ? "pr-10" : "pl-10"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -151,9 +146,7 @@ function LoginForm() {
             <span>
               {loading ? t.loginView.authenticating : t.loginView.submit}
             </span>
-            <ArrowRight
-              className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`}
-            />
+            <ArrowRight className={`w-4 h-4 ${isRTL ? "rotate-180" : ""}`} />
           </Button>
         </form>
 

@@ -1,15 +1,21 @@
-import * as React from 'react';
-import { notFound } from 'next/navigation';
-import { getInvoiceById, getCompanySettings, getAllPayments } from '@ishoot/database';
-import { InvoiceDetailView } from '../../../../components/invoices/InvoiceDetailView';
+import * as React from "react";
+import { notFound } from "next/navigation";
+import {
+  getInvoiceById,
+  getCompanySettings,
+  getAllPayments,
+} from "@ishoot/database";
+import { InvoiceDetailView } from "../../../../components/invoices/InvoiceDetailView";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 interface InvoiceDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
+export default async function InvoiceDetailPage({
+  params,
+}: InvoiceDetailPageProps) {
   const { id } = await params;
 
   const [invoice, company, allPayments] = await Promise.all([
@@ -22,7 +28,9 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     notFound();
   }
 
-  const invoicePayments = allPayments.filter((p) => p.invoice_id === invoice.id);
+  const invoicePayments = allPayments.filter(
+    (p) => p.invoice_id === invoice.id,
+  );
 
   return (
     <InvoiceDetailView

@@ -35,6 +35,7 @@ model User {
   sessions        Session[]
   contractsCreated Contract[]
   generatedDocuments GeneratedDocument[]
+  companyDocuments CompanyDocument[]
 }
 
 model CompanySetting {
@@ -456,5 +457,25 @@ model GeneratedDocument {
   createdAt        DateTime @default(now())
 
   @@index([sourceEntityType, sourceEntityId])
+}
+
+model CompanyDocument {
+  id             String    @id @default(uuid())
+  titleEn        String
+  titleAr        String?
+  category       String    // "cr_license", "vat_certificate", "company_profile", "bylaws", "standard_contract"
+  documentNumber String?
+  fileUrl        String
+  fileSize       Int?
+  mimeType       String?
+  validFrom      DateTime? @db.Date
+  validUntil     DateTime? @db.Date
+  notes          String?
+  uploadedById   String?
+  uploadedBy     User?     @relation(fields: [uploadedById], references: [id])
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([category])
 }
 

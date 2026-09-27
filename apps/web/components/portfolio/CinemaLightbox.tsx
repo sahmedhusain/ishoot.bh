@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { PortfolioItem } from '@ishoot/database';
-import { useTranslation } from '../../hooks/useTranslation';
-import { X } from 'lucide-react';
+import * as React from "react";
+import { PortfolioItem } from "@ishoot/database";
+import { useTranslation } from "../../hooks/useTranslation";
+import { X } from "lucide-react";
 
 interface CinemaLightboxProps {
   item: PortfolioItem | null;
@@ -24,12 +24,12 @@ export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === "Escape") onClose();
     };
     if (item) {
-      window.addEventListener('keydown', handleKeyDown);
+      window.addEventListener("keydown", handleKeyDown);
     }
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [item, onClose]);
 
   if (!item || isOpen === false) return null;
@@ -41,7 +41,6 @@ export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/95 backdrop-blur-2xl animate-fade-in">
       <div className="relative w-full max-w-5xl bg-[#0B1210] border border-[#09937F]/30 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div>
             <span className="text-xs font-mono text-[#09937F] uppercase tracking-wider">
@@ -59,7 +58,6 @@ export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
           </button>
         </div>
 
-        {/* Video / Gallery Content */}
         <div className="relative w-full aspect-video bg-black overflow-hidden flex items-center justify-center">
           {videoUrl ? (
             <video
@@ -79,7 +77,6 @@ export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
           )}
         </div>
 
-        {/* Description & Credits Footer */}
         <div className="p-6 space-y-4 bg-[#080D0B] border-t border-white/10">
           {description && (
             <p className="text-sm text-[#9EADA9] leading-relaxed">
@@ -91,26 +88,42 @@ export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
             <div className="pt-2 border-t border-white/5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
               {item.credits.director && (
                 <div>
-                  <span className="text-[#9EADA9]/60 block">{t('portfolio.director')}:</span>
-                  <span className="text-white font-medium">{item.credits.director}</span>
+                  <span className="text-[#9EADA9]/60 block">
+                    {t("portfolio.director")}:
+                  </span>
+                  <span className="text-white font-medium">
+                    {item.credits.director}
+                  </span>
                 </div>
               )}
               {item.credits.dop && (
                 <div>
-                  <span className="text-[#9EADA9]/60 block">{t('portfolio.dop')}:</span>
-                  <span className="text-white font-medium">{item.credits.dop}</span>
+                  <span className="text-[#9EADA9]/60 block">
+                    {t("portfolio.dop")}:
+                  </span>
+                  <span className="text-white font-medium">
+                    {item.credits.dop}
+                  </span>
                 </div>
               )}
               {item.credits.colorist && (
                 <div>
-                  <span className="text-[#9EADA9]/60 block">{t('portfolio.colorist')}:</span>
-                  <span className="text-white font-medium">{item.credits.colorist}</span>
+                  <span className="text-[#9EADA9]/60 block">
+                    {t("portfolio.colorist")}:
+                  </span>
+                  <span className="text-white font-medium">
+                    {item.credits.colorist}
+                  </span>
                 </div>
               )}
               {item.credits.editor && (
                 <div>
-                  <span className="text-[#9EADA9]/60 block">{t('portfolio.editor')}:</span>
-                  <span className="text-white font-medium">{item.credits.editor}</span>
+                  <span className="text-[#9EADA9]/60 block">
+                    {t("portfolio.editor")}:
+                  </span>
+                  <span className="text-white font-medium">
+                    {item.credits.editor}
+                  </span>
                 </div>
               )}
             </div>

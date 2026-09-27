@@ -59,46 +59,30 @@
     "subtitle": "End-to-end creative visual execution engineered for high-impact commercial brands.",
     "cinema": {
       "title": "Commercial Cinematography",
-      "desc": "High-end television commercials, brand films, and documentary narratives shot on cinema-grade systems."
+      "desc": "High-end television commercials, brand films, and documentary narratives shot on cinema-grade systems.",
+      "specs": []
     },
     "aerial": {
-      "id": "aerial",
-      "number": "02",
-      "titleEn": "Heavy-Lift & FPV Aerial Capture",
-      "titleAr": "تصوير جوي سينمائي وFPV احترافي",
-      "descEn": "Licensed Bahrain civil aviation drone operations capturing monumental landscapes, industrial sites, and dynamic vehicular chases.",
-      "descAr": "عمليات تصوير جوي مرخصة من شؤون الطيران المدني لتوثيق المشاريع المعمارية والصناعية ومطاردات السيارات الحماسية.",
+      "title": "Heavy-Lift & FPV Aerial Capture",
+      "desc": "Licensed Bahrain civil aviation drone operations capturing monumental landscapes, industrial sites, and dynamic vehicular chases.",
       "specs": [
         "Heavy-Lift RED Drone",
         "Custom FPV Pro Rigs",
         "Dual-Operator Control"
-      ],
-      "specsAr": [
-        "طائرات درون تحمل ريد",
-        "طائرات FPV سريعة",
-        "تحكم ثنائي بالملاحة والكاميرا"
       ]
     },
     "photography": {
       "title": "Commercial Photography",
-      "desc": "High-fashion, automotive, architectural, and luxury product photography with studio lighting mastery."
+      "desc": "High-fashion, automotive, architectural, and luxury product photography with studio lighting mastery.",
+      "specs": []
     },
     "color": {
-      "id": "color",
-      "number": "03",
-      "titleEn": "DaVinci Resolve HDR Color Grading",
-      "titleAr": "تصحيح ألوان سينمائي في استوديو دافينشي",
-      "descEn": "Dedicated post-production color suite equipped with reference OLED mastering displays for true cinema DCI-P3 color fidelity.",
-      "descAr": "استوديو تصحيح ألوان متقدم مزود بشاشات ماسترينغ سينمائية لمعايرة الألوان السينمائية وتصدير ماستر 4K/HDR.",
+      "title": "DaVinci Resolve HDR Color Grading",
+      "desc": "Dedicated post-production color suite equipped with reference OLED mastering displays for true cinema DCI-P3 color fidelity.",
       "specs": [
         "DaVinci Studio Cloud",
         "Sony BVM Reference Monitor",
         "ACES & Dolby Vision"
-      ],
-      "specsAr": [
-        "سحابة دافينشي ستوديو",
-        "شاشة مرجعية سوني",
-        "معايرة دولبي فيجن وACES"
       ]
     },
     "studio": {
@@ -106,50 +90,27 @@
       "desc": "Acoustically treated studio space with modular set construction, grid lighting, and seamless cycloramas."
     },
     "sectionIndex": "(02)",
-    "sectionLabelEn": "Production Capabilities",
-    "sectionLabelAr": "القدرات والخدمات الإنتاجية",
-    "headlineEn": "Cinema Engineering & Craft",
-    "headlineAr": "قدرات سينمائية بلا حدود",
-    "subtitleEn": "End-to-end cinematic ecosystem from script development and 8K capture to precision color science and final master delivery.",
-    "subtitleAr": "نوفر منظومة إنتاج سينمائي متكاملة من الفكرة والسيناريو، إلى التصوير بكاميرات 8K، وتصحيح الألوان في الاستوديو.",
-    "requestProposal": "Request Production Proposal",
-    "requestProposalAr": "طلب تسعير إنتاجي مخصص",
+    "requestProposal": "Request Custom Production Quote",
     "commercial": {
-      "id": "commercial",
-      "number": "01",
-      "titleEn": "High-End Commercial Cinematography",
-      "titleAr": "إنتاج إعلانات سينمائية عالية الجودة",
-      "descEn": "Full-scale commercial productions for television broadcast, cinema screens, and brand campaign campaigns at the highest visual standards.",
-      "descAr": "إنتاج إعلانات تجارية متكاملة مخصصة للبث التلفزيوني والسينمائي وحملات العلامات التجارية بأعلى المعايير البصرية.",
+      "title": "High-End Commercial Cinematography",
+      "desc": "Full-scale commercial productions for television broadcast, cinema screens, and brand campaign campaigns at the highest visual standards.",
       "specs": [
         "RED V-Raptor XL 8K",
         "ARRI Master Primes T1.3",
         "Full Cinema G&E Crew"
-      ],
-      "specsAr": [
-        "كاميرات ريد 8K",
-        "طقم عدسات آري T1.3",
-        "طاقم إضاءة وتصوير كامل"
       ]
     },
     "soundstage": {
-      "id": "soundstage",
-      "number": "04",
-      "titleEn": "Acoustic Soundstage & Cyclorama",
-      "titleAr": "استوديو تصوير عازل للصوت مع سايك مقوس",
-      "descEn": "250m² soundproof facility in Seef District with 60kW 3-phase power, 6m overhead lighting grid, and infinite curve cyclorama.",
-      "descAr": "استوديو معزول صوتياً بمساحة 250 متر مربع في ضاحية السيف مع شبكة إضاءة علوية وقوس إنفينيتي أبيض وأخضر.",
+      "title": "Acoustic Soundstage & Cyclorama",
+      "desc": "250m² soundproof facility in Seef District with 60kW 3-phase power, 6m overhead lighting grid, and infinite curve cyclorama.",
       "specs": [
         "250m² Soundstage",
         "Overhead Lighting Grid",
         "Soundproof Control Booth"
-      ],
-      "specsAr": [
-        "مساحة 250 م²",
-        "شبكة إضاءة علوية مسبقة",
-        "غرفة تحكم معزولة صوتياً"
       ]
-    }
+    },
+    "sectionLabel": "Capabilities",
+    "headline": "PRECISION PRODUCTION PILLARS"
   },
   "portfolio": {
     "badge": "Selected Works",
@@ -173,15 +134,9 @@
     "category": "Category",
     "backToWorks": "Back to Archive",
     "sectionIndex": "(03)",
-    "sectionLabel": "Featured Works",
-    "sectionLabelAr": "أرشيف الأعمال والمشاريع",
-    "sectionLabelEn": "Featured Works",
-    "showcaseTitle": "Cinematic Showcase",
-    "showcaseTitleAr": "تحف سينمائية معتمدة",
-    "showcaseTitleEn": "Cinematic Showcase",
-    "showcaseSubtitle": "Explore select productions crafted for leading institutions, regional banks, and luxury brand houses.",
-    "showcaseSubtitleAr": "استكشف نماذج من أعمالنا المصورة لكبرى الجهات الحكومية والمؤسسات المصرفية والشركات في الخليج.",
-    "showcaseSubtitleEn": "Explore select productions crafted for leading institutions, regional banks, and luxury brand houses.",
+    "sectionLabel": "Works & Projects Archive",
+    "showcaseTitle": "Certified Cinema Masterpieces",
+    "showcaseSubtitle": "Explore selected commercial films captured for government entities, financial institutions, and GCC brands.",
     "viewFullArchive": "View Full Cinematography Archive",
     "productionOverview": "Production Overview",
     "categories": {
@@ -214,26 +169,16 @@
     "statAwards": "14 Regional Awards",
     "statClients": "65+ GCC Enterprise Clients",
     "sectionIndex": "(01)",
-    "sectionLabel": "About ishoot",
-    "sectionLabelAr": "من نحن",
-    "headline": "A Bahraini Cinema Production House turning ambitious visions into high-impact cinematic masterpieces.",
-    "headlineAr": "دار إنتاج سينمائي بحرينية تصنع من الرؤى الطموحة تحفاً بصرية تخلد العلامات التجارية.",
-    "intro": "From the heart of Manama to premier global screens, we fuse international cinema optics with deep cultural artistry.",
-    "introAr": "من قلب المنامة إلى كبرى شاشات الخليج والعالم، نمزج بين كاميرات السينما العالمية ورؤية إخراجية معاصرة تلامس الوجدان.",
-    "behindTheScenes": "BEHIND THE SCENES · ON LOCATION",
-    "behindTheScenesAr": "خلف الكواليس · موقع التصوير",
-    "shootCaption": "ishoot dual-camera crew on commercial 8K shoot",
-    "shootCaptionAr": "طاقم آي شوت أثناء تصوير إعلان سينمائي بدقة 8K",
-    "missionLabel": "Mission",
-    "missionLabelAr": "الرسالة",
-    "mission": "Empowering visionary brands to tell their stories with uncompromising cinematic beauty, native 8K resolution, and emotional gravity.",
-    "missionAr": "تمكين المؤسسات والعلامات التجارية الرائدة من سرد قصصها بأعلى معايير الدقة والجمال السينمائي، دون أي تنازل عن الجودة.",
-    "visionLabel": "Vision",
-    "visionLabelAr": "الرؤية",
-    "vision": "To stand as the Kingdom of Bahrain's undisputed creative benchmark for commercial and feature cinematography across the Gulf.",
-    "visionAr": "أن نكون الوجهة الأولى في مملكة البحرين والخليج العربي للإنتاج الإعلاني والسينمائي، ومصدر إلهام لصناع الأفلام في المنطقة.",
-    "discoverStudio": "Discover Our Studio Story & Team",
-    "discoverStudioAr": "تعرف على قصة الاستوديو وفريق العمل"
+    "sectionLabel": "About Us",
+    "headline": "Bahraini cinema production house crafting visual masterpieces for visionary brands.",
+    "intro": "From the heart of Manama to regional screens, we fuse cinema optics with modern directional narrative.",
+    "behindTheScenes": "Behind The Scenes · On Location",
+    "shootCaption": "iShoot crew filming an 8K commercial production",
+    "missionLabel": "Our Mission",
+    "mission": "Empower market leaders to tell their brand narratives with uncompromised visual precision and emotional depth.",
+    "visionLabel": "Our Vision",
+    "vision": "To be the premier commercial cinema production destination in Bahrain and the Arabian Gulf.",
+    "discoverStudio": "Discover Studio Story & Crew"
   },
   "contact": {
     "badge": "Initiate Collaboration",
@@ -329,7 +274,7 @@
     "page_11": "Production Overview",
     "contactform_12": "e.g. November 2026",
     "contactform_13": "Tell us about your campaign goals, shoot locations, and desired deliverables...",
-    "languageswitcher_14": "التحويل إلى العربية",
+    "languageswitcher_14": "Switch to Arabic",
     "mobilemenu_15": "Manama, Kingdom of Bahrain",
     "cinemalightbox_16": "Director:",
     "cinemalightbox_17": "Cinematographer:",
@@ -441,9 +386,7 @@
       "confirm": "Confirm Action",
       "recordPayment": "Record Payment",
       "backToInvoices": "Back to Invoices Archive",
-      "backToInvoicesAr": "العودة إلى أرشيف الفواتير",
-      "associatedReceipts": "Associated Payment Receipts",
-      "associatedReceiptsAr": "سندات القبض والدفعات المرتبطة"
+      "associatedReceipts": "Linked Receipts & Payments"
     },
     "kpi": {
       "totalRevenue": "Cash Revenue Collected",
@@ -571,102 +514,59 @@
       "bankSwift": "SWIFT / BIC Code",
       "currencySettings": "Currency & Decimals Configuration",
       "languageSettings": "Admin Interface Language",
-      "arabicOnly": "اللغة العربية بالكامل",
+      "arabicOnly": "Full Arabic Mode",
       "englishOnly": "Full English Interface"
     },
     "invoice": {
       "title": "INVOICE",
-      "titleAr": "فاتورة ضريبية",
       "billedTo": "BILLED TO:",
-      "billedToAr": "فاتورة إلى (العميل):",
       "issueDate": "ISSUE DATE:",
-      "issueDateAr": "تاريخ الإصدار:",
       "dueDate": "DUE DATE:",
-      "dueDateAr": "تاريخ الاستحقاق:",
       "paymentStatus": "PAYMENT STATUS:",
-      "paymentStatusAr": "الحالة المالية:",
       "serviceDesc": "Service Description",
-      "serviceDescAr": "وصف العمل والخدمات",
       "qty": "Qty",
-      "qtyAr": "الكمية",
       "unitPrice": "Unit Price",
-      "unitPriceAr": "سعر الوحدة",
       "total": "Total",
-      "totalAr": "المجموع",
       "bankCoords": "BANK TRANSFER COORDINATES:",
-      "bankCoordsAr": "معلومات التحويل البنكي:",
       "subtotal": "Subtotal:",
-      "subtotalAr": "المجموع الفرعي:",
       "discount": "Discount:",
-      "discountAr": "الخصم المعتمد:",
       "vatLabel": "VAT",
-      "vatLabelAr": "ضريبة القيمة المضافة",
       "vatColon": "VAT:",
-      "vatColonAr": "ضريبة القيمة المضافة:",
       "notApplicable": "Not Applicable",
-      "notApplicableAr": "غير مطبقة",
       "totalAmount": "TOTAL AMOUNT:",
-      "totalAmountAr": "المجموع النهائي:",
       "amountPaid": "Amount Paid:",
-      "amountPaidAr": "المبلغ المسدد:",
       "balanceDue": "Balance Due:",
-      "balanceDueAr": "المتبقي للسداد:",
       "thankYou": "Thank you for choosing ishoot Cinema Production.",
-      "thankYouAr": "شكراً لتعاملكم مع دار آي شوت للإنتاج السينمائي.",
       "clientFallback": "Client Name"
     },
     "receipt": {
       "title": "PAYMENT RECEIPT",
-      "titleAr": "إيصال استلام دفعة",
       "paidInFull": "PAID IN FULL",
-      "paidInFullAr": "مدفوع بالكامل",
       "partial": "PARTIAL",
-      "partialAr": "دفعة جزئية",
       "receivedFrom": "RECEIVED FROM:",
-      "receivedFromAr": "استلمنا من:",
       "paymentDate": "PAYMENT DATE:",
-      "paymentDateAr": "تاريخ الدفع:",
       "paymentMethod": "PAYMENT METHOD:",
-      "paymentMethodAr": "طريقة السداد:",
       "referenceNo": "REFERENCE / CHEQUE:",
-      "referenceNoAr": "رقم المرجع / الشيك:",
       "linkedInvoice": "LINKED INVOICE:",
-      "linkedInvoiceAr": "الفاتورة المرتبطة:",
       "directPayment": "Direct Payment",
-      "directPaymentAr": "دفعة مباشرة",
       "totalInvoice": "Total Invoice:",
-      "totalInvoiceAr": "قيمة الفاتورة الكلية:",
       "previouslyPaid": "Previously Paid:",
-      "previouslyPaidAr": "المسدد سابقاً:",
       "balanceDue": "Balance Due:",
-      "balanceDueAr": "المتبقي بعد هذه الدفعة:",
       "netReceived": "NET AMOUNT RECEIVED:",
-      "netReceivedAr": "صافي المبلغ المستلم:",
       "fundsVerified": "Funds verified and deposited to company accounts",
-      "fundsVerifiedAr": "تم استلام المبلغ وإيداعه في الحساب البنكي",
       "transactionNotes": "Transaction Notes:",
-      "transactionNotesAr": "ملاحظات المحاسب:",
       "generatedBy": "Electronically generated receipt by ishoot Cinema Production.",
-      "generatedByAr": "تم إصدار هذا الإيصال إلكترونياً من نظام آي شوت للإنتاج السينمائي.",
       "clientFallback": "Client Name"
     },
     "crm": {
-      "newLeadTitle": "Incoming Inquiries & Lead Intake",
-      "newLeadTitleAr": "الطلبات الواردة وإدارة العملاء المحتملين",
+      "newLeadTitle": "Incoming Leads & Pipeline Management",
       "contactTitle": "Client & Partner Directory",
-      "contactTitleAr": "دليل العملاء والشركاء",
-      "dealTitle": "Deals Pipeline",
-      "dealTitleAr": "خط صفقات الإنتاج",
+      "dealTitle": "Production Deals Pipeline",
       "noLeads": "No incoming inquiries yet.",
-      "noLeadsAr": "لا توجد طلبات واردة بعد.",
-      "noContacts": "No contacts found.",
-      "noContactsAr": "لا يوجد عملاء في القاعدة بعد.",
+      "noContacts": "No contacts registered in the CRM.",
       "noDeals": "No deals in this stage.",
-      "noDealsAr": "لا توجد صفقات في هذه المرحلة.",
       "deleteContact": "Delete Contact",
-      "deleteContactAr": "حذف العميل",
-      "deleteDeal": "Delete Deal",
-      "deleteDealAr": "حذف الصفقة"
+      "deleteDeal": "Delete Deal"
     },
     "settingsTabs": {
       "preferences": "Appearance & Language",
@@ -677,15 +577,13 @@
     "preferences": {
       "title": "Interface & Appearance",
       "subtitle": "Customize administrative dashboard language, toggle between light and dark modes, and display preferences.",
-      "savedLangAr": "تم ضبط لغة النظام إلى اللغة العربية",
-      "savedLangEn": "Interface language set to English",
       "savedDark": "Dark mode activated",
       "savedLight": "Light mode activated",
       "savedSystem": "System theme sync activated",
       "sysLangTitle": "System Interface Language",
       "sysLangSubtitle": "Select your preferred dashboard language. Orientation (RTL/LTR) updates instantly.",
-      "arabicLabel": "العربية (اللغة العربية بالكامل)",
-      "arabicDesc": "واجهة مستخدم عربية أصيلة بنسبة 100% مع دعم كامل للاتجاه من اليمين إلى اليسار (RTL) والأرقام الغربية المعتمدة في البحرين والخليج (0-9).",
+      "arabicLabel": "Arabic (Fully Native Arabic)",
+      "arabicDesc": "100% native Arabic interface with full Right-to-Left (RTL) support and standard numerals (0-9).",
       "englishLabel": "English (Full English Interface)",
       "englishDesc": "Complete professional English interface with standard Left-to-Right (LTR) alignment and global cinematography taxonomy.",
       "themeTitle": "Color Theme & Appearance",
@@ -700,7 +598,8 @@
       "darkWord": "Dark",
       "lightWord": "Light",
       "numeralsTitle": "Official Banking Numerals Standard",
-      "numeralsDesc": "ishoot administrative systems and tax invoices strictly enforce Western Arabic numerals (0, 1, 2, 3...) in compliance with Kingdom of Bahrain banking regulations and CBB guidelines."
+      "numeralsDesc": "ishoot administrative systems and tax invoices strictly enforce Western Arabic numerals (0, 1, 2, 3...) in compliance with Kingdom of Bahrain banking regulations and CBB guidelines.",
+      "savedLang": "System language updated successfully"
     },
     "integrations": {
       "title": "Meta Platform Integrations",
@@ -776,8 +675,6 @@
       "english": "English",
       "deliverables": "Production Deliverables",
       "addItem": "Add Item",
-      "descEn": "Description (English)",
-      "descAr": "Description (Arabic)",
       "placeholderEn": "e.g. Cinema Camera Package",
       "placeholderAr": "Arabic description",
       "qty": "Qty",
@@ -796,7 +693,9 @@
       "active": "Active",
       "disabled": "Disabled",
       "summaryTitle": "Summary Breakdown",
-      "submitting": "Generating Invoice..."
+      "submitting": "Generating Invoice...",
+      "descEnLabel": "Description (English)",
+      "descArLabel": "Description (Arabic)"
     },
     "companySettingsView": {
       "subtitle": "Configure legal CR information, banking coordinates, VAT compliance, and Google Calendar sync.",
@@ -814,13 +713,13 @@
       "disconnect": "Disconnect",
       "connect": "Connect Account",
       "crSubtitle": "Legal entity name, Commercial Registration, and physical headquarters address.",
-      "nameEn": "Company Legal Name (English)",
-      "nameAr": "Company Legal Name (Arabic)",
       "crNumber": "Commercial Registration (CR #)",
       "defaultCurrency": "Default Currency",
       "decimalsWord": "decimals",
       "addressLabel": "Studio Address",
-      "bankSubtitle": "Beneficiary bank wire coordinates stamped on official invoices."
+      "bankSubtitle": "Beneficiary bank wire coordinates stamped on official invoices.",
+      "nameEnLabel": "Company Legal Name (English)",
+      "nameArLabel": "Company Legal Name (Arabic)"
     },
     "deals": {
       "subtitle": "Interactive Kanban workspace with drag-and-drop live database updates.",
@@ -870,13 +769,9 @@
       "emptyState": "No hero banners currently in database.",
       "hide": "Hide",
       "publish": "Publish",
-      "titleAr": "Main Title (Arabic)",
-      "titleEn": "Title (English)",
-      "titleArPlaceholder": "التميز السينمائي الخليجي",
+      "titleArPlaceholder": "Khaleeji Cinema Excellence",
       "titleEnPlaceholder": "Khaleeji Cinema Craft",
-      "subtitleAr": "Subtitle (Arabic)",
-      "subtitleEn": "Subtitle (English)",
-      "subtitleArPlaceholder": "أحدث تقنيات الإضاءة السينمائية وكاميرات ARRI",
+      "subtitleArPlaceholder": "State-of-the-art ARRI cinema camera systems",
       "subtitleEnPlaceholder": "State of the art ARRI cinema gear",
       "mediaType": "Media Type",
       "videoReel": "Video Reel",
@@ -884,7 +779,11 @@
       "mediaUrl": "Media URL",
       "mediaUrlPlaceholder": "/banners/reel.mp4",
       "posterUrl": "Poster Image URL",
-      "posterUrlPlaceholder": "/banners/poster.jpg"
+      "posterUrlPlaceholder": "/banners/poster.jpg",
+      "titleEnLabel": "Title (English)",
+      "titleArLabel": "Main Title (Arabic)",
+      "subtitleEnLabel": "Subtitle (English)",
+      "subtitleArLabel": "Subtitle (Arabic)"
     },
     "clientsView": {
       "subtitle": "Enterprise commercial partners displayed in the public homepage infinite logo marquee.",
@@ -907,10 +806,8 @@
       "specs": "Technical Specifications",
       "qty": "Qty",
       "actions": "Actions",
-      "modelNameEn": "Model Name (English)",
       "modelNamePlaceholder": "ARRI ALEXA Mini LF",
-      "itemNameAr": "Item Name (Arabic)",
-      "itemNamePlaceholder": "كاميرا آري أليكسا ميني إل إف",
+      "itemNamePlaceholder": "ARRI ALEXA Mini LF Camera Package",
       "brand": "Brand / Manufacturer",
       "brandPlaceholder": "ARRI",
       "specsPlaceholder": "Large Format 4.5K Sensor, LPL Mount, ARRIRAW & ProRes",
@@ -923,7 +820,9 @@
         "audio": "Sound & Audio",
         "grip": "Grip & Rigs",
         "drones": "Aerial Drones"
-      }
+      },
+      "modelNameEnLabel": "Model Name (English)",
+      "itemNameArLabel": "Item Name (Arabic)"
     },
     "portfolioView": {
       "subtitle": "Cinematic commercials, narrative films, aspect ratios, and credit dossiers.",
@@ -933,9 +832,7 @@
       "year": "Year",
       "unfeature": "Unfeature",
       "feature": "Feature",
-      "titleAr": "Project Title (Arabic)",
-      "titleArPlaceholder": "فيلم المنامة: نبض العاصمة",
-      "titleEn": "Project Title (English)",
+      "titleArPlaceholder": "Manama: Pulse of Bahrain",
       "titleEnPlaceholder": "Manama: Pulse of Bahrain",
       "clientName": "Client Name",
       "clientPlaceholder": "BTEA / Ministry of Tourism",
@@ -948,7 +845,9 @@
       "thumbnailPlaceholder": "/images/portfolio/manama.jpg",
       "previewVideoUrl": "Preview Video URL",
       "previewVideoPlaceholder": "/videos/manama-preview.mp4",
-      "emptyState": "No projects currently in database."
+      "emptyState": "No projects currently in database.",
+      "titleEnLabel": "Project Title (English)",
+      "titleArLabel": "Project Title (Arabic)"
     },
     "paymentsView": {
       "subtitle": "Payment receipts ledger, automated invoice balance reconciliation, and client receipt generation.",
@@ -1010,16 +909,16 @@
       "date": "Date",
       "amount": "Amount",
       "actions": "Actions",
-      "descAr": "Description (Arabic)",
-      "descArPlaceholder": "إيجار عدسات سينمائية للتصوير الخارجي",
-      "descEn": "Description (English)",
+      "descArPlaceholder": "Cinema prime lenses rental for exterior location shoot",
       "descEnPlaceholder": "Cinema lenses rental for exterior shoot",
       "amountBhd": "Amount (BHD)",
       "vendorName": "Vendor Name",
       "vendorPlaceholder": "CineRent Gulf W.L.L.",
       "linkedDeal": "Linked Deal",
       "generalOverhead": "General Studio Overhead",
-      "expenseDate": "Expense Date"
+      "expenseDate": "Expense Date",
+      "descEnLabel": "Description (English)",
+      "descArLabel": "Description (Arabic)"
     },
     "dashboardView": {
       "vsLastMonth": "vs last mo",
@@ -1049,15 +948,7 @@
         "November",
         "December"
       ],
-      "weekdays": [
-        "Sun",
-        "Mon",
-        "Tue",
-        "Wed",
-        "Thu",
-        "Fri",
-        "Sat"
-      ],
+      "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
       "more": "more",
       "upcomingAgenda": "Upcoming Event Agenda",
       "googleCalendar": "Google Calendar",
@@ -1066,9 +957,7 @@
       "endTime": "End Time:",
       "location": "Location:",
       "linkedDeal": "Linked Deal:",
-      "eventTitleEn": "Event Title (English) *",
       "eventTitleEnPlaceholder": "e.g. Batelco Cinema Shoot Day 1",
-      "eventTitleAr": "Event Title (Arabic)",
       "eventTitleArPlaceholder": "e.g. Batelco National Day Shoot",
       "startDateTime": "Start Date & Time *",
       "endDateTime": "End Date & Time *",
@@ -1082,7 +971,9 @@
       "locationAddress": "Shoot Location / Address",
       "locationPlaceholder": "e.g. Soundstage A, Seef District",
       "saving": "Saving...",
-      "deleteConfirm": "Are you sure you want to delete this event?"
+      "deleteConfirm": "Are you sure you want to delete this event?",
+      "eventTitleEnLabel": "Event Title (English) *",
+      "eventTitleArLabel": "Event Title (Arabic)"
     },
     "usersView": {
       "subtitle": "Enterprise role-based access control, departmental assignments, and credential management.",
@@ -1178,138 +1069,180 @@
       "errorGeneric": "Authentication failed. Please try again.",
       "footerNote": "Cinema Operations Portal • Protected by RBAC & Audit Trails",
       "logoutSuccess": "Logged out successfully",
-      "switchLanguage": "العربية"
+      "switchLanguage": "Arabic"
+    },
+    "customersNew": {
+      "title": "Create New Customer Dossier",
+      "subtitle": "Register a new client, agency, or corporate account in the CRM",
+      "fullNameLabel": "Full Name / Contact Person *",
+      "companyLabel": "Company / Organization Name",
+      "emailLabel": "Email Address",
+      "phoneLabel": "Phone Number (E.164 Format)",
+      "jobTitleLabel": "Job Title / Position",
+      "classificationLabel": "Account Classification",
+      "notesLabel": "Initial Notes & Context",
+      "saving": "Creating Dossier...",
+      "submit": "Create Customer Dossier"
+    },
+    "dealsNew": {
+      "title": "Create New Production Deal",
+      "subtitle": "Launch a new cinema production opportunity in the sales pipeline",
+      "dealTitleLabel": "Deal Title / Project Name *",
+      "contactLabel": "Associated Client / Contact *",
+      "selectContact": "-- Select Client Account --",
+      "valueLabel": "Estimated Deal Value (BHD) *",
+      "stageLabel": "Pipeline Stage *",
+      "targetDateLabel": "Target Close / Shoot Date",
+      "descriptionLabel": "Scope of Work & Notes",
+      "saving": "Creating Deal...",
+      "submit": "Create Commercial Deal"
+    },
+    "companyDocumentsNew": {
+      "title": "Upload Company Legal Asset",
+      "subtitle": "Upload CR copies, VAT certificates, bylaws, standard agreements, or company profiles",
+      "titleEnLabel": "Document Title (English) *",
+      "titleArLabel": "Document Title (Arabic)",
+      "categoryLabel": "Document Classification *",
+      "docNumberLabel": "Official Document / Certificate #",
+      "validFromLabel": "Valid From Date",
+      "validUntilLabel": "Expiry / Renewal Date",
+      "assetFileLabel": "Legal Document Asset File (PDF / Images)",
+      "assetFileHint": "Upload high-res PDF or scanned image copy of official certificate",
+      "notesLabel": "Asset Notes & Restrictions",
+      "saving": "Uploading...",
+      "submit": "Save Legal Asset"
+    },
+    "expensesNew": {
+      "title": "Log New Operational Expense",
+      "subtitle": "Record equipment rental, location permits, crew fees, or studio overheads",
+      "categoryLabel": "Expense Category *",
+      "amountLabel": "Expense Amount (BHD) *",
+      "descriptionEnLabel": "Description (English) *",
+      "descriptionArLabel": "Description (Arabic)",
+      "vendorLabel": "Vendor / Recipient Name",
+      "dateLabel": "Transaction Date *",
+      "notesLabel": "Notes & Project Reference",
+      "saving": "Logging Expense...",
+      "submit": "Log Expense Record"
+    },
+    "paymentsNew": {
+      "title": "Record Payment Receipt",
+      "subtitle": "Register an incoming payment tranche or client invoice settlement",
+      "invoiceLabel": "Linked Invoice (Optional)",
+      "selectInvoice": "-- Direct Payment (Unlinked) --",
+      "contactLabel": "Payer / Client Account *",
+      "amountLabel": "Payment Amount (BHD) *",
+      "methodLabel": "Payment Method *",
+      "refLabel": "Transaction Reference / Check #",
+      "dateLabel": "Payment Date *",
+      "proofLabel": "Bank Transfer Proof / Receipt Copy",
+      "proofHint": "Attach official bank transfer receipt or check image",
+      "notesLabel": "Accounting Notes",
+      "saving": "Recording Payment...",
+      "submit": "Record Payment Entry"
+    },
+    "usersNew": {
+      "title": "Create New User Account",
+      "subtitle": "Add an administrator, producer, accountant, or crew member to the portal",
+      "nameLabel": "Full Name *",
+      "emailLabel": "Work Email Address *",
+      "passwordLabel": "Account Password *",
+      "roleLabel": "System Access Role *",
+      "statusLabel": "Initial Account Status",
+      "notesLabel": "Notes & Security Instructions",
+      "saving": "Creating Account...",
+      "submit": "Create User Account"
     }
   },
   "stats": {
     "sectionIndex": "(04)",
-    "sectionLabelEn": "Studio Metrics",
-    "sectionLabelAr": "إحصائيات ومعايير الاستوديو",
     "items": [
       {
         "value": "150+",
-        "labelEn": "Commercial Productions",
-        "labelAr": "إعلانات وأعمال سينمائية منجزة",
-        "subEn": "Delivered for national brands & television",
-        "subAr": "لأبرز المؤسسات والشركات في البحرين والخليج"
+        "label": "Commercial Films Delivered",
+        "sub": "For GCC Brands & Corporations"
       },
       {
-        "value": "8K VV",
-        "labelEn": "Native Resolution",
-        "labelAr": "دقة تصوير سينمائي فائقة",
-        "subEn": "RED V-Raptor XL & VistaVision sensors",
-        "subAr": "حساسات كاملة الإطار بدقة 8K وعدسات T1.3"
-      },
-      {
-        "value": "250 m²",
-        "labelEn": "Soundstage Facility",
-        "labelAr": "استوديو تصوير وسايك مقوس",
-        "subEn": "Soundproof cyclorama in Seef District",
-        "subAr": "عازل للصوت بالكامل ومجهز بشبكة إضاءة"
+        "value": "8K",
+        "label": "RAW Cinema Resolution",
+        "sub": "RED V-Raptor & ARRI ALEXA LF"
       },
       {
         "value": "100%",
-        "labelEn": "Bahraini Passion",
-        "labelAr": "شغف ورؤية بحرينية أصيلة",
-        "subEn": "Rooted in Manama, celebrated globally",
-        "subAr": "فريق عمل محترف بمعايير سينمائية عالمية"
+        "label": "Licensed Aerial Drone Ops",
+        "sub": "Bahrain Civil Aviation Authority"
+      },
+      {
+        "value": "10+",
+        "label": "Years of Industry Excellence",
+        "sub": "Headquartered in Manama, Seef"
       }
-    ]
+    ],
+    "sectionLabel": "Studio Metrics & Standards"
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "sectionLabelEn": "Client Testimonials",
-    "sectionLabelAr": "شهادات العملاء والشركاء",
-    "headlineEn": "Trusted by Market Leaders",
-    "headlineAr": "ثقة كبرى العلامات التجارية",
-    "subtitleEn": "Our commitment to visual perfection has built enduring partnerships with Bahrain's most prestigious organizations.",
-    "subtitleAr": "نفخر بإنتاج أعمال سينمائية صنعت فارقاً حقيقياً في الصورة الذهنية لشركائنا.",
     "bahrain": "BAHRAIN",
     "items": [
       {
-        "id": "1",
+        "id": "rev-1",
         "client": "National Bank of Bahrain (NBB)",
-        "clientAr": "بنك البحرين الوطني",
-        "author": "Head of Brand & Communications",
-        "authorAr": "رئيس الاتصالات المؤسسية والهوية",
-        "quoteEn": "ishoot elevated our national campaign into a cinematic experience that resonated across the entire Kingdom. The lighting, 8K RED optics, and post-production grade exceeded all executive expectations.",
-        "quoteAr": "نقل فريق آي شوت حملتنا الوطنية إلى تجربة سينمائية استثنائية لاقت صدى واسعاً في المملكة. الإضاءة، وعدسات 8K، وتصحيح الألوان فاق كل التوقعات.",
+        "author": "Marketing & Brand Director",
+        "quote": "iShoot delivered an exceptional TV commercial campaign that exceeded our highest cinematic expectations. Their color grading and drone shots were world-class.",
         "year": "2026"
       },
       {
-        "id": "2",
-        "client": "Bapco Energies",
-        "clientAr": "بابكو إنرجيز",
-        "author": "Corporate Sustainability Director",
-        "authorAr": "مدير الاستدامة والشؤون المؤسسية",
-        "quoteEn": "The aerial drone execution across our offshore and industrial sites was flawless. Their attention to safety and Hollywood-standard cinematography is unmatched in Bahrain.",
-        "quoteAr": "التصوير الجوي في مواقعنا الصناعية والبحرية كان في قمة الاحتراف والدقة. التزامهم بمعايير السلامة والتصوير السينمائي لا مثيل له في البحرين.",
-        "year": "2026"
+        "id": "rev-2",
+        "client": "Zain Bahrain",
+        "author": "Corporate Communications Lead",
+        "quote": "The professionalism of the camera crew and the precision of the 8K footage transformed our brand film. Truly the finest cinema house in Bahrain.",
+        "year": "2025"
       },
       {
-        "id": "3",
-        "client": "Batelco Beyon",
-        "clientAr": "بتلكو بيون",
-        "author": "Digital Marketing & Content Lead",
-        "authorAr": "مدير التسويق الرقمي والمحتوى",
-        "quoteEn": "Fast turnaround, visionary storytelling, and unmatched equipment. Sayed and his team bring true director-level craft to commercial production.",
-        "quoteAr": "سرعة في الإنجاز، وسرد بصري ملهم، ومعدات تصوير متطورة جداً. سيد وفريقه يقدمون رؤية إخراجية سينمائية حقيقية لأي إعلان تجاري.",
+        "id": "rev-3",
+        "client": "Bahrain Economic Development Board (EDB)",
+        "author": "Head of Destination Marketing",
+        "quote": "Working with iShoot on our national investment film showcase was seamless. They captured our architectural landmarks with stunning lighting and depth.",
         "year": "2025"
       }
-    ]
+    ],
+    "sectionLabel": "Client & Partner Testimonials",
+    "headline": "Trusted by Industry Leaders",
+    "subtitle": "Our commitment to visual perfection has built enduring partnerships with Bahrain's most prestigious organizations."
   },
   "faq": {
     "sectionIndex": "(06)",
-    "sectionLabelEn": "Frequently Asked Questions",
-    "sectionLabelAr": "الأسئلة الشائعة والاستفسارات",
-    "headlineEn": "Production Insights & FAQ",
-    "headlineAr": "كل ما تود معرفته عن الإنتاج",
-    "subtitleEn": "Clear, transparent answers about our production workflows, cinema equipment, and commercial licensing.",
-    "subtitleAr": "إجابات واضحة وشفافة حول سير العمليات، الكاميرات، الجداول الزمنية، والتصاريح.",
     "items": [
       {
-        "qEn": "What is the typical timeline for a commercial production?",
-        "qAr": "ما هو الجدول الزمني المعتاد لإنتاج إعلان تجاري؟",
-        "aEn": "A standard 30-second TVC typically requires 2–3 weeks of pre-production (concept, script, location scouting), 1–2 shoot days, and 1–2 weeks of post-production (editing, color grading, sound). Rush timelines are available upon request.",
-        "aAr": "يتطلب الإعلان التجاري المعياري بطول 30 ثانية عادةً 2–3 أسابيع للإعداد (المفهوم، السيناريو، المواقع)، ويوم أو يومين للتصوير، وأسبوع إلى أسبوعين للمونتاج وتصحيح الألوان والصوت. يتوفر جدول إنتاج سريع عند الطلب."
+        "question": "What camera systems and lenses do you use for commercial shoots?",
+        "answer": "We shoot primarily on RED V-Raptor 8K, ARRI ALEXA Mini LF, and Sony FX9 camera systems paired with ARRI Master Primes, Cooke Anamorphic, and Leica Cine lenses."
       },
       {
-        "qEn": "Do you handle government and corporate shoots in Bahrain?",
-        "qAr": "هل تنجزون مشاريع حكومية ومؤسسية في مملكة البحرين؟",
-        "aEn": "Yes. We hold all necessary Bahrain CAA drone permits and have extensive experience producing for government ministries, financial institutions, and major GCC corporations.",
-        "aAr": "نعم. نحتفظ بجميع تصاريح طيران الدرون من هيئة الطيران المدني البحرينية، ولدينا خبرة واسعة في تنفيذ مشاريع للوزارات الحكومية والمصارف والشركات الكبرى في دول الخليج."
+        "question": "Are your aerial drone operators licensed for commercial filming in Bahrain?",
+        "answer": "Yes, all our heavy-lift RED drone and custom FPV operators are fully licensed and certified by the Bahrain Civil Aviation Authority (BCAA) with full public liability insurance."
       },
       {
-        "qEn": "What camera systems and lenses do you own?",
-        "qAr": "ما أنظمة الكاميرات والعدسات المتاحة لديكم؟",
-        "aEn": "We own RED V-Raptor XL 8K VistaVision cinema bodies, ARRI Master Prime T1.3 optical set, Leica Summilux-C lenses, and a full Zeiss Ultra Prime kit — all owned in-house with no third-party rental dependency.",
-        "aAr": "نمتلك كاميرات RED V-Raptor XL 8K VistaVision، وطقم عدسات ARRI Master Prime بفتحة T1.3، وعدسات Leica Summilux-C، وطقم Zeiss Ultra Prime — جميعها مملوكة للشركة دون الحاجة لتأجير خارجي."
+        "question": "How long does post-production and DaVinci Resolve color grading take?",
+        "answer": "Standard post-production timelines range from 5 to 14 business days depending on visual effects, sound design complexity, and color grading review rounds."
       },
       {
-        "qEn": "Can ishoot provide a full crew (director, DOP, gaffers, art dept)?",
-        "qAr": "هل يمكن لآي شوت توفير طاقم عمل متكامل؟",
-        "aEn": "Absolutely. We offer complete production crews including director, director of photography, 1st & 2nd ACs, gaffer, grip, art director, stylist, and production manager depending on project scope.",
-        "aAr": "بالتأكيد. نوفر طواقم إنتاج متكاملة تشمل المخرج، مدير التصوير، مساعدي الكاميرا، مشرف الإضاءة، فريق الغريب، المخرج الفني، المصمم، ومنتج منفذ حسب حجم المشروع."
+        "question": "Can you manage pre-production, casting, and permits for GCC projects?",
+        "answer": "Absolutely. We handle end-to-end pre-production including location scouting, ministry permits, actor casting, storyboard creation, and set building across Bahrain and Saudi Arabia."
       }
-    ]
+    ],
+    "sectionLabel": "Frequently Asked Questions",
+    "headline": "Production Insights & Workflows",
+    "subtitle": "Clear, transparent answers about our production workflows, cinema equipment, and commercial licensing."
   },
   "cta": {
-    "badge": "READY FOR YOUR NEXT MASTERPIECE",
-    "badgeAr": "جاهزون لبدء مشروعك القادم",
-    "titleLine1": "Cinema in every frame.",
-    "titleLine1Ar": "سينما في كل إطار.",
-    "titleLine2": "Let’s create history together.",
-    "titleLine2Ar": "لنصنع عملاً خالداً معاً.",
-    "description": "Speak directly with our executive production team to schedule shoot dates, camera packages, and treatment proposals.",
-    "descriptionAr": "تواصل مباشرة مع أحد منتجينا السينمائيين لمناقشة أفكار مشروعك وجدول التصوير والتقديرات المالية.",
-    "whatsapp": "Instant WhatsApp Discussion",
-    "whatsappAr": "محادثة فورية عبر واتساب",
-    "requestTreatment": "Request Official Treatment",
-    "requestTreatmentAr": "طلب تسعير وجلسة تصوير",
-    "address": "OFFICE 402, PLATINUM TOWER, SEEF DISTRICT, MANAMA, KINGDOM OF BAHRAIN",
-    "addressAr": "مكتب 402، برج بلاتينيوم، ضاحية السيف، المنامة، مملكة البحرين",
-    "rights": "ALL RIGHTS RESERVED.",
-    "rightsAr": "جميع الحقوق محفوظة."
+    "badge": "Ready to Launch Your Next Film",
+    "titleLine1": "CINEMA IN EVERY FRAME.",
+    "titleLine2": "Let's Create a Masterpiece Together.",
+    "description": "Connect directly with our producers to discuss project concepts, filming schedules, and financial estimates.",
+    "whatsapp": "Instant WhatsApp Chat",
+    "requestTreatment": "Request Quote & Shoot Session",
+    "address": "Office 402, Platinum Tower, Seef District, Manama, Kingdom of Bahrain",
+    "rights": "All rights reserved."
   },
   "preloader": {
     "initializing": "INITIALIZING CINEMA",

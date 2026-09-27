@@ -1,27 +1,30 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import type { CompanySettings } from '@ishoot/database/types';
-import { Card, Input, Button } from '@ishoot/ui';
+import * as React from "react";
+import type { CompanySettings } from "@ishoot/database/types";
+import { Card, Input, Button } from "@ishoot/ui";
 import {
   Building2,
   Percent,
   Landmark,
   CheckCircle2,
   Calendar,
-} from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { updateCompanySettingsAction } from '../../app/actions/settings';
-import { SettingsNavTabs } from './SettingsNavTabs';
+} from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { updateCompanySettingsAction } from "../../app/actions/settings";
+import { SettingsNavTabs } from "./SettingsNavTabs";
 
 interface CompanySettingsViewProps {
   initialSettings: CompanySettings;
 }
 
-export function CompanySettingsView({ initialSettings }: CompanySettingsViewProps) {
+export function CompanySettingsView({
+  initialSettings,
+}: CompanySettingsViewProps) {
   const { t, locale, isRTL } = useAdminLocale();
 
-  const [settings, setSettings] = React.useState<CompanySettings>(initialSettings);
+  const [settings, setSettings] =
+    React.useState<CompanySettings>(initialSettings);
   const [saved, setSaved] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [googleConnected, setGoogleConnected] = React.useState(true);
@@ -36,7 +39,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
-      console.error('Failed to update company settings:', err);
+      console.error("Failed to update company settings:", err);
     } finally {
       setSaving(false);
     }
@@ -44,10 +47,8 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16">
-      {/* Top Navigation Tabs */}
       <SettingsNavTabs />
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -78,12 +79,13 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
       )}
 
       <form onSubmit={handleSave} className="space-y-8">
-        {/* 1. VAT & TAX CONFIGURATION */}
         <Card className="p-6 sm:p-8 bg-[#0B1210] border border-[#09937F]/30 shadow-2xl rounded-3xl space-y-6">
           <div className="flex items-center gap-3 pb-4 border-b border-white/10">
             <Percent className="w-5 h-5 text-[#09937F]" />
             <div>
-              <h2 className="text-base font-bold text-white">{t.settings.vatTitle}</h2>
+              <h2 className="text-base font-bold text-white">
+                {t.settings.vatTitle}
+              </h2>
               <p className="text-xs text-[#9EADA9]">
                 {t.companySettingsView.vatToggleSubtitle}
               </p>
@@ -94,14 +96,20 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-bold text-white">
-                  {settings.vat_enabled ? t.settings.vatActive : t.settings.vatInactive}
+                  {settings.vat_enabled
+                    ? t.settings.vatActive
+                    : t.settings.vatInactive}
                 </span>
-                <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                  settings.vat_enabled
-                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-white/5 text-[#9EADA9] border border-white/10'
-                }`}>
-                  {settings.vat_enabled ? t.companySettingsView.vatActiveBadge : t.companySettingsView.vatInactiveBadge}
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                    settings.vat_enabled
+                      ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                      : "bg-white/5 text-[#9EADA9] border border-white/10"
+                  }`}
+                >
+                  {settings.vat_enabled
+                    ? t.companySettingsView.vatActiveBadge
+                    : t.companySettingsView.vatInactiveBadge}
                 </span>
               </div>
               <p className="text-xs text-[#9EADA9] mt-1 max-w-xl">
@@ -113,14 +121,22 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
 
             <button
               type="button"
-              onClick={() => setSettings({ ...settings, vat_enabled: !settings.vat_enabled })}
+              onClick={() =>
+                setSettings({ ...settings, vat_enabled: !settings.vat_enabled })
+              }
               className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors shrink-0 ${
-                settings.vat_enabled ? 'bg-[#09937F]' : 'bg-white/20'
+                settings.vat_enabled ? "bg-[#09937F]" : "bg-white/20"
               }`}
             >
               <span
                 className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                  settings.vat_enabled ? (isRTL ? '-translate-x-7' : 'translate-x-7') : (isRTL ? '-translate-x-1' : 'translate-x-1')
+                  settings.vat_enabled
+                    ? isRTL
+                      ? "-translate-x-7"
+                      : "translate-x-7"
+                    : isRTL
+                      ? "-translate-x-1"
+                      : "translate-x-1"
                 }`}
               />
             </button>
@@ -129,10 +145,14 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
           {settings.vat_enabled && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-[#9EADA9]">{t.settings.vatId}</label>
+                <label className="text-xs font-medium text-[#9EADA9]">
+                  {t.settings.vatId}
+                </label>
                 <Input
-                  value={settings.vat_id || ''}
-                  onChange={(e) => setSettings({ ...settings, vat_id: e.target.value })}
+                  value={settings.vat_id || ""}
+                  onChange={(e) =>
+                    setSettings({ ...settings, vat_id: e.target.value })
+                  }
                   placeholder="200019283700002"
                   className="font-mono text-sm"
                 />
@@ -144,7 +164,12 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
                 <Input
                   type="number"
                   value={settings.vat_percentage}
-                  onChange={(e) => setSettings({ ...settings, vat_percentage: parseFloat(e.target.value) || 10 })}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      vat_percentage: parseFloat(e.target.value) || 10,
+                    })
+                  }
                   className="font-mono text-sm"
                 />
               </div>
@@ -152,7 +177,6 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
           )}
         </Card>
 
-        {/* 2. GOOGLE CALENDAR & INTEGRATIONS */}
         <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
           <div className="flex items-center gap-3 pb-4 border-b border-white/10">
             <Calendar className="w-5 h-5 text-[#09937F]" />
@@ -181,7 +205,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
 
             <Button
               type="button"
-              variant={googleConnected ? 'secondary' : 'primary'}
+              variant={googleConnected ? "secondary" : "primary"}
               size="sm"
               onClick={() => setGoogleConnected(!googleConnected)}
             >
@@ -192,12 +216,13 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
           </div>
         </Card>
 
-        {/* 3. CORPORATE PROFILE & CR */}
         <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
           <div className="flex items-center gap-3 pb-4 border-b border-white/10">
             <Building2 className="w-5 h-5 text-[#09937F]" />
             <div>
-              <h2 className="text-base font-bold text-white">{t.settings.companyTitle}</h2>
+              <h2 className="text-base font-bold text-white">
+                {t.settings.companyTitle}
+              </h2>
               <p className="text-xs text-[#9EADA9]">
                 {t.companySettingsView.crSubtitle}
               </p>
@@ -207,21 +232,25 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {t.companySettingsView.nameEn}
+                {t.companySettingsView.nameEnLabel}
               </label>
               <Input
                 value={settings.company_name_en}
-                onChange={(e) => setSettings({ ...settings, company_name_en: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, company_name_en: e.target.value })
+                }
               />
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {t.companySettingsView.nameAr}
+                {t.companySettingsView.nameArLabel}
               </label>
               <Input
                 value={settings.company_name_ar}
-                onChange={(e) => setSettings({ ...settings, company_name_ar: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, company_name_ar: e.target.value })
+                }
                 className="text-end font-arabic"
               />
             </div>
@@ -232,7 +261,9 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
               </label>
               <Input
                 value={settings.cr_number}
-                onChange={(e) => setSettings({ ...settings, cr_number: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, cr_number: e.target.value })
+                }
                 className="font-mono"
               />
             </div>
@@ -253,19 +284,26 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
                 {t.companySettingsView.addressLabel}
               </label>
               <Input
-                value={locale === 'ar' ? settings.address_ar : (settings.address_en || settings.address_ar)}
-                onChange={(e) => setSettings({ ...settings, address_ar: e.target.value })}
+                value={
+                  locale === "ar"
+                    ? settings.address_ar
+                    : settings.address_en || settings.address_ar
+                }
+                onChange={(e) =>
+                  setSettings({ ...settings, address_ar: e.target.value })
+                }
               />
             </div>
           </div>
         </Card>
 
-        {/* 4. BANKING & WIRE SETTLEMENT COORDINATES */}
         <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
           <div className="flex items-center gap-3 pb-4 border-b border-white/10">
             <Landmark className="w-5 h-5 text-[#09937F]" />
             <div>
-              <h2 className="text-base font-bold text-white">{t.settings.bankTitle}</h2>
+              <h2 className="text-base font-bold text-white">
+                {t.settings.bankTitle}
+              </h2>
               <p className="text-xs text-[#9EADA9]">
                 {t.companySettingsView.bankSubtitle}
               </p>
@@ -274,43 +312,61 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">{t.settings.bankName}</label>
+              <label className="text-xs font-medium text-[#9EADA9]">
+                {t.settings.bankName}
+              </label>
               <Input
                 value={settings.bank_name}
-                onChange={(e) => setSettings({ ...settings, bank_name: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, bank_name: e.target.value })
+                }
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">{t.settings.bankIban}</label>
+              <label className="text-xs font-medium text-[#9EADA9]">
+                {t.settings.bankIban}
+              </label>
               <Input
                 value={settings.bank_iban}
-                onChange={(e) => setSettings({ ...settings, bank_iban: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, bank_iban: e.target.value })
+                }
                 className="font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">{t.settings.bankAccount}</label>
+              <label className="text-xs font-medium text-[#9EADA9]">
+                {t.settings.bankAccount}
+              </label>
               <Input
                 value={settings.bank_account_number}
-                onChange={(e) => setSettings({ ...settings, bank_account_number: e.target.value })}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    bank_account_number: e.target.value,
+                  })
+                }
                 className="font-mono"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">{t.settings.bankSwift}</label>
+              <label className="text-xs font-medium text-[#9EADA9]">
+                {t.settings.bankSwift}
+              </label>
               <Input
                 value={settings.bank_swift}
-                onChange={(e) => setSettings({ ...settings, bank_swift: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, bank_swift: e.target.value })
+                }
                 className="font-mono"
               />
             </div>
           </div>
         </Card>
 
-        {/* Bottom Save Bar */}
         <div className="flex items-center justify-end gap-4 pt-4 border-t border-white/10">
           <Button
             type="submit"

@@ -1,7 +1,7 @@
-import * as React from 'react';
-import { Modal } from './modal';
-import { Button } from './button';
-import { Input } from './input';
+import * as React from "react";
+import { Modal } from "./modal";
+import { Button } from "./button";
+import { Input } from "./input";
 
 export interface ConfirmDestructiveModalProps {
   isOpen: boolean;
@@ -14,7 +14,7 @@ export interface ConfirmDestructiveModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
-  variant?: 'danger' | 'warning';
+  variant?: "danger" | "warning";
 }
 
 export function ConfirmDestructiveModal({
@@ -25,22 +25,23 @@ export function ConfirmDestructiveModal({
   description,
   confirmMatchText,
   typePromptLabel,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
   loading = false,
-  variant = 'danger',
+  variant = "danger",
 }: ConfirmDestructiveModalProps) {
-  const [typedInput, setTypedInput] = React.useState('');
+  const [typedInput, setTypedInput] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (isOpen) {
-      setTypedInput('');
+      setTypedInput("");
       setIsSubmitting(false);
     }
   }, [isOpen]);
 
-  const canConfirm = !confirmMatchText || typedInput.trim() === confirmMatchText.trim();
+  const canConfirm =
+    !confirmMatchText || typedInput.trim() === confirmMatchText.trim();
 
   const handleConfirm = async () => {
     if (!canConfirm || isSubmitting || loading) return;
@@ -53,7 +54,7 @@ export function ConfirmDestructiveModal({
     }
   };
 
-  const isDanger = variant === 'danger';
+  const isDanger = variant === "danger";
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
@@ -61,8 +62,8 @@ export function ConfirmDestructiveModal({
         <div
           className={`p-3.5 rounded-xl border ${
             isDanger
-              ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-              : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+              ? "bg-rose-500/10 border-rose-500/30 text-rose-300"
+              : "bg-amber-500/10 border-amber-500/30 text-amber-300"
           }`}
         >
           {description}
@@ -71,7 +72,8 @@ export function ConfirmDestructiveModal({
         {confirmMatchText && (
           <div className="space-y-2">
             <p className="text-xs text-[#9EADA9]">
-              {typePromptLabel || `To proceed, type "${confirmMatchText}" below:`}
+              {typePromptLabel ||
+                `To proceed, type "${confirmMatchText}" below:`}
             </p>
             <Input
               type="text"
@@ -95,12 +97,12 @@ export function ConfirmDestructiveModal({
           </Button>
           <Button
             type="button"
-            variant={isDanger ? 'danger' : 'primary'}
+            variant={isDanger ? "danger" : "primary"}
             size="sm"
             onClick={handleConfirm}
             disabled={!canConfirm || isSubmitting || loading}
           >
-            {isSubmitting || loading ? '...' : confirmLabel}
+            {isSubmitting || loading ? "..." : confirmLabel}
           </Button>
         </div>
       </div>

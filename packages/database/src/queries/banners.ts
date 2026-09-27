@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { HeroBanner } from '../types';
+import { db } from "../db";
+import { HeroBanner } from "../types";
 
 function mapBanner(b: any): HeroBanner {
   return {
@@ -8,7 +8,7 @@ function mapBanner(b: any): HeroBanner {
     title_ar: b.titleAr,
     subtitle_en: b.subtitleEn || undefined,
     subtitle_ar: b.subtitleAr || undefined,
-    media_type: b.mediaType as 'video' | 'image',
+    media_type: b.mediaType as "video" | "image",
     media_url: b.mediaUrl,
     poster_url: b.posterUrl || undefined,
     display_order: b.displayOrder,
@@ -24,11 +24,11 @@ export async function getActiveBanners(): Promise<HeroBanner[]> {
   try {
     const banners = await db.heroBanner.findMany({
       where: { isActive: true },
-      orderBy: { displayOrder: 'asc' },
+      orderBy: { displayOrder: "asc" },
     });
     return banners.map(mapBanner);
   } catch (e) {
-    console.error('Error fetching active banners from DB:', e);
+    console.error("Error fetching active banners from DB:", e);
     return [];
   }
 }
@@ -36,16 +36,18 @@ export async function getActiveBanners(): Promise<HeroBanner[]> {
 export async function getAllBanners(): Promise<HeroBanner[]> {
   try {
     const banners = await db.heroBanner.findMany({
-      orderBy: { displayOrder: 'asc' },
+      orderBy: { displayOrder: "asc" },
     });
     return banners.map(mapBanner);
   } catch (e) {
-    console.error('Error fetching all banners from DB:', e);
+    console.error("Error fetching all banners from DB:", e);
     return [];
   }
 }
 
-export async function createBanner(data: Omit<HeroBanner, 'id' | 'created_at'>): Promise<HeroBanner> {
+export async function createBanner(
+  data: Omit<HeroBanner, "id" | "created_at">,
+): Promise<HeroBanner> {
   const created = await db.heroBanner.create({
     data: {
       titleEn: data.title_en,
@@ -65,20 +67,28 @@ export async function createBanner(data: Omit<HeroBanner, 'id' | 'created_at'>):
   return mapBanner(created);
 }
 
-export async function updateBanner(id: string, data: Partial<HeroBanner>): Promise<HeroBanner | null> {
+export async function updateBanner(
+  id: string,
+  data: Partial<HeroBanner>,
+): Promise<HeroBanner | null> {
   try {
     const updateData: any = {};
     if (data.title_en !== undefined) updateData.titleEn = data.title_en;
     if (data.title_ar !== undefined) updateData.titleAr = data.title_ar;
-    if (data.subtitle_en !== undefined) updateData.subtitleEn = data.subtitle_en;
-    if (data.subtitle_ar !== undefined) updateData.subtitleAr = data.subtitle_ar;
+    if (data.subtitle_en !== undefined)
+      updateData.subtitleEn = data.subtitle_en;
+    if (data.subtitle_ar !== undefined)
+      updateData.subtitleAr = data.subtitle_ar;
     if (data.media_type !== undefined) updateData.mediaType = data.media_type;
     if (data.media_url !== undefined) updateData.mediaUrl = data.media_url;
     if (data.poster_url !== undefined) updateData.posterUrl = data.poster_url;
-    if (data.display_order !== undefined) updateData.displayOrder = data.display_order;
+    if (data.display_order !== undefined)
+      updateData.displayOrder = data.display_order;
     if (data.is_active !== undefined) updateData.isActive = data.is_active;
-    if (data.cta_label_en !== undefined) updateData.ctaLabelEn = data.cta_label_en;
-    if (data.cta_label_ar !== undefined) updateData.ctaLabelAr = data.cta_label_ar;
+    if (data.cta_label_en !== undefined)
+      updateData.ctaLabelEn = data.cta_label_en;
+    if (data.cta_label_ar !== undefined)
+      updateData.ctaLabelAr = data.cta_label_ar;
     if (data.cta_link !== undefined) updateData.ctaLink = data.cta_link;
 
     const updated = await db.heroBanner.update({

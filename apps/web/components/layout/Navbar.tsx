@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useTranslation } from '../../hooks/useTranslation';
-import { LanguageSwitcher } from './LanguageSwitcher';
-import { MobileMenu } from './MobileMenu';
-import { Menu } from 'lucide-react';
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useTranslation } from "../../hooks/useTranslation";
+import { LanguageSwitcher } from "./LanguageSwitcher";
+import { MobileMenu } from "./MobileMenu";
+import { Menu } from "lucide-react";
 
 export function Navbar() {
   const { t, locale } = useTranslation();
@@ -16,47 +16,56 @@ export function Navbar() {
 
   React.useEffect(() => {
     const handleScroll = () => {
-      // Find the banners / hero area on the current page
-      const hero = document.getElementById('home') || document.querySelector('[data-hero="true"]');
+      const hero =
+        document.getElementById("home") ||
+        document.querySelector('[data-hero="true"]');
       if (hero) {
         const rect = hero.getBoundingClientRect();
-        // Top bar only changes background when banners scroll finishes (reaches bottom of banners area)
         setIsScrolled(rect.bottom <= 75);
       } else {
-        // Fallback for pages without a full banner area
         setIsScrolled(window.scrollY > 80);
       }
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
     handleScroll();
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
     };
   }, [pathname]);
 
   const navLinks = [
-    { href: `/${locale}`, label: t('nav.home') },
-    { href: `/${locale}/works`, label: t('nav.works') },
-    { href: `/${locale}/about`, label: t('nav.about') },
-    { href: `/${locale}/contact`, label: t('nav.contact') },
+    { href: `/${locale}`, label: t("nav.home") },
+    { href: `/${locale}/works`, label: t("nav.works") },
+    { href: `/${locale}/about`, label: t("nav.about") },
+    { href: `/${locale}/contact`, label: t("nav.contact") },
   ];
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
-            ? 'py-3.5 bg-[#050807]/90 backdrop-blur-2xl'
-            : 'py-5 bg-transparent'
-          }`}
-        style={isScrolled ? { boxShadow: '0 16px 48px rgba(9, 147, 127, 0.12), 0 -8px 24px rgba(9, 147, 127, 0.06), 0 0 2px rgba(255, 255, 255, 0.08)' } : {}}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          isScrolled
+            ? "py-3.5 bg-[#050807]/90 backdrop-blur-2xl"
+            : "py-5 bg-transparent"
+        }`}
+        style={
+          isScrolled
+            ? {
+                boxShadow:
+                  "0 16px 48px rgba(9, 147, 127, 0.12), 0 -8px 24px rgba(9, 147, 127, 0.06), 0 0 2px rgba(255, 255, 255, 0.08)",
+              }
+            : {}
+        }
       >
         <div className="shell flex items-center justify-between">
-          {/* Logo with Smoothly Rotating 45-degree Aperture on Hover */}
-          <Link href={`/${locale}`} className={`flex items-center gap-3 group ${locale === 'ar' ? 'flex-row-reverse' : ''}`}>
+          <Link
+            href={`/${locale}`}
+            className={`flex items-center gap-3 group ${locale === "ar" ? "flex-row-reverse" : ""}`}
+          >
             <div className="relative h-11 w-11 flex items-center justify-center shrink-0">
               <img
                 src="/icon.svg"
@@ -71,7 +80,6 @@ export function Navbar() {
             />
           </Link>
 
-          {/* Centered Desktop Navigation with Animated Hairline Reveal */}
           <nav className="hidden lg:flex items-center gap-9">
             {navLinks.map((link) => {
               const isActive =
@@ -83,14 +91,18 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`group relative text-sm tracking-wide font-medium transition-colors duration-300 ${isActive ? 'text-white' : 'text-[#9EADA9] hover:text-white'
-                    }`}
+                  className={`group relative text-sm tracking-wide font-medium transition-colors duration-300 ${
+                    isActive ? "text-white" : "text-[#9EADA9] hover:text-white"
+                  }`}
                 >
                   <span className="relative pb-1">
                     {link.label}
                     <span
-                      className={`absolute -bottom-0.5 left-0 h-[1.5px] w-full origin-left bg-[#09937F] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                        }`}
+                      className={`absolute -bottom-0.5 left-0 h-[1.5px] w-full origin-left bg-[#09937F] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                        isActive
+                          ? "scale-x-100"
+                          : "scale-x-0 group-hover:scale-x-100"
+                      }`}
                     />
                   </span>
                 </Link>
@@ -98,12 +110,10 @@ export function Navbar() {
             })}
           </nav>
 
-          {/* Right Action Buttons */}
           <div className="hidden lg:flex items-center gap-4">
             <LanguageSwitcher />
           </div>
 
-          {/* Mobile Actions */}
           <div className="flex items-center gap-3 lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -116,7 +126,6 @@ export function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Drawer */}
       <MobileMenu
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}

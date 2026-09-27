@@ -1,41 +1,64 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import type { HeroBanner } from '@ishoot/database/types';
-import { Button, Card, Badge, Modal, Input, Select, ConfirmDestructiveModal } from '@ishoot/ui';
-import { Plus, Eye, EyeOff, Film, Image as ImageIcon, Trash2, CheckCircle2 } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { toggleBannerStatusAction, deleteBannerAction, createBannerAction } from '../../app/actions/cms';
+import * as React from "react";
+import type { HeroBanner } from "@ishoot/database/types";
+import {
+  Button,
+  Card,
+  Badge,
+  Modal,
+  Input,
+  Select,
+  ConfirmDestructiveModal,
+} from "@ishoot/ui";
+import {
+  Plus,
+  Eye,
+  EyeOff,
+  Film,
+  Image as ImageIcon,
+  Trash2,
+  CheckCircle2,
+} from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import {
+  toggleBannerStatusAction,
+  deleteBannerAction,
+  createBannerAction,
+} from "../../app/actions/cms";
 
 interface BannersManagementViewProps {
   initialBanners: HeroBanner[];
 }
 
-export function BannersManagementView({ initialBanners }: BannersManagementViewProps) {
+export function BannersManagementView({
+  initialBanners,
+}: BannersManagementViewProps) {
   const { t, locale, isRTL } = useAdminLocale();
   const [banners, setBanners] = React.useState<HeroBanner[]>(initialBanners);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
+    null,
+  );
   const [saving, setSaving] = React.useState(false);
 
-  // Form state
-  const [titleEn, setTitleEn] = React.useState('');
-  const [titleAr, setTitleAr] = React.useState('');
-  const [subtitleEn, setSubtitleEn] = React.useState('');
-  const [subtitleAr, setSubtitleAr] = React.useState('');
-  const [mediaType, setMediaType] = React.useState<'video' | 'image'>('video');
-  const [mediaUrl, setMediaUrl] = React.useState('');
-  const [posterUrl, setPosterUrl] = React.useState('');
+  const [titleEn, setTitleEn] = React.useState("");
+  const [titleAr, setTitleAr] = React.useState("");
+  const [subtitleEn, setSubtitleEn] = React.useState("");
+  const [subtitleAr, setSubtitleAr] = React.useState("");
+  const [mediaType, setMediaType] = React.useState<"video" | "image">("video");
+  const [mediaUrl, setMediaUrl] = React.useState("");
+  const [posterUrl, setPosterUrl] = React.useState("");
 
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
     const nextStatus = !currentStatus;
     setBanners((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, is_active: nextStatus } : b))
+      prev.map((b) => (b.id === id ? { ...b, is_active: nextStatus } : b)),
     );
     try {
       await toggleBannerStatusAction(id, nextStatus);
     } catch (err) {
-      console.error('Failed to toggle banner status:', err);
+      console.error("Failed to toggle banner status:", err);
     }
   };
 
@@ -44,7 +67,7 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
     try {
       await deleteBannerAction(id);
     } catch (err) {
-      console.error('Failed to delete banner:', err);
+      console.error("Failed to delete banner:", err);
     }
   };
 
@@ -69,15 +92,14 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
         setBanners((prev) => [...prev, res.banner]);
       }
       setIsModalOpen(false);
-      // Reset form
-      setTitleEn('');
-      setTitleAr('');
-      setSubtitleEn('');
-      setSubtitleAr('');
-      setMediaUrl('');
-      setPosterUrl('');
+      setTitleEn("");
+      setTitleAr("");
+      setSubtitleEn("");
+      setSubtitleAr("");
+      setMediaUrl("");
+      setPosterUrl("");
     } catch (err) {
-      console.error('Failed to create banner:', err);
+      console.error("Failed to create banner:", err);
     } finally {
       setSaving(false);
     }
@@ -85,7 +107,6 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -107,7 +128,6 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
         </Button>
       </div>
 
-      {/* Banner Cards Grid */}
       <div className="grid grid-cols-1 gap-4">
         {banners.length === 0 ? (
           <div className="p-12 text-center rounded-3xl bg-[#0B1210] border border-white/10 text-[#9EADA9]">
@@ -119,16 +139,19 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
               key={banner.id}
               className="p-5 bg-[#0B1210] border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-white/20 transition-all rounded-3xl"
             >
-              {/* Left: Thumbnail & Details */}
               <div className="flex items-center gap-4">
                 <div className="relative w-36 aspect-video rounded-xl overflow-hidden bg-black border border-white/10 shrink-0">
                   <img
                     src={banner.poster_url || banner.media_url}
-                    alt={locale === 'ar' ? banner.title_ar : banner.title_en}
+                    alt={locale === "ar" ? banner.title_ar : banner.title_en}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-[9px] font-mono text-white flex items-center gap-1">
-                    {banner.media_type === 'video' ? <Film className="w-2.5 h-2.5" /> : <ImageIcon className="w-2.5 h-2.5" />}
+                    {banner.media_type === "video" ? (
+                      <Film className="w-2.5 h-2.5" />
+                    ) : (
+                      <ImageIcon className="w-2.5 h-2.5" />
+                    )}
                     <span>{banner.media_type.toUpperCase()}</span>
                   </div>
                 </div>
@@ -136,31 +159,42 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-bold text-white">
-                      {locale === 'ar' ? banner.title_ar : banner.title_en}
+                      {locale === "ar" ? banner.title_ar : banner.title_en}
                     </h3>
-                    <Badge variant={banner.is_active ? 'emerald' : 'outline'}>
+                    <Badge variant={banner.is_active ? "emerald" : "outline"}>
                       {banner.is_active ? t.cms.live : t.cms.hidden}
                     </Badge>
                   </div>
                   <div className="text-xs text-[#09937F] font-mono">
-                    {locale === 'ar' ? banner.title_en : banner.title_ar}
+                    {locale === "ar" ? banner.title_en : banner.title_ar}
                   </div>
                   <div className="text-xs text-[#9EADA9] max-w-lg line-clamp-1">
-                    {locale === 'ar' ? (banner.subtitle_ar || banner.subtitle_en) : (banner.subtitle_en || banner.subtitle_ar)}
+                    {locale === "ar"
+                      ? banner.subtitle_ar || banner.subtitle_en
+                      : banner.subtitle_en || banner.subtitle_ar}
                   </div>
                 </div>
               </div>
 
-              {/* Right: Actions */}
               <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => handleToggleStatus(banner.id, banner.is_active)}
+                  onClick={() =>
+                    handleToggleStatus(banner.id, banner.is_active)
+                  }
                   className="gap-1.5"
                 >
-                  {banner.is_active ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  <span>{banner.is_active ? t.bannersView.hide : t.bannersView.publish}</span>
+                  {banner.is_active ? (
+                    <EyeOff className="w-3.5 h-3.5" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5" />
+                  )}
+                  <span>
+                    {banner.is_active
+                      ? t.bannersView.hide
+                      : t.bannersView.publish}
+                  </span>
                 </Button>
 
                 <Button
@@ -176,7 +210,6 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
         )}
       </div>
 
-      {/* Modal: Add New Banner */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -186,7 +219,7 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {t.bannersView.titleAr}
+                {t.bannersView.titleArLabel}
               </label>
               <Input
                 value={titleAr}
@@ -197,7 +230,7 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {t.bannersView.titleEn}
+                {t.bannersView.titleEnLabel}
               </label>
               <Input
                 value={titleEn}
@@ -211,7 +244,7 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {t.bannersView.subtitleAr}
+                {t.bannersView.subtitleArLabel}
               </label>
               <Input
                 value={subtitleAr}
@@ -221,7 +254,7 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {t.bannersView.subtitleEn}
+                {t.bannersView.subtitleEnLabel}
               </label>
               <Input
                 value={subtitleEn}
@@ -294,7 +327,6 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
         </form>
       </Modal>
 
-      {/* Delete Confirmation Safeguard Modal */}
       <ConfirmDestructiveModal
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}

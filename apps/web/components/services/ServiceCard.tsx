@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Card } from '@ishoot/ui';
-import { ArrowUpRight } from 'lucide-react';
+import * as React from "react";
+import { Card } from "@ishoot/ui";
+import { ArrowUpRight } from "lucide-react";
 
 interface ServiceCardProps {
   title: string;
@@ -19,7 +19,7 @@ export function ServiceCard({
   badge,
   icon,
   bgMediaUrl,
-  className = '',
+  className = "",
 }: ServiceCardProps) {
   const [isHovered, setIsHovered] = React.useState(false);
 
@@ -29,11 +29,10 @@ export function ServiceCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Background Hover Video/Image Preview */}
       {bgMediaUrl && (
         <div
           className={`absolute inset-0 z-0 transition-opacity duration-700 pointer-events-none ${
-            isHovered ? 'opacity-30 scale-105' : 'opacity-0 scale-100'
+            isHovered ? "opacity-30 scale-105" : "opacity-0 scale-100"
           }`}
         >
           <div
@@ -44,7 +43,6 @@ export function ServiceCard({
         </div>
       )}
 
-      {/* Top Header */}
       <div className="relative z-10 flex items-start justify-between">
         <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#09937F] group-hover:scale-110 group-hover:bg-[#09937F]/15 group-hover:border-[#09937F]/40 transition-all duration-300">
           {icon}
@@ -54,7 +52,6 @@ export function ServiceCard({
         </div>
       </div>
 
-      {/* Bottom Content */}
       <div className="relative z-10 space-y-3 pt-6">
         {badge && (
           <span className="text-[11px] font-mono tracking-widest text-[#09937F] uppercase">
@@ -64,9 +61,7 @@ export function ServiceCard({
         <h3 className="text-2xl font-bold text-white tracking-tight group-hover:text-[#09937F] transition-colors">
           {title}
         </h3>
-        <p className="text-sm text-[#9EADA9] leading-relaxed">
-          {desc}
-        </p>
+        <p className="text-sm text-[#9EADA9] leading-relaxed">{desc}</p>
       </div>
     </Card>
   );

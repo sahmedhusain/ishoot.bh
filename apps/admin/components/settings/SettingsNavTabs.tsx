@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Sliders, Building2, History, Share2 } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Sliders, Building2, History, Share2 } from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function SettingsNavTabs() {
   const pathname = usePathname();
@@ -12,22 +12,22 @@ export function SettingsNavTabs() {
 
   const tabs = [
     {
-      href: '/dashboard/settings/preferences',
+      href: "/dashboard/settings/preferences",
       label: t.settingsTabs.preferences,
       icon: Sliders,
     },
     {
-      href: '/dashboard/settings/company',
+      href: "/dashboard/settings/company",
       label: t.settingsTabs.company,
       icon: Building2,
     },
     {
-      href: '/dashboard/settings/audit',
+      href: "/dashboard/settings/audit",
       label: t.settingsTabs.audit,
       icon: History,
     },
     {
-      href: '/dashboard/settings/integrations',
+      href: "/dashboard/settings/integrations",
       label: t.settingsTabs.integrations,
       icon: Share2,
     },
@@ -45,11 +45,13 @@ export function SettingsNavTabs() {
             href={tab.href}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
               isActive
-                ? 'bg-[#014842] text-white shadow-md border border-[#09937F]/40'
-                : 'text-[#9EADA9] hover:text-white hover:bg-white/5'
+                ? "bg-[#014842] text-white shadow-md border border-[#09937F]/40"
+                : "text-[#9EADA9] hover:text-white hover:bg-white/5"
             }`}
           >
-            <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#09937F]' : 'text-[#9EADA9]'}`} />
+            <Icon
+              className={`w-3.5 h-3.5 ${isActive ? "text-[#09937F]" : "text-[#9EADA9]"}`}
+            />
             <span>{tab.label}</span>
           </Link>
         );

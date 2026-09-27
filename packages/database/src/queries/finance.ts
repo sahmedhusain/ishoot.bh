@@ -1,7 +1,7 @@
-import { getAllInvoices } from './invoices';
-import { getAllPayments } from './payments';
-import { getAllExpenses } from './expenses';
-import { FinancialSummary } from '../types';
+import { getAllInvoices } from "./invoices";
+import { getAllPayments } from "./payments";
+import { getAllExpenses } from "./expenses";
+import { FinancialSummary } from "../types";
 
 export async function getFinancialSummary(): Promise<FinancialSummary> {
   const [invoices, payments, expenses] = await Promise.all([
@@ -16,14 +16,17 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
   const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
 
   const outstanding = invoices
-    .filter((inv) => inv.status === 'sent' || inv.status === 'partially_paid')
+    .filter((inv) => inv.status === "sent" || inv.status === "partially_paid")
     .reduce((acc, inv) => acc + Number(inv.amount_due), 0);
 
   const overdue = invoices
-    .filter((inv) => inv.status === 'overdue')
+    .filter((inv) => inv.status === "overdue")
     .reduce((acc, inv) => acc + Number(inv.amount_due), 0);
 
-  const discountsGiven = invoices.reduce((acc, inv) => acc + Number(inv.discount_amount), 0);
+  const discountsGiven = invoices.reduce(
+    (acc, inv) => acc + Number(inv.discount_amount),
+    0,
+  );
   const vatCollected = invoices
     .filter((inv) => inv.vat_enabled)
     .reduce((acc, inv) => acc + Number(inv.vat_amount), 0);
@@ -37,7 +40,7 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
     overdue,
     discountsGiven,
     vatCollected,
-    currency: 'BHD',
+    currency: "BHD",
   };
 }
 
@@ -47,7 +50,9 @@ export interface MonthlyCashflowPoint {
   expenses: number;
 }
 
-export async function getMonthlyCashflow(monthsCount: number = 6): Promise<MonthlyCashflowPoint[]> {
+export async function getMonthlyCashflow(
+  monthsCount: number = 6,
+): Promise<MonthlyCashflowPoint[]> {
   const [payments, expenses] = await Promise.all([
     getAllPayments(),
     getAllExpenses(),
@@ -58,7 +63,7 @@ export async function getMonthlyCashflow(monthsCount: number = 6): Promise<Month
 
   for (let i = monthsCount - 1; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
     const monthRevenue = payments
       .filter((p) => p.payment_date && p.payment_date.startsWith(yearMonth))

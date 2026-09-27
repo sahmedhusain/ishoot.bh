@@ -1,195 +1,193 @@
-import { db } from '../db';
-import { Permission, UserRole } from '../types';
+import { db } from "../db";
+import { Permission, UserRole } from "../types";
 
 export type PermissionResource =
-  | 'invoices'
-  | 'payments'
-  | 'expenses'
-  | 'finance_analytics'
-  | 'deals'
-  | 'contacts'
-  | 'leads'
-  | 'contracts'
-  | 'banners'
-  | 'portfolio'
-  | 'clients'
-  | 'equipment'
-  | 'calendar'
-  | 'users'
-  | 'settings'
-  | 'audit_logs';
+  | "invoices"
+  | "payments"
+  | "expenses"
+  | "finance_analytics"
+  | "deals"
+  | "contacts"
+  | "leads"
+  | "contracts"
+  | "banners"
+  | "portfolio"
+  | "clients"
+  | "equipment"
+  | "calendar"
+  | "users"
+  | "settings"
+  | "audit_logs";
 
-export type PermissionAction = 'read' | 'write' | 'delete' | 'export' | 'approve';
+export type PermissionAction =
+  "read" | "write" | "delete" | "export" | "approve";
 
 export const ALL_RESOURCES: PermissionResource[] = [
-  'invoices',
-  'payments',
-  'expenses',
-  'finance_analytics',
-  'deals',
-  'contacts',
-  'leads',
-  'contracts',
-  'banners',
-  'portfolio',
-  'clients',
-  'equipment',
-  'calendar',
-  'users',
-  'settings',
-  'audit_logs',
+  "invoices",
+  "payments",
+  "expenses",
+  "finance_analytics",
+  "deals",
+  "contacts",
+  "leads",
+  "contracts",
+  "banners",
+  "portfolio",
+  "clients",
+  "equipment",
+  "calendar",
+  "users",
+  "settings",
+  "audit_logs",
 ];
 
-export const ALL_ACTIONS: PermissionAction[] = ['read', 'write', 'delete', 'export', 'approve'];
+export const ALL_ACTIONS: PermissionAction[] = [
+  "read",
+  "write",
+  "delete",
+  "export",
+  "approve",
+];
 
 export const ALL_ROLES: UserRole[] = [
-  'super_admin',
-  'admin',
-  'finance_manager',
-  'accountant',
-  'production_manager',
-  'producer',
-  'sales',
-  'marketing',
-  'editor',
-  'viewer',
+  "super_admin",
+  "admin",
+  "finance_manager",
+  "accountant",
+  "production_manager",
+  "producer",
+  "sales",
+  "marketing",
+  "editor",
+  "viewer",
 ];
 
-/**
- * Default permission definitions by role.
- */
 export const DEFAULT_ROLE_RULES: Record<
   UserRole,
   Partial<Record<PermissionResource, PermissionAction[]>>
 > = {
   super_admin: {
-    invoices: ['read', 'write', 'delete', 'export', 'approve'],
-    payments: ['read', 'write', 'delete', 'export', 'approve'],
-    expenses: ['read', 'write', 'delete', 'export', 'approve'],
-    finance_analytics: ['read', 'write', 'delete', 'export', 'approve'],
-    deals: ['read', 'write', 'delete', 'export', 'approve'],
-    contacts: ['read', 'write', 'delete', 'export', 'approve'],
-    leads: ['read', 'write', 'delete', 'export', 'approve'],
-    contracts: ['read', 'write', 'delete', 'export', 'approve'],
-    banners: ['read', 'write', 'delete', 'export', 'approve'],
-    portfolio: ['read', 'write', 'delete', 'export', 'approve'],
-    clients: ['read', 'write', 'delete', 'export', 'approve'],
-    equipment: ['read', 'write', 'delete', 'export', 'approve'],
-    calendar: ['read', 'write', 'delete', 'export', 'approve'],
-    users: ['read', 'write', 'delete', 'export', 'approve'],
-    settings: ['read', 'write', 'delete', 'export', 'approve'],
-    audit_logs: ['read', 'write', 'delete', 'export', 'approve'],
+    invoices: ["read", "write", "delete", "export", "approve"],
+    payments: ["read", "write", "delete", "export", "approve"],
+    expenses: ["read", "write", "delete", "export", "approve"],
+    finance_analytics: ["read", "write", "delete", "export", "approve"],
+    deals: ["read", "write", "delete", "export", "approve"],
+    contacts: ["read", "write", "delete", "export", "approve"],
+    leads: ["read", "write", "delete", "export", "approve"],
+    contracts: ["read", "write", "delete", "export", "approve"],
+    banners: ["read", "write", "delete", "export", "approve"],
+    portfolio: ["read", "write", "delete", "export", "approve"],
+    clients: ["read", "write", "delete", "export", "approve"],
+    equipment: ["read", "write", "delete", "export", "approve"],
+    calendar: ["read", "write", "delete", "export", "approve"],
+    users: ["read", "write", "delete", "export", "approve"],
+    settings: ["read", "write", "delete", "export", "approve"],
+    audit_logs: ["read", "write", "delete", "export", "approve"],
   },
   admin: {
-    invoices: ['read', 'write', 'export', 'approve'],
-    payments: ['read', 'write', 'export'],
-    expenses: ['read', 'write', 'export'],
-    finance_analytics: ['read', 'export'],
-    deals: ['read', 'write', 'delete', 'export'],
-    contacts: ['read', 'write', 'delete', 'export'],
-    leads: ['read', 'write', 'delete', 'export'],
-    contracts: ['read', 'write', 'export'],
-    banners: ['read', 'write', 'delete'],
-    portfolio: ['read', 'write', 'delete'],
-    clients: ['read', 'write', 'delete'],
-    equipment: ['read', 'write', 'delete'],
-    calendar: ['read', 'write', 'delete'],
-    users: ['read', 'write'],
-    settings: ['read', 'write'],
-    audit_logs: ['read'],
+    invoices: ["read", "write", "export", "approve"],
+    payments: ["read", "write", "export"],
+    expenses: ["read", "write", "export"],
+    finance_analytics: ["read", "export"],
+    deals: ["read", "write", "delete", "export"],
+    contacts: ["read", "write", "delete", "export"],
+    leads: ["read", "write", "delete", "export"],
+    contracts: ["read", "write", "export"],
+    banners: ["read", "write", "delete"],
+    portfolio: ["read", "write", "delete"],
+    clients: ["read", "write", "delete"],
+    equipment: ["read", "write", "delete"],
+    calendar: ["read", "write", "delete"],
+    users: ["read", "write"],
+    settings: ["read", "write"],
+    audit_logs: ["read"],
   },
   finance_manager: {
-    invoices: ['read', 'write', 'export', 'approve'],
-    payments: ['read', 'write', 'export', 'approve'],
-    expenses: ['read', 'write', 'export', 'approve'],
-    finance_analytics: ['read', 'export'],
-    deals: ['read'],
-    contacts: ['read'],
-    contracts: ['read'],
-    calendar: ['read'],
+    invoices: ["read", "write", "export", "approve"],
+    payments: ["read", "write", "export", "approve"],
+    expenses: ["read", "write", "export", "approve"],
+    finance_analytics: ["read", "export"],
+    deals: ["read"],
+    contacts: ["read"],
+    contracts: ["read"],
+    calendar: ["read"],
   },
   accountant: {
-    invoices: ['read', 'write', 'export'],
-    payments: ['read', 'write', 'export'],
-    expenses: ['read', 'write', 'export'],
-    finance_analytics: ['read'],
-    deals: ['read'],
-    contacts: ['read'],
-    contracts: ['read'],
+    invoices: ["read", "write", "export"],
+    payments: ["read", "write", "export"],
+    expenses: ["read", "write", "export"],
+    finance_analytics: ["read"],
+    deals: ["read"],
+    contacts: ["read"],
+    contracts: ["read"],
   },
   production_manager: {
-    deals: ['read', 'write', 'export'],
-    contacts: ['read', 'write'],
-    leads: ['read', 'write'],
-    contracts: ['read', 'write'],
-    equipment: ['read', 'write'],
-    calendar: ['read', 'write', 'delete'],
-    portfolio: ['read'],
-    invoices: ['read'],
+    deals: ["read", "write", "export"],
+    contacts: ["read", "write"],
+    leads: ["read", "write"],
+    contracts: ["read", "write"],
+    equipment: ["read", "write"],
+    calendar: ["read", "write", "delete"],
+    portfolio: ["read"],
+    invoices: ["read"],
   },
   producer: {
-    deals: ['read', 'write'],
-    contacts: ['read', 'write'],
-    leads: ['read', 'write'],
-    contracts: ['read'],
-    equipment: ['read', 'write'],
-    calendar: ['read', 'write'],
-    portfolio: ['read'],
+    deals: ["read", "write"],
+    contacts: ["read", "write"],
+    leads: ["read", "write"],
+    contracts: ["read"],
+    equipment: ["read", "write"],
+    calendar: ["read", "write"],
+    portfolio: ["read"],
   },
   sales: {
-    deals: ['read', 'write', 'delete', 'export'],
-    contacts: ['read', 'write', 'delete', 'export'],
-    leads: ['read', 'write', 'delete', 'export'],
-    contracts: ['read', 'write'],
-    calendar: ['read', 'write'],
-    invoices: ['read'],
+    deals: ["read", "write", "delete", "export"],
+    contacts: ["read", "write", "delete", "export"],
+    leads: ["read", "write", "delete", "export"],
+    contracts: ["read", "write"],
+    calendar: ["read", "write"],
+    invoices: ["read"],
   },
   marketing: {
-    banners: ['read', 'write', 'delete'],
-    portfolio: ['read', 'write', 'delete'],
-    clients: ['read', 'write', 'delete'],
-    leads: ['read', 'write'],
-    calendar: ['read', 'write'],
-    equipment: ['read'],
+    banners: ["read", "write", "delete"],
+    portfolio: ["read", "write", "delete"],
+    clients: ["read", "write", "delete"],
+    leads: ["read", "write"],
+    calendar: ["read", "write"],
+    equipment: ["read"],
   },
   editor: {
-    portfolio: ['read', 'write'],
-    banners: ['read'],
-    equipment: ['read'],
-    calendar: ['read'],
+    portfolio: ["read", "write"],
+    banners: ["read"],
+    equipment: ["read"],
+    calendar: ["read"],
   },
   viewer: {
-    deals: ['read'],
-    contacts: ['read'],
-    leads: ['read'],
-    portfolio: ['read'],
-    clients: ['read'],
-    equipment: ['read'],
-    calendar: ['read'],
+    deals: ["read"],
+    contacts: ["read"],
+    leads: ["read"],
+    portfolio: ["read"],
+    clients: ["read"],
+    equipment: ["read"],
+    calendar: ["read"],
   },
 };
 
-/**
- * Check whether a role + optional user overrides is allowed to perform an action on a resource.
- */
 export async function hasPermission(
   role: string,
   resource: PermissionResource,
   action: PermissionAction,
-  userOverrides?: Record<string, boolean> | null
+  userOverrides?: Record<string, boolean> | null,
 ): Promise<boolean> {
-  // 1. Super admin always has full access
-  if (role === 'super_admin') return true;
+  if (role === "super_admin") return true;
 
-  // 2. Check user-specific granular override (e.g. "invoices:write": true/false)
   if (userOverrides) {
     const key = `${resource}:${action}`;
-    if (typeof userOverrides[key] === 'boolean') {
+    if (typeof userOverrides[key] === "boolean") {
       return userOverrides[key];
     }
   }
 
-  // 3. Check DB permissions table
   try {
     const perm = await db.permission.findUnique({
       where: {
@@ -205,23 +203,22 @@ export async function hasPermission(
       return perm.allowed;
     }
   } catch (err) {
-    console.error('Error checking permission from DB, falling back to static rules:', err);
+    console.error(
+      "Error checking permission from DB, falling back to static rules:",
+      err,
+    );
   }
 
-  // 4. Fallback to static role rules
   const roleRules = DEFAULT_ROLE_RULES[role as UserRole];
   if (!roleRules) return false;
   const allowedActions = roleRules[resource];
   return allowedActions ? allowedActions.includes(action) : false;
 }
 
-/**
- * Get all permissions matrix for admin UI.
- */
 export async function getAllPermissions(): Promise<Permission[]> {
   try {
     const records = await db.permission.findMany({
-      orderBy: [{ role: 'asc' }, { resource: 'asc' }, { action: 'asc' }],
+      orderBy: [{ role: "asc" }, { resource: "asc" }, { action: "asc" }],
     });
     return records.map((p) => ({
       id: p.id,
@@ -232,19 +229,16 @@ export async function getAllPermissions(): Promise<Permission[]> {
       created_at: p.createdAt.toISOString(),
     }));
   } catch (err) {
-    console.error('Error fetching permissions:', err);
+    console.error("Error fetching permissions:", err);
     return [];
   }
 }
 
-/**
- * Set a specific permission allowed status in DB.
- */
 export async function setPermission(
   role: string,
   resource: string,
   action: string,
-  allowed: boolean
+  allowed: boolean,
 ): Promise<boolean> {
   try {
     await db.permission.upsert({
@@ -265,21 +259,19 @@ export async function setPermission(
     });
     return true;
   } catch (err) {
-    console.error('Error upserting permission:', err);
+    console.error("Error upserting permission:", err);
     return false;
   }
 }
 
-/**
- * Seed all default role permissions into the database.
- */
 export async function seedDefaultPermissions(): Promise<void> {
   for (const role of ALL_ROLES) {
     const roleRules = DEFAULT_ROLE_RULES[role] || {};
     for (const resource of ALL_RESOURCES) {
       const allowedActions = roleRules[resource] || [];
       for (const action of ALL_ACTIONS) {
-        const allowed = role === 'super_admin' ? true : allowedActions.includes(action);
+        const allowed =
+          role === "super_admin" ? true : allowedActions.includes(action);
         await db.permission.upsert({
           where: {
             role_resource_action: {

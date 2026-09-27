@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { PortfolioCategory } from '@ishoot/database';
-import { useLocale } from '../../hooks/useLocale';
+import * as React from "react";
+import { PortfolioCategory } from "@ishoot/database";
+import { useLocale } from "../../hooks/useLocale";
 
 interface CategoryTabsProps {
   categories: PortfolioCategory[];
@@ -10,7 +10,11 @@ interface CategoryTabsProps {
   onSelect: (slug: string) => void;
 }
 
-export function CategoryTabs({ categories, activeCategory, onSelect }: CategoryTabsProps) {
+export function CategoryTabs({
+  categories,
+  activeCategory,
+  onSelect,
+}: CategoryTabsProps) {
   const { isRTL } = useLocale();
 
   return (
@@ -25,8 +29,8 @@ export function CategoryTabs({ categories, activeCategory, onSelect }: CategoryT
             onClick={() => onSelect(cat.slug)}
             className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
               isActive
-                ? 'bg-[#09937F] text-white shadow-lg shadow-[#09937F]/25 scale-105'
-                : 'bg-white/5 hover:bg-white/10 text-[#9EADA9] hover:text-white border border-white/10'
+                ? "bg-[#09937F] text-white shadow-lg shadow-[#09937F]/25 scale-105"
+                : "bg-white/5 hover:bg-white/10 text-[#9EADA9] hover:text-white border border-white/10"
             }`}
           >
             {name}

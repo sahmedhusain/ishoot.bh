@@ -1,10 +1,10 @@
-import * as React from 'react';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { getPortfolioItemBySlug, getPortfolioItems } from '@ishoot/database';
-import { getTranslations, Locale } from '@ishoot/locales';
-import { ArrowLeft, ArrowRight, Play } from 'lucide-react';
-import { Button } from '@ishoot/ui';
+import * as React from "react";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { getPortfolioItemBySlug, getPortfolioItems } from "@ishoot/database";
+import { getTranslations, Locale } from "@ishoot/locales";
+import { ArrowLeft, ArrowRight, Play } from "lucide-react";
+import { Button } from "@ishoot/ui";
 
 export default async function ProjectDetailPage({
   params,
@@ -13,7 +13,7 @@ export default async function ProjectDetailPage({
 }) {
   const { locale, slug } = await params;
   const t = getTranslations(locale as Locale);
-  const isRTL = locale === 'ar';
+  const isRTL = locale === "ar";
 
   const item = await getPortfolioItemBySlug(slug);
 
@@ -28,7 +28,6 @@ export default async function ProjectDetailPage({
 
   return (
     <article className="py-16 max-w-6xl mx-auto px-6 sm:px-8 space-y-12">
-      {/* Back to archive link */}
       <div>
         <Link
           href={`/${locale}/works`}
@@ -39,7 +38,6 @@ export default async function ProjectDetailPage({
         </Link>
       </div>
 
-      {/* Hero Title */}
       <div className="space-y-4">
         <div className="flex items-center gap-4 text-xs font-mono text-[#09937F] uppercase tracking-widest">
           <span>{item.client_name}</span>
@@ -51,7 +49,6 @@ export default async function ProjectDetailPage({
         </h1>
       </div>
 
-      {/* Main Video Presentation */}
       <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-black border border-white/10 shadow-2xl">
         {videoUrl ? (
           <video
@@ -69,7 +66,6 @@ export default async function ProjectDetailPage({
         )}
       </div>
 
-      {/* Project Narrative & Credits */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-8 border-t border-white/10">
         <div className="md:col-span-2 space-y-4">
           <h2 className="text-xl font-bold text-white uppercase tracking-wide">
@@ -80,7 +76,6 @@ export default async function ProjectDetailPage({
           </p>
         </div>
 
-        {/* Credits Dossier */}
         {item.credits && (
           <div className="bg-[#0B1210] border border-white/10 rounded-2xl p-6 space-y-4 h-fit">
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-white/10 pb-3">
@@ -89,26 +84,38 @@ export default async function ProjectDetailPage({
             <div className="space-y-3 text-xs">
               {item.credits.director && (
                 <div className="flex justify-between">
-                  <span className="text-[#9EADA9]">{t.portfolio.director}:</span>
-                  <span className="text-white font-medium">{item.credits.director}</span>
+                  <span className="text-[#9EADA9]">
+                    {t.portfolio.director}:
+                  </span>
+                  <span className="text-white font-medium">
+                    {item.credits.director}
+                  </span>
                 </div>
               )}
               {item.credits.dop && (
                 <div className="flex justify-between">
                   <span className="text-[#9EADA9]">{t.portfolio.dop}:</span>
-                  <span className="text-white font-medium">{item.credits.dop}</span>
+                  <span className="text-white font-medium">
+                    {item.credits.dop}
+                  </span>
                 </div>
               )}
               {item.credits.colorist && (
                 <div className="flex justify-between">
-                  <span className="text-[#9EADA9]">{t.portfolio.colorist}:</span>
-                  <span className="text-white font-medium">{item.credits.colorist}</span>
+                  <span className="text-[#9EADA9]">
+                    {t.portfolio.colorist}:
+                  </span>
+                  <span className="text-white font-medium">
+                    {item.credits.colorist}
+                  </span>
                 </div>
               )}
               {item.credits.editor && (
                 <div className="flex justify-between">
                   <span className="text-[#9EADA9]">{t.portfolio.editor}:</span>
-                  <span className="text-white font-medium">{item.credits.editor}</span>
+                  <span className="text-white font-medium">
+                    {item.credits.editor}
+                  </span>
                 </div>
               )}
             </div>

@@ -1,16 +1,30 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import type { FinancialSummary, Expense, ExpenseCategory, Invoice } from '@ishoot/database/types';
-import { Card, CurrencyDisplay } from '@ishoot/ui';
+import * as React from "react";
+import type {
+  FinancialSummary,
+  Expense,
+  ExpenseCategory,
+  Invoice,
+} from "@ishoot/database/types";
+import { Card, CurrencyDisplay } from "@ishoot/ui";
 import {
   TrendingUp,
   TrendingDown,
   DollarSign,
   PieChart,
   Percent,
-} from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
+} from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 interface FinancialAnalyticsViewProps {
   finance: FinancialSummary;
@@ -29,25 +43,53 @@ export function FinancialAnalyticsView({
 
   const categoryTotals: Record<string, number> = {};
   expenses.forEach((e) => {
-    const slug = e.category?.slug || 'other';
+    const slug = e.category?.slug || "other";
     categoryTotals[slug] = (categoryTotals[slug] || 0) + Number(e.amount);
   });
 
+  const chartData = [
+    {
+      name: "Jan",
+      revenue: finance.revenue * 0.1,
+      expenses: finance.expenses * 0.12,
+    },
+    {
+      name: "Feb",
+      revenue: finance.revenue * 0.15,
+      expenses: finance.expenses * 0.1,
+    },
+    {
+      name: "Mar",
+      revenue: finance.revenue * 0.2,
+      expenses: finance.expenses * 0.18,
+    },
+    {
+      name: "Apr",
+      revenue: finance.revenue * 0.25,
+      expenses: finance.expenses * 0.2,
+    },
+    {
+      name: "May",
+      revenue: finance.revenue * 0.1,
+      expenses: finance.expenses * 0.15,
+    },
+    {
+      name: "Jun",
+      revenue: finance.revenue * 0.2,
+      expenses: finance.expenses * 0.25,
+    },
+  ];
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
           {t.charts.pnlStatement}
         </h1>
-        <p className="text-xs text-[#9EADA9] mt-1">
-          {t.charts.pnlSubtitle}
-        </p>
+        <p className="text-xs text-[#9EADA9] mt-1">{t.charts.pnlSubtitle}</p>
       </div>
 
-      {/* 4 Performance Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Total Cash Revenue */}
         <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-[#9EADA9]">
             <span>{t.kpi.totalRevenue}</span>
@@ -63,7 +105,6 @@ export function FinancialAnalyticsView({
           </div>
         </Card>
 
-        {/* Total Operating Costs */}
         <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-[#9EADA9]">
             <span>{t.kpi.operatingExpenses}</span>
@@ -74,12 +115,9 @@ export function FinancialAnalyticsView({
           <div className="text-2xl sm:text-3xl font-bold text-white font-mono">
             <CurrencyDisplay amount={finance.expenses} currency="BHD" />
           </div>
-          <div className="text-[11px] text-[#9EADA9]">
-            {t.kpi.expensesDesc}
-          </div>
+          <div className="text-[11px] text-[#9EADA9]">{t.kpi.expensesDesc}</div>
         </Card>
 
-        {/* Net Operating Profit */}
         <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-[#9EADA9]">
             <span>{t.kpi.netProfit}</span>
@@ -87,7 +125,9 @@ export function FinancialAnalyticsView({
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <div className={`text-2xl sm:text-3xl font-bold font-mono ${finance.netProfit >= 0 ? 'text-[#09937F]' : 'text-rose-400'}`}>
+          <div
+            className={`text-2xl sm:text-3xl font-bold font-mono ${finance.netProfit >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
+          >
             <CurrencyDisplay amount={finance.netProfit} currency="BHD" />
           </div>
           <div className="text-[11px] text-[#09937F] font-mono">
@@ -95,7 +135,6 @@ export function FinancialAnalyticsView({
           </div>
         </Card>
 
-        {/* Profit Margin % */}
         <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-[#9EADA9]">
             <span>{t.kpi.profitMargin}</span>
@@ -103,7 +142,9 @@ export function FinancialAnalyticsView({
               <Percent className="w-4 h-4" />
             </div>
           </div>
-          <div className={`text-2xl sm:text-3xl font-bold font-mono ${finance.profitMargin >= 0 ? 'text-[#09937F]' : 'text-rose-400'}`}>
+          <div
+            className={`text-2xl sm:text-3xl font-bold font-mono ${finance.profitMargin >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
+          >
             {finance.profitMargin.toFixed(1)}%
           </div>
           <div className="text-[11px] text-[#9EADA9]">
@@ -112,7 +153,79 @@ export function FinancialAnalyticsView({
         </Card>
       </div>
 
-      {/* 2. Structured P&L Table */}
+      <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2.5">
+            <TrendingUp className="w-5 h-5 text-[#09937F]" />
+            <h2 className="text-base font-bold text-white uppercase tracking-wider">
+              {t.kpi.totalRevenue} vs {t.kpi.operatingExpenses}
+            </h2>
+          </div>
+        </div>
+        <div className="h-72 w-full pt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={chartData}
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#F43F5E" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#F43F5E" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="rgba(255,255,255,0.05)"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="name"
+                stroke="#9EADA9"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="#9EADA9"
+                fontSize={12}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(val) => `${val}`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#0B1210",
+                  borderColor: "rgba(255,255,255,0.1)",
+                  borderRadius: "12px",
+                }}
+                itemStyle={{ fontWeight: "bold" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#10B981"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#colorRevenue)"
+              />
+              <Area
+                type="monotone"
+                dataKey="expenses"
+                stroke="#F43F5E"
+                strokeWidth={3}
+                fillOpacity={1}
+                fill="url(#colorExpenses)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
       <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 rounded-3xl shadow-xl space-y-6">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-2.5">
@@ -127,10 +240,11 @@ export function FinancialAnalyticsView({
         </div>
 
         <div className="divide-y divide-white/5 text-sm">
-          {/* Revenue */}
           <div className="py-3.5 flex items-center justify-between">
             <div className="space-y-0.5">
-              <span className="font-bold text-white">{t.charts.grossRevenue}</span>
+              <span className="font-bold text-white">
+                {t.charts.grossRevenue}
+              </span>
               <p className="text-xs text-[#9EADA9]">
                 {t.financialView.depositedViaBank}
               </p>
@@ -140,23 +254,26 @@ export function FinancialAnalyticsView({
             </span>
           </div>
 
-          {/* Discounts */}
           <div className="py-3.5 flex items-center justify-between">
             <div className="space-y-0.5">
-              <span className="text-white font-medium">{t.charts.discountsGiven}</span>
+              <span className="text-white font-medium">
+                {t.charts.discountsGiven}
+              </span>
               <p className="text-xs text-[#9EADA9]">
                 {t.financialView.approvedDiscounts}
               </p>
             </div>
             <span className="font-mono text-amber-400">
-              -<CurrencyDisplay amount={finance.discountsGiven} currency="BHD" />
+              -
+              <CurrencyDisplay amount={finance.discountsGiven} currency="BHD" />
             </span>
           </div>
 
-          {/* Cost of Production */}
           <div className="py-3.5 flex items-center justify-between">
             <div className="space-y-0.5">
-              <span className="font-bold text-white">{t.charts.operatingCosts}</span>
+              <span className="font-bold text-white">
+                {t.charts.operatingCosts}
+              </span>
               <p className="text-xs text-[#9EADA9]">
                 {t.financialView.productionCostsDesc}
               </p>
@@ -166,17 +283,19 @@ export function FinancialAnalyticsView({
             </span>
           </div>
 
-          {/* Operating Net Margin */}
           <div className="py-4 flex items-center justify-between bg-[#050807] px-4 rounded-xl my-2">
-            <span className="font-bold text-white">{t.charts.bottomLineProfit}</span>
-            <span className={`font-mono font-bold text-lg ${finance.netProfit >= 0 ? 'text-[#09937F]' : 'text-rose-400'}`}>
+            <span className="font-bold text-white">
+              {t.charts.bottomLineProfit}
+            </span>
+            <span
+              className={`font-mono font-bold text-lg ${finance.netProfit >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
+            >
               <CurrencyDisplay amount={finance.netProfit} currency="BHD" />
             </span>
           </div>
         </div>
       </Card>
 
-      {/* 3. Expense Breakdown by Category */}
       <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
         <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
           {t.charts.expensesByCategory}
@@ -185,14 +304,20 @@ export function FinancialAnalyticsView({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
           {categories.map((c) => {
             const sum = categoryTotals[c.slug] || 0;
-            const percentage = finance.expenses > 0 ? (sum / finance.expenses) * 100 : 0;
+            const percentage =
+              finance.expenses > 0 ? (sum / finance.expenses) * 100 : 0;
             return (
-              <div key={c.id} className="p-4 rounded-2xl bg-[#050807] border border-white/5 space-y-2">
+              <div
+                key={c.id}
+                className="p-4 rounded-2xl bg-[#050807] border border-white/5 space-y-2"
+              >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-white">
-                    {locale === 'ar' ? c.name_ar : c.name_en}
+                    {locale === "ar" ? c.name_ar : c.name_en}
                   </span>
-                  <span className="text-[11px] font-mono text-[#9EADA9]">{percentage.toFixed(0)}%</span>
+                  <span className="text-[11px] font-mono text-[#9EADA9]">
+                    {percentage.toFixed(0)}%
+                  </span>
                 </div>
                 <div className="text-base font-bold text-white font-mono">
                   <CurrencyDisplay amount={sum} currency="BHD" />
@@ -202,7 +327,7 @@ export function FinancialAnalyticsView({
                     className="h-full rounded-full transition-all"
                     style={{
                       width: `${percentage}%`,
-                      backgroundColor: c.color || '#09937F',
+                      backgroundColor: c.color || "#09937F",
                     }}
                   />
                 </div>

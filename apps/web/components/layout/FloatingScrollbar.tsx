@@ -1,15 +1,7 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 
-/**
- * FloatingFrontLayerScrollbar
- * Renders an ultra-sleek, overlay scrollbar in the front-most layer (z-[9999]).
- * - ZERO layout shift: Body and page elements never move left/right on hover.
- * - ZERO track area: No background strip or gutter cut out from the body.
- * - Visible ONLY on hover or during active scrolling.
- * - Supports drag-scrubbing and track-click jumping.
- */
 export function FloatingScrollbar() {
   const [scrollProgress, setScrollProgress] = React.useState(0);
   const [thumbHeight, setThumbHeight] = React.useState(70);
@@ -38,12 +30,10 @@ export function FloatingScrollbar() {
       const progress = Math.min(1, Math.max(0, currentScroll / totalScroll));
       setScrollProgress(progress);
 
-      // Proportional thumb height (clamped between 48px and 240px)
       const ratio = clientHeight / scrollHeight;
       const height = Math.max(48, Math.min(240, clientHeight * ratio));
       setThumbHeight(height);
 
-      // Flash visible on scroll
       setIsScrolling(true);
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = setTimeout(() => {
@@ -51,18 +41,17 @@ export function FloatingScrollbar() {
       }, 1200);
     };
 
-    window.addEventListener('scroll', updateScrollMetrics, { passive: true });
-    window.addEventListener('resize', updateScrollMetrics, { passive: true });
+    window.addEventListener("scroll", updateScrollMetrics, { passive: true });
+    window.addEventListener("resize", updateScrollMetrics, { passive: true });
     updateScrollMetrics();
 
     return () => {
-      window.removeEventListener('scroll', updateScrollMetrics);
-      window.removeEventListener('resize', updateScrollMetrics);
+      window.removeEventListener("scroll", updateScrollMetrics);
+      window.removeEventListener("resize", updateScrollMetrics);
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
   }, []);
 
-  // Handle Dragging
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -79,34 +68,40 @@ export function FloatingScrollbar() {
       moveEvent.preventDefault();
       const deltaY = moveEvent.clientY - startY;
       const scrollRatio = deltaY / availableTrack;
-      const targetScroll = Math.min(totalScroll, Math.max(0, startScroll + scrollRatio * totalScroll));
-      window.scrollTo({ top: targetScroll, behavior: 'instant' });
+      const targetScroll = Math.min(
+        totalScroll,
+        Math.max(0, startScroll + scrollRatio * totalScroll),
+      );
+      window.scrollTo({ top: targetScroll, behavior: "instant" });
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
   };
 
-  // Click on Track to jump
   const handleTrackClick = (e: React.MouseEvent) => {
     if (e.target !== trackRef.current) return;
     const clickY = e.clientY;
     const clientHeight = window.innerHeight;
     const totalScroll = document.documentElement.scrollHeight - clientHeight;
-    const targetProgress = Math.min(1, Math.max(0, (clickY - thumbHeight / 2) / (clientHeight - thumbHeight)));
-    window.scrollTo({ top: targetProgress * totalScroll, behavior: 'smooth' });
+    const targetProgress = Math.min(
+      1,
+      Math.max(0, (clickY - thumbHeight / 2) / (clientHeight - thumbHeight)),
+    );
+    window.scrollTo({ top: targetProgress * totalScroll, behavior: "smooth" });
   };
 
   if (!mounted) return null;
 
   const isVisible = isHovered || isScrolling || isDragging;
-  const availableDistance = typeof window !== 'undefined' ? window.innerHeight - thumbHeight - 16 : 0;
+  const availableDistance =
+    typeof window !== "undefined" ? window.innerHeight - thumbHeight - 16 : 0;
   const translateY = scrollProgress * availableDistance + 8;
 
   return (
@@ -118,20 +113,21 @@ export function FloatingScrollbar() {
       aria-hidden="true"
       className="fixed top-0 bottom-0 end-1 z-[9999] w-4 flex justify-center pointer-events-auto select-none"
       style={{
-        background: 'transparent',
+        background: "transparent",
       }}
     >
-      {/* Front-Layer Overlay Floating Pill */}
       <div
         onMouseDown={handleMouseDown}
         className={`w-1.5 rounded-full cursor-grab active:cursor-grabbing transition-all duration-300 ease-out will-change-transform ${
-          isVisible ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-50 pointer-events-none'
+          isVisible
+            ? "opacity-100 scale-x-100"
+            : "opacity-0 scale-x-50 pointer-events-none"
         } ${
           isDragging
-            ? 'bg-[#09937F] shadow-[0_0_12px_rgba(9,147,127,0.9)] scale-x-125'
+            ? "bg-[#09937F] shadow-[0_0_12px_rgba(9,147,127,0.9)] scale-x-125"
             : isHovered
-            ? 'bg-[#09937F]/90 shadow-[0_0_8px_rgba(9,147,127,0.6)] scale-x-110'
-            : 'bg-white/30'
+              ? "bg-[#09937F]/90 shadow-[0_0_8px_rgba(9,147,127,0.6)] scale-x-110"
+              : "bg-white/30"
         }`}
         style={{
           height: `${thumbHeight}px`,

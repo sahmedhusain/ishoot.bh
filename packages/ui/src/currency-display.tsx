@@ -1,4 +1,4 @@
-import * as React from 'react';
+import * as React from "react";
 
 export interface CurrencyDisplayProps {
   amount: number | string;
@@ -7,32 +7,45 @@ export interface CurrencyDisplayProps {
   className?: string;
 }
 
-export function formatCurrencyValue(amount: number | string, currency: string = 'BHD', isAr: boolean = false): string {
-  const num = typeof amount === 'number' ? amount : parseFloat(amount) || 0;
-  const decimals = (currency === 'BHD' || currency === 'KWD' || currency === 'OMR') ? 3 : 2;
+export function formatCurrencyValue(
+  amount: number | string,
+  currency: string = "BHD",
+  isAr: boolean = false,
+): string {
+  const num = typeof amount === "number" ? amount : parseFloat(amount) || 0;
+  const decimals =
+    currency === "BHD" || currency === "KWD" || currency === "OMR" ? 3 : 2;
 
-  // Always use standard Western Arabic numerals (0-9) for currency and financial figures
-  const formattedNum = num.toLocaleString('en-US', {
+  const formattedNum = num.toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
 
   const symbols: Record<string, { en: string; ar: string }> = {
-    BHD: { en: 'BHD', ar: 'د.ب' },
-    SAR: { en: 'SAR', ar: 'ر.س' },
-    AED: { en: 'AED', ar: 'د.إ' },
-    KWD: { en: 'KWD', ar: 'د.ك' },
-    OMR: { en: 'OMR', ar: 'ر.ع' },
-    QAR: { en: 'QAR', ar: 'ر.ق' },
-    USD: { en: 'USD', ar: '$' },
+    BHD: { en: "BHD", ar: "د.ب" },
+    SAR: { en: "SAR", ar: "ر.س" },
+    AED: { en: "AED", ar: "د.إ" },
+    KWD: { en: "KWD", ar: "د.ك" },
+    OMR: { en: "OMR", ar: "ر.ع" },
+    QAR: { en: "QAR", ar: "ر.ق" },
+    USD: { en: "USD", ar: "$" },
   };
 
-  const symbol = symbols[currency] ? (isAr ? symbols[currency].ar : symbols[currency].en) : currency;
+  const symbol = symbols[currency]
+    ? isAr
+      ? symbols[currency].ar
+      : symbols[currency].en
+    : currency;
   return `${formattedNum} ${symbol}`;
 }
 
-export function CurrencyDisplay({ amount, currency = 'BHD', locale = 'en', className = '' }: CurrencyDisplayProps) {
-  const isAr = locale === 'ar';
+export function CurrencyDisplay({
+  amount,
+  currency = "BHD",
+  locale = "en",
+  className = "",
+}: CurrencyDisplayProps) {
+  const isAr = locale === "ar";
   return (
     <span className={`font-mono font-medium tabular-nums ${className}`}>
       {formatCurrencyValue(amount, currency, isAr)}

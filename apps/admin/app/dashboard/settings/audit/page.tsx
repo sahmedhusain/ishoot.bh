@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { getActivityLogs } from '@ishoot/database';
-import { AuditSessionsView } from '../../../../components/settings/AuditSessionsView';
+import * as React from "react";
+import { getActivityLogs } from "@ishoot/database";
+import { AuditSessionsView } from "../../../../components/settings/AuditSessionsView";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function AuditSettingsPage() {
   const logs = await getActivityLogs(100);

@@ -1,1 +1,1 @@
-export { cn } from '@ishoot/ui';
+export { cn } from "@ishoot/ui";

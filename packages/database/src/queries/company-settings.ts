@@ -1,27 +1,27 @@
-import { db } from '../db';
-import { CompanySettings, SupportedCurrency } from '../types';
+import { db } from "../db";
+import { CompanySettings, SupportedCurrency } from "../types";
 
 function mapSettings(s: any): CompanySettings {
   return {
     id: s.id,
     company_name_en: s.companyNameEn,
     company_name_ar: s.companyNameAr,
-    cr_number: s.crNumber || '',
+    cr_number: s.crNumber || "",
     vat_id: s.vatId || undefined,
     vat_enabled: s.vatEnabled,
     vat_percentage: Number(s.vatPercentage),
-    default_currency: (s.defaultCurrency as SupportedCurrency) || 'BHD',
+    default_currency: (s.defaultCurrency as SupportedCurrency) || "BHD",
     currency_decimals: s.currencyDecimals,
-    address_en: s.addressEn || '',
-    address_ar: s.addressAr || '',
-    phone: s.phone || '',
-    email: s.email || '',
-    website: s.website || '',
-    bank_name: s.bankName || '',
-    bank_iban: s.bankIban || '',
-    bank_account_number: s.bankAccountNumber || '',
-    bank_swift: s.bankSwift || '',
-    logo_url: s.logoUrl || '/images/logo-color.svg',
+    address_en: s.addressEn || "",
+    address_ar: s.addressAr || "",
+    phone: s.phone || "",
+    email: s.email || "",
+    website: s.website || "",
+    bank_name: s.bankName || "",
+    bank_iban: s.bankIban || "",
+    bank_account_number: s.bankAccountNumber || "",
+    bank_swift: s.bankSwift || "",
+    logo_url: s.logoUrl || "/images/logo-color.svg",
     payment_terms_days: s.paymentTermsDays,
     invoice_prefix: s.invoicePrefix,
     invoice_next_number: s.invoiceNextNumber,
@@ -36,12 +36,12 @@ export async function getCompanySettings(): Promise<CompanySettings> {
   if (!s) {
     s = await db.companySetting.create({
       data: {
-        companyNameEn: 'ishoot Cinema Production S.P.C.',
-        companyNameAr: 'دار آي شوت للإنتاج السينمائي ذ.م.م',
-        crNumber: 'CR-142859-1',
+        companyNameEn: "ishoot Cinema Production S.P.C.",
+        companyNameAr: "دار آي شوت للإنتاج السينمائي ذ.م.م",
+        crNumber: "CR-142859-1",
         vatEnabled: false,
-        vatPercentage: 10.00,
-        defaultCurrency: 'BHD',
+        vatPercentage: 10.0,
+        defaultCurrency: "BHD",
         currencyDecimals: 3,
       },
     });
@@ -49,7 +49,9 @@ export async function getCompanySettings(): Promise<CompanySettings> {
   return mapSettings(s);
 }
 
-export async function updateCompanySettings(updates: Partial<CompanySettings>): Promise<CompanySettings> {
+export async function updateCompanySettings(
+  updates: Partial<CompanySettings>,
+): Promise<CompanySettings> {
   const current = await getCompanySettings();
   const updated = await db.companySetting.update({
     where: { id: current.id },

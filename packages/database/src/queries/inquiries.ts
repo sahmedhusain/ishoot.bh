@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { Inquiry } from '../types';
+import { db } from "../db";
+import { Inquiry } from "../types";
 
 function mapInquiry(inq: any): Inquiry {
   return {
@@ -8,20 +8,23 @@ function mapInquiry(inq: any): Inquiry {
     email: inq.email,
     phone: inq.phone || undefined,
     company: inq.companyName || undefined,
-    services_requested: inq.serviceType ? inq.serviceType.split(', ') : [],
+    services_requested: inq.serviceType ? inq.serviceType.split(", ") : [],
     budget_range: inq.budgetRange || undefined,
     target_timeline: inq.timeline || undefined,
     message: inq.message,
-    status: (inq.status as any) || 'new',
+    status: (inq.status as any) || "new",
     confirmation_sent: true,
     notification_sent: true,
-    locale: inq.locale || 'ar',
+    locale: inq.locale || "ar",
     created_at: inq.createdAt.toISOString(),
   };
 }
 
 export async function createInquiry(
-  inquiry: Omit<Inquiry, 'id' | 'created_at' | 'status' | 'confirmation_sent' | 'notification_sent'>
+  inquiry: Omit<
+    Inquiry,
+    "id" | "created_at" | "status" | "confirmation_sent" | "notification_sent"
+  >,
 ): Promise<Inquiry> {
   const created = await db.inquiry.create({
     data: {
@@ -29,12 +32,14 @@ export async function createInquiry(
       email: inquiry.email,
       phone: inquiry.phone || null,
       companyName: inquiry.company || null,
-      serviceType: inquiry.services_requested ? inquiry.services_requested.join(', ') : null,
+      serviceType: inquiry.services_requested
+        ? inquiry.services_requested.join(", ")
+        : null,
       budgetRange: inquiry.budget_range || null,
       timeline: inquiry.target_timeline || null,
-      message: inquiry.message || '',
-      status: 'new',
-      locale: inquiry.locale || 'ar',
+      message: inquiry.message || "",
+      status: "new",
+      locale: inquiry.locale || "ar",
     },
   });
   return mapInquiry(created);
@@ -43,16 +48,19 @@ export async function createInquiry(
 export async function getAllInquiries(): Promise<Inquiry[]> {
   try {
     const inquiries = await db.inquiry.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return inquiries.map(mapInquiry);
   } catch (e) {
-    console.error('Error fetching inquiries from DB:', e);
+    console.error("Error fetching inquiries from DB:", e);
     return [];
   }
 }
 
-export async function updateInquiryStatus(id: string, status: Inquiry['status']): Promise<boolean> {
+export async function updateInquiryStatus(
+  id: string,
+  status: Inquiry["status"],
+): Promise<boolean> {
   try {
     await db.inquiry.update({
       where: { id },

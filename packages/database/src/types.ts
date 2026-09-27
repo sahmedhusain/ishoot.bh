@@ -1,14 +1,14 @@
 export type UserRole =
-  | 'super_admin'
-  | 'admin'
-  | 'finance_manager'
-  | 'sales'
-  | 'marketing'
-  | 'production_manager'
-  | 'producer'
-  | 'editor'
-  | 'accountant'
-  | 'viewer';
+  | "super_admin"
+  | "admin"
+  | "finance_manager"
+  | "sales"
+  | "marketing"
+  | "production_manager"
+  | "producer"
+  | "editor"
+  | "accountant"
+  | "viewer";
 
 export interface Profile {
   id: string;
@@ -25,7 +25,8 @@ export interface Profile {
   updated_at: string;
 }
 
-export type SupportedCurrency = 'BHD' | 'SAR' | 'AED' | 'KWD' | 'OMR' | 'QAR' | 'USD';
+export type SupportedCurrency =
+  "BHD" | "SAR" | "AED" | "KWD" | "OMR" | "QAR" | "USD";
 
 export interface CurrencyConfig {
   code: SupportedCurrency;
@@ -35,13 +36,13 @@ export interface CurrencyConfig {
 }
 
 export const CURRENCY_CONFIGS: Record<SupportedCurrency, CurrencyConfig> = {
-  BHD: { code: 'BHD', symbolEn: 'BHD', symbolAr: 'د.ب', decimals: 3 },
-  SAR: { code: 'SAR', symbolEn: 'SAR', symbolAr: 'ر.س', decimals: 2 },
-  AED: { code: 'AED', symbolEn: 'AED', symbolAr: 'د.إ', decimals: 2 },
-  KWD: { code: 'KWD', symbolEn: 'KWD', symbolAr: 'د.ك', decimals: 3 },
-  OMR: { code: 'OMR', symbolEn: 'OMR', symbolAr: 'ر.ع', decimals: 3 },
-  QAR: { code: 'QAR', symbolEn: 'QAR', symbolAr: 'ر.ق', decimals: 2 },
-  USD: { code: 'USD', symbolEn: 'USD', symbolAr: '$', decimals: 2 },
+  BHD: { code: "BHD", symbolEn: "BHD", symbolAr: "د.ب", decimals: 3 },
+  SAR: { code: "SAR", symbolEn: "SAR", symbolAr: "ر.س", decimals: 2 },
+  AED: { code: "AED", symbolEn: "AED", symbolAr: "د.إ", decimals: 2 },
+  KWD: { code: "KWD", symbolEn: "KWD", symbolAr: "د.ك", decimals: 3 },
+  OMR: { code: "OMR", symbolEn: "OMR", symbolAr: "ر.ع", decimals: 3 },
+  QAR: { code: "QAR", symbolEn: "QAR", symbolAr: "ر.ق", decimals: 2 },
+  USD: { code: "USD", symbolEn: "USD", symbolAr: "$", decimals: 2 },
 };
 
 export interface CompanySettings {
@@ -78,7 +79,7 @@ export interface HeroBanner {
   title_ar: string;
   subtitle_en?: string;
   subtitle_ar?: string;
-  media_type: 'video' | 'image';
+  media_type: "video" | "image";
   media_url: string;
   poster_url?: string;
   display_order: number;
@@ -106,7 +107,7 @@ export interface PortfolioItem {
   title_ar: string;
   client_name: string;
   year: number;
-  aspect_ratio: '16:9' | '2.39:1' | '9:16' | '1:1' | '4:5';
+  aspect_ratio: "16:9" | "2.39:1" | "9:16" | "1:1" | "4:5";
   thumbnail_url: string;
   preview_video_url?: string;
   full_video_url?: string;
@@ -138,7 +139,14 @@ export interface ClientLogo {
 
 export interface StudioEquipment {
   id: string;
-  category: 'cameras' | 'lenses' | 'lighting' | 'audio_grading' | 'stages' | 'grip' | 'audio';
+  category:
+    | "cameras"
+    | "lenses"
+    | "lighting"
+    | "audio_grading"
+    | "stages"
+    | "grip"
+    | "audio";
   model_name: string;
   name_ar?: string;
   brand?: string;
@@ -152,7 +160,7 @@ export interface StudioEquipment {
   created_at: string;
 }
 
-export type InquiryStatus = 'new' | 'contacted' | 'qualified' | 'archived';
+export type InquiryStatus = "new" | "contacted" | "qualified" | "archived";
 
 export interface Inquiry {
   id: string;
@@ -170,7 +178,7 @@ export interface Inquiry {
   confirmation_sent: boolean;
   notification_sent: boolean;
   locale: string;
-  source?: 'website' | 'email' | 'whatsapp' | 'manual';
+  source?: "website" | "email" | "whatsapp" | "manual";
   customer_id?: string;
   customer?: CRMContact;
   merge_flag?: boolean;
@@ -188,7 +196,7 @@ export interface CRMContact {
   phone_e164?: string;
   company?: string;
   job_title?: string;
-  contact_type?: 'client' | 'vendor' | 'freelancer' | 'agency';
+  contact_type?: "client" | "vendor" | "freelancer" | "agency";
   notes?: string;
   deals?: CRMDeal[];
   inquiries?: Inquiry[];
@@ -197,16 +205,33 @@ export interface CRMContact {
   updated_at: string;
 }
 
+export interface CustomerDossier {
+  contact: CRMContact;
+  inquiries: Inquiry[];
+  deals: CRMDeal[];
+  invoices: Invoice[];
+  payments: Payment[];
+  contracts: Contract[];
+  attachments: Attachment[];
+  activities: ActivityLog[];
+  metrics: {
+    totalLtv: number;
+    totalPaid: number;
+    totalOutstanding: number;
+    activeDealsCount: number;
+  };
+}
+
 export type DealStage =
-  | 'lead'
-  | 'proposal_sent'
-  | 'contract_signed'
-  | 'production'
-  | 'post_production'
-  | 'delivered'
-  | 'invoiced'
-  | 'closed_won'
-  | 'closed_lost';
+  | "lead"
+  | "proposal_sent"
+  | "contract_signed"
+  | "production"
+  | "post_production"
+  | "delivered"
+  | "invoiced"
+  | "closed_won"
+  | "closed_lost";
 
 export interface CRMDeal {
   id: string;
@@ -228,9 +253,10 @@ export interface CRMDeal {
   contracts?: Contract[];
 }
 
-export type InvoiceStatus = 'draft' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'void';
-export type DiscountType = 'none' | 'percentage' | 'fixed';
-export type DeliveryChannel = 'email' | 'whatsapp' | 'print' | 'download';
+export type InvoiceStatus =
+  "draft" | "sent" | "partially_paid" | "paid" | "overdue" | "void";
+export type DiscountType = "none" | "percentage" | "fixed";
+export type DeliveryChannel = "email" | "whatsapp" | "print" | "download";
 
 export interface InvoiceLineItem {
   id?: string;
@@ -249,26 +275,38 @@ export function calculateInvoiceTotals(
   discountValue: number,
   vatEnabled: boolean,
   vatPercentage: number,
-  currency: SupportedCurrency = 'BHD'
+  currency: SupportedCurrency = "BHD",
 ) {
   const currencyConfig = CURRENCY_CONFIGS[currency] || CURRENCY_CONFIGS.BHD;
   const factor = Math.pow(10, currencyConfig.decimals);
 
-  const subtotalRaw = lineItems.reduce((acc, item) => acc + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0), 0);
+  const subtotalRaw = lineItems.reduce(
+    (acc, item) =>
+      acc + (Number(item.quantity) || 0) * (Number(item.unit_price) || 0),
+    0,
+  );
   const subtotal = Math.round(subtotalRaw * factor) / factor;
 
   let discountAmount = 0;
-  if (discountType === 'percentage') {
-    discountAmount = Math.round(((subtotal * discountValue) / 100) * factor) / factor;
-  } else if (discountType === 'fixed') {
-    discountAmount = Math.min(subtotal, Math.round(discountValue * factor) / factor);
+  if (discountType === "percentage") {
+    discountAmount =
+      Math.round(((subtotal * discountValue) / 100) * factor) / factor;
+  } else if (discountType === "fixed") {
+    discountAmount = Math.min(
+      subtotal,
+      Math.round(discountValue * factor) / factor,
+    );
   }
 
-  const afterDiscount = Math.max(0, Math.round((subtotal - discountAmount) * factor) / factor);
+  const afterDiscount = Math.max(
+    0,
+    Math.round((subtotal - discountAmount) * factor) / factor,
+  );
 
   let vatAmount = 0;
   if (vatEnabled) {
-    vatAmount = Math.round(((afterDiscount * vatPercentage) / 100) * factor) / factor;
+    vatAmount =
+      Math.round(((afterDiscount * vatPercentage) / 100) * factor) / factor;
   }
 
   const totalAmount = Math.round((afterDiscount + vatAmount) * factor) / factor;
@@ -301,7 +339,7 @@ export interface Invoice {
   amount_paid: number;
   amount_due: number;
   currency: SupportedCurrency;
-  language: 'en' | 'ar';
+  language: "en" | "ar";
   status: InvoiceStatus;
   pdf_storage_path?: string;
   delivery_channel?: DeliveryChannel;
@@ -316,7 +354,8 @@ export interface Invoice {
   deal?: CRMDeal;
 }
 
-export type PaymentMethod = 'bank_transfer' | 'cash' | 'cheque' | 'card' | 'online';
+export type PaymentMethod =
+  "bank_transfer" | "cash" | "cheque" | "card" | "online";
 
 export interface Payment {
   id: string;
@@ -334,6 +373,7 @@ export interface Payment {
   created_by?: string;
   created_at: string;
   invoice?: Invoice;
+  proof_attachments?: Attachment[];
 }
 
 export interface ExpenseCategory {
@@ -357,7 +397,7 @@ export interface Expense {
   vendor_name?: string;
   receipt_url?: string;
   is_recurring: boolean;
-  recurrence_interval?: 'monthly' | 'quarterly' | 'yearly';
+  recurrence_interval?: "monthly" | "quarterly" | "yearly";
   notes?: string;
   created_by?: string;
   created_at: string;
@@ -387,7 +427,7 @@ export interface CalendarEvent {
   all_day: boolean;
   location?: string;
   color?: string;
-  event_type: 'meeting' | 'shoot' | 'deadline' | 'reminder';
+  event_type: "meeting" | "shoot" | "deadline" | "reminder";
   deal_id?: string;
   created_by?: string;
   google_event_id?: string;
@@ -419,7 +459,7 @@ export interface Notification {
   user_id: string;
   title: string;
   message: string;
-  type: 'info' | 'warning' | 'success' | 'action';
+  type: "info" | "warning" | "success" | "action";
   entity_type?: string;
   entity_id?: string;
   is_read: boolean;
@@ -472,7 +512,7 @@ export interface DocumentTemplate {
   slug: string;
   name_en: string;
   name_ar?: string;
-  category: 'invoice' | 'receipt' | 'contract' | 'legal';
+  category: "invoice" | "receipt" | "contract" | "legal";
   body_html?: string;
   body_json?: any;
   version: number;
@@ -481,7 +521,8 @@ export interface DocumentTemplate {
   updated_at: string;
 }
 
-export type ContractStatus = 'draft' | 'sent' | 'signed' | 'expired' | 'cancelled';
+export type ContractStatus =
+  "draft" | "sent" | "signed" | "expired" | "cancelled";
 
 export interface Contract {
   id: string;
@@ -522,3 +563,27 @@ export interface GeneratedDocument {
   created_at: string;
 }
 
+export type DocumentCategory =
+  | "cr_license"
+  | "vat_certificate"
+  | "company_profile"
+  | "bylaws"
+  | "standard_contract";
+
+export interface CompanyDocument {
+  id: string;
+  title_en: string;
+  title_ar?: string;
+  category: DocumentCategory;
+  document_number?: string;
+  file_url: string;
+  file_size?: number;
+  mime_type?: string;
+  valid_from?: string;
+  valid_until?: string;
+  notes?: string;
+  uploaded_by_id?: string;
+  uploaded_by?: Profile;
+  created_at: string;
+  updated_at: string;
+}

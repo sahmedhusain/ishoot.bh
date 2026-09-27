@@ -12,8 +12,9 @@ Build the complete, production-ready **ishoot** web ecosystem: a Turborepo monor
 
 > [!NOTE]
 > **1. Local-First Development**: All components, database mocks/schema, seed data, and email/PDF utilities will run seamlessly locally with fallback providers. External cloud setup (live Supabase credentials, Vercel deployments, live Resend keys) will be configured subsequently.
-> 
+>
 > **2. Multi-Currency Support (GCC + USD)**:
+>
 > - **Default**: `BHD` (Bahraini Dinar — 3 decimal places)
 > - **GCC & International Supported**:
 >   - `SAR` (Saudi Riyal — 2 decimals)
@@ -25,6 +26,7 @@ Build the complete, production-ready **ishoot** web ecosystem: a Turborepo monor
 > - Dynamic currency selection with precision-aware calculation engine.
 >
 > **3. Exact Brand Invoice Templates (English & Arabic)**:
+>
 > - Derived directly from the brand's AI invoice assets (`ishoot/2 invoice files/`).
 > - Dedicated **English** and **Arabic** PDF templates using exact brand colors (`#014842` header bar, `#09937F` accent).
 > - Dynamic VAT handling: If `vat_enabled = false`, displays "VAT: Not Applicable" / "ض.ق.م: غير مطبقة" with zero tax; if toggled on, renders VAT registration ID and calculates tax.
@@ -35,6 +37,7 @@ Build the complete, production-ready **ishoot** web ecosystem: a Turborepo monor
 > **5. Transactional Email**: Built with Resend (free tier) + local preview logger when running in local dev mode without API keys.
 >
 > **6. Expanded Expense Categories**:
+>
 > - `equipment_rental` (Equipment & Gear Rental)
 > - `crew_labor` (Crew & Freelance Labor)
 > - `location_permits` (Location Permits & Scouting)
@@ -58,13 +61,13 @@ Build the complete, production-ready **ishoot** web ecosystem: a Turborepo monor
 
 These documents provide persistent context and are referenced throughout. All documents are saved to the repo at `/docs/`:
 
-| Document | Artifact | Repo Copy | Purpose |
-|----------|----------|-----------|---------|
-| **Design System** | [design.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/design.md) | `docs/design.md` | Color tokens, typography, motion, components |
-| **Architecture** | [structure.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/structure.md) | `docs/structure.md` | Monorepo, Supabase, i18n, data flows |
-| **File Tree** | [tree.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/tree.md) | `docs/tree.md` | Every file that needs to be created |
-| **Admin Rules** | [admin-rules.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/admin-rules.md) | `docs/admin-rules.md` | RBAC, CMS, CRM, invoicing, financials |
-| **Agent Skill** | [SKILL.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/SKILL.md) | `docs/SKILL.md` | Agent context retention |
+| Document          | Artifact                                                                                                            | Repo Copy             | Purpose                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------- | -------------------------------------------- |
+| **Design System** | [design.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/design.md)           | `docs/design.md`      | Color tokens, typography, motion, components |
+| **Architecture**  | [structure.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/structure.md)     | `docs/structure.md`   | Monorepo, Supabase, i18n, data flows         |
+| **File Tree**     | [tree.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/tree.md)               | `docs/tree.md`        | Every file that needs to be created          |
+| **Admin Rules**   | [admin-rules.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/admin-rules.md) | `docs/admin-rules.md` | RBAC, CMS, CRM, invoicing, financials        |
+| **Agent Skill**   | [SKILL.md](file:///Users/sayed/.gemini/antigravity/brain/6c514a07-0e62-402f-b130-0666dc778cfd/SKILL.md)             | `docs/SKILL.md`       | Agent context retention                      |
 
 ---
 
@@ -76,25 +79,28 @@ Sets up the entire project infrastructure that all subsequent phases depend on.
 
 #### [NEW] Root Configuration Files
 
-| File | Purpose |
-|------|---------|
-| `package.json` | Root workspace with pnpm + turbo scripts |
-| `pnpm-workspace.yaml` | Workspace globs: `apps/*`, `packages/*` |
-| `turbo.json` | Pipeline: build, lint, dev, type-check |
-| `.gitignore` | Node, Next.js, environment files |
-| `.npmrc` | pnpm settings |
+| File                  | Purpose                                  |
+| --------------------- | ---------------------------------------- |
+| `package.json`        | Root workspace with pnpm + turbo scripts |
+| `pnpm-workspace.yaml` | Workspace globs: `apps/*`, `packages/*`  |
+| `turbo.json`          | Pipeline: build, lint, dev, type-check   |
+| `.gitignore`          | Node, Next.js, environment files         |
+| `.npmrc`              | pnpm settings                            |
 
 #### [NEW] `packages/config/`
+
 - `tailwind.config.ts` — Shared Tailwind v4 config with ishoot color tokens, font definitions, animation utilities
 - `tsconfig.base.json` — Base TypeScript configuration
 - `eslint.config.mjs` — Shared ESLint rules
 
 #### [NEW] `packages/locales/`
+
 - `src/en.json` — Complete English translations (nav, hero, services, portfolio, about, contact, footer, meta, admin, financials, emails)
 - `src/ar.json` — Complete Arabic translations (matching all EN keys)
 - `src/index.ts` — Type-safe translation loader with `Locale`, `TranslationKeys`, `getTranslations()`
 
 #### [NEW] `packages/database/`
+
 - `src/schema.sql` — Full migration (see updated schema below):
   - **Core**: `profiles`, `company_settings`
   - **CMS**: `hero_banners`, `portfolio_categories`, `portfolio_items`, `client_logos`, `studio_equipment`
@@ -106,9 +112,11 @@ Sets up the entire project infrastructure that all subsequent phases depend on.
 - `src/queries/*.ts` — Typed query functions for each table (including `payments.ts`, `expenses.ts`, `company-settings.ts`)
 
 #### [NEW] `packages/ui/`
+
 - Atomic components: Button, Input, Textarea, Select, Badge, Modal, Dialog, DropdownMenu, Tabs, Toggle, Separator, Skeleton, Toast, Tooltip, Avatar, Card, Label, ScrollArea
 
 #### [NEW] `packages/email/`
+
 - `src/index.ts` — Email service abstraction (Resend client)
 - `src/templates/inquiry-confirmation.tsx` — "Thank you for contacting us" (EN/AR)
 - `src/templates/inquiry-notification.tsx` — Internal "[Name] is requesting to contact you"
@@ -119,6 +127,7 @@ Sets up the entire project infrastructure that all subsequent phases depend on.
 ##### New Database Tables (Phase 1 Schema)
 
 **`company_settings`** (single-row config)
+
 ```sql
 CREATE TABLE company_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -150,6 +159,7 @@ CREATE TABLE company_settings (
 ```
 
 **`payments`** (tracks every payment against an invoice)
+
 ```sql
 CREATE TABLE payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -170,6 +180,7 @@ CREATE TABLE payments (
 ```
 
 **`expense_categories`**
+
 ```sql
 CREATE TABLE expense_categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -182,6 +193,7 @@ CREATE TABLE expense_categories (
 ```
 
 **`expenses`**
+
 ```sql
 CREATE TABLE expenses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -202,6 +214,7 @@ CREATE TABLE expenses (
 ```
 
 **Updated `invoices`** (new fields)
+
 ```sql
 -- Additional columns added to invoices table:
   discount_type TEXT DEFAULT 'none',         -- 'none', 'percentage', 'fixed'
@@ -230,6 +243,7 @@ CREATE TABLE expenses (
 Builds the visual foundation of `apps/web` with the cinematic experience.
 
 #### [NEW] `apps/web/` base files
+
 - `package.json`, `next.config.mjs`, `tailwind.config.ts`, `postcss.config.mjs`, `tsconfig.json`
 - `middleware.ts` — i18n locale detection and redirect
 - `app/globals.css` — CSS custom properties + Tailwind imports + font-face declarations
@@ -237,6 +251,7 @@ Builds the visual foundation of `apps/web` with the cinematic experience.
 - `public/fonts/` — Virtual.otf + IBM Plex Sans Arabic weights
 
 #### [NEW] Locale Layout & Navigation
+
 - `app/[locale]/layout.tsx` — Sets dir, lang, font class, wraps with Lenis + Navbar + Footer
 - `components/layout/Navbar.tsx` — Glassmorphic floating nav
 - `components/layout/Footer.tsx` — Cinematic footer
@@ -245,10 +260,12 @@ Builds the visual foundation of `apps/web` with the cinematic experience.
 - `components/layout/SmoothScroll.tsx` — Lenis provider
 
 #### [NEW] Hero + Showreel Components
+
 - `components/hero/HeroBanner.tsx`, `HeroSlide.tsx`, `AudioToggle.tsx`, `VideoProgress.tsx`
 - `components/showreel/ShowreelReveal.tsx`, `CinemaOverlay.tsx`
 
 #### [NEW] Shared, Hooks, Lib
+
 - `components/shared/` — SectionBadge, AnimatedText, VideoPlayer, ScrollReveal
 - `hooks/` — useTranslation, useLocale, useMediaQuery, useScrollProgress
 - `lib/` — supabase-client, supabase-server, i18n, utils
@@ -260,19 +277,23 @@ Builds the visual foundation of `apps/web` with the cinematic experience.
 Builds all public pages with Supabase data fetching + the contact form email system.
 
 #### [NEW] Home Page
+
 - `app/[locale]/page.tsx` — Server-fetches banners, featured portfolio, client logos
 - `components/services/ServicesBento.tsx` + `ServiceCard.tsx`
 - `components/clients/LogoMarquee.tsx`
 
 #### [NEW] Works Page
+
 - `app/[locale]/works/page.tsx`, `works/[slug]/page.tsx`
 - `components/portfolio/` — PortfolioGrid, PortfolioCard, CategoryTabs, CinemaLightbox
 
 #### [NEW] About Page
+
 - `app/[locale]/about/page.tsx`
 - `components/about/` — CEOHero, StorySection, EquipmentGrid, StatsCounter
 
 #### [NEW] Contact Page + Email API
+
 - `app/[locale]/contact/page.tsx`
 - `components/contact/` — ContactForm, ServicePills, BudgetSelector
 - `app/api/inquiry/route.ts` — API endpoint that:
@@ -284,6 +305,7 @@ Builds all public pages with Supabase data fetching + the contact form email sys
 ##### Contact Form Email Templates
 
 **Email to Client (Thank You)**:
+
 ```
 Subject: Thank you for contacting ishoot | شكراً لتواصلك مع آي شوت
 From: hello@ishoot.bh
@@ -310,6 +332,7 @@ The ishoot Team
 ```
 
 **Email to ishoot Team (Notification)**:
+
 ```
 Subject: 🔔 New Inquiry: [Client Name] — [Primary Service]
 To: hello@ishoot.bh (or configured team email)
@@ -344,15 +367,18 @@ Message:
 Builds the admin portal with Twenty-inspired UI and full content management.
 
 #### [NEW] `apps/admin/` base files
+
 - `package.json`, `next.config.mjs`, `tailwind.config.ts`, `tsconfig.json`
 - `middleware.ts` — Auth guard
 
 #### [NEW] Login & Dashboard Shell
+
 - `app/login/page.tsx` — Supabase email/password auth
 - `app/dashboard/layout.tsx` — Sidebar + topbar shell (updated sidebar with Finance section)
 - `components/layout/` — Sidebar, Topbar, SidebarNav, BreadcrumbTrail
 
 #### Updated Sidebar Navigation
+
 ```
 ── CONTENT ──
 📷 Banners
@@ -378,9 +404,11 @@ Builds the admin portal with Twenty-inspired UI and full content management.
 ```
 
 #### [NEW] CMS Pages (same as before)
+
 - Banner Manager, Portfolio Manager, Client Logos, Equipment
 
 #### [NEW] Company Settings Page
+
 - `app/dashboard/settings/company/page.tsx` — Company configuration form
 - Fields: Company name (EN/AR), CR number, VAT toggle + percentage, bank details, default currency, invoice prefix, payment terms, logo
 - **VAT Toggle**: Switch `vat_enabled` on/off — all new invoices inherit this setting
@@ -390,32 +418,37 @@ Builds the admin portal with Twenty-inspired UI and full content management.
 ### Phase 5A — Admin Portal: CRM + Lead Management
 
 #### [NEW] CRM: Lead Inbox
+
 - `app/dashboard/crm/leads/page.tsx`
 - `components/crm/LeadInbox.tsx` — Inquiry management with status transitions
 - Shows both email notification status (sent ✅ / failed ❌)
 
 #### [NEW] CRM: Deal Pipeline (Kanban)
+
 - `app/dashboard/crm/deals/page.tsx`, `deals/[id]/page.tsx`
 - `components/crm/` — KanbanBoard, KanbanColumn, DealCard, DealDetail
 
 #### [NEW] CRM: Contact Directory
+
 - `app/dashboard/crm/contacts/page.tsx`, `contacts/[id]/page.tsx`
 - `components/crm/` — ContactList, ContactCard
 
 ---
 
-### Phase 5B — Finance: Invoices, Payments, Expenses & Dashboard *(NEW PHASE)*
+### Phase 5B — Finance: Invoices, Payments, Expenses & Dashboard _(NEW PHASE)_
 
 This is the major new phase covering the complete financial workflow.
 
 #### [NEW] Invoice Studio (Enhanced)
 
 ##### `app/dashboard/invoices/page.tsx` — Invoice List
+
 - Table with columns: Invoice #, Client, Amount, VAT, Total, Status, Paid, Due, Date
 - Filter by status: `draft`, `sent`, `partially_paid`, `paid`, `overdue`, `void`
 - Quick stats row: Total Outstanding, Total Overdue, Total Paid This Month
 
 ##### `app/dashboard/invoices/new/page.tsx` — Invoice Creator
+
 - **Client selector**: Autocomplete from `crm_contacts`
 - **Language toggle**: EN/AR (determines PDF layout direction)
 - **Line items repeater**: Description (EN + AR), Quantity, Unit Price, Line Total
@@ -439,6 +472,7 @@ This is the major new phase covering the complete financial workflow.
 - **Preview button**: Opens pixel-perfect brand preview
 
 ##### `app/dashboard/invoices/[id]/page.tsx` — Invoice Detail
+
 - Full invoice view with live preview
 - **Delivery actions toolbar**:
   ```
@@ -454,6 +488,7 @@ This is the major new phase covering the complete financial workflow.
 - **Record Payment button**: Opens payment recording modal
 
 ##### Invoice Delivery Email Template
+
 ```
 Subject: Invoice ISH-2026-001 from ishoot | فاتورة من آي شوت
 From: invoices@ishoot.bh
@@ -487,12 +522,14 @@ Thank you for choosing ishoot.
 #### [NEW] Payment Tracking System
 
 ##### `app/dashboard/payments/page.tsx` — Payment List
+
 - Table: Receipt #, Invoice #, Client, Amount, Method, Date, Status
 - Filter by method: `bank_transfer`, `cash`, `cheque`, `card`, `online`
 - Filter by date range
 - Summary cards: Total Received This Month, Total This Quarter, Total This Year
 
 ##### Payment Recording Flow
+
 1. Admin clicks "Record Payment" on an invoice
 2. Modal opens with fields:
    - Amount (pre-filled with `amount_due`, adjustable for partial payments)
@@ -516,6 +553,7 @@ Thank you for choosing ishoot.
    ```
 
 ##### Payment Receipt Email Template
+
 ```
 Subject: Payment Received — Receipt RCT-2026-001 | إيصال استلام دفعة
 From: invoices@ishoot.bh
@@ -546,7 +584,9 @@ Thank you for your payment.
 ```
 
 ##### Receipt PDF Design
+
 Same brand template as invoice but with:
+
 - Header: "PAYMENT RECEIPT" / "إيصال دفعة"
 - Green `#10B981` accent bar instead of teal (to differentiate from invoice)
 - Payment details section (method, reference, date)
@@ -557,6 +597,7 @@ Same brand template as invoice but with:
 #### [NEW] Expense Tracking System
 
 ##### `app/dashboard/expenses/page.tsx` — Expense List
+
 - Table: Date, Category, Description, Vendor, Amount, Project (deal link)
 - Filter by category, date range, project
 - **Add Expense** button → modal/form:
@@ -571,7 +612,9 @@ Same brand template as invoice but with:
 - Summary cards: Total This Month, By Category breakdown
 
 ##### `components/expenses/ExpenseForm.tsx`
+
 ##### `components/expenses/ExpenseTable.tsx`
+
 ##### `components/expenses/CategoryChart.tsx` — Pie/donut chart of expenses by category
 
 ---
@@ -652,6 +695,7 @@ Same brand template as invoice but with:
 ```
 
 ##### Financial Dashboard Components
+
 - `components/finance/KPICards.tsx` — Revenue, Expenses, Profit, Margin cards with trend arrows
 - `components/finance/RevenueChart.tsx` — Line chart: revenue vs expenses over time
 - `components/finance/OutstandingWidget.tsx` — Overdue/due invoice breakdown
@@ -666,28 +710,31 @@ Same brand template as invoice but with:
 ### Phase 6 — Polish, Testing & Deployment
 
 #### [MODIFY] All components
+
 - Responsive testing: 4K → Desktop → Tablet → Mobile
 - Cross-browser: Chrome, Safari, Firefox, Edge
 - Performance: Lighthouse ≥90
 - Accessibility: ARIA labels, keyboard nav, focus management
 
 #### [NEW] CI/CD
+
 - `.github/workflows/ci.yml` — Lint + type-check + build
 - `.github/workflows/deploy.yml` — Vercel deployment
 
 #### [NEW] Repo Documentation
+
 - Copy all planning docs to `docs/` directory in the repo
 
 ---
 
 ## Email System Summary
 
-| Trigger | To | Subject | Attachments | Channels |
-|---------|----|---------|----|------|
-| Contact form submitted | Client (submitter) | "Thank you for contacting ishoot" | None | Email only |
-| Contact form submitted | ishoot team | "🔔 New Inquiry: [Name]" | None | Email only |
-| Invoice sent | Client | "Invoice [#] from ishoot" | Invoice PDF | Email, WhatsApp, Print |
-| Payment recorded | Client | "Payment Received — Receipt [#]" | Receipt PDF | Email, WhatsApp, Print |
+| Trigger                | To                 | Subject                           | Attachments | Channels               |
+| ---------------------- | ------------------ | --------------------------------- | ----------- | ---------------------- |
+| Contact form submitted | Client (submitter) | "Thank you for contacting ishoot" | None        | Email only             |
+| Contact form submitted | ishoot team        | "🔔 New Inquiry: [Name]"          | None        | Email only             |
+| Invoice sent           | Client             | "Invoice [#] from ishoot"         | Invoice PDF | Email, WhatsApp, Print |
+| Payment recorded       | Client             | "Payment Received — Receipt [#]"  | Receipt PDF | Email, WhatsApp, Print |
 
 ---
 
@@ -695,13 +742,22 @@ Same brand template as invoice but with:
 
 ```typescript
 // Calculation engine (used in both preview and PDF generation)
-function calculateInvoice(lineItems, discountType, discountValue, vatEnabled, vatPercentage) {
-  const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+function calculateInvoice(
+  lineItems,
+  discountType,
+  discountValue,
+  vatEnabled,
+  vatPercentage,
+) {
+  const subtotal = lineItems.reduce(
+    (sum, item) => sum + item.quantity * item.unit_price,
+    0,
+  );
 
   let discountAmount = 0;
-  if (discountType === 'percentage') {
+  if (discountType === "percentage") {
     discountAmount = subtotal * (discountValue / 100);
-  } else if (discountType === 'fixed') {
+  } else if (discountType === "fixed") {
     discountAmount = discountValue;
   }
 
@@ -723,6 +779,7 @@ function calculateInvoice(lineItems, discountType, discountValue, vatEnabled, va
 ## Verification Plan
 
 ### Automated Tests
+
 ```bash
 pnpm turbo type-check
 pnpm turbo lint
@@ -732,6 +789,7 @@ grep -rn "\"Welcome\|\"Home\|\"Contact\|\"About" apps/web/components/ --include=
 ```
 
 ### Manual Verification
+
 1. **Contact form → email flow**: Submit form → verify 2 emails sent (client + team)
 2. **VAT toggle**: Go to Company Settings → toggle VAT on → create invoice → verify 10% applied → toggle off → create new invoice → verify 0% VAT
 3. **Invoice creation**: Create invoice with line items + discount → verify calculations → send via email → verify client receives PDF

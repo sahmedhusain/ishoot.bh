@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { ClientLogo } from '../types';
+import { db } from "../db";
+import { ClientLogo } from "../types";
 
 function mapClient(l: any): ClientLogo {
   return {
@@ -17,11 +17,11 @@ export async function getActiveClientLogos(): Promise<ClientLogo[]> {
   try {
     const logos = await db.clientLogo.findMany({
       where: { isActive: true },
-      orderBy: { displayOrder: 'asc' },
+      orderBy: { displayOrder: "asc" },
     });
     return logos.map(mapClient);
   } catch (e) {
-    console.error('Error fetching active client logos from DB:', e);
+    console.error("Error fetching active client logos from DB:", e);
     return [];
   }
 }
@@ -29,11 +29,11 @@ export async function getActiveClientLogos(): Promise<ClientLogo[]> {
 export async function getAllClientLogos(): Promise<ClientLogo[]> {
   try {
     const logos = await db.clientLogo.findMany({
-      orderBy: { displayOrder: 'asc' },
+      orderBy: { displayOrder: "asc" },
     });
     return logos.map(mapClient);
   } catch (e) {
-    console.error('Error fetching all client logos from DB:', e);
+    console.error("Error fetching all client logos from DB:", e);
     return [];
   }
 }
@@ -57,13 +57,18 @@ export async function createClientLogo(data: {
   return mapClient(created);
 }
 
-export async function updateClientLogo(id: string, data: Partial<ClientLogo>): Promise<ClientLogo | null> {
+export async function updateClientLogo(
+  id: string,
+  data: Partial<ClientLogo>,
+): Promise<ClientLogo | null> {
   try {
     const updateData: any = {};
     if (data.client_name !== undefined) updateData.name = data.client_name;
     if (data.logo_svg_url !== undefined) updateData.logoUrl = data.logo_svg_url;
-    if (data.website_url !== undefined) updateData.websiteUrl = data.website_url;
-    if (data.display_order !== undefined) updateData.displayOrder = data.display_order;
+    if (data.website_url !== undefined)
+      updateData.websiteUrl = data.website_url;
+    if (data.display_order !== undefined)
+      updateData.displayOrder = data.display_order;
     if (data.is_active !== undefined) updateData.isActive = data.is_active;
 
     const updated = await db.clientLogo.update({

@@ -56,24 +56,16 @@
   "services": {
     "badge": "قدراتنا الإنتاجية",
     "title": "ركائز الإنتاج الفني الدقيق",
-    "subtitle": "تنفيذ بصري متكامل من الفكرة إلى الشاشة مصمم خصيصاً للعلامات التجارية الكبرى.",
+    "subtitle": "نوفر منظومة إنتاج سينمائي متكاملة من الفكرة والسيناريو، إلى التصوير بكاميرات 8K، وتصحيح الألوان في الاستوديو.",
     "cinema": {
       "title": "التصوير السينمائي التجاري",
-      "desc": "إعلانات تلفزيونية راقية، وأفلام ترويجية، وروايات وثائقية ملتقطة بأحدث كاميرات السينما العالمية."
+      "desc": "إعلانات تلفزيونية راقية، وأفلام ترويجية، وروايات وثائقية ملتقطة بأحدث كاميرات السينما العالمية.",
+      "specs": []
     },
     "aerial": {
-      "id": "aerial",
-      "number": "02",
-      "titleEn": "Heavy-Lift & FPV Aerial Capture",
-      "titleAr": "تصوير جوي سينمائي وFPV احترافي",
-      "descEn": "Licensed Bahrain civil aviation drone operations capturing monumental landscapes, industrial sites, and dynamic vehicular chases.",
-      "descAr": "عمليات تصوير جوي مرخصة من شؤون الطيران المدني لتوثيق المشاريع المعمارية والصناعية ومطاردات السيارات الحماسية.",
+      "title": "تصوير جوي سينمائي وFPV احترافي",
+      "desc": "عمليات تصوير جوي مرخصة من شؤون الطيران المدني لتوثيق المشاريع المعمارية والصناعية ومطاردات السيارات الحماسية.",
       "specs": [
-        "Heavy-Lift RED Drone",
-        "Custom FPV Pro Rigs",
-        "Dual-Operator Control"
-      ],
-      "specsAr": [
         "طائرات درون تحمل ريد",
         "طائرات FPV سريعة",
         "تحكم ثنائي بالملاحة والكاميرا"
@@ -81,21 +73,13 @@
     },
     "photography": {
       "title": "التصوير الفوتوغرافي الإعلاني",
-      "desc": "تصوير الأزياء الراقية، السيارات، الهندسة المعمارية، والمنتجات الفاخرة بإضاءة استوديو متقنة."
+      "desc": "تصوير الأزياء الراقية، السيارات، الهندسة المعمارية، والمنتجات الفاخرة بإضاءة استوديو متقنة.",
+      "specs": []
     },
     "color": {
-      "id": "color",
-      "number": "03",
-      "titleEn": "DaVinci Resolve HDR Color Grading",
-      "titleAr": "تصحيح ألوان سينمائي في استوديو دافينشي",
-      "descEn": "Dedicated post-production color suite equipped with reference OLED mastering displays for true cinema DCI-P3 color fidelity.",
-      "descAr": "استوديو تصحيح ألوان متقدم مزود بشاشات ماسترينغ سينمائية لمعايرة الألوان السينمائية وتصدير ماستر 4K/HDR.",
+      "title": "تصحيح ألوان سينمائي في استوديو دافينشي",
+      "desc": "استوديو تصحيح ألوان متقدم مزود بشاشات ماسترينغ سينمائية لمعايرة الألوان السينمائية وتصدير ماستر 4K/HDR.",
       "specs": [
-        "DaVinci Studio Cloud",
-        "Sony BVM Reference Monitor",
-        "ACES & Dolby Vision"
-      ],
-      "specsAr": [
         "سحابة دافينشي ستوديو",
         "شاشة مرجعية سوني",
         "معايرة دولبي فيجن وACES"
@@ -106,50 +90,27 @@
       "desc": "مساحة استوديو معزولة صوتياً مع ديكورات معيارية، شبكة إضاءة علوية، وخلفيات سايك مقوسة سلسة."
     },
     "sectionIndex": "(02)",
-    "sectionLabelEn": "Production Capabilities",
-    "sectionLabelAr": "القدرات والخدمات الإنتاجية",
-    "headlineEn": "Cinema Engineering & Craft",
-    "headlineAr": "قدرات سينمائية بلا حدود",
-    "subtitleEn": "End-to-end cinematic ecosystem from script development and 8K capture to precision color science and final master delivery.",
-    "subtitleAr": "نوفر منظومة إنتاج سينمائي متكاملة من الفكرة والسيناريو، إلى التصوير بكاميرات 8K، وتصحيح الألوان في الاستوديو.",
-    "requestProposal": "Request Production Proposal",
-    "requestProposalAr": "طلب تسعير إنتاجي مخصص",
+    "requestProposal": "طلب تسعير إنتاجي مخصص",
     "commercial": {
-      "id": "commercial",
-      "number": "01",
-      "titleEn": "High-End Commercial Cinematography",
-      "titleAr": "إنتاج إعلانات سينمائية عالية الجودة",
-      "descEn": "Full-scale commercial productions for television broadcast, cinema screens, and brand campaign campaigns at the highest visual standards.",
-      "descAr": "إنتاج إعلانات تجارية متكاملة مخصصة للبث التلفزيوني والسينمائي وحملات العلامات التجارية بأعلى المعايير البصرية.",
+      "title": "إنتاج إعلانات سينمائية عالية الجودة",
+      "desc": "إنتاج إعلانات تجارية متكاملة مخصصة للبث التلفزيوني والسينمائي وحملات العلامات التجارية بأعلى المعايير البصرية.",
       "specs": [
-        "RED V-Raptor XL 8K",
-        "ARRI Master Primes T1.3",
-        "Full Cinema G&E Crew"
-      ],
-      "specsAr": [
         "كاميرات ريد 8K",
         "طقم عدسات آري T1.3",
         "طاقم إضاءة وتصوير كامل"
       ]
     },
     "soundstage": {
-      "id": "soundstage",
-      "number": "04",
-      "titleEn": "Acoustic Soundstage & Cyclorama",
-      "titleAr": "استوديو تصوير عازل للصوت مع سايك مقوس",
-      "descEn": "250m² soundproof facility in Seef District with 60kW 3-phase power, 6m overhead lighting grid, and infinite curve cyclorama.",
-      "descAr": "استوديو معزول صوتياً بمساحة 250 متر مربع في ضاحية السيف مع شبكة إضاءة علوية وقوس إنفينيتي أبيض وأخضر.",
+      "title": "استوديو تصوير عازل للصوت مع سايك مقوس",
+      "desc": "استوديو معزول صوتياً بمساحة 250 متر مربع في ضاحية السيف مع شبكة إضاءة علوية وقوس إنفينيتي أبيض وأخضر.",
       "specs": [
-        "250m² Soundstage",
-        "Overhead Lighting Grid",
-        "Soundproof Control Booth"
-      ],
-      "specsAr": [
         "مساحة 250 م²",
         "شبكة إضاءة علوية مسبقة",
         "غرفة تحكم معزولة صوتياً"
       ]
-    }
+    },
+    "sectionLabel": "القدرات والخدمات الإنتاجية",
+    "headline": "قدرات سينمائية بلا حدود"
   },
   "portfolio": {
     "badge": "مختارات من الأعمال",
@@ -174,14 +135,8 @@
     "backToWorks": "العودة إلى الأعمال",
     "sectionIndex": "(03)",
     "sectionLabel": "أرشيف الأعمال والمشاريع",
-    "sectionLabelAr": "أرشيف الأعمال والمشاريع",
-    "sectionLabelEn": "Featured Works",
     "showcaseTitle": "تحف سينمائية معتمدة",
-    "showcaseTitleAr": "تحف سينمائية معتمدة",
-    "showcaseTitleEn": "Cinematic Showcase",
     "showcaseSubtitle": "استكشف نماذج من أعمالنا المصورة لكبرى الجهات الحكومية والمؤسسات المصرفية والشركات في الخليج.",
-    "showcaseSubtitleAr": "استكشف نماذج من أعمالنا المصورة لكبرى الجهات الحكومية والمؤسسات المصرفية والشركات في الخليج.",
-    "showcaseSubtitleEn": "Explore select productions crafted for leading institutions, regional banks, and luxury brand houses.",
     "viewFullArchive": "عرض جميع الأعمال والمشاريع في الأرشيف",
     "productionOverview": "نظرة عامة على الإنتاج",
     "categories": {
@@ -215,25 +170,15 @@
     "statClients": "+65 شريكاً تجارياً في الخليج",
     "sectionIndex": "(01)",
     "sectionLabel": "من نحن",
-    "sectionLabelAr": "من نحن",
     "headline": "دار إنتاج سينمائي بحرينية تصنع من الرؤى الطموحة تحفاً بصرية تخلد العلامات التجارية.",
-    "headlineAr": "دار إنتاج سينمائي بحرينية تصنع من الرؤى الطموحة تحفاً بصرية تخلد العلامات التجارية.",
     "intro": "من قلب المنامة إلى كبرى شاشات الخليج والعالم، نمزج بين كاميرات السينما العالمية ورؤية إخراجية معاصرة تلامس الوجدان.",
-    "introAr": "من قلب المنامة إلى كبرى شاشات الخليج والعالم، نمزج بين كاميرات السينما العالمية ورؤية إخراجية معاصرة تلامس الوجدان.",
     "behindTheScenes": "خلف الكواليس · موقع التصوير",
-    "behindTheScenesAr": "خلف الكواليس · موقع التصوير",
     "shootCaption": "طاقم آي شوت أثناء تصوير إعلان سينمائي بدقة 8K",
-    "shootCaptionAr": "طاقم آي شوت أثناء تصوير إعلان سينمائي بدقة 8K",
     "missionLabel": "الرسالة",
-    "missionLabelAr": "الرسالة",
     "mission": "تمكين المؤسسات والعلامات التجارية الرائدة من سرد قصصها بأعلى معايير الدقة والجمال السينمائي، دون أي تنازل عن الجودة.",
-    "missionAr": "تمكين المؤسسات والعلامات التجارية الرائدة من سرد قصصها بأعلى معايير الدقة والجمال السينمائي، دون أي تنازل عن الجودة.",
     "visionLabel": "الرؤية",
-    "visionLabelAr": "الرؤية",
     "vision": "أن نكون الوجهة الأولى في مملكة البحرين والخليج العربي للإنتاج الإعلاني والسينمائي، ومصدر إلهام لصناع الأفلام في المنطقة.",
-    "visionAr": "أن نكون الوجهة الأولى في مملكة البحرين والخليج العربي للإنتاج الإعلاني والسينمائي، ومصدر إلهام لصناع الأفلام في المنطقة.",
-    "discoverStudio": "تعرف على قصة الاستوديو وفريق العمل",
-    "discoverStudioAr": "تعرف على قصة الاستوديو وفريق العمل"
+    "discoverStudio": "تعرف على قصة الاستوديو وفريق العمل"
   },
   "contact": {
     "badge": "ابدأ التعاون",
@@ -441,9 +386,7 @@
       "confirm": "تأكيد الإجراء",
       "recordPayment": "تسجيل دفعة جديدة",
       "backToInvoices": "العودة إلى أرشيف الفواتير",
-      "backToInvoicesAr": "العودة إلى أرشيف الفواتير",
-      "associatedReceipts": "سندات القبض والدفعات المرتبطة",
-      "associatedReceiptsAr": "سندات القبض والدفعات المرتبطة"
+      "associatedReceipts": "سندات القبض والدفعات المرتبطة"
     },
     "kpi": {
       "totalRevenue": "إجمالي الإيرادات النقدية",
@@ -576,97 +519,54 @@
     },
     "invoice": {
       "title": "فاتورة ضريبية",
-      "titleAr": "فاتورة ضريبية",
       "billedTo": "فاتورة إلى (العميل):",
-      "billedToAr": "فاتورة إلى (العميل):",
       "issueDate": "تاريخ الإصدار:",
-      "issueDateAr": "تاريخ الإصدار:",
       "dueDate": "تاريخ الاستحقاق:",
-      "dueDateAr": "تاريخ الاستحقاق:",
       "paymentStatus": "الحالة المالية:",
-      "paymentStatusAr": "الحالة المالية:",
       "serviceDesc": "وصف العمل والخدمات",
-      "serviceDescAr": "وصف العمل والخدمات",
       "qty": "الكمية",
-      "qtyAr": "الكمية",
       "unitPrice": "سعر الوحدة",
-      "unitPriceAr": "سعر الوحدة",
       "total": "المجموع",
-      "totalAr": "المجموع",
       "bankCoords": "معلومات التحويل البنكي:",
-      "bankCoordsAr": "معلومات التحويل البنكي:",
       "subtotal": "المجموع الفرعي:",
-      "subtotalAr": "المجموع الفرعي:",
       "discount": "الخصم المعتمد:",
-      "discountAr": "الخصم المعتمد:",
       "vatLabel": "ضريبة القيمة المضافة",
-      "vatLabelAr": "ضريبة القيمة المضافة",
       "vatColon": "ضريبة القيمة المضافة:",
-      "vatColonAr": "ضريبة القيمة المضافة:",
       "notApplicable": "غير مطبقة",
-      "notApplicableAr": "غير مطبقة",
       "totalAmount": "المجموع النهائي:",
-      "totalAmountAr": "المجموع النهائي:",
       "amountPaid": "المبلغ المسدد:",
-      "amountPaidAr": "المبلغ المسدد:",
       "balanceDue": "المتبقي للسداد:",
-      "balanceDueAr": "المتبقي للسداد:",
       "thankYou": "شكراً لتعاملكم مع دار آي شوت للإنتاج السينمائي.",
-      "thankYouAr": "شكراً لتعاملكم مع دار آي شوت للإنتاج السينمائي.",
       "clientFallback": "اسم العميل"
     },
     "receipt": {
       "title": "إيصال استلام دفعة",
-      "titleAr": "إيصال استلام دفعة",
       "paidInFull": "مدفوع بالكامل",
-      "paidInFullAr": "مدفوع بالكامل",
       "partial": "دفعة جزئية",
-      "partialAr": "دفعة جزئية",
       "receivedFrom": "استلمنا من:",
-      "receivedFromAr": "استلمنا من:",
       "paymentDate": "تاريخ الدفع:",
-      "paymentDateAr": "تاريخ الدفع:",
       "paymentMethod": "طريقة السداد:",
-      "paymentMethodAr": "طريقة السداد:",
       "referenceNo": "رقم المرجع / الشيك:",
-      "referenceNoAr": "رقم المرجع / الشيك:",
       "linkedInvoice": "الفاتورة المرتبطة:",
-      "linkedInvoiceAr": "الفاتورة المرتبطة:",
       "directPayment": "دفعة مباشرة",
-      "directPaymentAr": "دفعة مباشرة",
       "totalInvoice": "قيمة الفاتورة الكلية:",
-      "totalInvoiceAr": "قيمة الفاتورة الكلية:",
       "previouslyPaid": "المسدد سابقاً:",
-      "previouslyPaidAr": "المسدد سابقاً:",
       "balanceDue": "المتبقي بعد هذه الدفعة:",
-      "balanceDueAr": "المتبقي بعد هذه الدفعة:",
       "netReceived": "صافي المبلغ المستلم:",
-      "netReceivedAr": "صافي المبلغ المستلم:",
       "fundsVerified": "تم استلام المبلغ وإيداعه في الحساب البنكي",
-      "fundsVerifiedAr": "تم استلام المبلغ وإيداعه في الحساب البنكي",
       "transactionNotes": "ملاحظات المحاسب:",
-      "transactionNotesAr": "ملاحظات المحاسب:",
       "generatedBy": "تم إصدار هذا الإيصال إلكترونياً من نظام آي شوت للإنتاج السينمائي.",
-      "generatedByAr": "تم إصدار هذا الإيصال إلكترونياً من نظام آي شوت للإنتاج السينمائي.",
       "clientFallback": "اسم العميل"
     },
     "crm": {
       "newLeadTitle": "الطلبات الواردة وإدارة العملاء المحتملين",
-      "newLeadTitleAr": "الطلبات الواردة وإدارة العملاء المحتملين",
       "contactTitle": "دليل العملاء والشركاء",
-      "contactTitleAr": "دليل العملاء والشركاء",
       "dealTitle": "خط صفقات الإنتاج",
-      "dealTitleAr": "خط صفقات الإنتاج",
       "noLeads": "لا توجد طلبات واردة بعد.",
-      "noLeadsAr": "لا توجد طلبات واردة بعد.",
       "noContacts": "لا يوجد عملاء في القاعدة بعد.",
-      "noContactsAr": "لا يوجد عملاء في القاعدة بعد.",
       "noDeals": "لا توجد صفقات في هذه المرحلة.",
-      "noDealsAr": "لا توجد صفقات في هذه المرحلة.",
       "deleteContact": "حذف العميل",
-      "deleteContactAr": "حذف العميل",
-      "deleteDeal": "حذف الصفقة",
-      "deleteDealAr": "حذف الصفقة"
+      "deleteDeal": "حذف الصفقة"
     },
     "settingsTabs": {
       "preferences": "المظهر واللغة",
@@ -677,8 +577,6 @@
     "preferences": {
       "title": "تفضيلات الواجهة والمظهر",
       "subtitle": "تخصيص لغة لوحة التحكم الإدارية بالكامل، وتبديل المظهر بين الوضع الفاتح والداكن، وإعدادات العرض.",
-      "savedLangAr": "تم ضبط لغة النظام إلى اللغة العربية",
-      "savedLangEn": "تم ضبط لغة النظام إلى اللغة الإنجليزية",
       "savedDark": "تم تفعيل الوضع الداكن",
       "savedLight": "تم تفعيل الوضع الفاتح",
       "savedSystem": "تم ضبط المظهر لمطابقة نظام الجهاز",
@@ -687,7 +585,7 @@
       "arabicLabel": "العربية (اللغة العربية بالكامل)",
       "arabicDesc": "واجهة مستخدم عربية أصيلة بنسبة 100% مع دعم كامل للاتجاه من اليمين إلى اليسار (RTL) والأرقام الغربية المعتمدة في البحرين والخليج (0-9).",
       "englishLabel": "English (Full English Interface)",
-      "englishDesc": "Complete professional English interface with standard Left-to-Right (LTR) alignment and global cinematography taxonomy.",
+      "englishDesc": "واجهة إنجليزية احترافية بالكامل مع محاذاة من اليسار إلى اليمين (LTR) ومصطلحات إنتاج سينمائي عالمية.",
       "themeTitle": "المظهر العام وسمة الألوان",
       "themeSubtitle": "التبديل بين الوضع الداكن المفضل لاستوديوهات المونتاج، والوضع الفاتح ذو التباين العالي للمكاتب الإدارية.",
       "darkTitle": "الوضع الداكن (السينمائي)",
@@ -700,7 +598,8 @@
       "darkWord": "داكن",
       "lightWord": "فاتح",
       "numeralsTitle": "معيار الأرقام والعملات الرسمي في مملكة البحرين",
-      "numeralsDesc": "تعتمد لوحة تحكم آي شوت ونظام الفواتير المعتمد الأرقام العربية الغربية (0, 1, 2, 3...) حصرياً لمنع أي التباس محاسبي أو خلل برمجي، بما يتوافق تماماً مع المعايير المصرفية في مملكة البحرين ومجلس التعاون الخليجي."
+      "numeralsDesc": "تعتمد لوحة تحكم آي شوت ونظام الفواتير المعتمد الأرقام العربية الغربية (0, 1, 2, 3...) حصرياً لمنع أي التباس محاسبي أو خلل برمجي، بما يتوافق تماماً مع المعايير المصرفية في مملكة البحرين ومجلس التعاون الخليجي.",
+      "savedLang": "تم تحديث لغة النظام بنجاح"
     },
     "integrations": {
       "title": "ربط وتكامل منصات ميتا (Meta APIs)",
@@ -730,17 +629,17 @@
       "enforcement": "تغطية التدقيق الأمني",
       "searchPlaceholder": "البحث بالاسم، الإيميل، نوع العملية، أو عنوان IP...",
       "allActions": "جميع أنواع العمليات",
-      "loginAction": "تسجيل دخول (Login)",
-      "createAction": "إنشاء (Create)",
-      "updateAction": "تعديل (Update)",
-      "deleteAction": "حذف (Delete)",
-      "stageChangeAction": "تغيير مرحلة (Stage Change)",
+      "loginAction": "تسجيل دخول",
+      "createAction": "إنشاء عنصر",
+      "updateAction": "تعديل بيانات",
+      "deleteAction": "حذف عنصر",
+      "stageChangeAction": "تغيير مرحلة صفقة",
       "allEntities": "جميع الوحدات",
-      "invoicesEntity": "فواتير (Invoices)",
-      "paymentsEntity": "دفعات (Payments)",
-      "dealsEntity": "صفقات (Deals)",
-      "settingsEntity": "إعدادات الشركة (Settings)",
-      "authEntity": "جلسات المصادقة (Auth)",
+      "invoicesEntity": "سجل الفواتير",
+      "paymentsEntity": "سجل الدفعات",
+      "dealsEntity": "صفقات الإنتاج",
+      "settingsEntity": "إعدادات الشركة",
+      "authEntity": "جلسات الأمان والمصادقة",
       "userCol": "المستخدم",
       "actionCol": "نوع الحركة",
       "entityCol": "الوحدة / السجل",
@@ -776,9 +675,7 @@
       "english": "الإنجليزية",
       "deliverables": "بنود الخدمات والتصوير",
       "addItem": "إضافة بند",
-      "descEn": "الوصف بالإنجليزية",
-      "descAr": "الوصف بالعربية",
-      "placeholderEn": "مثال: Cinema Camera Package",
+      "placeholderEn": "مثال: حزمة كاميرات السينما",
       "placeholderAr": "طقم كاميرات سينمائية",
       "qty": "الكمية",
       "rate": "السعر",
@@ -796,7 +693,9 @@
       "active": "مفعل",
       "disabled": "معطل",
       "summaryTitle": "ملخص الحسابات الإجمالي",
-      "submitting": "جارٍ إصدار الفاتورة..."
+      "submitting": "جارٍ إصدار الفاتورة...",
+      "descEnLabel": "الوصف بالإنجليزية",
+      "descArLabel": "الوصف بالعربية"
     },
     "companySettingsView": {
       "subtitle": "إدارة بيانات السجل التجاري، الحسابات البنكية، إعدادات ضريبة القيمة المضافة، والربط مع Google Calendar.",
@@ -814,13 +713,13 @@
       "disconnect": "إلغاء الربط",
       "connect": "ربط الحساب",
       "crSubtitle": "بيانات السجل التجاري، اسم المنشأة الرسمي، والعنوان المسجل.",
-      "nameEn": "اسم المنشأة بالإنجليزية",
-      "nameAr": "اسم المنشأة بالعربية",
       "crNumber": "رقم السجل التجاري (CR)",
       "defaultCurrency": "العملة الافتراضية",
       "decimalsWord": "كسور عشرية",
       "addressLabel": "عنوان مقر الاستوديو",
-      "bankSubtitle": "بيانات الحساب البنكي والتحويل المطبوعة على الفواتير الرسمية."
+      "bankSubtitle": "بيانات الحساب البنكي والتحويل المطبوعة على الفواتير الرسمية.",
+      "nameEnLabel": "اسم المنشأة بالإنجليزية",
+      "nameArLabel": "اسم المنشأة بالعربية"
     },
     "deals": {
       "subtitle": "متابعة خط صفقات الإنتاج التفاعلي (Kanban) مع التحديث اللحظي لحالات المشاريع في قاعدة البيانات.",
@@ -870,21 +769,21 @@
       "emptyState": "لا توجد بنرات حالياً في قاعدة البيانات.",
       "hide": "إخفاء",
       "publish": "نشر",
-      "titleAr": "العنوان الرئيسي (بالعربية)",
-      "titleEn": "العنوان بالإنجليزية",
       "titleArPlaceholder": "التميز السينمائي الخليجي",
-      "titleEnPlaceholder": "Khaleeji Cinema Craft",
-      "subtitleAr": "الوصف الفرعي (بالعربية)",
-      "subtitleEn": "الوصف الفرعي (بالإنجليزية)",
+      "titleEnPlaceholder": "التميز السينمائي الخليجي",
       "subtitleArPlaceholder": "أحدث تقنيات الإضاءة السينمائية وكاميرات ARRI",
-      "subtitleEnPlaceholder": "State of the art ARRI cinema gear",
+      "subtitleEnPlaceholder": "أحدث تقنيات المعدات والكاميرات السينمائية",
       "mediaType": "نوع الوسائط",
       "videoReel": "مقطع فيديو (Reel)",
       "highResImage": "صورة عالية الدقة",
       "mediaUrl": "رابط ملف الوسائط",
       "mediaUrlPlaceholder": "/banners/reel.mp4",
       "posterUrl": "رابط صورة المعاينة (Poster)",
-      "posterUrlPlaceholder": "/banners/poster.jpg"
+      "posterUrlPlaceholder": "/banners/poster.jpg",
+      "titleEnLabel": "العنوان بالإنجليزية",
+      "titleArLabel": "العنوان الرئيسي (بالعربية)",
+      "subtitleEnLabel": "الوصف الفرعي (بالإنجليزية)",
+      "subtitleArLabel": "الوصف الفرعي (بالعربية)"
     },
     "clientsView": {
       "subtitle": "شركاء النجاح والعلامات التجارية الرائدة المعروضة في شريط التمرير بالصفحة الرئيسية.",
@@ -907,9 +806,7 @@
       "specs": "المواصفات الفنية",
       "qty": "الكمية",
       "actions": "إجراءات",
-      "modelNameEn": "الموديل بالإنجليزية",
       "modelNamePlaceholder": "ARRI ALEXA Mini LF",
-      "itemNameAr": "الاسم بالعربية",
       "itemNamePlaceholder": "كاميرا آري أليكسا ميني إل إف",
       "brand": "الشركة المصنعة / العلامة",
       "brandPlaceholder": "ARRI",
@@ -923,7 +820,9 @@
         "audio": "صوتيات وتسجيل",
         "grip": "معدات حركة ومساند",
         "drones": "طائرات درونز جوية"
-      }
+      },
+      "modelNameEnLabel": "الموديل بالإنجليزية",
+      "itemNameArLabel": "الاسم بالعربية"
     },
     "portfolioView": {
       "subtitle": "أرشيف الأفلام السينمائية والإعلانات التجارية، ملفات الماستر، ونسب العرض.",
@@ -933,10 +832,8 @@
       "year": "سنة الإنتاج",
       "unfeature": "إلغاء التمييز",
       "feature": "تمييز في الواجهة",
-      "titleAr": "عنوان المشروع بالعربية",
       "titleArPlaceholder": "فيلم المنامة: نبض العاصمة",
-      "titleEn": "عنوان المشروع بالإنجليزية",
-      "titleEnPlaceholder": "Manama: Pulse of Bahrain",
+      "titleEnPlaceholder": "فيلم المنامة: نبض العاصمة",
       "clientName": "اسم العميل",
       "clientPlaceholder": "هيئة البحرين للسياحة والمعارض",
       "category": "التصنيف",
@@ -948,7 +845,9 @@
       "thumbnailPlaceholder": "/images/portfolio/manama.jpg",
       "previewVideoUrl": "رابط معاينة الفيديو",
       "previewVideoPlaceholder": "/videos/manama-preview.mp4",
-      "emptyState": "لا توجد أعمال سينمائية في قاعدة البيانات بعد."
+      "emptyState": "لا توجد أعمال سينمائية في قاعدة البيانات بعد.",
+      "titleEnLabel": "عنوان المشروع بالإنجليزية",
+      "titleArLabel": "عنوان المشروع بالعربية"
     },
     "paymentsView": {
       "subtitle": "سجل سندات القبض والدفعات المحصلة، تسوية أرصدة الفواتير، وإصدار إيصالات الاستلام الرسمية.",
@@ -1010,16 +909,16 @@
       "date": "التاريخ",
       "amount": "المبلغ",
       "actions": "إجراءات",
-      "descAr": "الوصف بالعربية",
       "descArPlaceholder": "إيجار عدسات سينمائية للتصوير الخارجي",
-      "descEn": "الوصف بالإنجليزية",
-      "descEnPlaceholder": "Cinema lenses rental for exterior shoot",
+      "descEnPlaceholder": "استئجار عدسات سينمائية للتصوير الخارجي",
       "amountBhd": "المبلغ (BHD)",
       "vendorName": "اسم المورد / الجهة المستفيدة",
       "vendorPlaceholder": "شركة سينما رنت الخليج ذ.م.م",
       "linkedDeal": "الصفقة / المشروع المرتبط",
       "generalOverhead": "غير مرتبط بصفقة معينة (مصروف عام)",
-      "expenseDate": "تاريخ الصرف"
+      "expenseDate": "تاريخ الصرف",
+      "descEnLabel": "الوصف بالإنجليزية",
+      "descArLabel": "الوصف بالعربية"
     },
     "dashboardView": {
       "vsLastMonth": "مقارنة بالشهر السابق",
@@ -1066,9 +965,7 @@
       "endTime": "وقت الانتهاء:",
       "location": "الموقع:",
       "linkedDeal": "الصفقة المرتبطة:",
-      "eventTitleEn": "عنوان الفعالية بالإنجليزية *",
-      "eventTitleEnPlaceholder": "مثال: Batelco Cinema Shoot Day 1",
-      "eventTitleAr": "عنوان الفعالية بالعربية",
+      "eventTitleEnPlaceholder": "مثال: اليوم الأول تصوير إعلان بتلكو",
       "eventTitleArPlaceholder": "مثال: تصوير إعلان بتلكو السينمائي",
       "startDateTime": "تاريخ ووقت البدء *",
       "endDateTime": "تاريخ ووقت الانتهاء *",
@@ -1082,7 +979,9 @@
       "locationAddress": "موقع التصوير / العنوان",
       "locationPlaceholder": "مثال: استوديو A، ضاحية السيف",
       "saving": "جارٍ الحفظ...",
-      "deleteConfirm": "هل أنت متأكد من حذف هذه الفعالية؟"
+      "deleteConfirm": "هل أنت متأكد من حذف هذه الفعالية؟",
+      "eventTitleEnLabel": "عنوان الفعالية بالإنجليزية *",
+      "eventTitleArLabel": "عنوان الفعالية بالعربية"
     },
     "usersView": {
       "subtitle": "إدارة صلاحيات الوصول، تعيين الأدوار الوظيفية، ومراقبة حسابات طاقم العمل.",
@@ -1179,137 +1078,179 @@
       "footerNote": "بوابة العمليات السينمائية • محمية بنظام الصلاحيات وسجلات التدقيق",
       "logoutSuccess": "تم تسجيل الخروج بنجاح",
       "switchLanguage": "English"
+    },
+    "customersNew": {
+      "title": "إنشاء ملف عميل جديد",
+      "subtitle": "تسجيل عميل أو وكالة جديدة في نظام إدارة علاقات العملاء",
+      "fullNameLabel": "الاسم الكامل / الشخص المسئول *",
+      "companyLabel": "اسم الشركة / المؤسسة",
+      "emailLabel": "البريد الإلكتروني",
+      "phoneLabel": "رقم الهاتف",
+      "jobTitleLabel": "المسمى الوظيفي / المنسق",
+      "classificationLabel": "تصنيف الحساب",
+      "notesLabel": "ملاحظات وسياق أولي",
+      "saving": "جاري إنشاء الملف...",
+      "submit": "إنشاء ملف العميل"
+    },
+    "dealsNew": {
+      "title": "إنشاء صفقة إنتاجية جديدة",
+      "subtitle": "إضافة فرصة إنتاج سينمائي جديدة إلى جدول الصفقات",
+      "dealTitleLabel": "عنوان الصفقة / اسم المشروع *",
+      "contactLabel": "العميل المرتبط *",
+      "selectContact": "-- اختر حساب العميل --",
+      "valueLabel": "القيمة التقديرية للصفقة (د.ب) *",
+      "stageLabel": "مرحلة الصفقة *",
+      "targetDateLabel": "التاريخ المستهدف للإغلاق / التصوير",
+      "descriptionLabel": "نطاق العمل والملاحظات",
+      "saving": "جاري إنشاء الصفقة...",
+      "submit": "إنشاء الصفقة"
+    },
+    "companyDocumentsNew": {
+      "title": "رفع مستند قانوني للشركة",
+      "subtitle": "رفع نسخ السجل التجاري، شهادة الضريبة، العقود، أو الملف التعريفي",
+      "titleEnLabel": "عنوان المستند (بالإنجليزية) *",
+      "titleArLabel": "عنوان المستند (بالعربية)",
+      "categoryLabel": "تصنيف المستند *",
+      "docNumberLabel": "رقم المستند / السجل الرسمي",
+      "validFromLabel": "تاريخ بدء الصلاحية",
+      "validUntilLabel": "تاريخ الانتهاء / التجديد",
+      "assetFileLabel": "ملف المستند القانوني (PDF / صور)",
+      "assetFileHint": "قم برفع نسخة PDF عالية الدقة أو صورة عن الشهادة الرسمية",
+      "notesLabel": "ملاحظات وتنبيهات المستند",
+      "saving": "جاري الرفع...",
+      "submit": "حفظ المستند القانوني"
+    },
+    "expensesNew": {
+      "title": "تسجيل مصروف تشغيلي جديد",
+      "subtitle": "تسجيل فواتير إيجار المعدات، تصاريح التصوير، مكافآت الطاقم، أو المصاريف الإدارية",
+      "categoryLabel": "تصنيف المصروف *",
+      "amountLabel": "مبلغ المصروف (د.ب) *",
+      "descriptionEnLabel": "الوصف (بالإنجليزية) *",
+      "descriptionArLabel": "الوصف (بالعربية)",
+      "vendorLabel": "اسم المورد / الجهة المستلمة",
+      "dateLabel": "تاريخ العملية *",
+      "notesLabel": "الملاحظات ورمز المشروع",
+      "saving": "جاري تسجيل المصروف...",
+      "submit": "تسجيل قيد المصروف"
+    },
+    "paymentsNew": {
+      "title": "تسجيل سند استلام دفعة",
+      "subtitle": "إثبات استلام دفعة مالية جديدة من العميل أو تسوية فاتورة",
+      "invoiceLabel": "الفاتورة المرتبطة (اختياري)",
+      "selectInvoice": "-- دفعة مباشرة (غير مرتبطة بفاتورة) --",
+      "contactLabel": "العميل / حساب الدفع *",
+      "amountLabel": "مبلغ الدفعة (د.ب) *",
+      "methodLabel": "طريقة السداد *",
+      "refLabel": "رقم العملية البنكية / الشيك",
+      "dateLabel": "تاريخ الاستلام *",
+      "proofLabel": "إثبات التحويل البنكي / صورة السند",
+      "proofHint": "ارفاق صورة إشعار التحويل البنكي أو صورة الشيك",
+      "notesLabel": "ملاحظات المحاسب",
+      "saving": "جاري تسجيل الدفعة...",
+      "submit": "تسجيل الدفعة"
+    },
+    "usersNew": {
+      "title": "إنشاء حساب مستخدم جديد",
+      "subtitle": "إضافة مدير نظام، منتج، محاسب، أو عضو من فريق الإنتاج",
+      "nameLabel": "الاسم الكامل *",
+      "emailLabel": "البريد الإلكتروني للعمل *",
+      "passwordLabel": "كلمة المرور *",
+      "roleLabel": "صلاحية الوصول للنظام *",
+      "statusLabel": "حالة الحساب الأولية",
+      "notesLabel": "ملاحظات وتوجيهات الأمان",
+      "saving": "جاري إنشاء الحساب...",
+      "submit": "إنشاء حساب المستخدم"
     }
   },
   "stats": {
     "sectionIndex": "(04)",
-    "sectionLabelEn": "Studio Metrics",
-    "sectionLabelAr": "إحصائيات ومعايير الاستوديو",
     "items": [
       {
-        "value": "150+",
-        "labelEn": "Commercial Productions",
-        "labelAr": "إعلانات وأعمال سينمائية منجزة",
-        "subEn": "Delivered for national brands & television",
-        "subAr": "لأبرز المؤسسات والشركات في البحرين والخليج"
+        "value": "+150",
+        "label": "فيلم تجاري سينمائي",
+        "sub": "لكبرى الشركات والجهات في الخليج"
       },
       {
-        "value": "8K VV",
-        "labelEn": "Native Resolution",
-        "labelAr": "دقة تصوير سينمائي فائقة",
-        "subEn": "RED V-Raptor XL & VistaVision sensors",
-        "subAr": "حساسات كاملة الإطار بدقة 8K وعدسات T1.3"
-      },
-      {
-        "value": "250 m²",
-        "labelEn": "Soundstage Facility",
-        "labelAr": "استوديو تصوير وسايك مقوس",
-        "subEn": "Soundproof cyclorama in Seef District",
-        "subAr": "عازل للصوت بالكامل ومجهز بشبكة إضاءة"
+        "value": "8K",
+        "label": "دقة تصوير سينمائي خام",
+        "sub": "كاميرات ريد وفانتوم وآري"
       },
       {
         "value": "100%",
-        "labelEn": "Bahraini Passion",
-        "labelAr": "شغف ورؤية بحرينية أصيلة",
-        "subEn": "Rooted in Manama, celebrated globally",
-        "subAr": "فريق عمل محترف بمعايير سينمائية عالمية"
+        "label": "تصاريح طيران جوي مرخصة",
+        "sub": "شؤون الطيران المدني بمملكة البحرين"
+      },
+      {
+        "value": "+10",
+        "label": "سنوات من التميز الإبداعي",
+        "sub": "المقر الرئيسي ضاحية السيف، المنامة"
       }
-    ]
+    ],
+    "sectionLabel": "إحصائيات ومعايير الاستوديو"
   },
   "reviews": {
     "sectionIndex": "(05)",
-    "sectionLabelEn": "Client Testimonials",
-    "sectionLabelAr": "شهادات العملاء والشركاء",
-    "headlineEn": "Trusted by Market Leaders",
-    "headlineAr": "ثقة كبرى العلامات التجارية",
-    "subtitleEn": "Our commitment to visual perfection has built enduring partnerships with Bahrain's most prestigious organizations.",
-    "subtitleAr": "نفخر بإنتاج أعمال سينمائية صنعت فارقاً حقيقياً في الصورة الذهنية لشركائنا.",
-    "bahrain": "BAHRAIN",
+    "bahrain": "مملكة البحرين",
     "items": [
       {
-        "id": "1",
-        "client": "National Bank of Bahrain (NBB)",
-        "clientAr": "بنك البحرين الوطني",
-        "author": "Head of Brand & Communications",
-        "authorAr": "رئيس الاتصالات المؤسسية والهوية",
-        "quoteEn": "ishoot elevated our national campaign into a cinematic experience that resonated across the entire Kingdom. The lighting, 8K RED optics, and post-production grade exceeded all executive expectations.",
-        "quoteAr": "نقل فريق آي شوت حملتنا الوطنية إلى تجربة سينمائية استثنائية لاقت صدى واسعاً في المملكة. الإضاءة، وعدسات 8K، وتصحيح الألوان فاق كل التوقعات.",
+        "id": "rev-1",
+        "client": "بنك البحرين الوطني",
+        "author": "مدير التسويق والعلامة التجارية",
+        "quote": "قدمت آي شوت حملة إعلانية سينمائية استثنائية فاقت توقعاتنا. كانت الألوان والتصوير الجوي بمستوى عالمي رائع.",
         "year": "2026"
       },
       {
-        "id": "2",
-        "client": "Bapco Energies",
-        "clientAr": "بابكو إنرجيز",
-        "author": "Corporate Sustainability Director",
-        "authorAr": "مدير الاستدامة والشؤون المؤسسية",
-        "quoteEn": "The aerial drone execution across our offshore and industrial sites was flawless. Their attention to safety and Hollywood-standard cinematography is unmatched in Bahrain.",
-        "quoteAr": "التصوير الجوي في مواقعنا الصناعية والبحرية كان في قمة الاحتراف والدقة. التزامهم بمعايير السلامة والتصوير السينمائي لا مثيل له في البحرين.",
-        "year": "2026"
+        "id": "rev-2",
+        "client": "زين البحرين",
+        "author": "رئيس الاتصال المؤسسي",
+        "quote": "احترافية طاقم التصوير ودقة مشاهد 8K أحدثت فارقاً كبيراً في فيلماً الترويجي. بحق أفضل استوديو إنتاج سينمائي في البحرين.",
+        "year": "2025"
       },
       {
-        "id": "3",
-        "client": "Batelco Beyon",
-        "clientAr": "بتلكو بيون",
-        "author": "Digital Marketing & Content Lead",
-        "authorAr": "مدير التسويق الرقمي والمحتوى",
-        "quoteEn": "Fast turnaround, visionary storytelling, and unmatched equipment. Sayed and his team bring true director-level craft to commercial production.",
-        "quoteAr": "سرعة في الإنجاز، وسرد بصري ملهم، ومعدات تصوير متطورة جداً. سيد وفريقه يقدمون رؤية إخراجية سينمائية حقيقية لأي إعلان تجاري.",
+        "id": "rev-3",
+        "client": "مجلس التنمية الاقتصادية - البحرين",
+        "author": "رئيس التسويق والترويج",
+        "quote": "العمل مع فريق آي شوت في الفيلم الاستثماري الوطني كان سلسًا للغاية. وثقوا معالمنا المعمارية بإضاءة وعمق بصري مبهر.",
         "year": "2025"
       }
-    ]
+    ],
+    "sectionLabel": "شهادات العملاء والشركاء",
+    "headline": "ثقة كبرى العلامات التجارية",
+    "subtitle": "التزامنا التام بالكمال البصري أثمر عن شراكات متينة مع أعرق المؤسسات في البحرين والخليج."
   },
   "faq": {
     "sectionIndex": "(06)",
-    "sectionLabelEn": "Frequently Asked Questions",
-    "sectionLabelAr": "الأسئلة الشائعة والاستفسارات",
-    "headlineEn": "Production Insights & FAQ",
-    "headlineAr": "كل ما تود معرفته عن الإنتاج",
-    "subtitleEn": "Clear, transparent answers about our production workflows, cinema equipment, and commercial licensing.",
-    "subtitleAr": "إجابات واضحة وشفافة حول سير العمليات، الكاميرات، الجداول الزمنية، والتصاريح.",
     "items": [
       {
-        "qEn": "What is the typical timeline for a commercial production?",
-        "qAr": "ما هو الجدول الزمني المعتاد لإنتاج إعلان تجاري؟",
-        "aEn": "A standard 30-second TVC typically requires 2–3 weeks of pre-production (concept, script, location scouting), 1–2 shoot days, and 1–2 weeks of post-production (editing, color grading, sound). Rush timelines are available upon request.",
-        "aAr": "يتطلب الإعلان التجاري المعياري بطول 30 ثانية عادةً 2–3 أسابيع للإعداد (المفهوم، السيناريو، المواقع)، ويوم أو يومين للتصوير، وأسبوع إلى أسبوعين للمونتاج وتصحيح الألوان والصوت. يتوفر جدول إنتاج سريع عند الطلب."
+        "question": "ما هي أنظمة الكاميرات والعدسات المستخدمة في الإعلانات؟",
+        "answer": "نعتمد بشكل أساسي على كاميرات RED V-Raptor 8K وكاميرات ARRI ALEXA Mini LF وسوني FX9 مع طقم عدسات آري ماستر برايم وكوك وأنامورفيك."
       },
       {
-        "qEn": "Do you handle government and corporate shoots in Bahrain?",
-        "qAr": "هل تنجزون مشاريع حكومية ومؤسسية في مملكة البحرين؟",
-        "aEn": "Yes. We hold all necessary Bahrain CAA drone permits and have extensive experience producing for government ministries, financial institutions, and major GCC corporations.",
-        "aAr": "نعم. نحتفظ بجميع تصاريح طيران الدرون من هيئة الطيران المدني البحرينية، ولدينا خبرة واسعة في تنفيذ مشاريع للوزارات الحكومية والمصارف والشركات الكبرى في دول الخليج."
+        "question": "هل مشغلو طائرات الدرون حاصلون على تراخيص رسمية في البحرين؟",
+        "answer": "نعم، جميع طياري الدرون وكاميرات FPV لدينا مرخصون رسمياً من شؤون الطيران المدني بمملكة البحرين مع تغطية تأمينية شاملة."
       },
       {
-        "qEn": "What camera systems and lenses do you own?",
-        "qAr": "ما أنظمة الكاميرات والعدسات المتاحة لديكم؟",
-        "aEn": "We own RED V-Raptor XL 8K VistaVision cinema bodies, ARRI Master Prime T1.3 optical set, Leica Summilux-C lenses, and a full Zeiss Ultra Prime kit — all owned in-house with no third-party rental dependency.",
-        "aAr": "نمتلك كاميرات RED V-Raptor XL 8K VistaVision، وطقم عدسات ARRI Master Prime بفتحة T1.3، وعدسات Leica Summilux-C، وطقم Zeiss Ultra Prime — جميعها مملوكة للشركة دون الحاجة لتأجير خارجي."
+        "question": "كم تستغرق مرحلة المونتاج وتصحيح الألوان في استوديو دافينشي؟",
+        "answer": "تستغرق مرحلة ما بعد الإنتاج عادة من 5 إلى 14 يوم عمل، وتشمل المونتاج، الهندسة الصوتية، الخدع البصرية، ومعايرة الألوان."
       },
       {
-        "qEn": "Can ishoot provide a full crew (director, DOP, gaffers, art dept)?",
-        "qAr": "هل يمكن لآي شوت توفير طاقم عمل متكامل؟",
-        "aEn": "Absolutely. We offer complete production crews including director, director of photography, 1st & 2nd ACs, gaffer, grip, art director, stylist, and production manager depending on project scope.",
-        "aAr": "بالتأكيد. نوفر طواقم إنتاج متكاملة تشمل المخرج، مدير التصوير، مساعدي الكاميرا، مشرف الإضاءة، فريق الغريب، المخرج الفني، المصمم، ومنتج منفذ حسب حجم المشروع."
+        "question": "هل توفرون خدمات ما قبل الإنتاج والتصاريح واختيار الممثلين؟",
+        "answer": "بالتأكيد، نتكفل بجميع التحضيرات من استخراج تصاريح التصوير الحكومية، اختيار الممثلين، معاينة المواقع، ورسم القصة المصورة (Storyboard)."
       }
-    ]
+    ],
+    "sectionLabel": "الأسئلة الشائعة والاستفسارات",
+    "headline": "معلومات وسير العمل الإنتاجي",
+    "subtitle": "إجابات شفافة ومباشرة عن معداتنا السينمائية، وجداول التصوير، ورخص التشغيل."
   },
   "cta": {
     "badge": "جاهزون لبدء مشروعك القادم",
-    "badgeAr": "جاهزون لبدء مشروعك القادم",
     "titleLine1": "سينما في كل إطار.",
-    "titleLine1Ar": "سينما في كل إطار.",
     "titleLine2": "لنصنع عملاً خالداً معاً.",
-    "titleLine2Ar": "لنصنع عملاً خالداً معاً.",
     "description": "تواصل مباشرة مع أحد منتجينا السينمائيين لمناقشة أفكار مشروعك وجدول التصوير والتقديرات المالية.",
-    "descriptionAr": "تواصل مباشرة مع أحد منتجينا السينمائيين لمناقشة أفكار مشروعك وجدول التصوير والتقديرات المالية.",
     "whatsapp": "محادثة فورية عبر واتساب",
-    "whatsappAr": "محادثة فورية عبر واتساب",
     "requestTreatment": "طلب تسعير وجلسة تصوير",
-    "requestTreatmentAr": "طلب تسعير وجلسة تصوير",
     "address": "مكتب 402، برج بلاتينيوم، ضاحية السيف، المنامة، مملكة البحرين",
-    "addressAr": "مكتب 402، برج بلاتينيوم، ضاحية السيف، المنامة، مملكة البحرين",
-    "rights": "جميع الحقوق محفوظة.",
-    "rightsAr": "جميع الحقوق محفوظة."
+    "rights": "جميع الحقوق محفوظة."
   },
   "preloader": {
     "initializing": "تهيئة الرؤية السينمائية",

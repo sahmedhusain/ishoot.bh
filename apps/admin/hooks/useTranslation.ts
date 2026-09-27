@@ -1,7 +1,11 @@
-'use client';
+"use client";
 
-import { useLocale } from './useLocale';
-import { getTranslations, getNestedTranslation, type TranslationKeys } from '@ishoot/locales';
+import { useLocale } from "./useLocale";
+import {
+  getTranslations,
+  getNestedTranslation,
+  type TranslationKeys,
+} from "@ishoot/locales";
 
 export function useTranslation() {
   const { locale, isRTL } = useLocale();

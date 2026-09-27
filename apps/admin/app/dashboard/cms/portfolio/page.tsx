@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { getPortfolioItems, getPortfolioCategories } from '@ishoot/database';
-import { PortfolioManagementView } from '../../../../components/cms/PortfolioManagementView';
+import * as React from "react";
+import { getPortfolioItems, getPortfolioCategories } from "@ishoot/database";
+import { PortfolioManagementView } from "../../../../components/cms/PortfolioManagementView";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function PortfolioManagerPage() {
   const [items, categories] = await Promise.all([
@@ -10,5 +10,7 @@ export default async function PortfolioManagerPage() {
     getPortfolioCategories(),
   ]);
 
-  return <PortfolioManagementView initialItems={items} categories={categories} />;
+  return (
+    <PortfolioManagementView initialItems={items} categories={categories} />
+  );
 }

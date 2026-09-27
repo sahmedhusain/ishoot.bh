@@ -1,0 +1,202 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { CRMContact } from "@ishoot/database/types";
+import { Card, Button, Input, Select } from "@ishoot/ui";
+import { ArrowLeft, CheckCircle2, UserCog } from "lucide-react";
+import { updateContactAction } from "../../app/actions/crm";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+
+interface CustomerEditFormViewProps {
+  contact: CRMContact;
+}
+
+export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
+  const router = useRouter();
+  const { t } = useAdminLocale();
+
+  const [fullName, setFullName] = React.useState(contact.full_name || "");
+  const [company, setCompany] = React.useState(contact.company || "");
+  const [email, setEmail] = React.useState(contact.email || "");
+  const [phone, setPhone] = React.useState(contact.phone || "");
+  const [jobTitle, setJobTitle] = React.useState(contact.job_title || "");
+  const [contactType, setContactType] = React.useState<
+    "client" | "agency" | "vendor" | "freelancer"
+  >(
+    (contact.contact_type as "client" | "agency" | "vendor" | "freelancer") ||
+      "client",
+  );
+  const [notes, setNotes] = React.useState(contact.notes || "");
+  const [saving, setSaving] = React.useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName) return;
+    setSaving(true);
+
+    try {
+      await updateContactAction(contact.id, {
+        full_name: fullName,
+        email: email || undefined,
+        phone: phone || undefined,
+        company: company || undefined,
+        job_title: jobTitle || undefined,
+        contact_type: contactType,
+        notes: notes || undefined,
+      });
+
+      router.push(`/dashboard/crm/customers/${contact.id}`);
+    } catch (err) {
+      console.error("Failed to update customer:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-8 max-w-4xl mx-auto pb-16">
+      <div className="flex items-center gap-4">
+        <Link href={`/dashboard/crm/customers/${contact.id}`}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-[#9EADA9]"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>{t.actions.back}</span>
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-2">
+            <UserCog className="w-6 h-6 text-[#09937F]" />
+            <span>Edit Customer Dossier</span>
+          </h1>
+          <p className="text-xs text-[#9EADA9] mt-1">
+            Update client profile, contact information, and account
+            classification
+          </p>
+        </div>
+      </div>
+
+      <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="text-xs font-semibold text-white mb-1.5 block">
+                Full Name / Contact Person *
+              </label>
+              <Input
+                required
+                placeholder="e.g. Sayed Ahmed"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-white mb-1.5 block">
+                Company / Organization Name
+              </label>
+              <Input
+                placeholder="e.g. Zain Bahrain"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="text-xs font-semibold text-white mb-1.5 block">
+                Email Address
+              </label>
+              <Input
+                type="email"
+                placeholder="client@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-white mb-1.5 block">
+                Phone Number (E.164 Format)
+              </label>
+              <Input
+                placeholder="+973 3900 0000"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="text-xs font-semibold text-white mb-1.5 block">
+                Job Title / Position
+              </label>
+              <Input
+                placeholder="e.g. Marketing Director"
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-white mb-1.5 block">
+                Account Classification
+              </label>
+              <Select
+                value={contactType}
+                onChange={(e) => setContactType(e.target.value as any)}
+              >
+                <option value="client" className="bg-[#0B1210] text-white">
+                  Direct Client
+                </option>
+                <option value="agency" className="bg-[#0B1210] text-white">
+                  Advertising Agency
+                </option>
+                <option value="vendor" className="bg-[#0B1210] text-white">
+                  Vendor / Supplier
+                </option>
+                <option value="freelancer" className="bg-[#0B1210] text-white">
+                  Freelancer / Crew
+                </option>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-white mb-1.5 block">
+              Notes & Context
+            </label>
+            <textarea
+              rows={4}
+              placeholder="Commercial preferences, legal registration details, background notes..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full bg-[#050807] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-[#9EADA9]/50 focus:outline-none focus:border-[#09937F]"
+            />
+          </div>
+
+          <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
+            <Link href={`/dashboard/crm/customers/${contact.id}`}>
+              <Button type="button" variant="outline" size="sm">
+                Cancel
+              </Button>
+            </Link>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={saving}
+              className="gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{saving ? "Saving Changes..." : "Save Changes"}</span>
+            </Button>
+          </div>
+        </form>
+      </Card>
+    </div>
+  );
+}

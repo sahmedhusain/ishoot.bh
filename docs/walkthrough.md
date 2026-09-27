@@ -9,22 +9,23 @@
 
 The entire requested dual-frontend ecosystem has been implemented from scratch at `/Users/sayed/Desktop/GitHub/ishoot.bh`:
 
-| Scope | Workspace | Port | Purpose / Stack |
-| :--- | :--- | :--- | :--- |
-| **Monorepo Architecture** | Root + Turborepo | — | pnpm workspaces, Turbo pipeline, shared configs |
-| **Design System & Theme** | `@ishoot/config` | — | Official brand palette (`#014842`, `#09937F`), `Virtual.otf`, IBM Plex Sans Arabic |
-| **Bilingual Localization** | `@ishoot/locales` | — | Dynamic EN/AR dictionary with dot notation and parameter interpolation |
-| **Database & Schema** | `@ishoot/database` | — | Complete PostgreSQL schema (15 tables, RLS, storage buckets, triggers), typed queries, rich mock data |
-| **Email Infrastructure** | `@ishoot/email` | — | Dual-dispatch engine (client + internal), HTML brand templates, local console fallback |
-| **Shared UI Library** | `@ishoot/ui` | — | Accessible glassmorphic primitives (Button, Badge, Card, Modal, CurrencyDisplay, etc.) |
-| **Public Showcase Frontend** | `apps/web` | `3000` | High-end cinematic showcase (`ishoot.bh`) inspired by Noqta.tv & Apple |
-| **Twenty-Inspired Admin Portal**| `apps/admin` | `3001` | Executive operations suite (`admin.ishoot.bh`) with CRM, CMS, Invoice Studio, Receipts, P&L |
+| Scope                            | Workspace          | Port   | Purpose / Stack                                                                                       |
+| :------------------------------- | :----------------- | :----- | :---------------------------------------------------------------------------------------------------- |
+| **Monorepo Architecture**        | Root + Turborepo   | —      | pnpm workspaces, Turbo pipeline, shared configs                                                       |
+| **Design System & Theme**        | `@ishoot/config`   | —      | Official brand palette (`#014842`, `#09937F`), `Virtual.otf`, IBM Plex Sans Arabic                    |
+| **Bilingual Localization**       | `@ishoot/locales`  | —      | Dynamic EN/AR dictionary with dot notation and parameter interpolation                                |
+| **Database & Schema**            | `@ishoot/database` | —      | Complete PostgreSQL schema (15 tables, RLS, storage buckets, triggers), typed queries, rich mock data |
+| **Email Infrastructure**         | `@ishoot/email`    | —      | Dual-dispatch engine (client + internal), HTML brand templates, local console fallback                |
+| **Shared UI Library**            | `@ishoot/ui`       | —      | Accessible glassmorphic primitives (Button, Badge, Card, Modal, CurrencyDisplay, etc.)                |
+| **Public Showcase Frontend**     | `apps/web`         | `3000` | High-end cinematic showcase (`ishoot.bh`) inspired by Noqta.tv & Apple                                |
+| **Twenty-Inspired Admin Portal** | `apps/admin`       | `3001` | Executive operations suite (`admin.ishoot.bh`) with CRM, CMS, Invoice Studio, Receipts, P&L           |
 
 ---
 
 ## 2. Key Architecture & Business Rules Enforced
 
 ### A. Non-VAT Mode Default & Future-Proof VAT
+
 - **Current State**: Company has **no VAT registration**.
 - **Implementation**:
   - In `company_settings`, `vat_enabled = false` (VAT rate 0%).
@@ -35,19 +36,24 @@ The entire requested dual-frontend ecosystem has been implemented from scratch a
   - **Future-Proof**: When toggled on in **Company Settings (`/dashboard/settings/company`)**, VAT rate defaults to 10% (Bahrain standard), calculating `vat_amount = subtotal * 0.10` with bilingual tax invoices and CR/VAT number display.
 
 ### B. Multi-Currency Support (GCC & USD)
+
 - **BHD (Bahraini Dinar)**: Strictly formatted to **3 decimal places** (e.g., `BD 1,250.000` / `1,250.000 د.ب`).
 - **SAR, AED, KWD, OMR, QAR, USD**: Formatted to standard precision (2 or 3 decimals according to regional currency standards).
 - Currency can be selected per invoice in Invoice Studio (`/dashboard/invoices/new`).
 
 ### C. Multi-Channel Dispatch (Invoice & Payment Receipt)
+
 Every invoice and receipt can be dispatched via 4 channels:
+
 1. **Email**: Sends high-end HTML email with itemized breakdown and branded action links directly to the client's email address. In local mode, logs full payload to the console safely without throwing errors.
 2. **WhatsApp**: Generates direct `https://wa.me/{phone}?text={encoded_message}` links with pre-formatted bilingual messages containing invoice/receipt numbers, amounts, due dates, and secure review links.
 3. **Print A4**: Clean browser print stylesheet (`@media print`) engineered specifically to preserve the official AI-generated letterhead without clipping across multiple pages.
 4. **Download**: Client-side trigger to generate offline PDF view or save snapshot.
 
 ### D. Dual-Email Inquiries
+
 Submitting a project inquiry on the public contact form (`/contact`) triggers two emails:
+
 1. **Client Acknowledgment**: Sent to the prospect thanking them for reaching out, confirming receipt, and outlining the next steps.
 2. **Team Notification**: Sent to `hello@ishoot.bh` containing the complete inquiry details (services requested, budget range, timeline, company name, phone, message).
 
@@ -56,12 +62,14 @@ Submitting a project inquiry on the public contact form (`/contact`) triggers tw
 ## 3. Public Cinematic Frontend (`apps/web`)
 
 ### Visual Benchmarks & Aesthetics
+
 - **Dark Obsidian Aesthetic**: Background `bg-obsidian` (`#030708`) accented with Deep Emerald (`#014842`) and Radiant Jade (`#09937F`).
 - **Typography**: Dual-font typography with `Virtual.otf` for English headings, `IBM Plex Sans Arabic` for Arabic typography, and `Geist Sans` for UI copy.
 - **Bi-directional Navigation**: Dynamic `dir="rtl"` / `dir="ltr"` switching with language switcher on navbar and mobile menu.
 - **Scroll & Interactions**: Smooth momentum scrolling with Lenis, scroll-driven scaling showreel (0.85 → 1.0 full width), and debounced hover video previews.
 
 ### Pages & Routes
+
 - **`/[locale]` (Home)**:
   - Fullscreen Hero Banner with auto-advancing slides, video background, audio mute/unmute toggle, and time-remaining indicators.
   - Scroll Showreel Reveal with cinema ambient glow.
@@ -86,10 +94,12 @@ Submitting a project inquiry on the public contact form (`/contact`) triggers tw
 ## 4. Twenty-Inspired Admin Portal (`apps/admin`)
 
 ### Operations Workspace Layout
+
 - **Sidebar**: Inspired by Twenty CRM with collapsible navigation groups (Core, Commercial CRM, Production CMS, Financial Suite, System Settings), quick command search (`⌘K`), and system health indicator.
 - **Topbar**: Dynamic breadcrumbs, live time/status, quick action buttons, and user profile menu.
 
 ### Modules Implemented
+
 1. **Dashboard Overview (`/dashboard`)**:
    - Monthly Revenue, Pipeline Value, Active Productions, Outstanding Receivables.
    - 8-stage visual Kanban pipeline mini-overview.
@@ -136,6 +146,7 @@ Submitting a project inquiry on the public contact form (`/contact`) triggers tw
 ## 5. Verification & Test Results
 
 ### Production Build Results
+
 Both applications passed production builds with zero errors:
 
 ```bash
@@ -160,6 +171,7 @@ Time:     20.833s
 ```
 
 ### TypeScript Static Analysis
+
 ```bash
 $ pnpm turbo type-check
 @ishoot/admin:type-check: $ tsc --noEmit
@@ -169,6 +181,7 @@ Time:     1.964s
 ```
 
 ### Generated Routes
+
 - **`apps/web` (12 pages generated)**:
   - `/[locale]` (`/en`, `/ar`)
   - `/[locale]/about` (`/en/about`, `/ar/about`)

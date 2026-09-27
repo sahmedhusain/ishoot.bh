@@ -1,4 +1,4 @@
-import * as React from 'react';
+import * as React from "react";
 import {
   getFinancialSummary,
   getMonthlyCashflow,
@@ -6,20 +6,21 @@ import {
   getAllInquiries,
   getCompanySettings,
   getCalendarEvents,
-} from '@ishoot/database';
-import { ExecutiveDashboardView } from '../../components/dashboard/ExecutiveDashboardView';
+} from "@ishoot/database";
+import { ExecutiveDashboardView } from "../../components/dashboard/ExecutiveDashboardView";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [finance, monthlyCashflow, deals, inquiries, company, upcomingEvents] = await Promise.all([
-    getFinancialSummary(),
-    getMonthlyCashflow(6),
-    getCRMDeals(),
-    getAllInquiries(),
-    getCompanySettings(),
-    getCalendarEvents(new Date()),
-  ]);
+  const [finance, monthlyCashflow, deals, inquiries, company, upcomingEvents] =
+    await Promise.all([
+      getFinancialSummary(),
+      getMonthlyCashflow(6),
+      getCRMDeals(),
+      getAllInquiries(),
+      getCompanySettings(),
+      getCalendarEvents(new Date()),
+    ]);
 
   return (
     <ExecutiveDashboardView

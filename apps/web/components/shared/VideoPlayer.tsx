@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 
 interface VideoPlayerProps {
   src: string;
@@ -14,13 +14,15 @@ interface VideoPlayerProps {
 export function VideoPlayer({
   src,
   poster,
-  className = '',
+  className = "",
   autoPlay = false,
   loop = false,
   muted = true,
 }: VideoPlayerProps) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-black ${className}`}>
+    <div
+      className={`relative overflow-hidden rounded-2xl bg-black ${className}`}
+    >
       <video
         src={src}
         poster={poster}

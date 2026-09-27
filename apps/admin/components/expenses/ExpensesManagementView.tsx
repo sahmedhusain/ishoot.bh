@@ -1,11 +1,31 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import type { Expense, ExpenseCategory, CRMDeal } from '@ishoot/database/types';
-import { Card, Button, Input, Select, Modal, CurrencyDisplay, DateDisplay, Badge, ConfirmDestructiveModal } from '@ishoot/ui';
-import { Plus, Receipt, Tag, TrendingDown, Trash2, CheckCircle2 } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { createExpenseAction, deleteExpenseAction } from '../../app/actions/finance';
+import * as React from "react";
+import type { Expense, ExpenseCategory, CRMDeal } from "@ishoot/database/types";
+import {
+  Card,
+  Button,
+  Input,
+  Select,
+  Modal,
+  CurrencyDisplay,
+  DateDisplay,
+  Badge,
+  ConfirmDestructiveModal,
+} from "@ishoot/ui";
+import {
+  Plus,
+  Receipt,
+  Tag,
+  TrendingDown,
+  Trash2,
+  CheckCircle2,
+} from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import {
+  createExpenseAction,
+  deleteExpenseAction,
+} from "../../app/actions/finance";
 
 interface ExpensesManagementViewProps {
   initialExpenses: Expense[];
@@ -22,16 +42,19 @@ export function ExpensesManagementView({
 
   const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
+    null,
+  );
 
-  // Form states
-  const [categoryId, setCategoryId] = React.useState(categories[0]?.id || '');
-  const [dealId, setDealId] = React.useState('');
-  const [description, setDescription] = React.useState('');
-  const [descriptionAr, setDescriptionAr] = React.useState('');
+  const [categoryId, setCategoryId] = React.useState(categories[0]?.id || "");
+  const [dealId, setDealId] = React.useState("");
+  const [description, setDescription] = React.useState("");
+  const [descriptionAr, setDescriptionAr] = React.useState("");
   const [amount, setAmount] = React.useState<number>(0);
-  const [vendorName, setVendorName] = React.useState('');
-  const [expenseDate, setExpenseDate] = React.useState(new Date().toISOString().split('T')[0]);
+  const [vendorName, setVendorName] = React.useState("");
+  const [expenseDate, setExpenseDate] = React.useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [saving, setSaving] = React.useState(false);
 
   const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
@@ -56,12 +79,12 @@ export function ExpensesManagementView({
         setExpenses((prev) => [res.expense, ...prev]);
       }
       setModalOpen(false);
-      setDescription('');
-      setDescriptionAr('');
+      setDescription("");
+      setDescriptionAr("");
       setAmount(0);
-      setVendorName('');
+      setVendorName("");
     } catch (err) {
-      console.error('Failed to create expense:', err);
+      console.error("Failed to create expense:", err);
     } finally {
       setSaving(false);
     }
@@ -72,13 +95,12 @@ export function ExpensesManagementView({
     try {
       await deleteExpenseAction(id);
     } catch (err) {
-      console.error('Failed to delete expense:', err);
+      console.error("Failed to delete expense:", err);
     }
   };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -100,7 +122,6 @@ export function ExpensesManagementView({
         </Button>
       </div>
 
-      {/* Quick Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-[#9EADA9]">
@@ -148,7 +169,6 @@ export function ExpensesManagementView({
         </Card>
       </div>
 
-      {/* Expenses Table */}
       <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
         <table className="w-full text-start text-xs">
           <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider">
@@ -164,28 +184,41 @@ export function ExpensesManagementView({
           </thead>
           <tbody className="divide-y divide-white/5">
             {expenses.map((expense) => (
-              <tr key={expense.id} className="hover:bg-white/[0.02] transition-colors">
+              <tr
+                key={expense.id}
+                className="hover:bg-white/[0.02] transition-colors"
+              >
                 <td className="p-4">
                   <div className="font-bold text-white text-sm">
-                    {locale === 'ar' ? (expense.description_ar || expense.description_en) : expense.description_en}
+                    {locale === "ar"
+                      ? expense.description_ar || expense.description_en
+                      : expense.description_en}
                   </div>
                 </td>
                 <td className="p-4">
                   <Badge variant="outline">
-                    {expense.category ? (locale === 'ar' ? expense.category.name_ar : expense.category.name_en) : '—'}
+                    {expense.category
+                      ? locale === "ar"
+                        ? expense.category.name_ar
+                        : expense.category.name_en
+                      : "—"}
                   </Badge>
                 </td>
                 <td className="p-4 text-[#9EADA9] font-mono">
-                  {expense.vendor_name || '—'}
+                  {expense.vendor_name || "—"}
                 </td>
                 <td className="p-4 text-[#09937F] font-mono">
-                  {expense.deal?.title || '—'}
+                  {expense.deal?.title || "—"}
                 </td>
                 <td className="p-4 text-[#9EADA9] font-mono">
                   <DateDisplay date={expense.expense_date} locale={locale} />
                 </td>
                 <td className="p-4 text-end font-mono font-bold text-rose-400">
-                  -<CurrencyDisplay amount={Number(expense.amount)} currency="BHD" />
+                  -
+                  <CurrencyDisplay
+                    amount={Number(expense.amount)}
+                    currency="BHD"
+                  />
                 </td>
                 <td className="p-4 text-end">
                   <button
@@ -202,7 +235,6 @@ export function ExpensesManagementView({
         </table>
       </div>
 
-      {/* Add Expense Modal */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -212,7 +244,7 @@ export function ExpensesManagementView({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {t.expensesView.descAr}
+                {t.expensesView.descArLabel}
               </label>
               <Input
                 value={descriptionAr}
@@ -222,7 +254,7 @@ export function ExpensesManagementView({
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {t.expensesView.descEn}
+                {t.expensesView.descEnLabel}
               </label>
               <Input
                 value={description}
@@ -241,7 +273,7 @@ export function ExpensesManagementView({
               <Input
                 type="number"
                 step="0.001"
-                value={amount || ''}
+                value={amount || ""}
                 onChange={(e) => setAmount(Number(e.target.value))}
                 placeholder="0.000"
                 required
@@ -256,8 +288,12 @@ export function ExpensesManagementView({
                 onChange={(e) => setCategoryId(e.target.value)}
               >
                 {categories.map((c) => (
-                  <option key={c.id} value={c.id} className="bg-[#0B1210] text-white">
-                    {locale === 'ar' ? c.name_ar : c.name_en}
+                  <option
+                    key={c.id}
+                    value={c.id}
+                    className="bg-[#0B1210] text-white"
+                  >
+                    {locale === "ar" ? c.name_ar : c.name_en}
                   </option>
                 ))}
               </Select>
@@ -287,7 +323,11 @@ export function ExpensesManagementView({
                   {t.expensesView.generalOverhead}
                 </option>
                 {deals.map((d) => (
-                  <option key={d.id} value={d.id} className="bg-[#0B1210] text-white">
+                  <option
+                    key={d.id}
+                    value={d.id}
+                    className="bg-[#0B1210] text-white"
+                  >
                     {d.title}
                   </option>
                 ))}
@@ -329,7 +369,6 @@ export function ExpensesManagementView({
         </form>
       </Modal>
 
-      {/* Delete Confirmation Safeguard Modal */}
       <ConfirmDestructiveModal
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}

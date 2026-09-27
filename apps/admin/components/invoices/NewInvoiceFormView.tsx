@@ -1,69 +1,86 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import * as React from "react";
+import { useRouter } from "next/navigation";
 import type {
   CRMContact,
   CompanySettings,
   InvoiceLineItem,
   DiscountType,
   SupportedCurrency,
-} from '@ishoot/database/types';
-import { CURRENCY_CONFIGS, calculateInvoiceTotals } from '@ishoot/database/types';
-import { Card, Input, Select, Button } from '@ishoot/ui';
-import { Plus, Trash2, ArrowLeft, ArrowRight, Calculator, CheckCircle2 } from 'lucide-react';
-import Link from 'next/link';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { createInvoiceAction } from '../../app/actions/finance';
+} from "@ishoot/database/types";
+import {
+  CURRENCY_CONFIGS,
+  calculateInvoiceTotals,
+} from "@ishoot/database/types";
+import { Card, Input, Select, Button } from "@ishoot/ui";
+import {
+  Plus,
+  Trash2,
+  ArrowLeft,
+  ArrowRight,
+  Calculator,
+  CheckCircle2,
+} from "lucide-react";
+import Link from "next/link";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { createInvoiceAction } from "../../app/actions/finance";
 
 interface NewInvoiceFormViewProps {
   initialContacts: CRMContact[];
   company: CompanySettings | null;
 }
 
-export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormViewProps) {
+export function NewInvoiceFormView({
+  initialContacts,
+  company,
+}: NewInvoiceFormViewProps) {
   const router = useRouter();
   const { t, locale, isRTL } = useAdminLocale();
 
   const [contacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
 
-  // Form States
   const [selectedContactId, setSelectedContactId] = React.useState(
-    initialContacts.length > 0 ? initialContacts[0].id : ''
+    initialContacts.length > 0 ? initialContacts[0].id : "",
   );
   const [currency, setCurrency] = React.useState<SupportedCurrency>(
-    (company?.default_currency as SupportedCurrency) || 'BHD'
+    (company?.default_currency as SupportedCurrency) || "BHD",
   );
-  const [language, setLanguage] = React.useState<'en' | 'ar'>(locale === 'ar' ? 'ar' : 'en');
-  const [issueDate, setIssueDate] = React.useState(new Date().toISOString().split('T')[0]);
+  const [language, setLanguage] = React.useState<"en" | "ar">(
+    locale === "ar" ? "ar" : "en",
+  );
+  const [issueDate, setIssueDate] = React.useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [dueDate, setDueDate] = React.useState(
-    new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
+    new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
   );
-  const [notesEn, setNotesEn] = React.useState('');
-  const [notesAr, setNotesAr] = React.useState('');
+  const [notesEn, setNotesEn] = React.useState("");
+  const [notesAr, setNotesAr] = React.useState("");
 
-  // No mock fallback data - start with a clean blank item
   const [lineItems, setLineItems] = React.useState<InvoiceLineItem[]>([
     {
-      description_en: '',
-      description_ar: '',
+      description_en: "",
+      description_ar: "",
       quantity: 1,
       unit_price: 0,
       line_total: 0,
     },
   ]);
 
-  const [discountType, setDiscountType] = React.useState<DiscountType>('none');
+  const [discountType, setDiscountType] = React.useState<DiscountType>("none");
   const [discountValue, setDiscountValue] = React.useState<number>(0);
-  const [vatEnabled, setVatEnabled] = React.useState<boolean>(company?.vat_enabled || false);
+  const [vatEnabled, setVatEnabled] = React.useState<boolean>(
+    company?.vat_enabled || false,
+  );
 
   const addLineItem = () => {
     setLineItems((prev) => [
       ...prev,
       {
-        description_en: '',
-        description_ar: '',
+        description_en: "",
+        description_ar: "",
         quantity: 1,
         unit_price: 0,
         line_total: 0,
@@ -71,12 +88,17 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
     ]);
   };
 
-  const updateLineItem = (index: number, field: keyof InvoiceLineItem, value: any) => {
+  const updateLineItem = (
+    index: number,
+    field: keyof InvoiceLineItem,
+    value: any,
+  ) => {
     setLineItems((prev) => {
       const next = [...prev];
       const item = { ...next[index], [field]: value };
-      if (field === 'quantity' || field === 'unit_price') {
-        item.line_total = (Number(item.quantity) || 0) * (Number(item.unit_price) || 0);
+      if (field === "quantity" || field === "unit_price") {
+        item.line_total =
+          (Number(item.quantity) || 0) * (Number(item.unit_price) || 0);
       }
       next[index] = item;
       return next;
@@ -87,7 +109,6 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
     setLineItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Calculation Engine
   const totals = React.useMemo(() => {
     return calculateInvoiceTotals(
       lineItems,
@@ -95,7 +116,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
       discountValue,
       vatEnabled,
       company?.vat_percentage || 10,
-      currency
+      currency,
     );
   }, [lineItems, discountType, discountValue, vatEnabled, company, currency]);
 
@@ -118,7 +139,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
         vat_enabled: vatEnabled,
         vat_percentage: company?.vat_percentage || 10,
         line_items: lineItems.map((li) => ({
-          description_en: li.description_en || 'Service',
+          description_en: li.description_en || "Service",
           description_ar: li.description_ar || undefined,
           quantity: Number(li.quantity),
           unit_price: Number(li.unit_price),
@@ -129,7 +150,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
         router.push(`/dashboard/invoices/${res.invoice.id}`);
       }
     } catch (err) {
-      console.error('Error creating invoice:', err);
+      console.error("Error creating invoice:", err);
     } finally {
       setSubmitting(false);
     }
@@ -139,7 +160,6 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16">
-      {/* Back Link */}
       <div>
         <Link
           href="/dashboard/invoices"
@@ -154,22 +174,20 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
           {t.invoiceForm.title}
         </h1>
-        <p className="text-xs text-[#9EADA9] mt-1">
-          {t.invoiceForm.subtitle}
-        </p>
+        <p className="text-xs text-[#9EADA9] mt-1">{t.invoiceForm.subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* 1. Header Information */}
         <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
             {t.invoiceForm.particulars}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-            {/* Client Autocomplete */}
             <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-medium text-[#9EADA9]">{t.finance.client} *</label>
+              <label className="text-xs font-medium text-[#9EADA9]">
+                {t.finance.client} *
+              </label>
               <Select
                 value={selectedContactId}
                 onChange={(e) => setSelectedContactId(e.target.value)}
@@ -183,43 +201,44 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
               </Select>
             </div>
 
-            {/* Currency */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
                 {t.invoiceForm.currencyLabel}
               </label>
               <Select
                 value={currency}
-                onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
+                onChange={(e) =>
+                  setCurrency(e.target.value as SupportedCurrency)
+                }
               >
                 {Object.keys(CURRENCY_CONFIGS).map((code) => {
                   const cfg = CURRENCY_CONFIGS[code as SupportedCurrency];
                   return (
                     <option key={code} value={code}>
-                      {code} ({locale === 'ar' ? cfg.symbolAr : cfg.symbolEn})
+                      {code} ({locale === "ar" ? cfg.symbolAr : cfg.symbolEn})
                     </option>
                   );
                 })}
               </Select>
             </div>
 
-            {/* Invoice Language */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
                 {t.invoiceForm.docLangLabel}
               </label>
               <Select
                 value={language}
-                onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
+                onChange={(e) => setLanguage(e.target.value as "en" | "ar")}
               >
                 <option value="ar">{t.invoiceForm.arabic}</option>
                 <option value="en">{t.invoiceForm.english}</option>
               </Select>
             </div>
 
-            {/* Issue Date */}
             <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-medium text-[#9EADA9]">{t.finance.issueDate}</label>
+              <label className="text-xs font-medium text-[#9EADA9]">
+                {t.finance.issueDate}
+              </label>
               <Input
                 type="date"
                 value={issueDate}
@@ -229,9 +248,10 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
               />
             </div>
 
-            {/* Due Date */}
             <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-medium text-[#9EADA9]">{t.finance.dueDate}</label>
+              <label className="text-xs font-medium text-[#9EADA9]">
+                {t.finance.dueDate}
+              </label>
               <Input
                 type="date"
                 value={dueDate}
@@ -243,7 +263,6 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
           </div>
         </Card>
 
-        {/* 2. Line Items Table */}
         <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
@@ -269,24 +288,28 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
               >
                 <div className="md:col-span-5 space-y-1">
                   <label className="text-[11px] text-[#9EADA9]">
-                    {t.invoiceForm.descEn}
+                    {t.invoiceForm.descEnLabel}
                   </label>
                   <Input
                     required
                     placeholder={t.invoiceForm.placeholderEn}
                     value={item.description_en}
-                    onChange={(e) => updateLineItem(idx, 'description_en', e.target.value)}
+                    onChange={(e) =>
+                      updateLineItem(idx, "description_en", e.target.value)
+                    }
                   />
                 </div>
 
                 <div className="md:col-span-3 space-y-1">
                   <label className="text-[11px] text-[#9EADA9]">
-                    {t.invoiceForm.descAr}
+                    {t.invoiceForm.descArLabel}
                   </label>
                   <Input
                     placeholder={t.invoiceForm.placeholderAr}
-                    value={item.description_ar || ''}
-                    onChange={(e) => updateLineItem(idx, 'description_ar', e.target.value)}
+                    value={item.description_ar || ""}
+                    onChange={(e) =>
+                      updateLineItem(idx, "description_ar", e.target.value)
+                    }
                     className="text-end font-arabic"
                   />
                 </div>
@@ -301,7 +324,13 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
                     step="0.5"
                     required
                     value={item.quantity}
-                    onChange={(e) => updateLineItem(idx, 'quantity', parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateLineItem(
+                        idx,
+                        "quantity",
+                        parseFloat(e.target.value) || 0,
+                      )
+                    }
                     className="font-mono text-center"
                   />
                 </div>
@@ -316,7 +345,13 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
                     step="0.001"
                     required
                     value={item.unit_price}
-                    onChange={(e) => updateLineItem(idx, 'unit_price', parseFloat(e.target.value) || 0)}
+                    onChange={(e) =>
+                      updateLineItem(
+                        idx,
+                        "unit_price",
+                        parseFloat(e.target.value) || 0,
+                      )
+                    }
                     className="font-mono"
                   />
                 </div>
@@ -338,7 +373,6 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
           </div>
         </Card>
 
-        {/* 3. Summary & Financial Calculation Card */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <Card className="md:col-span-6 p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
@@ -348,37 +382,44 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-[#9EADA9]">{t.finance.discount}</label>
+                  <label className="text-xs font-medium text-[#9EADA9]">
+                    {t.finance.discount}
+                  </label>
                   <Select
                     value={discountType}
-                    onChange={(e) => setDiscountType(e.target.value as DiscountType)}
+                    onChange={(e) =>
+                      setDiscountType(e.target.value as DiscountType)
+                    }
                   >
                     <option value="none">{t.invoiceForm.noDiscount}</option>
-                    <option value="percentage">{t.invoiceForm.pctDiscount}</option>
+                    <option value="percentage">
+                      {t.invoiceForm.pctDiscount}
+                    </option>
                     <option value="fixed">{t.invoiceForm.fixedDiscount}</option>
                   </Select>
                 </div>
 
-                {discountType !== 'none' && (
+                {discountType !== "none" && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-[#9EADA9]">
-                      {discountType === 'percentage'
+                      {discountType === "percentage"
                         ? t.invoiceForm.discountPctLabel
                         : `${t.invoiceForm.discountAmtLabel} (${currency})`}
                     </label>
                     <Input
                       type="number"
                       min="0"
-                      step={discountType === 'percentage' ? '1' : '0.001'}
+                      step={discountType === "percentage" ? "1" : "0.001"}
                       value={discountValue}
-                      onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setDiscountValue(parseFloat(e.target.value) || 0)
+                      }
                       className="font-mono"
                     />
                   </div>
                 )}
               </div>
 
-              {/* VAT Notice */}
               <div className="p-4 rounded-2xl bg-[#050807] border border-white/10 flex items-center justify-between">
                 <div>
                   <div className="text-xs font-bold text-white">
@@ -397,19 +438,16 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
                   onClick={() => setVatEnabled(!vatEnabled)}
                   className={`text-xs px-3 py-1 rounded-lg border font-mono ${
                     vatEnabled
-                      ? 'bg-[#09937F]/20 text-[#09937F] border-[#09937F]'
-                      : 'bg-white/5 text-[#9EADA9] border-white/10'
+                      ? "bg-[#09937F]/20 text-[#09937F] border-[#09937F]"
+                      : "bg-white/5 text-[#9EADA9] border-white/10"
                   }`}
                 >
-                  {vatEnabled
-                    ? t.invoiceForm.active
-                    : t.invoiceForm.disabled}
+                  {vatEnabled ? t.invoiceForm.active : t.invoiceForm.disabled}
                 </button>
               </div>
             </div>
           </Card>
 
-          {/* Totals Breakdown */}
           <Card className="md:col-span-6 p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4 flex flex-col justify-between">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3 flex items-center gap-2">
               <Calculator className="w-4 h-4 text-[#09937F]" />
@@ -436,12 +474,16 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
               <div className="flex items-center justify-between text-[#9EADA9]">
                 <span>{t.finance.vat}:</span>
                 <span className="font-mono">
-                  {totals.vatAmount > 0 ? `${totals.vatAmount.toFixed(3)} ${currency}` : '0.000'}
+                  {totals.vatAmount > 0
+                    ? `${totals.vatAmount.toFixed(3)} ${currency}`
+                    : "0.000"}
                 </span>
               </div>
 
               <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                <span className="text-sm font-bold text-white">{t.finance.totalAmount}:</span>
+                <span className="text-sm font-bold text-white">
+                  {t.finance.totalAmount}:
+                </span>
                 <span className="text-xl font-bold font-mono text-[#09937F]">
                   {totals.totalAmount.toFixed(3)} {currency}
                 </span>
@@ -457,9 +499,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>
-                {submitting
-                  ? t.invoiceForm.submitting
-                  : t.actions.newInvoice}
+                {submitting ? t.invoiceForm.submitting : t.actions.newInvoice}
               </span>
             </Button>
           </Card>

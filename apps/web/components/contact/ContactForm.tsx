@@ -1,36 +1,40 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useTranslation } from '../../hooks/useTranslation';
-import { ServicePills } from './ServicePills';
-import { BudgetSelector } from './BudgetSelector';
-import { Input, Textarea, Button } from '@ishoot/ui';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import * as React from "react";
+import { useTranslation } from "../../hooks/useTranslation";
+import { ServicePills } from "./ServicePills";
+import { BudgetSelector } from "./BudgetSelector";
+import { Input, Textarea, Button } from "@ishoot/ui";
+import { CheckCircle2, AlertCircle } from "lucide-react";
 
 export function ContactForm() {
   const { t, locale, isRTL } = useTranslation();
 
-  const [fullName, setFullName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [phone, setPhone] = React.useState('');
-  const [company, setCompany] = React.useState('');
-  const [services, setServices] = React.useState<string[]>(['Commercial Cinematography']);
-  const [budget, setBudget] = React.useState('2,000 – 5,000 BHD');
-  const [timeline, setTimeline] = React.useState('');
-  const [message, setMessage] = React.useState('');
+  const [fullName, setFullName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [company, setCompany] = React.useState("");
+  const [services, setServices] = React.useState<string[]>([
+    "Commercial Cinematography",
+  ]);
+  const [budget, setBudget] = React.useState("2,000 – 5,000 BHD");
+  const [timeline, setTimeline] = React.useState("");
+  const [message, setMessage] = React.useState("");
 
   const [loading, setLoading] = React.useState(false);
-  const [status, setStatus] = React.useState<'idle' | 'success' | 'error'>('idle');
+  const [status, setStatus] = React.useState<"idle" | "success" | "error">(
+    "idle",
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setStatus('idle');
+    setStatus("idle");
 
     try {
-      const res = await fetch('/api/inquiry', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/inquiry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName,
           email,
@@ -44,68 +48,74 @@ export function ContactForm() {
         }),
       });
 
-      if (!res.ok) throw new Error('Submission failed');
+      if (!res.ok) throw new Error("Submission failed");
 
-      setStatus('success');
-      // Reset form fields
-      setFullName('');
-      setEmail('');
-      setPhone('');
-      setCompany('');
-      setMessage('');
-      setTimeline('');
+      setStatus("success");
+      setFullName("");
+      setEmail("");
+      setPhone("");
+      setCompany("");
+      setMessage("");
+      setTimeline("");
     } catch (err) {
       console.error(err);
-      setStatus('error');
+      setStatus("error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 bg-[#0B1210] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl">
-      {/* Status Notifications */}
-      {status === 'success' && (
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-8 bg-[#0B1210] border border-white/10 rounded-3xl p-6 sm:p-10 shadow-2xl"
+    >
+      {status === "success" && (
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3 text-emerald-400">
           <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="text-sm">
-            <div className="font-bold">{t('contact.successTitle')}</div>
-            <div className="text-emerald-300/80 mt-1">{t('contact.successMessage')}</div>
+            <div className="font-bold">{t("contact.successTitle")}</div>
+            <div className="text-emerald-300/80 mt-1">
+              {t("contact.successMessage")}
+            </div>
           </div>
         </div>
       )}
 
-      {status === 'error' && (
+      {status === "error" && (
         <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-rose-400">
           <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="text-sm">
-            <div className="font-bold">{t('contact.errorTitle')}</div>
-            <div className="text-rose-300/80 mt-1">{t('contact.errorMessage')}</div>
+            <div className="font-bold">{t("contact.errorTitle")}</div>
+            <div className="text-rose-300/80 mt-1">
+              {t("contact.errorMessage")}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Services Required */}
       <div className="space-y-3">
         <label className="text-sm font-semibold text-white uppercase tracking-wider block">
-          {t('contact.servicesNeeded')}
+          {t("contact.servicesNeeded")}
         </label>
-        <ServicePills selected={services} onChange={setServices} isRTL={isRTL} />
+        <ServicePills
+          selected={services}
+          onChange={setServices}
+          isRTL={isRTL}
+        />
       </div>
 
-      {/* Anticipated Budget */}
       <div className="space-y-3">
         <label className="text-sm font-semibold text-white uppercase tracking-wider block">
-          {t('contact.budgetRange')}
+          {t("contact.budgetRange")}
         </label>
         <BudgetSelector selected={budget} onChange={setBudget} />
       </div>
 
-      {/* Inputs Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label className="text-xs text-[#9EADA9] font-medium block">
-            {t('contact.fullName')} *
+            {t("contact.fullName")} *
           </label>
           <Input
             required
@@ -117,7 +127,7 @@ export function ContactForm() {
 
         <div className="space-y-2">
           <label className="text-xs text-[#9EADA9] font-medium block">
-            {t('contact.email')} *
+            {t("contact.email")} *
           </label>
           <Input
             required
@@ -130,7 +140,7 @@ export function ContactForm() {
 
         <div className="space-y-2">
           <label className="text-xs text-[#9EADA9] font-medium block">
-            {t('contact.phone')}
+            {t("contact.phone")}
           </label>
           <Input
             type="tel"
@@ -142,7 +152,7 @@ export function ContactForm() {
 
         <div className="space-y-2">
           <label className="text-xs text-[#9EADA9] font-medium block">
-            {t('contact.company')}
+            {t("contact.company")}
           </label>
           <Input
             value={company}
@@ -152,33 +162,30 @@ export function ContactForm() {
         </div>
       </div>
 
-      {/* Timeline */}
       <div className="space-y-2">
         <label className="text-xs text-[#9EADA9] font-medium block">
-          {t('contact.timeline')}
+          {t("contact.timeline")}
         </label>
         <Input
           value={timeline}
           onChange={(e) => setTimeline(e.target.value)}
-          placeholder={t('contact.timelinePlaceholder')}
+          placeholder={t("contact.timelinePlaceholder")}
         />
       </div>
 
-      {/* Message */}
       <div className="space-y-2">
         <label className="text-xs text-[#9EADA9] font-medium block">
-          {t('contact.projectDetails')} *
+          {t("contact.projectDetails")} *
         </label>
         <Textarea
           required
           rows={5}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder={t('contact.projectDetailsPlaceholder')}
+          placeholder={t("contact.projectDetailsPlaceholder")}
         />
       </div>
 
-      {/* Submit Button */}
       <Button
         type="submit"
         disabled={loading}
@@ -186,7 +193,7 @@ export function ContactForm() {
         size="lg"
         className="w-full"
       >
-        {loading ? t('contact.submitting') : t('contact.submit')}
+        {loading ? t("contact.submitting") : t("contact.submit")}
       </Button>
     </form>
   );

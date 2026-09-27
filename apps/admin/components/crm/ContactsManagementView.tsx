@@ -1,80 +1,55 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import type { CRMContact } from '@ishoot/database/types';
-import { Card, Input, Button, Modal, Select, ConfirmDestructiveModal } from '@ishoot/ui';
-import { Search, Mail, Phone, Building, Plus, Trash2, CheckCircle2 } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { createContactAction, deleteContactAction } from '../../app/actions/crm';
+import * as React from "react";
+import type { CRMContact } from "@ishoot/database/types";
+import { Card, Button, Input, ConfirmDestructiveModal } from "@ishoot/ui";
+import {
+  Plus,
+  Search,
+  Building,
+  Mail,
+  Phone,
+  Trash2,
+  ExternalLink,
+} from "lucide-react";
+import Link from "next/link";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { deleteContactAction } from "../../app/actions/crm";
 
 interface ContactsManagementViewProps {
   initialContacts: CRMContact[];
 }
 
-export function ContactsManagementView({ initialContacts }: ContactsManagementViewProps) {
+export function ContactsManagementView({
+  initialContacts,
+}: ContactsManagementViewProps) {
   const { t } = useAdminLocale();
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
-  const [query, setQuery] = React.useState('');
-  const [modalOpen, setModalOpen] = React.useState(false);
-  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
-
-  // Form states
-  const [fullName, setFullName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [phone, setPhone] = React.useState('');
-  const [company, setCompany] = React.useState('');
-  const [jobTitle, setJobTitle] = React.useState('');
-  const [contactType, setContactType] = React.useState<'client' | 'agency' | 'vendor' | 'freelancer'>('client');
-  const [notes, setNotes] = React.useState('');
-  const [saving, setSaving] = React.useState(false);
-
-  const filtered = contacts.filter(
-    (c) =>
-      c.full_name.toLowerCase().includes(query.toLowerCase()) ||
-      (c.company && c.company.toLowerCase().includes(query.toLowerCase())) ||
-      c.email.toLowerCase().includes(query.toLowerCase())
+  const [query, setQuery] = React.useState("");
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
+    null,
   );
 
-  const handleCreateContact = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName) return;
-    setSaving(true);
+  const filtered = contacts.filter((c) => {
+    const q = query.toLowerCase();
+    return (
+      c.full_name.toLowerCase().includes(q) ||
+      (c.company && c.company.toLowerCase().includes(q)) ||
+      (c.email && c.email.toLowerCase().includes(q)) ||
+      (c.phone && c.phone.includes(q))
+    );
+  });
 
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
     try {
-      const res = await createContactAction({
-        full_name: fullName,
-        email: email || undefined,
-        phone: phone || undefined,
-        company: company || undefined,
-        job_title: jobTitle || undefined,
-        contact_type: contactType,
-        notes: notes || undefined,
-      });
-
-      if (res.contact) {
-        setContacts((prev) => [res.contact, ...prev]);
-      }
-      setModalOpen(false);
-      setFullName('');
-      setEmail('');
-      setPhone('');
-      setCompany('');
-      setJobTitle('');
-      setNotes('');
+      await deleteContactAction(deleteTargetId);
+      setContacts((prev) => prev.filter((c) => c.id !== deleteTargetId));
     } catch (err) {
-      console.error('Error creating contact:', err);
+      console.error("Failed to delete contact:", err);
     } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDeleteContact = async (id: string) => {
-    setContacts((prev) => prev.filter((c) => c.id !== id));
-    try {
-      await deleteContactAction(id);
-    } catch (err) {
-      console.error('Failed to delete contact:', err);
+      setDeleteTargetId(null);
     }
   };
 
@@ -90,18 +65,18 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => setModalOpen(true)}
-          className="gap-1.5 shadow-lg shadow-[#09937F]/20 self-start sm:self-auto"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>{t.actions.newContact}</span>
-        </Button>
+        <Link href="/dashboard/crm/customers/new">
+          <Button
+            variant="primary"
+            size="sm"
+            className="gap-1.5 shadow-lg shadow-[#09937F]/20 self-start sm:self-auto"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>{t.actions.newContact}</span>
+          </Button>
+        </Link>
       </div>
 
-      {/* Search Input */}
       <div className="relative max-w-md">
         <Search className="w-4 h-4 absolute start-3.5 top-3.5 text-[#9EADA9]" />
         <Input
@@ -112,7 +87,6 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
         />
       </div>
 
-      {/* Contacts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((c) => (
           <Card
@@ -126,7 +100,12 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
                     {c.full_name.charAt(0)}
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-white">{c.full_name}</div>
+                    <Link
+                      href={`/dashboard/crm/customers/${c.id}`}
+                      className="text-sm font-bold text-white hover:text-[#09937F] hover:underline flex items-center gap-1.5"
+                    >
+                      <span>{c.full_name}</span>
+                    </Link>
                     <div className="text-xs text-[#09937F]">
                       {c.job_title || t.contactsView.clientPartner}
                     </div>
@@ -152,15 +131,21 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
                 {c.email && (
                   <div className="flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5 text-[#09937F]" />
-                    <a href={`mailto:${c.email}`} className="hover:text-white transition-colors">
+                    <a
+                      href={`mailto:${c.email}`}
+                      className="hover:text-white transition-colors"
+                    >
                       {c.email}
                     </a>
                   </div>
                 )}
                 {c.phone && (
-                  <div className="flex items-center gap-2 font-mono">
+                  <div className="flex items-center gap-2 font-mono" dir="ltr">
                     <Phone className="w-3.5 h-3.5 text-[#09937F]" />
-                    <a href={`tel:${c.phone}`} className="hover:text-white transition-colors">
+                    <a
+                      href={`tel:${c.phone}`}
+                      className="hover:text-white transition-colors"
+                    >
                       {c.phone}
                     </a>
                   </div>
@@ -168,154 +153,28 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
               </div>
             </div>
 
-            {c.notes && (
-              <div className="text-[11px] text-[#9EADA9]/70 pt-2 border-t border-white/5 line-clamp-2">
-                {c.notes}
-              </div>
-            )}
+            <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+              <Link href={`/dashboard/crm/customers/${c.id}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs text-[#09937F]"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Customer 360 Dossier</span>
+                </Button>
+              </Link>
+            </div>
           </Card>
         ))}
       </div>
 
-      {/* New Contact Modal */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={t.actions.newContact}
-      >
-        <form onSubmit={handleCreateContact} className="space-y-4 text-xs">
-          <div>
-            <label className="text-xs text-white mb-1.5 block">
-              {t.contactsView.fullName} *
-            </label>
-            <Input
-              required
-              placeholder={t.contactsView.fullNamePlaceholder}
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-white mb-1.5 block">
-                {t.contactsView.company}
-              </label>
-              <Input
-                placeholder="Batelco"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-white mb-1.5 block">
-                {t.contactsView.jobTitle}
-              </label>
-              <Input
-                placeholder={t.contactsView.jobTitlePlaceholder}
-                value={jobTitle}
-                onChange={(e) => setJobTitle(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-white mb-1.5 block">
-                {t.contactsView.emailAddress}
-              </label>
-              <Input
-                type="email"
-                placeholder="contact@company.bh"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-white mb-1.5 block">
-                {t.contactsView.phoneNumber}
-              </label>
-              <Input
-                placeholder="+973 3900 0000"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs text-white mb-1.5 block">
-              {t.contactsView.contactType}
-            </label>
-            <Select
-              value={contactType}
-              onChange={(e) => setContactType(e.target.value as any)}
-            >
-              <option value="client" className="bg-[#0B1210] text-white">
-                {t.contactsView.typeClient}
-              </option>
-              <option value="agency" className="bg-[#0B1210] text-white">
-                {t.contactsView.typeAgency}
-              </option>
-              <option value="vendor" className="bg-[#0B1210] text-white">
-                {t.contactsView.typeVendor}
-              </option>
-              <option value="freelancer" className="bg-[#0B1210] text-white">
-                {t.contactsView.typeFreelancer}
-              </option>
-            </Select>
-          </div>
-
-          <div>
-            <label className="text-xs text-white mb-1.5 block">
-              {t.contactsView.notes}
-            </label>
-            <Input
-              placeholder={t.contactsView.notesPlaceholder}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setModalOpen(false)}
-            >
-              {t.actions.cancel}
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={saving}
-              className="gap-1.5"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{t.actions.save}</span>
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Delete Confirmation Safeguard Modal */}
       <ConfirmDestructiveModal
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
-        onConfirm={async () => {
-          if (deleteTargetId) {
-            await handleDeleteContact(deleteTargetId);
-            setDeleteTargetId(null);
-          }
-        }}
-        title={t.actions.delete}
-        description={t.contactsView.confirmDelete}
-        confirmLabel={t.actions.delete}
-        cancelLabel={t.actions.cancel}
+        onConfirm={handleDelete}
+        title="Delete Customer Profile"
+        description="Are you sure you want to delete this customer record? This will remove their contact info and associated records."
       />
     </div>
   );

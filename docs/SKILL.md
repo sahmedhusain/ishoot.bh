@@ -15,31 +15,33 @@ description: >
 
 ## Quick Reference
 
-| Property | Value |
-|----------|-------|
-| **Project** | ishoot — Cinema Production House & Creative Media Studio (Bahrain) |
-| **Repo Root** | `/Users/sayed/Desktop/GitHub/ishoot.bh` |
-| **Monorepo** | Turborepo with pnpm workspaces |
-| **Apps** | `apps/web` (public site) + `apps/admin` (admin CMS, CRM & Finance portal) |
-| **Framework** | Next.js 15 (App Router) |
-| **Styling** | Tailwind CSS v4 |
-| **Database** | Supabase (PostgreSQL + Auth + Storage + RLS) |
-| **Deployments** | Vercel: `ishoot.bh` + `admin.ishoot.bh` |
-| **Languages** | English + Arabic (full dynamic RTL/LTR support) |
-| **Currency** | BHD (Bahraini Dinar — strictly 3 decimal places, e.g., `1,500.000 BHD`) |
-| **VAT Status** | **Default: OFF (`vat_enabled = false`)** — Fully architected for 10% VAT toggle via `company_settings` |
+| Property        | Value                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| **Project**     | ishoot — Cinema Production House & Creative Media Studio (Bahrain)                                     |
+| **Repo Root**   | `/Users/sayed/Desktop/GitHub/ishoot.bh`                                                                |
+| **Monorepo**    | Turborepo with pnpm workspaces                                                                         |
+| **Apps**        | `apps/web` (public site) + `apps/admin` (admin CMS, CRM & Finance portal)                              |
+| **Framework**   | Next.js 15 (App Router)                                                                                |
+| **Styling**     | Tailwind CSS v4                                                                                        |
+| **Database**    | Supabase (PostgreSQL + Auth + Storage + RLS)                                                           |
+| **Deployments** | Vercel: `ishoot.bh` + `admin.ishoot.bh`                                                                |
+| **Languages**   | English + Arabic (full dynamic RTL/LTR support)                                                        |
+| **Currency**    | BHD (Bahraini Dinar — strictly 3 decimal places, e.g., `1,500.000 BHD`)                                |
+| **VAT Status**  | **Default: OFF (`vat_enabled = false`)** — Fully architected for 10% VAT toggle via `company_settings` |
 
 ---
 
 ## 1. Brand Identity — NEVER DEVIATE
 
 ### Colors (from official Brand Guideline)
+
 ```
 PRIMARY:   #014842  (Deep Emerald / Forest Pine)  — RGB(1, 72, 66)
 ACCENT:    #09937F  (Radiant Jade / Persian Teal) — RGB(9, 147, 127)
 ```
 
 ### Extended Dark Palette
+
 ```
 bg-base:       #050807    (deepest cinematic background)
 bg-surface:    #0B1210    (card and modal surfaces)
@@ -50,12 +52,14 @@ text-accent:   #09937F    (interactive/links)
 ```
 
 ### Fonts
+
 - **English Display**: `Virtual` (custom .otf located in `ishoot/ishoot brand english and arabic fonts/virtual engilsh font.otf`)
 - **English Body/UI**: `Inter`
 - **Arabic (all)**: `IBM Plex Sans Arabic` (7 weights: Thin through Bold in `ibm-plex-sans-arabic/`)
 - **Backup English**: `Nexa Bold` / `Nexa Light`
 
 ### Logo
+
 - SVG source: `ishoot/ishoot logo svg file.svg` (full wordmark)
 - Icon SVG: `ishoot/ishoot icon svg file.svg` (aperture mark only)
 - Colors in SVG: `.st0=#014842`, `.st1=#09937F`, `.st2=#FFFFFF`
@@ -66,31 +70,38 @@ text-accent:   #09937F    (interactive/links)
 ## 2. ABSOLUTE RULES — ZERO EXCEPTIONS
 
 ### Rule 1: Zero Hardcoded Strings
+
 ```
 ❌ NEVER: <h1>Welcome to ishoot</h1>
 ✅ ALWAYS: <h1>{t('hero.headline')}</h1>
 ```
+
 Every string, button label, placeholder, aria-label, alt text, meta description, and email template
 MUST come from `packages/locales/en.json` or `ar.json` via the type-safe `useTranslation()` hook.
 
 ### Rule 2: RTL/LTR Dynamic
+
 ```
 locale === 'ar' → <html dir="rtl" class="font-arabic">
 locale === 'en' → <html dir="ltr" class="font-english">
 ```
+
 Use Tailwind's `rtl:` and `ltr:` variants. Never use static `text-left` / `text-right` without considering direction. Use `text-start` / `text-end` instead.
 
 ### Rule 3: Dark Mode Is Default
+
 The entire site uses dark obsidian surfaces. There is no light mode toggle.
 Background is `#050807`, not white. Text is `#F2F6F5`, not black.
 
 ### Rule 4: BHD Currency Format
+
 ```
 ❌ NEVER: $1,500.00  or  1500 BHD  or  1,500.00 BHD
 ✅ ALWAYS: 1,500.000 BHD  (three decimal places)
 ```
 
 ### Rule 5: VAT Configuration & Non-VAT Default
+
 ```
 Currently: ishoot has NO VAT registration.
 DEFAULT SETTING: company_settings.vat_enabled = false; vat_percentage = 10.00;
@@ -105,6 +116,7 @@ DEFAULT SETTING: company_settings.vat_enabled = false; vat_percentage = 10.00;
 ```
 
 ### Rule 6: Supabase RLS Is Mandatory
+
 Never expose the service role key to browser code. Public site uses the anon key.
 Admin uses anon key + authenticated session. All tables have RLS enabled.
 
@@ -113,6 +125,7 @@ Admin uses anon key + authenticated session. All tables have RLS enabled.
 ## 3. Architecture Summary
 
 ### Monorepo Structure
+
 ```
 apps/web/           → Public site (ishoot.bh)
 apps/admin/         → Admin portal (admin.ishoot.bh) — CMS, CRM & Finance
@@ -124,6 +137,7 @@ packages/config/    → Tailwind v4 + TS + ESLint configs
 ```
 
 ### Key Dependencies
+
 - `next@^15` — Framework (App Router)
 - `@supabase/supabase-js@^2` & `@supabase/ssr@^0.5` — Database & Auth
 - `framer-motion@^11` & `lenis@^1` — Motion & smooth scroll
@@ -134,6 +148,7 @@ packages/config/    → Tailwind v4 + TS + ESLint configs
 - `lucide-react` — Iconography
 
 ### Database Schema Core
+
 1. `profiles` — User accounts with roles (`super_admin`, `producer`, `editor`)
 2. `company_settings` — Single-row company profile, VAT toggle, bank details, numbering sequences
 3. `hero_banners` — Homepage video/image hero slides
@@ -147,6 +162,7 @@ packages/config/    → Tailwind v4 + TS + ESLint configs
 11. `expense_categories` & `expenses` — Operating & production expenses linked to deals/projects
 
 ### Storage Buckets
+
 - `hero-media` (public) — Hero videos & posters
 - `portfolio-media` (public) — Portfolio thumbnails, preview loops & 4K media
 - `client-logos` (public) — Client SVGs/PNGs
@@ -162,10 +178,12 @@ packages/config/    → Tailwind v4 + TS + ESLint configs
 The ecosystem implements an automated email system powered by `packages/email` via Resend:
 
 ### 1. Contact Inquiries (Dual-Dispatch)
+
 - **To Client**: Branded confirmation in their selected locale (`en`/`ar`): "Thank you for contacting ishoot. We've received your request for [services] and our team will get back to you within 24 hours."
 - **To ishoot Team**: Notification email with client details, budget range, services requested, and deep-link to `/dashboard/crm/leads`.
 
 ### 2. Invoice Delivery
+
 - **Action Toolbar**:
   - `📧 Send via Email`: Generates PDF → uploads to storage → sends branded email with attached PDF to client contact.
   - `📱 Send via WhatsApp`: Generates signed PDF URL (24h) → opens `wa.me/{phone}?text=...` with pre-composed bilingual message & secure link.
@@ -173,6 +191,7 @@ The ecosystem implements an automated email system powered by `packages/email` v
   - `📥 Download`: Direct client-ready PDF download.
 
 ### 3. Payment Receipts
+
 - When a payment is recorded against an invoice:
   - System generates unique sequential receipt number: `RCT-YYYY-NNN`.
   - System updates invoice: `amount_paid`, `amount_due`, and updates status (`partially_paid` or `paid`).
@@ -184,6 +203,7 @@ The ecosystem implements an automated email system powered by `packages/email` v
 ## 5. Financial Dashboard & Analytics
 
 The Admin Portal includes a complete financial intelligence suite (`/dashboard/finance`):
+
 - **Core Metrics (KPIs)**:
   - Total Revenue (actual paid cash received)
   - Operating & Production Expenses
@@ -199,30 +219,32 @@ The Admin Portal includes a complete financial intelligence suite (`/dashboard/f
 ## 6. Page Map
 
 ### Public Site (`apps/web`)
-| Route | Content |
-|-------|---------|
-| `/[locale]` | Home: Hero video banners + showreel scale reveal + services bento + client logos |
-| `/[locale]/works` | Portfolio: Category filter tabs + dynamic aspect ratio grid + cinema lightbox |
-| `/[locale]/about` | About: CEO hero + studio narrative + equipment technical specs + counters |
+
+| Route               | Content                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| `/[locale]`         | Home: Hero video banners + showreel scale reveal + services bento + client logos     |
+| `/[locale]/works`   | Portfolio: Category filter tabs + dynamic aspect ratio grid + cinema lightbox        |
+| `/[locale]/about`   | About: CEO hero + studio narrative + equipment technical specs + counters            |
 | `/[locale]/contact` | Contact: Service picker + budget selector + inquiry submission + dual-email dispatch |
 
 ### Admin Portal (`apps/admin`)
-| Route | Content |
-|-------|---------|
-| `/login` | Supabase Auth login |
-| `/dashboard` | Executive overview: stats, active deals, recent inquiries, cashflow quick-stats |
-| `/dashboard/cms/banners` | Hero banner manager with drag-and-drop reordering |
-| `/dashboard/cms/portfolio` | Portfolio items CRUD & credits metadata editor |
-| `/dashboard/cms/clients` | Client logo manager |
-| `/dashboard/cms/equipment` | Studio equipment technical specs inventory |
-| `/dashboard/crm/leads` | Incoming inquiries with conversion to deal/contact |
-| `/dashboard/crm/deals` | Twenty CRM-style Kanban pipeline (9 stages) with BHD column sums |
-| `/dashboard/crm/contacts` | Searchable contact directory with linked deal dossiers |
-| `/dashboard/invoices` | Invoice studio: create, discounts, VAT toggle, multi-channel dispatch |
-| `/dashboard/payments` | Payment ledger: record payments, auto-reconciliation, receipt generation |
-| `/dashboard/expenses` | Expense manager: categorised costs linked to projects/deals |
-| `/dashboard/finance` | Financial dashboard: P&L, revenue trends, expense charts, margins |
-| `/dashboard/settings/company` | Company settings: VAT toggle, CR number, bank IBAN, numbering prefixes |
+
+| Route                         | Content                                                                         |
+| ----------------------------- | ------------------------------------------------------------------------------- |
+| `/login`                      | Supabase Auth login                                                             |
+| `/dashboard`                  | Executive overview: stats, active deals, recent inquiries, cashflow quick-stats |
+| `/dashboard/cms/banners`      | Hero banner manager with drag-and-drop reordering                               |
+| `/dashboard/cms/portfolio`    | Portfolio items CRUD & credits metadata editor                                  |
+| `/dashboard/cms/clients`      | Client logo manager                                                             |
+| `/dashboard/cms/equipment`    | Studio equipment technical specs inventory                                      |
+| `/dashboard/crm/leads`        | Incoming inquiries with conversion to deal/contact                              |
+| `/dashboard/crm/deals`        | Twenty CRM-style Kanban pipeline (9 stages) with BHD column sums                |
+| `/dashboard/crm/contacts`     | Searchable contact directory with linked deal dossiers                          |
+| `/dashboard/invoices`         | Invoice studio: create, discounts, VAT toggle, multi-channel dispatch           |
+| `/dashboard/payments`         | Payment ledger: record payments, auto-reconciliation, receipt generation        |
+| `/dashboard/expenses`         | Expense manager: categorised costs linked to projects/deals                     |
+| `/dashboard/finance`          | Financial dashboard: P&L, revenue trends, expense charts, margins               |
+| `/dashboard/settings/company` | Company settings: VAT toggle, CR number, bank IBAN, numbering prefixes          |
 
 ---
 
@@ -248,14 +270,14 @@ The Admin Portal includes a complete financial intelligence suite (`/dashboard/f
 
 All master documentation is maintained in the project repository at `docs/`:
 
-| Document | Path | Purpose |
-|----------|------|---------|
-| **Design System** | `docs/design.md` | Brand colors, typography, motion, glassmorphism, UI components |
-| **Architecture** | `docs/structure.md` | Monorepo layout, Supabase schema, email flows, financial data architecture |
-| **File Tree** | `docs/tree.md` | Complete file and directory map (~198 files across 71 directories) |
-| **Admin Rules** | `docs/admin-rules.md` | RBAC matrix, CMS rules, Kanban pipeline, invoice/payment/expense rules |
-| **Implementation Plan** | `docs/implementation_plan.md` | 7-phase step-by-step build roadmap |
-| **Agent Skill** | `docs/SKILL.md` | This context-preservation skill |
+| Document                | Path                          | Purpose                                                                    |
+| ----------------------- | ----------------------------- | -------------------------------------------------------------------------- |
+| **Design System**       | `docs/design.md`              | Brand colors, typography, motion, glassmorphism, UI components             |
+| **Architecture**        | `docs/structure.md`           | Monorepo layout, Supabase schema, email flows, financial data architecture |
+| **File Tree**           | `docs/tree.md`                | Complete file and directory map (~198 files across 71 directories)         |
+| **Admin Rules**         | `docs/admin-rules.md`         | RBAC matrix, CMS rules, Kanban pipeline, invoice/payment/expense rules     |
+| **Implementation Plan** | `docs/implementation_plan.md` | 7-phase step-by-step build roadmap                                         |
+| **Agent Skill**         | `docs/SKILL.md`               | This context-preservation skill                                            |
 
 ---
 

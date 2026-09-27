@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
+import * as React from "react";
+import Link from "next/link";
 import {
   Bell,
   CheckCircle2,
@@ -12,15 +12,15 @@ import {
   Inbox,
   Check,
   ExternalLink,
-} from 'lucide-react';
-import type { Notification } from '@ishoot/database/types';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
+} from "lucide-react";
+import type { Notification } from "@ishoot/database/types";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   getNotificationsAction,
   markNotificationReadAction,
   markAllNotificationsReadAction,
-} from '../../app/actions/notifications';
-import { formatDate } from '@ishoot/ui';
+} from "../../app/actions/notifications";
+import { formatDate } from "@ishoot/ui";
 
 export function NotificationCenter() {
   const { t, locale, isRTL } = useAdminLocale();
@@ -34,7 +34,7 @@ export function NotificationCenter() {
       const items = await getNotificationsAction();
       setNotifications(items);
     } catch (err) {
-      console.error('Failed to load notifications:', err);
+      console.error("Failed to load notifications:", err);
     }
   }, []);
 
@@ -44,18 +44,20 @@ export function NotificationCenter() {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  // Click outside to close
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
 
@@ -64,7 +66,7 @@ export function NotificationCenter() {
   const handleMarkAsRead = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
     );
     await markNotificationReadAction(id);
   };
@@ -75,27 +77,32 @@ export function NotificationCenter() {
   };
 
   const getNotificationIcon = (type: string, entityType?: string) => {
-    if (entityType === 'payment') return <CreditCard className="w-4 h-4 text-emerald-400" />;
-    if (entityType === 'calendar') return <Calendar className="w-4 h-4 text-amber-400" />;
-    if (entityType === 'lead') return <Inbox className="w-4 h-4 text-[#09937F]" />;
-    if (type === 'success') return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
-    if (type === 'action' || type === 'warning') return <AlertTriangle className="w-4 h-4 text-amber-400" />;
+    if (entityType === "payment")
+      return <CreditCard className="w-4 h-4 text-emerald-400" />;
+    if (entityType === "calendar")
+      return <Calendar className="w-4 h-4 text-amber-400" />;
+    if (entityType === "lead")
+      return <Inbox className="w-4 h-4 text-[#09937F]" />;
+    if (type === "success")
+      return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
+    if (type === "action" || type === "warning")
+      return <AlertTriangle className="w-4 h-4 text-amber-400" />;
     return <Info className="w-4 h-4 text-[#09937F]" />;
   };
 
   const getEntityLink = (entityType?: string, entityId?: string) => {
     if (!entityType) return null;
-    if (entityType === 'payment') return '/dashboard/payments';
-    if (entityType === 'calendar') return '/dashboard/calendar';
-    if (entityType === 'lead') return '/dashboard/crm/leads';
-    if (entityType === 'invoice') return `/dashboard/invoices/${entityId || ''}`;
-    if (entityType === 'deal') return `/dashboard/crm/deals/${entityId || ''}`;
+    if (entityType === "payment") return "/dashboard/payments";
+    if (entityType === "calendar") return "/dashboard/calendar";
+    if (entityType === "lead") return "/dashboard/crm/leads";
+    if (entityType === "invoice")
+      return `/dashboard/invoices/${entityId || ""}`;
+    if (entityType === "deal") return `/dashboard/crm/deals/${entityId || ""}`;
     return null;
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Bell Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -106,20 +113,20 @@ export function NotificationCenter() {
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
           <span className="min-w-4 h-4 px-1 rounded-full bg-[#09937F] text-black text-[9px] font-mono font-bold flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-[#070C0A] animate-pulse">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
-      {/* Popover Dropdown */}
       {isOpen && (
         <div
           className={`absolute top-full mt-2 w-80 sm:w-96 rounded-2xl bg-[#0B1210] border border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col ${
-            isRTL ? 'left-0 sm:left-auto sm:right-0' : 'right-0 sm:right-auto sm:left-0'
+            isRTL
+              ? "left-0 sm:left-auto sm:right-0"
+              : "right-0 sm:right-auto sm:left-0"
           }`}
-          style={{ maxHeight: '80vh' }}
+          style={{ maxHeight: "80vh" }}
         >
-          {/* Header */}
           <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-[#09937F]" />
@@ -145,7 +152,6 @@ export function NotificationCenter() {
             )}
           </div>
 
-          {/* List Content */}
           <div className="overflow-y-auto divide-y divide-white/5 max-h-[380px]">
             {notifications.length === 0 ? (
               <div className="p-8 text-center text-xs text-[#9EADA9] space-y-1">
@@ -163,18 +169,18 @@ export function NotificationCenter() {
                     key={n.id}
                     onClick={() => handleMarkAsRead(n.id)}
                     className={`p-3.5 hover:bg-white/[0.03] transition-colors cursor-pointer flex items-start gap-3 relative ${
-                      !n.is_read ? 'bg-[#09937F]/[0.06]' : ''
+                      !n.is_read ? "bg-[#09937F]/[0.06]" : ""
                     }`}
                   >
-                    {/* Status Icon */}
                     <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
                       {getNotificationIcon(n.type, n.entity_type)}
                     </div>
 
-                    {/* Text Details */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <span className={`text-xs font-bold truncate ${!n.is_read ? 'text-white' : 'text-[#9EADA9]'}`}>
+                        <span
+                          className={`text-xs font-bold truncate ${!n.is_read ? "text-white" : "text-[#9EADA9]"}`}
+                        >
                           {n.title}
                         </span>
                         {!n.is_read && (
@@ -185,7 +191,7 @@ export function NotificationCenter() {
                         {n.message}
                       </p>
                       <div className="flex items-center justify-between mt-2 pt-1 text-[10px] font-mono text-[#9EADA9]/70">
-                        <span>{formatDate(n.created_at, locale, 'time')}</span>
+                        <span>{formatDate(n.created_at, locale, "time")}</span>
                         {link && (
                           <Link
                             href={link}
@@ -207,7 +213,6 @@ export function NotificationCenter() {
             )}
           </div>
 
-          {/* Footer */}
           <div className="p-2.5 border-t border-white/10 bg-white/[0.02] text-center">
             <Link
               href="/dashboard/settings/audit"

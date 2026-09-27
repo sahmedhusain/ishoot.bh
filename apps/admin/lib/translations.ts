@@ -1,6 +1,6 @@
-import { ar, en } from '@ishoot/locales';
+import { ar, en } from "@ishoot/locales";
 
-export type AdminLocale = 'ar' | 'en';
+export type AdminLocale = "ar" | "en";
 
 export const adminTranslations = {
   ar: ar.admin,

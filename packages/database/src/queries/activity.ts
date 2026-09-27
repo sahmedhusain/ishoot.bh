@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { ActivityLog } from '../types';
+import { db } from "../db";
+import { ActivityLog } from "../types";
 
 function mapActivity(a: any): ActivityLog {
   return {
@@ -27,16 +27,18 @@ function mapActivity(a: any): ActivityLog {
   };
 }
 
-export async function getActivityLogs(limit: number = 50): Promise<ActivityLog[]> {
+export async function getActivityLogs(
+  limit: number = 50,
+): Promise<ActivityLog[]> {
   try {
     const logs = await db.activityLog.findMany({
       include: { user: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit,
     });
     return logs.map(mapActivity);
   } catch (e) {
-    console.error('Error fetching activity logs from DB:', e);
+    console.error("Error fetching activity logs from DB:", e);
     return [];
   }
 }
@@ -66,4 +68,3 @@ export async function createActivityLog(data: {
   });
   return mapActivity(created);
 }
-

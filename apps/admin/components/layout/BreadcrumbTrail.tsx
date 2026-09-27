@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChevronRight, ChevronLeft } from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function BreadcrumbTrail() {
   const pathname = usePathname();
   const { t, isRTL } = useAdminLocale();
-  const segments = pathname.split('/').filter(Boolean);
+  const segments = pathname.split("/").filter(Boolean);
 
   const segmentLabels: Record<string, string> = {
     dashboard: t.nav.overview,
@@ -39,12 +39,18 @@ export function BreadcrumbTrail() {
   const Chevron = isRTL ? ChevronLeft : ChevronRight;
 
   return (
-    <nav data-breadcrumb className="flex items-center gap-1.5 text-xs text-[#9EADA9]">
-      <Link href="/dashboard" className="hover:text-white transition-colors font-medium">
+    <nav
+      data-breadcrumb
+      className="flex items-center gap-1.5 text-xs text-[#9EADA9]"
+    >
+      <Link
+        href="/dashboard"
+        className="hover:text-white transition-colors font-medium"
+      >
         {t.layout.home}
       </Link>
       {segments.map((segment, index) => {
-        const url = `/${segments.slice(0, index + 1).join('/')}`;
+        const url = `/${segments.slice(0, index + 1).join("/")}`;
         const isLast = index === segments.length - 1;
         const label = segmentLabels[segment] || segment;
 

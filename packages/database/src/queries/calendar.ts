@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { CalendarEvent } from '../types';
+import { db } from "../db";
+import { CalendarEvent } from "../types";
 
 function mapEvent(e: any): CalendarEvent {
   return {
@@ -11,7 +11,7 @@ function mapEvent(e: any): CalendarEvent {
     end_date: e.endDate.toISOString(),
     all_day: e.allDay,
     location: e.location || undefined,
-    color: e.color || '#09937F',
+    color: e.color || "#09937F",
     event_type: e.eventType as any,
     deal_id: e.dealId || undefined,
     created_by: e.createdById || undefined,
@@ -37,7 +37,10 @@ function mapEvent(e: any): CalendarEvent {
   };
 }
 
-export async function getCalendarEvents(startDate?: Date, endDate?: Date): Promise<CalendarEvent[]> {
+export async function getCalendarEvents(
+  startDate?: Date,
+  endDate?: Date,
+): Promise<CalendarEvent[]> {
   try {
     const where: any = {};
     if (startDate && endDate) {
@@ -50,16 +53,18 @@ export async function getCalendarEvents(startDate?: Date, endDate?: Date): Promi
     const events = await db.calendarEvent.findMany({
       where,
       include: { deal: true },
-      orderBy: { startDate: 'asc' },
+      orderBy: { startDate: "asc" },
     });
     return events.map(mapEvent);
   } catch (e) {
-    console.error('Error fetching calendar events from DB:', e);
+    console.error("Error fetching calendar events from DB:", e);
     return [];
   }
 }
 
-export async function getCalendarEventById(id: string): Promise<CalendarEvent | null> {
+export async function getCalendarEventById(
+  id: string,
+): Promise<CalendarEvent | null> {
   try {
     const event = await db.calendarEvent.findUnique({
       where: { id },
@@ -81,7 +86,7 @@ export async function createCalendarEvent(data: {
   all_day?: boolean;
   location?: string;
   color?: string;
-  event_type?: 'meeting' | 'shoot' | 'deadline' | 'reminder';
+  event_type?: "meeting" | "shoot" | "deadline" | "reminder";
   deal_id?: string;
   created_by?: string;
   google_event_id?: string;
@@ -96,8 +101,8 @@ export async function createCalendarEvent(data: {
       endDate: new Date(data.end_date),
       allDay: data.all_day ?? false,
       location: data.location || null,
-      color: data.color || '#09937F',
-      eventType: data.event_type || 'meeting',
+      color: data.color || "#09937F",
+      eventType: data.event_type || "meeting",
       dealId: data.deal_id || null,
       createdById: data.created_by || null,
       googleEventId: data.google_event_id || null,
@@ -108,21 +113,29 @@ export async function createCalendarEvent(data: {
   return mapEvent(created);
 }
 
-export async function updateCalendarEvent(id: string, data: Partial<CalendarEvent>): Promise<CalendarEvent | null> {
+export async function updateCalendarEvent(
+  id: string,
+  data: Partial<CalendarEvent>,
+): Promise<CalendarEvent | null> {
   try {
     const updateData: any = {};
     if (data.title !== undefined) updateData.title = data.title;
     if (data.title_ar !== undefined) updateData.titleAr = data.title_ar;
-    if (data.description !== undefined) updateData.description = data.description;
-    if (data.start_date !== undefined) updateData.startDate = new Date(data.start_date);
-    if (data.end_date !== undefined) updateData.endDate = new Date(data.end_date);
+    if (data.description !== undefined)
+      updateData.description = data.description;
+    if (data.start_date !== undefined)
+      updateData.startDate = new Date(data.start_date);
+    if (data.end_date !== undefined)
+      updateData.endDate = new Date(data.end_date);
     if (data.all_day !== undefined) updateData.allDay = data.all_day;
     if (data.location !== undefined) updateData.location = data.location;
     if (data.color !== undefined) updateData.color = data.color;
     if (data.event_type !== undefined) updateData.eventType = data.event_type;
     if (data.deal_id !== undefined) updateData.dealId = data.deal_id;
-    if (data.google_event_id !== undefined) updateData.googleEventId = data.google_event_id;
-    if (data.google_calendar_id !== undefined) updateData.googleCalendarId = data.google_calendar_id;
+    if (data.google_event_id !== undefined)
+      updateData.googleEventId = data.google_event_id;
+    if (data.google_calendar_id !== undefined)
+      updateData.googleCalendarId = data.google_calendar_id;
 
     const updated = await db.calendarEvent.update({
       where: { id },

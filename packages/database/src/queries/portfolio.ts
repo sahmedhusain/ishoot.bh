@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { PortfolioCategory, PortfolioItem } from '../types';
+import { db } from "../db";
+import { PortfolioCategory, PortfolioItem } from "../types";
 
 function mapCategory(c: any): PortfolioCategory {
   return {
@@ -14,14 +14,14 @@ function mapCategory(c: any): PortfolioCategory {
 function mapItem(item: any): PortfolioItem {
   return {
     id: item.id,
-    category_id: item.categoryId || '',
+    category_id: item.categoryId || "",
     category: item.category ? mapCategory(item.category) : undefined,
     slug: item.slug,
     title_en: item.titleEn,
     title_ar: item.titleAr,
     client_name: item.clientName,
     year: item.year,
-    aspect_ratio: (item.aspectRatio as any) || '16:9',
+    aspect_ratio: (item.aspectRatio as any) || "16:9",
     thumbnail_url: item.thumbnailUrl,
     preview_video_url: item.previewVideoUrl || undefined,
     full_video_url: item.fullVideoUrl || undefined,
@@ -38,11 +38,11 @@ function mapItem(item: any): PortfolioItem {
 export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
   try {
     const cats = await db.portfolioCategory.findMany({
-      orderBy: { displayOrder: 'asc' },
+      orderBy: { displayOrder: "asc" },
     });
     return cats.map(mapCategory);
   } catch (e) {
-    console.error('Error fetching portfolio categories:', e);
+    console.error("Error fetching portfolio categories:", e);
     return [];
   }
 }
@@ -64,13 +64,17 @@ export async function createPortfolioCategory(data: {
   return mapCategory(created);
 }
 
-export async function updatePortfolioCategory(id: string, data: Partial<PortfolioCategory>): Promise<PortfolioCategory | null> {
+export async function updatePortfolioCategory(
+  id: string,
+  data: Partial<PortfolioCategory>,
+): Promise<PortfolioCategory | null> {
   try {
     const updateData: any = {};
     if (data.slug !== undefined) updateData.slug = data.slug;
     if (data.name_en !== undefined) updateData.nameEn = data.name_en;
     if (data.name_ar !== undefined) updateData.nameAr = data.name_ar;
-    if (data.display_order !== undefined) updateData.displayOrder = data.display_order;
+    if (data.display_order !== undefined)
+      updateData.displayOrder = data.display_order;
 
     const updated = await db.portfolioCategory.update({
       where: { id },
@@ -93,10 +97,12 @@ export async function deletePortfolioCategory(id: string): Promise<boolean> {
   }
 }
 
-export async function getPortfolioItems(categorySlug?: string): Promise<PortfolioItem[]> {
+export async function getPortfolioItems(
+  categorySlug?: string,
+): Promise<PortfolioItem[]> {
   try {
     const whereCondition: any = {};
-    if (categorySlug && categorySlug !== 'all') {
+    if (categorySlug && categorySlug !== "all") {
       const cat = await db.portfolioCategory.findUnique({
         where: { slug: categorySlug },
       });
@@ -108,16 +114,18 @@ export async function getPortfolioItems(categorySlug?: string): Promise<Portfoli
     const items = await db.portfolioItem.findMany({
       where: whereCondition,
       include: { category: true },
-      orderBy: { displayOrder: 'asc' },
+      orderBy: { displayOrder: "asc" },
     });
     return items.map(mapItem);
   } catch (e) {
-    console.error('Error fetching portfolio items:', e);
+    console.error("Error fetching portfolio items:", e);
     return [];
   }
 }
 
-export async function getPortfolioItemBySlug(slug: string): Promise<PortfolioItem | null> {
+export async function getPortfolioItemBySlug(
+  slug: string,
+): Promise<PortfolioItem | null> {
   try {
     const item = await db.portfolioItem.findUnique({
       where: { slug },
@@ -156,7 +164,7 @@ export async function createPortfolioItem(data: {
       titleAr: data.title_ar,
       clientName: data.client_name,
       year: data.year,
-      aspectRatio: data.aspect_ratio || '16:9',
+      aspectRatio: data.aspect_ratio || "16:9",
       thumbnailUrl: data.thumbnail_url,
       previewVideoUrl: data.preview_video_url || null,
       fullVideoUrl: data.full_video_url || null,
@@ -171,25 +179,39 @@ export async function createPortfolioItem(data: {
   return mapItem(created);
 }
 
-export async function updatePortfolioItem(id: string, data: Partial<PortfolioItem>): Promise<PortfolioItem | null> {
+export async function updatePortfolioItem(
+  id: string,
+  data: Partial<PortfolioItem>,
+): Promise<PortfolioItem | null> {
   try {
     const updateData: any = {};
-    if (data.category_id !== undefined) updateData.categoryId = data.category_id;
+    if (data.category_id !== undefined)
+      updateData.categoryId = data.category_id;
     if (data.slug !== undefined) updateData.slug = data.slug;
     if (data.title_en !== undefined) updateData.titleEn = data.title_en;
     if (data.title_ar !== undefined) updateData.titleAr = data.title_ar;
-    if (data.client_name !== undefined) updateData.clientName = data.client_name;
+    if (data.client_name !== undefined)
+      updateData.clientName = data.client_name;
     if (data.year !== undefined) updateData.year = data.year;
-    if (data.aspect_ratio !== undefined) updateData.aspectRatio = data.aspect_ratio;
-    if (data.thumbnail_url !== undefined) updateData.thumbnailUrl = data.thumbnail_url;
-    if (data.preview_video_url !== undefined) updateData.previewVideoUrl = data.preview_video_url;
-    if (data.full_video_url !== undefined) updateData.fullVideoUrl = data.full_video_url;
-    if (data.gallery_urls !== undefined) updateData.galleryUrls = data.gallery_urls;
-    if (data.description_en !== undefined) updateData.descriptionEn = data.description_en;
-    if (data.description_ar !== undefined) updateData.descriptionAr = data.description_ar;
+    if (data.aspect_ratio !== undefined)
+      updateData.aspectRatio = data.aspect_ratio;
+    if (data.thumbnail_url !== undefined)
+      updateData.thumbnailUrl = data.thumbnail_url;
+    if (data.preview_video_url !== undefined)
+      updateData.previewVideoUrl = data.preview_video_url;
+    if (data.full_video_url !== undefined)
+      updateData.fullVideoUrl = data.full_video_url;
+    if (data.gallery_urls !== undefined)
+      updateData.galleryUrls = data.gallery_urls;
+    if (data.description_en !== undefined)
+      updateData.descriptionEn = data.description_en;
+    if (data.description_ar !== undefined)
+      updateData.descriptionAr = data.description_ar;
     if (data.credits !== undefined) updateData.credits = data.credits;
-    if (data.is_featured !== undefined) updateData.isFeatured = data.is_featured;
-    if (data.display_order !== undefined) updateData.displayOrder = data.display_order;
+    if (data.is_featured !== undefined)
+      updateData.isFeatured = data.is_featured;
+    if (data.display_order !== undefined)
+      updateData.displayOrder = data.display_order;
 
     const updated = await db.portfolioItem.update({
       where: { id },

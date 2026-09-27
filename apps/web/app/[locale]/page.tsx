@@ -1,14 +1,18 @@
-import * as React from 'react';
-import { getActiveBanners, getActiveClientLogos, getPortfolioItems } from '@ishoot/database';
-import { StarscastingHero } from '../../components/hero/StarscastingHero';
-import { StarscastingAbout } from '../../components/about/StarscastingAbout';
-import { LogoMarquee } from '../../components/clients/LogoMarquee';
-import { StarscastingServices } from '../../components/services/StarscastingServices';
-import { StarscastingWorks } from '../../components/portfolio/StarscastingWorks';
-import { StarscastingStats } from '../../components/about/StarscastingStats';
-import { StarscastingReviews } from '../../components/about/StarscastingReviews';
-import { StarscastingFAQ } from '../../components/about/StarscastingFAQ';
-import { StarscastingCTA } from '../../components/about/StarscastingCTA';
+import * as React from "react";
+import {
+  getActiveBanners,
+  getActiveClientLogos,
+  getPortfolioItems,
+} from "@ishoot/database";
+import { CinemaHero } from "../../components/hero/CinemaHero";
+import { AboutSection } from "../../components/about/AboutSection";
+import { LogoMarquee } from "../../components/clients/LogoMarquee";
+import { ServicesSection } from "../../components/services/ServicesSection";
+import { WorksSection } from "../../components/portfolio/WorksSection";
+import { StatsSection } from "../../components/about/StatsSection";
+import { ReviewsSection } from "../../components/about/ReviewsSection";
+import { FAQSection } from "../../components/about/FAQSection";
+import { CTASection } from "../../components/about/CTASection";
 
 export default async function HomePage({
   params,
@@ -25,32 +29,23 @@ export default async function HomePage({
 
   return (
     <div className="flex flex-col w-full">
-      {/* 1. Cinematic Hero with Dynamic Slot-Machine Kinetic Typography */}
-      <StarscastingHero banners={banners} />
+      <CinemaHero banners={banners} />
 
-      {/* 2. Numbered Katana Cut Section 01: About ishoot */}
-      <StarscastingAbout clientLogos={clientLogos} />
+      <AboutSection clientLogos={clientLogos} />
 
-      {/* 3. Starscasting Infinite Brand Partners Marquee */}
       <LogoMarquee logos={clientLogos} />
 
-      {/* 4. Numbered Katana Cut Section 02: Capabilities & Cinema Gear */}
-      <StarscastingServices />
+      <ServicesSection />
 
-      {/* 5. Numbered Section 03: Curated Masterworks & 8K Cinema Lightbox */}
-      <StarscastingWorks items={portfolioItems} />
+      <WorksSection items={portfolioItems} />
 
-      {/* 6. Numbered Section 04: Studio Metrics */}
-      <StarscastingStats />
+      <StatsSection />
 
-      {/* 7. Numbered Section 05: Client Testimonials */}
-      <StarscastingReviews />
+      <ReviewsSection />
 
-      {/* 8. Numbered Section 06: Frequently Asked Questions */}
-      <StarscastingFAQ />
+      <FAQSection />
 
-      {/* 9. Numbered Katana Cut Section 07: Closing Masterpiece CTA */}
-      <StarscastingCTA />
+      <CTASection />
     </div>
   );
 }

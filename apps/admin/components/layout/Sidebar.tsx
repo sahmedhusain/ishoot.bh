@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Calendar,
@@ -22,9 +22,9 @@ import {
   Sliders,
   History,
   Share2,
-} from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { usePermissions, PermissionResource } from '../../hooks/usePermissions';
+} from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 
 interface NavItem {
   href: string;
@@ -48,58 +48,148 @@ export function Sidebar() {
     {
       label: t.nav.overview,
       items: [
-        { href: '/dashboard', label: t.nav.dashboard, icon: LayoutDashboard },
-        { href: '/dashboard/calendar', label: t.nav.calendar, icon: Calendar, badge: 'Odoo', resource: 'calendar' },
+        { href: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard },
+        {
+          href: "/dashboard/calendar",
+          label: t.nav.calendar,
+          icon: Calendar,
+          badge: "Odoo",
+          resource: "calendar",
+        },
       ],
     },
     {
       label: t.nav.crm,
       items: [
-        { href: '/dashboard/crm/deals', label: t.nav.deals, icon: Kanban, resource: 'deals' },
-        { href: '/dashboard/crm/contacts', label: t.nav.contacts, icon: Users, resource: 'contacts' },
-        { href: '/dashboard/crm/leads', label: t.nav.leads, icon: Inbox, resource: 'leads' },
+        {
+          href: "/dashboard/crm/deals",
+          label: t.nav.deals,
+          icon: Kanban,
+          resource: "deals",
+        },
+        {
+          href: "/dashboard/crm/contacts",
+          label: t.nav.contacts,
+          icon: Users,
+          resource: "contacts",
+        },
+        {
+          href: "/dashboard/crm/leads",
+          label: t.nav.leads,
+          icon: Inbox,
+          resource: "leads",
+        },
       ],
     },
     {
       label: t.nav.finance,
       items: [
-        { href: '/dashboard/invoices', label: t.nav.invoices, icon: FileText, resource: 'invoices' },
-        { href: '/dashboard/payments', label: t.nav.payments, icon: CreditCard, resource: 'payments' },
-        { href: '/dashboard/expenses', label: t.nav.expenses, icon: Receipt, resource: 'expenses' },
-        { href: '/dashboard/finance', label: t.nav.analytics, icon: PieChart, resource: 'finance_analytics' },
+        {
+          href: "/dashboard/invoices",
+          label: t.nav.invoices,
+          icon: FileText,
+          resource: "invoices",
+        },
+        {
+          href: "/dashboard/payments",
+          label: t.nav.payments,
+          icon: CreditCard,
+          resource: "payments",
+        },
+        {
+          href: "/dashboard/expenses",
+          label: t.nav.expenses,
+          icon: Receipt,
+          resource: "expenses",
+        },
+        {
+          href: "/dashboard/finance",
+          label: t.nav.analytics,
+          icon: PieChart,
+          resource: "finance_analytics",
+        },
       ],
     },
     {
       label: t.nav.cms,
       items: [
-        { href: '/dashboard/cms/banners', label: t.nav.banners, icon: Film, resource: 'banners' },
-        { href: '/dashboard/cms/portfolio', label: t.nav.portfolio, icon: Camera, resource: 'portfolio' },
-        { href: '/dashboard/cms/clients', label: t.nav.clients, icon: Layers, resource: 'clients' },
-        { href: '/dashboard/cms/equipment', label: t.nav.equipment, icon: Wrench, resource: 'equipment' },
+        {
+          href: "/dashboard/cms/banners",
+          label: t.nav.banners,
+          icon: Film,
+          resource: "banners",
+        },
+        {
+          href: "/dashboard/cms/portfolio",
+          label: t.nav.portfolio,
+          icon: Camera,
+          resource: "portfolio",
+        },
+        {
+          href: "/dashboard/cms/clients",
+          label: t.nav.clients,
+          icon: Layers,
+          resource: "clients",
+        },
+        {
+          href: "/dashboard/cms/equipment",
+          label: t.nav.equipment,
+          icon: Wrench,
+          resource: "equipment",
+        },
       ],
     },
     {
       label: t.nav.system,
       items: [
-        { href: '/dashboard/users', label: t.nav.users, icon: ShieldCheck, resource: 'users' },
-        { href: '/dashboard/settings/preferences', label: t.nav.appearance, icon: Sliders },
-        { href: '/dashboard/settings/company', label: t.nav.companySettings, icon: Building2, resource: 'settings' },
-        { href: '/dashboard/settings/audit', label: t.nav.auditLogs, icon: History, resource: 'audit_logs' },
-        { href: '/dashboard/settings/integrations', label: t.nav.integrations, icon: Share2, resource: 'settings' },
+        {
+          href: "/dashboard/users",
+          label: t.nav.users,
+          icon: ShieldCheck,
+          resource: "users",
+        },
+        {
+          href: "/dashboard/company/documents",
+          label: "Legal Vault",
+          icon: Building2,
+          resource: "settings",
+        },
+        {
+          href: "/dashboard/settings/preferences",
+          label: t.nav.appearance,
+          icon: Sliders,
+        },
+        {
+          href: "/dashboard/settings/company",
+          label: t.nav.companySettings,
+          icon: Building2,
+          resource: "settings",
+        },
+        {
+          href: "/dashboard/settings/audit",
+          label: t.nav.auditLogs,
+          icon: History,
+          resource: "audit_logs",
+        },
+        {
+          href: "/dashboard/settings/integrations",
+          label: t.nav.integrations,
+          icon: Share2,
+          resource: "settings",
+        },
       ],
     },
   ];
 
-  // Filter groups and items based on RBAC permissions
   const visibleNavGroups = React.useMemo(() => {
-    if (loading) return allNavGroups; // show placeholder while initial load to prevent layout shift
+    if (loading) return allNavGroups; 
 
     return allNavGroups
       .map((group) => ({
         ...group,
         items: group.items.filter((item) => {
           if (!item.resource) return true;
-          return can(item.resource, 'read');
+          return can(item.resource, "read");
         }),
       }))
       .filter((group) => group.items.length > 0);
@@ -107,11 +197,9 @@ export function Sidebar() {
 
   return (
     <aside className="w-64 bg-[#070C0A] border-e border-white/10 flex flex-col justify-between shrink-0 select-none min-h-screen">
-      {/* Brand Header: Icon SVG + Wordmark SVG (never typed text) */}
       <div>
         <div className="h-16 px-5 flex items-center justify-between border-b border-white/10 bg-[#0B1210]">
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            {/* Aperture Icon */}
             <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1 flex items-center justify-center shrink-0 group-hover:border-[#09937F] transition-colors">
               <img
                 src="/icon.svg"
@@ -119,7 +207,6 @@ export function Sidebar() {
                 className="w-full h-full object-contain"
               />
             </div>
-            {/* Logo Wordmark SVG — NOT typed text */}
             <img
               src="/images/logo-color.svg"
               alt="ishoot"
@@ -131,7 +218,6 @@ export function Sidebar() {
           </span>
         </div>
 
-        {/* Navigation Groups */}
         <nav className="p-3.5 space-y-5 overflow-y-auto max-h-[calc(100vh-140px)]">
           {visibleNavGroups.map((group) => (
             <div key={group.label} className="space-y-1">
@@ -142,7 +228,8 @@ export function Sidebar() {
                 const Icon = item.icon;
                 const isActive =
                   pathname === item.href ||
-                  (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                  (item.href !== "/dashboard" &&
+                    pathname.startsWith(item.href));
 
                 return (
                   <Link
@@ -150,16 +237,16 @@ export function Sidebar() {
                     href={item.href}
                     className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
                       isActive
-                        ? 'bg-[#014842] text-white shadow-lg shadow-[#014842]/30 border border-[#09937F]/40'
-                        : 'text-[#9EADA9] hover:text-white hover:bg-white/5'
+                        ? "bg-[#014842] text-white shadow-lg shadow-[#014842]/30 border border-[#09937F]/40"
+                        : "text-[#9EADA9] hover:text-white hover:bg-white/5"
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
                       <Icon
                         className={`w-4 h-4 transition-colors ${
                           isActive
-                            ? 'text-[#09937F]'
-                            : 'text-[#9EADA9] group-hover:text-white'
+                            ? "text-[#09937F]"
+                            : "text-[#9EADA9] group-hover:text-white"
                         }`}
                       />
                       <span>{item.label}</span>
@@ -177,12 +264,13 @@ export function Sidebar() {
         </nav>
       </div>
 
-      {/* User Status Bar */}
       <div className="p-3 border-t border-white/10 bg-[#0B1210]">
         <div className="flex items-center justify-between text-xs text-[#9EADA9]">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#09937F] animate-pulse" />
-            <span className="font-mono text-[11px] text-white">PostgreSQL 15</span>
+            <span className="font-mono text-[11px] text-white">
+              PostgreSQL 15
+            </span>
           </div>
           <span className="text-[10px] font-mono text-[#09937F]">
             {t.profileDropdown.connected}

@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { Notification } from '../types';
+import { db } from "../db";
+import { Notification } from "../types";
 
 function mapNotification(n: any): Notification {
   return {
@@ -15,19 +15,21 @@ function mapNotification(n: any): Notification {
   };
 }
 
-export async function getNotifications(userId?: string): Promise<Notification[]> {
+export async function getNotifications(
+  userId?: string,
+): Promise<Notification[]> {
   try {
     const where: any = {};
     if (userId) where.userId = userId;
 
     const notifications = await db.notification.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 50,
     });
     return notifications.map(mapNotification);
   } catch (e) {
-    console.error('Error fetching notifications from DB:', e);
+    console.error("Error fetching notifications from DB:", e);
     return [];
   }
 }
@@ -45,7 +47,9 @@ export async function markNotificationRead(id: string): Promise<boolean> {
   }
 }
 
-export async function markAllNotificationsRead(userId?: string): Promise<boolean> {
+export async function markAllNotificationsRead(
+  userId?: string,
+): Promise<boolean> {
   try {
     const where: any = { isRead: false };
     if (userId) where.userId = userId;
@@ -55,7 +59,7 @@ export async function markAllNotificationsRead(userId?: string): Promise<boolean
     });
     return true;
   } catch (e) {
-    console.error('Error marking all notifications read:', e);
+    console.error("Error marking all notifications read:", e);
     return false;
   }
 }
@@ -64,7 +68,7 @@ export async function createNotification(data: {
   user_id: string;
   title: string;
   message: string;
-  type?: 'info' | 'warning' | 'success' | 'action';
+  type?: "info" | "warning" | "success" | "action";
   entity_type?: string;
   entity_id?: string;
 }): Promise<Notification> {
@@ -73,7 +77,7 @@ export async function createNotification(data: {
       userId: data.user_id,
       title: data.title,
       message: data.message,
-      type: data.type || 'info',
+      type: data.type || "info",
       entityType: data.entity_type || null,
       entityId: data.entity_id || null,
     },

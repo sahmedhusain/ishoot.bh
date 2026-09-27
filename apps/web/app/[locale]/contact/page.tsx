@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { getTranslations, Locale } from '@ishoot/locales';
-import { SectionBadge } from '../../../components/shared/SectionBadge';
-import { ContactForm } from '../../../components/contact/ContactForm';
-import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import * as React from "react";
+import { getTranslations, Locale } from "@ishoot/locales";
+import { SectionBadge } from "../../../components/shared/SectionBadge";
+import { ContactForm } from "../../../components/contact/ContactForm";
+import { Mail, Phone, MapPin, Clock } from "lucide-react";
 
 export default async function ContactPage({
   params,
@@ -14,7 +14,6 @@ export default async function ContactPage({
 
   return (
     <div className="py-20 max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
-      {/* Header */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">
         <SectionBadge>{t.contact.badge}</SectionBadge>
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-display">
@@ -26,7 +25,6 @@ export default async function ContactPage({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-        {/* Contact Info Sidebar */}
         <div className="lg:col-span-4 space-y-8">
           <div className="bg-[#0B1210] border border-white/10 rounded-3xl p-8 space-y-6">
             <h3 className="text-lg font-bold text-white uppercase tracking-wider">
@@ -63,14 +61,11 @@ export default async function ContactPage({
 
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-[#09937F] shrink-0" />
-                <span className="text-[#9EADA9]">
-                  {t.contact.workingHours}
-                </span>
+                <span className="text-[#9EADA9]">{t.contact.workingHours}</span>
               </div>
             </div>
           </div>
 
-          {/* Rapid WhatsApp Concierge */}
           <div className="bg-gradient-to-br from-[#014842]/40 to-[#0B1210] border border-[#09937F]/30 rounded-3xl p-8 space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-[#09937F]">
               {t.contact.immediateResponse}
@@ -78,9 +73,7 @@ export default async function ContactPage({
             <div className="text-xl font-bold text-white">
               {t.contact.whatsappConcierge}
             </div>
-            <p className="text-xs text-[#9EADA9]">
-              {t.contact.whatsappDesc}
-            </p>
+            <p className="text-xs text-[#9EADA9]">{t.contact.whatsappDesc}</p>
             <a
               href="https://wa.me/97339000000?text=Hello%20ishoot%20team,%20I%20would%20like%20to%20inquire%20about%20a%20production%20project."
               target="_blank"
@@ -92,7 +85,6 @@ export default async function ContactPage({
           </div>
         </div>
 
-        {/* Form Container */}
         <div className="lg:col-span-8">
           <ContactForm />
         </div>

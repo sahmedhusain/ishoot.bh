@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
 export default function SettingsIndexPage() {
-  redirect('/dashboard/settings/preferences');
+  redirect("/dashboard/settings/preferences");
 }

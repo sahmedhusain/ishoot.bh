@@ -1,34 +1,47 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import type { ClientLogo } from '@ishoot/database/types';
-import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from '@ishoot/ui';
-import { Plus, Trash2, Globe, CheckCircle2 } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { deleteClientLogoAction, createClientLogoAction } from '../../app/actions/cms';
+import * as React from "react";
+import type { ClientLogo } from "@ishoot/database/types";
+import {
+  Button,
+  Card,
+  Badge,
+  Modal,
+  Input,
+  ConfirmDestructiveModal,
+} from "@ishoot/ui";
+import { Plus, Trash2, Globe, CheckCircle2 } from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import {
+  deleteClientLogoAction,
+  createClientLogoAction,
+} from "../../app/actions/cms";
 
 interface ClientsManagementViewProps {
   initialLogos: ClientLogo[];
 }
 
-export function ClientsManagementView({ initialLogos }: ClientsManagementViewProps) {
+export function ClientsManagementView({
+  initialLogos,
+}: ClientsManagementViewProps) {
   const { t, locale } = useAdminLocale();
   const [logos, setLogos] = React.useState<ClientLogo[]>(initialLogos);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
+    null,
+  );
   const [saving, setSaving] = React.useState(false);
 
-  // Form state
-  const [clientName, setClientName] = React.useState('');
-  const [logoSvgUrl, setLogoSvgUrl] = React.useState('');
-  const [websiteUrl, setWebsiteUrl] = React.useState('');
+  const [clientName, setClientName] = React.useState("");
+  const [logoSvgUrl, setLogoSvgUrl] = React.useState("");
+  const [websiteUrl, setWebsiteUrl] = React.useState("");
 
   const handleDelete = async (id: string) => {
     setLogos((prev) => prev.filter((l) => l.id !== id));
     try {
       await deleteClientLogoAction(id);
     } catch (err) {
-      console.error('Failed to delete client logo:', err);
+      console.error("Failed to delete client logo:", err);
     }
   };
 
@@ -48,11 +61,11 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
         setLogos((prev) => [...prev, res.logo]);
       }
       setIsModalOpen(false);
-      setClientName('');
-      setLogoSvgUrl('');
-      setWebsiteUrl('');
+      setClientName("");
+      setLogoSvgUrl("");
+      setWebsiteUrl("");
     } catch (err) {
-      console.error('Failed to create client logo:', err);
+      console.error("Failed to create client logo:", err);
     } finally {
       setSaving(false);
     }
@@ -60,7 +73,6 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -82,7 +94,6 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
         </Button>
       </div>
 
-      {/* Grid of Logos */}
       {logos.length === 0 ? (
         <div className="p-12 text-center rounded-3xl bg-[#0B1210] border border-white/10 text-[#9EADA9]">
           {t.clientsView.emptyState}
@@ -94,7 +105,6 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
               key={logo.id}
               className="p-6 text-center space-y-4 bg-[#0B1210] border border-white/10 hover:border-[#09937F]/40 transition-all rounded-3xl relative group"
             >
-              {/* Delete button on hover */}
               <button
                 onClick={() => setDeleteTargetId(logo.id)}
                 className="absolute top-4 right-4 p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -104,13 +114,14 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
               </button>
 
               <div className="w-16 h-16 rounded-2xl mx-auto bg-white/5 border border-white/10 flex items-center justify-center p-3">
-                {logo.logo_svg_url.startsWith('http') || logo.logo_svg_url.startsWith('/') ? (
+                {logo.logo_svg_url.startsWith("http") ||
+                logo.logo_svg_url.startsWith("/") ? (
                   <img
                     src={logo.logo_svg_url}
                     alt={logo.client_name}
                     className="w-full h-full object-contain filter invert opacity-80 group-hover:opacity-100 transition-opacity"
                     onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
+                      (e.target as HTMLElement).style.display = "none";
                     }}
                   />
                 ) : (
@@ -119,7 +130,9 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
               </div>
 
               <div className="space-y-1">
-                <div className="font-bold text-white text-sm">{logo.client_name}</div>
+                <div className="font-bold text-white text-sm">
+                  {logo.client_name}
+                </div>
                 {logo.website_url && (
                   <a
                     href={logo.website_url}
@@ -141,7 +154,6 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
         </div>
       )}
 
-      {/* Modal: Add New Client */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -206,7 +218,6 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
         </form>
       </Modal>
 
-      {/* Delete Confirmation Safeguard Modal */}
       <ConfirmDestructiveModal
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}

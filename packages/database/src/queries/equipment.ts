@@ -1,10 +1,10 @@
-import { db } from '../db';
-import { StudioEquipment } from '../types';
+import { db } from "../db";
+import { StudioEquipment } from "../types";
 
 function mapEquipment(i: any): StudioEquipment {
   return {
     id: i.id,
-    category: (i.category as any) || 'cameras',
+    category: (i.category as any) || "cameras",
     model_name: i.nameEn,
     name_ar: i.nameAr,
     brand: i.brand || undefined,
@@ -22,11 +22,11 @@ function mapEquipment(i: any): StudioEquipment {
 export async function getStudioEquipment(): Promise<StudioEquipment[]> {
   try {
     const items = await db.studioEquipment.findMany({
-      orderBy: { displayOrder: 'asc' },
+      orderBy: { displayOrder: "asc" },
     });
     return items.map(mapEquipment);
   } catch (e) {
-    console.error('Error fetching studio equipment from DB:', e);
+    console.error("Error fetching studio equipment from DB:", e);
     return [];
   }
 }
@@ -36,7 +36,7 @@ export async function getAllEquipment(): Promise<StudioEquipment[]> {
 }
 
 export async function createEquipment(data: {
-  category: StudioEquipment['category'];
+  category: StudioEquipment["category"];
   model_name: string;
   name_ar?: string;
   brand?: string;
@@ -61,7 +61,10 @@ export async function createEquipment(data: {
   return mapEquipment(created);
 }
 
-export async function updateEquipment(id: string, data: Partial<StudioEquipment>): Promise<StudioEquipment | null> {
+export async function updateEquipment(
+  id: string,
+  data: Partial<StudioEquipment>,
+): Promise<StudioEquipment | null> {
   try {
     const updateData: any = {};
     if (data.category !== undefined) updateData.category = data.category;
@@ -72,9 +75,11 @@ export async function updateEquipment(id: string, data: Partial<StudioEquipment>
       updateData.specification = data.specification;
       updateData.descriptionEn = data.specification;
     }
-    if (data.daily_rate_bhd !== undefined) updateData.dailyRateBhd = data.daily_rate_bhd;
+    if (data.daily_rate_bhd !== undefined)
+      updateData.dailyRateBhd = data.daily_rate_bhd;
     if (data.quantity !== undefined) updateData.quantity = data.quantity;
-    if (data.display_order !== undefined) updateData.displayOrder = data.display_order;
+    if (data.display_order !== undefined)
+      updateData.displayOrder = data.display_order;
 
     const updated = await db.studioEquipment.update({
       where: { id },

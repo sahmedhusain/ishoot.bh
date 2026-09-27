@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
-import { useTranslation } from '../../hooks/useTranslation';
-import { X, ArrowRight, ArrowLeft } from 'lucide-react';
-import { LanguageSwitcher } from './LanguageSwitcher';
+import * as React from "react";
+import Link from "next/link";
+import { useTranslation } from "../../hooks/useTranslation";
+import { X, ArrowRight, ArrowLeft } from "lucide-react";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -16,10 +16,10 @@ export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
   const { t, locale, isRTL } = useTranslation();
 
   const navLinks = links || [
-    { href: `/${locale}`, label: t('nav.home') },
-    { href: `/${locale}/works`, label: t('nav.works') },
-    { href: `/${locale}/about`, label: t('nav.about') },
-    { href: `/${locale}/contact`, label: t('nav.contact') },
+    { href: `/${locale}`, label: t("nav.home") },
+    { href: `/${locale}/works`, label: t("nav.works") },
+    { href: `/${locale}/about`, label: t("nav.about") },
+    { href: `/${locale}/contact`, label: t("nav.contact") },
   ];
 
   if (!isOpen) return null;
@@ -28,9 +28,12 @@ export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-between bg-[#050807]/95 backdrop-blur-2xl p-6 sm:p-10 animate-fade-in">
-      {/* Top Bar */}
       <div className="flex items-center justify-between">
-        <Link href={`/${locale}`} onClick={onClose} className="flex items-center gap-2.5">
+        <Link
+          href={`/${locale}`}
+          onClick={onClose}
+          className="flex items-center gap-2.5"
+        >
           <img
             src="/icon.svg"
             alt="ishoot Icon"
@@ -52,7 +55,6 @@ export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
         </div>
       </div>
 
-      {/* Navigation Links */}
       <nav className="flex flex-col gap-6 my-auto py-8">
         {navLinks.map((link, idx) => (
           <Link
@@ -68,13 +70,12 @@ export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
         ))}
       </nav>
 
-      {/* Bottom meta */}
       <div className="space-y-4 pt-4 border-t border-white/10">
         <div className="flex justify-center">
           <LanguageSwitcher />
         </div>
         <div className="text-center text-xs text-[#9EADA9]">
-          {t('common.location')}
+          {t("common.location")}
         </div>
       </div>
     </div>

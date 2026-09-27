@@ -1,15 +1,15 @@
-import { db } from '../db';
-import { Payment, SupportedCurrency, PaymentMethod } from '../types';
+import { db } from "../db";
+import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
 function mapPayment(p: any): Payment {
   return {
     id: p.id,
     invoice_id: p.invoiceId,
     receipt_number: p.receiptNumber,
-    payment_date: p.paymentDate.toISOString().split('T')[0],
+    payment_date: p.paymentDate.toISOString().split("T")[0],
     amount: Number(p.amount),
-    currency: (p.currency as SupportedCurrency) || 'BHD',
-    payment_method: (p.paymentMethod as PaymentMethod) || 'bank_transfer',
+    currency: (p.currency as SupportedCurrency) || "BHD",
+    payment_method: (p.paymentMethod as PaymentMethod) || "bank_transfer",
     reference_number: p.referenceNumber || undefined,
     notes: p.notes || undefined,
     receipt_pdf_path: p.receiptPdfPath || undefined,
@@ -21,31 +21,36 @@ function mapPayment(p: any): Payment {
       ? {
           id: p.invoice.id,
           invoice_number: p.invoice.invoiceNumber,
-          contact_id: p.invoice.deal?.contactId || p.invoice.clientId || '',
+          contact_id: p.invoice.deal?.contactId || p.invoice.clientId || "",
           deal_id: p.invoice.dealId || undefined,
-          issue_date: p.invoice.issueDate.toISOString().split('T')[0],
-          due_date: p.invoice.dueDate.toISOString().split('T')[0],
+          issue_date: p.invoice.issueDate.toISOString().split("T")[0],
+          due_date: p.invoice.dueDate.toISOString().split("T")[0],
           subtotal: Number(p.invoice.subtotal),
-          discount_type: 'none',
+          discount_type: "none",
           discount_value: 0,
           discount_amount: Number(p.invoice.discountAmount),
-          after_discount: Number(p.invoice.subtotal) - Number(p.invoice.discountAmount),
+          after_discount:
+            Number(p.invoice.subtotal) - Number(p.invoice.discountAmount),
           vat_enabled: Number(p.invoice.vatAmount) > 0,
           vat_percentage: 10,
           vat_amount: Number(p.invoice.vatAmount),
           total_amount: Number(p.invoice.totalAmount),
           amount_paid: Number(p.amount),
-          amount_due: Math.max(0, Number(p.invoice.totalAmount) - Number(p.amount)),
+          amount_due: Math.max(
+            0,
+            Number(p.invoice.totalAmount) - Number(p.amount),
+          ),
           currency: p.invoice.currency as SupportedCurrency,
-          language: p.invoice.language as 'en' | 'ar',
+          language: p.invoice.language as "en" | "ar",
           status: p.invoice.status as any,
           created_at: p.invoice.createdAt.toISOString(),
           updated_at: p.invoice.updatedAt.toISOString(),
           contact: p.invoice.deal?.contact
             ? {
                 id: p.invoice.deal.contact.id,
-                full_name: `${p.invoice.deal.contact.firstName} ${p.invoice.deal.contact.lastName || ''}`.trim(),
-                email: p.invoice.deal.contact.email || '',
+                full_name:
+                  `${p.invoice.deal.contact.firstName} ${p.invoice.deal.contact.lastName || ""}`.trim(),
+                email: p.invoice.deal.contact.email || "",
                 phone: p.invoice.deal.contact.phone || undefined,
                 company: p.invoice.deal.contact.companyName || undefined,
                 created_at: p.invoice.deal.contact.createdAt.toISOString(),
@@ -70,11 +75,11 @@ export async function getAllPayments(): Promise<Payment[]> {
           },
         },
       },
-      orderBy: { paymentDate: 'desc' },
+      orderBy: { paymentDate: "desc" },
     });
     return payments.map(mapPayment);
   } catch (e) {
-    console.error('Error fetching payments from DB:', e);
+    console.error("Error fetching payments from DB:", e);
     return [];
   }
 }
@@ -101,7 +106,9 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
   }
 }
 
-export async function getPaymentByIdOrNumber(idOrNumber: string): Promise<Payment | null> {
+export async function getPaymentByIdOrNumber(
+  idOrNumber: string,
+): Promise<Payment | null> {
   try {
     const payment = await db.payment.findFirst({
       where: {
@@ -125,7 +132,6 @@ export async function getPaymentByIdOrNumber(idOrNumber: string): Promise<Paymen
   }
 }
 
-
 export async function recordPayment(paymentData: {
   invoice_id: string;
   payment_date?: string;
@@ -141,16 +147,18 @@ export async function recordPayment(paymentData: {
 }): Promise<Payment> {
   const year = new Date().getFullYear();
   const count = await db.payment.count();
-  const receiptNumber = `RCT-${year}-${String(count + 1).padStart(3, '0')}`;
+  const receiptNumber = `RCT-${year}-${String(count + 1).padStart(3, "0")}`;
 
   const created = await db.payment.create({
     data: {
       invoiceId: paymentData.invoice_id,
       receiptNumber,
-      paymentDate: paymentData.payment_date ? new Date(paymentData.payment_date) : new Date(),
+      paymentDate: paymentData.payment_date
+        ? new Date(paymentData.payment_date)
+        : new Date(),
       amount: paymentData.amount,
-      currency: paymentData.currency || 'BHD',
-      paymentMethod: paymentData.payment_method || 'bank_transfer',
+      currency: paymentData.currency || "BHD",
+      paymentMethod: paymentData.payment_method || "bank_transfer",
       referenceNumber: paymentData.reference_number || null,
       notes: paymentData.notes || null,
       notificationSent: paymentData.notification_sent || false,
@@ -167,21 +175,23 @@ export async function recordPayment(paymentData: {
     },
   });
 
-  // Automatically update invoice status
   try {
     const invoice = await db.invoice.findUnique({
       where: { id: paymentData.invoice_id },
       include: { payments: true },
     });
     if (invoice) {
-      const totalPaid = invoice.payments.reduce((acc, p) => acc + Number(p.amount), 0);
+      const totalPaid = invoice.payments.reduce(
+        (acc, p) => acc + Number(p.amount),
+        0,
+      );
       const totalInvoice = Number(invoice.totalAmount);
       let newStatus = invoice.status;
 
       if (totalPaid >= totalInvoice) {
-        newStatus = 'paid';
+        newStatus = "paid";
       } else if (totalPaid > 0) {
-        newStatus = 'partially_paid';
+        newStatus = "partially_paid";
       }
 
       if (newStatus !== invoice.status) {
@@ -192,7 +202,7 @@ export async function recordPayment(paymentData: {
       }
     }
   } catch (err) {
-    console.error('Error auto-reconciling invoice status after payment:', err);
+    console.error("Error auto-reconciling invoice status after payment:", err);
   }
 
   return mapPayment(created);

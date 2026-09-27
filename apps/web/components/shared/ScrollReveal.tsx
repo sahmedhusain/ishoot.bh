@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 
 export function ScrollReveal({
   children,
-  className = '',
+  className = "",
 }: {
   children: React.ReactNode;
   className?: string;
@@ -22,7 +22,7 @@ export function ScrollReveal({
           }
         });
       },
-      { threshold: 0.15 }
+      { threshold: 0.15 },
     );
 
     const current = domRef.current;
@@ -37,7 +37,7 @@ export function ScrollReveal({
     <div
       ref={domRef}
       className={`transition-all duration-700 ease-out transform ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
       } ${className}`}
     >
       {children}

@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import {
   createUser,
@@ -7,9 +7,9 @@ import {
   deleteUser,
   createActivityLog,
   UserRole,
-} from '@ishoot/database';
-import { revalidatePath } from 'next/cache';
-import { requirePermission } from '../../lib/auth';
+} from "@ishoot/database";
+import { revalidatePath } from "next/cache";
+import { requirePermission } from "../../lib/auth";
 
 export async function createUserAction(data: {
   email: string;
@@ -19,67 +19,67 @@ export async function createUserAction(data: {
   phone?: string;
   department?: string;
 }) {
-  const actor = await requirePermission('users', 'write');
+  const actor = await requirePermission("users", "write");
   const user = await createUser({
     ...data,
-    password: data.password || 'ishoot2026!',
+    password: data.password || "ishoot2026!",
   });
 
   await createActivityLog({
     user_id: actor.id,
-    action: 'create',
-    entity_type: 'user',
+    action: "create",
+    entity_type: "user",
     entity_id: user.id,
     details: { email: user.email, role: user.role },
   });
 
-  revalidatePath('/dashboard/users');
+  revalidatePath("/dashboard/users");
   return { success: true, user };
 }
 
 export async function updateUserRoleAction(id: string, role: UserRole) {
-  const actor = await requirePermission('users', 'write');
+  const actor = await requirePermission("users", "write");
   const user = await updateUserRole(id, role);
 
   await createActivityLog({
     user_id: actor.id,
-    action: 'update',
-    entity_type: 'user',
+    action: "update",
+    entity_type: "user",
     entity_id: id,
     details: { newRole: role },
   });
 
-  revalidatePath('/dashboard/users');
+  revalidatePath("/dashboard/users");
   return { success: true, user };
 }
 
 export async function toggleUserStatusAction(id: string, isActive: boolean) {
-  const actor = await requirePermission('users', 'write');
+  const actor = await requirePermission("users", "write");
   const user = await updateUser(id, { is_active: isActive });
 
   await createActivityLog({
     user_id: actor.id,
-    action: 'update',
-    entity_type: 'user',
+    action: "update",
+    entity_type: "user",
     entity_id: id,
     details: { is_active: isActive },
   });
 
-  revalidatePath('/dashboard/users');
+  revalidatePath("/dashboard/users");
   return { success: true, user };
 }
 
 export async function deleteUserAction(id: string) {
-  const actor = await requirePermission('users', 'delete');
+  const actor = await requirePermission("users", "delete");
   await deleteUser(id);
 
   await createActivityLog({
     user_id: actor.id,
-    action: 'delete',
-    entity_type: 'user',
+    action: "delete",
+    entity_type: "user",
     entity_id: id,
   });
 
-  revalidatePath('/dashboard/users');
+  revalidatePath("/dashboard/users");
   return { success: true };
 }

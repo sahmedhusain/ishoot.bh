@@ -1,11 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 import {
   verifyUserCredentials,
   createSession,
   createActivityLog,
-} from '@ishoot/database';
-import { signSessionToken } from '../../../../lib/jwt';
-import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS } from '../../../../lib/auth';
+} from "@ishoot/database";
+import { signSessionToken } from "../../../../lib/jwt";
+import {
+  SESSION_COOKIE_NAME,
+  SESSION_COOKIE_OPTIONS,
+} from "../../../../lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,20 +17,19 @@ export async function POST(req: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
+        { error: "Email and password are required" },
+        { status: 400 },
       );
     }
 
     const user = await verifyUserCredentials(email, password);
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid credentials or inactive account' },
-        { status: 401 }
+        { error: "Invalid credentials or inactive account" },
+        { status: 401 },
       );
     }
 
-    // Generate signed JWT
     const token = await signSessionToken({
       userId: user.id,
       email: user.email,
@@ -35,14 +37,13 @@ export async function POST(req: NextRequest) {
       fullName: user.full_name,
     });
 
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
     const ipAddress =
-      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-      req.headers.get('x-real-ip') ||
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+      req.headers.get("x-real-ip") ||
       undefined;
-    const userAgent = req.headers.get('user-agent') || undefined;
+    const userAgent = req.headers.get("user-agent") || undefined;
 
-    // Persist Session in DB
     await createSession({
       userId: user.id,
       token,
@@ -51,18 +52,16 @@ export async function POST(req: NextRequest) {
       userAgent,
     });
 
-    // Record Audit Activity
     await createActivityLog({
       user_id: user.id,
-      action: 'login',
-      entity_type: 'auth',
+      action: "login",
+      entity_type: "auth",
       entity_id: user.id,
       details: { role: user.role, department: user.department },
       ip_address: ipAddress,
       user_agent: userAgent,
     });
 
-    // Return response with httpOnly cookie
     const response = NextResponse.json({
       success: true,
       user: {
@@ -79,10 +78,10 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (err: any) {
-    console.error('Login error:', err);
+    console.error("Login error:", err);
     return NextResponse.json(
-      { error: err.message || 'Internal server error' },
-      { status: 500 }
+      { error: err.message || "Internal server error" },
+      { status: 500 },
     );
   }
 }

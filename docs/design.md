@@ -11,15 +11,17 @@
 The logo mark is a stylized camera aperture/viewfinder icon combining the letters "i" and "5" (the aperture shape), with camera-lens circle motifs integrated into the wordmark "ishoot". The "oo" in "ishoot" features concentric circle lens elements.
 
 ### Logo Variants
-| Variant | Usage | File |
-|---------|-------|------|
-| Primary (Color on light) | Light backgrounds | [ishoot logo svg file.svg](file:///Users/sayed/Desktop/GitHub/ishoot.bh/ishoot/ishoot%20logo%20svg%20file.svg) |
-| Icon Only (Color) | Favicon, app icon | [ishoot icon svg file.svg](file:///Users/sayed/Desktop/GitHub/ishoot.bh/ishoot/ishoot%20icon%20svg%20file.svg) |
-| White on Dark | Dark/cinematic backgrounds | See brand guideline page 5 |
-| Black on Light | Print, high-contrast | See brand guideline page 4 |
-| PNG Transparent | General usage | [png-file.png](file:///Users/sayed/Desktop/GitHub/ishoot.bh/ishoot/ishoot%20logo%20files%20(1)/png-file.png) |
+
+| Variant                  | Usage                      | File                                                                                                           |
+| ------------------------ | -------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Primary (Color on light) | Light backgrounds          | [ishoot logo svg file.svg](file:///Users/sayed/Desktop/GitHub/ishoot.bh/ishoot/ishoot%20logo%20svg%20file.svg) |
+| Icon Only (Color)        | Favicon, app icon          | [ishoot icon svg file.svg](file:///Users/sayed/Desktop/GitHub/ishoot.bh/ishoot/ishoot%20icon%20svg%20file.svg) |
+| White on Dark            | Dark/cinematic backgrounds | See brand guideline page 5                                                                                     |
+| Black on Light           | Print, high-contrast       | See brand guideline page 4                                                                                     |
+| PNG Transparent          | General usage              | [png-file.png](<file:///Users/sayed/Desktop/GitHub/ishoot.bh/ishoot/ishoot%20logo%20files%20(1)/png-file.png>) |
 
 ### Logo Usage Rules (from Brand Guideline)
+
 - **Primary Logo**: Icon + wordmark together (horizontal lockup)
 - **Secondary Logo**: Icon separate from wordmark (can be used independently)
 - **Icon Usage**: Use the aperture "i5" mark alone as favicon/icon
@@ -32,10 +34,10 @@ The logo mark is a stylized camera aperture/viewfinder icon combining the letter
 
 ### 2.1 Official Brand Colors (from Brand Guideline Page 6 & 7)
 
-| Role | Name | HEX | RGB | CMYK | Swatch |
-|------|------|-----|-----|------|--------|
-| **Primary** | Deep Emerald / Forest Pine | `#014842` | `1, 72, 66` | `91, 49, 67, 45` | 🟢 |
-| **Accent** | Radiant Jade / Persian Teal | `#09937F` | `9, 147, 127` | `83, 20, 59, 3` | 🟩 |
+| Role        | Name                        | HEX       | RGB           | CMYK             | Swatch |
+| ----------- | --------------------------- | --------- | ------------- | ---------------- | ------ |
+| **Primary** | Deep Emerald / Forest Pine  | `#014842` | `1, 72, 66`   | `91, 49, 67, 45` | 🟢     |
+| **Accent**  | Radiant Jade / Persian Teal | `#09937F` | `9, 147, 127` | `83, 20, 59, 3`  | 🟩     |
 
 ### 2.2 Extended Web Palette (Dark Cinematic Interpretation)
 
@@ -78,29 +80,29 @@ For the web ecosystem, these brand colors are extended with obsidian dark surfac
 :root {
   /* Brand Primary */
   --ishoot-primary: #014842;
-  --ishoot-primary-light: #02665D;
-  --ishoot-primary-dark: #002D29;
+  --ishoot-primary-light: #02665d;
+  --ishoot-primary-dark: #002d29;
 
   /* Brand Accent */
-  --ishoot-accent: #09937F;
-  --ishoot-accent-hover: #0BB49B;
+  --ishoot-accent: #09937f;
+  --ishoot-accent-hover: #0bb49b;
   --ishoot-accent-glow: rgba(9, 147, 127, 0.35);
 
   /* Surfaces */
   --ishoot-surface-base: #050807;
-  --ishoot-surface-card: #0B1210;
-  --ishoot-surface-elevated: #111C19;
+  --ishoot-surface-card: #0b1210;
+  --ishoot-surface-elevated: #111c19;
   --ishoot-surface-glass: rgba(11, 18, 16, 0.75);
 
   /* Borders */
   --ishoot-border-subtle: rgba(255, 255, 255, 0.08);
   --ishoot-border-emerald: rgba(9, 147, 127, 0.2);
-  --ishoot-border-active: #09937F;
+  --ishoot-border-active: #09937f;
 
   /* Typography */
-  --ishoot-text-primary: #F2F6F5;
-  --ishoot-text-secondary: #9EADA9;
-  --ishoot-text-accent: #09937F;
+  --ishoot-text-primary: #f2f6f5;
+  --ishoot-text-secondary: #9eada9;
+  --ishoot-text-accent: #09937f;
 }
 ```
 
@@ -110,10 +112,14 @@ The brand guideline (page 6) shows a smooth gradient from Primary → Accent use
 
 ```css
 /* Brand gradient (decorative bars, hover fills) */
-background: linear-gradient(135deg, #014842, #09937F);
+background: linear-gradient(135deg, #014842, #09937f);
 
 /* Radial glow (hero backgrounds, spotlight effects) */
-background: radial-gradient(circle at 50% 30%, rgba(9,147,127,0.18), transparent 70%);
+background: radial-gradient(
+  circle at 50% 30%,
+  rgba(9, 147, 127, 0.18),
+  transparent 70%
+);
 
 /* Cinematic vignette overlay */
 background: radial-gradient(ellipse at center, transparent 40%, #050807 100%);
@@ -125,12 +131,12 @@ background: radial-gradient(ellipse at center, transparent 40%, #050807 100%);
 
 ### 3.1 Brand Fonts (from Brand Guideline Pages 8 & 9)
 
-| Role | Font | Weights | Usage |
-|------|------|---------|-------|
-| **English Display** | Virtual | Regular (single weight .otf) | Headlines, hero text, brand statements |
-| **English UI** | Inter | 300–700 | Body copy, UI elements, tabular data |
-| **Arabic All** | IBM Plex Sans Arabic | Thin (100), ExtraLight (200), Light (300), Regular (400), Medium (500), SemiBold (600), Bold (700) | All Arabic text |
-| **English Backup** | Nexa | Light, Bold | Secondary English display (brand guideline alternate) |
+| Role                | Font                 | Weights                                                                                            | Usage                                                 |
+| ------------------- | -------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **English Display** | Virtual              | Regular (single weight .otf)                                                                       | Headlines, hero text, brand statements                |
+| **English UI**      | Inter                | 300–700                                                                                            | Body copy, UI elements, tabular data                  |
+| **Arabic All**      | IBM Plex Sans Arabic | Thin (100), ExtraLight (200), Light (300), Regular (400), Medium (500), SemiBold (600), Bold (700) | All Arabic text                                       |
+| **English Backup**  | Nexa                 | Light, Bold                                                                                        | Secondary English display (brand guideline alternate) |
 
 ### 3.2 Font Files Available
 
@@ -153,13 +159,13 @@ ishoot brand english and arabic fonts/
 
 ```css
 /* Desktop → Mobile fluid scale */
---text-display:  clamp(3rem, 5vw + 1rem, 6rem);     /* Hero headlines */
---text-h1:       clamp(2.25rem, 3.5vw + 0.5rem, 4rem);
---text-h2:       clamp(1.75rem, 2.5vw + 0.5rem, 3rem);
---text-h3:       clamp(1.25rem, 1.5vw + 0.5rem, 2rem);
---text-body:     clamp(1rem, 0.5vw + 0.75rem, 1.125rem);
---text-caption:  clamp(0.75rem, 0.3vw + 0.6rem, 0.875rem);
---text-overline: 0.75rem;  /* Fixed small, all-caps tracking */
+--text-display: clamp(3rem, 5vw + 1rem, 6rem); /* Hero headlines */
+--text-h1: clamp(2.25rem, 3.5vw + 0.5rem, 4rem);
+--text-h2: clamp(1.75rem, 2.5vw + 0.5rem, 3rem);
+--text-h3: clamp(1.25rem, 1.5vw + 0.5rem, 2rem);
+--text-body: clamp(1rem, 0.5vw + 0.75rem, 1.125rem);
+--text-caption: clamp(0.75rem, 0.3vw + 0.6rem, 0.875rem);
+--text-overline: 0.75rem; /* Fixed small, all-caps tracking */
 ```
 
 ### 3.4 RTL/LTR Typography Rules
@@ -188,24 +194,24 @@ ishoot brand english and arabic fonts/
 
 ### 4.1 Scroll Behaviors
 
-| Pattern | Description | Reference |
-|---------|-------------|-----------|
-| **Lenis Smooth Scroll** | Inertial smooth scrolling engine across all pages | Apple.com benchmark |
+| Pattern                   | Description                                                                                              | Reference              |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------- |
+| **Lenis Smooth Scroll**   | Inertial smooth scrolling engine across all pages                                                        | Apple.com benchmark    |
 | **Showreel Scale Reveal** | Pinned section scales from `scale(0.85) border-radius:32px` → `scale(1) border-radius:0` as user scrolls | Apple.com product hero |
-| **Parallax Layers** | Background elements move at 0.3x–0.5x scroll speed | Noqta.tv |
-| **Fade-in on Scroll** | Elements reveal with `opacity:0, y:30` → `opacity:1, y:0` on viewport intersection | Industry standard |
+| **Parallax Layers**       | Background elements move at 0.3x–0.5x scroll speed                                                       | Noqta.tv               |
+| **Fade-in on Scroll**     | Elements reveal with `opacity:0, y:30` → `opacity:1, y:0` on viewport intersection                       | Industry standard      |
 
 ### 4.2 Micro-Interactions
 
-| Element | Trigger | Animation |
-|---------|---------|-----------|
-| **Nav Links** | Hover | Underline draws from left, accent color text transition 200ms |
-| **Cards** | Hover | Subtle lift `translateY(-4px)`, border-emerald glow, shadow spread |
-| **Buttons (Primary)** | Hover | Background lightens to `accent-hover`, scale(1.02) |
-| **Buttons (Ghost)** | Hover | Border becomes `accent`, text becomes `accent` |
-| **Portfolio Cards** | Hover (200ms debounce) | Static poster crossfades to silent video loop over 400ms |
-| **Logo Marquee** | Hover | Pause CSS animation, individual logo brightens to full opacity |
-| **Service Cards** | Hover | Low-opacity video preview fades behind text |
+| Element               | Trigger                | Animation                                                          |
+| --------------------- | ---------------------- | ------------------------------------------------------------------ |
+| **Nav Links**         | Hover                  | Underline draws from left, accent color text transition 200ms      |
+| **Cards**             | Hover                  | Subtle lift `translateY(-4px)`, border-emerald glow, shadow spread |
+| **Buttons (Primary)** | Hover                  | Background lightens to `accent-hover`, scale(1.02)                 |
+| **Buttons (Ghost)**   | Hover                  | Border becomes `accent`, text becomes `accent`                     |
+| **Portfolio Cards**   | Hover (200ms debounce) | Static poster crossfades to silent video loop over 400ms           |
+| **Logo Marquee**      | Hover                  | Pause CSS animation, individual logo brightens to full opacity     |
+| **Service Cards**     | Hover                  | Low-opacity video preview fades behind text                        |
 
 ### 4.3 Transition Tokens
 
@@ -226,20 +232,37 @@ ishoot brand english and arabic fonts/
 ```css
 /* Shutter pulse (logo/aperture breathing) */
 @keyframes shutter {
-  0%, 100% { opacity: 0.4; transform: scale(0.98); }
-  50% { opacity: 1; transform: scale(1); }
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Infinite client logo marquee */
 @keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 /* Staggered text entrance */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 ```
 
@@ -251,7 +274,7 @@ The cinematic glass effect is a core visual element, inspired by Noqta.tv's navi
 
 ```css
 .glass-surface {
-  background: rgba(11, 18, 16, 0.75);      /* --ishoot-surface-glass */
+  background: rgba(11, 18, 16, 0.75); /* --ishoot-surface-glass */
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(9, 147, 127, 0.15); /* border-glass */
@@ -397,6 +420,7 @@ Based on the [invoice templates](file:///Users/sayed/Desktop/GitHub/ishoot.bh/is
 ```
 
 Key rules:
+
 - **BHD (Bahraini Dinar)** uses **3 decimal places** (e.g., 500.000 BHD)
 - **VAT rate**: 10% (Bahrain standard)
 - **Language toggle**: Full bilingual support (EN/AR)
@@ -410,12 +434,12 @@ Key rules:
 
 ```css
 /* Tailwind v4 defaults with custom additions */
---breakpoint-sm: 640px;   /* Mobile landscape */
---breakpoint-md: 768px;   /* Tablet portrait */
---breakpoint-lg: 1024px;  /* Tablet landscape / small laptop */
---breakpoint-xl: 1280px;  /* Desktop */
+--breakpoint-sm: 640px; /* Mobile landscape */
+--breakpoint-md: 768px; /* Tablet portrait */
+--breakpoint-lg: 1024px; /* Tablet landscape / small laptop */
+--breakpoint-xl: 1280px; /* Desktop */
 --breakpoint-2xl: 1536px; /* Large desktop */
---breakpoint-4k: 2560px;  /* UltraWide / 4K */
+--breakpoint-4k: 2560px; /* UltraWide / 4K */
 ```
 
 ---

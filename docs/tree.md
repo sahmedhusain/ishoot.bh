@@ -369,15 +369,15 @@ ishoot.bh/
 
 ## File Count Summary
 
-| Area | Files | Directories |
-|------|-------|-------------|
-| Root config | ~10 | 2 |
-| docs/ | 5 | 1 |
-| apps/web | ~48 | ~22 |
-| apps/admin | ~78 | ~35 |
-| packages/database | ~15 | 3 |
-| packages/ui | ~22 | 2 |
-| packages/email | ~10 | 3 |
-| packages/locales | ~5 | 2 |
-| packages/config | ~5 | 1 |
-| **Total** | **~198** | **~71** |
+| Area              | Files    | Directories |
+| ----------------- | -------- | ----------- |
+| Root config       | ~10      | 2           |
+| docs/             | 5        | 1           |
+| apps/web          | ~48      | ~22         |
+| apps/admin        | ~78      | ~35         |
+| packages/database | ~15      | 3           |
+| packages/ui       | ~22      | 2           |
+| packages/email    | ~10      | 3           |
+| packages/locales  | ~5       | 2           |
+| packages/config   | ~5       | 1           |
+| **Total**         | **~198** | **~71**     |

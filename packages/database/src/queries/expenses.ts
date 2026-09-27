@@ -1,5 +1,5 @@
-import { db } from '../db';
-import { Expense, ExpenseCategory, SupportedCurrency } from '../types';
+import { db } from "../db";
+import { Expense, ExpenseCategory, SupportedCurrency } from "../types";
 
 function mapCategory(c: any): ExpenseCategory {
   return {
@@ -15,14 +15,14 @@ function mapCategory(c: any): ExpenseCategory {
 function mapExpense(e: any): Expense {
   return {
     id: e.id,
-    category_id: e.categoryId || '',
+    category_id: e.categoryId || "",
     category: e.category ? mapCategory(e.category) : undefined,
     deal_id: e.dealId || undefined,
     description_en: e.descriptionEn,
     description_ar: e.descriptionAr || undefined,
     amount: Number(e.amount),
-    currency: (e.currency as SupportedCurrency) || 'BHD',
-    expense_date: e.expenseDate.toISOString().split('T')[0],
+    currency: (e.currency as SupportedCurrency) || "BHD",
+    expense_date: e.expenseDate.toISOString().split("T")[0],
     vendor_name: e.vendorName || undefined,
     receipt_url: e.receiptUrl || undefined,
     is_recurring: e.isRecurring,
@@ -35,11 +35,11 @@ function mapExpense(e: any): Expense {
 export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
   try {
     const categories = await db.expenseCategory.findMany({
-      orderBy: { displayOrder: 'asc' },
+      orderBy: { displayOrder: "asc" },
     });
     return categories.map(mapCategory);
   } catch (e) {
-    console.error('Error fetching expense categories from DB:', e);
+    console.error("Error fetching expense categories from DB:", e);
     return [];
   }
 }
@@ -56,7 +56,7 @@ export async function createExpenseCategory(data: {
       slug: data.slug,
       nameEn: data.name_en,
       nameAr: data.name_ar || data.name_en,
-      color: data.color || '#09937F',
+      color: data.color || "#09937F",
       displayOrder: data.display_order ?? 0,
     },
   });
@@ -70,11 +70,11 @@ export async function getAllExpenses(): Promise<Expense[]> {
         category: true,
         deal: true,
       },
-      orderBy: { expenseDate: 'desc' },
+      orderBy: { expenseDate: "desc" },
     });
     return expenses.map(mapExpense);
   } catch (e) {
-    console.error('Error fetching expenses from DB:', e);
+    console.error("Error fetching expenses from DB:", e);
     return [];
   }
 }
@@ -101,8 +101,10 @@ export async function createExpense(expense: {
       descriptionEn: expense.description_en,
       descriptionAr: expense.description_ar || null,
       amount: expense.amount,
-      currency: expense.currency || 'BHD',
-      expenseDate: expense.expense_date ? new Date(expense.expense_date) : new Date(),
+      currency: expense.currency || "BHD",
+      expenseDate: expense.expense_date
+        ? new Date(expense.expense_date)
+        : new Date(),
       vendorName: expense.vendor_name || null,
       receiptUrl: expense.receipt_url || null,
       isRecurring: expense.is_recurring || false,
@@ -114,20 +116,31 @@ export async function createExpense(expense: {
   return mapExpense(created);
 }
 
-export async function updateExpense(id: string, data: Partial<Expense>): Promise<Expense | null> {
+export async function updateExpense(
+  id: string,
+  data: Partial<Expense>,
+): Promise<Expense | null> {
   try {
     const updateData: any = {};
-    if (data.category_id !== undefined) updateData.categoryId = data.category_id;
+    if (data.category_id !== undefined)
+      updateData.categoryId = data.category_id;
     if (data.deal_id !== undefined) updateData.dealId = data.deal_id;
-    if (data.description_en !== undefined) updateData.descriptionEn = data.description_en;
-    if (data.description_ar !== undefined) updateData.descriptionAr = data.description_ar;
+    if (data.description_en !== undefined)
+      updateData.descriptionEn = data.description_en;
+    if (data.description_ar !== undefined)
+      updateData.descriptionAr = data.description_ar;
     if (data.amount !== undefined) updateData.amount = data.amount;
     if (data.currency !== undefined) updateData.currency = data.currency;
-    if (data.expense_date !== undefined) updateData.expenseDate = new Date(data.expense_date);
-    if (data.vendor_name !== undefined) updateData.vendorName = data.vendor_name;
-    if (data.receipt_url !== undefined) updateData.receiptUrl = data.receipt_url;
-    if (data.is_recurring !== undefined) updateData.isRecurring = data.is_recurring;
-    if (data.recurrence_interval !== undefined) updateData.recurrenceInterval = data.recurrence_interval;
+    if (data.expense_date !== undefined)
+      updateData.expenseDate = new Date(data.expense_date);
+    if (data.vendor_name !== undefined)
+      updateData.vendorName = data.vendor_name;
+    if (data.receipt_url !== undefined)
+      updateData.receiptUrl = data.receipt_url;
+    if (data.is_recurring !== undefined)
+      updateData.isRecurring = data.is_recurring;
+    if (data.recurrence_interval !== undefined)
+      updateData.recurrenceInterval = data.recurrence_interval;
     if (data.notes !== undefined) updateData.notes = data.notes;
 
     const updated = await db.expense.update({

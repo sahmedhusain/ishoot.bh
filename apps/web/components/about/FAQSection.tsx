@@ -1,49 +1,47 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useTranslation } from '../../hooks/useTranslation';
-import { ChevronDown } from 'lucide-react';
+import * as React from "react";
+import { useTranslation } from "../../hooks/useTranslation";
+import { ChevronDown } from "lucide-react";
 
-export function StarscastingFAQ() {
-  const { t, isRTL } = useTranslation();
+export function FAQSection() {
+  const { t } = useTranslation();
   const [openIdx, setOpenIdx] = React.useState<number | null>(0);
 
-  const items = t('faq.items') as unknown as Array<{
-    qEn: string;
-    qAr: string;
-    aEn: string;
-    aAr: string;
+  const items = t("faq.items") as unknown as Array<{
+    question: string;
+    answer: string;
   }>;
 
   return (
-    <section id="faq" className="relative py-28 bg-[#050807] text-[#F2F6F5] select-none border-t border-white/5">
+    <section
+      id="faq"
+      className="relative py-28 bg-[#050807] text-[#F2F6F5] select-none border-t border-white/5"
+    >
       <div className="shell space-y-16">
-        {/* Editorial Index Header */}
         <div className="relative w-full">
           <span aria-hidden="true" className="block h-px w-full bg-white/10" />
           <div className="mt-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#9EADA9]">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-              <span>{t('faq.sectionIndex')}</span>
+              <span>{t("faq.sectionIndex")}</span>
             </span>
             <span className="font-bold text-white">
-              ({isRTL ? t('faq.sectionLabelAr') : t('faq.sectionLabelEn')})
+              ({t("faq.sectionLabel")})
             </span>
             <span>© {new Date().getFullYear()}</span>
           </div>
         </div>
 
-        {/* Heading */}
         <div className="max-w-2xl space-y-3">
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-display">
-            {isRTL ? t('faq.headlineAr') : t('faq.headlineEn')}
+            {t("faq.headline")}
           </h2>
           <p className="text-sm sm:text-base text-[#9EADA9] leading-relaxed">
-            {isRTL ? t('faq.subtitleAr') : t('faq.subtitleEn')}
+            {t("faq.subtitle")}
           </p>
         </div>
 
-        {/* Accordion List */}
         <div className="max-w-4xl mx-auto divide-y divide-white/10">
           {(Array.isArray(items) ? items : []).map((faq, idx) => {
             const isOpen = openIdx === idx;
@@ -56,16 +54,18 @@ export function StarscastingFAQ() {
                   aria-expanded={isOpen}
                 >
                   <span className="text-base sm:text-lg font-bold text-white group-hover:text-[#5EEAD4] transition-colors font-sans">
-                    {isRTL ? faq.qAr : faq.qEn}
+                    {faq.question}
                   </span>
-                  <div className={`w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-[#09937F] transition-transform duration-300 ${isOpen ? 'rotate-180 bg-[#014842] text-white' : ''}`}>
+                  <div
+                    className={`w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-[#09937F] transition-transform duration-300 ${isOpen ? "rotate-180 bg-[#014842] text-white" : ""}`}
+                  >
                     <ChevronDown className="w-4 h-4" />
                   </div>
                 </button>
 
                 {isOpen && (
                   <div className="mt-4 text-xs sm:text-sm text-[#9EADA9] leading-relaxed font-sans max-w-3xl animate-fade-in">
-                    {isRTL ? faq.aAr : faq.aEn}
+                    {faq.answer}
                   </div>
                 )}
               </div>

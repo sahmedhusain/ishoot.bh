@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useDroppable } from '@dnd-kit/core';
-import type { CRMDeal, DealStage } from '@ishoot/database/types';
-import { DealCard } from './DealCard';
-import { CurrencyDisplay } from '@ishoot/ui';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
+import * as React from "react";
+import { useDroppable } from "@dnd-kit/core";
+import type { CRMDeal, DealStage } from "@ishoot/database/types";
+import { DealCard } from "./DealCard";
+import { CurrencyDisplay } from "@ishoot/ui";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface KanbanColumnProps {
   stage: DealStage;
@@ -14,7 +14,12 @@ interface KanbanColumnProps {
   accentColor?: string;
 }
 
-export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: KanbanColumnProps) {
+export function KanbanColumn({
+  stage,
+  label,
+  deals,
+  accentColor = "#09937F",
+}: KanbanColumnProps) {
   const { t } = useAdminLocale();
   const { setNodeRef, isOver } = useDroppable({
     id: stage,
@@ -26,10 +31,9 @@ export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: K
     <div
       ref={setNodeRef}
       className={`w-72 shrink-0 bg-[#070C0A] rounded-2xl border flex flex-col max-h-[calc(100vh-210px)] transition-colors ${
-        isOver ? 'border-[#09937F] bg-[#09937F]/5' : 'border-white/10'
+        isOver ? "border-[#09937F] bg-[#09937F]/5" : "border-white/10"
       }`}
     >
-      {/* Column Header */}
       <div className="p-4 border-b border-white/10 space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -54,7 +58,6 @@ export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: K
         </div>
       </div>
 
-      {/* Cards List */}
       <div className="p-3 space-y-3 overflow-y-auto flex-1">
         {deals.map((deal) => (
           <DealCard key={deal.id} deal={deal} />

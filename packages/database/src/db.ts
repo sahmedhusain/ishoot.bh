@@ -1,7 +1,8 @@
-const DEFAULT_DB_URL = "postgresql://ishoot:ishoot_password@localhost:5432/ishoot_db?schema=public";
+const DEFAULT_DB_URL =
+  "postgresql://ishoot:ishoot_password@localhost:5432/ishoot_db?schema=public";
 const databaseUrl = process.env.DATABASE_URL || DEFAULT_DB_URL;
 
-import { PrismaClient } from '../prisma/generated/client';
+import { PrismaClient } from "../prisma/generated/client";
 
 const prismaClientSingleton = () => {
   return new PrismaClient({
@@ -19,4 +20,4 @@ declare global {
 
 export const db = globalThis.prismaGlobal ?? prismaClientSingleton();
 
-if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = db;
+if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = db;

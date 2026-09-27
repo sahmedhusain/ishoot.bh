@@ -1,8 +1,12 @@
-import * as React from 'react';
-import { getAllPayments, getAllInvoices, getCompanySettings } from '@ishoot/database';
-import { PaymentsManagementView } from '../../../components/payments/PaymentsManagementView';
+import * as React from "react";
+import {
+  getAllPayments,
+  getAllInvoices,
+  getCompanySettings,
+} from "@ishoot/database";
+import { PaymentsManagementView } from "../../../components/payments/PaymentsManagementView";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function PaymentsPage() {
   const [payments, invoices, company] = await Promise.all([

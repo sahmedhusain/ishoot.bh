@@ -1,34 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
 
-const locales = ['en', 'ar'];
-const defaultLocale = 'ar';
+const locales = ["en", "ar"];
+const defaultLocale = "ar";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Ignore API, Next internal assets, images, and public fonts
   if (
-    pathname.startsWith('/api') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/fonts') ||
-    pathname.startsWith('/images') ||
-    pathname.includes('.')
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/fonts") ||
+    pathname.startsWith("/images") ||
+    pathname.includes(".")
   ) {
     return NextResponse.next();
   }
 
-  // Check if pathname has a locale prefix
   const pathnameHasLocale = locales.some(
-    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
 
   if (!pathnameHasLocale) {
-    // Detect preferred locale from header or fallback to en
-    const acceptLang = request.headers.get('accept-language') || '';
-    const detectedLocale = acceptLang.startsWith('en') ? 'en' : 'ar';
+    const acceptLang = request.headers.get("accept-language") || "";
+    const detectedLocale = acceptLang.startsWith("en") ? "en" : "ar";
 
     return NextResponse.redirect(
-      new URL(`/${detectedLocale}${pathname.startsWith('/') ? pathname : `/${pathname}`}`, request.url)
+      new URL(
+        `/${detectedLocale}${pathname.startsWith("/") ? pathname : `/${pathname}`}`,
+        request.url,
+      ),
     );
   }
 
@@ -36,5 +36,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
+import * as React from "react";
+import { Volume2, VolumeX } from "lucide-react";
 
 interface AudioToggleProps {
   isMuted: boolean;
@@ -10,7 +10,12 @@ interface AudioToggleProps {
   labelOff?: string;
 }
 
-export function AudioToggle({ isMuted, onToggle, labelOn = 'Sound On', labelOff = 'Sound Off' }: AudioToggleProps) {
+export function AudioToggle({
+  isMuted,
+  onToggle,
+  labelOn = "Sound On",
+  labelOff = "Sound Off",
+}: AudioToggleProps) {
   return (
     <button
       onClick={onToggle}

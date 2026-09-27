@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { getCRMContacts, getCompanySettings } from '@ishoot/database';
-import { NewInvoiceFormView } from '../../../../components/invoices/NewInvoiceFormView';
+import * as React from "react";
+import { getCRMContacts, getCompanySettings } from "@ishoot/database";
+import { NewInvoiceFormView } from "../../../../components/invoices/NewInvoiceFormView";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function NewInvoicePage() {
   const [contacts, company] = await Promise.all([

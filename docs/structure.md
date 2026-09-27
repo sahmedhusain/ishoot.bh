@@ -283,34 +283,34 @@ erDiagram
 
 ### 4.2 Row Level Security Strategy
 
-| Table | Public (anon) | Authenticated (editor) | Authenticated (producer+) |
-|-------|---------------|----------------------|--------------------------|
-| `company_settings` | SELECT (for invoice display) | SELECT | super_admin: ALL |
-| `hero_banners` | SELECT where `is_active` | ALL | ALL |
-| `portfolio_items` | SELECT all | ALL | ALL |
-| `portfolio_categories` | SELECT all | ALL | ALL |
-| `client_logos` | SELECT where `is_active` | ALL | ALL |
-| `studio_equipment` | SELECT all | ALL | ALL |
-| `inquiries` | INSERT only | None | ALL |
-| `crm_contacts` | None | None | ALL |
-| `crm_deals` | None | None | ALL |
-| `invoices` | None | None | ALL |
-| `invoice_line_items` | None | None | ALL |
-| `payments` | None | None | ALL |
-| `expense_categories` | None | None | ALL |
-| `expenses` | None | None | ALL |
+| Table                  | Public (anon)                | Authenticated (editor) | Authenticated (producer+) |
+| ---------------------- | ---------------------------- | ---------------------- | ------------------------- |
+| `company_settings`     | SELECT (for invoice display) | SELECT                 | super_admin: ALL          |
+| `hero_banners`         | SELECT where `is_active`     | ALL                    | ALL                       |
+| `portfolio_items`      | SELECT all                   | ALL                    | ALL                       |
+| `portfolio_categories` | SELECT all                   | ALL                    | ALL                       |
+| `client_logos`         | SELECT where `is_active`     | ALL                    | ALL                       |
+| `studio_equipment`     | SELECT all                   | ALL                    | ALL                       |
+| `inquiries`            | INSERT only                  | None                   | ALL                       |
+| `crm_contacts`         | None                         | None                   | ALL                       |
+| `crm_deals`            | None                         | None                   | ALL                       |
+| `invoices`             | None                         | None                   | ALL                       |
+| `invoice_line_items`   | None                         | None                   | ALL                       |
+| `payments`             | None                         | None                   | ALL                       |
+| `expense_categories`   | None                         | None                   | ALL                       |
+| `expenses`             | None                         | None                   | ALL                       |
 
 ### 4.3 Storage Buckets
 
-| Bucket | Public | Purpose |
-|--------|--------|---------|
-| `hero-media` | ✅ | Hero banner videos + poster images |
-| `portfolio-media` | ✅ | Portfolio thumbnails, videos, galleries |
-| `client-logos` | ✅ | Client logo SVGs/PNGs |
-| `about-assets` | ✅ | CEO portrait, studio photos |
-| `invoices-pdf` | ❌ | Generated invoice PDFs (signed URLs) |
-| `receipts-pdf` | ❌ | Generated payment receipt PDFs (signed URLs) |
-| `expense-receipts` | ❌ | Uploaded expense receipt images/PDFs |
+| Bucket             | Public | Purpose                                      |
+| ------------------ | ------ | -------------------------------------------- |
+| `hero-media`       | ✅     | Hero banner videos + poster images           |
+| `portfolio-media`  | ✅     | Portfolio thumbnails, videos, galleries      |
+| `client-logos`     | ✅     | Client logo SVGs/PNGs                        |
+| `about-assets`     | ✅     | CEO portrait, studio photos                  |
+| `invoices-pdf`     | ❌     | Generated invoice PDFs (signed URLs)         |
+| `receipts-pdf`     | ❌     | Generated payment receipt PDFs (signed URLs) |
+| `expense-receipts` | ❌     | Uploaded expense receipt images/PDFs         |
 
 ---
 
@@ -320,15 +320,18 @@ erDiagram
 
 ```typescript
 // packages/email/src/index.ts
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function sendEmail({
-  to, subject, react, attachments
+  to,
+  subject,
+  react,
+  attachments,
 }: EmailOptions) {
   return resend.emails.send({
-    from: 'ishoot <hello@ishoot.bh>',
+    from: "ishoot <hello@ishoot.bh>",
     to,
     subject,
     react,
@@ -474,10 +477,10 @@ WHERE vat_enabled = true AND created_at BETWEEN :start AND :end;
 
 ```typescript
 // packages/locales/src/index.ts
-import en from './en.json';
-import ar from './ar.json';
+import en from "./en.json";
+import ar from "./ar.json";
 
-export type Locale = 'en' | 'ar';
+export type Locale = "en" | "ar";
 export type TranslationKeys = typeof en;
 
 const translations: Record<Locale, TranslationKeys> = { en, ar };
@@ -509,9 +512,9 @@ export default function LocaleLayout({ children, params: { locale } }) {
 
 ### 8.1 Vercel Configuration
 
-| App | Domain | Build Command |
-|-----|--------|---------------|
-| `apps/web` | `ishoot.bh` | `turbo build --filter=web` |
+| App          | Domain            | Build Command                |
+| ------------ | ----------------- | ---------------------------- |
+| `apps/web`   | `ishoot.bh`       | `turbo build --filter=web`   |
 | `apps/admin` | `admin.ishoot.bh` | `turbo build --filter=admin` |
 
 ### 8.2 Environment Variables
@@ -536,21 +539,21 @@ NEXT_PUBLIC_ADMIN_URL=https://admin.ishoot.bh
 
 ## 9. Key Technical Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `next` | `^15.0` | Framework (App Router) |
-| `react` | `^19.0` | UI library |
-| `tailwindcss` | `^4.0` | Utility CSS |
-| `@supabase/supabase-js` | `^2.45` | Database client |
-| `@supabase/ssr` | `^0.5` | Server-side auth |
-| `framer-motion` | `^11.0` | Scroll animations |
-| `lenis` | `^1.1` | Smooth scroll |
-| `@react-pdf/renderer` | `^4.0` | Invoice + Receipt PDF generation |
-| `lucide-react` | `^0.400` | Icons |
-| `resend` | `^4.0` | Transactional email |
-| `@react-email/components` | `^0.0.25` | Email templates |
-| `@dnd-kit/core` | `^6.0` | Drag-and-drop (Kanban) |
-| `@dnd-kit/sortable` | `^8.0` | Sortable lists |
-| `recharts` | `^2.12` | Financial dashboard charts |
-| `date-fns` | `^3.0` | Date formatting & manipulation |
-| `turbo` | `^2.0` | Build orchestration |
+| Package                   | Version   | Purpose                          |
+| ------------------------- | --------- | -------------------------------- |
+| `next`                    | `^15.0`   | Framework (App Router)           |
+| `react`                   | `^19.0`   | UI library                       |
+| `tailwindcss`             | `^4.0`    | Utility CSS                      |
+| `@supabase/supabase-js`   | `^2.45`   | Database client                  |
+| `@supabase/ssr`           | `^0.5`    | Server-side auth                 |
+| `framer-motion`           | `^11.0`   | Scroll animations                |
+| `lenis`                   | `^1.1`    | Smooth scroll                    |
+| `@react-pdf/renderer`     | `^4.0`    | Invoice + Receipt PDF generation |
+| `lucide-react`            | `^0.400`  | Icons                            |
+| `resend`                  | `^4.0`    | Transactional email              |
+| `@react-email/components` | `^0.0.25` | Email templates                  |
+| `@dnd-kit/core`           | `^6.0`    | Drag-and-drop (Kanban)           |
+| `@dnd-kit/sortable`       | `^8.0`    | Sortable lists                   |
+| `recharts`                | `^2.12`   | Financial dashboard charts       |
+| `date-fns`                | `^3.0`    | Date formatting & manipulation   |
+| `turbo`                   | `^2.0`    | Build orchestration              |

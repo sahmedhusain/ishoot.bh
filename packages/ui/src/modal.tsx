@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { cn } from './utils';
+import * as React from "react";
+import { cn } from "./utils";
 
 export interface ModalProps {
   isOpen: boolean;
@@ -9,19 +9,22 @@ export interface ModalProps {
   className?: string;
 }
 
-export function Modal({ isOpen, onClose, title, children, className }: ModalProps) {
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  className,
+}: ModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-      <div
-        className="fixed inset-0"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0" onClick={onClose} />
       <div
         className={cn(
-          'relative w-full max-w-lg bg-[#0B1210] border border-[#09937F]/30 rounded-2xl p-6 shadow-2xl z-10 max-h-[90vh] overflow-y-auto',
-          className
+          "relative w-full max-w-lg bg-[#0B1210] border border-[#09937F]/30 rounded-2xl p-6 shadow-2xl z-10 max-h-[90vh] overflow-y-auto",
+          className,
         )}
       >
         {title && (

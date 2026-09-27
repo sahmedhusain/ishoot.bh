@@ -1,17 +1,19 @@
-import { db } from '../db';
-import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { db } from "../db";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
-export function normalizeToE164(phone: string, defaultCountry = 'BH'): string | null {
+export function normalizeToE164(
+  phone: string,
+  defaultCountry = "BH",
+): string | null {
   try {
     const clean = phone.trim();
     if (!clean) return null;
     const parsed = parsePhoneNumberFromString(clean, defaultCountry as any);
     if (parsed && parsed.isValid()) {
-      return parsed.format('E.164');
+      return parsed.format("E.164");
     }
-    // Fallback: strip spaces and keep leading + or digits
-    const digitsOnly = clean.replace(/[^0-9+]/g, '');
-    if (digitsOnly.startsWith('+')) return digitsOnly;
+    const digitsOnly = clean.replace(/[^0-9+]/g, "");
+    if (digitsOnly.startsWith("+")) return digitsOnly;
     if (digitsOnly.length === 8) return `+973${digitsOnly}`;
     return `+${digitsOnly}`;
   } catch {
@@ -28,21 +30,22 @@ export interface ResolveLeadInput {
   budgetRange?: string;
   timeline?: string;
   message: string;
-  source?: 'website' | 'email' | 'whatsapp' | 'manual';
+  source?: "website" | "email" | "whatsapp" | "manual";
   locale?: string;
 }
 
 export interface ResolvedLeadResult {
   customerId: string | null;
   inquiryId: string;
-  resolution: 'new_customer' | 'existing_customer' | 'merge_conflict';
+  resolution: "new_customer" | "existing_customer" | "merge_conflict";
 }
 
-export async function resolveIncomingLead(data: ResolveLeadInput): Promise<ResolvedLeadResult> {
+export async function resolveIncomingLead(
+  data: ResolveLeadInput,
+): Promise<ResolvedLeadResult> {
   const emailNorm = data.email.trim().toLowerCase();
-  const phoneE164 = data.phone ? normalizeToE164(data.phone, 'BH') : null;
+  const phoneE164 = data.phone ? normalizeToE164(data.phone, "BH") : null;
 
-  // 1. Check for matches on emailNorm or phoneE164
   const emailMatch = await db.crmContact.findFirst({
     where: { emailNorm },
   });
@@ -53,7 +56,6 @@ export async function resolveIncomingLead(data: ResolveLeadInput): Promise<Resol
       })
     : null;
 
-  // Case A: Conflicting identities (email belongs to Contact A, phone belongs to Contact B)
   if (emailMatch && phoneMatch && emailMatch.id !== phoneMatch.id) {
     const inquiry = await db.inquiry.create({
       data: {
@@ -67,8 +69,8 @@ export async function resolveIncomingLead(data: ResolveLeadInput): Promise<Resol
         budgetRange: data.budgetRange || null,
         timeline: data.timeline || null,
         message: data.message,
-        source: data.source || 'website',
-        locale: data.locale || 'ar',
+        source: data.source || "website",
+        locale: data.locale || "ar",
         mergeFlag: true,
         customerId: null,
       },
@@ -77,11 +79,10 @@ export async function resolveIncomingLead(data: ResolveLeadInput): Promise<Resol
     return {
       customerId: null,
       inquiryId: inquiry.id,
-      resolution: 'merge_conflict',
+      resolution: "merge_conflict",
     };
   }
 
-  // Case B: Existing contact match (email or phone)
   const existingContact = emailMatch || phoneMatch;
   if (existingContact) {
     const inquiry = await db.inquiry.create({
@@ -96,8 +97,8 @@ export async function resolveIncomingLead(data: ResolveLeadInput): Promise<Resol
         budgetRange: data.budgetRange || null,
         timeline: data.timeline || null,
         message: data.message,
-        source: data.source || 'website',
-        locale: data.locale || 'ar',
+        source: data.source || "website",
+        locale: data.locale || "ar",
         mergeFlag: false,
         customerId: existingContact.id,
       },
@@ -106,14 +107,13 @@ export async function resolveIncomingLead(data: ResolveLeadInput): Promise<Resol
     return {
       customerId: existingContact.id,
       inquiryId: inquiry.id,
-      resolution: 'existing_customer',
+      resolution: "existing_customer",
     };
   }
 
-  // Case C: New contact — create CrmContact and link Inquiry
-  const nameParts = data.name.trim().split(' ');
+  const nameParts = data.name.trim().split(" ");
   const firstName = nameParts[0] || data.name;
-  const lastName = nameParts.slice(1).join(' ') || undefined;
+  const lastName = nameParts.slice(1).join(" ") || undefined;
 
   const newContact = await db.crmContact.create({
     data: {
@@ -124,7 +124,7 @@ export async function resolveIncomingLead(data: ResolveLeadInput): Promise<Resol
       phone: data.phone || null,
       phoneE164,
       companyName: data.companyName || null,
-      contactType: 'client',
+      contactType: "client",
     },
   });
 
@@ -140,8 +140,8 @@ export async function resolveIncomingLead(data: ResolveLeadInput): Promise<Resol
       budgetRange: data.budgetRange || null,
       timeline: data.timeline || null,
       message: data.message,
-      source: data.source || 'website',
-      locale: data.locale || 'ar',
+      source: data.source || "website",
+      locale: data.locale || "ar",
       mergeFlag: false,
       customerId: newContact.id,
     },
@@ -150,6 +150,6 @@ export async function resolveIncomingLead(data: ResolveLeadInput): Promise<Resol
   return {
     customerId: newContact.id,
     inquiryId: inquiry.id,
-    resolution: 'new_customer',
+    resolution: "new_customer",
   };
 }

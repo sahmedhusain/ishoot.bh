@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { HeroBanner as HeroBannerType } from '@ishoot/database';
-import { HeroSlide } from './HeroSlide';
-import { AudioToggle } from './AudioToggle';
-import { VideoProgress } from './VideoProgress';
-import { useTranslation } from '../../hooks/useTranslation';
+import * as React from "react";
+import { HeroBanner as HeroBannerType } from "@ishoot/database";
+import { HeroSlide } from "./HeroSlide";
+import { AudioToggle } from "./AudioToggle";
+import { VideoProgress } from "./VideoProgress";
+import { useTranslation } from "../../hooks/useTranslation";
 
 interface HeroBannerProps {
   banners: HeroBannerType[];
@@ -17,7 +17,6 @@ export function HeroBanner({ banners }: HeroBannerProps) {
   const [isMuted, setIsMuted] = React.useState(true);
   const [isPaused, setIsPaused] = React.useState(false);
 
-  // Auto-advance slides every 8s unless hovered or interacted with
   React.useEffect(() => {
     if (banners.length <= 1 || isPaused) return;
 
@@ -38,7 +37,6 @@ export function HeroBanner({ banners }: HeroBannerProps) {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Slides */}
       {banners.map((banner, idx) => (
         <HeroSlide
           key={banner.id}
@@ -50,10 +48,8 @@ export function HeroBanner({ banners }: HeroBannerProps) {
         />
       ))}
 
-      {/* Floating Bottom Controls */}
       <div className="absolute bottom-8 left-0 right-0 z-30 pointer-events-none">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
-          {/* Slide Progress */}
           <div className="pointer-events-auto">
             <VideoProgress
               currentIndex={currentIndex}
@@ -62,13 +58,12 @@ export function HeroBanner({ banners }: HeroBannerProps) {
             />
           </div>
 
-          {/* Sound Toggle */}
           <div className="pointer-events-auto">
             <AudioToggle
               isMuted={isMuted}
               onToggle={() => setIsMuted((prev) => !prev)}
-              labelOn={t('hero.audioOn')}
-              labelOff={t('hero.audioOff')}
+              labelOn={t("hero.audioOn")}
+              labelOff={t("hero.audioOff")}
             />
           </div>
         </div>

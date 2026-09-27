@@ -1,13 +1,17 @@
-export function renderBrandEmailLayout(title: string, contentHtml: string, isRtl: boolean = false): string {
-  const dir = isRtl ? 'rtl' : 'ltr';
-  const textAlign = isRtl ? 'right' : 'left';
+export function renderBrandEmailLayout(
+  title: string,
+  contentHtml: string,
+  isRtl: boolean = false,
+): string {
+  const dir = isRtl ? "rtl" : "ltr";
+  const textAlign = isRtl ? "right" : "left";
   const fontFamily = isRtl
     ? "'IBM Plex Sans Arabic', Tahoma, Arial, sans-serif"
     : "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
   return `
 <!DOCTYPE html>
-<html dir="${dir}" lang="${isRtl ? 'ar' : 'en'}">
+<html dir="${dir}" lang="${isRtl ? "ar" : "en"}">
 <head>
   <meta charset="utf-8">
   <title>${title}</title>
@@ -28,7 +32,7 @@ export function renderBrandEmailLayout(title: string, contentHtml: string, isRtl
                       ishoot<span style="color: #09937F;">.</span>
                     </span>
                     <div style="font-size: 11px; text-transform: uppercase; tracking: 2px; color: #9EADA9; margin-top: 4px;">
-                      ${isRtl ? 'دار الإنتاج السينمائي — مملكة البحرين' : 'Cinema Production House — Kingdom of Bahrain'}
+                      ${isRtl ? "دار الإنتاج السينمائي — مملكة البحرين" : "Cinema Production House — Kingdom of Bahrain"}
                     </div>
                   </td>
                 </tr>
@@ -63,10 +67,15 @@ export function renderBrandEmailLayout(title: string, contentHtml: string, isRtl
   `;
 }
 
-// 1. Client Inquiry Acknowledgment Template
-export function createInquiryConfirmationEmail(name: string, services: string[], locale: string = 'en'): string {
-  const isAr = locale === 'ar';
-  const serviceList = services.map((s) => `<li style="margin-bottom: 6px; color: #09937F;">${s}</li>`).join('');
+export function createInquiryConfirmationEmail(
+  name: string,
+  services: string[],
+  locale: string = "en",
+): string {
+  const isAr = locale === "ar";
+  const serviceList = services
+    .map((s) => `<li style="margin-bottom: 6px; color: #09937F;">${s}</li>`)
+    .join("");
 
   if (isAr) {
     const content = `
@@ -90,7 +99,7 @@ export function createInquiryConfirmationEmail(name: string, services: string[],
         <span style="color: #09937F;">فريق إنتاج آي شوت</span>
       </div>
     `;
-    return renderBrandEmailLayout('شكراً لتواصلك مع آي شوت', content, true);
+    return renderBrandEmailLayout("شكراً لتواصلك مع آي شوت", content, true);
   }
 
   const content = `
@@ -114,10 +123,13 @@ export function createInquiryConfirmationEmail(name: string, services: string[],
       <span style="color: #09937F;">The ishoot Production Team</span>
     </div>
   `;
-  return renderBrandEmailLayout('Thank you for contacting ishoot', content, false);
+  return renderBrandEmailLayout(
+    "Thank you for contacting ishoot",
+    content,
+    false,
+  );
 }
 
-// 2. Internal Team Notification Template
 export function createInquiryNotificationEmail(inquiry: {
   fullName: string;
   email: string;
@@ -127,7 +139,7 @@ export function createInquiryNotificationEmail(inquiry: {
   budget?: string;
   message?: string;
 }): string {
-  const serviceList = inquiry.services.map((s) => `<li>${s}</li>`).join('');
+  const serviceList = inquiry.services.map((s) => `<li>${s}</li>`).join("");
 
   const content = `
     <div style="display: inline-block; background-color: rgba(9, 147, 127, 0.15); border: 1px solid #09937F; color: #09937F; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px; text-transform: uppercase; margin-bottom: 16px;">
@@ -146,15 +158,15 @@ export function createInquiryNotificationEmail(inquiry: {
       </tr>
       <tr>
         <td style="color: #9EADA9;">Phone:</td>
-        <td><a href="tel:${inquiry.phone || ''}" style="color: #09937F; text-decoration: none;">${inquiry.phone || 'Not specified'}</a></td>
+        <td><a href="tel:${inquiry.phone || ""}" style="color: #09937F; text-decoration: none;">${inquiry.phone || "Not specified"}</a></td>
       </tr>
       <tr>
         <td style="color: #9EADA9;">Company:</td>
-        <td style="color: #FFFFFF;">${inquiry.company || 'Direct / Individual'}</td>
+        <td style="color: #FFFFFF;">${inquiry.company || "Direct / Individual"}</td>
       </tr>
       <tr>
         <td style="color: #9EADA9;">Anticipated Budget:</td>
-        <td style="color: #09937F; font-weight: 600;">${inquiry.budget || 'To be discussed'}</td>
+        <td style="color: #09937F; font-weight: 600;">${inquiry.budget || "To be discussed"}</td>
       </tr>
       <tr>
         <td valign="top" style="color: #9EADA9;">Services:</td>
@@ -164,13 +176,16 @@ export function createInquiryNotificationEmail(inquiry: {
 
     <div style="font-size: 13px; font-weight: 600; color: #9EADA9; margin-bottom: 8px;">Project Brief:</div>
     <div style="background-color: #050807; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 16px; font-size: 14px; color: #F2F6F5; white-space: pre-wrap;">
-      ${inquiry.message || 'No additional message provided.'}
+      ${inquiry.message || "No additional message provided."}
     </div>
   `;
-  return renderBrandEmailLayout(`🔔 New Inquiry: ${inquiry.fullName}`, content, false);
+  return renderBrandEmailLayout(
+    `🔔 New Inquiry: ${inquiry.fullName}`,
+    content,
+    false,
+  );
 }
 
-// 3. Invoice Delivery Email Template
 export function createInvoiceDeliveryEmail(params: {
   clientName: string;
   invoiceNumber: string;
@@ -178,9 +193,9 @@ export function createInvoiceDeliveryEmail(params: {
   dueDate: string;
   bankName: string;
   bankIban: string;
-  locale?: 'en' | 'ar';
+  locale?: "en" | "ar";
 }): string {
-  const isAr = params.locale === 'ar';
+  const isAr = params.locale === "ar";
 
   if (isAr) {
     const content = `
@@ -216,7 +231,11 @@ export function createInvoiceDeliveryEmail(params: {
         تجدون نسخة الفاتورة الرسمية بصيغة PDF مرفقة مع هذا البريد الإلكتروني.
       </p>
     `;
-    return renderBrandEmailLayout(`فاتورة رقم ${params.invoiceNumber} من آي شوت`, content, true);
+    return renderBrandEmailLayout(
+      `فاتورة رقم ${params.invoiceNumber} من آي شوت`,
+      content,
+      true,
+    );
   }
 
   const content = `
@@ -252,10 +271,13 @@ export function createInvoiceDeliveryEmail(params: {
       The complete printable PDF document is attached to this email.
     </p>
   `;
-  return renderBrandEmailLayout(`Invoice ${params.invoiceNumber} from ishoot`, content, false);
+  return renderBrandEmailLayout(
+    `Invoice ${params.invoiceNumber} from ishoot`,
+    content,
+    false,
+  );
 }
 
-// 4. Payment Receipt Email Template
 export function createPaymentReceiptEmail(params: {
   clientName: string;
   receiptNumber: string;
@@ -264,14 +286,14 @@ export function createPaymentReceiptEmail(params: {
   remainingDueFormatted: string;
   paymentMethod: string;
   isPaidInFull: boolean;
-  locale?: 'en' | 'ar';
+  locale?: "en" | "ar";
 }): string {
-  const isAr = params.locale === 'ar';
+  const isAr = params.locale === "ar";
 
   if (isAr) {
     const content = `
       <div style="display: inline-block; background-color: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px; text-transform: uppercase; margin-bottom: 16px;">
-        ${params.isPaidInFull ? 'تم سداد الفاتورة بالكامل' : 'استلام دفعة جزئية'}
+        ${params.isPaidInFull ? "تم سداد الفاتورة بالكامل" : "استلام دفعة جزئية"}
       </div>
       <h2 style="color: #FFFFFF; font-size: 22px; margin-top: 0;">تأكيد استلام الدفعة</h2>
       <p style="font-size: 15px; color: #9EADA9;">
@@ -303,12 +325,16 @@ export function createPaymentReceiptEmail(params: {
         تجدون إيصال الاستلام الرسمي بصيغة PDF مرفقاً مع هذه الرسالة.
       </p>
     `;
-    return renderBrandEmailLayout(`إيصال استلام دفعة ${params.receiptNumber} — آي شوت`, content, true);
+    return renderBrandEmailLayout(
+      `إيصال استلام دفعة ${params.receiptNumber} — آي شوت`,
+      content,
+      true,
+    );
   }
 
   const content = `
     <div style="display: inline-block; background-color: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px; text-transform: uppercase; margin-bottom: 16px;">
-      ${params.isPaidInFull ? 'Paid in Full' : 'Partial Payment Received'}
+      ${params.isPaidInFull ? "Paid in Full" : "Partial Payment Received"}
     </div>
     <h2 style="color: #FFFFFF; font-size: 22px; margin-top: 0;">Payment Receipt Confirmation</h2>
     <p style="font-size: 15px; color: #9EADA9;">
@@ -340,5 +366,9 @@ export function createPaymentReceiptEmail(params: {
       Your formal payment receipt document is attached to this email.
     </p>
   `;
-  return renderBrandEmailLayout(`Payment Receipt ${params.receiptNumber} — ishoot`, content, false);
+  return renderBrandEmailLayout(
+    `Payment Receipt ${params.receiptNumber} — ishoot`,
+    content,
+    false,
+  );
 }

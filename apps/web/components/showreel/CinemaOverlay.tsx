@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { X, Play, Pause, Volume2, VolumeX, Maximize2 } from 'lucide-react';
+import * as React from "react";
+import { X, Play, Pause, Volume2, VolumeX, Maximize2 } from "lucide-react";
 
 interface CinemaOverlayProps {
   isOpen: boolean;
@@ -10,7 +10,12 @@ interface CinemaOverlayProps {
   title: string;
 }
 
-export function CinemaOverlay({ isOpen, onClose, videoUrl, title }: CinemaOverlayProps) {
+export function CinemaOverlay({
+  isOpen,
+  onClose,
+  videoUrl,
+  title,
+}: CinemaOverlayProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = React.useState(true);
   const [isMuted, setIsMuted] = React.useState(false);
@@ -26,16 +31,16 @@ export function CinemaOverlay({ isOpen, onClose, videoUrl, title }: CinemaOverla
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === ' ') {
+      if (e.key === "Escape") onClose();
+      if (e.key === " ") {
         e.preventDefault();
         togglePlay();
       }
     };
     if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
+      window.addEventListener("keydown", handleKeyDown);
     }
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, isPlaying]);
 
   if (!isOpen) return null;
@@ -53,7 +58,9 @@ export function CinemaOverlay({ isOpen, onClose, videoUrl, title }: CinemaOverla
 
   const handleTimeUpdate = () => {
     if (videoRef.current && videoRef.current.duration) {
-      setProgress((videoRef.current.currentTime / videoRef.current.duration) * 100);
+      setProgress(
+        (videoRef.current.currentTime / videoRef.current.duration) * 100,
+      );
     }
   };
 
@@ -68,7 +75,6 @@ export function CinemaOverlay({ isOpen, onClose, videoUrl, title }: CinemaOverla
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-2xl animate-fade-in">
-      {/* Top Bar */}
       <div className="absolute top-6 left-6 right-6 z-20 flex items-center justify-between text-white">
         <div className="text-sm font-semibold tracking-wide text-[#9EADA9]">
           {title}
@@ -82,7 +88,6 @@ export function CinemaOverlay({ isOpen, onClose, videoUrl, title }: CinemaOverla
         </button>
       </div>
 
-      {/* Main Video */}
       <div className="relative w-full max-w-6xl aspect-video mx-4 rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10">
         <video
           ref={videoRef}
@@ -94,9 +99,7 @@ export function CinemaOverlay({ isOpen, onClose, videoUrl, title }: CinemaOverla
           className="w-full h-full object-contain cursor-pointer"
         />
 
-        {/* Video Controls Bar */}
         <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col gap-3">
-          {/* Progress Scrubber */}
           <div
             onClick={handleSeek}
             className="w-full h-1.5 bg-white/20 hover:h-2.5 rounded-full cursor-pointer transition-all overflow-hidden"
@@ -109,8 +112,15 @@ export function CinemaOverlay({ isOpen, onClose, videoUrl, title }: CinemaOverla
 
           <div className="flex items-center justify-between text-white text-sm">
             <div className="flex items-center gap-4">
-              <button onClick={togglePlay} className="hover:text-[#09937F] transition-colors">
-                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+              <button
+                onClick={togglePlay}
+                className="hover:text-[#09937F] transition-colors"
+              >
+                {isPlaying ? (
+                  <Pause className="w-5 h-5" />
+                ) : (
+                  <Play className="w-5 h-5" />
+                )}
               </button>
               <button
                 onClick={() => {
@@ -121,7 +131,11 @@ export function CinemaOverlay({ isOpen, onClose, videoUrl, title }: CinemaOverla
                 }}
                 className="hover:text-[#09937F] transition-colors"
               >
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                {isMuted ? (
+                  <VolumeX className="w-5 h-5" />
+                ) : (
+                  <Volume2 className="w-5 h-5" />
+                )}
               </button>
             </div>
             <div className="text-xs text-[#9EADA9] font-mono">

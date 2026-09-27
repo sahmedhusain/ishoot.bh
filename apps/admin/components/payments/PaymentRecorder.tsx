@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import type { Invoice, PaymentMethod } from '@ishoot/database/types';
-import { Modal, Input, Select, Button, CurrencyDisplay } from '@ishoot/ui';
-import { CheckCircle2 } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { createPaymentAction } from '../../app/actions/finance';
+import * as React from "react";
+import type { Invoice, PaymentMethod } from "@ishoot/database/types";
+import { Modal, Input, Select, Button, CurrencyDisplay } from "@ishoot/ui";
+import { CheckCircle2 } from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { createPaymentAction } from "../../app/actions/finance";
 
 interface PaymentRecorderProps {
   isOpen: boolean;
@@ -14,17 +14,23 @@ interface PaymentRecorderProps {
   onSuccess: () => void;
 }
 
-export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: PaymentRecorderProps) {
+export function PaymentRecorder({
+  isOpen,
+  onClose,
+  invoice,
+  onSuccess,
+}: PaymentRecorderProps) {
   const { t, locale } = useAdminLocale();
   const [amount, setAmount] = React.useState<number>(invoice.amount_due);
-  const [method, setMethod] = React.useState<PaymentMethod>('bank_transfer');
-  const [reference, setReference] = React.useState('');
-  const [paymentDate, setPaymentDate] = React.useState(new Date().toISOString().split('T')[0]);
-  const [notes, setNotes] = React.useState('');
+  const [method, setMethod] = React.useState<PaymentMethod>("bank_transfer");
+  const [reference, setReference] = React.useState("");
+  const [paymentDate, setPaymentDate] = React.useState(
+    new Date().toISOString().split("T")[0],
+  );
+  const [notes, setNotes] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
 
-  // Sync amount when invoice changes
   React.useEffect(() => {
     setAmount(invoice.amount_due);
   }, [invoice.amount_due]);
@@ -74,14 +80,16 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Invoice Summary Card */}
           <div className="p-4 rounded-xl bg-[#050807] border border-white/10 flex justify-between items-center text-xs">
             <div>
               <span className="text-[#9EADA9] block">
                 {t.paymentRecorder.totalDue}
               </span>
               <span className="text-base font-bold text-white font-mono">
-                <CurrencyDisplay amount={invoice.amount_due} currency={invoice.currency} />
+                <CurrencyDisplay
+                  amount={invoice.amount_due}
+                  currency={invoice.currency}
+                />
               </span>
             </div>
             <div className="text-end">
@@ -117,8 +125,13 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
               <label className="text-xs font-medium text-[#9EADA9]">
                 {t.paymentRecorder.paymentMethod}
               </label>
-              <Select value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)}>
-                <option value="bank_transfer">{t.paymentRecorder.bankTransfer}</option>
+              <Select
+                value={method}
+                onChange={(e) => setMethod(e.target.value as PaymentMethod)}
+              >
+                <option value="bank_transfer">
+                  {t.paymentRecorder.bankTransfer}
+                </option>
                 <option value="cheque">{t.paymentRecorder.cheque}</option>
                 <option value="cash">{t.paymentRecorder.cash}</option>
                 <option value="card">{t.paymentRecorder.card}</option>
@@ -165,7 +178,12 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
             <Button type="button" variant="ghost" size="sm" onClick={onClose}>
               {t.actions.cancel}
             </Button>
-            <Button type="submit" disabled={loading} variant="primary" size="sm">
+            <Button
+              type="submit"
+              disabled={loading}
+              variant="primary"
+              size="sm"
+            >
               {loading
                 ? t.paymentRecorder.recording
                 : t.paymentRecorder.confirmAndIssue}

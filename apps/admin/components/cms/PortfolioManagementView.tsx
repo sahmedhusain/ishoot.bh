@@ -1,50 +1,75 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import type { PortfolioItem, PortfolioCategory } from '@ishoot/database/types';
-import { Button, Card, Badge, Modal, Input, Select, ConfirmDestructiveModal } from '@ishoot/ui';
-import { Plus, Eye, Trash2, Star, CheckCircle2, Film, Filter } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { togglePortfolioFeaturedAction, deletePortfolioItemAction, createPortfolioItemAction } from '../../app/actions/cms';
+import * as React from "react";
+import type { PortfolioItem, PortfolioCategory } from "@ishoot/database/types";
+import {
+  Button,
+  Card,
+  Badge,
+  Modal,
+  Input,
+  Select,
+  ConfirmDestructiveModal,
+} from "@ishoot/ui";
+import {
+  Plus,
+  Eye,
+  Trash2,
+  Star,
+  CheckCircle2,
+  Film,
+  Filter,
+} from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import {
+  togglePortfolioFeaturedAction,
+  deletePortfolioItemAction,
+  createPortfolioItemAction,
+} from "../../app/actions/cms";
 
 interface PortfolioManagementViewProps {
   initialItems: PortfolioItem[];
   categories: PortfolioCategory[];
 }
 
-export function PortfolioManagementView({ initialItems, categories }: PortfolioManagementViewProps) {
+export function PortfolioManagementView({
+  initialItems,
+  categories,
+}: PortfolioManagementViewProps) {
   const { t, locale } = useAdminLocale();
   const [items, setItems] = React.useState<PortfolioItem[]>(initialItems);
-  const [selectedCat, setSelectedCat] = React.useState<string>('all');
+  const [selectedCat, setSelectedCat] = React.useState<string>("all");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
+    null,
+  );
   const [saving, setSaving] = React.useState(false);
 
-  // Form state
-  const [titleEn, setTitleEn] = React.useState('');
-  const [titleAr, setTitleAr] = React.useState('');
-  const [slug, setSlug] = React.useState('');
-  const [clientName, setClientName] = React.useState('');
+  const [titleEn, setTitleEn] = React.useState("");
+  const [titleAr, setTitleAr] = React.useState("");
+  const [slug, setSlug] = React.useState("");
+  const [clientName, setClientName] = React.useState("");
   const [year, setYear] = React.useState<number>(new Date().getFullYear());
-  const [aspectRatio, setAspectRatio] = React.useState('16:9');
-  const [thumbnailUrl, setThumbnailUrl] = React.useState('');
-  const [previewVideoUrl, setPreviewVideoUrl] = React.useState('');
-  const [categoryId, setCategoryId] = React.useState('');
+  const [aspectRatio, setAspectRatio] = React.useState("16:9");
+  const [thumbnailUrl, setThumbnailUrl] = React.useState("");
+  const [previewVideoUrl, setPreviewVideoUrl] = React.useState("");
+  const [categoryId, setCategoryId] = React.useState("");
   const [isFeatured, setIsFeatured] = React.useState(false);
 
-  const filteredItems = selectedCat === 'all'
-    ? items
-    : items.filter((item) => item.category_id === selectedCat);
+  const filteredItems =
+    selectedCat === "all"
+      ? items
+      : items.filter((item) => item.category_id === selectedCat);
 
   const handleToggleFeatured = async (id: string, currentFeatured: boolean) => {
     const nextFeatured = !currentFeatured;
     setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, is_featured: nextFeatured } : i))
+      prev.map((i) => (i.id === id ? { ...i, is_featured: nextFeatured } : i)),
     );
     try {
       await togglePortfolioFeaturedAction(id, nextFeatured);
     } catch (err) {
-      console.error('Failed to toggle featured status:', err);
+      console.error("Failed to toggle featured status:", err);
     }
   };
 
@@ -53,7 +78,7 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
     try {
       await deletePortfolioItemAction(id);
     } catch (err) {
-      console.error('Failed to delete portfolio item:', err);
+      console.error("Failed to delete portfolio item:", err);
     }
   };
 
@@ -63,7 +88,8 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
     if (!thumbnailUrl || !clientName) return;
     setSaving(true);
 
-    const generatedSlug = slug || (titleEn || titleAr).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const generatedSlug =
+      slug || (titleEn || titleAr).toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
     try {
       const res = await createPortfolioItemAction({
@@ -83,16 +109,15 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
         setItems((prev) => [res.project, ...prev]);
       }
       setIsModalOpen(false);
-      // Reset
-      setTitleEn('');
-      setTitleAr('');
-      setSlug('');
-      setClientName('');
-      setThumbnailUrl('');
-      setPreviewVideoUrl('');
+      setTitleEn("");
+      setTitleAr("");
+      setSlug("");
+      setClientName("");
+      setThumbnailUrl("");
+      setPreviewVideoUrl("");
       setIsFeatured(false);
     } catch (err) {
-      console.error('Failed to create portfolio project:', err);
+      console.error("Failed to create portfolio project:", err);
     } finally {
       setSaving(false);
     }
@@ -100,7 +125,6 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -122,15 +146,14 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
         </Button>
       </div>
 
-      {/* Category Pills */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <Filter className="w-4 h-4 text-[#9EADA9] shrink-0" />
         <button
-          onClick={() => setSelectedCat('all')}
+          onClick={() => setSelectedCat("all")}
           className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-            selectedCat === 'all'
-              ? 'bg-[#09937F] text-white shadow-lg shadow-[#09937F]/20'
-              : 'bg-[#0B1210] border border-white/10 text-[#9EADA9] hover:text-white'
+            selectedCat === "all"
+              ? "bg-[#09937F] text-white shadow-lg shadow-[#09937F]/20"
+              : "bg-[#0B1210] border border-white/10 text-[#9EADA9] hover:text-white"
           }`}
         >
           {t.actions.all}
@@ -141,21 +164,22 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
             onClick={() => setSelectedCat(c.id)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               selectedCat === c.id
-                ? 'bg-[#09937F] text-white shadow-lg shadow-[#09937F]/20'
-                : 'bg-[#0B1210] border border-white/10 text-[#9EADA9] hover:text-white'
+                ? "bg-[#09937F] text-white shadow-lg shadow-[#09937F]/20"
+                : "bg-[#0B1210] border border-white/10 text-[#9EADA9] hover:text-white"
             }`}
           >
-            {locale === 'ar' ? c.name_ar : c.name_en}
+            {locale === "ar" ? c.name_ar : c.name_en}
           </button>
         ))}
       </div>
 
-      {/* Project Table */}
       <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
         <table className="w-full text-start text-xs">
           <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider">
             <tr>
-              <th className="p-4 text-start">{t.portfolioView.projectClient}</th>
+              <th className="p-4 text-start">
+                {t.portfolioView.projectClient}
+              </th>
               <th className="p-4 text-start">{t.portfolioView.aspectRatio}</th>
               <th className="p-4 text-start">{t.portfolioView.year}</th>
               <th className="p-4 text-center">{t.cms.featured}</th>
@@ -164,19 +188,24 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
           </thead>
           <tbody className="divide-y divide-white/5">
             {filteredItems.map((item) => (
-              <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
+              <tr
+                key={item.id}
+                className="hover:bg-white/[0.02] transition-colors"
+              >
                 <td className="p-4">
                   <div className="flex items-center gap-3">
                     <img
                       src={item.thumbnail_url}
-                      alt={locale === 'ar' ? item.title_ar : item.title_en}
+                      alt={locale === "ar" ? item.title_ar : item.title_en}
                       className="w-16 h-10 rounded-xl object-cover bg-black shrink-0 border border-white/10"
                     />
                     <div>
                       <div className="font-bold text-white text-sm">
-                        {locale === 'ar' ? item.title_ar : item.title_en}
+                        {locale === "ar" ? item.title_ar : item.title_en}
                       </div>
-                      <div className="text-[#09937F] font-mono text-[11px]">{item.client_name}</div>
+                      <div className="text-[#09937F] font-mono text-[11px]">
+                        {item.client_name}
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -186,13 +215,19 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
                 <td className="p-4 font-mono text-white">{item.year}</td>
                 <td className="p-4 text-center">
                   <button
-                    onClick={() => handleToggleFeatured(item.id, item.is_featured)}
+                    onClick={() =>
+                      handleToggleFeatured(item.id, item.is_featured)
+                    }
                     className={`p-1.5 rounded-lg transition-colors ${
                       item.is_featured
-                        ? 'bg-amber-500/20 text-amber-400'
-                        : 'bg-white/5 text-[#9EADA9]/40 hover:text-[#9EADA9]'
+                        ? "bg-amber-500/20 text-amber-400"
+                        : "bg-white/5 text-[#9EADA9]/40 hover:text-[#9EADA9]"
                     }`}
-                    title={item.is_featured ? t.portfolioView.unfeature : t.portfolioView.feature}
+                    title={
+                      item.is_featured
+                        ? t.portfolioView.unfeature
+                        : t.portfolioView.feature
+                    }
                   >
                     <Star className="w-4 h-4 fill-current" />
                   </button>
@@ -212,7 +247,6 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
         </table>
       </div>
 
-      {/* Modal: New Project */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -222,7 +256,7 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {t.portfolioView.titleAr}
+                {t.portfolioView.titleArLabel}
               </label>
               <Input
                 value={titleAr}
@@ -233,7 +267,7 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {t.portfolioView.titleEn}
+                {t.portfolioView.titleEnLabel}
               </label>
               <Input
                 value={titleEn}
@@ -268,8 +302,12 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
                   {t.portfolioView.selectCategory}
                 </option>
                 {categories.map((c) => (
-                  <option key={c.id} value={c.id} className="bg-[#0B1210] text-white">
-                    {locale === 'ar' ? c.name_ar : c.name_en}
+                  <option
+                    key={c.id}
+                    value={c.id}
+                    className="bg-[#0B1210] text-white"
+                  >
+                    {locale === "ar" ? c.name_ar : c.name_en}
                   </option>
                 ))}
               </Select>
@@ -285,10 +323,18 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
                 value={aspectRatio}
                 onChange={(e) => setAspectRatio(e.target.value)}
               >
-                <option value="16:9" className="bg-[#0B1210] text-white">16:9 (Standard UHD)</option>
-                <option value="2.39:1" className="bg-[#0B1210] text-white">2.39:1 (Anamorphic Scope)</option>
-                <option value="9:16" className="bg-[#0B1210] text-white">9:16 (Vertical Social)</option>
-                <option value="4:3" className="bg-[#0B1210] text-white">4:3 (Academy)</option>
+                <option value="16:9" className="bg-[#0B1210] text-white">
+                  16:9 (Standard UHD)
+                </option>
+                <option value="2.39:1" className="bg-[#0B1210] text-white">
+                  2.39:1 (Anamorphic Scope)
+                </option>
+                <option value="9:16" className="bg-[#0B1210] text-white">
+                  9:16 (Vertical Social)
+                </option>
+                <option value="4:3" className="bg-[#0B1210] text-white">
+                  4:3 (Academy)
+                </option>
               </Select>
             </div>
             <div>
@@ -373,7 +419,6 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
         </form>
       </Modal>
 
-      {/* Delete Confirmation Safeguard Modal */}
       <ConfirmDestructiveModal
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}

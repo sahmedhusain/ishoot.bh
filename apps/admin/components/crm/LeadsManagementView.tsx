@@ -1,29 +1,39 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import type { Inquiry } from '@ishoot/database/types';
-import { Card, StatusBadge, ConfirmDestructiveModal } from '@ishoot/ui';
-import { Mail, Phone, Building, Trash2 } from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { updateInquiryStatusAction, deleteInquiryAction } from '../../app/actions/crm';
+import * as React from "react";
+import type { Inquiry } from "@ishoot/database/types";
+import { Card, StatusBadge, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Mail, Phone, Building, Trash2 } from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import {
+  updateInquiryStatusAction,
+  deleteInquiryAction,
+} from "../../app/actions/crm";
 
 interface LeadsManagementViewProps {
   initialInquiries: Inquiry[];
 }
 
-export function LeadsManagementView({ initialInquiries }: LeadsManagementViewProps) {
+export function LeadsManagementView({
+  initialInquiries,
+}: LeadsManagementViewProps) {
   const { t } = useAdminLocale();
   const [inquiries, setInquiries] = React.useState<Inquiry[]>(initialInquiries);
-  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
+    null,
+  );
 
-  const handleStatusChange = async (id: string, newStatus: Inquiry['status']) => {
+  const handleStatusChange = async (
+    id: string,
+    newStatus: Inquiry["status"],
+  ) => {
     setInquiries((prev) =>
-      prev.map((inq) => (inq.id === id ? { ...inq, status: newStatus } : inq))
+      prev.map((inq) => (inq.id === id ? { ...inq, status: newStatus } : inq)),
     );
     try {
       await updateInquiryStatusAction(id, newStatus);
     } catch (err) {
-      console.error('Failed to update inquiry status:', err);
+      console.error("Failed to update inquiry status:", err);
     }
   };
 
@@ -32,7 +42,7 @@ export function LeadsManagementView({ initialInquiries }: LeadsManagementViewPro
     try {
       await deleteInquiryAction(id);
     } catch (err) {
-      console.error('Failed to delete inquiry:', err);
+      console.error("Failed to delete inquiry:", err);
     }
   };
 
@@ -42,9 +52,7 @@ export function LeadsManagementView({ initialInquiries }: LeadsManagementViewPro
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
           {t.nav.leads}
         </h1>
-        <p className="text-xs text-[#9EADA9] mt-1">
-          {t.leads.subtitle}
-        </p>
+        <p className="text-xs text-[#9EADA9] mt-1">{t.leads.subtitle}</p>
       </div>
 
       <div className="space-y-4">
@@ -56,7 +64,9 @@ export function LeadsManagementView({ initialInquiries }: LeadsManagementViewPro
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
               <div>
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-bold text-white">{inq.full_name}</h3>
+                  <h3 className="text-lg font-bold text-white">
+                    {inq.full_name}
+                  </h3>
                   <StatusBadge status={inq.status} />
                 </div>
                 <div className="flex flex-wrap items-center gap-4 text-xs text-[#9EADA9] mt-1.5">
@@ -68,14 +78,23 @@ export function LeadsManagementView({ initialInquiries }: LeadsManagementViewPro
                   )}
                   <span className="flex items-center gap-1">
                     <Mail className="w-3.5 h-3.5 text-[#09937F]" />
-                    <a href={`mailto:${inq.email}`} className="hover:text-white transition-colors">
+                    <a
+                      href={`mailto:${inq.email}`}
+                      className="hover:text-white transition-colors"
+                    >
                       {inq.email}
                     </a>
                   </span>
                   {inq.phone && (
-                    <span className="flex items-center gap-1 font-mono">
+                    <span
+                      className="flex items-center gap-1 font-mono"
+                      dir="ltr"
+                    >
                       <Phone className="w-3.5 h-3.5 text-[#09937F]" />
-                      <a href={`tel:${inq.phone}`} className="hover:text-white transition-colors">
+                      <a
+                        href={`tel:${inq.phone}`}
+                        className="hover:text-white transition-colors"
+                      >
                         {inq.phone}
                       </a>
                     </span>
@@ -83,11 +102,12 @@ export function LeadsManagementView({ initialInquiries }: LeadsManagementViewPro
                 </div>
               </div>
 
-              {/* Status Select & Actions */}
               <div className="flex items-center gap-3 self-start sm:self-auto">
                 <select
                   value={inq.status}
-                  onChange={(e) => handleStatusChange(inq.id, e.target.value as any)}
+                  onChange={(e) =>
+                    handleStatusChange(inq.id, e.target.value as any)
+                  }
                   className="bg-[#050807] border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#09937F] cursor-pointer"
                 >
                   <option value="new">{t.leads.statusNew}</option>
@@ -106,7 +126,6 @@ export function LeadsManagementView({ initialInquiries }: LeadsManagementViewPro
               </div>
             </div>
 
-            {/* Services Requested & Budget */}
             <div className="flex flex-wrap items-center gap-2">
               {inq.budget_range && (
                 <span className="px-3 py-1 rounded-xl bg-[#09937F]/15 text-[#09937F] border border-[#09937F]/30 text-xs font-mono font-bold">
@@ -123,7 +142,6 @@ export function LeadsManagementView({ initialInquiries }: LeadsManagementViewPro
               ))}
             </div>
 
-            {/* Message Body */}
             {inq.message && (
               <p className="text-sm text-[#9EADA9] bg-[#050807] p-4 rounded-2xl border border-white/5 leading-relaxed">
                 {inq.message}
@@ -139,7 +157,6 @@ export function LeadsManagementView({ initialInquiries }: LeadsManagementViewPro
         )}
       </div>
 
-      {/* Delete Confirmation Safeguard Modal */}
       <ConfirmDestructiveModal
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}

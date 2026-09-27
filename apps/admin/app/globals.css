@@ -3,85 +3,119 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Virtual';
-  src: url('/fonts/Virtual.otf') format('opentype');
+  font-family: "Virtual";
+  src: url("/fonts/Virtual.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IBM Plex Sans Arabic';
-  src: url('/fonts/IBMPlexSansArabic-Regular.ttf') format('truetype');
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/IBMPlexSansArabic-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IBM Plex Sans Arabic';
-  src: url('/fonts/IBMPlexSansArabic-Medium.ttf') format('truetype');
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/IBMPlexSansArabic-Medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IBM Plex Sans Arabic';
-  src: url('/fonts/IBMPlexSansArabic-SemiBold.ttf') format('truetype');
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/IBMPlexSansArabic-SemiBold.ttf") format("truetype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'IBM Plex Sans Arabic';
-  src: url('/fonts/IBMPlexSansArabic-Bold.ttf') format('truetype');
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts/IBMPlexSansArabic-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
+  /* Brand Colors */
   --ishoot-primary: #014842;
-  --ishoot-primary-light: #02665D;
-  --ishoot-primary-dark: #002D29;
-  --ishoot-accent: #09937F;
-  --ishoot-accent-hover: #0BB49B;
+  --ishoot-primary-light: #02665d;
+  --ishoot-primary-dark: #002d29;
+  --ishoot-accent: #09937f;
+  --ishoot-accent-hover: #0bb49b;
   --ishoot-accent-glow: rgba(9, 147, 127, 0.35);
 
+  /* Dark Mode Surfaces */
   --ishoot-bg-base: #050807;
-  --ishoot-bg-surface: #0B1210;
-  --ishoot-bg-elevated: #111C19;
+  --ishoot-bg-surface: #0b1210;
+  --ishoot-bg-elevated: #111c19;
 
-  --ishoot-text-primary: #F2F6F5;
-  --ishoot-text-secondary: #9EADA9;
-  --ishoot-text-accent: #09937F;
+  /* Dark Mode Text */
+  --ishoot-text-primary: #f2f6f5;
+  --ishoot-text-secondary: #9eada9;
+  --ishoot-text-accent: #09937f;
   --ishoot-border: rgba(255, 255, 255, 0.1);
+  --ishoot-border-subtle: rgba(255, 255, 255, 0.05);
+
+  /* Status Colors (consistent across themes) */
+  --ishoot-status-success: #10b981;
+  --ishoot-status-warning: #f59e0b;
+  --ishoot-status-error: #ef4444;
+  --ishoot-status-info: #3b82f6;
+
+  /* Semantic Colors */
+  --ishoot-emerald: #09937f;
+  --ishoot-rose: #f43f5e;
+  --ishoot-amber: #fbbf24;
 }
 
-html.dark, body.dark {
+html.dark,
+body.dark {
   background-color: #050807;
-  color: #F2F6F5;
+  color: #f2f6f5;
   color-scheme: dark;
 }
 
-html.light, body.light {
-  --ishoot-bg-base: #F8FAFC;
-  --ishoot-bg-surface: #FFFFFF;
-  --ishoot-bg-elevated: #F1F5F9;
+html.light,
+body.light {
+  /* Light Mode Surfaces */
+  --ishoot-bg-base: #f8fafc;
+  --ishoot-bg-surface: #ffffff;
+  --ishoot-bg-elevated: #f1f5f9;
 
-  --ishoot-text-primary: #0F172A;
+  /* Light Mode Text */
+  --ishoot-text-primary: #0f172a;
   --ishoot-text-secondary: #475569;
   --ishoot-text-accent: #014842;
-  --ishoot-border: #E2E8F0;
 
-  background-color: #F8FAFC;
-  color: #0F172A;
+  /* Light Mode Borders */
+  --ishoot-border: #e2e8f0;
+  --ishoot-border-subtle: #f1f5f9;
+
+  /* Light Mode Status Colors */
+  --ishoot-status-success: #059669;
+  --ishoot-status-warning: #d97706;
+  --ishoot-status-error: #dc2626;
+  --ishoot-status-info: #2563eb;
+
+  /* Light Mode Semantic Colors */
+  --ishoot-emerald: #059669;
+  --ishoot-rose: #e11d48;
+  --ishoot-amber: #d97706;
+
+  background-color: #f8fafc;
+  color: #0f172a;
   color-scheme: light;
 }
 
-html, body {
+html,
+body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   min-height: 100vh;
 }
@@ -167,17 +201,17 @@ body:hover::-webkit-scrollbar-thumb,
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Light mode overrides for high-contrast enterprise clarity */
 .light .bg-\[\#050807\] {
-  background-color: #F8FAFC !important;
+  background-color: #f8fafc !important;
 }
 
 .light .bg-\[\#070C0A\] {
-  background-color: #FFFFFF !important;
+  background-color: #ffffff !important;
 }
 
 .light .bg-\[\#070C0A\]\/95 {
@@ -185,49 +219,49 @@ body:hover::-webkit-scrollbar-thumb,
 }
 
 .light .bg-\[\#0B1210\] {
-  background-color: #FFFFFF !important;
+  background-color: #ffffff !important;
 }
 
 .light .border-white\/10 {
-  border-color: #E2E8F0 !important;
+  border-color: #e2e8f0 !important;
 }
 
 .light .border-white\/5 {
-  border-color: #F1F5F9 !important;
+  border-color: #f1f5f9 !important;
 }
 
 .light .bg-white\/5 {
-  background-color: #F1F5F9 !important;
+  background-color: #f1f5f9 !important;
 }
 
 .light .hover\:bg-white\/5:hover {
-  background-color: #E2E8F0 !important;
+  background-color: #e2e8f0 !important;
 }
 
 .light .text-white {
-  color: #0F172A !important;
+  color: #0f172a !important;
 }
 
 .light .text-\[\#9EADA9\] {
-  color: #64748B !important;
+  color: #64748b !important;
 }
 
 .light .text-\[\#F2F6F5\] {
-  color: #0F172A !important;
+  color: #0f172a !important;
 }
 
 .light .ring-\[\#070C0A\] {
-  --tw-ring-color: #FFFFFF !important;
+  --tw-ring-color: #ffffff !important;
 }
 
 .light aside {
-  background-color: #FFFFFF !important;
-  border-inline-end-color: #E2E8F0 !important;
+  background-color: #ffffff !important;
+  border-inline-end-color: #e2e8f0 !important;
 }
 
 .light header {
   background-color: rgba(255, 255, 255, 0.95) !important;
-  border-bottom-color: #E2E8F0 !important;
+  border-bottom-color: #e2e8f0 !important;
 }
 
 /* ==========================================================================
@@ -258,7 +292,8 @@ body:hover::-webkit-scrollbar-thumb,
   }
 
   /* Reset layout to fill page with white background */
-  html, body {
+  html,
+  body {
     background: #ffffff !important;
     color: #111827 !important;
     margin: 0 !important;
@@ -268,7 +303,8 @@ body:hover::-webkit-scrollbar-thumb,
   }
 
   /* Unconstrain main content container during print */
-  main, [role="main"] {
+  main,
+  [role="main"] {
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
@@ -305,4 +341,3 @@ body:hover::-webkit-scrollbar-thumb,
     backdrop-filter: none !important;
   }
 }
-

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import * as React from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   User,
   Shield,
@@ -12,10 +12,10 @@ import {
   LogOut,
   ChevronDown,
   Database,
-} from 'lucide-react';
-import { useAdminLocale } from '../../hooks/useAdminLocale';
-import { useAdminTheme } from '../../hooks/useAdminTheme';
-import { ConfirmDestructiveModal } from '@ishoot/ui';
+} from "lucide-react";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { useAdminTheme } from "../../hooks/useAdminTheme";
+import { ConfirmDestructiveModal } from "@ishoot/ui";
 
 interface CurrentUser {
   id: string;
@@ -32,14 +32,16 @@ export function AdminProfileDropdown() {
   const { theme, resolvedTheme } = useAdminTheme();
   const [isOpen, setIsOpen] = React.useState(false);
   const [confirmSignOutOpen, setConfirmSignOutOpen] = React.useState(false);
-  const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(null);
+  const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(
+    null,
+  );
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     let mounted = true;
     async function loadUser() {
       try {
-        const res = await fetch('/api/auth/me');
+        const res = await fetch("/api/auth/me");
         if (res.ok) {
           const data = await res.json();
           if (mounted && data.user) {
@@ -47,7 +49,7 @@ export function AdminProfileDropdown() {
           }
         }
       } catch (err) {
-        console.error('Failed to load active user profile:', err);
+        console.error("Failed to load active user profile:", err);
       }
     }
     loadUser();
@@ -56,46 +58,50 @@ export function AdminProfileDropdown() {
     };
   }, []);
 
-  // Close dropdown on click outside
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
 
   const handleSignOut = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch("/api/auth/logout", { method: "POST" });
     } catch (err) {
-      console.error('Logout error:', err);
+      console.error("Logout error:", err);
     } finally {
-      router.push('/login');
+      router.push("/login");
       router.refresh();
     }
   };
 
   const displayName = currentUser?.fullName || t.profileDropdown.adminUser;
-  const displayEmail = currentUser?.email || 'admin@ishoot.bh';
-  const displayRole = currentUser?.role ? currentUser.role.replace('_', ' ').toUpperCase() : t.profileDropdown.superAdmin;
-  const initials = displayName
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase() || 'IS';
+  const displayEmail = currentUser?.email || "admin@ishoot.bh";
+  const displayRole = currentUser?.role
+    ? currentUser.role.replace("_", " ").toUpperCase()
+    : t.profileDropdown.superAdmin;
+  const initials =
+    displayName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase() || "IS";
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -110,7 +116,7 @@ export function AdminProfileDropdown() {
             <span>{displayName}</span>
             <ChevronDown
               className={`w-3 h-3 text-[#9EADA9] transition-transform duration-200 ${
-                isOpen ? 'rotate-180' : ''
+                isOpen ? "rotate-180" : ""
               }`}
             />
           </div>
@@ -120,14 +126,14 @@ export function AdminProfileDropdown() {
         </div>
       </button>
 
-      {/* Popover Dropdown */}
       {isOpen && (
         <div
           className={`absolute top-full mt-2 w-72 rounded-2xl bg-[#0B1210] border border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col ${
-            isRTL ? 'left-0 sm:left-auto sm:right-0' : 'right-0 sm:right-auto sm:left-0'
+            isRTL
+              ? "left-0 sm:left-auto sm:right-0"
+              : "right-0 sm:right-auto sm:left-0"
           }`}
         >
-          {/* Header Profile Identity */}
           <div className="p-4 bg-white/[0.02] border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-[#014842] border border-[#09937F]/50 flex items-center justify-center text-sm font-bold text-white font-mono shrink-0 shadow-md">
@@ -148,7 +154,6 @@ export function AdminProfileDropdown() {
             </div>
           </div>
 
-          {/* Quick Menu Links */}
           <div className="p-2 space-y-0.5 text-xs">
             <Link
               href="/dashboard/users"
@@ -177,7 +182,9 @@ export function AdminProfileDropdown() {
               <div className="flex-1 flex items-center justify-between">
                 <span>{t.profileDropdown.appearance}</span>
                 <span className="text-[10px] font-mono text-[#09937F] bg-[#09937F]/10 px-1.5 py-0.5 rounded">
-                  {resolvedTheme === 'dark' ? t.profileDropdown.dark : t.profileDropdown.light}
+                  {resolvedTheme === "dark"
+                    ? t.profileDropdown.dark
+                    : t.profileDropdown.light}
                 </span>
               </div>
             </Link>
@@ -192,7 +199,6 @@ export function AdminProfileDropdown() {
             </Link>
           </div>
 
-          {/* Database & Infrastructure Status */}
           <div className="p-3 border-t border-white/10 bg-white/[0.01] text-[10px] font-mono text-[#9EADA9] space-y-1">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
@@ -208,7 +214,6 @@ export function AdminProfileDropdown() {
             </div>
           </div>
 
-          {/* Sign Out Action */}
           <div className="p-2 border-t border-white/10 bg-white/[0.02]">
             <button
               type="button"
@@ -225,7 +230,6 @@ export function AdminProfileDropdown() {
         </div>
       )}
 
-      {/* Sign Out Confirmation Modal */}
       <ConfirmDestructiveModal
         isOpen={confirmSignOutOpen}
         onClose={() => setConfirmSignOutOpen(false)}

@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useTranslation } from '../../hooks/useTranslation';
+import * as React from "react";
+import { useTranslation } from "../../hooks/useTranslation";
 
 export function StatsCounter() {
   const { t } = useTranslation();
 
   const stats = [
-    { label: t('about.statFilms'), number: '180+' },
-    { label: t('about.statYears'), number: '8+' },
-    { label: t('about.statAwards'), number: '14' },
-    { label: t('about.statClients'), number: '65+' },
+    { label: t("about.statFilms"), number: "180+" },
+    { label: t("about.statYears"), number: "8+" },
+    { label: t("about.statAwards"), number: "14" },
+    { label: t("about.statClients"), number: "65+" },
   ];
 
   return (

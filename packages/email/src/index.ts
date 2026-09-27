@@ -1,4 +1,4 @@
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
@@ -18,17 +18,17 @@ export async function sendEmail({
   to,
   subject,
   html,
-  from = 'ishoot <hello@ishoot.bh>',
+  from = "ishoot <hello@ishoot.bh>",
   attachments,
 }: SendEmailOptions) {
   if (!resend) {
-    console.log('\n========================================');
-    console.log('[LOCAL EMAIL DISPATCH - RESEND DEV MODE]');
-    console.log(`To: ${Array.isArray(to) ? to.join(', ') : to}`);
+    console.log("\n========================================");
+    console.log("[LOCAL EMAIL DISPATCH - RESEND DEV MODE]");
+    console.log(`To: ${Array.isArray(to) ? to.join(", ") : to}`);
     console.log(`From: ${from}`);
     console.log(`Subject: ${subject}`);
     console.log(`Attachments: ${attachments?.length || 0} file(s)`);
-    console.log('========================================\n');
+    console.log("========================================\n");
     return { success: true, id: `mock-email-${Date.now()}` };
   }
 
@@ -41,14 +41,14 @@ export async function sendEmail({
       attachments,
     });
     if (error) {
-      console.error('[Resend Error]:', error);
+      console.error("[Resend Error]:", error);
       return { success: false, error };
     }
     return { success: true, id: data?.id };
   } catch (err) {
-    console.error('[Resend Exception]:', err);
+    console.error("[Resend Exception]:", err);
     return { success: false, error: err };
   }
 }
 
-export * from './templates/html-templates';
+export * from "./templates/html-templates";

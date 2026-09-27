@@ -1,13 +1,13 @@
-import * as React from 'react';
+import * as React from "react";
 import {
   getFinancialSummary,
   getAllExpenses,
   getExpenseCategories,
   getAllInvoices,
-} from '@ishoot/database';
-import { FinancialAnalyticsView } from '../../../components/finance/FinancialAnalyticsView';
+} from "@ishoot/database";
+import { FinancialAnalyticsView } from "../../../components/finance/FinancialAnalyticsView";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function FinancialDashboardPage() {
   const [finance, expenses, categories, invoices] = await Promise.all([
