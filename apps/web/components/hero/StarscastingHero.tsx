@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { HeroBanner as HeroBannerType } from '@ishoot/database';
-import { useLocale } from '../../hooks/useLocale';
+import { useTranslation } from '../../hooks/useTranslation';
 import { Sparkles, Video, Camera, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface StarscastingHeroProps {
@@ -11,18 +11,12 @@ interface StarscastingHeroProps {
 }
 
 export function StarscastingHero({ banners }: StarscastingHeroProps) {
-  const { locale, isRTL } = useLocale();
+  const { t, locale, isRTL } = useTranslation();
   const [currentIdx, setCurrentIdx] = React.useState(0);
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
-  const activeBanner = banners[currentIdx] || {
-    media_url: '/banners/Youtube cover 01.jpg',
-    media_type: 'image',
-    title_en: 'CINEMA IN EVERY FRAME.',
-    title_ar: 'سينما في كل إطار.',
-    subtitle_en: 'High-end commercial cinematography, RED V-Raptor 8K multi-camera packages & DaVinci Resolve color suites in Bahrain.',
-    subtitle_ar: 'إنتاج إعلانات سينمائية فاخرة، كاميرات ريد 8K متعددة، وتصحيح ألوان سينمائي في مملكة البحرين.',
-  };
+  // No fallback data — if no banners exist, render nothing.
+  const activeBanner = banners[currentIdx];
 
   // Auto rotate banners every 8 seconds
   React.useEffect(() => {
@@ -32,6 +26,8 @@ export function StarscastingHero({ banners }: StarscastingHeroProps) {
     }, 8000);
     return () => clearInterval(interval);
   }, [banners.length]);
+
+  if (!activeBanner) return null;
 
   return (
     <section id="home" data-hero="true" className="relative isolate z-[1] flex min-h-[100svh] flex-col overflow-x-clip bg-hero text-[#F2F6F5] select-none">
@@ -70,42 +66,19 @@ export function StarscastingHero({ banners }: StarscastingHeroProps) {
       {/* Main Kinetic Typography Hero */}
       <div className="shell relative z-20 flex-1 flex flex-col justify-center pt-28 sm:pt-32 pb-12 md:pb-16">
         <div className="max-w-4xl space-y-6">
-          {/* Animated Slot Machine Headline */}
           <h1 className="font-grotesk text-[clamp(2.2rem,6.8vw,5.5rem)] leading-[1.02] tracking-[-0.03em] font-bold text-white">
             <span className="block">
-              {isRTL ? 'في كل لقطة نصنع' : 'In every frame, we create'}
+              {isRTL ? activeBanner.title_ar : activeBanner.title_en}
             </span>
-            <span className="inline-flex items-center gap-3">
-              <span className="relative inline-block overflow-hidden align-bottom h-[1.12em]">
-                {/* 4-Word Vertical Slide */}
-                <span className="block rw-slide-4">
-                  <span className="block whitespace-nowrap text-emerald-shine" style={{ height: '1.12em', lineHeight: '1.12' }}>
-                    {isRTL ? 'تحفة سينمائية' : 'a Masterpiece'}
-                  </span>
-                  <span className="block whitespace-nowrap text-emerald-shine" style={{ height: '1.12em', lineHeight: '1.12' }}>
-                    {isRTL ? 'إعلاناً عالمياً' : 'a Commercial'}
-                  </span>
-                  <span className="block whitespace-nowrap text-emerald-shine" style={{ height: '1.12em', lineHeight: '1.12' }}>
-                    {isRTL ? 'رؤية بصرية' : 'a Visual Anthem'}
-                  </span>
-                  <span className="block whitespace-nowrap text-emerald-shine" style={{ height: '1.12em', lineHeight: '1.12' }}>
-                    {isRTL ? 'بصمة خالدة' : 'a Living Legacy'}
-                  </span>
-                </span>
+            {(isRTL ? activeBanner.subtitle_ar : activeBanner.subtitle_en) && (
+              <span className="block text-[#09937F]">
+                {isRTL ? activeBanner.subtitle_ar : activeBanner.subtitle_en}
               </span>
-            </span>
+            )}
           </h1>
 
-          {/* Subtitle */}
-          <p className="text-base sm:text-lg md:text-xl text-[#9EADA9] max-w-2xl leading-relaxed font-sans">
-            {isRTL
-              ? 'دار الإنتاج السينمائي الرائدة في مملكة البحرين. مجهزون بأحدث كاميرات RED V-Raptor 8K وعدسات ARRI Primes لإنتاج إعلانات وأفلام استثنائية.'
-              : 'Bahrain’s premier cinema production studio. Equipped with RED V-Raptor 8K packages, ARRI optical primes, and dedicated soundstages for high-impact brand anthems.'}
-          </p>
-
-          {/* CTA Buttons with Starscasting-style Morphing Circles */}
+          {/* CTA Buttons */}
           <div className="pt-4 flex flex-wrap items-center gap-4">
-            {/* Primary Action Button */}
             <Link
               href={`/${locale}/contact`}
               className="group inline-flex items-center gap-3 rounded-full border border-white/20 bg-white text-black py-2.5 ps-2.5 pe-7 font-sans text-sm font-bold transition-all duration-300 hover:bg-[#09937F] hover:text-white hover:border-[#09937F] shadow-2xl hover:shadow-[#09937F]/30 h-11"
@@ -113,16 +86,15 @@ export function StarscastingHero({ banners }: StarscastingHeroProps) {
               <span className="grid h-8 w-8 place-items-center rounded-full bg-black text-white transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-white group-hover:text-[#014842] group-hover:rotate-45">
                 <ArrowIcon className="w-4 h-4 transition-transform duration-300" />
               </span>
-              <span>{isRTL ? 'احجز جلسة الإنتاج' : 'Book a Production'}</span>
+              <span>{activeBanner.cta_label_en && !isRTL ? activeBanner.cta_label_en : activeBanner.cta_label_ar ?? t('hero.startProject')}</span>
             </Link>
 
-            {/* Secondary Action: Explore Works */}
             <Link
               href={`/${locale}/works`}
               className="group inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] py-2.5 ps-3 pe-6 font-sans text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:border-white/30 backdrop-blur-md h-11"
             >
               <Video className="w-4 h-4 text-[#09937F] group-hover:scale-110 transition-transform" />
-              <span>{isRTL ? 'استكشف أرشيف الأعمال' : 'Explore Portfolio Archive'}</span>
+              <span>{t('hero.exploreWorks')}</span>
             </Link>
           </div>
         </div>

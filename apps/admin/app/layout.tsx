@@ -4,7 +4,7 @@ import { AdminLocaleProvider } from '../hooks/useAdminLocale';
 import { AdminThemeProvider } from '../hooks/useAdminTheme';
 
 export const metadata: Metadata = {
-  title: 'ishoot — لوحة العمليات والتحكم الإداري | Executive Operations',
+  title: 'ishoot | Enterprise Operations Portal',
   description: 'Enterprise operations portal for ishoot Cinema Production House.',
   icons: {
     icon: '/icon.svg',

@@ -20,7 +20,9 @@ function mapActivity(a: any): ActivityLog {
     entity_type: a.entityType,
     entity_id: a.entityId || undefined,
     details: a.details || undefined,
+    diff_payload: a.diffPayload || undefined,
     ip_address: a.ipAddress || undefined,
+    user_agent: a.userAgent || undefined,
     created_at: a.createdAt.toISOString(),
   };
 }
@@ -45,7 +47,9 @@ export async function createActivityLog(data: {
   entity_type: string;
   entity_id?: string;
   details?: any;
+  diff_payload?: any;
   ip_address?: string;
+  user_agent?: string;
 }): Promise<ActivityLog> {
   const created = await db.activityLog.create({
     data: {
@@ -54,9 +58,12 @@ export async function createActivityLog(data: {
       entityType: data.entity_type,
       entityId: data.entity_id || null,
       details: data.details || null,
+      diffPayload: data.diff_payload || null,
       ipAddress: data.ip_address || null,
+      userAgent: data.user_agent || null,
     },
     include: { user: true },
   });
   return mapActivity(created);
 }
+

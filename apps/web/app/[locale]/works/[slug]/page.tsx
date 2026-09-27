@@ -73,7 +73,7 @@ export default async function ProjectDetailPage({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-8 border-t border-white/10">
         <div className="md:col-span-2 space-y-4">
           <h2 className="text-xl font-bold text-white uppercase tracking-wide">
-            {isRTL ? 'نظرة عامة على الإنتاج' : 'Production Overview'}
+            {t.portfolio.productionOverview}
           </h2>
           <p className="text-base text-[#9EADA9] leading-relaxed">
             {description}

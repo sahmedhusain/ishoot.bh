@@ -15,7 +15,7 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
-  const { t, locale } = useAdminLocale();
+  const { t } = useAdminLocale();
   const [deals, setDeals] = React.useState<CRMDeal[]>(initialDeals);
   const [newDealModalOpen, setNewDealModalOpen] = React.useState(false);
 
@@ -93,18 +93,10 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
             {t.nav.deals}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'متابعة خط صفقات الإنتاج التفاعلي (Kanban) مع التحديث اللحظي لحالات المشاريع في قاعدة البيانات.'
-              : 'Interactive Kanban workspace with drag-and-drop live database updates.'}
+            {t.deals.subtitle}
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => setNewDealModalOpen(false)}
-          className="hidden"
-        />
         <Button
           variant="primary"
           size="sm"
@@ -139,11 +131,11 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
         <form onSubmit={handleCreateDeal} className="space-y-4 text-xs">
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {locale === 'ar' ? 'عنوان الصفقة *' : 'Deal Title *'}
+              {t.deals.dealTitle}
             </label>
             <Input
               required
-              placeholder={locale === 'ar' ? 'مثال: تصوير إعلان العيد الوطني' : 'e.g. Batelco National Day Film'}
+              placeholder={t.deals.dealTitlePlaceholder}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -152,7 +144,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'القيمة (د.ب) *' : 'Value (BHD) *'}
+                {t.deals.valueBHD}
               </label>
               <Input
                 type="number"
@@ -166,7 +158,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
 
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'مرحلة الصفقة' : 'Pipeline Stage'}
+                {t.deals.pipelineStage}
               </label>
               <Select
                 value={stage}
@@ -184,14 +176,14 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'العميل أو الشريك' : 'Client / Contact'}
+                {t.deals.clientOrContact}
               </label>
               <Select
                 value={contactId}
                 onChange={(e) => setContactId(e.target.value)}
               >
                 <option value="">
-                  {locale === 'ar' ? 'اختر عميلاً أو اتركه فارغاً' : 'Select or leave blank'}
+                  {t.deals.selectOrBlank}
                 </option>
                 {contacts.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -203,7 +195,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
 
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'تاريخ التصوير' : 'Shoot Date'}
+                {t.deals.shootDate}
               </label>
               <Input
                 type="date"
@@ -229,9 +221,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
               size="sm"
               disabled={saving}
             >
-              {saving
-                ? locale === 'ar' ? 'جارٍ الحفظ...' : 'Saving...'
-                : t.actions.save}
+              {saving ? t.deals.saving : t.actions.save}
             </Button>
           </div>
         </form>

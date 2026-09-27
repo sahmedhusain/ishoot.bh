@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { PortfolioItem, PortfolioCategory } from '@ishoot/database/types';
-import { Button, Card, Badge, Modal, Input, Select } from '@ishoot/ui';
+import { Button, Card, Badge, Modal, Input, Select, ConfirmDestructiveModal } from '@ishoot/ui';
 import { Plus, Eye, Trash2, Star, CheckCircle2, Film, Filter } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { togglePortfolioFeaturedAction, deletePortfolioItemAction, createPortfolioItemAction } from '../../app/actions/cms';
@@ -17,6 +17,7 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
   const [items, setItems] = React.useState<PortfolioItem[]>(initialItems);
   const [selectedCat, setSelectedCat] = React.useState<string>('all');
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
   // Form state
@@ -48,9 +49,6 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(locale === 'ar' ? 'هل أنت متأكد من حذف هذا العمل من الأرشيف؟' : 'Are you sure you want to delete this project?')) {
-      return;
-    }
     setItems((prev) => prev.filter((i) => i.id !== id));
     try {
       await deletePortfolioItemAction(id);
@@ -62,6 +60,7 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titleEn && !titleAr) return;
+    if (!thumbnailUrl || !clientName) return;
     setSaving(true);
 
     const generatedSlug = slug || (titleEn || titleAr).toLowerCase().replace(/[^a-z0-9]+/g, '-');
@@ -71,10 +70,10 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
         title_en: titleEn || titleAr,
         title_ar: titleAr || titleEn,
         slug: generatedSlug,
-        client_name: clientName || 'Private Client',
+        client_name: clientName,
         year,
         aspect_ratio: aspectRatio,
-        thumbnail_url: thumbnailUrl || '/images/portfolio/sample.jpg',
+        thumbnail_url: thumbnailUrl,
         preview_video_url: previewVideoUrl || undefined,
         category_id: categoryId || undefined,
         is_featured: isFeatured,
@@ -108,9 +107,7 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
             {t.cms.portfolioTitle}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'أرشيف الأفلام السينمائية والإعلانات التجارية، ملفات الماستر، ونسب العرض.'
-              : 'Cinematic commercials, narrative films, aspect ratios, and credit dossiers.'}
+            {t.portfolioView.subtitle}
           </p>
         </div>
 
@@ -158,11 +155,11 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
         <table className="w-full text-start text-xs">
           <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider">
             <tr>
-              <th className="p-4 text-start">{locale === 'ar' ? 'المشروع / العميل' : 'Project / Client'}</th>
-              <th className="p-4 text-start">{locale === 'ar' ? 'نسبة العرض' : 'Aspect Ratio'}</th>
-              <th className="p-4 text-start">{locale === 'ar' ? 'سنة الإنتاج' : 'Year'}</th>
+              <th className="p-4 text-start">{t.portfolioView.projectClient}</th>
+              <th className="p-4 text-start">{t.portfolioView.aspectRatio}</th>
+              <th className="p-4 text-start">{t.portfolioView.year}</th>
               <th className="p-4 text-center">{t.cms.featured}</th>
-              <th className="p-4 text-end">{locale === 'ar' ? 'إجراءات' : 'Actions'}</th>
+              <th className="p-4 text-end">{t.equipmentView.actions}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -195,14 +192,14 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
                         ? 'bg-amber-500/20 text-amber-400'
                         : 'bg-white/5 text-[#9EADA9]/40 hover:text-[#9EADA9]'
                     }`}
-                    title={item.is_featured ? (locale === 'ar' ? 'إلغاء التمييز' : 'Unfeature') : (locale === 'ar' ? 'تمييز في الواجهة' : 'Feature')}
+                    title={item.is_featured ? t.portfolioView.unfeature : t.portfolioView.feature}
                   >
                     <Star className="w-4 h-4 fill-current" />
                   </button>
                 </td>
                 <td className="p-4 text-end space-x-2">
                   <button
-                    onClick={() => handleDelete(item.id)}
+                    onClick={() => setDeleteTargetId(item.id)}
                     className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors inline-flex"
                     title={t.actions.delete}
                   >
@@ -225,23 +222,23 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'عنوان المشروع بالعربية' : 'Project Title (Arabic)'}
+                {t.portfolioView.titleAr}
               </label>
               <Input
                 value={titleAr}
                 onChange={(e) => setTitleAr(e.target.value)}
-                placeholder="فيلم المنامة: نبض العاصمة"
+                placeholder={t.portfolioView.titleArPlaceholder}
                 required
               />
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'عنوان المشروع بالإنجليزية' : 'Project Title (English)'}
+                {t.portfolioView.titleEn}
               </label>
               <Input
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
-                placeholder="Manama: Pulse of Bahrain"
+                placeholder={t.portfolioView.titleEnPlaceholder}
                 required
               />
             </div>
@@ -250,25 +247,25 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'اسم العميل' : 'Client Name'}
+                {t.portfolioView.clientName}
               </label>
               <Input
                 value={clientName}
                 onChange={(e) => setClientName(e.target.value)}
-                placeholder="BTEA / Ministry of Tourism"
+                placeholder={t.portfolioView.clientPlaceholder}
                 required
               />
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'التصنيف' : 'Category'}
+                {t.portfolioView.category}
               </label>
               <Select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
               >
                 <option value="" className="bg-[#0B1210] text-white">
-                  {locale === 'ar' ? 'اختر تصنيفاً' : 'Select Category'}
+                  {t.portfolioView.selectCategory}
                 </option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id} className="bg-[#0B1210] text-white">
@@ -282,7 +279,7 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'نسبة العرض' : 'Aspect Ratio'}
+                {t.portfolioView.aspectRatio}
               </label>
               <Select
                 value={aspectRatio}
@@ -296,7 +293,7 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'سنة الإنتاج' : 'Production Year'}
+                {t.portfolioView.productionYear}
               </label>
               <Input
                 type="number"
@@ -306,12 +303,12 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'معرّف الرابط (Slug)' : 'URL Slug'}
+                {t.portfolioView.slug}
               </label>
               <Input
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
-                placeholder="manama-film"
+                placeholder={t.portfolioView.slugPlaceholder}
               />
             </div>
           </div>
@@ -319,23 +316,23 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'رابط صورة الغلاف (Thumbnail)' : 'Thumbnail Image URL'}
+                {t.portfolioView.thumbnailUrl}
               </label>
               <Input
                 value={thumbnailUrl}
                 onChange={(e) => setThumbnailUrl(e.target.value)}
-                placeholder="/images/portfolio/manama.jpg"
+                placeholder={t.portfolioView.thumbnailPlaceholder}
                 required
               />
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'رابط معاينة الفيديو' : 'Preview Video URL'}
+                {t.portfolioView.previewVideoUrl}
               </label>
               <Input
                 value={previewVideoUrl}
                 onChange={(e) => setPreviewVideoUrl(e.target.value)}
-                placeholder="/videos/manama-preview.mp4"
+                placeholder={t.portfolioView.previewVideoPlaceholder}
               />
             </div>
           </div>
@@ -375,6 +372,22 @@ export function PortfolioManagementView({ initialItems, categories }: PortfolioM
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Safeguard Modal */}
+      <ConfirmDestructiveModal
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={async () => {
+          if (deleteTargetId) {
+            await handleDelete(deleteTargetId);
+            setDeleteTargetId(null);
+          }
+        }}
+        title={t.actions.delete}
+        description={t.portfolioView.confirmDelete}
+        confirmLabel={t.actions.delete}
+        cancelLabel={t.actions.cancel}
+      />
     </div>
   );
 }

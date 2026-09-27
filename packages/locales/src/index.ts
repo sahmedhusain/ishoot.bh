@@ -22,7 +22,7 @@ export function getNestedTranslation(obj: any, path: string): string {
       return path;
     }
   }
-  return typeof current === 'string' ? current : path;
+  return current !== undefined ? current : path;
 }
 
 export { en, ar };

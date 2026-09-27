@@ -45,13 +45,15 @@ export function DeliveryToolbar({
     } else {
       // Direct mailto fallback
       const docLabel = documentType === 'invoice'
-        ? (locale === 'ar' ? 'فاتورة' : 'INVOICE')
-        : (locale === 'ar' ? 'إيصال سداد' : 'RECEIPT');
+        ? t.deliveryToolbar.invoice
+        : t.deliveryToolbar.receipt;
       const subject = encodeURIComponent(`${docLabel} ${documentNumber} - ishoot`);
       const body = encodeURIComponent(
-        locale === 'ar'
-          ? `عزيزنا ${clientName}،\n\nيرجى الاطلاع على مستند ${docLabel} رقم ${documentNumber} بمبلغ ${amountFormatted}.\n\nمع التحية،\nشركة آي شوت للإنتاج السينمائي`
-          : `Dear ${clientName},\n\nPlease find your ${documentType} ${documentNumber} for ${amountFormatted}.\n\nWarm regards,\nishoot Production`
+        (t.deliveryToolbar.emailBody || '')
+          .replace('{clientName}', clientName)
+          .replace('{docLabel}', docLabel)
+          .replace('{documentNumber}', documentNumber)
+          .replace('{amountFormatted}', amountFormatted)
       );
       window.open(`mailto:${clientEmail || ''}?subject=${subject}&body=${body}`);
       setEmailSent(true);
@@ -62,13 +64,15 @@ export function DeliveryToolbar({
   const handleWhatsApp = () => {
     const cleanPhone = (clientPhone || '').replace(/[^0-9]/g, '');
     const docLabel = documentType === 'invoice'
-      ? (locale === 'ar' ? 'فاتورة' : 'INVOICE')
-      : (locale === 'ar' ? 'إيصال سداد' : 'RECEIPT');
+      ? t.deliveryToolbar.invoice
+      : t.deliveryToolbar.receipt;
 
     const message = encodeURIComponent(
-      locale === 'ar'
-        ? `مرحباً ${clientName}،\n\nنرفق لكم مستند ${docLabel} رقم *${documentNumber}* من *آي شوت للإنتاج السينمائي* بمبلغ *${amountFormatted}*.\n\nشكراً لتعاملكم معنا.`
-        : `Hello ${clientName},\n\nPlease find your official ${documentType.toUpperCase()} *${documentNumber}* from *ishoot Cinema Production* in the amount of *${amountFormatted}*.\n\nThank you for choosing ishoot.`
+      (t.deliveryToolbar.whatsappBody || '')
+        .replace('{clientName}', clientName)
+        .replace('{docLabel}', docLabel)
+        .replace('{documentNumber}', documentNumber)
+        .replace('{amountFormatted}', amountFormatted)
     );
     const waUrl = cleanPhone
       ? `https://wa.me/${cleanPhone}?text=${message}`
@@ -81,8 +85,18 @@ export function DeliveryToolbar({
     window.print();
   };
 
+  const handleDownloadPdf = () => {
+    const downloadUrl = `/api/documents/${encodeURIComponent(documentNumber)}/pdf?type=${documentType}&download=true`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${documentType}-${documentNumber}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className={`flex flex-wrap items-center gap-3 p-4 bg-[#0B1210] border border-white/10 rounded-2xl shadow-xl ${className}`}>
+    <div data-delivery-toolbar className={`flex flex-wrap items-center gap-3 p-4 bg-[#0B1210] border border-white/10 rounded-2xl shadow-xl ${className}`}>
       {/* 1. Send via Email */}
       <Button
         variant={emailSent ? 'secondary' : 'primary'}
@@ -94,10 +108,10 @@ export function DeliveryToolbar({
         {emailSent ? <Check className="w-4 h-4 text-emerald-400" /> : <Mail className="w-4 h-4" />}
         <span>
           {emailSending
-            ? (locale === 'ar' ? 'جارٍ الإرسال...' : 'Dispatching...')
+            ? t.deliveryToolbar.dispatching
             : emailSent
-            ? (locale === 'ar' ? 'تم الإرسال بنجاح!' : 'Email Dispatched!')
-            : (locale === 'ar' ? 'إرسال بالبريد' : 'Send via Email')}
+            ? t.deliveryToolbar.dispatched
+            : t.deliveryToolbar.sendEmail}
         </span>
       </Button>
 
@@ -109,7 +123,7 @@ export function DeliveryToolbar({
         className="gap-2 hover:border-[#25D366]/40 hover:text-[#25D366]"
       >
         <MessageCircle className="w-4 h-4 text-[#25D366]" />
-        <span>{locale === 'ar' ? 'إرسال عبر واتساب' : 'WhatsApp Dispatch'}</span>
+        <span>{t.deliveryToolbar.sendWhatsApp}</span>
       </Button>
 
       {/* 3. Print A4 */}
@@ -120,18 +134,18 @@ export function DeliveryToolbar({
         className="gap-2"
       >
         <Printer className="w-4 h-4 text-[#9EADA9]" />
-        <span>{locale === 'ar' ? 'طباعة المستند' : 'Print Document'}</span>
+        <span>{t.deliveryToolbar.printDocument}</span>
       </Button>
 
       {/* 4. Direct Download */}
       <Button
         variant="secondary"
         size="sm"
-        onClick={handlePrint}
+        onClick={handleDownloadPdf}
         className="gap-2"
       >
         <Download className="w-4 h-4 text-[#9EADA9]" />
-        <span>{locale === 'ar' ? 'حفظ كملف PDF' : 'Save PDF'}</span>
+        <span>{t.deliveryToolbar.savePdf}</span>
       </Button>
     </div>
   );

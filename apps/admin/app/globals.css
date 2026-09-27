@@ -230,3 +230,79 @@ body:hover::-webkit-scrollbar-thumb,
   border-bottom-color: #E2E8F0 !important;
 }
 
+/* ==========================================================================
+   PRINT ISOLATION LAYER
+   Ensures window.print() prints ONLY [data-print-target] documents without
+   sidebar, topbar, breadcrumbs, delivery toolbar, or chrome buttons.
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 15mm 10mm;
+  }
+
+  /* Kill the entire dashboard chrome */
+  aside,
+  header[data-topbar],
+  [data-topbar],
+  .no-print,
+  [data-breadcrumb],
+  nav,
+  button:not([data-print-keep]),
+  [data-delivery-toolbar] {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Reset layout to fill page with white background */
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Unconstrain main content container during print */
+  main, [role="main"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* Printable document template fills canvas cleanly */
+  [data-print-target] {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* Page-break handling */
+  tr {
+    page-break-inside: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+
+  /* Disable animations and transitions */
+  * {
+    animation: none !important;
+    transition: none !important;
+    backdrop-filter: none !important;
+  }
+}
+

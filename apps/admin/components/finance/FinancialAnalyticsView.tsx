@@ -91,7 +91,7 @@ export function FinancialAnalyticsView({
             <CurrencyDisplay amount={finance.netProfit} currency="BHD" />
           </div>
           <div className="text-[11px] text-[#09937F] font-mono">
-            {locale === 'ar' ? 'الإيرادات مخصوماً منها التكاليف' : 'Revenue minus Total Expenses'}
+            {t.financialView.revenueMinusExpenses}
           </div>
         </Card>
 
@@ -107,7 +107,7 @@ export function FinancialAnalyticsView({
             {finance.profitMargin.toFixed(1)}%
           </div>
           <div className="text-[11px] text-[#9EADA9]">
-            {locale === 'ar' ? 'محتسبة عبر عقود الإنتاج المنجزة' : 'Across closed production contracts'}
+            {t.financialView.acrossContracts}
           </div>
         </Card>
       </div>
@@ -122,7 +122,7 @@ export function FinancialAnalyticsView({
             </h2>
           </div>
           <span className="text-xs font-mono px-3 py-1 rounded-full bg-white/5 text-[#9EADA9]">
-            {locale === 'ar' ? 'السنة المالية 2026 • دينار بحريني (BHD)' : 'FY 2026 • Bahrain Dinars (BHD)'}
+            {t.financialView.fiscalYear}
           </span>
         </div>
 
@@ -132,7 +132,7 @@ export function FinancialAnalyticsView({
             <div className="space-y-0.5">
               <span className="font-bold text-white">{t.charts.grossRevenue}</span>
               <p className="text-xs text-[#9EADA9]">
-                {locale === 'ar' ? 'التحصيلات المودعة عبر التحويلات المصرفية' : 'Deposited via bank & client wire transfers'}
+                {t.financialView.depositedViaBank}
               </p>
             </div>
             <span className="font-mono font-bold text-emerald-400 text-base">
@@ -145,7 +145,7 @@ export function FinancialAnalyticsView({
             <div className="space-y-0.5">
               <span className="text-white font-medium">{t.charts.discountsGiven}</span>
               <p className="text-xs text-[#9EADA9]">
-                {locale === 'ar' ? 'الخصومات المعتمدة' : 'Approved client discounts'}
+                {t.financialView.approvedDiscounts}
               </p>
             </div>
             <span className="font-mono text-amber-400">
@@ -158,7 +158,7 @@ export function FinancialAnalyticsView({
             <div className="space-y-0.5">
               <span className="font-bold text-white">{t.charts.operatingCosts}</span>
               <p className="text-xs text-[#9EADA9]">
-                {locale === 'ar' ? 'إيجار المعدات، مواقع التصوير، وأجور طاقم العمل' : 'Gear rentals, soundstage lease, crew wages'}
+                {t.financialView.productionCostsDesc}
               </p>
             </div>
             <span className="font-mono font-bold text-rose-400 text-base">

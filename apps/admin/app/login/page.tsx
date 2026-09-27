@@ -1,29 +1,78 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input, Button, Card } from '@ishoot/ui';
-import { Lock, Mail, ArrowRight } from 'lucide-react';
+import { Lock, Mail, ArrowRight, AlertCircle, Globe } from 'lucide-react';
+import { useAdminLocale } from '../../hooks/useAdminLocale';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = React.useState('producer@ishoot.bh');
-  const [password, setPassword] = React.useState('••••••••');
-  const [loading, setLoading] = React.useState(false);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const { t, locale, setLocale, isRTL } = useAdminLocale();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+
+  const handleToggleLocale = () => {
+    setLocale(locale === 'ar' ? 'en' : 'ar');
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Instant local-first login into workspace
-    setTimeout(() => {
-      router.push('/dashboard');
-    }, 600);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrorMessage(
+          res.status === 401
+            ? t.loginView.errorInvalid
+            : data.error || t.loginView.errorGeneric
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Successful login
+      router.push(callbackUrl);
+      router.refresh();
+    } catch {
+      setErrorMessage(t.loginView.errorGeneric);
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#050807] relative overflow-hidden">
+    <div
+      dir={isRTL ? 'rtl' : 'ltr'}
+      className="min-h-screen flex items-center justify-center p-6 bg-[#050807] relative overflow-hidden"
+    >
       {/* Background Ambient Radial Glow */}
       <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-[#014842]/30 via-[#09937F]/10 to-transparent blur-3xl pointer-events-none" />
+
+      {/* Language Switcher Top Corner */}
+      <div className="absolute top-6 end-6 z-20">
+        <button
+          type="button"
+          onClick={handleToggleLocale}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-[#9EADA9] hover:text-white transition-all backdrop-blur-md"
+        >
+          <Globe className="w-3.5 h-3.5 text-[#09937F]" />
+          <span>{t.loginView.switchLanguage}</span>
+        </button>
+      </div>
 
       <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-[#09937F]/30 shadow-2xl rounded-3xl space-y-8">
         {/* Brand Header */}
@@ -32,22 +81,38 @@ export default function LoginPage() {
             <span className="w-4 h-4 rounded-full bg-[#09937F]" />
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight font-display">
-            ishoot<span className="text-[#09937F]">.</span> Admin
+            ishoot<span className="text-[#09937F]">.</span> {t.loginView.title}
           </h1>
           <p className="text-xs text-[#9EADA9] tracking-wider uppercase">
-            Executive Studio Workspace
+            {t.loginView.subtitle}
           </p>
         </div>
 
+        {/* Error Banner */}
+        {errorMessage && (
+          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#9EADA9]">Staff Email</label>
+            <label className="text-xs font-medium text-[#9EADA9]">
+              {t.loginView.emailLabel}
+            </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-[#9EADA9]" />
+              <Mail
+                className={`w-4 h-4 absolute top-3.5 text-[#9EADA9] ${
+                  isRTL ? 'right-3.5' : 'left-3.5'
+                }`}
+              />
               <Input
                 type="email"
                 required
-                className="pl-10"
+                autoComplete="email"
+                placeholder={t.loginView.emailPlaceholder}
+                className={isRTL ? 'pr-10' : 'pl-10'}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -55,13 +120,21 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#9EADA9]">Security Key</label>
+            <label className="text-xs font-medium text-[#9EADA9]">
+              {t.loginView.passwordLabel}
+            </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-[#9EADA9]" />
+              <Lock
+                className={`w-4 h-4 absolute top-3.5 text-[#9EADA9] ${
+                  isRTL ? 'right-3.5' : 'left-3.5'
+                }`}
+              />
               <Input
                 type="password"
                 required
-                className="pl-10"
+                autoComplete="current-password"
+                placeholder={t.loginView.passwordPlaceholder}
+                className={isRTL ? 'pr-10' : 'pl-10'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -75,15 +148,33 @@ export default function LoginPage() {
             size="lg"
             className="w-full gap-2 mt-4"
           >
-            <span>{loading ? 'Authenticating...' : 'Enter Workspace'}</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>
+              {loading ? t.loginView.authenticating : t.loginView.submit}
+            </span>
+            <ArrowRight
+              className={`w-4 h-4 ${isRTL ? 'rotate-180' : ''}`}
+            />
           </Button>
         </form>
 
         <div className="text-center text-[11px] text-[#9EADA9]/60">
-          Cinema Operations Portal • Protected by Supabase Auth & RBAC
+          {t.loginView.footerNote}
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-[#050807] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-[#09937F] border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </React.Suspense>
   );
 }

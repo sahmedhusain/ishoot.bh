@@ -19,10 +19,10 @@ interface InvoiceDetailViewProps {
 
 export function InvoiceDetailView({ invoice, company, payments }: InvoiceDetailViewProps) {
   const router = useRouter();
-  const { t, locale, isRTL } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
   const [recordModalOpen, setRecordModalOpen] = React.useState(false);
 
-  const clientName = invoice.contact?.company || invoice.contact?.full_name || 'Client';
+  const clientName = invoice.contact?.company || invoice.contact?.full_name || t.invoice.clientFallback;
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   const handlePaymentSuccess = () => {
@@ -32,14 +32,14 @@ export function InvoiceDetailView({ invoice, company, payments }: InvoiceDetailV
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-20">
       {/* Navigation & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print" data-topbar="true">
         <div>
           <Link
             href="/dashboard/invoices"
             className="inline-flex items-center gap-2 text-xs text-[#9EADA9] hover:text-[#09937F] transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
-            <span>{locale === 'ar' ? 'العودة إلى أرشيف الفواتير' : 'Back to Invoices Archive'}</span>
+            <span>{t.actions.backToInvoices}</span>
           </Link>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -58,13 +58,13 @@ export function InvoiceDetailView({ invoice, company, payments }: InvoiceDetailV
             className="gap-2 shadow-lg shadow-[#09937F]/20"
           >
             <CreditCard className="w-4 h-4" />
-            <span>{locale === 'ar' ? 'تسجيل دفعة جديدة' : 'Record Payment'}</span>
+            <span>{t.finance.recordPayment}</span>
           </Button>
         )}
       </div>
 
       {/* Multi-Channel Delivery Toolbar */}
-      <div className="no-print">
+      <div className="no-print" data-delivery-toolbar="true">
         <DeliveryToolbar
           documentType="invoice"
           documentNumber={invoice.invoice_number}
@@ -85,7 +85,7 @@ export function InvoiceDetailView({ invoice, company, payments }: InvoiceDetailV
         <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-4 no-print">
           <div className="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-wider">
             <Receipt className="w-4 h-4 text-[#10B981]" />
-            <span>{locale === 'ar' ? 'سندات القبض والدفعات المرتبطة' : 'Associated Payment Receipts'}</span>
+            <span>{t.actions.associatedReceipts}</span>
           </div>
 
           <div className="divide-y divide-white/5">
@@ -103,7 +103,7 @@ export function InvoiceDetailView({ invoice, company, payments }: InvoiceDetailV
                     <CurrencyDisplay amount={p.amount} currency={p.currency} />
                   </div>
                   <span className="text-[10px] text-emerald-400 font-mono">
-                    {locale === 'ar' ? 'تمت التسوية' : 'Reconciled'}
+                    {t.finance.reconciled}
                   </span>
                 </div>
               </div>

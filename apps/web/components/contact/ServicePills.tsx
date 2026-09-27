@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface ServicePillsProps {
   selected: string[];
@@ -8,24 +9,11 @@ interface ServicePillsProps {
   isRTL?: boolean;
 }
 
-export function ServicePills({ selected, onChange, isRTL }: ServicePillsProps) {
-  const services = isRTL
-    ? [
-        'تصوير سينمائي إعلاني',
-        'تصوير جوي و FPV',
-        'تصوير فوتوغرافي تجاري',
-        'تصحيح ألوان دافينشي',
-        'استئجار استوديو ومعدات',
-        'إنتاج وثائقي',
-      ]
-    : [
-        'Commercial Cinematography',
-        'Aerial & FPV Cinematography',
-        'Commercial Photography',
-        'DaVinci Resolve Color Grading',
-        'Studio & Gear Rental',
-        'Documentary Production',
-      ];
+export function ServicePills({ selected, onChange }: ServicePillsProps) {
+  const { translations } = useTranslation();
+  const services = Array.isArray(translations?.contact?.servicesList)
+    ? translations.contact.servicesList
+    : [];
 
   const toggle = (service: string) => {
     if (selected.includes(service)) {

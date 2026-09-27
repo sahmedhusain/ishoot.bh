@@ -6,6 +6,7 @@ import { HeroBanner } from '@ishoot/database';
 import { Button } from '@ishoot/ui';
 import { SectionBadge } from '../shared/SectionBadge';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface HeroSlideProps {
   banner: HeroBanner;
@@ -16,6 +17,7 @@ interface HeroSlideProps {
 }
 
 export function HeroSlide({ banner, isActive, isMuted, locale, isRTL }: HeroSlideProps) {
+  const { t } = useTranslation();
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   React.useEffect(() => {
@@ -37,7 +39,9 @@ export function HeroSlide({ banner, isActive, isMuted, locale, isRTL }: HeroSlid
 
   const title = isRTL ? banner.title_ar : banner.title_en;
   const subtitle = isRTL ? banner.subtitle_ar : banner.subtitle_en;
-  const ctaLabel = isRTL ? (banner.cta_label_ar || 'استكشف الأعمال') : (banner.cta_label_en || 'Explore Works');
+  const ctaLabel = isRTL
+    ? (banner.cta_label_ar || t('hero.exploreWorks'))
+    : (banner.cta_label_en || t('hero.exploreWorks'));
   const ctaLink = banner.cta_link || `/${locale}/works`;
 
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
@@ -79,7 +83,7 @@ export function HeroSlide({ banner, isActive, isMuted, locale, isRTL }: HeroSlid
       <div className="relative z-20 h-full max-w-7xl mx-auto px-6 sm:px-8 flex flex-col justify-end pb-24 md:pb-28">
         <div className="max-w-3xl space-y-6">
           <SectionBadge>
-            {isRTL ? 'دار الإنتاج السينمائي' : 'Cinema Production House'}
+            {t('hero.badge')}
           </SectionBadge>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white leading-[1.08] font-display">
@@ -102,7 +106,7 @@ export function HeroSlide({ banner, isActive, isMuted, locale, isRTL }: HeroSlid
 
             <Link href={`/${locale}/contact`}>
               <Button variant="secondary" size="lg" className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md">
-                {isRTL ? 'ابدأ مشروعك' : 'Start a Project'}
+                {t('hero.startProject')}
               </Button>
             </Link>
           </div>

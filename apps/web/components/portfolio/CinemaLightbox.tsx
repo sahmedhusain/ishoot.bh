@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { PortfolioItem } from '@ishoot/database';
-import { useLocale } from '../../hooks/useLocale';
-import { X, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { X } from 'lucide-react';
 
 interface CinemaLightboxProps {
   item: PortfolioItem | null;
@@ -12,16 +12,13 @@ interface CinemaLightboxProps {
 }
 
 export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
-  const { isRTL } = useLocale();
+  const { t, isRTL } = useTranslation();
   const videoRef = React.useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = React.useState(true);
-  const [isMuted, setIsMuted] = React.useState(false);
 
   React.useEffect(() => {
     if (item && videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => {});
-      setIsPlaying(true);
     }
   }, [item]);
 
@@ -71,7 +68,6 @@ export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
               poster={item.thumbnail_url}
               playsInline
               loop
-              muted={isMuted}
               controls
               className="w-full h-full object-contain"
             />
@@ -95,25 +91,25 @@ export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
             <div className="pt-2 border-t border-white/5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
               {item.credits.director && (
                 <div>
-                  <span className="text-[#9EADA9]/60 block">{isRTL ? 'المخرج:' : 'Director:'}</span>
+                  <span className="text-[#9EADA9]/60 block">{t('portfolio.director')}:</span>
                   <span className="text-white font-medium">{item.credits.director}</span>
                 </div>
               )}
               {item.credits.dop && (
                 <div>
-                  <span className="text-[#9EADA9]/60 block">{isRTL ? 'مدير التصوير:' : 'Cinematographer:'}</span>
+                  <span className="text-[#9EADA9]/60 block">{t('portfolio.dop')}:</span>
                   <span className="text-white font-medium">{item.credits.dop}</span>
                 </div>
               )}
               {item.credits.colorist && (
                 <div>
-                  <span className="text-[#9EADA9]/60 block">{isRTL ? 'تلوين:' : 'Colorist:'}</span>
+                  <span className="text-[#9EADA9]/60 block">{t('portfolio.colorist')}:</span>
                   <span className="text-white font-medium">{item.credits.colorist}</span>
                 </div>
               )}
               {item.credits.editor && (
                 <div>
-                  <span className="text-[#9EADA9]/60 block">{isRTL ? 'مونتاج:' : 'Editor:'}</span>
+                  <span className="text-[#9EADA9]/60 block">{t('portfolio.editor')}:</span>
                   <span className="text-white font-medium">{item.credits.editor}</span>
                 </div>
               )}

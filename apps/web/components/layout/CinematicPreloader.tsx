@@ -1,12 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface CinematicPreloaderProps {
   isRTL?: boolean;
 }
 
 export function CinematicPreloader({ isRTL = false }: CinematicPreloaderProps) {
+  const { t } = useTranslation();
   const [progress, setProgress] = React.useState(0);
   const [isFinished, setIsFinished] = React.useState(false);
   const [shouldRender, setShouldRender] = React.useState(true);
@@ -67,10 +69,10 @@ export function CinematicPreloader({ isRTL = false }: CinematicPreloaderProps) {
       <div className="absolute inset-x-0 top-8 px-[clamp(1.25rem,4vw,2.5rem)] flex items-center justify-between font-mono text-xs uppercase tracking-[0.2em] text-[#9EADA9]">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#09937F] animate-pulse" />
-          <span>{isRTL ? 'تهيئة الرؤية السينمائية' : 'INITIALIZING CINEMA'}</span>
+          <span>{t('preloader.initializing')}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[#9EADA9]/60">{isRTL ? 'التحميل' : 'LOAD'}</span>
+          <span className="text-[#9EADA9]/60">{t('preloader.load')}</span>
           <span className="text-white font-bold tabular-nums text-sm">
             {String(progress).padStart(2, '0')}%
           </span>
@@ -108,12 +110,12 @@ export function CinematicPreloader({ isRTL = false }: CinematicPreloaderProps) {
 
         {/* Cinematic Slogan */}
         <p className="mt-8 font-mono text-[11px] sm:text-xs uppercase tracking-[0.28em] text-[#9EADA9] font-medium">
-          {isRTL ? 'سينما في كل إطار · CINEMA IN EVERY FRAME' : 'CINEMA IN EVERY FRAME · 8K PRODUCTION'}
+          {t('preloader.slogan')}
         </p>
 
         {/* Skip hint */}
         <span className="mt-4 text-[10px] text-white/30 font-mono tracking-widest uppercase">
-          {isRTL ? 'انقر للتخطي المباشر' : 'Click anywhere to enter'}
+          {t('preloader.skipHint')}
         </span>
       </div>
     </div>

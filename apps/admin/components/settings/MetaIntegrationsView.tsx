@@ -3,33 +3,25 @@
 import * as React from 'react';
 import { Card, Input, Button, Badge } from '@ishoot/ui';
 import {
-  Share2,
   CheckCircle2,
   MessageSquare,
   Instagram,
-  Facebook,
-  Key,
-  Webhook,
   Send,
-  ShieldCheck,
-  ExternalLink,
 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { SettingsNavTabs } from './SettingsNavTabs';
 
 export function MetaIntegrationsView() {
-  const { t, locale, isRTL } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
 
   const [whatsappPhoneId, setWhatsappPhoneId] = React.useState('109827364512938');
   const [whatsappBusinessId, setWhatsappBusinessId] = React.useState('782910394857201');
   const [whatsappToken, setWhatsappToken] = React.useState('EAAG8ZCK...9482LDP');
-  const [webhookSecret, setWebhookSecret] = React.useState('ishoot_meta_wh_sec_2026_bh');
   const [instagramAccountId, setInstagramAccountId] = React.useState('ishoot.bh');
   const [facebookPageId, setFacebookPageId] = React.useState('102938475610293');
 
   const [autoSendInvoices, setAutoSendInvoices] = React.useState(true);
   const [autoSendReceipts, setAutoSendReceipts] = React.useState(true);
-  const [syncInstagramDMs, setSyncInstagramDMs] = React.useState(true);
   const [syncFacebookLeads, setSyncFacebookLeads] = React.useState(true);
 
   const [saved, setSaved] = React.useState(false);
@@ -55,12 +47,10 @@ export function MetaIntegrationsView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
-            {locale === 'ar' ? 'ربط وتكامل منصات ميتا (Meta APIs)' : 'Meta Platform Integrations'}
+            {t.integrations.title}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'تفعيل قنوات WhatsApp Cloud API، وحساب إنستغرام للأعمال، وإعلانات فيسبوك لتوليد العملاء تلقائياً في CRM.'
-              : 'Direct API synchronization for WhatsApp Cloud API, Instagram Graph API, and Facebook Lead Ads.'}
+            {t.integrations.subtitle}
           </p>
         </div>
 
@@ -78,14 +68,14 @@ export function MetaIntegrationsView() {
       {saved && (
         <div className="p-4 rounded-2xl bg-[#09937F]/15 border border-[#09937F]/40 flex items-center gap-3 text-[#09937F] text-xs font-semibold animate-fade-in">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>{locale === 'ar' ? 'تم حفظ بيانات الربط وتحديث إعدادات منصات ميتا بنجاح!' : 'Meta API settings successfully saved and verified!'}</span>
+          <span>{t.integrations.saved}</span>
         </div>
       )}
 
       {testSent && (
         <div className="p-4 rounded-2xl bg-blue-500/15 border border-blue-500/40 flex items-center gap-3 text-blue-400 text-xs font-semibold animate-fade-in">
           <Send className="w-4 h-4 shrink-0" />
-          <span>{locale === 'ar' ? 'تم إرسال رسالة اختبار عبر WhatsApp Cloud API بنجاح إلى رقم الإدارة!' : 'Test message successfully dispatched via WhatsApp Cloud API!'}</span>
+          <span>{t.integrations.testSent}</span>
         </div>
       )}
 
@@ -100,13 +90,11 @@ export function MetaIntegrationsView() {
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-white">WhatsApp Cloud API (Meta Official)</h2>
                 <Badge variant="outline" className="text-emerald-400 border-emerald-500/30 bg-emerald-500/10 text-[10px]">
-                  {locale === 'ar' ? 'متصل ونشط' : 'Connected'}
+                  {t.integrations.connected}
                 </Badge>
               </div>
               <p className="text-xs text-[#9EADA9]">
-                {locale === 'ar'
-                  ? 'إرسال الفواتير الرسمية وروابط السداد وإيصالات القبض آلياً للعملاء عبر رقم الشركة الرسمي الموثق (+973).'
-                  : 'Automated dispatch of verified invoices, payment links, and receipts directly to client WhatsApp.'}
+                {t.integrations.waDesc}
               </p>
             </div>
           </div>
@@ -119,14 +107,14 @@ export function MetaIntegrationsView() {
             className="text-xs gap-1.5 border-white/10 text-[#9EADA9] hover:text-white"
           >
             <Send className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{locale === 'ar' ? 'إرسال رسالة اختبار' : 'Send Test Ping'}</span>
+            <span>{t.integrations.sendTest}</span>
           </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {locale === 'ar' ? 'معرّف رقم هاتف واتساب (Phone Number ID)' : 'WhatsApp Phone Number ID'}
+              {t.integrations.phoneId}
             </label>
             <Input
               value={whatsappPhoneId}
@@ -137,7 +125,7 @@ export function MetaIntegrationsView() {
 
           <div>
             <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {locale === 'ar' ? 'معرّف حساب واتساب للأعمال (WABA ID)' : 'WhatsApp Business Account ID'}
+              {t.integrations.wabaId}
             </label>
             <Input
               value={whatsappBusinessId}
@@ -148,7 +136,7 @@ export function MetaIntegrationsView() {
 
           <div className="sm:col-span-2">
             <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {locale === 'ar' ? 'رمز الوصول الدائم للنظام (Permanent Access Token)' : 'System User Access Token'}
+              {t.integrations.token}
             </label>
             <Input
               type="password"
@@ -161,7 +149,7 @@ export function MetaIntegrationsView() {
           <div className="sm:col-span-2 p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-white">
-                {locale === 'ar' ? 'إرسال الفواتير الضريبية بصيغة PDF فور إصدارها' : 'Auto-dispatch PDF tax invoices upon issuance'}
+                {t.integrations.autoInvoices}
               </span>
               <button
                 type="button"
@@ -176,7 +164,7 @@ export function MetaIntegrationsView() {
 
             <div className="flex items-center justify-between pt-2 border-t border-white/5">
               <span className="text-xs font-bold text-white">
-                {locale === 'ar' ? 'إرسال إيصال السداد فور تسجيل الدفعة البنكية' : 'Auto-dispatch payment receipts upon reconciliation'}
+                {t.integrations.autoReceipts}
               </span>
               <button
                 type="button"
@@ -199,11 +187,9 @@ export function MetaIntegrationsView() {
             <Instagram className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">Instagram Graph & Facebook Lead Ads</h2>
+            <h2 className="text-base font-bold text-white">{t.integrations.igFbTitle}</h2>
             <p className="text-xs text-[#9EADA9]">
-              {locale === 'ar'
-                ? 'تحويل استفسارات ورسائل إنستغرام وحملات إعلانات فيسبوك مباشرة إلى صفقات في نظام CRM.'
-                : 'Directly ingest Instagram direct inquiries and Facebook Lead Ads into the CRM pipeline.'}
+              {t.integrations.igFbDesc}
             </p>
           </div>
         </div>
@@ -211,7 +197,7 @@ export function MetaIntegrationsView() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {locale === 'ar' ? 'حساب إنستغرام الرسمي للأعمال' : 'Instagram Professional Handle'}
+              {t.integrations.igHandle}
             </label>
             <Input
               value={instagramAccountId}
@@ -222,7 +208,7 @@ export function MetaIntegrationsView() {
 
           <div>
             <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {locale === 'ar' ? 'معرّف صفحة فيسبوك الرسمية (Page ID)' : 'Facebook Page ID'}
+              {t.integrations.fbPageId}
             </label>
             <Input
               value={facebookPageId}
@@ -234,7 +220,7 @@ export function MetaIntegrationsView() {
           <div className="sm:col-span-2 p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-white">
-                {locale === 'ar' ? 'إنشاء صفقة جديدة في CRM فور وصول عميل محتمل من إعلانات Lead Ads' : 'Automatically create CRM Deal on new Facebook Lead'}
+                {t.integrations.autoFbLeads}
               </span>
               <button
                 type="button"

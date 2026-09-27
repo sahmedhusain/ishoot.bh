@@ -8,7 +8,8 @@ import type {
   Inquiry,
   CompanySettings,
   CalendarEvent,
-} from '@ishoot/database/types';
+  MonthlyCashflowPoint,
+} from '@ishoot/database';
 import { Card, Button, CurrencyDisplay, DateDisplay, StatusBadge } from '@ishoot/ui';
 import {
   DollarSign,
@@ -39,6 +40,7 @@ import { useAdminLocale } from '../../hooks/useAdminLocale';
 
 interface ExecutiveDashboardViewProps {
   finance: FinancialSummary;
+  monthlyCashflow?: MonthlyCashflowPoint[];
   deals: CRMDeal[];
   inquiries: Inquiry[];
   company: CompanySettings;
@@ -47,6 +49,7 @@ interface ExecutiveDashboardViewProps {
 
 export function ExecutiveDashboardView({
   finance,
+  monthlyCashflow = [],
   deals,
   inquiries,
   company,
@@ -58,39 +61,17 @@ export function ExecutiveDashboardView({
     .filter((d) => d.stage !== 'closed_won' && d.stage !== 'closed_lost')
     .reduce((acc, d) => acc + Number(d.value), 0);
 
-  // Monthly Cashflow data for chart
-  const cashflowData = [
-    {
-      month: locale === 'ar' ? 'مايو' : 'May',
-      revenue: 12400,
-      expenses: 4200,
-    },
-    {
-      month: locale === 'ar' ? 'يونيو' : 'Jun',
-      revenue: 18500,
-      expenses: 6100,
-    },
-    {
-      month: locale === 'ar' ? 'يوليو' : 'Jul',
-      revenue: 14200,
-      expenses: 5300,
-    },
-    {
-      month: locale === 'ar' ? 'أغسطس' : 'Aug',
-      revenue: 21800,
-      expenses: 7400,
-    },
-    {
-      month: locale === 'ar' ? 'سبتمبر' : 'Sep',
-      revenue: finance.revenue > 0 ? finance.revenue : 24050,
-      expenses: finance.expenses > 0 ? finance.expenses : 4980,
-    },
-    {
-      month: locale === 'ar' ? 'أكتوبر (متوقع)' : 'Oct (Proj)',
-      revenue: activePipelineValue * 0.45,
-      expenses: 5500,
-    },
-  ];
+  // Dynamic Monthly Cashflow aggregated from real database payments and expenses
+  const cashflowData = monthlyCashflow.map((pt) => {
+    const [year, month] = pt.monthKey.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
+    const monthName = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-BH' : 'en-US', { month: 'short' }).format(date);
+    return {
+      month: monthName,
+      revenue: pt.revenue,
+      expenses: pt.expenses,
+    };
+  });
 
   // Pipeline stage aggregation
   const stageStats: Record<string, { count: number; value: number }> = {};
@@ -152,7 +133,7 @@ export function ExecutiveDashboardView({
           </div>
           <div className="text-[11px] text-[#10B981] font-mono flex items-center gap-1">
             <span>+18.4%</span>
-            <span className="text-[#9EADA9]/60">vs last mo</span>
+            <span className="text-[#9EADA9]/60">{t.dashboardView.vsLastMonth}</span>
           </div>
         </Card>
 
@@ -246,16 +227,16 @@ export function ExecutiveDashboardView({
               <h2 className="text-sm font-bold text-white uppercase tracking-wider">
                 {t.charts.monthlyRevenueExpenses}
               </h2>
-              <p className="text-xs text-[#9EADA9]">BHD Cash Inflow vs Operating Deductions</p>
+              <p className="text-xs text-[#9EADA9]">{t.dashboardView.cashInflowSubtitle}</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-mono">
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-sm bg-[#09937F]" />
-                <span className="text-white">Revenue</span>
+                <span className="text-white">{t.dashboardView.revenue}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded-sm bg-rose-500/80" />
-                <span className="text-white">Expenses</span>
+                <span className="text-white">{t.dashboardView.expenses}</span>
               </div>
             </div>
           </div>
@@ -276,8 +257,8 @@ export function ExecutiveDashboardView({
                   }}
                   formatter={(value: any) => [`${Number(value).toFixed(3)} BHD`, '']}
                 />
-                <Bar dataKey="revenue" fill="#09937F" radius={[6, 6, 0, 0]} name="Revenue" />
-                <Bar dataKey="expenses" fill="#F43F5E" radius={[6, 6, 0, 0]} name="Expenses" />
+                <Bar dataKey="revenue" fill="#09937F" radius={[6, 6, 0, 0]} name={t.dashboardView.revenue} />
+                <Bar dataKey="expenses" fill="#F43F5E" radius={[6, 6, 0, 0]} name={t.dashboardView.expenses} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -318,7 +299,7 @@ export function ExecutiveDashboardView({
           </div>
 
           <div className="pt-3 border-t border-white/10 flex items-center justify-between text-xs font-mono">
-            <span className="text-[#9EADA9]">Active Pipeline:</span>
+            <span className="text-[#9EADA9]">{t.dashboardView.activePipeline}</span>
             <span className="font-bold text-[#09937F] text-sm">
               <CurrencyDisplay amount={activePipelineValue} currency="BHD" />
             </span>
@@ -338,7 +319,7 @@ export function ExecutiveDashboardView({
               href="/dashboard/crm/deals"
               className="text-xs text-[#09937F] hover:text-[#0BB49B] flex items-center gap-1 transition-colors font-medium"
             >
-              <span>{t.actions.view} Kanban</span>
+              <span>{t.dashboardView.viewKanban}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -354,10 +335,10 @@ export function ExecutiveDashboardView({
                     {deal.title}
                   </div>
                   <div className="text-xs text-[#9EADA9] flex items-center gap-2">
-                    <span>{deal.contact?.company || deal.contact?.full_name || 'Direct Lead'}</span>
+                    <span>{deal.contact?.company || deal.contact?.full_name || t.dashboardView.directLead}</span>
                     {deal.shoot_date && (
                       <span className="font-mono text-[10px] text-[#09937F] bg-[#09937F]/10 px-2 py-0.5 rounded">
-                        Shoot: {deal.shoot_date}
+                        {t.dashboardView.shootDate} {deal.shoot_date}
                       </span>
                     )}
                   </div>
@@ -403,7 +384,7 @@ export function ExecutiveDashboardView({
                           color: event.color || '#09937F',
                         }}
                       >
-                        {event.event_type}
+                        {(t.calendarView as any)[event.event_type] || event.event_type}
                       </span>
                       <DateDisplay date={event.start_date} locale={locale} className="text-[10px] text-[#9EADA9]" />
                     </div>
@@ -420,7 +401,7 @@ export function ExecutiveDashboardView({
                 ))
               ) : (
                 <div className="text-xs text-[#9EADA9] py-4 text-center">
-                  Zero upcoming shoots scheduled
+                  {t.dashboardView.zeroUpcomingShoots}
                 </div>
               )}
             </div>
@@ -448,7 +429,7 @@ export function ExecutiveDashboardView({
                     ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                     : 'bg-white/5 text-[#9EADA9] border border-white/10'
                 }`}>
-                  {company.vat_enabled ? 'VAT Registered (10%)' : 'Non-VAT (0%)'}
+                  {company.vat_enabled ? t.dashboardView.vatRegistered : t.dashboardView.nonVat}
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -458,7 +439,7 @@ export function ExecutiveDashboardView({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">IBAN:</span>
+                <span className="text-[#9EADA9]">{t.settings.bankIban}:</span>
                 <span className="text-white text-end truncate max-w-[140px] font-mono text-[10px]">
                   {company.bank_iban}
                 </span>

@@ -15,7 +15,7 @@ interface KanbanColumnProps {
 }
 
 export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: KanbanColumnProps) {
-  const { locale } = useAdminLocale();
+  const { t } = useAdminLocale();
   const { setNodeRef, isOver } = useDroppable({
     id: stage,
   });
@@ -29,7 +29,7 @@ export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: K
         isOver ? 'border-[#09937F] bg-[#09937F]/5' : 'border-white/10'
       }`}
     >
-      {/* Column Header with Twenty-style Total Aggregation */}
+      {/* Column Header */}
       <div className="p-4 border-b border-white/10 space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -47,7 +47,7 @@ export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: K
         </div>
 
         <div className="text-[11px] font-mono text-[#9EADA9] flex justify-between items-center pt-1">
-          <span>{locale === 'ar' ? 'مجموع المرحلة:' : 'Stage Sum:'}</span>
+          <span>{t.deals.stageSum}</span>
           <span className="text-white font-bold">
             <CurrencyDisplay amount={totalValue} currency="BHD" />
           </span>
@@ -62,7 +62,7 @@ export function KanbanColumn({ stage, label, deals, accentColor = '#09937F' }: K
 
         {deals.length === 0 && (
           <div className="h-24 border border-dashed border-white/10 rounded-xl flex items-center justify-center text-[11px] text-[#9EADA9]/40">
-            {locale === 'ar' ? 'لا توجد صفقات هنا' : 'No deals in this stage'}
+            {t.deals.noDealsHere}
           </div>
         )}
       </div>

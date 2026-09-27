@@ -40,3 +40,40 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
     currency: 'BHD',
   };
 }
+
+export interface MonthlyCashflowPoint {
+  monthKey: string;
+  revenue: number;
+  expenses: number;
+}
+
+export async function getMonthlyCashflow(monthsCount: number = 6): Promise<MonthlyCashflowPoint[]> {
+  const [payments, expenses] = await Promise.all([
+    getAllPayments(),
+    getAllExpenses(),
+  ]);
+
+  const now = new Date();
+  const result: MonthlyCashflowPoint[] = [];
+
+  for (let i = monthsCount - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+    const monthRevenue = payments
+      .filter((p) => p.payment_date && p.payment_date.startsWith(yearMonth))
+      .reduce((sum, p) => sum + Number(p.amount), 0);
+
+    const monthExpenses = expenses
+      .filter((e) => e.expense_date && e.expense_date.startsWith(yearMonth))
+      .reduce((sum, e) => sum + Number(e.amount), 0);
+
+    result.push({
+      monthKey: yearMonth,
+      revenue: monthRevenue,
+      expenses: monthExpenses,
+    });
+  }
+
+  return result;
+}

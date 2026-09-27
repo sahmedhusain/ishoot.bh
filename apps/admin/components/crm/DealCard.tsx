@@ -12,7 +12,7 @@ interface DealCardProps {
 }
 
 export function DealCard({ deal }: DealCardProps) {
-  const { locale } = useAdminLocale();
+  const { t } = useAdminLocale();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: deal.id,
     data: { deal },
@@ -44,7 +44,7 @@ export function DealCard({ deal }: DealCardProps) {
         <div className="flex items-center gap-1.5 text-xs text-[#9EADA9]">
           <User className="w-3.5 h-3.5 text-[#09937F]" />
           <span className="truncate">
-            {deal.contact?.company || deal.contact?.full_name || (locale === 'ar' ? 'عميل مباشر' : 'Direct Client')}
+            {deal.contact?.company || deal.contact?.full_name || t.deals.directClient}
           </span>
         </div>
 
@@ -53,7 +53,7 @@ export function DealCard({ deal }: DealCardProps) {
           <div className="flex items-center gap-1.5 text-[11px] text-[#9EADA9]/70 font-mono">
             <Calendar className="w-3 h-3 text-[#9EADA9]" />
             <span>
-              {locale === 'ar' ? 'التصوير:' : 'Shoot:'} {deal.shoot_date}
+              {t.deals.shootPrefix}{deal.shoot_date}
             </span>
           </div>
         )}
@@ -61,7 +61,7 @@ export function DealCard({ deal }: DealCardProps) {
         {/* Value Footer */}
         <div className="pt-2 border-t border-white/5 flex items-center justify-between text-xs">
           <span className="text-[#9EADA9]/60 font-mono">
-            {locale === 'ar' ? 'قيمة الصفقة' : 'Deal Value'}
+            {t.deals.dealValue}
           </span>
           <span className="font-mono font-bold text-[#09937F]">
             <CurrencyDisplay amount={deal.value} currency={deal.currency} />

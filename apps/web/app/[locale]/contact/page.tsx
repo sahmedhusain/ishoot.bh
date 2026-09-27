@@ -11,7 +11,6 @@ export default async function ContactPage({
 }) {
   const { locale } = await params;
   const t = getTranslations(locale as Locale);
-  const isRTL = locale === 'ar';
 
   return (
     <div className="py-20 max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
@@ -31,16 +30,14 @@ export default async function ContactPage({
         <div className="lg:col-span-4 space-y-8">
           <div className="bg-[#0B1210] border border-white/10 rounded-3xl p-8 space-y-6">
             <h3 className="text-lg font-bold text-white uppercase tracking-wider">
-              {isRTL ? 'معلومات الاستوديو' : 'Studio Information'}
+              {t.contact.studioInfo}
             </h3>
 
             <div className="space-y-4 text-sm">
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-[#09937F] shrink-0 mt-0.5" />
                 <span className="text-[#9EADA9]">
-                  {isRTL
-                    ? 'ضاحية السيف، المنامة، مملكة البحرين'
-                    : 'Seef District, Manama, Kingdom of Bahrain'}
+                  {t.contact.studioAddress}
                 </span>
               </div>
 
@@ -67,7 +64,7 @@ export default async function ContactPage({
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-[#09937F] shrink-0" />
                 <span className="text-[#9EADA9]">
-                  {isRTL ? 'الأحد – الخميس: ٩:٠٠ ص – ٦:٠٠ م' : 'Sun – Thu: 9:00 AM – 6:00 PM'}
+                  {t.contact.workingHours}
                 </span>
               </div>
             </div>
@@ -76,15 +73,13 @@ export default async function ContactPage({
           {/* Rapid WhatsApp Concierge */}
           <div className="bg-gradient-to-br from-[#014842]/40 to-[#0B1210] border border-[#09937F]/30 rounded-3xl p-8 space-y-3">
             <div className="text-xs font-mono uppercase tracking-widest text-[#09937F]">
-              {isRTL ? 'استجابة فورية' : 'Immediate Response'}
+              {t.contact.immediateResponse}
             </div>
             <div className="text-xl font-bold text-white">
-              {isRTL ? 'محادثة مباشرة عبر واتساب' : 'Direct WhatsApp Concierge'}
+              {t.contact.whatsappConcierge}
             </div>
             <p className="text-xs text-[#9EADA9]">
-              {isRTL
-                ? 'تواصل مباشرة مع أحد منتجينا عبر تطبيق واتساب للحصول على استجابة سريعة.'
-                : 'Connect directly with one of our producers on WhatsApp for quick inquiries.'}
+              {t.contact.whatsappDesc}
             </p>
             <a
               href="https://wa.me/97339000000?text=Hello%20ishoot%20team,%20I%20would%20like%20to%20inquire%20about%20a%20production%20project."
@@ -92,7 +87,7 @@ export default async function ContactPage({
               rel="noopener noreferrer"
               className="inline-block mt-2 text-sm font-semibold text-[#09937F] hover:text-[#0BB49B] transition-colors"
             >
-              {isRTL ? 'فتح محادثة واتساب ←' : 'Open WhatsApp Chat →'}
+              {t.contact.openWhatsapp}
             </a>
           </div>
         </div>

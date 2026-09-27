@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { Expense, ExpenseCategory, CRMDeal } from '@ishoot/database/types';
-import { Card, Button, Input, Select, Modal, CurrencyDisplay, DateDisplay, Badge } from '@ishoot/ui';
+import { Card, Button, Input, Select, Modal, CurrencyDisplay, DateDisplay, Badge, ConfirmDestructiveModal } from '@ishoot/ui';
 import { Plus, Receipt, Tag, TrendingDown, Trash2, CheckCircle2 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { createExpenseAction, deleteExpenseAction } from '../../app/actions/finance';
@@ -22,6 +22,7 @@ export function ExpensesManagementView({
 
   const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
   const [modalOpen, setModalOpen] = React.useState(false);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
 
   // Form states
   const [categoryId, setCategoryId] = React.useState(categories[0]?.id || '');
@@ -67,9 +68,6 @@ export function ExpensesManagementView({
   };
 
   const handleDeleteExpense = async (id: string) => {
-    if (!confirm(locale === 'ar' ? 'هل أنت متأكد من حذف هذا المصروف؟' : 'Are you sure you want to delete this expense?')) {
-      return;
-    }
     setExpenses((prev) => prev.filter((e) => e.id !== id));
     try {
       await deleteExpenseAction(id);
@@ -87,9 +85,7 @@ export function ExpensesManagementView({
             {t.nav.expenses}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'متابعة نفقات الإنتاج السينمائي، إيجار المعدات، أجور الطواقم الفنية، والتكاليف التشغيلية.'
-              : 'Track production expenditures, camera rentals, crew payroll, and studio operational overhead.'}
+            {t.expensesView.subtitle}
           </p>
         </div>
 
@@ -117,13 +113,13 @@ export function ExpensesManagementView({
             <CurrencyDisplay amount={totalExpense} currency="BHD" />
           </div>
           <div className="text-[11px] text-[#9EADA9]">
-            {expenses.length} {locale === 'ar' ? 'سند مصروف مسجل' : 'logged expense items'}
+            {expenses.length} {t.expensesView.loggedItems}
           </div>
         </Card>
 
         <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-[#9EADA9]">
-            <span>{locale === 'ar' ? 'تصنيفات التكاليف' : 'Cost Centers'}</span>
+            <span>{t.expensesView.costCenters}</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-[#10B981]">
               <Tag className="w-4 h-4" />
             </div>
@@ -132,13 +128,13 @@ export function ExpensesManagementView({
             {categories.length}
           </div>
           <div className="text-[11px] text-emerald-400">
-            {locale === 'ar' ? 'موزعة عبر الأقسام' : 'production & studio overhead'}
+            {t.expensesView.overheadSubtitle}
           </div>
         </Card>
 
         <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-[#9EADA9]">
-            <span>{locale === 'ar' ? 'المشاريع المرتبطة' : 'Linked Projects'}</span>
+            <span>{t.expensesView.linkedProjects}</span>
             <div className="w-8 h-8 rounded-lg bg-[#09937F]/10 flex items-center justify-center text-[#09937F]">
               <Receipt className="w-4 h-4" />
             </div>
@@ -147,7 +143,7 @@ export function ExpensesManagementView({
             {deals.length}
           </div>
           <div className="text-[11px] text-[#09937F]">
-            {locale === 'ar' ? 'صفقات قيد المتابعة' : 'active commercial contracts'}
+            {t.expensesView.activeContracts}
           </div>
         </Card>
       </div>
@@ -157,13 +153,13 @@ export function ExpensesManagementView({
         <table className="w-full text-start text-xs">
           <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider">
             <tr>
-              <th className="p-4 text-start">{locale === 'ar' ? 'البيان / الوصف' : 'Description'}</th>
-              <th className="p-4 text-start">{locale === 'ar' ? 'التصنيف' : 'Category'}</th>
-              <th className="p-4 text-start">{locale === 'ar' ? 'المورد / الجهة' : 'Vendor'}</th>
-              <th className="p-4 text-start">{locale === 'ar' ? 'المشروع' : 'Deal / Project'}</th>
-              <th className="p-4 text-start">{locale === 'ar' ? 'التاريخ' : 'Date'}</th>
-              <th className="p-4 text-end">{locale === 'ar' ? 'المبلغ' : 'Amount'}</th>
-              <th className="p-4 text-end">{locale === 'ar' ? 'إجراءات' : 'Actions'}</th>
+              <th className="p-4 text-start">{t.expensesView.desc}</th>
+              <th className="p-4 text-start">{t.expensesView.category}</th>
+              <th className="p-4 text-start">{t.expensesView.vendor}</th>
+              <th className="p-4 text-start">{t.expensesView.deal}</th>
+              <th className="p-4 text-start">{t.expensesView.date}</th>
+              <th className="p-4 text-end">{t.expensesView.amount}</th>
+              <th className="p-4 text-end">{t.expensesView.actions}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -193,7 +189,7 @@ export function ExpensesManagementView({
                 </td>
                 <td className="p-4 text-end">
                   <button
-                    onClick={() => handleDeleteExpense(expense.id)}
+                    onClick={() => setDeleteTargetId(expense.id)}
                     className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors inline-flex"
                     title={t.actions.delete}
                   >
@@ -216,22 +212,22 @@ export function ExpensesManagementView({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الوصف بالعربية' : 'Description (Arabic)'}
+                {t.expensesView.descAr}
               </label>
               <Input
                 value={descriptionAr}
                 onChange={(e) => setDescriptionAr(e.target.value)}
-                placeholder="إيجار عدسات سينمائية للتصوير الخارجي"
+                placeholder={t.expensesView.descArPlaceholder}
               />
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الوصف بالإنجليزية' : 'Description (English)'}
+                {t.expensesView.descEn}
               </label>
               <Input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Cinema lenses rental for exterior shoot"
+                placeholder={t.expensesView.descEnPlaceholder}
                 required
               />
             </div>
@@ -240,7 +236,7 @@ export function ExpensesManagementView({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'المبلغ (BHD)' : 'Amount (BHD)'}
+                {t.expensesView.amountBhd}
               </label>
               <Input
                 type="number"
@@ -253,7 +249,7 @@ export function ExpensesManagementView({
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'التصنيف' : 'Category'}
+                {t.expensesView.category}
               </label>
               <Select
                 value={categoryId}
@@ -271,24 +267,24 @@ export function ExpensesManagementView({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'اسم المورد / الجهة المستفيدة' : 'Vendor Name'}
+                {t.expensesView.vendorName}
               </label>
               <Input
                 value={vendorName}
                 onChange={(e) => setVendorName(e.target.value)}
-                placeholder="CineRent Gulf W.L.L."
+                placeholder={t.expensesView.vendorPlaceholder}
               />
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الصفقة / المشروع المرتبط' : 'Linked Deal'}
+                {t.expensesView.linkedDeal}
               </label>
               <Select
                 value={dealId}
                 onChange={(e) => setDealId(e.target.value)}
               >
                 <option value="" className="bg-[#0B1210] text-white">
-                  {locale === 'ar' ? 'غير مرتبط بصفقة معينة (مصروف عام)' : 'General Studio Overhead'}
+                  {t.expensesView.generalOverhead}
                 </option>
                 {deals.map((d) => (
                   <option key={d.id} value={d.id} className="bg-[#0B1210] text-white">
@@ -301,7 +297,7 @@ export function ExpensesManagementView({
 
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'تاريخ الصرف' : 'Expense Date'}
+              {t.expensesView.expenseDate}
             </label>
             <Input
               type="date"
@@ -332,6 +328,22 @@ export function ExpensesManagementView({
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Safeguard Modal */}
+      <ConfirmDestructiveModal
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={async () => {
+          if (deleteTargetId) {
+            await handleDeleteExpense(deleteTargetId);
+            setDeleteTargetId(null);
+          }
+        }}
+        title={t.actions.delete}
+        description={t.expensesView.confirmDelete}
+        confirmLabel={t.actions.delete}
+        cancelLabel={t.actions.cancel}
+      />
     </div>
   );
 }

@@ -2,6 +2,8 @@ export type UserRole =
   | 'super_admin'
   | 'admin'
   | 'finance_manager'
+  | 'sales'
+  | 'marketing'
   | 'production_manager'
   | 'producer'
   | 'editor'
@@ -156,7 +158,9 @@ export interface Inquiry {
   id: string;
   full_name: string;
   email: string;
+  email_norm?: string;
   phone?: string;
+  phone_e164?: string;
   company?: string;
   services_requested: string[];
   budget_range?: string;
@@ -166,6 +170,10 @@ export interface Inquiry {
   confirmation_sent: boolean;
   notification_sent: boolean;
   locale: string;
+  source?: 'website' | 'email' | 'whatsapp' | 'manual';
+  customer_id?: string;
+  customer?: CRMContact;
+  merge_flag?: boolean;
   created_at: string;
 }
 
@@ -175,11 +183,16 @@ export interface CRMContact {
   first_name?: string;
   last_name?: string;
   email: string;
+  email_norm?: string;
   phone?: string;
+  phone_e164?: string;
   company?: string;
   job_title?: string;
   contact_type?: 'client' | 'vendor' | 'freelancer' | 'agency';
   notes?: string;
+  deals?: CRMDeal[];
+  inquiries?: Inquiry[];
+  contracts?: Contract[];
   created_at: string;
   updated_at: string;
 }
@@ -212,6 +225,7 @@ export interface CRMDeal {
   updated_at: string;
   contact?: CRMContact;
   calendar_events?: CalendarEvent[];
+  contracts?: Contract[];
 }
 
 export type InvoiceStatus = 'draft' | 'sent' | 'partially_paid' | 'paid' | 'overdue' | 'void';
@@ -394,7 +408,9 @@ export interface ActivityLog {
   entity_type: string;
   entity_id?: string;
   details?: any;
+  diff_payload?: any;
   ip_address?: string;
+  user_agent?: string;
   created_at: string;
 }
 
@@ -430,3 +446,79 @@ export interface Attachment {
   uploaded_by?: string;
   created_at: string;
 }
+
+export interface Permission {
+  id: string;
+  role: UserRole;
+  resource: string;
+  action: string;
+  allowed: boolean;
+  created_at: string;
+}
+
+export interface Session {
+  id: string;
+  user_id: string;
+  user?: Profile;
+  token: string;
+  ip_address?: string;
+  user_agent?: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface DocumentTemplate {
+  id: string;
+  slug: string;
+  name_en: string;
+  name_ar?: string;
+  category: 'invoice' | 'receipt' | 'contract' | 'legal';
+  body_html?: string;
+  body_json?: any;
+  version: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ContractStatus = 'draft' | 'sent' | 'signed' | 'expired' | 'cancelled';
+
+export interface Contract {
+  id: string;
+  contract_number: string;
+  deal_id?: string;
+  deal?: CRMDeal;
+  contact_id?: string;
+  contact?: CRMContact;
+  template_id?: string;
+  template?: DocumentTemplate;
+  title_en: string;
+  title_ar?: string;
+  body_html?: string;
+  status: ContractStatus;
+  signature_hash?: string;
+  signed_at?: string;
+  valid_from?: string;
+  valid_until?: string;
+  pdf_storage_path?: string;
+  metadata?: any;
+  created_by_id?: string;
+  created_by?: Profile;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GeneratedDocument {
+  id: string;
+  document_type: string;
+  source_entity_type: string;
+  source_entity_id: string;
+  file_name: string;
+  storage_path: string;
+  file_size?: number;
+  checksum?: string;
+  generated_by_id?: string;
+  generated_by?: Profile;
+  created_at: string;
+}
+

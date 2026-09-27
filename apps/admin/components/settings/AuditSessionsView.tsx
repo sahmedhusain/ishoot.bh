@@ -2,22 +2,17 @@
 
 import * as React from 'react';
 import type { ActivityLog } from '@ishoot/database/types';
-import { Card, Input, Button, Badge } from '@ishoot/ui';
+import { Card, Input, Badge } from '@ishoot/ui';
 import {
   History,
   Shield,
   Search,
-  Filter,
-  User,
-  Clock,
-  Laptop,
   CheckCircle2,
-  AlertCircle,
   FileText,
   CreditCard,
   Kanban,
   Building2,
-  RefreshCw,
+  Laptop,
 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { SettingsNavTabs } from './SettingsNavTabs';
@@ -28,8 +23,8 @@ interface AuditSessionsViewProps {
 }
 
 export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
-  const { t, locale, isRTL } = useAdminLocale();
-  const [logs, setLogs] = React.useState<ActivityLog[]>(initialLogs);
+  const { t, locale } = useAdminLocale();
+  const [logs] = React.useState<ActivityLog[]>(initialLogs);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedAction, setSelectedAction] = React.useState<string>('all');
   const [selectedEntity, setSelectedEntity] = React.useState<string>('all');
@@ -67,15 +62,15 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
   const getActionBadge = (action: string) => {
     switch (action) {
       case 'login':
-        return <Badge variant="outline" className="border-blue-500/40 text-blue-400 bg-blue-500/10">تسجيل دخول / Login</Badge>;
+        return <Badge variant="outline" className="border-blue-500/40 text-blue-400 bg-blue-500/10">{t.audit.loginAction}</Badge>;
       case 'create':
-        return <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10">إنشاء / Create</Badge>;
+        return <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10">{t.audit.createAction}</Badge>;
       case 'update':
-        return <Badge variant="outline" className="border-amber-500/40 text-amber-400 bg-amber-500/10">تعديل / Update</Badge>;
+        return <Badge variant="outline" className="border-amber-500/40 text-amber-400 bg-amber-500/10">{t.audit.updateAction}</Badge>;
       case 'delete':
-        return <Badge variant="outline" className="border-rose-500/40 text-rose-400 bg-rose-500/10">حذف / Delete</Badge>;
+        return <Badge variant="outline" className="border-rose-500/40 text-rose-400 bg-rose-500/10">{t.audit.deleteAction}</Badge>;
       case 'stage_change':
-        return <Badge variant="outline" className="border-[#09937F]/40 text-[#09937F] bg-[#09937F]/10">تغيير مرحلة / Stage</Badge>;
+        return <Badge variant="outline" className="border-[#09937F]/40 text-[#09937F] bg-[#09937F]/10">{t.audit.stageChangeAction}</Badge>;
       default:
         return <Badge variant="outline">{action}</Badge>;
     }
@@ -107,18 +102,16 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
-            {locale === 'ar' ? 'سجل العمليات، التدقيق، والجلسات' : 'Audit Trail & Session History'}
+            {t.audit.title}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'سجل غير قابل للتلاعب يوثق كافة حركات المستخدمين، عمليات الدخول، والتعديلات على الصفقات والفواتير.'
-              : 'Tamper-evident audit log documenting all user sessions, authorizations, and record mutations.'}
+            {t.audit.subtitle}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="font-mono text-xs px-3 py-1 bg-white/5 border-white/10">
-            {filteredLogs.length} {locale === 'ar' ? 'سجل مسجل' : 'events logged'}
+            {filteredLogs.length} {t.audit.eventsLogged}
           </Badge>
         </div>
       </div>
@@ -132,7 +125,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
           <div>
             <div className="text-lg font-mono font-bold text-white">8</div>
             <div className="text-xs text-[#9EADA9]">
-              {locale === 'ar' ? 'مستخدمين مفوضين نشطين' : 'Authorized RBAC Users'}
+              {t.audit.authorizedUsers}
             </div>
           </div>
         </Card>
@@ -144,7 +137,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
           <div>
             <div className="text-lg font-mono font-bold text-white">1</div>
             <div className="text-xs text-[#9EADA9]">
-              {locale === 'ar' ? 'الجلسة الحالية النشطة' : 'Active Live Session'}
+              {t.audit.activeSession}
             </div>
           </div>
         </Card>
@@ -156,7 +149,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
           <div>
             <div className="text-lg font-mono font-bold text-white">100%</div>
             <div className="text-xs text-[#9EADA9]">
-              {locale === 'ar' ? 'تغطية التدقيق الأمني' : 'Audit Enforcement'}
+              {t.audit.enforcement}
             </div>
           </div>
         </Card>
@@ -170,7 +163,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 start-3 text-[#9EADA9]" />
             <Input
               type="text"
-              placeholder={locale === 'ar' ? 'البحث بالاسم، الإيميل، نوع العملية، أو عنوان IP...' : 'Search by name, email, action, or IP address...'}
+              placeholder={t.audit.searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="ps-9 bg-[#050807] border-white/10 text-xs w-full"
@@ -183,12 +176,12 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             onChange={(e) => setSelectedAction(e.target.value)}
             className="px-3 py-2 rounded-xl bg-[#050807] border border-white/10 text-xs text-white focus:outline-none focus:border-[#09937F]"
           >
-            <option value="all">{locale === 'ar' ? 'جميع أنواع العمليات' : 'All Action Types'}</option>
-            <option value="login">{locale === 'ar' ? 'تسجيل دخول (Login)' : 'Login'}</option>
-            <option value="create">{locale === 'ar' ? 'إنشاء (Create)' : 'Create'}</option>
-            <option value="update">{locale === 'ar' ? 'تعديل (Update)' : 'Update'}</option>
-            <option value="delete">{locale === 'ar' ? 'حذف (Delete)' : 'Delete'}</option>
-            <option value="stage_change">{locale === 'ar' ? 'تغيير مرحلة (Stage Change)' : 'Stage Change'}</option>
+            <option value="all">{t.audit.allActions}</option>
+            <option value="login">{t.audit.loginAction}</option>
+            <option value="create">{t.audit.createAction}</option>
+            <option value="update">{t.audit.updateAction}</option>
+            <option value="delete">{t.audit.deleteAction}</option>
+            <option value="stage_change">{t.audit.stageChangeAction}</option>
           </select>
 
           {/* Entity Filter */}
@@ -197,12 +190,12 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             onChange={(e) => setSelectedEntity(e.target.value)}
             className="px-3 py-2 rounded-xl bg-[#050807] border border-white/10 text-xs text-white focus:outline-none focus:border-[#09937F]"
           >
-            <option value="all">{locale === 'ar' ? 'جميع الوحدات' : 'All Entities'}</option>
-            <option value="invoice">{locale === 'ar' ? 'فواتير (Invoices)' : 'Invoices'}</option>
-            <option value="payment">{locale === 'ar' ? 'دفعات (Payments)' : 'Payments'}</option>
-            <option value="deal">{locale === 'ar' ? 'صفقات (Deals)' : 'Deals'}</option>
-            <option value="company_settings">{locale === 'ar' ? 'إعدادات الشركة (Settings)' : 'Company Settings'}</option>
-            <option value="auth">{locale === 'ar' ? 'جلسات المصادقة (Auth)' : 'Auth'}</option>
+            <option value="all">{t.audit.allEntities}</option>
+            <option value="invoice">{t.audit.invoicesEntity}</option>
+            <option value="payment">{t.audit.paymentsEntity}</option>
+            <option value="deal">{t.audit.dealsEntity}</option>
+            <option value="company_settings">{t.audit.settingsEntity}</option>
+            <option value="auth">{t.audit.authEntity}</option>
           </select>
         </div>
       </Card>
@@ -213,19 +206,19 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
           <table className="w-full text-xs text-start">
             <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider text-[11px]">
               <tr>
-                <th className="p-4 text-start">{locale === 'ar' ? 'المستخدم' : 'User'}</th>
-                <th className="p-4 text-start">{locale === 'ar' ? 'نوع الحركة' : 'Action'}</th>
-                <th className="p-4 text-start">{locale === 'ar' ? 'الوحدة / السجل' : 'Entity'}</th>
-                <th className="p-4 text-start">{locale === 'ar' ? 'تفاصيل العملية' : 'Details'}</th>
-                <th className="p-4 text-start">{locale === 'ar' ? 'عنوان IP' : 'IP Address'}</th>
-                <th className="p-4 text-end">{locale === 'ar' ? 'التوقيت والتاريخ' : 'Timestamp'}</th>
+                <th className="p-4 text-start">{t.audit.userCol}</th>
+                <th className="p-4 text-start">{t.audit.actionCol}</th>
+                <th className="p-4 text-start">{t.audit.entityCol}</th>
+                <th className="p-4 text-start">{t.audit.detailsCol}</th>
+                <th className="p-4 text-start">{t.audit.ipCol}</th>
+                <th className="p-4 text-end">{t.audit.timestampCol}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {filteredLogs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-[#9EADA9]">
-                    {locale === 'ar' ? 'لا توجد سجلات مطابقة لمعايير البحث' : 'No activity logs matching your filter.'}
+                    {t.audit.noLogs}
                   </td>
                 </tr>
               ) : (

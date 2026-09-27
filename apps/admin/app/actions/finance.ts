@@ -5,9 +5,11 @@ import {
   deleteExpense,
   createPayment,
   createInvoice,
+  createActivityLog,
   PaymentMethod,
 } from '@ishoot/database';
 import { revalidatePath } from 'next/cache';
+import { requirePermission } from '../../lib/auth';
 
 export async function createExpenseAction(data: {
   amount: number;
@@ -19,7 +21,17 @@ export async function createExpenseAction(data: {
   expense_date?: string;
   is_billable?: boolean;
 }) {
+  const user = await requirePermission('expenses', 'write');
   const expense = await createExpense(data);
+
+  await createActivityLog({
+    user_id: user.id,
+    action: 'create',
+    entity_type: 'expense',
+    entity_id: expense.id,
+    details: { amount: data.amount, description: data.description_en },
+  });
+
   revalidatePath('/dashboard/expenses');
   revalidatePath('/dashboard/finance');
   revalidatePath('/dashboard');
@@ -27,7 +39,16 @@ export async function createExpenseAction(data: {
 }
 
 export async function deleteExpenseAction(id: string) {
+  const user = await requirePermission('expenses', 'delete');
   await deleteExpense(id);
+
+  await createActivityLog({
+    user_id: user.id,
+    action: 'delete',
+    entity_type: 'expense',
+    entity_id: id,
+  });
+
   revalidatePath('/dashboard/expenses');
   revalidatePath('/dashboard/finance');
   revalidatePath('/dashboard');
@@ -42,7 +63,21 @@ export async function createPaymentAction(data: {
   reference_number?: string;
   notes?: string;
 }) {
+  const user = await requirePermission('payments', 'write');
   const payment = await createPayment(data);
+
+  await createActivityLog({
+    user_id: user.id,
+    action: 'create',
+    entity_type: 'payment',
+    entity_id: payment.id,
+    details: {
+      invoice_id: data.invoice_id,
+      amount: data.amount,
+      receiptNumber: payment.receipt_number,
+    },
+  });
+
   revalidatePath('/dashboard/payments');
   revalidatePath('/dashboard/invoices');
   revalidatePath('/dashboard/finance');
@@ -66,7 +101,23 @@ export async function createInvoiceAction(data: {
   created_by?: string;
   line_items: any[];
 }) {
-  const invoice = await createInvoice(data as any);
+  const user = await requirePermission('invoices', 'write');
+  const invoice = await createInvoice({
+    ...data,
+    created_by: user.id,
+  } as any);
+
+  await createActivityLog({
+    user_id: user.id,
+    action: 'create',
+    entity_type: 'invoice',
+    entity_id: invoice.id,
+    details: {
+      invoiceNumber: invoice.invoice_number,
+      totalAmount: invoice.total_amount,
+    },
+  });
+
   revalidatePath('/dashboard/invoices');
   revalidatePath('/dashboard/finance');
   revalidatePath('/dashboard');

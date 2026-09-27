@@ -43,13 +43,14 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
   const [notesEn, setNotesEn] = React.useState('');
   const [notesAr, setNotesAr] = React.useState('');
 
+  // No mock fallback data - start with a clean blank item
   const [lineItems, setLineItems] = React.useState<InvoiceLineItem[]>([
     {
-      description_en: 'Commercial Cinematography Production Package',
-      description_ar: 'حزمة الإنتاج والتصوير السينمائي الإعلاني',
+      description_en: '',
+      description_ar: '',
       quantity: 1,
-      unit_price: 1500.0,
-      line_total: 1500.0,
+      unit_price: 0,
+      line_total: 0,
     },
   ]);
 
@@ -117,7 +118,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
         vat_enabled: vatEnabled,
         vat_percentage: company?.vat_percentage || 10,
         line_items: lineItems.map((li) => ({
-          description_en: li.description_en || 'Cinema Production',
+          description_en: li.description_en || 'Service',
           description_ar: li.description_ar || undefined,
           quantity: Number(li.quantity),
           unit_price: Number(li.unit_price),
@@ -145,18 +146,16 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
           className="inline-flex items-center gap-2 text-xs text-[#9EADA9] hover:text-[#09937F] transition-colors font-medium"
         >
           <BackIcon className="w-4 h-4" />
-          <span>{locale === 'ar' ? 'العودة إلى أرشيف الفواتير' : 'Back to Invoices Archive'}</span>
+          <span>{t.actions.backToInvoices}</span>
         </Link>
       </div>
 
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
-          {locale === 'ar' ? 'إصدار فاتورة تجارية جديدة' : 'Create Commercial Invoice'}
+          {t.invoiceForm.title}
         </h1>
         <p className="text-xs text-[#9EADA9] mt-1">
-          {locale === 'ar'
-            ? 'احتساب مالي فائق الدقة، دعم العملات المتعددة، والخصومات، وتوافق كامل مع المعايير الضريبية.'
-            : 'Precision-calculated billing with multi-currency support, discounts, and letterhead localization.'}
+          {t.invoiceForm.subtitle}
         </p>
       </div>
 
@@ -164,7 +163,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
         {/* 1. Header Information */}
         <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
-            {locale === 'ar' ? 'بيانات الفاتورة والعميل' : 'Invoice Particulars'}
+            {t.invoiceForm.particulars}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
@@ -187,7 +186,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
             {/* Currency */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {locale === 'ar' ? 'العملة المعتمدة' : 'Billing Currency'}
+                {t.invoiceForm.currencyLabel}
               </label>
               <Select
                 value={currency}
@@ -207,14 +206,14 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
             {/* Invoice Language */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {locale === 'ar' ? 'لغة المستند المطبوع' : 'Document Language'}
+                {t.invoiceForm.docLangLabel}
               </label>
               <Select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as 'en' | 'ar')}
               >
-                <option value="ar">{locale === 'ar' ? 'العربية' : 'Arabic'}</option>
-                <option value="en">{locale === 'ar' ? 'الإنجليزية' : 'English'}</option>
+                <option value="ar">{t.invoiceForm.arabic}</option>
+                <option value="en">{t.invoiceForm.english}</option>
               </Select>
             </div>
 
@@ -248,7 +247,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
         <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              {locale === 'ar' ? 'بنود الخدمات والتصوير' : 'Production Deliverables'}
+              {t.invoiceForm.deliverables}
             </h2>
             <Button
               type="button"
@@ -258,7 +257,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
               className="gap-1.5 text-xs text-[#09937F] border-[#09937F]/40"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>{locale === 'ar' ? 'إضافة بند' : 'Add Item'}</span>
+              <span>{t.invoiceForm.addItem}</span>
             </Button>
           </div>
 
@@ -270,11 +269,11 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
               >
                 <div className="md:col-span-5 space-y-1">
                   <label className="text-[11px] text-[#9EADA9]">
-                    {locale === 'ar' ? 'الوصف بالإنجليزية' : 'Description (English)'}
+                    {t.invoiceForm.descEn}
                   </label>
                   <Input
                     required
-                    placeholder={locale === 'ar' ? 'مثال: Cinema Camera Package' : 'e.g. Cinema Camera Package'}
+                    placeholder={t.invoiceForm.placeholderEn}
                     value={item.description_en}
                     onChange={(e) => updateLineItem(idx, 'description_en', e.target.value)}
                   />
@@ -282,10 +281,10 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
 
                 <div className="md:col-span-3 space-y-1">
                   <label className="text-[11px] text-[#9EADA9]">
-                    {locale === 'ar' ? 'الوصف بالعربية' : 'Description (Arabic)'}
+                    {t.invoiceForm.descAr}
                   </label>
                   <Input
-                    placeholder={locale === 'ar' ? 'طقم كاميرات سينمائية' : 'Arabic description'}
+                    placeholder={t.invoiceForm.placeholderAr}
                     value={item.description_ar || ''}
                     onChange={(e) => updateLineItem(idx, 'description_ar', e.target.value)}
                     className="text-end font-arabic"
@@ -294,7 +293,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
 
                 <div className="md:col-span-1 space-y-1">
                   <label className="text-[11px] text-[#9EADA9]">
-                    {locale === 'ar' ? 'الكمية' : 'Qty'}
+                    {t.invoiceForm.qty}
                   </label>
                   <Input
                     type="number"
@@ -309,7 +308,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
 
                 <div className="md:col-span-2 space-y-1">
                   <label className="text-[11px] text-[#9EADA9]">
-                    {locale === 'ar' ? `السعر (${currency})` : `Rate (${currency})`}
+                    {t.invoiceForm.rate} ({currency})
                   </label>
                   <Input
                     type="number"
@@ -328,7 +327,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
                       type="button"
                       onClick={() => removeLineItem(idx)}
                       className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-                      title={locale === 'ar' ? 'حذف البند' : 'Remove Item'}
+                      title={t.invoiceForm.removeItem}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -343,7 +342,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           <Card className="md:col-span-6 p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
-              {locale === 'ar' ? 'الخصومات وضريبة القيمة المضافة' : 'Deductions & Tax Status'}
+              {t.invoiceForm.deductionsTitle}
             </h2>
 
             <div className="space-y-4">
@@ -354,9 +353,9 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
                     value={discountType}
                     onChange={(e) => setDiscountType(e.target.value as DiscountType)}
                   >
-                    <option value="none">{locale === 'ar' ? 'بدون خصم' : 'No Discount'}</option>
-                    <option value="percentage">{locale === 'ar' ? 'نسبة مئوية (%)' : 'Percentage (%)'}</option>
-                    <option value="fixed">{locale === 'ar' ? 'مبلغ مقطوع' : 'Fixed Amount'}</option>
+                    <option value="none">{t.invoiceForm.noDiscount}</option>
+                    <option value="percentage">{t.invoiceForm.pctDiscount}</option>
+                    <option value="fixed">{t.invoiceForm.fixedDiscount}</option>
                   </Select>
                 </div>
 
@@ -364,8 +363,8 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-[#9EADA9]">
                       {discountType === 'percentage'
-                        ? locale === 'ar' ? 'نسبة الخصم %' : 'Discount %'
-                        : locale === 'ar' ? `قيمة الخصم (${currency})` : `Amount (${currency})`}
+                        ? t.invoiceForm.discountPctLabel
+                        : `${t.invoiceForm.discountAmtLabel} (${currency})`}
                     </label>
                     <Input
                       type="number"
@@ -384,13 +383,13 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
                 <div>
                   <div className="text-xs font-bold text-white">
                     {vatEnabled
-                      ? locale === 'ar' ? 'ضريبة القيمة المضافة (10%) مفعلة' : '10% VAT Enabled'
-                      : locale === 'ar' ? 'معفى من الضريبة (0%)' : 'Non-VAT Entity (0%)'}
+                      ? t.invoiceForm.vatEnabledTitle
+                      : t.invoiceForm.vatDisabledTitle}
                   </div>
                   <div className="text-[10px] text-[#9EADA9]">
                     {vatEnabled
-                      ? locale === 'ar' ? 'تُحتسب الضريبة وتضاف إلى الإجمالي النهائي' : 'Tax added to final invoice total'
-                      : locale === 'ar' ? 'يتم إدراج بيان الإعفاء الضريبي في الفاتورة' : 'VAT: Not Applicable statement rendered'}
+                      ? t.invoiceForm.vatEnabledDesc
+                      : t.invoiceForm.vatDisabledDesc}
                   </div>
                 </div>
                 <button
@@ -403,8 +402,8 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
                   }`}
                 >
                   {vatEnabled
-                    ? locale === 'ar' ? 'مفعل' : 'Active'
-                    : locale === 'ar' ? 'معطل' : 'Disabled'}
+                    ? t.invoiceForm.active
+                    : t.invoiceForm.disabled}
                 </button>
               </div>
             </div>
@@ -414,7 +413,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
           <Card className="md:col-span-6 p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4 flex flex-col justify-between">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3 flex items-center gap-2">
               <Calculator className="w-4 h-4 text-[#09937F]" />
-              <span>{locale === 'ar' ? 'ملخص الحسابات الإجمالي' : 'Summary Breakdown'}</span>
+              <span>{t.invoiceForm.summaryTitle}</span>
             </h2>
 
             <div className="space-y-2.5 text-xs">
@@ -459,7 +458,7 @@ export function NewInvoiceFormView({ initialContacts, company }: NewInvoiceFormV
               <CheckCircle2 className="w-4 h-4" />
               <span>
                 {submitting
-                  ? locale === 'ar' ? 'جارٍ إصدار الفاتورة...' : 'Generating Invoice...'
+                  ? t.invoiceForm.submitting
                   : t.actions.newInvoice}
               </span>
             </Button>

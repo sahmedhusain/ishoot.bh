@@ -27,13 +27,13 @@ export function InvoicesListView({ initialInvoices, finance }: InvoicesListViewP
     return matchesStatus && matchesSearch;
   });
 
-  const statusLabels: Record<string, { ar: string; en: string }> = {
-    all: { ar: 'الكل', en: 'All' },
-    draft: { ar: 'مسودة', en: 'Draft' },
-    sent: { ar: 'مرسلة', en: 'Sent' },
-    partially_paid: { ar: 'مدفوعة جزئياً', en: 'Partially Paid' },
-    paid: { ar: 'مدفوعة بالكامل', en: 'Paid' },
-    overdue: { ar: 'متأخرة', en: 'Overdue' },
+  const statusLabels: Record<string, string> = {
+    all: t.actions.all,
+    draft: t.finance.statusDraft,
+    sent: t.finance.statusSent,
+    partially_paid: t.finance.statusPartiallyPaid,
+    paid: t.finance.statusPaid,
+    overdue: t.finance.statusOverdue,
   };
 
   return (
@@ -45,9 +45,7 @@ export function InvoicesListView({ initialInvoices, finance }: InvoicesListViewP
             {t.nav.invoices}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'إصدار ومتابعة الفواتير التجارية الرسمية، نسب الضريبة، الخصومات المعتمدة، وسجل السداد.'
-              : 'Commercial billing, multi-currency invoicing (BHD, SAR, AED, USD), discounts, and regulatory VAT management.'}
+            {t.invoicesList.subtitle}
           </p>
         </div>
 
@@ -67,7 +65,7 @@ export function InvoicesListView({ initialInvoices, finance }: InvoicesListViewP
             <CurrencyDisplay amount={finance.outstanding} currency="BHD" />
           </div>
           <div className="text-[11px] text-[#9EADA9]/60">
-            {locale === 'ar' ? 'إجمالي المستحقات عبر الفواتير المعلقة والجزئية' : 'Across pending & partial invoices'}
+            {t.invoicesList.pendingPartial}
           </div>
         </Card>
 
@@ -78,7 +76,7 @@ export function InvoicesListView({ initialInvoices, finance }: InvoicesListViewP
           </div>
           <div className="text-[11px] text-[#9EADA9]/60">
             {finance.overdue > 0
-              ? (locale === 'ar' ? 'يتطلب إجراء عاجلاً' : 'Immediate action required')
+              ? t.invoicesList.immediateAction
               : t.kpi.allOnTrack}
           </div>
         </Card>
@@ -89,7 +87,7 @@ export function InvoicesListView({ initialInvoices, finance }: InvoicesListViewP
             <CurrencyDisplay amount={finance.discountsGiven} currency="BHD" />
           </div>
           <div className="text-[11px] text-[#9EADA9]/60">
-            {locale === 'ar' ? 'الخصومات التجارية المعتمدة للعملاء' : 'Approved commercial client discounts'}
+            {t.invoicesList.commercialDiscountsDesc}
           </div>
         </Card>
       </div>
@@ -119,7 +117,7 @@ export function InvoicesListView({ initialInvoices, finance }: InvoicesListViewP
                     : 'text-[#9EADA9] hover:bg-white/5'
                 }`}
               >
-                {statusLabels[st] ? statusLabels[st][locale] : st}
+                {statusLabels[st] || st}
               </button>
             ))}
           </div>
@@ -148,14 +146,14 @@ export function InvoicesListView({ initialInvoices, finance }: InvoicesListViewP
                   </td>
                   <td className="p-4">
                     <div className="font-semibold text-white">
-                      {inv.contact?.company || inv.contact?.full_name || (locale === 'ar' ? 'عميل' : 'Client')}
+                      {inv.contact?.company || inv.contact?.full_name || t.invoicesList.clientFallback}
                     </div>
                     <div className="text-[11px] text-[#9EADA9]">{inv.contact?.email}</div>
                   </td>
                   <td className="p-4 text-[#9EADA9] font-mono text-[11px]">
                     <div>{inv.issue_date}</div>
                     <div className="text-white/40">
-                      {locale === 'ar' ? 'الاستحقاق:' : 'Due:'} {inv.due_date}
+                      {t.invoicesList.duePrefix} {inv.due_date}
                     </div>
                   </td>
                   <td className="p-4 text-end font-mono font-bold text-white">

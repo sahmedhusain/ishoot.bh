@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { CRMContact } from '@ishoot/database/types';
-import { Card, Input, Button, Modal, Select } from '@ishoot/ui';
+import { Card, Input, Button, Modal, Select, ConfirmDestructiveModal } from '@ishoot/ui';
 import { Search, Mail, Phone, Building, Plus, Trash2, CheckCircle2 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { createContactAction, deleteContactAction } from '../../app/actions/crm';
@@ -12,11 +12,12 @@ interface ContactsManagementViewProps {
 }
 
 export function ContactsManagementView({ initialContacts }: ContactsManagementViewProps) {
-  const { t, locale } = useAdminLocale();
+  const { t } = useAdminLocale();
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [query, setQuery] = React.useState('');
   const [modalOpen, setModalOpen] = React.useState(false);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
 
   // Form states
   const [fullName, setFullName] = React.useState('');
@@ -69,9 +70,6 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
   };
 
   const handleDeleteContact = async (id: string) => {
-    if (!confirm(locale === 'ar' ? 'هل أنت متأكد من حذف هذا العميل؟' : 'Are you sure you want to delete this contact?')) {
-      return;
-    }
     setContacts((prev) => prev.filter((c) => c.id !== id));
     try {
       await deleteContactAction(id);
@@ -88,9 +86,7 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
             {t.nav.contacts}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'دليل جهات الاتصال للشركات الكبرى، وكالات الدعاية والإعلان، وصناع القرار في الخليج.'
-              : 'Enterprise client directory, agency partners, and executive decision-makers.'}
+            {t.contactsView.subtitle}
           </p>
         </div>
 
@@ -132,13 +128,13 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
                   <div>
                     <div className="text-sm font-bold text-white">{c.full_name}</div>
                     <div className="text-xs text-[#09937F]">
-                      {c.job_title || (locale === 'ar' ? 'شريك عميل' : 'Client Partner')}
+                      {c.job_title || t.contactsView.clientPartner}
                     </div>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => handleDeleteContact(c.id)}
+                  onClick={() => setDeleteTargetId(c.id)}
                   className="p-1.5 text-[#9EADA9] hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
                   title={t.actions.delete}
                 >
@@ -190,11 +186,11 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
         <form onSubmit={handleCreateContact} className="space-y-4 text-xs">
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'الاسم الكامل' : 'Full Name'} *
+              {t.contactsView.fullName} *
             </label>
             <Input
               required
-              placeholder={locale === 'ar' ? 'حمد الرميحي' : 'Hamad Alromaihi'}
+              placeholder={t.contactsView.fullNamePlaceholder}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
             />
@@ -203,7 +199,7 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الشركة أو المؤسسة' : 'Company'}
+                {t.contactsView.company}
               </label>
               <Input
                 placeholder="Batelco"
@@ -214,10 +210,10 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
 
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'المسمى الوظيفي' : 'Job Title'}
+                {t.contactsView.jobTitle}
               </label>
               <Input
-                placeholder={locale === 'ar' ? 'مدير التسويق' : 'Head of Marketing'}
+                placeholder={t.contactsView.jobTitlePlaceholder}
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
               />
@@ -227,7 +223,7 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
+                {t.contactsView.emailAddress}
               </label>
               <Input
                 type="email"
@@ -239,7 +235,7 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
 
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
+                {t.contactsView.phoneNumber}
               </label>
               <Input
                 placeholder="+973 3900 0000"
@@ -251,33 +247,33 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
 
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'تصنيف جهة الاتصال' : 'Contact Type'}
+              {t.contactsView.contactType}
             </label>
             <Select
               value={contactType}
               onChange={(e) => setContactType(e.target.value as any)}
             >
               <option value="client" className="bg-[#0B1210] text-white">
-                {locale === 'ar' ? 'عميل تجاري مباشر' : 'Direct Commercial Client'}
+                {t.contactsView.typeClient}
               </option>
               <option value="agency" className="bg-[#0B1210] text-white">
-                {locale === 'ar' ? 'وكالة دعاية وإعلان' : 'Advertising Agency'}
+                {t.contactsView.typeAgency}
               </option>
               <option value="vendor" className="bg-[#0B1210] text-white">
-                {locale === 'ar' ? 'مورد أو مزود خدمة' : 'Vendor / Supplier'}
+                {t.contactsView.typeVendor}
               </option>
               <option value="freelancer" className="bg-[#0B1210] text-white">
-                {locale === 'ar' ? 'طاقم إنتاج مستقل' : 'Crew Freelancer'}
+                {t.contactsView.typeFreelancer}
               </option>
             </Select>
           </div>
 
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'ملاحظات إضافية' : 'Notes'}
+              {t.contactsView.notes}
             </label>
             <Input
-              placeholder={locale === 'ar' ? 'ملاحظات حول صانع القرار في المشروع...' : 'Notes about decision maker...'}
+              placeholder={t.contactsView.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
@@ -305,6 +301,22 @@ export function ContactsManagementView({ initialContacts }: ContactsManagementVi
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Safeguard Modal */}
+      <ConfirmDestructiveModal
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={async () => {
+          if (deleteTargetId) {
+            await handleDeleteContact(deleteTargetId);
+            setDeleteTargetId(null);
+          }
+        }}
+        title={t.actions.delete}
+        description={t.contactsView.confirmDelete}
+        confirmLabel={t.actions.delete}
+        cancelLabel={t.actions.cancel}
+      />
     </div>
   );
 }

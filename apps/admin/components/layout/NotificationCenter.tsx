@@ -124,11 +124,11 @@ export function NotificationCenter() {
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-[#09937F]" />
               <span className="text-xs font-bold text-white">
-                {locale === 'ar' ? 'مركز التنبيهات والعمليات' : 'Notifications & Alerts'}
+                {t.notificationsCenter.title}
               </span>
               {unreadCount > 0 && (
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#09937F]/20 text-[#09937F]">
-                  {unreadCount} {locale === 'ar' ? 'جديد' : 'new'}
+                  {unreadCount} {t.notificationsCenter.new}
                 </span>
               )}
             </div>
@@ -140,7 +140,7 @@ export function NotificationCenter() {
                 className="text-[11px] font-medium text-[#09937F] hover:underline flex items-center gap-1"
               >
                 <Check className="w-3 h-3" />
-                <span>{locale === 'ar' ? 'تحديد الكل كمقروء' : 'Mark all read'}</span>
+                <span>{t.notificationsCenter.markAllRead}</span>
               </button>
             )}
           </div>
@@ -151,9 +151,9 @@ export function NotificationCenter() {
               <div className="p-8 text-center text-xs text-[#9EADA9] space-y-1">
                 <Bell className="w-8 h-8 text-[#9EADA9]/30 mx-auto mb-2" />
                 <div className="font-semibold text-white">
-                  {locale === 'ar' ? 'لا توجد تنبيهات حالياً' : 'No notifications'}
+                  {t.notificationsCenter.noNotifications}
                 </div>
-                <div>{locale === 'ar' ? 'جميع العمليات والإشعارات محدثة بالكامل.' : 'All system operations are up to date.'}</div>
+                <div>{t.notificationsCenter.allUpToDate}</div>
               </div>
             ) : (
               notifications.map((n) => {
@@ -195,7 +195,7 @@ export function NotificationCenter() {
                             }}
                             className="text-[#09937F] hover:underline flex items-center gap-1 font-sans font-medium"
                           >
-                            <span>{locale === 'ar' ? 'عرض السجل' : 'View'}</span>
+                            <span>{t.notificationsCenter.view}</span>
                             <ExternalLink className="w-2.5 h-2.5" />
                           </Link>
                         )}
@@ -214,7 +214,7 @@ export function NotificationCenter() {
               onClick={() => setIsOpen(false)}
               className="text-[11px] text-[#9EADA9] hover:text-[#09937F] transition-colors font-medium inline-block"
             >
-              {locale === 'ar' ? 'عرض سجل وتاريخ العمليات الإدارية الكامل ←' : 'View comprehensive audit trail & activity log →'}
+              {t.notificationsCenter.viewAudit}
             </Link>
           </div>
         </div>

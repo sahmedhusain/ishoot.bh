@@ -105,3 +105,58 @@ export async function deleteUser(id: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function getUserByEmail(email: string): Promise<Profile | null> {
+  try {
+    const user = await db.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+    });
+    return user ? mapUser(user) : null;
+  } catch (e) {
+    console.error(`Error fetching user by email ${email}:`, e);
+    return null;
+  }
+}
+
+export async function verifyUserCredentials(
+  email: string,
+  plainTextPassword: string
+): Promise<Profile | null> {
+  try {
+    const user = await db.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+    });
+
+    if (!user || !user.isActive) {
+      return null;
+    }
+
+    const matches = await bcrypt.compare(plainTextPassword, user.passwordHash);
+    if (!matches) {
+      return null;
+    }
+
+    // Update last login timestamp
+    await db.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    return mapUser(user);
+  } catch (e) {
+    console.error(`Error verifying credentials for ${email}:`, e);
+    return null;
+  }
+}
+
+export async function updateUserLastLogin(id: string): Promise<void> {
+  try {
+    await db.user.update({
+      where: { id },
+      data: { lastLoginAt: new Date() },
+    });
+  } catch (e) {
+    console.error(`Error updating last login for user ${id}:`, e);
+  }
+}
+

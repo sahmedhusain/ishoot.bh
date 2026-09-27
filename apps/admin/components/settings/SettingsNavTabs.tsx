@@ -8,27 +8,27 @@ import { useAdminLocale } from '../../hooks/useAdminLocale';
 
 export function SettingsNavTabs() {
   const pathname = usePathname();
-  const { locale } = useAdminLocale();
+  const { t } = useAdminLocale();
 
   const tabs = [
     {
       href: '/dashboard/settings/preferences',
-      label: locale === 'ar' ? 'المظهر واللغة' : 'Appearance & Language',
+      label: t.settingsTabs.preferences,
       icon: Sliders,
     },
     {
       href: '/dashboard/settings/company',
-      label: locale === 'ar' ? 'بيانات الشركة والضرائب' : 'Company & Tax',
+      label: t.settingsTabs.company,
       icon: Building2,
     },
     {
       href: '/dashboard/settings/audit',
-      label: locale === 'ar' ? 'سجل العمليات والجلسات' : 'Audit Logs & Sessions',
+      label: t.settingsTabs.audit,
       icon: History,
     },
     {
       href: '/dashboard/settings/integrations',
-      label: locale === 'ar' ? 'ربط منصات ميتا' : 'Meta & Integrations',
+      label: t.settingsTabs.integrations,
       icon: Share2,
     },
   ];

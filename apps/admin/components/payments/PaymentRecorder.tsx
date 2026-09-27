@@ -56,9 +56,7 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
     }
   };
 
-  const modalTitle = locale === 'ar'
-    ? `تسجيل دفعة للفاتورة: ${invoice.invoice_number}`
-    : `Record Payment: ${invoice.invoice_number}`;
+  const modalTitle = `${t.paymentRecorder.modalTitle}: ${invoice.invoice_number}`;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={modalTitle}>
@@ -68,12 +66,10 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <h4 className="text-lg font-bold text-white">
-            {locale === 'ar' ? 'تم تسجيل الدفعة بنجاح' : 'Payment Recorded Successfully'}
+            {t.paymentRecorder.recordedSuccess}
           </h4>
           <p className="text-xs text-[#9EADA9]">
-            {locale === 'ar'
-              ? 'تم إصدار سند القبض وتسوية رصيد الفاتورة في السجل المالي.'
-              : 'Receipt generated and invoice balance reconciled.'}
+            {t.paymentRecorder.reconciledDesc}
           </p>
         </div>
       ) : (
@@ -82,7 +78,7 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
           <div className="p-4 rounded-xl bg-[#050807] border border-white/10 flex justify-between items-center text-xs">
             <div>
               <span className="text-[#9EADA9] block">
-                {locale === 'ar' ? 'المبلغ المستحق:' : 'Total Invoice Due:'}
+                {t.paymentRecorder.totalDue}
               </span>
               <span className="text-base font-bold text-white font-mono">
                 <CurrencyDisplay amount={invoice.amount_due} currency={invoice.currency} />
@@ -90,7 +86,7 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
             </div>
             <div className="text-end">
               <span className="text-[#9EADA9] block">
-                {locale === 'ar' ? 'العميل:' : 'Client:'}
+                {t.paymentRecorder.client}
               </span>
               <span className="font-semibold text-[#09937F]">
                 {invoice.contact?.company || invoice.contact?.full_name}
@@ -100,7 +96,7 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
 
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-[#9EADA9]">
-              {locale === 'ar' ? 'مبلغ الدفعة' : 'Payment Amount'}
+              {t.paymentRecorder.paymentAmount}
             </label>
             <Input
               type="number"
@@ -112,29 +108,27 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
               className="font-mono text-base font-bold text-[#09937F]"
             />
             <span className="text-[11px] text-[#9EADA9]">
-              {locale === 'ar'
-                ? 'أدخل كامل المبلغ أو قيمة الدفعة المرحلية الجزئية.'
-                : 'Enter full amount or lesser amount for partial milestone payment.'}
+              {t.paymentRecorder.paymentAmountHint}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {locale === 'ar' ? 'طريقة السداد' : 'Payment Method'}
+                {t.paymentRecorder.paymentMethod}
               </label>
               <Select value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)}>
-                <option value="bank_transfer">{locale === 'ar' ? 'تحويل بنكي' : 'Bank Transfer'}</option>
-                <option value="cheque">{locale === 'ar' ? 'شيك مصرفي' : 'Cheque'}</option>
-                <option value="cash">{locale === 'ar' ? 'نقداً' : 'Cash'}</option>
-                <option value="card">{locale === 'ar' ? 'بطاقة ائتمانية' : 'Card Payment'}</option>
-                <option value="online">{locale === 'ar' ? 'دفع إلكتروني (بنفت بي)' : 'Online / BenefitPay'}</option>
+                <option value="bank_transfer">{t.paymentRecorder.bankTransfer}</option>
+                <option value="cheque">{t.paymentRecorder.cheque}</option>
+                <option value="cash">{t.paymentRecorder.cash}</option>
+                <option value="card">{t.paymentRecorder.card}</option>
+                <option value="online">{t.paymentRecorder.online}</option>
               </Select>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {locale === 'ar' ? 'تاريخ الدفعة' : 'Payment Date'}
+                {t.paymentRecorder.paymentDate}
               </label>
               <Input
                 type="date"
@@ -147,10 +141,10 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
 
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-[#9EADA9]">
-              {locale === 'ar' ? 'رقم الحوالة أو الشيك المرجعي' : 'Reference / Cheque Number'}
+              {t.paymentRecorder.refNumber}
             </label>
             <Input
-              placeholder={locale === 'ar' ? 'مثال: TRF-98214' : 'e.g. TRF-98214'}
+              placeholder={t.paymentRecorder.refPlaceholder}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
             />
@@ -158,10 +152,10 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
 
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-[#9EADA9]">
-              {locale === 'ar' ? 'ملاحظات' : 'Notes'}
+              {t.paymentRecorder.notes}
             </label>
             <Input
-              placeholder={locale === 'ar' ? 'مثال: دفعة مقدمة لتصوير الإعلان' : 'e.g. Advance deposit for aerial shoot'}
+              placeholder={t.paymentRecorder.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
@@ -173,8 +167,8 @@ export function PaymentRecorder({ isOpen, onClose, invoice, onSuccess }: Payment
             </Button>
             <Button type="submit" disabled={loading} variant="primary" size="sm">
               {loading
-                ? locale === 'ar' ? 'جارٍ التسجيل...' : 'Recording...'
-                : locale === 'ar' ? 'تأكيد السداد وإصدار السند' : 'Confirm Payment & Issue Receipt'}
+                ? t.paymentRecorder.recording
+                : t.paymentRecorder.confirmAndIssue}
             </Button>
           </div>
         </form>

@@ -78,9 +78,7 @@ export function PaymentsManagementView({
             {t.nav.payments}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'سجل سندات القبض والدفعات المحصلة، تسوية أرصدة الفواتير، وإصدار إيصالات الاستلام الرسمية.'
-              : 'Payment receipts ledger, automated invoice balance reconciliation, and client receipt generation.'}
+            {t.paymentsView.subtitle}
           </p>
         </div>
 
@@ -114,7 +112,7 @@ export function PaymentsManagementView({
 
         <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-[#9EADA9]">
-            <span>{locale === 'ar' ? 'سندات القبض المسجلة' : 'Issued Receipts'}</span>
+            <span>{t.paymentsView.issuedReceipts}</span>
             <div className="w-8 h-8 rounded-lg bg-[#09937F]/10 flex items-center justify-center text-[#09937F]">
               <CheckCircle2 className="w-4 h-4" />
             </div>
@@ -123,13 +121,13 @@ export function PaymentsManagementView({
             {payments.length}
           </div>
           <div className="text-[11px] text-[#09937F]">
-            {locale === 'ar' ? 'جميعها خضعت للتسوية البنكية' : 'All reconciled in ledger'}
+            {t.paymentsView.allReconciled}
           </div>
         </Card>
 
         <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-[#9EADA9]">
-            <span>{locale === 'ar' ? 'الفواتير المستحقة' : 'Invoices In Play'}</span>
+            <span>{t.paymentsView.invoicesInPlay}</span>
             <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
               <Search className="w-4 h-4" />
             </div>
@@ -138,7 +136,7 @@ export function PaymentsManagementView({
             {invoices.length}
           </div>
           <div className="text-[11px] text-amber-400">
-            {locale === 'ar' ? 'فواتير صادرة للعملاء' : 'Active billing documents'}
+            {t.paymentsView.activeBilling}
           </div>
         </Card>
       </div>
@@ -153,8 +151,8 @@ export function PaymentsManagementView({
               <th className="p-4 text-start">{t.finance.client}</th>
               <th className="p-4 text-start">{t.finance.paymentDate}</th>
               <th className="p-4 text-start">{t.finance.paymentMethod}</th>
-              <th className="p-4 text-end">{locale === 'ar' ? 'المبلغ المحصل' : 'Amount Received'}</th>
-              <th className="p-4 text-end">{locale === 'ar' ? 'معاينة الإيصال' : 'View Receipt'}</th>
+              <th className="p-4 text-end">{t.paymentsView.amountReceived}</th>
+              <th className="p-4 text-end">{t.paymentsView.viewReceipt}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -176,7 +174,7 @@ export function PaymentsManagementView({
                   )}
                 </td>
                 <td className="p-4 font-bold text-white">
-                  {payment.invoice?.contact?.full_name || 'Direct Settlement'}
+                  {payment.invoice?.contact?.full_name || t.paymentsView.directSettlement}
                 </td>
                 <td className="p-4 font-mono text-[#9EADA9]">
                   <DateDisplay date={payment.payment_date} locale={locale} />
@@ -215,7 +213,7 @@ export function PaymentsManagementView({
         <form onSubmit={handleRecordPayment} className="space-y-4">
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'اختر الفاتورة المراد سدادها' : 'Select Invoice to Settle'}
+              {t.paymentsView.selectInvoice}
             </label>
             <Select
               value={selectedInvoiceId}
@@ -230,7 +228,7 @@ export function PaymentsManagementView({
             >
               {invoices.map((inv) => (
                 <option key={inv.id} value={inv.id} className="bg-[#0B1210] text-white">
-                  {inv.invoice_number} — {inv.contact?.full_name || 'Client'} ({locale === 'ar' ? 'المتبقي' : 'Due'}: {Number(inv.amount_due || inv.total_amount).toFixed(3)} BHD)
+                  {inv.invoice_number} — {inv.contact?.full_name || 'Client'} ({t.paymentsView.due}: {Number(inv.amount_due || inv.total_amount).toFixed(3)} BHD)
                 </option>
               ))}
             </Select>
@@ -239,7 +237,7 @@ export function PaymentsManagementView({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'مبلغ السداد (BHD)' : 'Payment Amount (BHD)'}
+                {t.paymentsView.paymentAmountBhd}
               </label>
               <Input
                 type="number"
@@ -295,10 +293,10 @@ export function PaymentsManagementView({
 
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'ملاحظات السداد' : 'Notes'}
+              {t.paymentsView.notes}
             </label>
             <Input
-              placeholder={locale === 'ar' ? 'تم التحقق من الإيداع عبر المدير المالي' : 'Verified by finance director...'}
+              placeholder={t.paymentsView.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />

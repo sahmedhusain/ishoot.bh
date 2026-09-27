@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Card, Button, Badge } from '@ishoot/ui';
+import { Card } from '@ishoot/ui';
 import {
   Globe,
   Sun,
@@ -16,14 +16,14 @@ import { useAdminTheme, AdminTheme } from '../../hooks/useAdminTheme';
 import { SettingsNavTabs } from './SettingsNavTabs';
 
 export function PreferencesView() {
-  const { t, locale, setLocale, isRTL } = useAdminLocale();
+  const { t, locale, setLocale } = useAdminLocale();
   const { theme, resolvedTheme, setTheme } = useAdminTheme();
   const [savedNotification, setSavedNotification] = React.useState<string | null>(null);
 
   const handleLanguageChange = (newLocale: 'ar' | 'en') => {
     setLocale(newLocale);
     setSavedNotification(
-      newLocale === 'ar' ? 'تم ضبط لغة النظام إلى اللغة العربية' : 'Interface language set to English'
+      newLocale === 'ar' ? t.preferences.savedLangAr : t.preferences.savedLangEn
     );
     setTimeout(() => setSavedNotification(null), 3000);
   };
@@ -32,10 +32,10 @@ export function PreferencesView() {
     setTheme(newTheme);
     const text =
       newTheme === 'dark'
-        ? (locale === 'ar' ? 'تم تفعيل الوضع الداكن' : 'Dark mode activated')
+        ? t.preferences.savedDark
         : newTheme === 'light'
-        ? (locale === 'ar' ? 'تم تفعيل الوضع الفاتح' : 'Light mode activated')
-        : (locale === 'ar' ? 'تم ضبط المظهر لمطابقة نظام الجهاز' : 'System theme sync activated');
+        ? t.preferences.savedLight
+        : t.preferences.savedSystem;
     setSavedNotification(text);
     setTimeout(() => setSavedNotification(null), 3000);
   };
@@ -48,12 +48,10 @@ export function PreferencesView() {
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
-          {locale === 'ar' ? 'تفضيلات الواجهة والمظهر' : 'Interface & Appearance'}
+          {t.preferences.title}
         </h1>
         <p className="text-xs text-[#9EADA9] mt-1">
-          {locale === 'ar'
-            ? 'تخصيص لغة لوحة التحكم الإدارية بالكامل، وتبديل المظهر بين الوضع الفاتح والداكن، وإعدادات العرض.'
-            : 'Customize administrative dashboard language, toggle between light and dark modes, and display preferences.'}
+          {t.preferences.subtitle}
         </p>
       </div>
 
@@ -64,18 +62,16 @@ export function PreferencesView() {
         </div>
       )}
 
-      {/* 1. Interface Language (اللغة) */}
+      {/* 1. Interface Language */}
       <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 shadow-2xl rounded-3xl space-y-6">
         <div className="flex items-center gap-3 pb-4 border-b border-white/10">
           <Globe className="w-5 h-5 text-[#09937F]" />
           <div>
             <h2 className="text-base font-bold text-white">
-              {locale === 'ar' ? 'لغة النظام الإداري' : 'System Interface Language'}
+              {t.preferences.sysLangTitle}
             </h2>
             <p className="text-xs text-[#9EADA9]">
-              {locale === 'ar'
-                ? 'اختر لغة العمل المفضلة. يتم تطبيق الاتجاه (RTL للعربية / LTR للإنجليزية) فورياً.'
-                : 'Select your preferred dashboard language. Orientation (RTL/LTR) updates instantly.'}
+              {t.preferences.sysLangSubtitle}
             </p>
           </div>
         </div>
@@ -91,11 +87,11 @@ export function PreferencesView() {
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-white">العربية (اللغة العربية بالكامل)</span>
+              <span className="text-sm font-bold text-white">{t.preferences.arabicLabel}</span>
               {locale === 'ar' && <CheckCircle2 className="w-5 h-5 text-[#09937F]" />}
             </div>
             <p className="text-xs text-[#9EADA9] mt-2 leading-relaxed">
-              واجهة مستخدم عربية أصيلة بنسبة 100% مع دعم كامل للاتجاه من اليمين إلى اليسار (RTL) والأرقام الغربية المعتمدة في البحرين والخليج (0-9).
+              {t.preferences.arabicDesc}
             </p>
             <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/5 text-[#9EADA9]">
               <span>RTL</span>
@@ -114,11 +110,11 @@ export function PreferencesView() {
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-white">English (Full English Interface)</span>
+              <span className="text-sm font-bold text-white">{t.preferences.englishLabel}</span>
               {locale === 'en' && <CheckCircle2 className="w-5 h-5 text-[#09937F]" />}
             </div>
             <p className="text-xs text-[#9EADA9] mt-2 leading-relaxed">
-              Complete professional English interface with standard Left-to-Right (LTR) alignment and global cinematography taxonomy.
+              {t.preferences.englishDesc}
             </p>
             <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/5 text-[#9EADA9]">
               <span>LTR</span>
@@ -129,18 +125,16 @@ export function PreferencesView() {
         </div>
       </Card>
 
-      {/* 2. Theme Selection (الوضع الداكن والوضع الفاتح) */}
+      {/* 2. Theme Selection */}
       <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 shadow-2xl rounded-3xl space-y-6">
         <div className="flex items-center gap-3 pb-4 border-b border-white/10">
           <Sparkles className="w-5 h-5 text-[#09937F]" />
           <div>
             <h2 className="text-base font-bold text-white">
-              {locale === 'ar' ? 'المظهر العام وسمة الألوان' : 'Color Theme & Appearance'}
+              {t.preferences.themeTitle}
             </h2>
             <p className="text-xs text-[#9EADA9]">
-              {locale === 'ar'
-                ? 'التبديل بين الوضع الداكن المفضل لاستوديوهات المونتاج، والوضع الفاتح ذو التباين العالي للمكاتب الإدارية.'
-                : 'Toggle between Studio Dark mode and high-contrast Office Light mode.'}
+              {t.preferences.themeSubtitle}
             </p>
           </div>
         </div>
@@ -163,12 +157,10 @@ export function PreferencesView() {
                 {theme === 'dark' && <CheckCircle2 className="w-5 h-5 text-[#09937F]" />}
               </div>
               <div className="text-sm font-bold text-white">
-                {locale === 'ar' ? 'الوضع الداكن (السينمائي)' : 'Dark Mode (Cinematic)'}
+                {t.preferences.darkTitle}
               </div>
               <p className="text-xs text-[#9EADA9] mt-1.5 leading-relaxed">
-                {locale === 'ar'
-                  ? 'خلفية سوداء داكنة مستوحاة من غرف تصحيح الألوان واستوديوهات التصوير لتقليل إجهاد العين.'
-                  : 'Deep forest black inspired by DaVinci Resolve color grading suites and dark studios.'}
+                {t.preferences.darkDesc}
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5">
@@ -196,12 +188,10 @@ export function PreferencesView() {
                 {theme === 'light' && <CheckCircle2 className="w-5 h-5 text-[#09937F]" />}
               </div>
               <div className="text-sm font-bold text-white">
-                {locale === 'ar' ? 'الوضع الفاتح (المكتبي)' : 'Light Mode (Office)'}
+                {t.preferences.lightTitle}
               </div>
               <p className="text-xs text-[#9EADA9] mt-1.5 leading-relaxed">
-                {locale === 'ar'
-                  ? 'مظهر ناصع عالي التباين ووضوح فائق لقراءة الفواتير والتقارير المالية في بيئات العمل المضاءة.'
-                  : 'Crisp high-contrast daylight layout designed for executive review, invoicing, and bright workspaces.'}
+                {t.preferences.lightDesc}
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5">
@@ -229,17 +219,15 @@ export function PreferencesView() {
                 {theme === 'system' && <CheckCircle2 className="w-5 h-5 text-[#09937F]" />}
               </div>
               <div className="text-sm font-bold text-white">
-                {locale === 'ar' ? 'تلقائي (مطابقة النظام)' : 'System Sync (Auto)'}
+                {t.preferences.systemTitle}
               </div>
               <p className="text-xs text-[#9EADA9] mt-1.5 leading-relaxed">
-                {locale === 'ar'
-                  ? 'يتكيف تلقائياً مع تفضيلات مظهر جهاز الكمبيوتر الخاص بك (macOS أو Windows).'
-                  : 'Automatically synchronizes with your operating system light/dark schedule.'}
+                {t.preferences.systemDesc}
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-white/10 text-[10px] text-[#09937F] font-mono">
-              {locale === 'ar' ? 'السمة النشطة حالياً: ' : 'Active: '}
-              {resolvedTheme === 'dark' ? (locale === 'ar' ? 'داكن' : 'Dark') : (locale === 'ar' ? 'فاتح' : 'Light')}
+              {t.preferences.activePrefix}
+              {resolvedTheme === 'dark' ? t.preferences.darkWord : t.preferences.lightWord}
             </div>
           </div>
         </div>
@@ -250,12 +238,10 @@ export function PreferencesView() {
         <Info className="w-5 h-5 text-[#09937F] shrink-0 mt-0.5" />
         <div className="text-xs space-y-1">
           <div className="font-bold text-white">
-            {locale === 'ar' ? 'معيار الأرقام والعملات الرسمي في مملكة البحرين' : 'Official Banking Numerals Standard'}
+            {t.preferences.numeralsTitle}
           </div>
           <p className="text-[#9EADA9] leading-relaxed">
-            {locale === 'ar'
-              ? 'تعتمد لوحة تحكم آي شوت ونظام الفواتير المعتمد الأرقام العربية الغربية (0, 1, 2, 3...) حصرياً لمنع أي التباس محاسبي أو خلل برمجي، بما يتوافق تماماً مع المعايير المصرفية في مملكة البحرين ومجلس التعاون الخليجي.'
-              : 'ishoot administrative systems and tax invoices strictly enforce Western Arabic numerals (0, 1, 2, 3...) in compliance with Kingdom of Bahrain banking regulations and CBB guidelines.'}
+            {t.preferences.numeralsDesc}
           </p>
         </div>
       </div>

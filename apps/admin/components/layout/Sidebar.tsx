@@ -24,56 +24,86 @@ import {
   Share2,
 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
+import { usePermissions, PermissionResource } from '../../hooks/usePermissions';
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+  resource?: PermissionResource;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { t, locale, isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
+  const { can, loading } = usePermissions();
 
-  const navGroups = [
+  const allNavGroups: NavGroup[] = [
     {
       label: t.nav.overview,
       items: [
         { href: '/dashboard', label: t.nav.dashboard, icon: LayoutDashboard },
-        { href: '/dashboard/calendar', label: t.nav.calendar, icon: Calendar, badge: 'Odoo' },
+        { href: '/dashboard/calendar', label: t.nav.calendar, icon: Calendar, badge: 'Odoo', resource: 'calendar' },
       ],
     },
     {
       label: t.nav.crm,
       items: [
-        { href: '/dashboard/crm/deals', label: t.nav.deals, icon: Kanban },
-        { href: '/dashboard/crm/contacts', label: t.nav.contacts, icon: Users },
-        { href: '/dashboard/crm/leads', label: t.nav.leads, icon: Inbox },
+        { href: '/dashboard/crm/deals', label: t.nav.deals, icon: Kanban, resource: 'deals' },
+        { href: '/dashboard/crm/contacts', label: t.nav.contacts, icon: Users, resource: 'contacts' },
+        { href: '/dashboard/crm/leads', label: t.nav.leads, icon: Inbox, resource: 'leads' },
       ],
     },
     {
       label: t.nav.finance,
       items: [
-        { href: '/dashboard/invoices', label: t.nav.invoices, icon: FileText },
-        { href: '/dashboard/payments', label: t.nav.payments, icon: CreditCard },
-        { href: '/dashboard/expenses', label: t.nav.expenses, icon: Receipt },
-        { href: '/dashboard/finance', label: t.nav.analytics, icon: PieChart },
+        { href: '/dashboard/invoices', label: t.nav.invoices, icon: FileText, resource: 'invoices' },
+        { href: '/dashboard/payments', label: t.nav.payments, icon: CreditCard, resource: 'payments' },
+        { href: '/dashboard/expenses', label: t.nav.expenses, icon: Receipt, resource: 'expenses' },
+        { href: '/dashboard/finance', label: t.nav.analytics, icon: PieChart, resource: 'finance_analytics' },
       ],
     },
     {
       label: t.nav.cms,
       items: [
-        { href: '/dashboard/cms/banners', label: t.nav.banners, icon: Film },
-        { href: '/dashboard/cms/portfolio', label: t.nav.portfolio, icon: Camera },
-        { href: '/dashboard/cms/clients', label: t.nav.clients, icon: Layers },
-        { href: '/dashboard/cms/equipment', label: t.nav.equipment, icon: Wrench },
+        { href: '/dashboard/cms/banners', label: t.nav.banners, icon: Film, resource: 'banners' },
+        { href: '/dashboard/cms/portfolio', label: t.nav.portfolio, icon: Camera, resource: 'portfolio' },
+        { href: '/dashboard/cms/clients', label: t.nav.clients, icon: Layers, resource: 'clients' },
+        { href: '/dashboard/cms/equipment', label: t.nav.equipment, icon: Wrench, resource: 'equipment' },
       ],
     },
     {
       label: t.nav.system,
       items: [
-        { href: '/dashboard/users', label: t.nav.users, icon: ShieldCheck },
-        { href: '/dashboard/settings/preferences', label: locale === 'ar' ? 'المظهر واللغة' : 'Appearance & Language', icon: Sliders },
-        { href: '/dashboard/settings/company', label: t.nav.companySettings, icon: Building2 },
-        { href: '/dashboard/settings/audit', label: locale === 'ar' ? 'سجل العمليات والجلسات' : 'Audit Logs & Sessions', icon: History },
-        { href: '/dashboard/settings/integrations', label: locale === 'ar' ? 'ربط منصات ميتا' : 'Meta & Integrations', icon: Share2 },
+        { href: '/dashboard/users', label: t.nav.users, icon: ShieldCheck, resource: 'users' },
+        { href: '/dashboard/settings/preferences', label: t.nav.appearance, icon: Sliders },
+        { href: '/dashboard/settings/company', label: t.nav.companySettings, icon: Building2, resource: 'settings' },
+        { href: '/dashboard/settings/audit', label: t.nav.auditLogs, icon: History, resource: 'audit_logs' },
+        { href: '/dashboard/settings/integrations', label: t.nav.integrations, icon: Share2, resource: 'settings' },
       ],
     },
   ];
+
+  // Filter groups and items based on RBAC permissions
+  const visibleNavGroups = React.useMemo(() => {
+    if (loading) return allNavGroups; // show placeholder while initial load to prevent layout shift
+
+    return allNavGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => {
+          if (!item.resource) return true;
+          return can(item.resource, 'read');
+        }),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [allNavGroups, can, loading]);
 
   return (
     <aside className="w-64 bg-[#070C0A] border-e border-white/10 flex flex-col justify-between shrink-0 select-none min-h-screen">
@@ -103,7 +133,7 @@ export function Sidebar() {
 
         {/* Navigation Groups */}
         <nav className="p-3.5 space-y-5 overflow-y-auto max-h-[calc(100vh-140px)]">
-          {navGroups.map((group) => (
+          {visibleNavGroups.map((group) => (
             <div key={group.label} className="space-y-1">
               <div className="px-3 text-[11px] font-bold text-[#9EADA9]/60 uppercase tracking-wider mb-2">
                 {group.label}
@@ -134,9 +164,9 @@ export function Sidebar() {
                       />
                       <span>{item.label}</span>
                     </div>
-                    {(item as any).badge && (
+                    {item.badge && (
                       <span className="text-[9px] px-1.5 py-0.2 rounded font-mono bg-[#09937F]/20 text-[#09937F]">
-                        {(item as any).badge}
+                        {item.badge}
                       </span>
                     )}
                   </Link>
@@ -154,7 +184,9 @@ export function Sidebar() {
             <span className="w-2 h-2 rounded-full bg-[#09937F] animate-pulse" />
             <span className="font-mono text-[11px] text-white">PostgreSQL 15</span>
           </div>
-          <span className="text-[10px] font-mono text-[#09937F]">Online</span>
+          <span className="text-[10px] font-mono text-[#09937F]">
+            {t.profileDropdown.connected}
+          </span>
         </div>
       </div>
     </aside>

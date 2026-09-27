@@ -3,7 +3,7 @@
 import * as React from 'react';
 import type { CalendarEvent, CRMDeal } from '@ishoot/database/types';
 import { createCalendarEventAction, deleteCalendarEventAction } from '../../app/actions/calendar';
-import { Card, Button, Modal, Input, Select } from '@ishoot/ui';
+import { Card, Button, Modal, Input, Select, ConfirmDestructiveModal } from '@ishoot/ui';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -29,6 +29,7 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
   const [viewMode, setViewMode] = React.useState<'month' | 'week' | 'day'>('month');
   const [createModalOpen, setCreateModalOpen] = React.useState(false);
   const [selectedEvent, setSelectedEvent] = React.useState<CalendarEvent | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
 
   // Form states
   const [title, setTitle] = React.useState('');
@@ -50,30 +51,8 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayIndex = new Date(year, month, 1).getDay(); // 0 is Sun
 
-  const monthNames = [
-    locale === 'ar' ? 'يناير' : 'January',
-    locale === 'ar' ? 'فبراير' : 'February',
-    locale === 'ar' ? 'مارس' : 'March',
-    locale === 'ar' ? 'أبريل' : 'April',
-    locale === 'ar' ? 'مايو' : 'May',
-    locale === 'ar' ? 'يونيو' : 'June',
-    locale === 'ar' ? 'يوليو' : 'July',
-    locale === 'ar' ? 'أغسطس' : 'August',
-    locale === 'ar' ? 'سبتمبر' : 'September',
-    locale === 'ar' ? 'أكتوبر' : 'October',
-    locale === 'ar' ? 'نوفمبر' : 'November',
-    locale === 'ar' ? 'ديسمبر' : 'December',
-  ];
-
-  const weekDayNames = [
-    locale === 'ar' ? 'الأحد' : 'Sun',
-    locale === 'ar' ? 'الإثنين' : 'Mon',
-    locale === 'ar' ? 'الثلاثاء' : 'Tue',
-    locale === 'ar' ? 'الأربعاء' : 'Wed',
-    locale === 'ar' ? 'الخميس' : 'Thu',
-    locale === 'ar' ? 'الجمعة' : 'Fri',
-    locale === 'ar' ? 'السبت' : 'Sat',
-  ];
+  const monthNames = t.calendarView.months;
+  const weekDayNames = t.calendarView.weekdays;
 
   const prevMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));
@@ -303,7 +282,7 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
                     ))}
                     {dayEvents.length > 2 && (
                       <div className="text-[9px] font-mono text-[#9EADA9] text-center">
-                        +{dayEvents.length - 2} {locale === 'ar' ? 'أخرى' : 'more'}
+                        +{dayEvents.length - 2} {t.calendarView.more}
                       </div>
                     )}
                   </div>
@@ -318,7 +297,7 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
       {(viewMode === 'week' || viewMode === 'day') && (
         <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
           <div className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
-            {locale === 'ar' ? 'قائمة الفعاليات المجدولة' : 'Upcoming Event Agenda'}
+            {t.calendarView.upcomingAgenda}
           </div>
 
           <div className="divide-y divide-white/5 space-y-2">
@@ -337,7 +316,7 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
                         color: ev.color || '#09937F',
                       }}
                     >
-                      {ev.event_type}
+                      {(t.calendarView as any)[ev.event_type] || ev.event_type}
                     </span>
                     <h3 className="text-sm font-bold text-white">
                       {locale === 'ar' && ev.title_ar ? ev.title_ar : ev.title}
@@ -369,7 +348,7 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
                     className="gap-1.5 text-xs text-[#09937F] border-[#09937F]/40"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    <span>{locale === 'ar' ? 'تقويم جوجل' : 'Google Calendar'}</span>
+                    <span>{t.calendarView.googleCalendar}</span>
                   </Button>
                 </div>
               </div>
@@ -388,26 +367,26 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
           <div className="space-y-4 text-xs">
             <div className="space-y-2 bg-[#050807] p-4 rounded-2xl border border-white/10">
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">{locale === 'ar' ? 'نوع الفعالية:' : 'Event Type:'}</span>
-                <span className="font-bold text-[#09937F] uppercase">{selectedEvent.event_type}</span>
+                <span className="text-[#9EADA9]">{t.calendarView.eventType}</span>
+                <span className="font-bold text-[#09937F] uppercase">{(t.calendarView as any)[selectedEvent.event_type] || selectedEvent.event_type}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">{locale === 'ar' ? 'وقت البدء:' : 'Start Time:'}</span>
+                <span className="text-[#9EADA9]">{t.calendarView.startTime}</span>
                 <span className="text-white font-mono">{new Date(selectedEvent.start_date).toLocaleString(locale === 'ar' ? 'ar-BH' : 'en-US')}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">{locale === 'ar' ? 'وقت الانتهاء:' : 'End Time:'}</span>
+                <span className="text-[#9EADA9]">{t.calendarView.endTime}</span>
                 <span className="text-white font-mono">{new Date(selectedEvent.end_date).toLocaleString(locale === 'ar' ? 'ar-BH' : 'en-US')}</span>
               </div>
               {selectedEvent.location && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[#9EADA9]">{locale === 'ar' ? 'الموقع:' : 'Location:'}</span>
+                  <span className="text-[#9EADA9]">{t.calendarView.location}</span>
                   <span className="text-white">{selectedEvent.location}</span>
                 </div>
               )}
               {selectedEvent.deal && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[#9EADA9]">{locale === 'ar' ? 'الصفقة المرتبطة:' : 'Linked Deal:'}</span>
+                  <span className="text-[#9EADA9]">{t.calendarView.linkedDeal}</span>
                   <span className="text-[#09937F] font-bold">{selectedEvent.deal.title}</span>
                 </div>
               )}
@@ -435,7 +414,7 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
                 <Button
                   variant="danger"
                   size="sm"
-                  onClick={() => handleDeleteEvent(selectedEvent.id)}
+                  onClick={() => setDeleteTargetId(selectedEvent.id)}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -461,11 +440,11 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
         <form onSubmit={handleCreateEvent} className="space-y-4 text-xs">
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {locale === 'ar' ? 'عنوان الفعالية بالإنجليزية *' : 'Event Title (English) *'}
+              {t.calendarView.eventTitleEn}
             </label>
             <Input
               required
-              placeholder={locale === 'ar' ? 'مثال: Batelco Cinema Shoot Day 1' : 'e.g. Batelco Cinema Shoot Day 1'}
+              placeholder={t.calendarView.eventTitleEnPlaceholder}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -473,10 +452,10 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
 
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {locale === 'ar' ? 'عنوان الفعالية بالعربية' : 'Event Title (Arabic)'}
+              {t.calendarView.eventTitleAr}
             </label>
             <Input
-              placeholder={locale === 'ar' ? 'مثال: تصوير إعلان بتلكو السينمائي' : 'e.g. Batelco National Day Shoot'}
+              placeholder={t.calendarView.eventTitleArPlaceholder}
               value={titleAr}
               onChange={(e) => setTitleAr(e.target.value)}
               className="text-end font-arabic"
@@ -486,7 +465,7 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'تاريخ ووقت البدء *' : 'Start Date & Time *'}
+                {t.calendarView.startDateTime}
               </label>
               <Input
                 type="datetime-local"
@@ -499,7 +478,7 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
 
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'تاريخ ووقت الانتهاء *' : 'End Date & Time *'}
+                {t.calendarView.endDateTime}
               </label>
               <Input
                 type="datetime-local"
@@ -514,29 +493,29 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'نوع الفعالية' : 'Event Type'}
+                {t.calendarView.eventTypeLabel}
               </label>
               <Select
                 value={eventType}
                 onChange={(e) => setEventType(e.target.value as any)}
               >
-                <option value="shoot">{locale === 'ar' ? 'تصوير سينمائي' : 'Cinema Shoot'}</option>
-                <option value="meeting">{locale === 'ar' ? 'اجتماع عملاء' : 'Client Meeting'}</option>
-                <option value="deadline">{locale === 'ar' ? 'موعد تسليم نهائي' : 'Delivery Deadline'}</option>
-                <option value="reminder">{locale === 'ar' ? 'تذكير' : 'Reminder'}</option>
+                <option value="shoot">{t.calendarView.shoot}</option>
+                <option value="meeting">{t.calendarView.meeting}</option>
+                <option value="deadline">{t.calendarView.deadline}</option>
+                <option value="reminder">{t.calendarView.reminder}</option>
               </Select>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'ربط بصفقة إنتاج' : 'Link with Production Deal'}
+                {t.calendarView.linkDeal}
               </label>
               <Select
                 value={dealId}
                 onChange={(e) => setDealId(e.target.value)}
               >
                 <option value="">
-                  {locale === 'ar' ? 'بدون صفقة (استوديو عام)' : 'No linked deal (General Studio)'}
+                  {t.calendarView.noDeal}
                 </option>
                 {deals.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -549,10 +528,10 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
 
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {locale === 'ar' ? 'موقع التصوير / العنوان' : 'Shoot Location / Address'}
+              {t.calendarView.locationAddress}
             </label>
             <Input
-              placeholder={locale === 'ar' ? 'مثال: استوديو A، ضاحية السيف' : 'e.g. Soundstage A, Seef District'}
+              placeholder={t.calendarView.locationPlaceholder}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
@@ -574,12 +553,28 @@ export function OdooCalendarView({ initialEvents, deals }: OdooCalendarViewProps
               disabled={saving}
             >
               {saving
-                ? locale === 'ar' ? 'جارٍ الحفظ...' : 'Saving...'
+                ? t.calendarView.saving
                 : t.actions.save}
             </Button>
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Safeguard Modal */}
+      <ConfirmDestructiveModal
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={async () => {
+          if (deleteTargetId) {
+            await handleDeleteEvent(deleteTargetId);
+            setDeleteTargetId(null);
+          }
+        }}
+        title={t.actions.delete}
+        description={t.calendarView.deleteConfirm}
+        confirmLabel={t.actions.delete}
+        cancelLabel={t.actions.cancel}
+      />
     </div>
   );
 }

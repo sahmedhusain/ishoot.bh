@@ -9,4 +9,5 @@ export * from './currency-display';
 export * from './date-display';
 export * from './status-badge';
 export * from './modal';
+export * from './confirm-destructive';
 export * from './separator';

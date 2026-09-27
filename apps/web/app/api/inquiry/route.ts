@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createInquiry } from '@ishoot/database';
+import { resolveIncomingLead } from '@ishoot/database';
 import {
   sendEmail,
   createInquiryConfirmationEmail,
   createInquiryNotificationEmail,
 } from '@ishoot/email';
+import { getTranslations } from '@ishoot/locales';
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,26 +29,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Record inquiry in database
-    const inquiry = await createInquiry({
-      full_name: fullName,
+    // 1. Record inquiry through deduplication & customer resolution engine
+    const resolved = await resolveIncomingLead({
+      name: fullName,
       email,
       phone,
-      company,
-      services_requested: services,
-      budget_range: budget,
-      target_timeline: timeline,
+      companyName: company,
+      serviceType: services.join(', '),
+      budgetRange: budget,
+      timeline,
       message,
+      source: 'website',
       locale,
     });
 
     // 2. Dispatch Dual-Email notifications asynchronously
     // A: Confirmation email to client
     const clientHtml = createInquiryConfirmationEmail(fullName, services, locale);
-    const clientSubject =
-      locale === 'ar'
-        ? 'شكراً لتواصلك مع آي شوت | ishoot'
-        : 'Thank you for contacting ishoot';
+    const trans = getTranslations((locale === 'ar' ? 'ar' : 'en'));
+    const clientSubject = trans.contact.emailSubject;
 
     await sendEmail({
       to: email,
@@ -74,7 +74,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      inquiryId: inquiry.id,
+      inquiryId: resolved.inquiryId,
+      customerId: resolved.customerId,
+      resolution: resolved.resolution,
       message: 'Inquiry received and notifications dispatched.',
     });
   } catch (error) {

@@ -1,72 +1,45 @@
 'use client';
 
 import * as React from 'react';
-import { useLocale } from '../../hooks/useLocale';
-import { Film, Video, Building2, Flame } from 'lucide-react';
+import Link from 'next/link';
+import { useTranslation } from '../../hooks/useTranslation';
+import { ArrowUpRight, Film, Video, Building2, Flame } from 'lucide-react';
 
 export function StarscastingStats() {
-  const { locale, isRTL } = useLocale();
+  const { t, isRTL } = useTranslation();
 
-  const stats = [
-    {
-      value: '150+',
-      labelEn: 'Commercial Productions',
-      labelAr: 'إعلانات وأعمال سينمائية منجزة',
-      subEn: 'Delivered for national brands & television',
-      subAr: 'لأبرز المؤسسات والشركات في البحرين والخليج',
-      icon: Film,
-    },
-    {
-      value: '8K VV',
-      labelEn: 'Native Resolution',
-      labelAr: 'دقة تصوير سينمائي فائقة',
-      subEn: 'RED V-Raptor XL & VistaVision sensors',
-      subAr: 'حساسات كاملة الإطار بدقة 8K وعدسات T1.3',
-      icon: Video,
-    },
-    {
-      value: '250 m²',
-      labelEn: 'Soundstage Facility',
-      labelAr: 'استوديو تصوير وسايك مقوس',
-      subEn: 'Soundproof cyclorama in Seef District',
-      subAr: 'عازل للصوت بالكامل ومجهز بشبكة إضاءة',
-      icon: Building2,
-    },
-    {
-      value: '100%',
-      labelEn: 'Bahraini Passion',
-      labelAr: 'شغف ورؤية بحرينية أصيلة',
-      subEn: 'Rooted in Manama, celebrated globally',
-      subAr: 'فريق عمل محترف بمعايير سينمائية عالمية',
-      icon: Flame,
-    },
-  ];
+  const items = t('stats.items') as unknown as Array<{
+    value: string;
+    labelEn: string;
+    labelAr: string;
+    subEn: string;
+    subAr: string;
+  }>;
+
+  const icons = [Film, Video, Building2, Flame];
 
   return (
     <section id="stats" className="relative py-28 bg-[#050807] text-[#F2F6F5] select-none border-t border-white/5">
       <div className="shell space-y-16">
-        {/* Editorial Index Header: — (04) (Studio Metrics) © 2026 — */}
+        {/* Editorial Index Header */}
         <div className="relative w-full">
-          <span
-            aria-hidden="true"
-            className="block h-px w-full bg-white/10"
-          />
+          <span aria-hidden="true" className="block h-px w-full bg-white/10" />
           <div className="mt-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#9EADA9]">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-              <span>(04)</span>
+              <span>{t('stats.sectionIndex')}</span>
             </span>
             <span className="font-bold text-white">
-              ({isRTL ? 'إحصائيات ومعايير الاستوديو' : 'Studio Metrics'})
+              ({isRTL ? t('stats.sectionLabelAr') : t('stats.sectionLabelEn')})
             </span>
-            <span>© 2026</span>
+            <span>© {new Date().getFullYear()}</span>
           </div>
         </div>
 
         {/* 4 Large Metric Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, i) => {
-            const Icon = stat.icon;
+          {(Array.isArray(items) ? items : []).map((stat, i) => {
+            const Icon = icons[i] ?? Film;
             return (
               <div
                 key={i}

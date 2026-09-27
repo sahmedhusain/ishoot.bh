@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { StudioEquipment } from '@ishoot/database/types';
-import { Button, Card, Badge, Modal, Input, Select, CurrencyDisplay } from '@ishoot/ui';
+import { Button, Card, Badge, Modal, Input, Select, CurrencyDisplay, ConfirmDestructiveModal } from '@ishoot/ui';
 import { Plus, Trash2, Camera, CheckCircle2, Filter } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { deleteEquipmentAction, createEquipmentAction } from '../../app/actions/cms';
@@ -16,6 +16,7 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
   const [equipment, setEquipment] = React.useState<StudioEquipment[]>(initialEquipment);
   const [selectedCategory, setSelectedCategory] = React.useState<string>('all');
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
   // Form state
@@ -29,12 +30,12 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
 
   const categories = [
     { value: 'all', label: t.actions.all },
-    { value: 'cameras', label: locale === 'ar' ? 'كاميرات سينمائية' : 'Cinema Cameras' },
-    { value: 'lenses', label: locale === 'ar' ? 'عدسات بصرية' : 'Optics & Lenses' },
-    { value: 'lighting', label: locale === 'ar' ? 'إضاءة واستوديو' : 'Lighting Packages' },
-    { value: 'audio', label: locale === 'ar' ? 'صوتيات وتسجيل' : 'Sound & Audio' },
-    { value: 'grip', label: locale === 'ar' ? 'معدات حركة ومساند' : 'Grip & Rigs' },
-    { value: 'drones', label: locale === 'ar' ? 'طائرات درونز جوية' : 'Aerial Drones' },
+    { value: 'cameras', label: t.equipmentView.categories.cameras },
+    { value: 'lenses', label: t.equipmentView.categories.lenses },
+    { value: 'lighting', label: t.equipmentView.categories.lighting },
+    { value: 'audio', label: t.equipmentView.categories.audio },
+    { value: 'grip', label: t.equipmentView.categories.grip },
+    { value: 'drones', label: t.equipmentView.categories.drones },
   ];
 
   const filteredItems = selectedCategory === 'all'
@@ -42,9 +43,6 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
     : equipment.filter((eq) => eq.category === selectedCategory);
 
   const handleDelete = async (id: string) => {
-    if (!confirm(locale === 'ar' ? 'هل أنت متأكد من حذف هذه المعدة؟' : 'Are you sure you want to delete this equipment?')) {
-      return;
-    }
     setEquipment((prev) => prev.filter((e) => e.id !== id));
     try {
       await deleteEquipmentAction(id);
@@ -95,9 +93,7 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
             {t.cms.equipmentTitle}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'أصول الاستوديو من كاميرات، عدسات، وحدات إضاءة، ومعدات تصوير متخصصة مع أسعار الإيجار اليومي.'
-              : 'Studio-owned cinema cameras, optical lenses, lighting packages, and soundstage gear with daily rental rates.'}
+            {t.equipmentView.subtitle}
           </p>
         </div>
 
@@ -135,12 +131,12 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
         <table className="w-full text-start text-xs">
           <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider">
             <tr>
-              <th className="p-4 text-start">{locale === 'ar' ? 'التصنيف' : 'Category'}</th>
-              <th className="p-4 text-start">{locale === 'ar' ? 'اسم المعدة / الموديل' : 'Model / Item Name'}</th>
-              <th className="p-4 text-start">{locale === 'ar' ? 'المواصفات الفنية' : 'Technical Specifications'}</th>
-              <th className="p-4 text-center">{locale === 'ar' ? 'الكمية' : 'Qty'}</th>
+              <th className="p-4 text-start">{t.equipmentView.category}</th>
+              <th className="p-4 text-start">{t.equipmentView.modelName}</th>
+              <th className="p-4 text-start">{t.equipmentView.specs}</th>
+              <th className="p-4 text-center">{t.equipmentView.qty}</th>
               <th className="p-4 text-end">{t.cms.dailyRate}</th>
-              <th className="p-4 text-end">{locale === 'ar' ? 'إجراءات' : 'Actions'}</th>
+              <th className="p-4 text-end">{t.equipmentView.actions}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -170,7 +166,7 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
                 </td>
                 <td className="p-4 text-end">
                   <button
-                    onClick={() => handleDelete(eq.id)}
+                    onClick={() => setDeleteTargetId(eq.id)}
                     className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
                     title={t.actions.delete}
                   >
@@ -193,23 +189,23 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الموديل بالإنجليزية' : 'Model Name (English)'}
+                {t.equipmentView.modelNameEn}
               </label>
               <Input
                 value={modelName}
                 onChange={(e) => setModelName(e.target.value)}
-                placeholder="ARRI ALEXA Mini LF"
+                placeholder={t.equipmentView.modelNamePlaceholder}
                 required
               />
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الاسم بالعربية' : 'Item Name (Arabic)'}
+                {t.equipmentView.itemNameAr}
               </label>
               <Input
                 value={nameAr}
                 onChange={(e) => setNameAr(e.target.value)}
-                placeholder="كاميرا آري أليكسا ميني إل إف"
+                placeholder={t.equipmentView.itemNamePlaceholder}
               />
             </div>
           </div>
@@ -217,47 +213,47 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'التصنيف' : 'Category'}
+                {t.equipmentView.category}
               </label>
               <Select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
               >
-                <option value="cameras" className="bg-[#0B1210] text-white">{locale === 'ar' ? 'كاميرات سينمائية' : 'Cinema Cameras'}</option>
-                <option value="lenses" className="bg-[#0B1210] text-white">{locale === 'ar' ? 'عدسات' : 'Lenses'}</option>
-                <option value="lighting" className="bg-[#0B1210] text-white">{locale === 'ar' ? 'إضاءة' : 'Lighting'}</option>
-                <option value="audio" className="bg-[#0B1210] text-white">{locale === 'ar' ? 'صوتيات' : 'Audio'}</option>
-                <option value="grip" className="bg-[#0B1210] text-white">{locale === 'ar' ? 'مساند وحوامل' : 'Grip'}</option>
-                <option value="drones" className="bg-[#0B1210] text-white">{locale === 'ar' ? 'درونز' : 'Drones'}</option>
+                <option value="cameras" className="bg-[#0B1210] text-white">{t.equipmentView.categories.cameras}</option>
+                <option value="lenses" className="bg-[#0B1210] text-white">{t.equipmentView.categories.lenses}</option>
+                <option value="lighting" className="bg-[#0B1210] text-white">{t.equipmentView.categories.lighting}</option>
+                <option value="audio" className="bg-[#0B1210] text-white">{t.equipmentView.categories.audio}</option>
+                <option value="grip" className="bg-[#0B1210] text-white">{t.equipmentView.categories.grip}</option>
+                <option value="drones" className="bg-[#0B1210] text-white">{t.equipmentView.categories.drones}</option>
               </Select>
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الشركة المصنعة / العلامة' : 'Brand / Manufacturer'}
+                {t.equipmentView.brand}
               </label>
               <Input
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
-                placeholder="ARRI"
+                placeholder={t.equipmentView.brandPlaceholder}
               />
             </div>
           </div>
 
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'المواصفات الفنية' : 'Technical Specifications'}
+              {t.equipmentView.specs}
             </label>
             <Input
               value={specification}
               onChange={(e) => setSpecification(e.target.value)}
-              placeholder="Large Format 4.5K Sensor, LPL Mount, ARRIRAW & ProRes"
+              placeholder={t.equipmentView.specsPlaceholder}
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'سعر الإيجار اليومي (BHD)' : 'Daily Rate (BHD)'}
+                {t.equipmentView.dailyRateBhd}
               </label>
               <Input
                 type="number"
@@ -269,7 +265,7 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الكمية المتوفرة' : 'Available Quantity'}
+                {t.equipmentView.availableQty}
               </label>
               <Input
                 type="number"
@@ -303,6 +299,22 @@ export function EquipmentManagementView({ initialEquipment }: EquipmentManagemen
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Safeguard Modal */}
+      <ConfirmDestructiveModal
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={async () => {
+          if (deleteTargetId) {
+            await handleDelete(deleteTargetId);
+            setDeleteTargetId(null);
+          }
+        }}
+        title={t.actions.delete}
+        description={t.equipmentView.confirmDelete}
+        confirmLabel={t.actions.delete}
+        cancelLabel={t.actions.cancel}
+      />
     </div>
   );
 }

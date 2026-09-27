@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { ClientLogo } from '@ishoot/database/types';
-import { Button, Card, Badge, Modal, Input } from '@ishoot/ui';
+import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from '@ishoot/ui';
 import { Plus, Trash2, Globe, CheckCircle2 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { deleteClientLogoAction, createClientLogoAction } from '../../app/actions/cms';
@@ -15,6 +15,7 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
   const { t, locale } = useAdminLocale();
   const [logos, setLogos] = React.useState<ClientLogo[]>(initialLogos);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
   // Form state
@@ -23,9 +24,6 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
   const [websiteUrl, setWebsiteUrl] = React.useState('');
 
   const handleDelete = async (id: string) => {
-    if (!confirm(locale === 'ar' ? 'هل أنت متأكد من إزالة هذا الشعار؟' : 'Are you sure you want to remove this client?')) {
-      return;
-    }
     setLogos((prev) => prev.filter((l) => l.id !== id));
     try {
       await deleteClientLogoAction(id);
@@ -36,13 +34,13 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName) return;
+    if (!clientName || !logoSvgUrl) return;
     setSaving(true);
 
     try {
       const res = await createClientLogoAction({
         client_name: clientName,
-        logo_svg_url: logoSvgUrl || '/images/clients/default.svg',
+        logo_svg_url: logoSvgUrl,
         website_url: websiteUrl || undefined,
       });
 
@@ -69,9 +67,7 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
             {t.cms.clientsTitle}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'شركاء النجاح والعلامات التجارية الرائدة المعروضة في شريط التمرير بالصفحة الرئيسية.'
-              : 'Enterprise commercial partners displayed in the public homepage infinite logo marquee.'}
+            {t.clientsView.subtitle}
           </p>
         </div>
 
@@ -87,58 +83,63 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
       </div>
 
       {/* Grid of Logos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-        {logos.map((logo) => (
-          <Card
-            key={logo.id}
-            className="p-6 text-center space-y-4 bg-[#0B1210] border border-white/10 hover:border-[#09937F]/40 transition-all rounded-3xl relative group"
-          >
-            {/* Delete button on hover */}
-            <button
-              onClick={() => handleDelete(logo.id)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity"
-              title={t.actions.delete}
+      {logos.length === 0 ? (
+        <div className="p-12 text-center rounded-3xl bg-[#0B1210] border border-white/10 text-[#9EADA9]">
+          {t.clientsView.emptyState}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+          {logos.map((logo) => (
+            <Card
+              key={logo.id}
+              className="p-6 text-center space-y-4 bg-[#0B1210] border border-white/10 hover:border-[#09937F]/40 transition-all rounded-3xl relative group"
             >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+              {/* Delete button on hover */}
+              <button
+                onClick={() => setDeleteTargetId(logo.id)}
+                className="absolute top-4 right-4 p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                title={t.actions.delete}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
 
-            <div className="w-16 h-16 rounded-2xl mx-auto bg-white/5 border border-white/10 flex items-center justify-center p-3">
-              {logo.logo_svg_url.startsWith('http') || logo.logo_svg_url.startsWith('/') ? (
-                <img
-                  src={logo.logo_svg_url}
-                  alt={logo.client_name}
-                  className="w-full h-full object-contain filter invert opacity-80 group-hover:opacity-100 transition-opacity"
-                  onError={(e) => {
-                    // Fallback to dot indicator if image fails to load
-                    (e.target as HTMLElement).style.display = 'none';
-                  }}
-                />
-              ) : (
-                <span className="w-4 h-4 rounded-full bg-[#09937F]" />
-              )}
-            </div>
+              <div className="w-16 h-16 rounded-2xl mx-auto bg-white/5 border border-white/10 flex items-center justify-center p-3">
+                {logo.logo_svg_url.startsWith('http') || logo.logo_svg_url.startsWith('/') ? (
+                  <img
+                    src={logo.logo_svg_url}
+                    alt={logo.client_name}
+                    className="w-full h-full object-contain filter invert opacity-80 group-hover:opacity-100 transition-opacity"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <span className="w-4 h-4 rounded-full bg-[#09937F]" />
+                )}
+              </div>
 
-            <div className="space-y-1">
-              <div className="font-bold text-white text-sm">{logo.client_name}</div>
-              {logo.website_url && (
-                <a
-                  href={logo.website_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] text-[#09937F] hover:underline font-mono"
-                >
-                  <Globe className="w-3 h-3" />
-                  <span>{locale === 'ar' ? 'الموقع الإلكتروني' : 'Website'}</span>
-                </a>
-              )}
-            </div>
+              <div className="space-y-1">
+                <div className="font-bold text-white text-sm">{logo.client_name}</div>
+                {logo.website_url && (
+                  <a
+                    href={logo.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] text-[#09937F] hover:underline font-mono"
+                  >
+                    <Globe className="w-3 h-3" />
+                    <span>{t.clientsView.website}</span>
+                  </a>
+                )}
+              </div>
 
-            <Badge variant="emerald" className="mx-auto text-[10px]">
-              {locale === 'ar' ? 'معروض في الشريط' : 'Live Marquee'}
-            </Badge>
-          </Card>
-        ))}
-      </div>
+              <Badge variant="emerald" className="mx-auto text-[10px]">
+                {t.clientsView.liveMarquee}
+              </Badge>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Modal: Add New Client */}
       <Modal
@@ -149,35 +150,36 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'اسم العميل / العلامة التجارية' : 'Client Brand Name'}
+              {t.clientsView.clientBrandName}
             </label>
             <Input
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
-              placeholder="STC Bahrain"
+              placeholder={t.clientsView.clientBrandPlaceholder}
               required
             />
           </div>
 
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'مسار أو رابط الشعار (SVG)' : 'Logo Vector URL (SVG)'}
+              {t.clientsView.logoVectorUrl}
             </label>
             <Input
               value={logoSvgUrl}
               onChange={(e) => setLogoSvgUrl(e.target.value)}
-              placeholder="/images/clients/stc.svg"
+              placeholder={t.clientsView.logoVectorPlaceholder}
+              required
             />
           </div>
 
           <div>
             <label className="text-xs text-white mb-1.5 block">
-              {locale === 'ar' ? 'رابط الموقع الرسمي' : 'Official Website URL'}
+              {t.clientsView.officialWebsiteUrl}
             </label>
             <Input
               value={websiteUrl}
               onChange={(e) => setWebsiteUrl(e.target.value)}
-              placeholder="https://example.com"
+              placeholder={t.clientsView.officialWebsitePlaceholder}
             />
           </div>
 
@@ -203,6 +205,22 @@ export function ClientsManagementView({ initialLogos }: ClientsManagementViewPro
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Safeguard Modal */}
+      <ConfirmDestructiveModal
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={async () => {
+          if (deleteTargetId) {
+            await handleDelete(deleteTargetId);
+            setDeleteTargetId(null);
+          }
+        }}
+        title={t.actions.delete}
+        description={t.clientsView.confirmDelete}
+        confirmLabel={t.actions.delete}
+        cancelLabel={t.actions.cancel}
+      />
     </div>
   );
 }

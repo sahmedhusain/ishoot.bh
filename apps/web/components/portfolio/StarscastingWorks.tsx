@@ -2,9 +2,9 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useLocale } from '../../hooks/useLocale';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { PortfolioItem } from '@ishoot/database';
-import { ArrowUpRight, Play, Film, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Play } from 'lucide-react';
 import { CinemaLightbox } from './CinemaLightbox';
 
 interface StarscastingWorksProps {
@@ -12,15 +12,15 @@ interface StarscastingWorksProps {
 }
 
 export function StarscastingWorks({ items }: StarscastingWorksProps) {
-  const { locale, isRTL } = useLocale();
+  const { t, locale, isRTL } = useTranslation();
   const [activeCategory, setActiveCategory] = React.useState<string>('all');
   const [selectedVideo, setSelectedVideo] = React.useState<PortfolioItem | null>(null);
 
   const categories = [
-    { id: 'all', labelEn: 'All Projects', labelAr: 'جميع المشاريع' },
-    { id: 'commercials', labelEn: 'Commercials', labelAr: 'إعلانات تجارية' },
-    { id: 'aerial', labelEn: 'Aerial & FPV', labelAr: 'تصوير جوي' },
-    { id: 'documentaries', labelEn: 'Documentaries', labelAr: 'أفلام وثائقية' },
+    { id: 'all', label: t('portfolio.categories.all') },
+    { id: 'commercials', label: t('portfolio.categories.commercials') },
+    { id: 'aerial', label: t('portfolio.categories.aerial') },
+    { id: 'documentaries', label: t('portfolio.categories.documentaries') },
   ];
 
   const filteredItems = React.useMemo(() => {
@@ -31,7 +31,7 @@ export function StarscastingWorks({ items }: StarscastingWorksProps) {
   return (
     <section id="portfolio" className="relative py-28 bg-[#050807] text-[#F2F6F5] select-none border-t border-white/5">
       <div className="shell space-y-16">
-        {/* Editorial Index Header: — (03) (Projects) © 2026 — */}
+        {/* Editorial Index Header */}
         <div className="relative w-full">
           <span
             aria-hidden="true"
@@ -40,12 +40,12 @@ export function StarscastingWorks({ items }: StarscastingWorksProps) {
           <div className="mt-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#9EADA9]">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-              <span>(03)</span>
+              <span>{t('portfolio.sectionIndex')}</span>
             </span>
             <span className="font-bold text-white">
-              ({isRTL ? 'أرشيف الأعمال والمشاريع' : 'Featured Works'})
+              ({isRTL ? t('portfolio.sectionLabelAr') : t('portfolio.sectionLabelEn')})
             </span>
-            <span>© 2026</span>
+            <span>© {new Date().getFullYear()}</span>
           </div>
         </div>
 
@@ -53,12 +53,10 @@ export function StarscastingWorks({ items }: StarscastingWorksProps) {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="max-w-xl space-y-3">
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-display">
-              {isRTL ? 'تحف سينمائية معتمدة' : 'Cinematic Showcase'}
+              {isRTL ? t('portfolio.showcaseTitleAr') : t('portfolio.showcaseTitleEn')}
             </h2>
             <p className="text-sm sm:text-base text-[#9EADA9] leading-relaxed">
-              {isRTL
-                ? 'استكشف نماذج من أعمالنا المصورة لكبرى الجهات الحكومية والمؤسسات المصرفية والشركات في الخليج.'
-                : 'Explore select productions crafted for leading institutions, regional banks, and luxury brand houses.'}
+              {isRTL ? t('portfolio.showcaseSubtitleAr') : t('portfolio.showcaseSubtitleEn')}
             </p>
           </div>
 
@@ -74,7 +72,7 @@ export function StarscastingWorks({ items }: StarscastingWorksProps) {
                     : 'bg-white/5 text-[#9EADA9] hover:text-white hover:bg-white/10 border border-white/10'
                 }`}
               >
-                {isRTL ? cat.labelAr : cat.labelEn}
+                {cat.label}
               </button>
             ))}
           </div>
@@ -131,7 +129,7 @@ export function StarscastingWorks({ items }: StarscastingWorksProps) {
             href={`/${locale}/works`}
             className="group inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] py-3 ps-6 pe-3 text-xs sm:text-sm font-semibold text-white hover:bg-white hover:text-black hover:border-white transition-all shadow-xl"
           >
-            <span>{isRTL ? 'عرض جميع الأعمال والمشاريع في الأرشيف' : 'View Full Cinematography Archive'}</span>
+            <span>{t('portfolio.viewFullArchive')}</span>
             <span className="grid h-7 w-7 place-items-center rounded-full bg-white/10 group-hover:bg-black group-hover:text-white transition-colors">
               <ArrowUpRight className="w-4 h-4" />
             </span>

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import type { Invoice, CompanySettings } from '@ishoot/database/types';
 import { formatCurrencyValue } from '@ishoot/ui';
+import { adminTranslations } from '../../lib/translations';
 
 interface InvoiceTemplateProps {
   invoice: Invoice;
@@ -11,46 +12,20 @@ interface InvoiceTemplateProps {
 
 export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
   const isAr = invoice.language === 'ar';
-  const dir = isAr ? 'rtl' : 'ltr';
-
+  const t = isAr ? adminTranslations.ar : adminTranslations.en;
+  const inv = t.invoice;
   const currency = invoice.currency || 'BHD';
 
   return (
     <div
-      dir={dir}
+      dir={isAr ? 'rtl' : 'ltr'}
+      data-print-target
       className={`w-full max-w-[800px] mx-auto bg-white text-[#111827] shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none print:max-w-none print:w-full ${
         isAr ? 'font-arabic' : 'font-sans'
       }`}
       style={{ minHeight: '1050px' }}
     >
-      {/* Print Styles for Multi-page Letterhead Preservation */}
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: A4 portrait;
-            margin: 10mm;
-          }
-          body {
-            background-color: #ffffff !important;
-            color: #111827 !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-          tr {
-            page-break-inside: avoid;
-            page-break-after: auto;
-          }
-          thead {
-            display: table-header-group;
-          }
-          tfoot {
-            display: table-footer-group;
-          }
-        }
-      `}</style>
-
-      {/* 1. BRAND LETTERHEAD HEADER BAR: #014842 */}
+      {/* 1. BRAND LETTERHEAD HEADER BAR */}
       <div className="bg-[#014842] text-white p-8 sm:p-10 border-b-4 border-[#09937F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
           <div className="flex items-center gap-3">
@@ -75,7 +50,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
         {/* Invoice Title Tag */}
         <div className="text-start sm:text-end">
           <div className="text-2xl sm:text-3xl font-bold tracking-wider uppercase font-display text-white">
-            {isAr ? 'فاتورة ضريبية' : 'INVOICE'}
+            {isAr ? inv.titleAr : inv.title}
           </div>
           <div className="text-sm font-mono text-[#09937F] font-bold mt-1">
             {invoice.invoice_number}
@@ -88,10 +63,10 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
         {/* Bill To */}
         <div className="space-y-1.5">
           <span className="text-gray-400 font-bold uppercase tracking-wider block text-[10px]">
-            {isAr ? 'فاتورة إلى (العميل):' : 'BILLED TO:'}
+            {isAr ? inv.billedToAr : inv.billedTo}
           </span>
           <div className="text-base font-bold text-gray-900">
-            {invoice.contact?.company || invoice.contact?.full_name || 'Client Name'}
+            {invoice.contact?.company || invoice.contact?.full_name || inv.clientFallback}
           </div>
           {invoice.contact?.company && invoice.contact?.full_name && (
             <div className="text-gray-600 font-medium">Attn: {invoice.contact.full_name}</div>
@@ -108,19 +83,19 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
         <div className="space-y-2 sm:text-end">
           <div className="flex justify-between sm:justify-end gap-6">
             <span className="text-gray-400 font-bold uppercase text-[10px]">
-              {isAr ? 'تاريخ الإصدار:' : 'ISSUE DATE:'}
+              {isAr ? inv.issueDateAr : inv.issueDate}
             </span>
             <span className="font-mono font-medium text-gray-800">{invoice.issue_date}</span>
           </div>
           <div className="flex justify-between sm:justify-end gap-6">
             <span className="text-gray-400 font-bold uppercase text-[10px]">
-              {isAr ? 'تاريخ الاستحقاق:' : 'DUE DATE:'}
+              {isAr ? inv.dueDateAr : inv.dueDate}
             </span>
             <span className="font-mono font-bold text-[#014842]">{invoice.due_date}</span>
           </div>
           <div className="flex justify-between sm:justify-end gap-6">
             <span className="text-gray-400 font-bold uppercase text-[10px]">
-              {isAr ? 'الحالة المالية:' : 'PAYMENT STATUS:'}
+              {isAr ? inv.paymentStatusAr : inv.paymentStatus}
             </span>
             <span className="font-bold uppercase text-[11px] text-[#09937F]">
               {invoice.status.replace('_', ' ')}
@@ -129,23 +104,23 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
         </div>
       </div>
 
-      {/* 3. LINE ITEMS TABLE (WITH REPEATABLE LETTERHEAD SUPPORT) */}
+      {/* 3. LINE ITEMS TABLE */}
       <div className="p-8 sm:p-10">
         <table className="w-full text-start text-xs border-collapse">
           <thead>
             <tr className="border-b-2 border-gray-900 text-gray-900 uppercase font-mono tracking-wider">
               <th className="py-3 px-2 text-start font-bold">#</th>
               <th className="py-3 px-2 text-start font-bold">
-                {isAr ? 'وصف العمل والخدمات' : 'Service Description'}
+                {isAr ? inv.serviceDescAr : inv.serviceDesc}
               </th>
               <th className="py-3 px-2 text-center font-bold">
-                {isAr ? 'الكمية' : 'Qty'}
+                {isAr ? inv.qtyAr : inv.qty}
               </th>
               <th className="py-3 px-2 text-end font-bold">
-                {isAr ? 'سعر الوحدة' : 'Unit Price'}
+                {isAr ? inv.unitPriceAr : inv.unitPrice}
               </th>
               <th className="py-3 px-2 text-end font-bold">
-                {isAr ? 'المجموع' : 'Total'}
+                {isAr ? inv.totalAr : inv.total}
               </th>
             </tr>
           </thead>
@@ -180,7 +155,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
           {/* Bank Instructions */}
           <div className="max-w-xs space-y-2 text-xs text-gray-600">
             <div className="font-bold text-gray-900 uppercase tracking-wider text-[10px]">
-              {isAr ? 'معلومات التحويل البنكي:' : 'BANK TRANSFER COORDINATES:'}
+              {isAr ? inv.bankCoordsAr : inv.bankCoords}
             </div>
             <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 font-mono text-[11px] space-y-1">
               <div>Bank: {company.bank_name}</div>
@@ -193,13 +168,13 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
           {/* Totals Breakdown */}
           <div className="w-full sm:w-72 space-y-2 text-xs font-mono">
             <div className="flex justify-between py-1 border-b border-gray-100 text-gray-600">
-              <span>{isAr ? 'المجموع الفرعي:' : 'Subtotal:'}</span>
+              <span>{isAr ? inv.subtotalAr : inv.subtotal}</span>
               <span>{formatCurrencyValue(invoice.subtotal, currency, isAr)}</span>
             </div>
 
             {invoice.discount_amount > 0 && (
               <div className="flex justify-between py-1 border-b border-gray-100 text-rose-600">
-                <span>{isAr ? 'الخصم المعتمد:' : 'Discount:'}</span>
+                <span>{isAr ? inv.discountAr : inv.discount}</span>
                 <span>-{formatCurrencyValue(invoice.discount_amount, currency, isAr)}</span>
               </div>
             )}
@@ -208,30 +183,30 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
             <div className="flex justify-between py-1 border-b border-gray-100 text-gray-600">
               <span>
                 {invoice.vat_enabled
-                  ? `${isAr ? 'ضريبة القيمة المضافة' : 'VAT'} (${invoice.vat_percentage}%):`
-                  : (isAr ? 'ضريبة القيمة المضافة:' : 'VAT:')}
+                  ? `${isAr ? inv.vatLabelAr : inv.vatLabel} (${invoice.vat_percentage}%):`
+                  : (isAr ? inv.vatColonAr : inv.vatColon)}
               </span>
               <span>
                 {invoice.vat_enabled
                   ? formatCurrencyValue(invoice.vat_amount, currency, isAr)
-                  : (isAr ? 'غير مطبقة' : 'Not Applicable')}
+                  : (isAr ? inv.notApplicableAr : inv.notApplicable)}
               </span>
             </div>
 
             {/* TOTAL */}
             <div className="flex justify-between py-3 border-t-2 border-gray-900 text-base font-extrabold text-[#014842]">
-              <span>{isAr ? 'المجموع النهائي:' : 'TOTAL AMOUNT:'}</span>
+              <span>{isAr ? inv.totalAmountAr : inv.totalAmount}</span>
               <span>{formatCurrencyValue(invoice.total_amount, currency, isAr)}</span>
             </div>
 
             {invoice.amount_paid > 0 && (
               <>
                 <div className="flex justify-between py-1 text-emerald-600 font-semibold">
-                  <span>{isAr ? 'المبلغ المسدد:' : 'Amount Paid:'}</span>
+                  <span>{isAr ? inv.amountPaidAr : inv.amountPaid}</span>
                   <span>{formatCurrencyValue(invoice.amount_paid, currency, isAr)}</span>
                 </div>
                 <div className="flex justify-between py-1 text-rose-600 font-bold border-t border-gray-200 pt-2">
-                  <span>{isAr ? 'المتبقي للسداد:' : 'Balance Due:'}</span>
+                  <span>{isAr ? inv.balanceDueAr : inv.balanceDue}</span>
                   <span>{formatCurrencyValue(invoice.amount_due, currency, isAr)}</span>
                 </div>
               </>
@@ -243,9 +218,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
       {/* 5. FOOTER LETTERHEAD */}
       <div className="p-8 sm:p-10 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500">
         <div>
-          {isAr
-            ? 'شكراً لتعاملكم مع دار آي شوت للإنتاج السينمائي.'
-            : 'Thank you for choosing ishoot Cinema Production.'}
+          {isAr ? inv.thankYouAr : inv.thankYou}
         </div>
         <div className="font-mono text-[11px]">
           {company.website} • {company.email}

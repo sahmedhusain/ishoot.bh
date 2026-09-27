@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { CompanySettings } from '@ishoot/database/types';
-import { Card, Input, Button, Badge } from '@ishoot/ui';
+import { Card, Input, Button } from '@ishoot/ui';
 import {
   Building2,
   Percent,
@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { updateCompanySettingsAction } from '../../app/actions/settings';
-
 import { SettingsNavTabs } from './SettingsNavTabs';
 
 interface CompanySettingsViewProps {
@@ -55,9 +54,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
             {t.nav.companySettings}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'إدارة بيانات السجل التجاري، الحسابات البنكية، إعدادات ضريبة القيمة المضافة، والربط مع Google Calendar.'
-              : 'Configure legal CR information, banking coordinates, VAT compliance, and Google Calendar sync.'}
+            {t.companySettingsView.subtitle}
           </p>
         </div>
 
@@ -76,7 +73,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
       {saved && (
         <div className="p-4 rounded-2xl bg-[#09937F]/15 border border-[#09937F]/40 flex items-center gap-3 text-[#09937F] text-xs font-semibold">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>{locale === 'ar' ? 'تم حفظ وتحديث الإعدادات بنجاح في قاعدة البيانات!' : 'Company settings successfully updated!'}</span>
+          <span>{t.companySettingsView.saved}</span>
         </div>
       )}
 
@@ -88,9 +85,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
             <div>
               <h2 className="text-base font-bold text-white">{t.settings.vatTitle}</h2>
               <p className="text-xs text-[#9EADA9]">
-                {locale === 'ar'
-                  ? 'التحويل بين نظام المنشأة غير الخاضعة للضريبة ونظام ضريبة القيمة المضافة (10%).'
-                  : 'Toggle between Non-VAT entity (0%) and 10% Bahrain VAT compliance.'}
+                {t.companySettingsView.vatToggleSubtitle}
               </p>
             </div>
           </div>
@@ -106,17 +101,13 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
                     ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                     : 'bg-white/5 text-[#9EADA9] border border-white/10'
                 }`}>
-                  {settings.vat_enabled ? (locale === 'ar' ? 'ضريبة 10%' : '10% VAT') : (locale === 'ar' ? 'معفى 0%' : '0% Non-VAT')}
+                  {settings.vat_enabled ? t.companySettingsView.vatActiveBadge : t.companySettingsView.vatInactiveBadge}
                 </span>
               </div>
               <p className="text-xs text-[#9EADA9] mt-1 max-w-xl">
                 {settings.vat_enabled
-                  ? (locale === 'ar'
-                      ? 'سيتم احتساب 10% ضريبة قيمة مضافة على جميع الفواتير الجديدة وإظهار الرقم الضريبي الرسمي.'
-                      : 'All new invoices will compute 10% VAT and render official tax registration.')
-                  : (locale === 'ar'
-                      ? 'ستظهر الفواتير عبارة "ضريبة القيمة المضافة: غير مطبقة" بمعدل ضريبة 0%.'
-                      : 'Invoices will state "VAT: Not Applicable" and calculate totals with 0% tax.')}
+                  ? t.companySettingsView.vatActiveDesc
+                  : t.companySettingsView.vatInactiveDesc}
               </p>
             </div>
 
@@ -148,7 +139,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-[#9EADA9]">
-                  {locale === 'ar' ? 'نسبة الضريبة (٪)' : 'VAT Rate (%)'}
+                  {t.companySettingsView.vatRatePercent}
                 </label>
                 <Input
                   type="number"
@@ -167,12 +158,10 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
             <Calendar className="w-5 h-5 text-[#09937F]" />
             <div>
               <h2 className="text-base font-bold text-white">
-                {locale === 'ar' ? 'الربط مع تقويم Google' : 'Google Calendar Integration'}
+                {t.companySettingsView.googleTitle}
               </h2>
               <p className="text-xs text-[#9EADA9]">
-                {locale === 'ar'
-                  ? 'مزامنة مواعيد تصوير المشاريع وجلسات المونتاج تلقائياً مع تقويم Google لجميع أفراد الطاقم.'
-                  : 'Automatic two-way sync between studio shoots, deadlines, and crew Google Calendars.'}
+                {t.companySettingsView.googleSubtitle}
               </p>
             </div>
           </div>
@@ -182,11 +171,11 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#09937F] animate-pulse" />
                 <span className="text-sm font-bold text-white">
-                  {locale === 'ar' ? 'خدمة Google Workspace: متصلة بنجاح' : 'Google Workspace API: Connected'}
+                  {t.companySettingsView.googleConnected}
                 </span>
               </div>
               <p className="text-xs text-[#9EADA9]">
-                production@ishoot.bh • {locale === 'ar' ? 'المزامنة التلقائية: نشطة' : 'Auto-Sync: Active'}
+                production@ishoot.bh • {t.companySettingsView.googleSyncActive}
               </p>
             </div>
 
@@ -197,8 +186,8 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
               onClick={() => setGoogleConnected(!googleConnected)}
             >
               {googleConnected
-                ? (locale === 'ar' ? 'إلغاء الربط' : 'Disconnect')
-                : (locale === 'ar' ? 'ربط الحساب' : 'Connect Account')}
+                ? t.companySettingsView.disconnect
+                : t.companySettingsView.connect}
             </Button>
           </div>
         </Card>
@@ -210,9 +199,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
             <div>
               <h2 className="text-base font-bold text-white">{t.settings.companyTitle}</h2>
               <p className="text-xs text-[#9EADA9]">
-                {locale === 'ar'
-                  ? 'بيانات السجل التجاري، اسم المنشأة الرسمي، والعنوان المسجل.'
-                  : 'Legal entity name, Commercial Registration, and physical headquarters address.'}
+                {t.companySettingsView.crSubtitle}
               </p>
             </div>
           </div>
@@ -220,7 +207,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {locale === 'ar' ? 'اسم المنشأة بالإنجليزية' : 'Company Legal Name (English)'}
+                {t.companySettingsView.nameEn}
               </label>
               <Input
                 value={settings.company_name_en}
@@ -230,7 +217,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {locale === 'ar' ? 'اسم المنشأة بالعربية' : 'Company Legal Name (Arabic)'}
+                {t.companySettingsView.nameAr}
               </label>
               <Input
                 value={settings.company_name_ar}
@@ -241,7 +228,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {locale === 'ar' ? 'رقم السجل التجاري (CR)' : 'Commercial Registration (CR #)'}
+                {t.companySettingsView.crNumber}
               </label>
               <Input
                 value={settings.cr_number}
@@ -252,18 +239,18 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
 
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {locale === 'ar' ? 'العملة الافتراضية' : 'Default Currency'}
+                {t.companySettingsView.defaultCurrency}
               </label>
               <Input
                 disabled
-                value={`${settings.default_currency} (${settings.currency_decimals} ${locale === 'ar' ? 'كسور عشرية' : 'decimals'})`}
+                value={`${settings.default_currency} (${settings.currency_decimals} ${t.companySettingsView.decimalsWord})`}
                 className="font-mono bg-white/5 opacity-70"
               />
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
               <label className="text-xs font-medium text-[#9EADA9]">
-                {locale === 'ar' ? 'عنوان مقر الاستوديو' : 'Studio Address'}
+                {t.companySettingsView.addressLabel}
               </label>
               <Input
                 value={locale === 'ar' ? settings.address_ar : (settings.address_en || settings.address_ar)}
@@ -280,9 +267,7 @@ export function CompanySettingsView({ initialSettings }: CompanySettingsViewProp
             <div>
               <h2 className="text-base font-bold text-white">{t.settings.bankTitle}</h2>
               <p className="text-xs text-[#9EADA9]">
-                {locale === 'ar'
-                  ? 'بيانات الحساب البنكي والتحويل المطبوعة على الفواتير الرسمية.'
-                  : 'Beneficiary bank wire coordinates stamped on official invoices.'}
+                {t.companySettingsView.bankSubtitle}
               </p>
             </div>
           </div>

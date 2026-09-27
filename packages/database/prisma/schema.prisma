@@ -32,6 +32,9 @@ model User {
   activities      ActivityLog[]
   notifications   Notification[]
   attachments     Attachment[]
+  sessions        Session[]
+  contractsCreated Contract[]
+  generatedDocuments GeneratedDocument[]
 }
 
 model CompanySetting {
@@ -137,33 +140,49 @@ model StudioEquipment {
 }
 
 model Inquiry {
-  id           String   @id @default(uuid())
+  id           String       @id @default(uuid())
   name         String
   email        String
+  emailNorm    String?      // lower(trim(email)) for dedup matching
   phone        String?
+  phoneE164    String?      // E.164 normalized phone for dedup
   companyName  String?
   serviceType  String?
   budgetRange  String?
   timeline     String?
   message      String
-  status       String   @default("new") // "new", "contacted", "qualified", "archived"
-  locale       String   @default("ar")
-  createdAt    DateTime @default(now())
+  status       String       @default("new") // "new", "contacted", "qualified", "archived"
+  locale       String       @default("ar")
+  source       String       @default("website") // "website", "email", "whatsapp", "manual"
+  customerId   String?      // FK to resolved CrmContact
+  customer     CrmContact?  @relation(fields: [customerId], references: [id])
+  mergeFlag    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+
+  @@index([emailNorm])
+  @@index([phoneE164])
 }
 
 model CrmContact {
-  id            String    @id @default(uuid())
+  id            String      @id @default(uuid())
   firstName     String
   lastName      String?
   email         String?
+  emailNorm     String?     // lower(trim(email)) for dedup
   phone         String?
+  phoneE164     String?     // E.164 normalized phone
   companyName   String?
   jobTitle      String?
-  contactType   String    @default("client") // "client", "vendor", "freelancer", "agency"
+  contactType   String      @default("client") // "client", "vendor", "freelancer", "agency"
   notes         String?
   deals         CrmDeal[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  inquiries     Inquiry[]
+  contracts     Contract[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([emailNorm])
+  @@index([phoneE164])
 }
 
 model CrmDeal {
@@ -183,6 +202,7 @@ model CrmDeal {
   invoices          Invoice[]
   expenses          Expense[]
   calendarEvents    CalendarEvent[]
+  contracts         Contract[]
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 }
@@ -304,15 +324,21 @@ model CalendarEvent {
 }
 
 model ActivityLog {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  action     String   // "create", "update", "delete", "login", "export", "stage_change"
-  entityType String   // "invoice", "deal", "contact", "expense", "user", "banner"
-  entityId   String?
-  details    Json?
-  ipAddress  String?
-  createdAt  DateTime @default(now())
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String   // "create", "update", "delete", "login", "logout", "export", "stage_change", "void", "approve"
+  entityType  String   // "invoice", "deal", "contact", "expense", "user", "banner", "contract", etc.
+  entityId    String?
+  details     Json?
+  diffPayload Json?    // { before: {...}, after: {...} }
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Notification {
@@ -349,3 +375,86 @@ model Attachment {
   uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
   createdAt    DateTime @default(now())
 }
+
+model Permission {
+  id        String   @id @default(uuid())
+  role      String   // "super_admin", "admin", "finance_manager", "sales", "marketing", "production_manager", "producer", "editor", "accountant", "viewer"
+  resource  String   // "invoices", "payments", "expenses", "finance_analytics", "deals", "contacts", "leads", "contracts", "banners", "portfolio", "clients", "equipment", "users", "settings", "audit_logs"
+  action    String   // "read", "write", "delete", "export", "approve"
+  allowed   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([role, resource, action])
+  @@index([role])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+model DocumentTemplate {
+  id        String     @id @default(uuid())
+  slug      String     @unique // "invoice_standard", "receipt_cash", "nda_bahrain", "commercial_contract"
+  nameEn    String
+  nameAr    String?
+  category  String     // "invoice", "receipt", "contract", "legal"
+  bodyHtml  String?    @db.Text
+  bodyJson  Json?
+  version   Int        @default(1)
+  isActive  Boolean    @default(true)
+  contracts Contract[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Contract {
+  id             String            @id @default(uuid())
+  contractNumber String            @unique
+  dealId         String?
+  deal           CrmDeal?          @relation(fields: [dealId], references: [id])
+  contactId      String?
+  contact        CrmContact?       @relation(fields: [contactId], references: [id])
+  templateId     String?
+  template       DocumentTemplate? @relation(fields: [templateId], references: [id])
+  titleEn        String
+  titleAr        String?
+  bodyHtml       String?           @db.Text
+  status         String            @default("draft") // "draft", "sent", "signed", "expired", "cancelled"
+  signatureHash  String?           // SHA-256 of signature image/data
+  signedAt       DateTime?
+  validFrom      DateTime?         @db.Date
+  validUntil     DateTime?         @db.Date
+  pdfStoragePath String?
+  metadata       Json?             // Additional flexible fields
+  createdById    String?
+  createdBy      User?             @relation(fields: [createdById], references: [id])
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model GeneratedDocument {
+  id               String   @id @default(uuid())
+  documentType     String   // "invoice_pdf", "receipt_pdf", "contract_pdf", "custom"
+  sourceEntityType String   // "invoice", "payment", "contract"
+  sourceEntityId   String
+  fileName         String
+  storagePath      String
+  fileSize         Int?
+  checksum         String?  // SHA-256 for integrity
+  generatedById    String?
+  generatedBy      User?    @relation(fields: [generatedById], references: [id])
+  createdAt        DateTime @default(now())
+
+  @@index([sourceEntityType, sourceEntityId])
+}
+

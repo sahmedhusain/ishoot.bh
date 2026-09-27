@@ -30,15 +30,18 @@ export function BreadcrumbTrail() {
     users: t.nav.users,
     settings: t.nav.system,
     company: t.nav.companySettings,
+    preferences: t.nav.appearance,
+    audit: t.nav.auditLogs,
+    integrations: t.nav.integrations,
     new: t.actions.newInvoice,
   };
 
   const Chevron = isRTL ? ChevronLeft : ChevronRight;
 
   return (
-    <nav className="flex items-center gap-1.5 text-xs text-[#9EADA9]">
+    <nav data-breadcrumb className="flex items-center gap-1.5 text-xs text-[#9EADA9]">
       <Link href="/dashboard" className="hover:text-white transition-colors font-medium">
-        {isRTL ? 'الرئيسية' : 'Home'}
+        {t.layout.home}
       </Link>
       {segments.map((segment, index) => {
         const url = `/${segments.slice(0, index + 1).join('/')}`;

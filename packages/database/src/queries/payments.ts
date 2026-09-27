@@ -101,6 +101,31 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
   }
 }
 
+export async function getPaymentByIdOrNumber(idOrNumber: string): Promise<Payment | null> {
+  try {
+    const payment = await db.payment.findFirst({
+      where: {
+        OR: [{ id: idOrNumber }, { receiptNumber: idOrNumber }],
+      },
+      include: {
+        invoice: {
+          include: {
+            lineItems: true,
+            deal: {
+              include: { contact: true },
+            },
+          },
+        },
+      },
+    });
+    return payment ? mapPayment(payment) : null;
+  } catch (e) {
+    console.error(`Error fetching payment ${idOrNumber}:`, e);
+    return null;
+  }
+}
+
+
 export async function recordPayment(paymentData: {
   invoice_id: string;
   payment_date?: string;

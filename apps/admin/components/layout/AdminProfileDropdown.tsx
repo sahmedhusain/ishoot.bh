@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   User,
   Shield,
@@ -11,16 +12,49 @@ import {
   LogOut,
   ChevronDown,
   Database,
-  ExternalLink,
 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { useAdminTheme } from '../../hooks/useAdminTheme';
+import { ConfirmDestructiveModal } from '@ishoot/ui';
+
+interface CurrentUser {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  department?: string;
+  avatarUrl?: string;
+}
 
 export function AdminProfileDropdown() {
+  const router = useRouter();
   const { t, locale, isRTL } = useAdminLocale();
   const { theme, resolvedTheme } = useAdminTheme();
   const [isOpen, setIsOpen] = React.useState(false);
+  const [confirmSignOutOpen, setConfirmSignOutOpen] = React.useState(false);
+  const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(null);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    let mounted = true;
+    async function loadUser() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (mounted && data.user) {
+            setCurrentUser(data.user);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load active user profile:', err);
+      }
+    }
+    loadUser();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Close dropdown on click outside
   React.useEffect(() => {
@@ -37,11 +71,27 @@ export function AdminProfileDropdown() {
     };
   }, [isOpen]);
 
-  const handleSignOut = () => {
-    if (confirm(locale === 'ar' ? 'هل تود تسجيل الخروج من لوحة التحكم؟' : 'Are you sure you want to sign out?')) {
-      window.location.href = '/';
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      router.push('/login');
+      router.refresh();
     }
   };
+
+  const displayName = currentUser?.fullName || t.profileDropdown.adminUser;
+  const displayEmail = currentUser?.email || 'admin@ishoot.bh';
+  const displayRole = currentUser?.role ? currentUser.role.replace('_', ' ').toUpperCase() : t.profileDropdown.superAdmin;
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase() || 'IS';
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -53,15 +103,19 @@ export function AdminProfileDropdown() {
         aria-expanded={isOpen}
       >
         <div className="w-8 h-8 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center text-xs font-bold text-white font-mono shadow-sm">
-          SA
+          {initials}
         </div>
         <div className="hidden xl:block text-start leading-tight">
           <div className="text-xs font-bold text-white flex items-center gap-1">
-            <span>{locale === 'ar' ? 'سيد أحمد حسين' : 'Sayed Ahmed Husain'}</span>
-            <ChevronDown className={`w-3 h-3 text-[#9EADA9] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            <span>{displayName}</span>
+            <ChevronDown
+              className={`w-3 h-3 text-[#9EADA9] transition-transform duration-200 ${
+                isOpen ? 'rotate-180' : ''
+              }`}
+            />
           </div>
           <div className="text-[10px] text-[#09937F] font-semibold font-mono">
-            {locale === 'ar' ? 'المدير العام' : 'Super Admin'}
+            {displayRole}
           </div>
         </div>
       </button>
@@ -77,18 +131,18 @@ export function AdminProfileDropdown() {
           <div className="p-4 bg-white/[0.02] border-b border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-[#014842] border border-[#09937F]/50 flex items-center justify-center text-sm font-bold text-white font-mono shrink-0 shadow-md">
-                SA
+                {initials}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-bold text-white truncate">
-                  {locale === 'ar' ? 'سيد أحمد حسين' : 'Sayed Ahmed Husain'}
+                  {displayName}
                 </div>
                 <div className="text-[11px] text-[#9EADA9] font-mono truncate">
-                  sayed@ishoot.bh
+                  {displayEmail}
                 </div>
                 <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#09937F]/15 text-[#09937F] border border-[#09937F]/30">
                   <Shield className="w-2.5 h-2.5" />
-                  <span>{locale === 'ar' ? 'مدير النظام العام' : 'Super Admin'}</span>
+                  <span>{displayRole}</span>
                 </div>
               </div>
             </div>
@@ -102,7 +156,7 @@ export function AdminProfileDropdown() {
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#9EADA9] hover:text-white hover:bg-white/5 transition-colors"
             >
               <User className="w-4 h-4 text-[#09937F]" />
-              <span>{locale === 'ar' ? 'ملف المستخدم والصلاحيات' : 'User Profile & Privileges'}</span>
+              <span>{t.profileDropdown.userProfile}</span>
             </Link>
 
             <Link
@@ -111,7 +165,7 @@ export function AdminProfileDropdown() {
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#9EADA9] hover:text-white hover:bg-white/5 transition-colors"
             >
               <Building2 className="w-4 h-4 text-[#09937F]" />
-              <span>{locale === 'ar' ? 'بيانات الشركة والضرائب' : 'Company & Tax Settings'}</span>
+              <span>{t.profileDropdown.companySettings}</span>
             </Link>
 
             <Link
@@ -121,9 +175,9 @@ export function AdminProfileDropdown() {
             >
               <Sliders className="w-4 h-4 text-[#09937F]" />
               <div className="flex-1 flex items-center justify-between">
-                <span>{locale === 'ar' ? 'المظهر واللغة' : 'Appearance & Language'}</span>
+                <span>{t.profileDropdown.appearance}</span>
                 <span className="text-[10px] font-mono text-[#09937F] bg-[#09937F]/10 px-1.5 py-0.5 rounded">
-                  {resolvedTheme === 'dark' ? (locale === 'ar' ? 'داكن' : 'Dark') : (locale === 'ar' ? 'فاتح' : 'Light')}
+                  {resolvedTheme === 'dark' ? t.profileDropdown.dark : t.profileDropdown.light}
                 </span>
               </div>
             </Link>
@@ -134,7 +188,7 @@ export function AdminProfileDropdown() {
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#9EADA9] hover:text-white hover:bg-white/5 transition-colors"
             >
               <History className="w-4 h-4 text-[#09937F]" />
-              <span>{locale === 'ar' ? 'سجل العمليات وتسجيل الدخول' : 'Audit Trail & Login History'}</span>
+              <span>{t.profileDropdown.auditTrail}</span>
             </Link>
           </div>
 
@@ -143,12 +197,14 @@ export function AdminProfileDropdown() {
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Database className="w-3 h-3 text-[#09937F]" />
-                <span>Supabase PostgreSQL</span>
+                <span>PostgreSQL 15</span>
               </span>
-              <span className="text-emerald-400 font-bold">Connected</span>
+              <span className="text-emerald-400 font-bold">
+                {t.profileDropdown.connected}
+              </span>
             </div>
             <div className="text-[9px] text-[#9EADA9]/60">
-              {locale === 'ar' ? 'نظام سحابي دون خوادم Docker' : 'Serverless Cloud Architecture'}
+              {t.profileDropdown.serverless}
             </div>
           </div>
 
@@ -156,15 +212,30 @@ export function AdminProfileDropdown() {
           <div className="p-2 border-t border-white/10 bg-white/[0.02]">
             <button
               type="button"
-              onClick={handleSignOut}
+              onClick={() => {
+                setIsOpen(false);
+                setConfirmSignOutOpen(true);
+              }}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 text-xs font-semibold transition-colors"
             >
               <LogOut className="w-4 h-4" />
-              <span>{locale === 'ar' ? 'تسجيل الخروج من الجلسة' : 'Sign Out of Session'}</span>
+              <span>{t.profileDropdown.signOutSession}</span>
             </button>
           </div>
         </div>
       )}
+
+      {/* Sign Out Confirmation Modal */}
+      <ConfirmDestructiveModal
+        isOpen={confirmSignOutOpen}
+        onClose={() => setConfirmSignOutOpen(false)}
+        onConfirm={handleSignOut}
+        title={t.profileDropdown.signOutSession}
+        description={t.profileDropdown.confirmSignOut}
+        confirmLabel={t.profileDropdown.signOutSession}
+        cancelLabel={t.actions.cancel}
+        variant="warning"
+      />
     </div>
   );
 }

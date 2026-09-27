@@ -5,14 +5,14 @@ import { HeroBanner as HeroBannerType } from '@ishoot/database';
 import { HeroSlide } from './HeroSlide';
 import { AudioToggle } from './AudioToggle';
 import { VideoProgress } from './VideoProgress';
-import { useLocale } from '../../hooks/useLocale';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface HeroBannerProps {
   banners: HeroBannerType[];
 }
 
 export function HeroBanner({ banners }: HeroBannerProps) {
-  const { locale, isRTL } = useLocale();
+  const { t, locale, isRTL } = useTranslation();
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [isMuted, setIsMuted] = React.useState(true);
   const [isPaused, setIsPaused] = React.useState(false);
@@ -67,8 +67,8 @@ export function HeroBanner({ banners }: HeroBannerProps) {
             <AudioToggle
               isMuted={isMuted}
               onToggle={() => setIsMuted((prev) => !prev)}
-              labelOn={isRTL ? 'تشغيل الصوت' : 'Sound On'}
-              labelOff={isRTL ? 'كتم الصوت' : 'Sound Off'}
+              labelOn={t('hero.audioOn')}
+              labelOff={t('hero.audioOff')}
             />
           </div>
         </div>

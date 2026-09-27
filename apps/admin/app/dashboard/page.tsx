@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {
   getFinancialSummary,
+  getMonthlyCashflow,
   getCRMDeals,
   getAllInquiries,
   getCompanySettings,
@@ -11,8 +12,9 @@ import { ExecutiveDashboardView } from '../../components/dashboard/ExecutiveDash
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  const [finance, deals, inquiries, company, upcomingEvents] = await Promise.all([
+  const [finance, monthlyCashflow, deals, inquiries, company, upcomingEvents] = await Promise.all([
     getFinancialSummary(),
+    getMonthlyCashflow(6),
     getCRMDeals(),
     getAllInquiries(),
     getCompanySettings(),
@@ -22,6 +24,7 @@ export default async function DashboardPage() {
   return (
     <ExecutiveDashboardView
       finance={finance}
+      monthlyCashflow={monthlyCashflow}
       deals={deals}
       inquiries={inquiries}
       company={company}

@@ -2,7 +2,7 @@ import './globals.css';
 import type { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
-  title: 'ishoot — Cinema Production House | دار الإنتاج السينمائي',
+  title: 'ishoot — Cinema Production House',
   description: 'High-end commercial cinematography, aerial drone capture, DaVinci Resolve color grading, and creative studio productions based in Bahrain.',
   icons: {
     icon: '/images/icon.svg',

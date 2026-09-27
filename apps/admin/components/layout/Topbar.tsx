@@ -12,7 +12,7 @@ export function Topbar() {
   const { t, locale } = useAdminLocale();
 
   return (
-    <header className="h-16 border-b border-white/10 bg-[#070C0A]/95 backdrop-blur-xl px-5 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xl transition-colors duration-200">
+    <header data-topbar className="h-16 border-b border-white/10 bg-[#070C0A]/95 backdrop-blur-xl px-5 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xl transition-colors duration-200">
       {/* Start: Brand Aperture + Wordmark (Mobile only) & Breadcrumbs */}
       <div className="flex items-center gap-4">
         {/* Topbar Logo: Aperture Icon + Wordmark SVG for mobile */}

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import type { HeroBanner } from '@ishoot/database/types';
-import { Button, Card, Badge, Modal, Input, Select } from '@ishoot/ui';
+import { Button, Card, Badge, Modal, Input, Select, ConfirmDestructiveModal } from '@ishoot/ui';
 import { Plus, Eye, EyeOff, Film, Image as ImageIcon, Trash2, CheckCircle2 } from 'lucide-react';
 import { useAdminLocale } from '../../hooks/useAdminLocale';
 import { toggleBannerStatusAction, deleteBannerAction, createBannerAction } from '../../app/actions/cms';
@@ -15,6 +15,7 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
   const { t, locale, isRTL } = useAdminLocale();
   const [banners, setBanners] = React.useState<HeroBanner[]>(initialBanners);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
 
   // Form state
@@ -39,9 +40,6 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
   };
 
   const handleDeleteBanner = async (id: string) => {
-    if (!confirm(locale === 'ar' ? 'هل أنت متأكد من حذف هذا البنر؟' : 'Are you sure you want to delete this banner?')) {
-      return;
-    }
     setBanners((prev) => prev.filter((b) => b.id !== id));
     try {
       await deleteBannerAction(id);
@@ -53,6 +51,7 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titleEn && !titleAr) return;
+    if (!mediaUrl) return;
     setSaving(true);
 
     try {
@@ -62,8 +61,8 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
         subtitle_en: subtitleEn || undefined,
         subtitle_ar: subtitleAr || undefined,
         media_type: mediaType,
-        media_url: mediaUrl || '/banners/hero-video.mp4',
-        poster_url: posterUrl || '/banners/poster.jpg',
+        media_url: mediaUrl,
+        poster_url: posterUrl || undefined,
       });
 
       if (res.banner) {
@@ -93,9 +92,7 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
             {t.cms.bannersTitle}
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'إدارة عروض الفيديو الرئيسية، النصوص البصرية، وروابط الحجز في الواجهة الأمامية للموقع.'
-              : 'Manage hero video reels, typography overlays, and booking actions on the public homepage.'}
+            {t.bannersView.subtitle}
           </p>
         </div>
 
@@ -114,7 +111,7 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
       <div className="grid grid-cols-1 gap-4">
         {banners.length === 0 ? (
           <div className="p-12 text-center rounded-3xl bg-[#0B1210] border border-white/10 text-[#9EADA9]">
-            {locale === 'ar' ? 'لا توجد بنرات حالياً في قاعدة البيانات.' : 'No hero banners currently in database.'}
+            {t.bannersView.emptyState}
           </div>
         ) : (
           banners.map((banner) => (
@@ -163,13 +160,13 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
                   className="gap-1.5"
                 >
                   {banner.is_active ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  <span>{banner.is_active ? (locale === 'ar' ? 'إخفاء' : 'Hide') : (locale === 'ar' ? 'نشر' : 'Publish')}</span>
+                  <span>{banner.is_active ? t.bannersView.hide : t.bannersView.publish}</span>
                 </Button>
 
                 <Button
                   variant="danger"
                   size="sm"
-                  onClick={() => handleDeleteBanner(banner.id)}
+                  onClick={() => setDeleteTargetId(banner.id)}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>
@@ -189,23 +186,23 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'العنوان الرئيسي (بالعربية)' : 'Main Title (Arabic)'}
+                {t.bannersView.titleAr}
               </label>
               <Input
                 value={titleAr}
                 onChange={(e) => setTitleAr(e.target.value)}
-                placeholder="التميز السينمائي الخليجي"
+                placeholder={t.bannersView.titleArPlaceholder}
                 required
               />
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'العنوان بالإنجليزية' : 'Title (English)'}
+                {t.bannersView.titleEn}
               </label>
               <Input
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
-                placeholder="Khaleeji Cinema Craft"
+                placeholder={t.bannersView.titleEnPlaceholder}
                 required
               />
             </div>
@@ -214,22 +211,22 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الوصف الفرعي (بالعربية)' : 'Subtitle (Arabic)'}
+                {t.bannersView.subtitleAr}
               </label>
               <Input
                 value={subtitleAr}
                 onChange={(e) => setSubtitleAr(e.target.value)}
-                placeholder="أحدث تقنيات الإضاءة السينمائية وكاميرات ARRI"
+                placeholder={t.bannersView.subtitleArPlaceholder}
               />
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'الوصف الفرعي (بالإنجليزية)' : 'Subtitle (English)'}
+                {t.bannersView.subtitleEn}
               </label>
               <Input
                 value={subtitleEn}
                 onChange={(e) => setSubtitleEn(e.target.value)}
-                placeholder="State of the art ARRI cinema gear"
+                placeholder={t.bannersView.subtitleEnPlaceholder}
               />
             </div>
           </div>
@@ -237,38 +234,39 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'نوع الوسائط' : 'Media Type'}
+                {t.bannersView.mediaType}
               </label>
               <Select
                 value={mediaType}
                 onChange={(e) => setMediaType(e.target.value as any)}
               >
                 <option value="video" className="bg-[#0B1210] text-white">
-                  {locale === 'ar' ? 'مقطع فيديو (Reel)' : 'Video Reel'}
+                  {t.bannersView.videoReel}
                 </option>
                 <option value="image" className="bg-[#0B1210] text-white">
-                  {locale === 'ar' ? 'صورة عالية الدقة' : 'High-Res Image'}
+                  {t.bannersView.highResImage}
                 </option>
               </Select>
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'رابط ملف الوسائط' : 'Media URL'}
+                {t.bannersView.mediaUrl}
               </label>
               <Input
                 value={mediaUrl}
                 onChange={(e) => setMediaUrl(e.target.value)}
-                placeholder="/banners/reel.mp4"
+                placeholder={t.bannersView.mediaUrlPlaceholder}
+                required
               />
             </div>
             <div>
               <label className="text-xs text-white mb-1.5 block">
-                {locale === 'ar' ? 'رابط صورة المعاينة (Poster)' : 'Poster Image URL'}
+                {t.bannersView.posterUrl}
               </label>
               <Input
                 value={posterUrl}
                 onChange={(e) => setPosterUrl(e.target.value)}
-                placeholder="/banners/poster.jpg"
+                placeholder={t.bannersView.posterUrlPlaceholder}
               />
             </div>
           </div>
@@ -295,6 +293,22 @@ export function BannersManagementView({ initialBanners }: BannersManagementViewP
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Safeguard Modal */}
+      <ConfirmDestructiveModal
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={async () => {
+          if (deleteTargetId) {
+            await handleDeleteBanner(deleteTargetId);
+            setDeleteTargetId(null);
+          }
+        }}
+        title={t.actions.delete}
+        description={t.bannersView.confirmDelete}
+        confirmLabel={t.actions.delete}
+        cancelLabel={t.actions.cancel}
+      />
     </div>
   );
 }

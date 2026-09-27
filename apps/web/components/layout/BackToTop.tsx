@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useLocale } from '../../hooks/useLocale';
+import { useTranslation } from '../../hooks/useTranslation';
 import { ArrowUp } from 'lucide-react';
 
 /**
@@ -11,7 +11,7 @@ import { ArrowUp } from 'lucide-react';
  * and smooth scroll-to-top interaction.
  */
 export function BackToTop() {
-  const { isRTL } = useLocale();
+  const { t, isRTL } = useTranslation();
   const [isVisible, setIsVisible] = React.useState(false);
   const [scrollProgress, setScrollProgress] = React.useState(0);
   const [mounted, setMounted] = React.useState(false);
@@ -51,11 +51,13 @@ export function BackToTop() {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - scrollProgress * circumference;
 
+  const label = t('common.backToTop');
+
   return (
     <button
       onClick={scrollToTop}
-      aria-label={isRTL ? 'الرجوع إلى أعلى الصفحة' : 'Back to top'}
-      title={isRTL ? 'الرجوع إلى أعلى الصفحة' : 'Back to top'}
+      aria-label={label}
+      title={label}
       className={`fixed bottom-6 sm:bottom-8 z-40 flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group ${
         isRTL ? 'left-6 sm:left-8' : 'right-6 sm:right-8'
       } ${

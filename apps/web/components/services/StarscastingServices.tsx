@@ -2,81 +2,64 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useLocale } from '../../hooks/useLocale';
-import { Film, Compass, Palette, Building, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
+import { ArrowUpRight, Film, Compass, Palette, Building } from 'lucide-react';
+
+type ServiceItem = {
+  id: string;
+  number: string;
+  titleEn: string;
+  titleAr: string;
+  descEn: string;
+  descAr: string;
+  specs: string[];
+  specsAr: string[];
+  image: string;
+};
+
+// Map service IDs to their background images (presentation-layer concern, not content)
+const SERVICE_IMAGES: Record<string, string> = {
+  commercial: '/banners/Youtube cover-02.jpg',
+  aerial: '/banners/Youtube cover-03.jpg',
+  color: '/banners/Youtube cover-04.jpg',
+  soundstage: '/banners/Web Banner 04.jpg',
+};
+
+const SERVICE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  commercial: Film,
+  aerial: Compass,
+  color: Palette,
+  soundstage: Building,
+};
 
 export function StarscastingServices() {
-  const { locale, isRTL } = useLocale();
+  const { t, locale, isRTL } = useTranslation();
 
-  const services = [
-    {
-      id: 'commercials',
-      number: '01',
-      icon: Film,
-      titleEn: 'Commercial & Brand Anthems',
-      titleAr: 'إعلانات سينمائية للعلامات التجارية',
-      descEn: 'Full-scale commercial production engineered for television, cinema, and digital brand campaigns with Hollywood-grade optics.',
-      descAr: 'إنتاج إعلانات تجارية متكاملة مخصصة للبث التلفزيوني والسينمائي وحملات العلامات التجارية بأعلى المعايير البصرية.',
-      specs: ['RED V-Raptor XL 8K', 'ARRI Master Primes T1.3', 'Full Cinema G&E Crew'],
-      specsAr: ['كاميرات ريد 8K', 'طقم عدسات آري T1.3', 'طاقم إضاءة وتصوير كامل'],
-      image: '/banners/Youtube cover-02.jpg',
-    },
-    {
-      id: 'aerial',
-      number: '02',
-      icon: Compass,
-      titleEn: 'Heavy-Lift & FPV Aerial Capture',
-      titleAr: 'تصوير جوي سينمائي وFPV احترافي',
-      descEn: 'Licensed Bahrain civil aviation drone operations capturing monumental landscapes, industrial sites, and dynamic vehicular chases.',
-      descAr: 'عمليات تصوير جوي مرخصة من شؤون الطيران المدني لتوثيق المشاريع المعمارية والصناعية ومطاردات السيارات الحماسية.',
-      specs: ['Heavy-Lift RED Drone', 'Custom FPV Pro Rigs', 'Dual-Operator Control'],
-      specsAr: ['طائرات درون تحمل ريد', 'طائرات FPV سريعة', 'تحكم ثنائي بالملاحة والكاميرا'],
-      image: '/banners/Youtube cover-03.jpg',
-    },
-    {
-      id: 'color',
-      number: '03',
-      icon: Palette,
-      titleEn: 'DaVinci Resolve HDR Color Grading',
-      titleAr: 'تصحيح ألوان سينمائي في استوديو دافينشي',
-      descEn: 'Dedicated post-production color suite equipped with reference OLED mastering displays for true cinema DCI-P3 color fidelity.',
-      descAr: 'استوديو تصحيح ألوان متقدم مزود بشاشات ماسترينغ سينمائية لمعايرة الألوان السينمائية وتصدير ماستر 4K/HDR.',
-      specs: ['DaVinci Studio Cloud', 'Sony BVM Reference Monitor', 'ACES & Dolby Vision'],
-      specsAr: ['سحابة دافينشي ستوديو', 'شاشة مرجعية سوني', 'معايرة دولبي فيجن وACES'],
-      image: '/banners/Youtube cover-04.jpg',
-    },
-    {
-      id: 'soundstage',
-      number: '04',
-      icon: Building,
-      titleEn: 'Acoustic Soundstage & Cyclorama',
-      titleAr: 'استوديو تصوير عازل للصوت مع سايك مقوس',
-      descEn: '250m² soundproof facility in Seef District with 60kW 3-phase power, 6m overhead lighting grid, and infinite curve cyclorama.',
-      descAr: 'استوديو معزول صوتياً بمساحة 250 متر مربع في ضاحية السيف مع شبكة إضاءة علوية وقوس إنفينيتي أبيض وأخضر.',
-      specs: ['250m² Soundstage', 'Overhead Lighting Grid', 'Soundproof Control Booth'],
-      specsAr: ['مساحة 250 م²', 'شبكة إضاءة علوية مسبقة', 'غرفة تحكم معزولة صوتياً'],
-      image: '/banners/Web Banner 04.jpg',
-    },
-  ];
+  const serviceKeys = ['commercial', 'aerial', 'color', 'soundstage'] as const;
+
+  const services: ServiceItem[] = serviceKeys.map((key, i) => {
+    const item = t(`services.${key}`) as unknown as Omit<ServiceItem, 'image'>;
+    return {
+      ...item,
+      image: SERVICE_IMAGES[key] ?? '',
+    };
+  });
 
   return (
     <section id="services" className="relative py-28 bg-[#050807] text-[#F2F6F5] select-none border-t border-white/5">
       <div className="shell space-y-16">
-        {/* Editorial Index Header: — (02) (Capabilities) © 2026 — */}
+        {/* Editorial Index Header */}
         <div className="relative w-full">
-          <span
-            aria-hidden="true"
-            className="block h-px w-full bg-white/10"
-          />
+          <span aria-hidden="true" className="block h-px w-full bg-white/10" />
           <div className="mt-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#9EADA9]">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-              <span>(02)</span>
+              <span>{t('services.sectionIndex')}</span>
             </span>
             <span className="font-bold text-white">
-              ({isRTL ? 'القدرات والخدمات الإنتاجية' : 'Production Capabilities'})
+              ({isRTL ? t('services.sectionLabelAr') : t('services.sectionLabelEn')})
             </span>
-            <span>© 2026</span>
+            <span>© {new Date().getFullYear()}</span>
           </div>
         </div>
 
@@ -84,12 +67,10 @@ export function StarscastingServices() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="max-w-2xl space-y-3">
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-display">
-              {isRTL ? 'قدرات سينمائية بلا حدود' : 'Cinema Engineering & Craft'}
+              {isRTL ? t('services.headlineAr') : t('services.headlineEn')}
             </h2>
             <p className="text-sm sm:text-base text-[#9EADA9] leading-relaxed">
-              {isRTL
-                ? 'نوفر منظومة إنتاج سينمائي متكاملة من الفكرة والسيناريو، إلى التصوير بكاميرات 8K، وتصحيح الألوان في الاستوديو.'
-                : 'End-to-end cinematic ecosystem from script development and 8K capture to precision color science and final master delivery.'}
+              {isRTL ? t('services.subtitleAr') : t('services.subtitleEn')}
             </p>
           </div>
 
@@ -97,7 +78,7 @@ export function StarscastingServices() {
             href={`/${locale}/contact`}
             className="group inline-flex items-center gap-2 font-mono text-xs font-bold text-[#09937F] hover:text-[#5EEAD4] transition-colors"
           >
-            <span>{isRTL ? 'طلب تسعير إنتاجي مخصص' : 'Request Production Proposal'}</span>
+            <span>{isRTL ? t('services.requestProposalAr') : t('services.requestProposal')}</span>
             <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
         </div>
@@ -105,7 +86,7 @@ export function StarscastingServices() {
         {/* 4 Interactive Service Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {services.map((item) => {
-            const Icon = item.icon;
+            const Icon = SERVICE_ICONS[item.id] ?? Film;
             return (
               <div
                 key={item.id}

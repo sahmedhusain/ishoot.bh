@@ -160,7 +160,7 @@ export function ContactForm() {
         <Input
           value={timeline}
           onChange={(e) => setTimeline(e.target.value)}
-          placeholder={isRTL ? 'مثال: نوفمبر ٢٠٢٦' : 'e.g. November 2026'}
+          placeholder={t('contact.timelinePlaceholder')}
         />
       </div>
 
@@ -174,7 +174,7 @@ export function ContactForm() {
           rows={5}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder={isRTL ? 'اشرح لنا رؤيتك الإنتاجية، المواقع المحددة، ومخرجات التسليم المطلوبة...' : 'Tell us about your campaign goals, shoot locations, and desired deliverables...'}
+          placeholder={t('contact.projectDetailsPlaceholder')}
         />
       </div>
 

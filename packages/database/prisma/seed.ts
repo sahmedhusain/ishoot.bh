@@ -67,6 +67,20 @@ async function main() {
       phone: '+973 3900 7700',
     },
     {
+      email: 'sales@ishoot.bh',
+      fullName: 'خالد السعيد',
+      role: 'sales',
+      department: 'sales',
+      phone: '+973 3900 8811',
+    },
+    {
+      email: 'marketing@ishoot.bh',
+      fullName: 'مريم العالي',
+      role: 'marketing',
+      department: 'marketing',
+      phone: '+973 3900 8822',
+    },
+    {
       email: 'guest@ishoot.bh',
       fullName: 'مراقب عام (Guest)',
       role: 'viewer',
@@ -92,7 +106,146 @@ async function main() {
     });
     createdUsers[u.role] = user;
   }
-  console.log('✅ Created 8 RBAC Users (Password: Admin123!)');
+  console.log('✅ Created 10 RBAC Users (Password: Admin123!)');
+
+  // 1B. Seed Granular RBAC Permissions Matrix
+  const ALL_RESOURCES = [
+    'invoices',
+    'payments',
+    'expenses',
+    'finance_analytics',
+    'deals',
+    'contacts',
+    'leads',
+    'contracts',
+    'banners',
+    'portfolio',
+    'clients',
+    'equipment',
+    'calendar',
+    'users',
+    'settings',
+    'audit_logs',
+  ];
+  const ALL_ACTIONS = ['read', 'write', 'delete', 'export', 'approve'];
+  const ROLE_RULES: Record<string, Partial<Record<string, string[]>>> = {
+    super_admin: {},
+    admin: {
+      invoices: ['read', 'write', 'export', 'approve'],
+      payments: ['read', 'write', 'export'],
+      expenses: ['read', 'write', 'export'],
+      finance_analytics: ['read', 'export'],
+      deals: ['read', 'write', 'delete', 'export'],
+      contacts: ['read', 'write', 'delete', 'export'],
+      leads: ['read', 'write', 'delete', 'export'],
+      contracts: ['read', 'write', 'export'],
+      banners: ['read', 'write', 'delete'],
+      portfolio: ['read', 'write', 'delete'],
+      clients: ['read', 'write', 'delete'],
+      equipment: ['read', 'write', 'delete'],
+      calendar: ['read', 'write', 'delete'],
+      users: ['read', 'write'],
+      settings: ['read', 'write'],
+      audit_logs: ['read'],
+    },
+    finance_manager: {
+      invoices: ['read', 'write', 'export', 'approve'],
+      payments: ['read', 'write', 'export', 'approve'],
+      expenses: ['read', 'write', 'export', 'approve'],
+      finance_analytics: ['read', 'export'],
+      deals: ['read'],
+      contacts: ['read'],
+      contracts: ['read'],
+      calendar: ['read'],
+    },
+    accountant: {
+      invoices: ['read', 'write', 'export'],
+      payments: ['read', 'write', 'export'],
+      expenses: ['read', 'write', 'export'],
+      finance_analytics: ['read'],
+      deals: ['read'],
+      contacts: ['read'],
+      contracts: ['read'],
+    },
+    production_manager: {
+      deals: ['read', 'write', 'export'],
+      contacts: ['read', 'write'],
+      leads: ['read', 'write'],
+      contracts: ['read', 'write'],
+      equipment: ['read', 'write'],
+      calendar: ['read', 'write', 'delete'],
+      portfolio: ['read'],
+      invoices: ['read'],
+    },
+    producer: {
+      deals: ['read', 'write'],
+      contacts: ['read', 'write'],
+      leads: ['read', 'write'],
+      contracts: ['read'],
+      equipment: ['read', 'write'],
+      calendar: ['read', 'write'],
+      portfolio: ['read'],
+    },
+    sales: {
+      deals: ['read', 'write', 'delete', 'export'],
+      contacts: ['read', 'write', 'delete', 'export'],
+      leads: ['read', 'write', 'delete', 'export'],
+      contracts: ['read', 'write'],
+      calendar: ['read', 'write'],
+      invoices: ['read'],
+    },
+    marketing: {
+      banners: ['read', 'write', 'delete'],
+      portfolio: ['read', 'write', 'delete'],
+      clients: ['read', 'write', 'delete'],
+      leads: ['read', 'write'],
+      calendar: ['read', 'write'],
+      equipment: ['read'],
+    },
+    editor: {
+      portfolio: ['read', 'write'],
+      banners: ['read'],
+      equipment: ['read'],
+      calendar: ['read'],
+    },
+    viewer: {
+      deals: ['read'],
+      contacts: ['read'],
+      leads: ['read'],
+      portfolio: ['read'],
+      clients: ['read'],
+      equipment: ['read'],
+      calendar: ['read'],
+    },
+  };
+
+  const roles = Object.keys(ROLE_RULES);
+  for (const role of roles) {
+    const roleRules = ROLE_RULES[role] || {};
+    for (const resource of ALL_RESOURCES) {
+      const allowedActions = roleRules[resource] || [];
+      for (const action of ALL_ACTIONS) {
+        const allowed = role === 'super_admin' ? true : allowedActions.includes(action);
+        await prisma.permission.upsert({
+          where: {
+            role_resource_action: {
+              role,
+              resource,
+              action,
+            },
+          },
+          update: { allowed },
+          create: {
+            role,
+            resource,
+            action,
+            allowed,
+          },
+        });
+      }
+    }
+  }
+  console.log('✅ Seeded Granular RBAC Permissions Matrix');
 
   // 2. Company Settings
   const companySettingId = '00000000-0000-0000-0000-000000000001';

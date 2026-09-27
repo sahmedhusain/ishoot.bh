@@ -15,3 +15,6 @@ export * from './queries/calendar';
 export * from './queries/users';
 export * from './queries/notifications';
 export * from './queries/activity';
+export * from './queries/permissions';
+export * from './queries/sessions';
+export * from './services/lead-resolver';

@@ -119,6 +119,28 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
   }
 }
 
+export async function getInvoiceByIdOrNumber(idOrNumber: string): Promise<Invoice | null> {
+  try {
+    const inv = await db.invoice.findFirst({
+      where: {
+        OR: [{ id: idOrNumber }, { invoiceNumber: idOrNumber }],
+      },
+      include: {
+        lineItems: { orderBy: { displayOrder: 'asc' } },
+        payments: { orderBy: { paymentDate: 'desc' } },
+        deal: {
+          include: { contact: true },
+        },
+      },
+    });
+    return inv ? mapPrismaInvoiceToInvoice(inv) : null;
+  } catch (e) {
+    console.error(`Error fetching invoice ${idOrNumber}:`, e);
+    return null;
+  }
+}
+
+
 export async function createInvoice(data: {
   contact_id?: string;
   deal_id?: string;

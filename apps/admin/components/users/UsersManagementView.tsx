@@ -3,7 +3,7 @@
 import * as React from 'react';
 import type { Profile, UserRole } from '@ishoot/database/types';
 import { createUserAction, updateUserRoleAction, deleteUserAction } from '../../app/actions/users';
-import { Card, Button, Modal, Input, Select, Badge } from '@ishoot/ui';
+import { Card, Button, Modal, Input, Select, Badge, ConfirmDestructiveModal } from '@ishoot/ui';
 import {
   UserPlus,
   Shield,
@@ -25,6 +25,7 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
   const [searchQuery, setSearchQuery] = React.useState('');
   const [activeTab, setActiveTab] = React.useState<'users' | 'matrix'>('users');
   const [showCreateModal, setShowCreateModal] = React.useState(false);
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
 
   // Form states
   const [fullName, setFullName] = React.useState('');
@@ -71,11 +72,7 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
 
       if (res.user) {
         setUsers([res.user as Profile, ...users]);
-        setSuccessMsg(
-          locale === 'ar'
-            ? `تم إنشاء حساب ${fullName} بنجاح برتبة ${allRoles.find((r) => r.key === role)?.name}!`
-            : `User ${fullName} successfully created with role ${role}!`
-        );
+        setSuccessMsg(`${fullName}: ${t.usersView.userCreatedSuccess}`);
         setFullName('');
         setEmail('');
         setPassword('');
@@ -97,26 +94,28 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (confirm(locale === 'ar' ? 'هل أنت متأكد من حذف هذا المستخدم نهائياً؟' : 'Are you sure you want to delete this user?')) {
+    setUsers(users.filter((u) => u.id !== userId));
+    try {
       await deleteUserAction(userId);
-      setUsers(users.filter((u) => u.id !== userId));
+    } catch (err) {
+      console.error(err);
     }
   };
 
   // 12-Module RBAC Permissions Matrix
   const modulesList = [
-    { name: locale === 'ar' ? 'لوحة القيادة والمؤشرات' : 'Executive Dashboard', super: 'RW', admin: 'RW', fin: 'R', prod: 'R', producer: 'R', editor: 'R', acc: 'R', viewer: 'R' },
-    { name: locale === 'ar' ? 'تقويم التصوير والمشاريع' : 'Shoot Schedule & Calendar', super: 'RW', admin: 'RW', fin: '-', prod: 'RW', producer: 'RW', editor: 'R', acc: '-', viewer: 'R' },
-    { name: locale === 'ar' ? 'إدارة الصفقات (Deals Kanban)' : 'CRM Pipeline & Deals', super: 'RW', admin: 'RW', fin: 'R', prod: 'RW', producer: 'RW', editor: '-', acc: 'R', viewer: 'R' },
-    { name: locale === 'ar' ? 'دليل العملاء والشركاء' : 'Contacts Directory', super: 'RW', admin: 'RW', fin: 'R', prod: 'RW', producer: 'RW', editor: '-', acc: 'R', viewer: 'R' },
-    { name: locale === 'ar' ? 'طلبات الإنتاج الواردة' : 'Incoming Inquiries', super: 'RW', admin: 'RW', fin: 'R', prod: 'RW', producer: 'RW', editor: '-', acc: '-', viewer: 'R' },
-    { name: locale === 'ar' ? 'الفواتير والتحصيل' : 'Invoices & Billing', super: 'RW', admin: 'RW', fin: 'RW', prod: '-', producer: 'R', editor: '-', acc: 'RW', viewer: 'R' },
-    { name: locale === 'ar' ? 'سندات القبض والدفعات' : 'Payment Receipts', super: 'RW', admin: 'RW', fin: 'RW', prod: '-', producer: '-', editor: '-', acc: 'RW', viewer: 'R' },
-    { name: locale === 'ar' ? 'المصروفات والتكاليف' : 'Operating Expenses', super: 'RW', admin: 'RW', fin: 'RW', prod: 'RW', producer: 'RW', editor: 'R', acc: 'RW', viewer: 'R' },
-    { name: locale === 'ar' ? 'التقارير المالية والأرباح' : 'Financial P&L Analytics', super: 'RW', admin: 'RW', fin: 'RW', prod: '-', producer: '-', editor: '-', acc: 'R', viewer: '-' },
-    { name: locale === 'ar' ? 'إدارة المحتوى (CMS)' : 'CMS (Banners, Portfolio, Gear)', super: 'RW', admin: 'RW', fin: '-', prod: 'R', producer: 'R', editor: 'RW', acc: '-', viewer: 'R' },
-    { name: locale === 'ar' ? 'إعدادات الشركة والضرائب' : 'Company & Tax Settings', super: 'RW', admin: 'RW', fin: 'R', prod: '-', producer: '-', editor: '-', acc: '-', viewer: '-' },
-    { name: locale === 'ar' ? 'إدارة المستخدمين والصلاحيات' : 'User Security & Roles', super: 'RW', admin: 'R', fin: '-', prod: '-', producer: '-', editor: '-', acc: '-', viewer: '-' },
+    { name: t.usersView.modules.dashboard, super: 'RW', admin: 'RW', fin: 'R', prod: 'R', producer: 'R', editor: 'R', acc: 'R', viewer: 'R' },
+    { name: t.usersView.modules.calendar, super: 'RW', admin: 'RW', fin: '-', prod: 'RW', producer: 'RW', editor: 'R', acc: '-', viewer: 'R' },
+    { name: t.usersView.modules.deals, super: 'RW', admin: 'RW', fin: 'R', prod: 'RW', producer: 'RW', editor: '-', acc: 'R', viewer: 'R' },
+    { name: t.usersView.modules.contacts, super: 'RW', admin: 'RW', fin: 'R', prod: 'RW', producer: 'RW', editor: '-', acc: 'R', viewer: 'R' },
+    { name: t.usersView.modules.inquiries, super: 'RW', admin: 'RW', fin: 'R', prod: 'RW', producer: 'RW', editor: '-', acc: '-', viewer: 'R' },
+    { name: t.usersView.modules.invoices, super: 'RW', admin: 'RW', fin: 'RW', prod: '-', producer: 'R', editor: '-', acc: 'RW', viewer: 'R' },
+    { name: t.usersView.modules.payments, super: 'RW', admin: 'RW', fin: 'RW', prod: '-', producer: '-', editor: '-', acc: 'RW', viewer: 'R' },
+    { name: t.usersView.modules.expenses, super: 'RW', admin: 'RW', fin: 'RW', prod: 'RW', producer: 'RW', editor: 'R', acc: 'RW', viewer: 'R' },
+    { name: t.usersView.modules.finance, super: 'RW', admin: 'RW', fin: 'RW', prod: '-', producer: '-', editor: '-', acc: 'R', viewer: '-' },
+    { name: t.usersView.modules.cms, super: 'RW', admin: 'RW', fin: '-', prod: 'R', producer: 'R', editor: 'RW', acc: '-', viewer: 'R' },
+    { name: t.usersView.modules.companySettings, super: 'RW', admin: 'RW', fin: 'R', prod: '-', producer: '-', editor: '-', acc: '-', viewer: '-' },
+    { name: t.usersView.modules.users, super: 'RW', admin: 'R', fin: '-', prod: '-', producer: '-', editor: '-', acc: '-', viewer: '-' },
   ];
 
   return (
@@ -129,9 +128,7 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
             <span>{t.roles.privilegesMatrix}</span>
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            {locale === 'ar'
-              ? 'إدارة صلاحيات الوصول، تعيين الأدوار الوظيفية، ومراقبة حسابات طاقم العمل.'
-              : 'Enterprise role-based access control, departmental assignments, and credential management.'}
+            {t.usersView.subtitle}
           </p>
         </div>
 
@@ -156,7 +153,7 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
                   : 'text-[#9EADA9] hover:text-white'
               }`}
             >
-              {locale === 'ar' ? 'مصفوفة الصلاحيات' : 'Permissions Matrix'}
+              {t.usersView.permissionsMatrix}
             </button>
           </div>
 
@@ -202,11 +199,11 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
             <table className="w-full text-start text-xs">
               <thead className="bg-[#070C0A] text-[#9EADA9] font-mono uppercase text-[11px] border-b border-white/10">
                 <tr>
-                  <th className="p-4 text-start">{locale === 'ar' ? 'المستخدم' : 'User'}</th>
+                  <th className="p-4 text-start">{t.usersView.userHeader}</th>
                   <th className="p-4 text-start">{t.roles.department}</th>
-                  <th className="p-4 text-start">{locale === 'ar' ? 'الدور الوظيفي' : 'Role'}</th>
-                  <th className="p-4 text-start">{locale === 'ar' ? 'الحالة' : 'Status'}</th>
-                  <th className="p-4 text-end">{locale === 'ar' ? 'الإجراءات' : 'Actions'}</th>
+                  <th className="p-4 text-start">{t.usersView.roleHeader}</th>
+                  <th className="p-4 text-start">{t.usersView.statusHeader}</th>
+                  <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-white">
@@ -229,7 +226,9 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
                       <td className="p-4">
                         <div className="flex items-center gap-1.5 text-[#9EADA9] font-mono">
                           <Building className="w-3.5 h-3.5 text-[#09937F]" />
-                          <span className="capitalize">{u.department || 'Studio Operations'}</span>
+                          <span className="capitalize">
+                            {(u.department && (t.usersView.departments as any)[u.department]) || u.department || t.usersView.departments.operations}
+                          </span>
                         </div>
                       </td>
 
@@ -257,7 +256,7 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
                       <td className="p-4 text-end">
                         {u.role !== 'super_admin' && (
                           <button
-                            onClick={() => handleDeleteUser(u.id)}
+                            onClick={() => setDeleteTargetId(u.id)}
                             className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all"
                             title={t.actions.delete}
                           >
@@ -279,17 +278,17 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
         <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl shadow-xl overflow-x-auto space-y-4">
           <div className="border-b border-white/10 pb-3 flex items-center justify-between">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              {locale === 'ar' ? 'مصفوفة الصلاحيات حسب الدور الوظيفي' : 'Functional Security Matrix by Role'}
+              {t.usersView.matrixTitle}
             </h2>
             <div className="flex items-center gap-3 text-[11px] font-mono">
               <span className="text-emerald-400">
-                {locale === 'ar' ? 'RW: قراءة وتعديل' : 'RW: Read & Write'}
+                {t.usersView.rwLegend}
               </span>
               <span className="text-blue-400">
-                {locale === 'ar' ? 'R: قراءة فقط' : 'R: Read Only'}
+                {t.usersView.rLegend}
               </span>
               <span className="text-[#9EADA9]/40">
-                {locale === 'ar' ? '-: محجوب' : '-: No Access'}
+                {t.usersView.naLegend}
               </span>
             </div>
           </div>
@@ -298,7 +297,7 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
             <thead>
               <tr className="border-b border-white/10 text-[#9EADA9] text-start">
                 <th className="py-2.5 text-start font-sans font-bold">
-                  {locale === 'ar' ? 'القسم / الوحدة' : 'Module'}
+                  {t.usersView.moduleHeader}
                 </th>
                 <th className="py-2.5 text-center">{t.roles.super_admin}</th>
                 <th className="py-2.5 text-center">{t.roles.admin}</th>
@@ -338,11 +337,11 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
         <form onSubmit={handleCreateUser} className="space-y-4 text-xs">
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {locale === 'ar' ? 'الاسم الكامل *' : 'Full Name *'}
+              {t.usersView.fullName}
             </label>
             <Input
               required
-              placeholder={locale === 'ar' ? 'مثال: علي السماهيجي' : 'e.g. Ali Alsamaheji'}
+              placeholder={t.usersView.fullNamePlaceholder}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
             />
@@ -350,12 +349,12 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
 
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {locale === 'ar' ? 'البريد الإلكتروني *' : 'Email Address *'}
+              {t.usersView.email}
             </label>
             <Input
               type="email"
               required
-              placeholder="name@ishoot.bh"
+              placeholder={t.usersView.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -363,7 +362,7 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
 
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {locale === 'ar' ? 'كلمة المرور الأولية *' : 'Initial Password *'}
+              {t.usersView.initialPassword}
             </label>
             <Input
               type="password"
@@ -377,7 +376,7 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'الدور الوظيفي والصلاحية *' : 'User Role *'}
+                {t.usersView.userRole}
               </label>
               <Select
                 value={role}
@@ -393,27 +392,27 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
 
             <div className="space-y-1.5">
               <label className="text-[#9EADA9] font-medium">
-                {locale === 'ar' ? 'القسم الإداري' : 'Department'}
+                {t.usersView.department}
               </label>
               <Select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
               >
-                <option value="production">{locale === 'ar' ? 'الإنتاج السينمائي' : 'Production'}</option>
-                <option value="finance">{locale === 'ar' ? 'المالية والحسابات' : 'Finance'}</option>
-                <option value="post_production">{locale === 'ar' ? 'المونتاج وما بعد الإنتاج' : 'Post-Production'}</option>
-                <option value="executive">{locale === 'ar' ? 'الإدارة التنفيذية' : 'Executive'}</option>
-                <option value="operations">{locale === 'ar' ? 'العمليات واللوجستيات' : 'Operations'}</option>
+                <option value="production">{t.usersView.departments.production}</option>
+                <option value="finance">{t.usersView.departments.finance}</option>
+                <option value="post_production">{t.usersView.departments.post_production}</option>
+                <option value="executive">{t.usersView.departments.executive}</option>
+                <option value="operations">{t.usersView.departments.operations}</option>
               </Select>
             </div>
           </div>
 
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {locale === 'ar' ? 'رقم الهاتف' : 'Phone Number'}
+              {t.usersView.phone}
             </label>
             <Input
-              placeholder="+973 3900 0000"
+              placeholder={t.usersView.phonePlaceholder}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
             />
@@ -435,12 +434,28 @@ export function UsersManagementView({ initialUsers }: UsersManagementViewProps) 
               disabled={saving}
             >
               {saving
-                ? locale === 'ar' ? 'جارٍ الإنشاء...' : 'Creating...'
+                ? t.usersView.creating
                 : t.actions.save}
             </Button>
           </div>
         </form>
       </Modal>
+
+      {/* Delete Confirmation Safeguard Modal */}
+      <ConfirmDestructiveModal
+        isOpen={!!deleteTargetId}
+        onClose={() => setDeleteTargetId(null)}
+        onConfirm={async () => {
+          if (deleteTargetId) {
+            await handleDeleteUser(deleteTargetId);
+            setDeleteTargetId(null);
+          }
+        }}
+        title={t.actions.delete}
+        description={t.usersView.confirmDelete}
+        confirmLabel={t.actions.delete}
+        cancelLabel={t.actions.cancel}
+      />
     </div>
   );
 }

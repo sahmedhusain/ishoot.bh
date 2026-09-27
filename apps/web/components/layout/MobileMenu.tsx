@@ -74,7 +74,7 @@ export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
           <LanguageSwitcher />
         </div>
         <div className="text-center text-xs text-[#9EADA9]">
-          {isRTL ? 'المنامة، مملكة البحرين' : 'Manama, Kingdom of Bahrain'}
+          {t('common.location')}
         </div>
       </div>
     </div>
