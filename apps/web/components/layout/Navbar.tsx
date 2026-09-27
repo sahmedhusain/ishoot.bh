@@ -48,11 +48,11 @@ export function Navbar() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-          isScrolled
-            ? 'py-3.5 bg-[#050807]/90 backdrop-blur-2xl border-b border-white/10 shadow-2xl'
-            : 'py-5 bg-transparent border-b border-transparent'
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
+            ? 'py-3.5 bg-[#050807]/90 backdrop-blur-2xl'
+            : 'py-5 bg-transparent'
+          }`}
+        style={isScrolled ? { boxShadow: '0 16px 48px rgba(9, 147, 127, 0.12), 0 -8px 24px rgba(9, 147, 127, 0.06), 0 0 2px rgba(255, 255, 255, 0.08)' } : {}}
       >
         <div className="shell flex items-center justify-between">
           {/* Logo with Smoothly Rotating 45-degree Aperture on Hover */}
@@ -83,16 +83,14 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`group relative text-sm tracking-wide font-medium transition-colors duration-300 ${
-                    isActive ? 'text-white' : 'text-[#9EADA9] hover:text-white'
-                  }`}
+                  className={`group relative text-sm tracking-wide font-medium transition-colors duration-300 ${isActive ? 'text-white' : 'text-[#9EADA9] hover:text-white'
+                    }`}
                 >
                   <span className="relative pb-1">
                     {link.label}
                     <span
-                      className={`absolute -bottom-0.5 left-0 h-[1.5px] w-full origin-left bg-[#09937F] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                        isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                      }`}
+                      className={`absolute -bottom-0.5 left-0 h-[1.5px] w-full origin-left bg-[#09937F] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isActive ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                        }`}
                     />
                   </span>
                 </Link>

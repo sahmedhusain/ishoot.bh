@@ -108,7 +108,7 @@ export function StarscastingHero({ banners }: StarscastingHeroProps) {
             {/* Primary Action Button */}
             <Link
               href={`/${locale}/contact`}
-              className="group inline-flex items-center gap-3 rounded-full border border-white/20 bg-white text-black py-2.5 ps-2.5 pe-7 font-sans text-sm font-bold transition-all duration-300 hover:bg-[#09937F] hover:text-white hover:border-[#09937F] shadow-2xl hover:shadow-[#09937F]/30"
+              className="group inline-flex items-center gap-3 rounded-full border border-white/20 bg-white text-black py-2.5 ps-2.5 pe-7 font-sans text-sm font-bold transition-all duration-300 hover:bg-[#09937F] hover:text-white hover:border-[#09937F] shadow-2xl hover:shadow-[#09937F]/30 h-11"
             >
               <span className="grid h-8 w-8 place-items-center rounded-full bg-black text-white transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-white group-hover:text-[#014842] group-hover:rotate-45">
                 <ArrowIcon className="w-4 h-4 transition-transform duration-300" />
@@ -119,7 +119,7 @@ export function StarscastingHero({ banners }: StarscastingHeroProps) {
             {/* Secondary Action: Explore Works */}
             <Link
               href={`/${locale}/works`}
-              className="group inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] py-2.5 ps-3 pe-6 font-sans text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:border-white/30 backdrop-blur-md"
+              className="group inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] py-2.5 ps-3 pe-6 font-sans text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:border-white/30 backdrop-blur-md h-11"
             >
               <Video className="w-4 h-4 text-[#09937F] group-hover:scale-110 transition-transform" />
               <span>{isRTL ? 'استكشف أرشيف الأعمال' : 'Explore Portfolio Archive'}</span>
@@ -135,9 +135,8 @@ export function StarscastingHero({ banners }: StarscastingHeroProps) {
             <button
               key={i}
               onClick={() => setCurrentIdx(i)}
-              className={`h-1.5 transition-all duration-500 rounded-full ${
-                i === currentIdx ? 'w-8 bg-[#09937F]' : 'w-2 bg-white/20 hover:bg-white/40'
-              }`}
+              className={`h-1.5 transition-all duration-500 rounded-full ${i === currentIdx ? 'w-8 bg-[#09937F]' : 'w-2 bg-white/20 hover:bg-white/40'
+                }`}
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
