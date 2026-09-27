@@ -70,6 +70,9 @@ export interface CompanySettings {
   invoice_next_number: number;
   receipt_prefix: string;
   receipt_next_number: number;
+  default_invoice_notes_en?: string;
+  default_invoice_notes_ar?: string;
+  tax_registration_status?: boolean;
   updated_at: string;
 }
 
@@ -198,7 +201,10 @@ export interface CRMContact {
   job_title?: string;
   contact_type?: "client" | "vendor" | "freelancer" | "agency";
   notes?: string;
+  address?: string;
+  vat_number?: string;
   deals?: CRMDeal[];
+  invoices?: Invoice[];
   inquiries?: Inquiry[];
   contracts?: Contract[];
   created_at: string;
@@ -219,6 +225,11 @@ export interface CustomerDossier {
     totalPaid: number;
     totalOutstanding: number;
     activeDealsCount: number;
+    invoicesCount: number;
+    winRate: number;
+    avgDealSize: number;
+    settledReceiptsCount: number;
+    lastActivityDate?: string;
   };
 }
 
@@ -323,7 +334,9 @@ export function calculateInvoiceTotals(
 export interface Invoice {
   id: string;
   invoice_number: string;
-  contact_id: string;
+  contact_id?: string;
+  client_id?: string;
+  contact_name?: string;
   deal_id?: string;
   issue_date: string;
   due_date: string;

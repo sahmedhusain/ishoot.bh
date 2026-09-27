@@ -50,11 +50,21 @@ export function InvoiceDetailView({
             <BackIcon className="w-4 h-4" />
             <span>{t.actions.backToInvoices}</span>
           </Link>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
               {invoice.invoice_number}
             </h1>
             <StatusBadge status={invoice.status} />
+            {invoice.contact_id && (
+              <Link
+                href={`/dashboard/crm/customers/${invoice.contact_id}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-[#014842] dark:bg-[#152B27] dark:text-[#7DE0D1] border border-[#09937F]/30 hover:underline transition-colors"
+                title="View Client 360 Dossier"
+              >
+                <span>Client: {clientName}</span>
+                <span className="text-[10px] opacity-70">↗</span>
+              </Link>
+            )}
           </div>
         </div>
 

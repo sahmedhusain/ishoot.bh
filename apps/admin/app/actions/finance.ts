@@ -9,6 +9,8 @@ import {
   updateInvoice,
   updateInvoiceStatus,
   deleteInvoice,
+  getInvoicesByClientId,
+  getUnpaidInvoicesByClientId,
   createActivityLog,
   PaymentMethod,
 } from "@ishoot/database";
@@ -218,4 +220,16 @@ export async function deleteInvoiceAction(id: string) {
   revalidatePath("/dashboard/finance");
   revalidatePath("/dashboard");
   return { success: true };
+}
+
+export async function getInvoicesByClientAction(clientId: string) {
+  await requirePermission("invoices", "read");
+  const invoices = await getInvoicesByClientId(clientId);
+  return { success: true, invoices };
+}
+
+export async function getUnpaidInvoicesByClientAction(clientId: string) {
+  await requirePermission("invoices", "read");
+  const invoices = await getUnpaidInvoicesByClientId(clientId);
+  return { success: true, invoices };
 }

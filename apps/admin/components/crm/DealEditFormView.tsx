@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { CRMDeal, CRMContact, DealStage } from "@ishoot/database/types";
 import { Card, Input, Select, Button, Textarea } from "@ishoot/ui";
-import { ArrowLeft, CheckCircle2, Briefcase } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, CheckCircle2, Briefcase, ExternalLink } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateDealAction } from "../../app/actions/crm";
 
@@ -39,6 +39,8 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
   );
   const [notes, setNotes] = React.useState(deal.notes || "");
   const [saving, setSaving] = React.useState(false);
+
+  const selectedContact = contacts.find((c) => c.id === contactId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,28 +94,28 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5 text-[#9EADA9]"
+            className="gap-1.5 text-slate-600 dark:text-slate-300"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t.actions.back}</span>
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
             <Briefcase className="w-6 h-6 text-[#09937F]" />
             <span>Edit Commercial Deal</span>
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
-            Update deal details, stage, value, and scheduling
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Update deal details, stage, value, and production scheduling
           </p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
+        <Card className="p-8 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Deal Title / Project Name *
               </label>
               <Input
@@ -125,9 +127,21 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
-                Client / Contact
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                  Client / Contact
+                </label>
+                {selectedContact && (
+                  <Link
+                    href={`/dashboard/crm/customers/${selectedContact.id}`}
+                    className="text-[11px] text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
+                    target="_blank"
+                  >
+                    <span>Dossier</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                )}
+              </div>
               <Select
                 value={contactId}
                 onChange={(e) => setContactId(e.target.value)}
@@ -144,7 +158,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Pipeline Stage
               </label>
               <Select
@@ -160,7 +174,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Deal Value (BHD)
               </label>
               <Input
@@ -168,14 +182,14 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
                 step="0.001"
                 value={dealValue}
                 onChange={(e) => setDealValue(parseFloat(e.target.value) || 0)}
-                className="font-mono text-[#09937F] font-bold"
+                className="font-mono text-[#014842] dark:text-[#09937F] font-bold"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Win Probability (%)
               </label>
               <Input
@@ -189,7 +203,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Expected Close Date
               </label>
               <Input
@@ -201,7 +215,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-white mb-1.5 block">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
               Shoot / Production Date
             </label>
             <Input
@@ -212,7 +226,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-white mb-1.5 block">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
               Notes & Background
             </label>
             <Textarea
@@ -224,7 +238,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
           </div>
         </Card>
 
-        <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
+        <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-end gap-4">
           <Link href={`/dashboard/crm/deals/${deal.id}`}>
             <Button type="button" variant="outline" size="sm">
               {t.actions.cancel}
@@ -235,7 +249,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
             variant="primary"
             size="sm"
             disabled={saving}
-            className="gap-2"
+            className="gap-2 bg-[#014842] hover:bg-[#014842]/90 text-white"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>{saving ? "Saving Changes..." : "Save Changes"}</span>

@@ -29,7 +29,10 @@ import {
   Clock,
   ShieldCheck,
   CheckCircle2,
-  FileCode,
+  Plus,
+  Percent,
+  Receipt,
+  AlertCircle,
 } from "lucide-react";
 import type { CustomerDossier } from "@ishoot/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -58,90 +61,160 @@ export function Customer360DossierView({
     metrics,
   } = dossier;
 
+  const collectionRate =
+    metrics.totalLtv > 0
+      ? Math.min(100, Math.round((metrics.totalPaid / metrics.totalLtv) * 100))
+      : 100;
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Top Header & Navigation */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Link href="/dashboard/crm/contacts">
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 text-[#9EADA9]"
+              className="gap-1.5"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>{t.actions.back}</span>
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-3">
-              <span>{contact.full_name}</span>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 dark:text-white flex items-center gap-2">
+                <span>{contact.company || contact.full_name}</span>
+                {contact.company && contact.full_name && (
+                  <span className="text-base font-normal text-slate-500 dark:text-slate-400">
+                    ({contact.full_name})
+                  </span>
+                )}
+              </h1>
               <Badge
                 variant="outline"
-                className="text-xs uppercase font-mono border-[#09937F]/40 text-[#09937F]"
+                className="text-xs uppercase font-mono border-[#09937F]/40 text-[#09937F] bg-[#E6F5F2] dark:bg-[#09937F]/10"
               >
                 {contact.contact_type || "Client"}
               </Badge>
-            </h1>
-            <p className="text-xs text-[#9EADA9] mt-1 font-mono">
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">
               ID: {contact.id} • Registered{" "}
               <DateDisplay date={contact.created_at} locale={locale} />
+              {metrics.lastActivityDate && (
+                <span>
+                  {" "}• Last Active: <DateDisplay date={metrics.lastActivityDate} locale={locale} />
+                </span>
+              )}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link href={`/dashboard/crm/customers/${contact.id}/edit`}>
+        {/* Quick Action Toolbar */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={`/dashboard/invoices/new?clientId=${contact.id}`}>
             <Button variant="primary" size="sm" className="gap-1.5">
+              <Plus className="w-3.5 h-3.5" />
+              <span>Issue Invoice</span>
+            </Button>
+          </Link>
+
+          <Link href={`/dashboard/payments/new?clientId=${contact.id}`}>
+            <Button variant="secondary" size="sm" className="gap-1.5">
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>Record Payment</span>
+            </Button>
+          </Link>
+
+          <Link href={`/dashboard/crm/deals/new?clientId=${contact.id}`}>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>New Deal</span>
+            </Button>
+          </Link>
+
+          <Link href={`/dashboard/crm/customers/${contact.id}/edit`}>
+            <Button variant="ghost" size="sm" className="gap-1.5">
               <Edit className="w-3.5 h-3.5" />
-              <span>Edit Profile</span>
+              <span>Edit</span>
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <Card className="p-5 bg-[#0B1210] border border-white/10 rounded-2xl space-y-1">
-          <span className="text-xs text-[#9EADA9]">Lifetime Value (LTV)</span>
-          <div className="text-2xl font-bold text-white font-mono">
+      {/* M3 KPI Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* LTV */}
+        <Card className="p-5 space-y-2">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>Lifetime Value (LTV)</span>
+            <DollarSign className="w-4 h-4 text-[#09937F]" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
             <CurrencyDisplay amount={metrics.totalLtv} currency="BHD" />
           </div>
-          <span className="text-[11px] text-emerald-400 font-mono">
-            Total Billed
-          </span>
+          <div className="text-[11px] text-[#09937F] font-mono flex items-center justify-between">
+            <span>{metrics.invoicesCount} Invoices Billed</span>
+            <span>{collectionRate}% Collected</span>
+          </div>
+          {/* Progress bar */}
+          <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+            <div
+              className="h-full bg-[#09937F] rounded-full transition-all duration-500"
+              style={{ width: `${collectionRate}%` }}
+            />
+          </div>
         </Card>
 
-        <Card className="p-5 bg-[#0B1210] border border-white/10 rounded-2xl space-y-1">
-          <span className="text-xs text-[#9EADA9]">Total Settled</span>
-          <div className="text-2xl font-bold text-emerald-400 font-mono">
+        {/* Total Settled */}
+        <Card className="p-5 space-y-2">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>Total Paid & Settled</span>
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+          </div>
+          <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
             <CurrencyDisplay amount={metrics.totalPaid} currency="BHD" />
           </div>
-          <span className="text-[11px] text-[#09937F] font-mono">
-            Reconciled Payments
-          </span>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+            {metrics.settledReceiptsCount || payments.length} Reconciled Receipts
+          </div>
         </Card>
 
-        <Card className="p-5 bg-[#0B1210] border border-white/10 rounded-2xl space-y-1">
-          <span className="text-xs text-[#9EADA9]">Outstanding Balance</span>
-          <div className="text-2xl font-bold text-amber-400 font-mono">
+        {/* Outstanding Balance */}
+        <Card className="p-5 space-y-2">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>Outstanding Balance</span>
+            <AlertCircle className={`w-4 h-4 ${metrics.totalOutstanding > 0 ? "text-amber-500" : "text-emerald-500"}`} />
+          </div>
+          <div className={`text-2xl font-bold font-mono ${metrics.totalOutstanding > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
             <CurrencyDisplay amount={metrics.totalOutstanding} currency="BHD" />
           </div>
-          <span className="text-[11px] text-amber-400 font-mono">
-            Pending Collection
-          </span>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+            {metrics.totalOutstanding > 0 ? "Pending Payment Collection" : "Fully Settled Account"}
+          </div>
         </Card>
 
-        <Card className="p-5 bg-[#0B1210] border border-white/10 rounded-2xl space-y-1">
-          <span className="text-xs text-[#9EADA9]">Active Pipelines</span>
-          <div className="text-2xl font-bold text-white font-mono">
-            {metrics.activeDealsCount} Deals
+        {/* Pipeline & Win Rate */}
+        <Card className="p-5 space-y-2">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span>Commercial Win Rate</span>
+            <TrendingUp className="w-4 h-4 text-blue-500" />
           </div>
-          <span className="text-[11px] text-[#9EADA9] font-mono">
-            Commercial Projects
-          </span>
+          <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white flex items-baseline gap-2">
+            <span>{metrics.winRate}%</span>
+            <span className="text-xs font-normal text-slate-500">
+              ({deals.length} deals)
+            </span>
+          </div>
+          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono flex items-center justify-between">
+            <span>Active: {metrics.activeDealsCount}</span>
+            <span>Avg: {Number(metrics.avgDealSize || 0).toFixed(2)} BHD</span>
+          </div>
         </Card>
       </div>
 
-      <div className="border-b border-white/10 flex items-center gap-6 text-sm font-semibold overflow-x-auto">
+      {/* Tabs Bar */}
+      <div className="border-b border-slate-200 dark:border-white/10 flex items-center gap-6 text-sm font-semibold overflow-x-auto">
         {[
           { id: "overview", label: "Customer Overview", icon: User },
           {
@@ -174,7 +247,7 @@ export function Customer360DossierView({
               className={`pb-3.5 flex items-center gap-2 border-b-2 transition-colors shrink-0 ${
                 isActive
                   ? "border-[#09937F] text-[#09937F]"
-                  : "border-transparent text-[#9EADA9] hover:text-white"
+                  : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -184,29 +257,42 @@ export function Customer360DossierView({
         })}
       </div>
 
+      {/* TAB 1: OVERVIEW */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4 md:col-span-2">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <Card className="p-6 space-y-4 md:col-span-2">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <User className="w-4 h-4 text-[#09937F]" />
               <span>Primary Contact Details</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <span className="text-[#9EADA9] block mb-1">Company Name</span>
-                <span className="text-white font-bold text-sm">
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">Company Name</span>
+                <span className="text-slate-900 dark:text-white font-bold text-sm">
                   {contact.company || "Direct Client"}
                 </span>
               </div>
               <div>
-                <span className="text-[#9EADA9] block mb-1">Job Title</span>
-                <span className="text-white font-medium">
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">Contact Person</span>
+                <span className="text-slate-800 dark:text-slate-200 font-medium text-sm">
+                  {contact.full_name || "N/A"}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">Job Title</span>
+                <span className="text-slate-700 dark:text-slate-300 font-medium">
                   {contact.job_title || "N/A"}
                 </span>
               </div>
               <div>
-                <span className="text-[#9EADA9] block mb-1">Primary Email</span>
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">Contact Type</span>
+                <span className="text-slate-700 dark:text-slate-300 font-medium capitalize">
+                  {contact.contact_type || "Client"}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">Primary Email</span>
                 <a
                   href={`mailto:${contact.email}`}
                   className="text-[#09937F] hover:underline font-mono"
@@ -215,12 +301,13 @@ export function Customer360DossierView({
                 </a>
               </div>
               <div>
-                <span className="text-[#9EADA9] block mb-1">
-                  Normalized E.164 Phone
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">
+                  Phone (E.164)
                 </span>
                 <a
                   href={`tel:${contact.phone}`}
                   className="text-[#09937F] hover:underline font-mono"
+                  dir="ltr"
                 >
                   {contact.phone || "No phone registered"}
                 </a>
@@ -228,46 +315,52 @@ export function Customer360DossierView({
             </div>
 
             {contact.notes && (
-              <div className="pt-4 border-t border-white/10">
-                <span className="text-[#9EADA9] text-xs block mb-1">
+              <div className="pt-4 border-t border-slate-100 dark:border-white/10">
+                <span className="text-slate-400 dark:text-slate-500 text-xs block mb-1">
                   Client Notes & Requirements
                 </span>
-                <p className="text-xs text-white bg-[#050807] p-3 rounded-xl border border-white/5 whitespace-pre-wrap">
+                <p className="text-xs text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/5 whitespace-pre-wrap">
                   {contact.notes}
                 </p>
               </div>
             )}
           </Card>
 
-          <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <Card className="p-6 space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#09937F]" />
-              <span>Account Status</span>
+              <span>Account Summary</span>
             </h3>
 
             <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">Classification</span>
-                <Badge variant="outline">
-                  {contact.contact_type || "Client"}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">Contracts Issued</span>
-                <span className="font-mono font-bold text-white">
-                  {contracts.length}
+                <span className="text-slate-500 dark:text-slate-400">Total Deals</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">
+                  {deals.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">Total Invoices</span>
-                <span className="font-mono font-bold text-white">
+                <span className="text-slate-500 dark:text-slate-400">Total Invoices</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">
                   {invoices.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">Settled Receipts</span>
-                <span className="font-mono font-bold text-emerald-400">
+                <span className="text-slate-500 dark:text-slate-400">Settled Receipts</span>
+                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                   {payments.length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Contracts Issued</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">
+                  {contracts.length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 dark:text-slate-400">Vault Documents</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">
+                  {attachments.length}
                 </span>
               </div>
             </div>
@@ -275,33 +368,34 @@ export function Customer360DossierView({
         </div>
       )}
 
+      {/* TAB 2: INQUIRIES & INTERACTIONS */}
       {activeTab === "interactions" && (
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
+        <Card className="p-6 space-y-6">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Mail className="w-4 h-4 text-[#09937F]" />
             <span>Inbound Inquiries & Form Submissions</span>
           </h3>
 
           {inquiries.length === 0 ? (
-            <p className="text-xs text-[#9EADA9]">
-              No inbound contact form submissions logged yet.
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              No inbound contact form submissions logged yet for this client.
             </p>
           ) : (
             <div className="space-y-4">
               {inquiries.map((inq) => (
                 <div
                   key={inq.id}
-                  className="p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-2"
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-white text-xs">
+                    <span className="font-bold text-slate-900 dark:text-white text-xs">
                       {inq.full_name}
                     </span>
-                    <span className="text-[11px] font-mono text-[#9EADA9]">
+                    <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
                       <DateDisplay date={inq.created_at} locale={locale} />
                     </span>
                   </div>
-                  <p className="text-xs text-[#9EADA9]">{inq.message}</p>
+                  <p className="text-xs text-slate-700 dark:text-slate-300">{inq.message}</p>
                 </div>
               ))}
             </div>
@@ -309,61 +403,79 @@ export function Customer360DossierView({
         </Card>
       )}
 
+      {/* TAB 3: DEALS */}
       {activeTab === "deals" && (
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
+        <Card className="p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-[#09937F]" />
               <span>Commercial Deals & Production History</span>
             </h3>
-            <Link href="/dashboard/crm/deals/new">
+            <Link href={`/dashboard/crm/deals/new?clientId=${contact.id}`}>
               <Button variant="primary" size="sm" className="gap-1">
                 <span>+ Create Deal</span>
               </Button>
             </Link>
           </div>
 
-          <div className="divide-y divide-white/5">
-            {deals.map((deal) => (
-              <div
-                key={deal.id}
-                className="py-3 flex items-center justify-between text-xs"
-              >
-                <div>
-                  <p className="font-bold text-white">{deal.title}</p>
-                  <p className="text-[11px] text-[#9EADA9] font-mono">
-                    Stage: {deal.stage}
-                  </p>
+          {deals.length === 0 ? (
+            <p className="text-xs text-slate-500 dark:text-slate-400">No deals created yet.</p>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-white/5">
+              {deals.map((deal) => (
+                <div
+                  key={deal.id}
+                  className="py-3.5 flex items-center justify-between text-xs hover:bg-slate-50/50 dark:hover:bg-white/[0.02] px-2 rounded-lg transition-colors"
+                >
+                  <div>
+                    <Link
+                      href={`/dashboard/crm/deals/${deal.id}`}
+                      className="font-bold text-[#09937F] hover:underline"
+                    >
+                      {deal.title}
+                    </Link>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                      Stage: {deal.stage} • Prob: {deal.probability}%
+                    </p>
+                  </div>
+                  <div className="font-mono text-end font-bold text-slate-900 dark:text-white">
+                    <CurrencyDisplay
+                      amount={deal.value}
+                      currency={deal.currency}
+                    />
+                  </div>
                 </div>
-                <div className="font-mono text-end">
-                  <CurrencyDisplay
-                    amount={deal.value}
-                    currency={deal.currency}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       )}
 
+      {/* TAB 4: FINANCE & INVOICES */}
       {activeTab === "finance" && (
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
+        <Card className="p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-[#09937F]" />
-              <span>Financial Ledger & Invoice History</span>
+              <span>Financial Ledger & Invoices</span>
             </h3>
-            <Link href="/dashboard/invoices/new">
-              <Button variant="primary" size="sm" className="gap-1">
-                <span>+ New Invoice</span>
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href={`/dashboard/payments/new?clientId=${contact.id}`}>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <span>+ Record Payment</span>
+                </Button>
+              </Link>
+              <Link href={`/dashboard/invoices/new?clientId=${contact.id}`}>
+                <Button variant="primary" size="sm" className="gap-1">
+                  <span>+ New Invoice</span>
+                </Button>
+              </Link>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-start">
-              <thead className="bg-[#050807] text-[#9EADA9] uppercase font-mono">
+              <thead className="bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-slate-400 uppercase font-mono">
                 <tr>
                   <th className="p-3 text-start">Invoice #</th>
                   <th className="p-3 text-start">Issue Date</th>
@@ -373,36 +485,37 @@ export function Customer360DossierView({
                   <th className="p-3 text-end">Balance Due</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                 {invoices.map((inv) => (
-                  <tr key={inv.id}>
+                  <tr key={inv.id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]">
                     <td className="p-3 font-mono font-bold text-[#09937F]">
                       <Link
                         href={`/dashboard/invoices/${inv.id}`}
-                        className="hover:underline"
+                        className="hover:underline flex items-center gap-1"
                       >
-                        {inv.invoice_number}
+                        <span>{inv.invoice_number}</span>
+                        <ExternalLink className="w-3 h-3 opacity-60" />
                       </Link>
                     </td>
-                    <td className="p-3 font-mono text-[#9EADA9]">
+                    <td className="p-3 font-mono text-slate-500 dark:text-slate-400">
                       <DateDisplay date={inv.issue_date} locale={locale} />
                     </td>
                     <td className="p-3">
                       <StatusBadge status={inv.status} />
                     </td>
-                    <td className="p-3 text-end font-mono text-white">
+                    <td className="p-3 text-end font-mono text-slate-900 dark:text-white font-semibold">
                       <CurrencyDisplay
                         amount={inv.total_amount}
                         currency={inv.currency}
                       />
                     </td>
-                    <td className="p-3 text-end font-mono text-emerald-400">
+                    <td className="p-3 text-end font-mono text-emerald-600 dark:text-emerald-400">
                       <CurrencyDisplay
                         amount={inv.amount_paid}
                         currency={inv.currency}
                       />
                     </td>
-                    <td className="p-3 text-end font-mono text-amber-400">
+                    <td className="p-3 text-end font-mono text-amber-600 dark:text-amber-400 font-bold">
                       <CurrencyDisplay
                         amount={inv.amount_due}
                         currency={inv.currency}
@@ -416,15 +529,16 @@ export function Customer360DossierView({
         </Card>
       )}
 
+      {/* TAB 5: VAULT */}
       {activeTab === "vault" && (
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
+        <Card className="p-6 space-y-6">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <FolderLock className="w-4 h-4 text-[#09937F]" />
             <span>Client Legal Repository & Vault Documents</span>
           </h3>
 
           {attachments.length === 0 ? (
-            <p className="text-xs text-[#9EADA9]">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               No legal documents or attachments uploaded yet for this customer.
             </p>
           ) : (
@@ -432,11 +546,11 @@ export function Customer360DossierView({
               {attachments.map((att) => (
                 <div
                   key={att.id}
-                  className="p-4 rounded-2xl bg-[#050807] border border-white/10 flex items-center justify-between text-xs"
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between text-xs"
                 >
                   <div>
-                    <p className="font-bold text-white">{att.file_name}</p>
-                    <p className="text-[10px] text-[#9EADA9] font-mono">
+                    <p className="font-bold text-slate-900 dark:text-white">{att.file_name}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                       Uploaded{" "}
                       <DateDisplay date={att.created_at} locale={locale} />
                     </p>

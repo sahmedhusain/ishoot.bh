@@ -196,32 +196,28 @@ export function Sidebar() {
   }, [allNavGroups, can, loading]);
 
   return (
-    <aside className="w-64 bg-[#070C0A] border-e border-white/10 flex flex-col justify-between shrink-0 select-none min-h-screen">
+    <aside className="w-64 bg-white dark:bg-[#070C0A] border-e border-slate-200 dark:border-white/10 flex flex-col justify-between shrink-0 select-none min-h-screen transition-colors duration-200">
       <div>
-        <div className="h-16 px-5 flex items-center justify-between border-b border-white/10 bg-[#0B1210]">
-          <Link href="/dashboard" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 p-1 flex items-center justify-center shrink-0 group-hover:border-[#09937F] transition-colors">
-              <img
-                src="/icon.svg"
-                alt="ishoot"
-                className="w-full h-full object-contain"
-              />
-            </div>
+        <div className="h-16 px-5 flex items-center justify-between border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-[#0B1210]">
+          <Link href="/dashboard" className="flex items-center gap-2 group">
             <img
-              src="/images/logo-color.svg"
+              src="/icon.svg"
               alt="ishoot"
-              className="h-5 w-auto object-contain brightness-110"
+              className="w-7 h-7 object-contain shrink-0"
             />
+            <span className="font-display font-extrabold text-xl tracking-tight text-[#014842] dark:text-white">
+              ishoot<span className="text-[#09937F]">.</span>
+            </span>
           </Link>
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#09937F]/15 text-[#09937F] border border-[#09937F]/30">
-            PRO
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#09937F]/15 text-[#09937F] border border-[#09937F]/30">
+            M3
           </span>
         </div>
 
         <nav className="p-3.5 space-y-5 overflow-y-auto max-h-[calc(100vh-140px)]">
           {visibleNavGroups.map((group) => (
             <div key={group.label} className="space-y-1">
-              <div className="px-3 text-[11px] font-bold text-[#9EADA9]/60 uppercase tracking-wider mb-2">
+              <div className="px-3 text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">
                 {group.label}
               </div>
               {group.items.map((item) => {
@@ -237,8 +233,8 @@ export function Sidebar() {
                     href={item.href}
                     className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 group ${
                       isActive
-                        ? "bg-[#014842] text-white shadow-lg shadow-[#014842]/30 border border-[#09937F]/40"
-                        : "text-[#9EADA9] hover:text-white hover:bg-white/5"
+                        ? "bg-[#E6F5F2] text-[#014842] dark:bg-[#014842] dark:text-white shadow-sm border border-[#09937F]/30 dark:border-[#09937F]/40"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5"
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -246,7 +242,7 @@ export function Sidebar() {
                         className={`w-4 h-4 transition-colors ${
                           isActive
                             ? "text-[#09937F]"
-                            : "text-[#9EADA9] group-hover:text-white"
+                            : "text-slate-400 group-hover:text-slate-700 dark:text-slate-500 dark:group-hover:text-white"
                         }`}
                       />
                       <span>{item.label}</span>
@@ -264,15 +260,15 @@ export function Sidebar() {
         </nav>
       </div>
 
-      <div className="p-3 border-t border-white/10 bg-[#0B1210]">
-        <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+      <div className="p-3 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0B1210]">
+        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-[#9EADA9]">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#09937F] animate-pulse" />
-            <span className="font-mono text-[11px] text-white">
-              PostgreSQL 15
+            <span className="font-mono text-[11px] text-slate-700 dark:text-white">
+              Enterprise M3
             </span>
           </div>
-          <span className="text-[10px] font-mono text-[#09937F]">
+          <span className="text-[10px] font-mono text-[#09937F] font-semibold">
             {t.profileDropdown.connected}
           </span>
         </div>

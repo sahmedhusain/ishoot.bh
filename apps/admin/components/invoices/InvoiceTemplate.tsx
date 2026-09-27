@@ -4,6 +4,10 @@ import * as React from "react";
 import type { Invoice, CompanySettings } from "@ishoot/database/types";
 import { formatCurrencyValue } from "@ishoot/ui";
 import { adminTranslations } from "../../lib/translations";
+import {
+  DocumentLetterhead,
+  DocumentFooter,
+} from "../shared/DocumentLetterhead";
 
 interface InvoiceTemplateProps {
   invoice: Invoice;
@@ -25,91 +29,34 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
       }`}
       style={{ minHeight: "1050px" }}
     >
-      <div className="bg-[#014842] text-white p-8 sm:p-10 border-b-4 border-[#09937F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 border border-[#09937F] flex items-center justify-center">
-              <span className="w-3.5 h-3.5 rounded-full bg-[#09937F]" />
-            </div>
-            <span className="text-3xl font-extrabold tracking-tight font-display text-white">
-              ishoot<span className="text-[#09937F]">.</span>
-            </span>
-          </div>
-          <div className="text-xs text-white/80 mt-1 uppercase tracking-widest">
-            {isAr ? company.company_name_ar : company.company_name_en}
-          </div>
-          <div className="text-[11px] text-white/60 font-mono mt-0.5">
-            CR: {company.cr_number}
-            {invoice.vat_enabled && company.vat_id && (
-              <span> • VAT: {company.vat_id}</span>
-            )}
-          </div>
-        </div>
-
-        <div className="text-start sm:text-end">
-          <div className="text-2xl sm:text-3xl font-bold tracking-wider uppercase font-display text-white">
-            {inv.title}
-          </div>
-          <div className="text-sm font-mono text-[#09937F] font-bold mt-1">
-            {invoice.invoice_number}
-          </div>
-        </div>
-      </div>
-
-      <div className="p-8 sm:p-10 border-b border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-8 text-xs">
-        <div className="space-y-1.5">
-          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[10px]">
-            {inv.billedTo}
-          </span>
-          <div className="text-base font-bold text-gray-900">
-            {invoice.contact?.company ||
-              invoice.contact?.full_name ||
-              inv.clientFallback}
-          </div>
-          {invoice.contact?.company && invoice.contact?.full_name && (
-            <div className="text-gray-600 font-medium">
-              Attn: {invoice.contact.full_name}
-            </div>
-          )}
-          {invoice.contact?.email && (
-            <div className="text-gray-500 font-mono">
-              {invoice.contact.email}
-            </div>
-          )}
-          {invoice.contact?.phone && (
-            <div className="text-gray-500 font-mono" dir="ltr">
-              {invoice.contact.phone}
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-2 sm:text-end">
-          <div className="flex justify-between sm:justify-end gap-6">
-            <span className="text-gray-400 font-bold uppercase text-[10px]">
-              {inv.issueDate}
-            </span>
-            <span className="font-mono font-medium text-gray-800">
-              {invoice.issue_date}
-            </span>
-          </div>
-          <div className="flex justify-between sm:justify-end gap-6">
-            <span className="text-gray-400 font-bold uppercase text-[10px]">
-              {inv.dueDate}
-            </span>
-            <span className="font-mono font-bold text-[#014842]">
-              {invoice.due_date}
-            </span>
-          </div>
-          <div className="flex justify-between sm:justify-end gap-6">
-            <span className="text-gray-400 font-bold uppercase text-[10px]">
-              {inv.paymentStatus}
-            </span>
-            <span className="font-bold uppercase text-[11px] text-[#09937F]">
-              {invoice.status.replace("_", " ")}
-            </span>
-          </div>
-        </div>
-      </div>
+      {/* Unified Brand Letterhead */}
+      <DocumentLetterhead
+        documentType="invoice"
+        documentNumber={invoice.invoice_number}
+        titleEn="TAX INVOICE"
+        titleAr="فاتورة ضريبية"
+        company={company}
+        language={invoice.language as "en" | "ar"}
+        issueDateLabel={inv.issueDate}
+        issueDate={invoice.issue_date}
+        secondaryDateLabel={inv.dueDate}
+        secondaryDate={invoice.due_date}
+        statusLabel={inv.paymentStatus}
+        statusValue={invoice.status.replace("_", " ")}
+        clientSectionTitle={inv.billedTo}
+        client={{
+          id: invoice.client_id || invoice.contact?.id,
+          name:
+            invoice.contact?.full_name ||
+            invoice.contact_name ||
+            inv.clientFallback,
+          company: invoice.contact?.company,
+          email: invoice.contact?.email,
+          phone: invoice.contact?.phone,
+          address: invoice.contact?.address,
+          vatNumber: invoice.contact?.vat_number,
+        }}
+      />
 
       <div className="p-8 sm:p-10">
         <table className="w-full text-start text-xs border-collapse">
@@ -231,12 +178,10 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
         </div>
       </div>
 
-      <div className="p-8 sm:p-10 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-        <div>{inv.thankYou}</div>
-        <div className="font-mono text-[11px]">
-          {company.website} • {company.email}
-        </div>
-      </div>
+      <DocumentFooter
+        company={company}
+        thankYouMessage={inv.thankYou}
+      />
     </div>
   );
 }

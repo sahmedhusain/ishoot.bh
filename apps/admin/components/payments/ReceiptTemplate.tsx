@@ -4,6 +4,10 @@ import * as React from "react";
 import type { Payment, CompanySettings } from "@ishoot/database/types";
 import { formatCurrencyValue } from "@ishoot/ui";
 import { adminTranslations } from "../../lib/translations";
+import {
+  DocumentLetterhead,
+  DocumentFooter,
+} from "../shared/DocumentLetterhead";
 
 interface ReceiptTemplateProps {
   payment: Payment;
@@ -40,80 +44,53 @@ export function ReceiptTemplate({
         </span>
       </div>
 
-      <div className="bg-[#014842] text-white p-8 sm:p-10 border-b-4 border-[#10B981] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 border border-[#10B981] flex items-center justify-center">
-              <span className="w-3.5 h-3.5 rounded-full bg-[#10B981]" />
-            </div>
-            <span className="text-3xl font-extrabold tracking-tight font-display text-white">
-              ishoot<span className="text-[#10B981]">.</span>
-            </span>
-          </div>
-          <div className="text-xs text-white/80 mt-1 uppercase tracking-widest">
-            {isAr ? company.company_name_ar : company.company_name_en}
-          </div>
-          <div className="text-[11px] text-white/60 font-mono mt-0.5">
-            CR: {company.cr_number}
-          </div>
-        </div>
-
-        <div className="text-start sm:text-end">
-          <div className="text-2xl sm:text-3xl font-bold tracking-wider uppercase font-display text-white">
-            {rcpt.title}
-          </div>
-          <div className="text-sm font-mono text-[#10B981] font-bold mt-1">
-            {payment.receipt_number}
-          </div>
-        </div>
-      </div>
-
-      <div className="p-8 sm:p-10 border-b border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-8 text-xs">
-        <div className="space-y-1.5">
-          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[10px]">
-            {rcpt.receivedFrom}
-          </span>
-          <div className="text-base font-bold text-gray-900">
-            {invoice?.contact?.company ||
-              invoice?.contact?.full_name ||
-              rcpt.clientFallback}
-          </div>
-          {invoice?.contact?.email && (
-            <div className="text-gray-500 font-mono">
-              {invoice.contact.email}
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-2 sm:text-end">
-          <div className="flex justify-between sm:justify-end gap-6">
-            <span className="text-gray-400 font-bold uppercase text-[10px]">
-              {rcpt.paymentDate}
-            </span>
-            <span className="font-mono font-medium text-gray-800">
-              {payment.payment_date}
-            </span>
-          </div>
-          <div className="flex justify-between sm:justify-end gap-6">
-            <span className="text-gray-400 font-bold uppercase text-[10px]">
-              {rcpt.paymentMethod}
-            </span>
-            <span className="font-bold text-gray-900 uppercase">
-              {payment.payment_method.replace("_", " ")}
-            </span>
-          </div>
-          {payment.reference_number && (
+      {/* Unified Brand Letterhead */}
+      <DocumentLetterhead
+        documentType="receipt"
+        documentNumber={payment.receipt_number}
+        titleEn="PAYMENT RECEIPT"
+        titleAr="سند قبض واستلام"
+        company={company}
+        language={locale}
+        issueDateLabel={rcpt.paymentDate}
+        issueDate={payment.payment_date}
+        statusLabel="Settlement Status"
+        statusValue={isPaidInFull ? rcpt.paidInFull : rcpt.partial}
+        clientSectionTitle={rcpt.receivedFrom}
+        client={{
+          id: invoice?.contact?.id || invoice?.client_id,
+          name:
+            invoice?.contact?.full_name ||
+            invoice?.contact_name ||
+            rcpt.clientFallback,
+          company: invoice?.contact?.company,
+          email: invoice?.contact?.email,
+          phone: invoice?.contact?.phone,
+          address: invoice?.contact?.address,
+        }}
+        extraMeta={
+          <div className="space-y-1.5 pt-1">
             <div className="flex justify-between sm:justify-end gap-6">
               <span className="text-gray-400 font-bold uppercase text-[10px]">
-                {rcpt.referenceNo}
+                {rcpt.paymentMethod}
               </span>
-              <span className="font-mono text-gray-700">
-                {payment.reference_number}
+              <span className="font-bold text-gray-900 uppercase">
+                {payment.payment_method.replace("_", " ")}
               </span>
             </div>
-          )}
-        </div>
-      </div>
+            {payment.reference_number && (
+              <div className="flex justify-between sm:justify-end gap-6">
+                <span className="text-gray-400 font-bold uppercase text-[10px]">
+                  {rcpt.referenceNo}
+                </span>
+                <span className="font-mono text-gray-700">
+                  {payment.reference_number}
+                </span>
+              </div>
+            )}
+          </div>
+        }
+      />
 
       <div className="p-8 sm:p-10 space-y-6">
         <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200 space-y-4">
@@ -182,12 +159,10 @@ export function ReceiptTemplate({
         )}
       </div>
 
-      <div className="p-8 sm:p-10 border-t border-gray-100 bg-gray-50 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500">
-        <div>{rcpt.generatedBy}</div>
-        <div className="font-mono text-[11px]">
-          {company.website} • {company.email}
-        </div>
-      </div>
+      <DocumentFooter
+        company={company}
+        thankYouMessage={rcpt.generatedBy}
+      />
     </div>
   );
 }

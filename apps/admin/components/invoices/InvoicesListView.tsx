@@ -64,53 +64,53 @@ export function InvoicesListView({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <Card className="p-5 bg-[#0B1210] border border-white/10 space-y-1 rounded-2xl">
-          <div className="text-xs text-[#9EADA9]">{t.kpi.receivables}</div>
-          <div className="text-2xl font-bold text-white font-mono">
+        <Card className="p-5 space-y-1">
+          <div className="text-xs text-slate-500 dark:text-slate-400">{t.kpi.receivables}</div>
+          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
             <CurrencyDisplay amount={finance.outstanding} currency="BHD" />
           </div>
-          <div className="text-[11px] text-[#9EADA9]/60">
+          <div className="text-[11px] text-slate-400 dark:text-slate-500">
             {t.invoicesList.pendingPartial}
           </div>
         </Card>
 
-        <Card className="p-5 bg-[#0B1210] border border-white/10 space-y-1 rounded-2xl">
-          <div className="text-xs text-[#9EADA9]">{t.kpi.overdueAlert}</div>
+        <Card className="p-5 space-y-1">
+          <div className="text-xs text-slate-500 dark:text-slate-400">{t.kpi.overdueAlert}</div>
           <div
-            className={`text-2xl font-bold font-mono ${finance.overdue > 0 ? "text-rose-400" : "text-[#10B981]"}`}
+            className={`text-2xl font-bold font-mono ${finance.overdue > 0 ? "text-rose-500 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}
           >
             <CurrencyDisplay amount={finance.overdue} currency="BHD" />
           </div>
-          <div className="text-[11px] text-[#9EADA9]/60">
+          <div className="text-[11px] text-slate-400 dark:text-slate-500">
             {finance.overdue > 0
               ? t.invoicesList.immediateAction
               : t.kpi.allOnTrack}
           </div>
         </Card>
 
-        <Card className="p-5 bg-[#0B1210] border border-white/10 space-y-1 rounded-2xl">
-          <div className="text-xs text-[#9EADA9]">
+        <Card className="p-5 space-y-1">
+          <div className="text-xs text-slate-500 dark:text-slate-400">
             {t.charts.discountsGiven}
           </div>
           <div className="text-2xl font-bold text-[#09937F] font-mono">
             <CurrencyDisplay amount={finance.discountsGiven} currency="BHD" />
           </div>
-          <div className="text-[11px] text-[#9EADA9]/60">
+          <div className="text-[11px] text-slate-400 dark:text-slate-500">
             {t.invoicesList.commercialDiscountsDesc}
           </div>
         </Card>
       </div>
 
-      <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
-        <div className="p-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <Card className="p-0 overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-slate-100 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="relative max-w-sm w-full">
-            <Search className="w-4 h-4 text-[#9EADA9] absolute start-3 top-2.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute start-3 top-2.5" />
             <input
               type="text"
               placeholder={t.actions.search}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-[#050807] border border-white/10 text-white placeholder:text-[#9EADA9]/60 focus:outline-none focus:border-[#09937F]"
+              className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 dark:bg-white/5 dark:border-white/10 dark:text-white focus:outline-none focus:border-[#09937F]"
             />
           </div>
 
@@ -123,7 +123,7 @@ export function InvoicesListView({
                   className={`px-3 py-1 rounded-lg transition-all ${
                     filterStatus === st
                       ? "bg-[#09937F] text-white font-bold"
-                      : "text-[#9EADA9] hover:bg-white/5"
+                      : "text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5"
                   }`}
                 >
                   {statusLabels[st] || st}
@@ -135,7 +135,7 @@ export function InvoicesListView({
 
         <div className="overflow-x-auto">
           <table className="w-full text-start text-xs">
-            <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider text-[11px]">
+            <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase font-mono tracking-wider text-[11px]">
               <tr>
                 <th className="p-4 text-start">{t.finance.invoiceNumber}</th>
                 <th className="p-4 text-start">{t.finance.client}</th>
@@ -146,13 +146,13 @@ export function InvoicesListView({
                 <th className="p-4 text-end">{t.nav.overview}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
               {filteredInvoices.map((inv) => (
                 <tr
                   key={inv.id}
-                  className="hover:bg-white/[0.02] transition-colors"
+                  className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
                 >
-                  <td className="p-4 font-mono font-bold text-white">
+                  <td className="p-4 font-mono font-bold text-slate-900 dark:text-white">
                     <Link
                       href={`/dashboard/invoices/${inv.id}`}
                       className="hover:text-[#09937F] transition-colors"
@@ -161,22 +161,33 @@ export function InvoicesListView({
                     </Link>
                   </td>
                   <td className="p-4">
-                    <div className="font-semibold text-white">
-                      {inv.contact?.company ||
-                        inv.contact?.full_name ||
-                        t.invoicesList.clientFallback}
-                    </div>
-                    <div className="text-[11px] text-[#9EADA9]">
+                    {inv.contact_id ? (
+                      <Link
+                        href={`/dashboard/crm/customers/${inv.contact_id}`}
+                        className="font-semibold text-slate-900 dark:text-white hover:text-[#09937F] hover:underline transition-colors block"
+                      >
+                        {inv.contact?.company ||
+                          inv.contact?.full_name ||
+                          t.invoicesList.clientFallback}
+                      </Link>
+                    ) : (
+                      <div className="font-semibold text-slate-900 dark:text-white">
+                        {inv.contact?.company ||
+                          inv.contact?.full_name ||
+                          t.invoicesList.clientFallback}
+                      </div>
+                    )}
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
                       {inv.contact?.email}
                     </div>
                   </td>
-                  <td className="p-4 text-[#9EADA9] font-mono text-[11px]">
+                  <td className="p-4 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
                     <div>{inv.issue_date}</div>
-                    <div className="text-white/40">
+                    <div className="opacity-60">
                       {t.invoicesList.duePrefix} {inv.due_date}
                     </div>
                   </td>
-                  <td className="p-4 text-end font-mono font-bold text-white">
+                  <td className="p-4 text-end font-mono font-bold text-slate-900 dark:text-white">
                     <CurrencyDisplay
                       amount={inv.total_amount}
                       currency={inv.currency}
@@ -184,14 +195,14 @@ export function InvoicesListView({
                   </td>
                   <td className="p-4 text-end font-mono font-bold">
                     {inv.amount_due > 0 ? (
-                      <span className="text-amber-400">
+                      <span className="text-amber-600 dark:text-amber-400">
                         <CurrencyDisplay
                           amount={inv.amount_due}
                           currency={inv.currency}
                         />
                       </span>
                     ) : (
-                      <span className="text-emerald-400 font-mono">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-mono">
                         0.000 {inv.currency}
                       </span>
                     )}
@@ -218,7 +229,7 @@ export function InvoicesListView({
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

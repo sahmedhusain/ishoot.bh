@@ -23,16 +23,16 @@ export function Modal({
       <div className="fixed inset-0" onClick={onClose} />
       <div
         className={cn(
-          "relative w-full max-w-lg bg-[#0B1210] border border-[#09937F]/30 rounded-2xl p-6 shadow-2xl z-10 max-h-[90vh] overflow-y-auto",
+          "relative w-full max-w-lg bg-white border border-slate-200 text-slate-800 dark:bg-[#121B19] dark:border-white/10 dark:text-[#F2F6F5] rounded-3xl p-6 sm:p-7 shadow-2xl z-10 max-h-[90vh] overflow-y-auto transition-all",
           className,
         )}
       >
         {title && (
-          <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
-            <h3 className="text-lg font-semibold text-[#F2F6F5]">{title}</h3>
+          <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-white/10">
+            <h3 className="text-lg font-bold font-display text-slate-900 dark:text-[#F2F6F5]">{title}</h3>
             <button
               onClick={onClose}
-              className="text-[#9EADA9] hover:text-[#F2F6F5] text-xl leading-none"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/10 text-xl leading-none transition-colors"
             >
               ×
             </button>

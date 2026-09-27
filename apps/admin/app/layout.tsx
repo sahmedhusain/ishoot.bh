@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl" className="dark">
-      <body className="min-h-screen bg-[#050807] text-[#F2F6F5] antialiased font-sans selection:bg-[#09937F]/30 selection:text-white transition-colors duration-200">
+      <body className="min-h-screen bg-[#F8FAF9] text-slate-800 dark:bg-[#080E0D] dark:text-[#F2F6F5] antialiased font-sans selection:bg-[#09937F]/30 selection:text-white transition-colors duration-200">
         <AdminThemeProvider>
           <AdminLocaleProvider>{children}</AdminLocaleProvider>
         </AdminThemeProvider>

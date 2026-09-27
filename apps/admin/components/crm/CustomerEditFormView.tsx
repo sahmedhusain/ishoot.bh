@@ -62,29 +62,28 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5 text-[#9EADA9]"
+            className="gap-1.5 text-slate-600 dark:text-slate-300"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t.actions.back}</span>
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
             <UserCog className="w-6 h-6 text-[#09937F]" />
             <span>Edit Customer Dossier</span>
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
-            Update client profile, contact information, and account
-            classification
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Update client profile, contact information, and account classification
           </p>
         </div>
       </div>
 
-      <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl">
+      <Card className="p-8 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Full Name / Contact Person *
               </label>
               <Input
@@ -95,7 +94,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Company / Organization Name
               </label>
               <Input
@@ -108,7 +107,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Email Address
               </label>
               <Input
@@ -119,7 +118,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Phone Number (E.164 Format)
               </label>
               <Input
@@ -132,7 +131,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Job Title / Position
               </label>
               <Input
@@ -142,31 +141,23 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Account Classification
               </label>
               <Select
                 value={contactType}
                 onChange={(e) => setContactType(e.target.value as any)}
               >
-                <option value="client" className="bg-[#0B1210] text-white">
-                  Direct Client
-                </option>
-                <option value="agency" className="bg-[#0B1210] text-white">
-                  Advertising Agency
-                </option>
-                <option value="vendor" className="bg-[#0B1210] text-white">
-                  Vendor / Supplier
-                </option>
-                <option value="freelancer" className="bg-[#0B1210] text-white">
-                  Freelancer / Crew
-                </option>
+                <option value="client">Direct Client</option>
+                <option value="agency">Advertising Agency</option>
+                <option value="vendor">Vendor / Supplier</option>
+                <option value="freelancer">Freelancer / Crew</option>
               </Select>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-white mb-1.5 block">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
               Notes & Context
             </label>
             <textarea
@@ -174,11 +165,11 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               placeholder="Commercial preferences, legal registration details, background notes..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-[#050807] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-[#9EADA9]/50 focus:outline-none focus:border-[#09937F]"
+              className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#09937F]"
             />
           </div>
 
-          <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
+          <div className="pt-6 border-t border-slate-100 dark:border-white/10 flex items-center justify-end gap-4">
             <Link href={`/dashboard/crm/customers/${contact.id}`}>
               <Button type="button" variant="outline" size="sm">
                 Cancel
@@ -189,7 +180,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               variant="primary"
               size="sm"
               disabled={saving}
-              className="gap-2"
+              className="gap-2 bg-[#014842] hover:bg-[#014842]/90 text-white"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>{saving ? "Saving Changes..." : "Save Changes"}</span>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type {
   Invoice,
   CRMContact,
@@ -27,13 +28,21 @@ import {
   ArrowLeft,
   AlertTriangle,
   CheckCircle2,
+  Search,
+  Loader2,
+  Building,
+  User,
+  Mail,
+  Phone,
+  ExternalLink,
 } from "lucide-react";
-import Link from "next/link";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateInvoiceAction,
   voidInvoiceAction,
 } from "../../app/actions/finance";
+import { lookupClientAction } from "../../app/actions/crm";
+import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 
 interface InvoiceEditFormViewProps {
   invoice: Invoice;
@@ -49,13 +58,49 @@ export function InvoiceEditFormView({
   const router = useRouter();
   const { t, locale } = useAdminLocale();
 
-  const [contacts] = React.useState<CRMContact[]>(initialContacts);
+  const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
   const [voidConfirmOpen, setVoidConfirmOpen] = React.useState(false);
 
+  const [lookupTerm, setLookupTerm] = React.useState("");
+  const [lookupLoading, setLookupLoading] = React.useState(false);
+  const [lookupMessage, setLookupMessage] = React.useState<string | null>(null);
+
   const [selectedContactId, setSelectedContactId] = React.useState(
-    invoice.contact_id || "",
+    invoice.client_id || invoice.contact_id || "",
   );
+
+  const selectedContact = React.useMemo(() => {
+    return contacts.find((c) => c.id === selectedContactId) || null;
+  }, [contacts, selectedContactId]);
+
+  const handleLookup = async () => {
+    if (!lookupTerm.trim()) return;
+    setLookupLoading(true);
+    setLookupMessage(null);
+    try {
+      const res = await lookupClientAction(lookupTerm);
+      if (res.success && res.contact) {
+        const found = res.contact;
+        const exists = contacts.some((c) => c.id === found.id);
+        if (!exists) {
+          setContacts((prev) => [found, ...prev]);
+        }
+        setSelectedContactId(found.id);
+        setLookupMessage(
+          `Auto-fetched: ${found.company ? `${found.company} - ` : ""}${found.full_name} (${found.email || found.phone || "Client"})`,
+        );
+      } else {
+        setLookupMessage("No client found matching this email or phone number.");
+      }
+    } catch (e) {
+      console.error(e);
+      setLookupMessage("Error executing client lookup.");
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   const [currency, setCurrency] = React.useState<SupportedCurrency>(
     (invoice.currency as SupportedCurrency) || "BHD",
   );
@@ -199,25 +244,25 @@ export function InvoiceEditFormView({
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16">
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link href={`/dashboard/invoices/${invoice.id}`}>
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 text-[#9EADA9]"
+              className="gap-1.5 text-slate-600 dark:text-slate-300"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>{t.actions?.back || "Back"}</span>
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white font-display">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display">
               Edit Invoice — {invoice.invoice_number}
             </h1>
-            <p className="text-xs text-[#9EADA9] mt-1">
-              Modify line items, discounts, or void invoice under RBAC audit
-              logging
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Modify deliverables, discounts, client associations, or void invoice under RBAC audit logging
             </p>
           </div>
         </div>
@@ -227,7 +272,7 @@ export function InvoiceEditFormView({
             variant="ghost"
             size="sm"
             onClick={() => setVoidConfirmOpen(true)}
-            className="gap-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 self-start sm:self-auto"
+            className="gap-1.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-500/10 border border-rose-300 dark:border-rose-500/30 self-start sm:self-auto"
           >
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>Void Invoice</span>
@@ -236,38 +281,143 @@ export function InvoiceEditFormView({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-5">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
-            Client & Invoice Metadata
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        {/* Section 1: Client Selection & Auto-fetch */}
+        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 pb-4">
             <div>
-              <label className="text-xs font-medium text-[#9EADA9] mb-1.5 block">
-                Target Client
-              </label>
-              <Select
-                value={selectedContactId}
-                onChange={(e) => setSelectedContactId(e.target.value)}
-                disabled={isLocked}
-              >
-                <option value="" className="bg-[#0B1210] text-white">
-                  Select Client...
-                </option>
-                {contacts.map((c) => (
-                  <option
-                    key={c.id}
-                    value={c.id}
-                    className="bg-[#0B1210] text-white"
-                  >
-                    {c.full_name} {c.company ? `(${c.company})` : ""}
-                  </option>
-                ))}
-              </Select>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                Client Information
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Select client from CRM or auto-fetch by typing email or phone number
+              </p>
             </div>
+            {selectedContact && (
+              <Link
+                href={`/dashboard/crm/customers/${selectedContact.id}`}
+                className="text-xs text-[#09937F] hover:underline inline-flex items-center gap-1 font-semibold"
+              >
+                <span>View Client 360 Dossier</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </Link>
+            )}
+          </div>
 
+          {/* Quick Auto-fetch Bar */}
+          {!isLocked && (
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-3">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                Quick Client Auto-Fetch (Email or Phone)
+              </label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    placeholder="Enter client email or phone to fetch data directly..."
+                    value={lookupTerm}
+                    onChange={(e) => setLookupTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleLookup();
+                      }
+                    }}
+                    className="w-full text-xs"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLookup}
+                  disabled={lookupLoading || !lookupTerm.trim()}
+                  className="gap-1.5 shrink-0"
+                >
+                  {lookupLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Search className="w-3.5 h-3.5" />
+                  )}
+                  <span>Auto-Fetch</span>
+                </Button>
+              </div>
+              {lookupMessage && (
+                <div
+                  className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${
+                    lookupMessage.startsWith("Auto-fetched")
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
+                      : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
+                  }`}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  <span>{lookupMessage}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Client Search / Autocomplete */}
+          <div className="space-y-4">
+            <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
+              Search & Select Client
+            </label>
+            <ClientAutocomplete
+              contacts={contacts}
+              selectedContactId={selectedContactId}
+              onSelectClient={(contact) => {
+                const exists = contacts.some((c) => c.id === contact.id);
+                if (!exists) {
+                  setContacts((prev) => [contact, ...prev]);
+                }
+                setSelectedContactId(contact.id);
+              }}
+              disabled={isLocked}
+              placeholder="Search existing client by name, company, or email..."
+            />
+
+            {/* Selected Client Live Card */}
+            {selectedContact && (
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building className="w-4 h-4 text-[#09937F]" />
+                    <span className="font-bold text-sm text-slate-900 dark:text-white">
+                      {selectedContact.company || selectedContact.full_name}
+                    </span>
+                  </div>
+                  <Link
+                    href={`/dashboard/crm/customers/${selectedContact.id}`}
+                    className="text-xs text-[#014842] dark:text-[#09937F] hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>View CRM Dossier</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs text-slate-600 dark:text-slate-400 pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{selectedContact.full_name}</span>
+                  </div>
+                  {selectedContact.email && (
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="font-mono">{selectedContact.email}</span>
+                    </div>
+                  )}
+                  {selectedContact.phone && (
+                    <div className="flex items-center gap-1.5" dir="ltr">
+                      <Phone className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="font-mono">{selectedContact.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Invoice Metadata Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-white/10">
             <div>
-              <label className="text-xs font-medium text-[#9EADA9] mb-1.5 block">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Currency
               </label>
               <Select
@@ -276,40 +426,29 @@ export function InvoiceEditFormView({
                 disabled={isLocked}
               >
                 {Object.keys(CURRENCY_CONFIGS).map((code) => (
-                  <option
-                    key={code}
-                    value={code}
-                    className="bg-[#0B1210] text-white"
-                  >
-                    {code} (
-                    {CURRENCY_CONFIGS[code as SupportedCurrency].symbolAr})
+                  <option key={code} value={code}>
+                    {code} ({CURRENCY_CONFIGS[code as SupportedCurrency].symbolAr})
                   </option>
                 ))}
               </Select>
             </div>
 
             <div>
-              <label className="text-xs font-medium text-[#9EADA9] mb-1.5 block">
-                Document Language
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+                Language
               </label>
               <Select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as any)}
                 disabled={isLocked}
               >
-                <option value="ar" className="bg-[#0B1210] text-white">
-                  {t.invoiceForm.arabic}
-                </option>
-                <option value="en" className="bg-[#0B1210] text-white">
-                  {t.invoiceForm.english}
-                </option>
+                <option value="ar">{t.invoiceForm.arabic}</option>
+                <option value="en">{t.invoiceForm.english}</option>
               </Select>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-medium text-[#9EADA9] mb-1.5 block">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Issue Date *
               </label>
               <Input
@@ -323,8 +462,8 @@ export function InvoiceEditFormView({
             </div>
 
             <div>
-              <label className="text-xs font-medium text-[#9EADA9] mb-1.5 block">
-                Payment Due Date *
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+                Due Date *
               </label>
               <Input
                 type="date"
@@ -338,9 +477,10 @@ export function InvoiceEditFormView({
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+        {/* Section 2: Line Items */}
+        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               Line Items & Services
             </h2>
             {!isLocked && (
@@ -349,7 +489,7 @@ export function InvoiceEditFormView({
                 variant="outline"
                 size="sm"
                 onClick={addLineItem}
-                className="gap-1.5 text-xs text-[#09937F]"
+                className="gap-1.5 text-xs text-[#09937F] border-[#09937F]/30 hover:bg-[#09937F]/10"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Deliverable</span>
@@ -361,11 +501,11 @@ export function InvoiceEditFormView({
             {lineItems.map((item, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-3"
+                className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-3"
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[11px] text-[#9EADA9] mb-1 block">
+                    <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
                       Description (English) *
                     </label>
                     <Input
@@ -373,28 +513,20 @@ export function InvoiceEditFormView({
                       placeholder="e.g. Cinema Commercial Shoot Day 1"
                       value={item.description_en}
                       onChange={(e) =>
-                        handleLineItemChange(
-                          idx,
-                          "description_en",
-                          e.target.value,
-                        )
+                        handleLineItemChange(idx, "description_en", e.target.value)
                       }
                       disabled={isLocked}
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] text-[#9EADA9] mb-1 block">
+                    <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
                       Description (Arabic)
                     </label>
                     <Input
                       placeholder={t.invoiceForm.placeholderAr}
                       value={item.description_ar || ""}
                       onChange={(e) =>
-                        handleLineItemChange(
-                          idx,
-                          "description_ar",
-                          e.target.value,
-                        )
+                        handleLineItemChange(idx, "description_ar", e.target.value)
                       }
                       disabled={isLocked}
                     />
@@ -403,7 +535,7 @@ export function InvoiceEditFormView({
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                   <div>
-                    <label className="text-[11px] text-[#9EADA9] mb-1 block">
+                    <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
                       Quantity
                     </label>
                     <Input
@@ -419,7 +551,7 @@ export function InvoiceEditFormView({
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] text-[#9EADA9] mb-1 block">
+                    <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
                       Unit Price ({currency})
                     </label>
                     <Input
@@ -436,19 +568,19 @@ export function InvoiceEditFormView({
                   </div>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <label className="text-[11px] text-[#9EADA9] mb-1 block">
+                      <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
                         Line Total
                       </label>
-                      <div className="text-sm font-bold text-white font-mono h-10 flex items-center">
-                        {(item.quantity * item.unit_price).toFixed(3)}{" "}
-                        {currency}
+                      <div className="text-sm font-bold text-slate-900 dark:text-white font-mono h-10 flex items-center">
+                        {(item.quantity * item.unit_price).toFixed(3)} {currency}
                       </div>
                     </div>
                     {lineItems.length > 1 && !isLocked && (
                       <button
                         type="button"
                         onClick={() => removeLineItem(idx)}
-                        className="p-2 text-[#9EADA9] hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                        className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
+                        title="Remove item"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -460,14 +592,15 @@ export function InvoiceEditFormView({
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
+        {/* Section 3: Discounts & Tax Adjustments */}
+        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
             Discount & Tax Adjustments
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
-              <label className="text-xs font-medium text-[#9EADA9] mb-1.5 block">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Discount Type
               </label>
               <Select
@@ -475,21 +608,15 @@ export function InvoiceEditFormView({
                 onChange={(e) => setDiscountType(e.target.value as any)}
                 disabled={isLocked}
               >
-                <option value="none" className="bg-[#0B1210] text-white">
-                  No Discount
-                </option>
-                <option value="percentage" className="bg-[#0B1210] text-white">
-                  Percentage (%)
-                </option>
-                <option value="fixed" className="bg-[#0B1210] text-white">
-                  Fixed Amount ({currency})
-                </option>
+                <option value="none">No Discount</option>
+                <option value="percentage">Percentage (%)</option>
+                <option value="fixed">Fixed Amount ({currency})</option>
               </Select>
             </div>
 
             {discountType !== "none" && (
               <div>
-                <label className="text-xs font-medium text-[#9EADA9] mb-1.5 block">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                   Discount Value
                 </label>
                 <Input
@@ -505,14 +632,14 @@ export function InvoiceEditFormView({
               </div>
             )}
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9] flex items-center gap-2 pt-6">
+            <div className="space-y-1.5 flex items-center">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2 cursor-pointer pt-4">
                 <input
                   type="checkbox"
                   checked={vatEnabled}
                   onChange={(e) => setVatEnabled(e.target.checked)}
                   disabled={isLocked}
-                  className="w-4 h-4 rounded"
+                  className="w-4 h-4 rounded text-[#014842] focus:ring-[#09937F]"
                 />
                 <span>Enable VAT ({company?.vat_percentage || 10}%)</span>
               </label>
@@ -520,14 +647,15 @@ export function InvoiceEditFormView({
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
+        {/* Section 4: Terms & Notes */}
+        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
             Invoice Terms & Notes
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-medium text-[#9EADA9] mb-1.5 block">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Notes (English)
               </label>
               <textarea
@@ -536,12 +664,12 @@ export function InvoiceEditFormView({
                 value={notesEn}
                 onChange={(e) => setNotesEn(e.target.value)}
                 disabled={isLocked}
-                className="w-full bg-[#050807] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-[#9EADA9]/50 focus:outline-none focus:border-[#09937F]"
+                className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#09937F]"
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-[#9EADA9] mb-1.5 block">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Notes (Arabic)
               </label>
               <textarea
@@ -550,32 +678,33 @@ export function InvoiceEditFormView({
                 value={notesAr}
                 onChange={(e) => setNotesAr(e.target.value)}
                 disabled={isLocked}
-                className="w-full bg-[#050807] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-[#9EADA9]/50 focus:outline-none focus:border-[#09937F]"
+                className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#09937F]"
               />
             </div>
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-3">
-          <div className="flex items-center justify-between text-xs border-b border-white/10 pb-3">
-            <span className="text-[#9EADA9]">Subtotal</span>
-            <span className="font-mono font-bold text-white">
+        {/* Section 5: Totals Summary */}
+        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-3">
+          <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
+            <span className="text-slate-500 dark:text-slate-400">Subtotal</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-white">
               {totals.subtotal.toFixed(3)} {currency}
             </span>
           </div>
 
           {discountType !== "none" && (
-            <div className="flex items-center justify-between text-xs border-b border-white/10 pb-3">
-              <span className="text-[#9EADA9]">Discount</span>
-              <span className="font-mono font-bold text-rose-400">
+            <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
+              <span className="text-slate-500 dark:text-slate-400">Discount</span>
+              <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
                 -{totals.discountAmount.toFixed(3)} {currency}
               </span>
             </div>
           )}
 
           {vatEnabled && (
-            <div className="flex items-center justify-between text-xs border-b border-white/10 pb-3">
-              <span className="text-[#9EADA9]">
+            <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
+              <span className="text-slate-500 dark:text-slate-400">
                 VAT ({company?.vat_percentage || 10}%)
               </span>
               <span className="font-mono font-bold text-[#09937F]">
@@ -584,15 +713,16 @@ export function InvoiceEditFormView({
             </div>
           )}
 
-          <div className="flex items-center justify-between text-sm border-t-2 border-[#09937F]/50 pt-3">
-            <span className="font-bold text-white">Total Amount</span>
-            <span className="font-mono font-bold text-2xl text-[#09937F]">
+          <div className="flex items-center justify-between text-sm border-t-2 border-[#09937F]/40 pt-3">
+            <span className="font-bold text-slate-900 dark:text-white">Total Amount</span>
+            <span className="font-mono font-bold text-2xl text-[#014842] dark:text-[#09937F]">
               {totals.totalAmount.toFixed(3)} {currency}
             </span>
           </div>
         </Card>
 
-        <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
+        {/* Actions Toolbar */}
+        <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-end gap-4">
           <Link href={`/dashboard/invoices/${invoice.id}`}>
             <Button type="button" variant="outline" size="sm">
               {t.actions?.cancel || "Cancel"}
@@ -604,7 +734,7 @@ export function InvoiceEditFormView({
               variant="primary"
               size="sm"
               disabled={submitting}
-              className="gap-2"
+              className="gap-2 bg-[#014842] hover:bg-[#014842]/90 text-white"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>

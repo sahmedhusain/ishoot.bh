@@ -40,10 +40,10 @@ export function PaymentsManagementView({
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
             {t.nav.payments}
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {t.paymentsView.subtitle}
           </p>
         </div>
@@ -52,7 +52,7 @@ export function PaymentsManagementView({
           <Button
             variant="primary"
             size="sm"
-            className="gap-1.5 self-start sm:self-auto"
+            className="gap-1.5 self-start sm:self-auto bg-[#014842] hover:bg-[#014842]/90 text-white"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.finance.recordPayment}</span>
@@ -61,55 +61,55 @@ export function PaymentsManagementView({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 space-y-2 rounded-2xl shadow-sm">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>{t.kpi.totalRevenue}</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-[#10B981]">
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
             <CurrencyDisplay amount={totalCollected} currency="BHD" />
           </div>
-          <div className="text-[11px] text-emerald-400 font-mono">
+          <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono">
             {t.kpi.revenueDesc}
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 space-y-2 rounded-2xl shadow-sm">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>{t.paymentsView.issuedReceipts}</span>
             <div className="w-8 h-8 rounded-lg bg-[#09937F]/10 flex items-center justify-center text-[#09937F]">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
             {payments.length}
           </div>
-          <div className="text-[11px] text-[#09937F]">
+          <div className="text-[11px] text-[#09937F] font-medium">
             {t.paymentsView.allReconciled}
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 space-y-2 rounded-2xl shadow-sm">
+          <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>{t.paymentsView.invoicesInPlay}</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
               <Search className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
             {invoices.length}
           </div>
-          <div className="text-[11px] text-amber-400">
+          <div className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
             {t.paymentsView.activeBilling}
           </div>
         </Card>
       </div>
 
-      <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
         <table className="w-full text-start text-xs">
-          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider">
+          <thead className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase font-mono tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.finance.receiptNumber}</th>
               <th className="p-4 text-start">{t.finance.invoiceNumber}</th>
@@ -120,11 +120,11 @@ export function PaymentsManagementView({
               <th className="p-4 text-end">{t.paymentsView.viewReceipt}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
             {payments.map((payment) => (
               <tr
                 key={payment.id}
-                className="hover:bg-white/[0.02] transition-colors"
+                className="hover:bg-slate-50/70 dark:hover:bg-white/[0.02] transition-colors"
               >
                 <td className="p-4 font-mono font-bold text-[#09937F]">
                   {payment.receipt_number}
@@ -133,19 +133,42 @@ export function PaymentsManagementView({
                   {payment.invoice ? (
                     <Link
                       href={`/dashboard/invoices/${payment.invoice_id}`}
-                      className="text-white hover:text-[#09937F] hover:underline"
+                      className="text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#09937F] hover:underline font-medium"
                     >
                       {payment.invoice.invoice_number}
                     </Link>
                   ) : (
-                    "—"
+                    <span className="text-slate-400">—</span>
                   )}
                 </td>
-                <td className="p-4 font-bold text-white">
-                  {payment.invoice?.contact?.full_name ||
-                    t.paymentsView.directSettlement}
+                <td className="p-4 font-medium text-slate-900 dark:text-white">
+                  {payment.invoice?.contact ? (
+                    <Link
+                      href={`/dashboard/crm/customers/${payment.invoice.contact.id}`}
+                      className="text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#09937F] hover:underline font-semibold inline-flex items-center gap-1.5"
+                    >
+                      <span>
+                        {payment.invoice.contact.company ||
+                          payment.invoice.contact.full_name}
+                      </span>
+                      {payment.invoice.contact.company &&
+                        payment.invoice.contact.full_name && (
+                          <span className="text-slate-400 font-normal text-[11px]">
+                            ({payment.invoice.contact.full_name})
+                          </span>
+                        )}
+                    </Link>
+                  ) : payment.invoice?.contact_name ? (
+                    <span className="text-slate-900 dark:text-white font-semibold">
+                      {payment.invoice.contact_name}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">
+                      {t.paymentsView.directSettlement}
+                    </span>
+                  )}
                 </td>
-                <td className="p-4 font-mono text-[#9EADA9]">
+                <td className="p-4 font-mono text-slate-600 dark:text-slate-400">
                   <DateDisplay date={payment.payment_date} locale={locale} />
                 </td>
                 <td className="p-4">
@@ -153,7 +176,7 @@ export function PaymentsManagementView({
                     {payment.payment_method.replace("_", " ").toUpperCase()}
                   </Badge>
                 </td>
-                <td className="p-4 text-end font-mono font-bold text-emerald-400 text-sm">
+                <td className="p-4 text-end font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                   +
                   <CurrencyDisplay
                     amount={Number(payment.amount)}
@@ -165,7 +188,7 @@ export function PaymentsManagementView({
                     variant="ghost"
                     size="sm"
                     onClick={() => setActiveReceipt(payment)}
-                    className="gap-1 text-[#9EADA9] hover:text-white"
+                    className="gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>{t.actions.view}</span>

@@ -1,49 +1,97 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type {
   CRMContact,
   CompanySettings,
   InvoiceLineItem,
-  DiscountType,
   SupportedCurrency,
+  DiscountType,
 } from "@ishoot/database/types";
 import {
-  CURRENCY_CONFIGS,
-  calculateInvoiceTotals,
-} from "@ishoot/database/types";
-import { Card, Input, Select, Button } from "@ishoot/ui";
+  Card,
+  Button,
+  Input,
+  Select,
+} from "@ishoot/ui";
 import {
-  Plus,
-  Trash2,
   ArrowLeft,
   ArrowRight,
+  Plus,
+  Trash2,
   Calculator,
   CheckCircle2,
+  Search,
+  Loader2,
+  Building,
+  User,
+  Mail,
+  Phone,
+  ExternalLink,
 } from "lucide-react";
-import Link from "next/link";
-import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createInvoiceAction } from "../../app/actions/finance";
+import { lookupClientAction } from "../../app/actions/crm";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { CURRENCY_CONFIGS, calculateInvoiceTotals } from "@ishoot/database/types";
+import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 
 interface NewInvoiceFormViewProps {
   initialContacts: CRMContact[];
   company: CompanySettings | null;
+  preselectedClientId?: string;
 }
 
 export function NewInvoiceFormView({
   initialContacts,
   company,
+  preselectedClientId,
 }: NewInvoiceFormViewProps) {
   const router = useRouter();
   const { t, locale, isRTL } = useAdminLocale();
 
-  const [contacts] = React.useState<CRMContact[]>(initialContacts);
+  const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
+  const [lookupTerm, setLookupTerm] = React.useState("");
+  const [lookupLoading, setLookupLoading] = React.useState(false);
+  const [lookupMessage, setLookupMessage] = React.useState<string | null>(null);
 
   const [selectedContactId, setSelectedContactId] = React.useState(
-    initialContacts.length > 0 ? initialContacts[0].id : "",
+    preselectedClientId || (initialContacts.length > 0 ? initialContacts[0].id : ""),
   );
+
+  const selectedContact = React.useMemo(() => {
+    return contacts.find((c) => c.id === selectedContactId) || null;
+  }, [contacts, selectedContactId]);
+
+  const handleLookup = async () => {
+    if (!lookupTerm.trim()) return;
+    setLookupLoading(true);
+    setLookupMessage(null);
+    try {
+      const res = await lookupClientAction(lookupTerm);
+      if (res.success && res.contact) {
+        const found = res.contact;
+        const exists = contacts.some((c) => c.id === found.id);
+        if (!exists) {
+          setContacts((prev) => [found, ...prev]);
+        }
+        setSelectedContactId(found.id);
+        setLookupMessage(
+          `Auto-fetched: ${found.company ? `${found.company} - ` : ""}${found.full_name} (${found.email || found.phone || "Client"})`,
+        );
+      } else {
+        setLookupMessage("No client found matching this email or phone number.");
+      }
+    } catch (e) {
+      console.error(e);
+      setLookupMessage("Error executing client lookup.");
+    } finally {
+      setLookupLoading(false);
+    }
+  };
+
   const [currency, setCurrency] = React.useState<SupportedCurrency>(
     (company?.default_currency as SupportedCurrency) || "BHD",
   );
@@ -54,10 +102,22 @@ export function NewInvoiceFormView({
     new Date().toISOString().split("T")[0],
   );
   const [dueDate, setDueDate] = React.useState(
-    new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
   );
-  const [notesEn, setNotesEn] = React.useState("");
-  const [notesAr, setNotesAr] = React.useState("");
+  const [notesEn, setNotesEn] = React.useState(
+    company?.default_invoice_notes_en || "",
+  );
+  const [notesAr, setNotesAr] = React.useState(
+    company?.default_invoice_notes_ar || "",
+  );
+
+  const [discountType, setDiscountType] = React.useState<DiscountType>("none");
+  const [discountValue, setDiscountValue] = React.useState<number>(0);
+  const [vatEnabled, setVatEnabled] = React.useState(
+    company?.tax_registration_status ?? true,
+  );
 
   const [lineItems, setLineItems] = React.useState<InvoiceLineItem[]>([
     {
@@ -68,12 +128,6 @@ export function NewInvoiceFormView({
       line_total: 0,
     },
   ]);
-
-  const [discountType, setDiscountType] = React.useState<DiscountType>("none");
-  const [discountValue, setDiscountValue] = React.useState<number>(0);
-  const [vatEnabled, setVatEnabled] = React.useState<boolean>(
-    company?.vat_enabled || false,
-  );
 
   const addLineItem = () => {
     setLineItems((prev) => [
@@ -163,7 +217,7 @@ export function NewInvoiceFormView({
       <div>
         <Link
           href="/dashboard/invoices"
-          className="inline-flex items-center gap-2 text-xs text-[#9EADA9] hover:text-[#09937F] transition-colors font-medium"
+          className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#09937F] dark:text-slate-400 dark:hover:text-[#09937F] transition-colors font-medium"
         >
           <BackIcon className="w-4 h-4" />
           <span>{t.actions.backToInvoices}</span>
@@ -171,38 +225,87 @@ export function NewInvoiceFormView({
       </div>
 
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
           {t.invoiceForm.title}
         </h1>
-        <p className="text-xs text-[#9EADA9] mt-1">{t.invoiceForm.subtitle}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t.invoiceForm.subtitle}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
-            {t.invoiceForm.particulars}
-          </h2>
+        {/* Client Selection Card with Auto-Fetch */}
+        <Card className="p-6 space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+              {t.invoiceForm.particulars}
+            </h2>
+            {selectedContact && (
+              <Link
+                href={`/dashboard/crm/customers/${selectedContact.id}`}
+                target="_blank"
+                className="text-xs font-mono text-[#09937F] hover:underline flex items-center gap-1"
+              >
+                <span>Client Profile</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </Link>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-            <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-medium text-[#9EADA9]">
-                {t.finance.client} *
+            {/* Quick Auto-Fetch Input */}
+            <div className="space-y-2 sm:col-span-2 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
+              <label className="text-xs font-semibold text-slate-900 dark:text-white flex items-center justify-between">
+                <span>{t.finance.client} Quick Lookup (Email / Phone)</span>
+                <span className="text-[10px] text-[#09937F] font-mono font-bold bg-[#E6F5F2] dark:bg-[#09937F]/20 px-2 py-0.5 rounded-full">Auto-Fetch</span>
               </label>
-              <Select
-                value={selectedContactId}
-                onChange={(e) => setSelectedContactId(e.target.value)}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter client email or phone..."
+                  value={lookupTerm}
+                  onChange={(e) => setLookupTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleLookup();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleLookup}
+                  disabled={lookupLoading}
+                  className="gap-1.5 shrink-0"
+                >
+                  {lookupLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-[#09937F]" />
+                  ) : (
+                    <Search className="w-4 h-4 text-[#09937F]" />
+                  )}
+                  <span>Fetch</span>
+                </Button>
+              </div>
+              {lookupMessage && (
+                <p className={`text-[11px] font-medium ${lookupMessage.includes("Found") || lookupMessage.includes("Auto-fetched") ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                  {lookupMessage}
+                </p>
+              )}
+            </div>
+
+            {/* Client Autocomplete Selector */}
+            <div className="sm:col-span-2">
+              <ClientAutocomplete
+                initialContacts={contacts}
+                selectedContactId={selectedContactId}
+                onSelect={(c) => {
+                  setSelectedContactId(c ? c.id : "");
+                }}
+                label={`${t.finance.client}`}
                 required
-              >
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.company ? `${c.company} (${c.full_name})` : c.full_name}
-                  </option>
-                ))}
-              </Select>
+              />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 {t.invoiceForm.currencyLabel}
               </label>
               <Select
@@ -223,7 +326,7 @@ export function NewInvoiceFormView({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 {t.invoiceForm.docLangLabel}
               </label>
               <Select
@@ -235,8 +338,8 @@ export function NewInvoiceFormView({
               </Select>
             </div>
 
-            <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-medium text-[#9EADA9]">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 {t.finance.issueDate}
               </label>
               <Input
@@ -248,8 +351,8 @@ export function NewInvoiceFormView({
               />
             </div>
 
-            <div className="space-y-1.5 sm:col-span-2">
-              <label className="text-xs font-medium text-[#9EADA9]">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
                 {t.finance.dueDate}
               </label>
               <Input
@@ -263,9 +366,10 @@ export function NewInvoiceFormView({
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+        {/* Deliverables / Line Items Card */}
+        <Card className="p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.invoiceForm.deliverables}
             </h2>
             <Button
@@ -284,10 +388,10 @@ export function NewInvoiceFormView({
             {lineItems.map((item, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-2xl bg-[#050807] border border-white/5 grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
+                className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
               >
                 <div className="md:col-span-5 space-y-1">
-                  <label className="text-[11px] text-[#9EADA9]">
+                  <label className="text-[11px] text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.descEnLabel}
                   </label>
                   <Input
@@ -301,7 +405,7 @@ export function NewInvoiceFormView({
                 </div>
 
                 <div className="md:col-span-3 space-y-1">
-                  <label className="text-[11px] text-[#9EADA9]">
+                  <label className="text-[11px] text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.descArLabel}
                   </label>
                   <Input
@@ -315,7 +419,7 @@ export function NewInvoiceFormView({
                 </div>
 
                 <div className="md:col-span-1 space-y-1">
-                  <label className="text-[11px] text-[#9EADA9]">
+                  <label className="text-[11px] text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.qty}
                   </label>
                   <Input
@@ -336,7 +440,7 @@ export function NewInvoiceFormView({
                 </div>
 
                 <div className="md:col-span-2 space-y-1">
-                  <label className="text-[11px] text-[#9EADA9]">
+                  <label className="text-[11px] text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.rate} ({currency})
                   </label>
                   <Input
@@ -361,7 +465,7 @@ export function NewInvoiceFormView({
                     <button
                       type="button"
                       onClick={() => removeLineItem(idx)}
-                      className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                      className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
                       title={t.invoiceForm.removeItem}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -373,16 +477,17 @@ export function NewInvoiceFormView({
           </div>
         </Card>
 
+        {/* Deductions & Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <Card className="md:col-span-6 p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
+          <Card className="md:col-span-6 p-6 space-y-4">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
               {t.invoiceForm.deductionsTitle}
             </h2>
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-[#9EADA9]">
+                  <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
                     {t.finance.discount}
                   </label>
                   <Select
@@ -401,7 +506,7 @@ export function NewInvoiceFormView({
 
                 {discountType !== "none" && (
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-[#9EADA9]">
+                    <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
                       {discountType === "percentage"
                         ? t.invoiceForm.discountPctLabel
                         : `${t.invoiceForm.discountAmtLabel} (${currency})`}
@@ -420,14 +525,14 @@ export function NewInvoiceFormView({
                 )}
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#050807] border border-white/10 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-white">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">
                     {vatEnabled
                       ? t.invoiceForm.vatEnabledTitle
                       : t.invoiceForm.vatDisabledTitle}
                   </div>
-                  <div className="text-[10px] text-[#9EADA9]">
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400">
                     {vatEnabled
                       ? t.invoiceForm.vatEnabledDesc
                       : t.invoiceForm.vatDisabledDesc}
@@ -436,10 +541,10 @@ export function NewInvoiceFormView({
                 <button
                   type="button"
                   onClick={() => setVatEnabled(!vatEnabled)}
-                  className={`text-xs px-3 py-1 rounded-lg border font-mono ${
+                  className={`text-xs px-3 py-1 rounded-lg border font-mono transition-colors ${
                     vatEnabled
                       ? "bg-[#09937F]/20 text-[#09937F] border-[#09937F]"
-                      : "bg-white/5 text-[#9EADA9] border-white/10"
+                      : "bg-slate-200/50 text-slate-500 border-slate-300 dark:bg-white/5 dark:text-slate-400 dark:border-white/10"
                   }`}
                 >
                   {vatEnabled ? t.invoiceForm.active : t.invoiceForm.disabled}
@@ -448,16 +553,16 @@ export function NewInvoiceFormView({
             </div>
           </Card>
 
-          <Card className="md:col-span-6 p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4 flex flex-col justify-between">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3 flex items-center gap-2">
+          <Card className="md:col-span-6 p-6 space-y-4 flex flex-col justify-between">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3 flex items-center gap-2">
               <Calculator className="w-4 h-4 text-[#09937F]" />
               <span>{t.invoiceForm.summaryTitle}</span>
             </h2>
 
             <div className="space-y-2.5 text-xs">
-              <div className="flex items-center justify-between text-[#9EADA9]">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                 <span>{t.finance.subtotal}:</span>
-                <span className="font-mono text-white text-sm">
+                <span className="font-mono text-slate-900 dark:text-white text-sm font-semibold">
                   {totals.subtotal.toFixed(3)} {currency}
                 </span>
               </div>
@@ -471,17 +576,17 @@ export function NewInvoiceFormView({
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-[#9EADA9]">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                 <span>{t.finance.vat}:</span>
-                <span className="font-mono">
+                <span className="font-mono font-medium">
                   {totals.vatAmount > 0
                     ? `${totals.vatAmount.toFixed(3)} ${currency}`
                     : "0.000"}
                 </span>
               </div>
 
-              <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                <span className="text-sm font-bold text-white">
+              <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
+                <span className="text-sm font-bold text-slate-900 dark:text-white">
                   {t.finance.totalAmount}:
                 </span>
                 <span className="text-xl font-bold font-mono text-[#09937F]">
@@ -495,7 +600,7 @@ export function NewInvoiceFormView({
               variant="primary"
               size="lg"
               disabled={submitting}
-              className="w-full mt-4 shadow-xl shadow-[#09937F]/25 gap-2"
+              className="w-full mt-4 gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>

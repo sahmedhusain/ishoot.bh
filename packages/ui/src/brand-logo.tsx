@@ -1,0 +1,130 @@
+import * as React from "react";
+import { cn } from "./utils";
+
+export interface BrandLogoProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "full" | "icon" | "horizontal";
+  themeMode?: "auto" | "light" | "dark" | "monochrome";
+  size?: "sm" | "md" | "lg" | "xl";
+  showDot?: boolean;
+}
+
+export function BrandLogo({
+  variant = "full",
+  themeMode = "auto",
+  size = "md",
+  showDot = true,
+  className,
+  ...props
+}: BrandLogoProps) {
+  const sizeClasses = {
+    sm: "h-6 text-lg",
+    md: "h-8 text-2xl",
+    lg: "h-10 text-3xl",
+    xl: "h-14 text-4xl",
+  };
+
+  const iconSizes = {
+    sm: "w-6 h-6",
+    md: "w-8 h-8",
+    lg: "w-10 h-10",
+    xl: "w-14 h-14",
+  };
+
+  // Text color based on themeMode
+  const textClass =
+    themeMode === "light"
+      ? "text-[#014842]"
+      : themeMode === "dark"
+      ? "text-white"
+      : themeMode === "monochrome"
+      ? "text-current"
+      : "text-[#014842] dark:text-white";
+
+  const primaryFill =
+    themeMode === "dark"
+      ? "#FFFFFF"
+      : themeMode === "light"
+      ? "#014842"
+      : themeMode === "monochrome"
+      ? "currentColor"
+      : undefined;
+
+  return (
+    <div
+      className={cn(
+        "inline-flex items-center gap-2.5 select-none font-display font-black tracking-tight",
+        sizeClasses[size],
+        textClass,
+        className,
+      )}
+      {...props}
+    >
+      {/* Official ishoot camera/lens shutter icon */}
+      <svg
+        viewBox="0 0 1600 1200"
+        className={cn(
+          "shrink-0 transition-transform duration-300",
+          iconSizes[size],
+        )}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M724.28,724.29c0.01,15.15,0.02,30.29,0.05,45.43c0.01,8.17,0.02,16.33,0.04,24.49c0.01,7.19,1.12,14.38,1.73,21.59c-1.05,0.1-2.11,0.18-3.18,0.22c-1.47,0.06-2.96,0.06-4.47-0.01c-5.91-0.24-12.04-1.4-17.93-3.56c-16.09-5.86-30.44-19.07-34.03-40.8c-0.85-5.14-1.27-10.41-1.28-15.62c-0.08-74.83-0.04-149.66-0.07-224.49c0-8.9,1.51-17.36,6.4-24.96c6.5-10.1,15.91-15.83,27.78-16.04c23.93-0.42,47.88-0.13,72.32-0.13c-0.72,0.65-1.1,1.09-1.58,1.4c-25.36,16.32-39.48,39.89-44.25,69.28c-1.11,6.85-1.45,13.89-1.46,20.84c-0.04,25.98-0.06,51.96-0.06,77.94"
+          fill={primaryFill || "#014842"}
+          className={!primaryFill ? "dark:fill-[#E8F5F3]" : undefined}
+        />
+        <path
+          d="M815.86,816.08c6.59-3.39,13.23-6.18,19.22-9.98c28.2-17.87,43.91-43.57,46.87-76.85c2.33-26.17-6.37-49.34-19.96-71.1c-9.09-14.57-20.71-26.49-36.77-33.05c-8.46-3.45-17.53-5.4-26.34-7.98c-7.33-2.15-14.9-3.66-21.97-6.45c-14.44-5.68-20-18.42-14.73-33.08c5.21-14.5,16.31-22.67,30.8-25.99c14.36-3.29,29.38-2.91,42.88,3.34c23.94,11.07,48,23.6,65.94,43.39c19.52,21.53,29.84,47.05,32.42,75.79c2.15,23.98-0.84,47.38-11.15,69.2c-15.96,33.81-45.28,59.69-81.78,68.87c-4.66,1.17-9.39,2.06-14.15,2.76C823.41,815.49,819.64,815.71,815.86,816.08z"
+          fill={primaryFill || "#014842"}
+          className={!primaryFill ? "dark:fill-[#E8F5F3]" : undefined}
+        />
+        <path
+          d="M875.39,705.87c-0.87-5.71-2.57-11.29-3.89-16.93c1.37,5.86-0.44,14.3-1.41,20.16c-1.13,6.81-3.03,13.5-5.88,19.8c-10.98,24.26-35.21,39.05-61.62,39.91c-18.56,0.61-36.65-5.7-55.22-5.09c-11.83,0.39-22.96,4.18-31.73,12.32c-10.37,9.63-15.47,21.59-15.15,35.75c0.01,0.23,0.01,0.45,0.02,0.65c5.89,2.16,12.02,3.32,17.93,3.56c1.49,0.01,2.98,0.01,4.47,0.01c14.06,0,28.11,0.05,42.17-0.02c20.91-0.1,40.82-0.76,59.81-10.45c14.79-7.54,27.47-18.99,36.47-32.94C874.05,752.95,878.94,728.97,875.39,705.87z"
+          fill="#09937F"
+        />
+        <path
+          d="M916.74,489.15c1.07,6.69,0.27,13.11-1.17,19.43c-3.39,14.89-10.93,26.76-25.74,32.46c-4.32,1.66-9.23,2.4-13.88,2.46c-23.36,0.3-46.72,0.1-70.07,0.36c-12.61,0.14-24.36,3.55-34.36,11.53c-12.57,10.04-18.53,22.83-15.31,39.13c0.18,0.91,0.28,1.83,0.49,3.23c-6.09-5.36-10.01-11.58-12.59-18.68c-8.78-24.11-1.49-52.5,18.05-70.09c14.64-13.18,31.68-20.05,51.55-19.96c33.34,0.14,66.68,0.01,100.03,0.01C914.66,489.03,915.61,489.11,916.74,489.15z"
+          fill="#09937F"
+        />
+        <circle
+          cx="718.38"
+          cy="431.38"
+          r="47.46"
+          fill={primaryFill || "#014842"}
+          className={!primaryFill ? "dark:fill-[#E8F5F3]" : undefined}
+        />
+        <circle
+          cx="718.38"
+          cy="431.38"
+          r="35.15"
+          fill={themeMode === "dark" ? "#014842" : "#FFFFFF"}
+          className={!primaryFill ? "dark:fill-[#080E0D]" : undefined}
+        />
+        <circle cx="718.38" cy="431.38" r="28.4" fill="#09937F" />
+        <circle
+          cx="795.12"
+          cy="700.48"
+          r="54.71"
+          fill={primaryFill || "#014842"}
+          className={!primaryFill ? "dark:fill-[#E8F5F3]" : undefined}
+        />
+        <circle
+          cx="795.12"
+          cy="700.48"
+          r="40.51"
+          fill={themeMode === "dark" ? "#014842" : "#FFFFFF"}
+          className={!primaryFill ? "dark:fill-[#080E0D]" : undefined}
+        />
+        <circle cx="795.12" cy="700.48" r="32.74" fill="#09937F" />
+      </svg>
+
+      {variant !== "icon" && (
+        <span className="leading-none">
+          ishoot
+          {showDot && <span className="text-[#09937F]">.</span>}
+        </span>
+      )}
+    </div>
+  );
+}

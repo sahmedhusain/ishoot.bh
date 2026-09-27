@@ -23,11 +23,12 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
       ? inv.payments.reduce((acc: number, p: any) => acc + Number(p.amount), 0)
       : 0;
   const amountDue = Math.max(0, totalAmount - amountPaid);
+  const contactObj = inv.client || inv.deal?.contact;
 
   return {
     id: inv.id,
     invoice_number: inv.invoiceNumber,
-    contact_id: inv.deal?.contactId || inv.clientId || "",
+    contact_id: inv.clientId || inv.deal?.contactId || "",
     deal_id: inv.dealId || undefined,
     issue_date: inv.issueDate.toISOString().split("T")[0],
     due_date: inv.dueDate.toISOString().split("T")[0],
@@ -67,18 +68,20 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
           display_order: li.displayOrder,
         }))
       : [],
-    contact: inv.deal?.contact
+    contact: contactObj
       ? {
-          id: inv.deal.contact.id,
+          id: contactObj.id,
           full_name:
-            `${inv.deal.contact.firstName} ${inv.deal.contact.lastName || ""}`.trim(),
-          email: inv.deal.contact.email || "",
-          phone: inv.deal.contact.phone || undefined,
-          company: inv.deal.contact.companyName || undefined,
-          job_title: inv.deal.contact.jobTitle || undefined,
-          notes: inv.deal.contact.notes || undefined,
-          created_at: inv.deal.contact.createdAt.toISOString(),
-          updated_at: inv.deal.contact.updatedAt.toISOString(),
+            `${contactObj.firstName || ""} ${contactObj.lastName || ""}`.trim() ||
+            contactObj.companyName ||
+            "Client",
+          email: contactObj.email || "",
+          phone: contactObj.phone || undefined,
+          company: contactObj.companyName || undefined,
+          job_title: contactObj.jobTitle || undefined,
+          notes: contactObj.notes || undefined,
+          created_at: contactObj.createdAt ? contactObj.createdAt.toISOString() : new Date().toISOString(),
+          updated_at: contactObj.updatedAt ? contactObj.updatedAt.toISOString() : new Date().toISOString(),
         }
       : undefined,
   };
@@ -88,6 +91,7 @@ export async function getAllInvoices(): Promise<Invoice[]> {
   try {
     const invoices = await db.invoice.findMany({
       include: {
+        client: true,
         lineItems: true,
         payments: true,
         deal: {
@@ -108,6 +112,7 @@ export async function getInvoicesByDealId(dealId: string): Promise<Invoice[]> {
     const invoices = await db.invoice.findMany({
       where: { dealId },
       include: {
+        client: true,
         lineItems: true,
         payments: true,
         deal: {
@@ -123,11 +128,53 @@ export async function getInvoicesByDealId(dealId: string): Promise<Invoice[]> {
   }
 }
 
+export async function getInvoicesByClientId(clientId: string): Promise<Invoice[]> {
+  try {
+    const invoices = await db.invoice.findMany({
+      where: {
+        OR: [{ clientId }, { deal: { contactId: clientId } }],
+      },
+      include: {
+        client: true,
+        lineItems: true,
+        payments: true,
+        deal: {
+          include: { contact: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return invoices.map(mapPrismaInvoiceToInvoice);
+  } catch (e) {
+    console.error(`Error fetching invoices for client ${clientId}:`, e);
+    return [];
+  }
+}
+
+export async function getUnpaidInvoicesByClientId(
+  clientId: string,
+): Promise<Invoice[]> {
+  try {
+    const invoices = await getInvoicesByClientId(clientId);
+    // Return invoices that have outstanding balance and are not void
+    return invoices.filter(
+      (inv) =>
+        inv.status !== "void" &&
+        inv.status !== "paid" &&
+        inv.amount_due > 0,
+    );
+  } catch (e) {
+    console.error(`Error fetching unpaid invoices for client ${clientId}:`, e);
+    return [];
+  }
+}
+
 export async function getInvoiceById(id: string): Promise<Invoice | null> {
   try {
     const inv = await db.invoice.findUnique({
       where: { id },
       include: {
+        client: true,
         lineItems: { orderBy: { displayOrder: "asc" } },
         payments: { orderBy: { paymentDate: "desc" } },
         deal: {
@@ -151,6 +198,7 @@ export async function getInvoiceByIdOrNumber(
         OR: [{ id: idOrNumber }, { invoiceNumber: idOrNumber }],
       },
       include: {
+        client: true,
         lineItems: { orderBy: { displayOrder: "asc" } },
         payments: { orderBy: { paymentDate: "desc" } },
         deal: {

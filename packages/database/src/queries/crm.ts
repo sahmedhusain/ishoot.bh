@@ -72,6 +72,29 @@ export async function getCRMContactById(
   }
 }
 
+export async function lookupCRMContactByEmailOrPhone(
+  term: string,
+): Promise<CRMContact | null> {
+  try {
+    const cleanTerm = term.trim().toLowerCase();
+    if (!cleanTerm) return null;
+    const contact = await db.crmContact.findFirst({
+      where: {
+        OR: [
+          { email: { contains: cleanTerm, mode: "insensitive" } },
+          { phone: { contains: cleanTerm, mode: "insensitive" } },
+          { emailNorm: { contains: cleanTerm, mode: "insensitive" } },
+          { phoneE164: { contains: cleanTerm, mode: "insensitive" } },
+        ],
+      },
+    });
+    return contact ? mapContact(contact) : null;
+  } catch (e) {
+    console.error(`Error looking up contact by email/phone ${term}:`, e);
+    return null;
+  }
+}
+
 export async function getCustomerDossier(id: string) {
   try {
     const contactRaw = await db.crmContact.findUnique({
@@ -142,18 +165,58 @@ export async function getCustomerDossier(id: string) {
       take: 20,
     });
 
-    const totalLtv = invoicesRaw.reduce(
-      (acc, inv) => acc + Number(inv.totalAmount),
-      0,
-    );
+    const totalLtv = invoicesRaw
+      .filter((inv) => inv.status !== "void")
+      .reduce((acc, inv) => acc + Number(inv.totalAmount), 0);
     const totalPaid = paymentsRaw.reduce((acc, p) => acc + Number(p.amount), 0);
     const totalOutstanding = Math.max(0, totalLtv - totalPaid);
     const activeDealsCount = dealsRaw.filter(
       (d) => !["delivered", "closed_won", "closed_lost"].includes(d.dealStage),
     ).length;
+    const closedWonDeals = dealsRaw.filter((d) => d.dealStage === "closed_won");
+    const winRate =
+      dealsRaw.length > 0
+        ? Math.round((closedWonDeals.length / dealsRaw.length) * 100)
+        : 0;
+    const totalDealValue = dealsRaw.reduce(
+      (acc, d) => acc + Number(d.dealValue),
+      0,
+    );
+    const avgDealSize =
+      dealsRaw.length > 0 ? totalDealValue / dealsRaw.length : 0;
+
+    // Find the latest activity date
+    const timestamps: number[] = [];
+    if (activitiesRaw.length > 0 && activitiesRaw[0].createdAt) {
+      timestamps.push(new Date(activitiesRaw[0].createdAt).getTime());
+    }
+    if (paymentsRaw.length > 0 && paymentsRaw[0].paymentDate) {
+      timestamps.push(new Date(paymentsRaw[0].paymentDate).getTime());
+    }
+    if (invoicesRaw.length > 0 && invoicesRaw[0].issueDate) {
+      timestamps.push(new Date(invoicesRaw[0].issueDate).getTime());
+    }
+    if (inquiriesRaw.length > 0 && inquiriesRaw[0].createdAt) {
+      timestamps.push(new Date(inquiriesRaw[0].createdAt).getTime());
+    }
+    const lastActivityDate =
+      timestamps.length > 0
+        ? new Date(Math.max(...timestamps)).toISOString()
+        : contact.updated_at || contact.created_at;
 
     return {
       contact,
+      metrics: {
+        totalLtv,
+        totalPaid,
+        totalOutstanding,
+        activeDealsCount,
+        invoicesCount: invoicesRaw.length,
+        winRate,
+        avgDealSize,
+        settledReceiptsCount: paymentsRaw.length,
+        lastActivityDate,
+      },
       inquiries: inquiriesRaw.map((inq: any) => ({
         id: inq.id,
         full_name: inq.name,
@@ -268,12 +331,6 @@ export async function getCustomerDossier(id: string) {
         details: act.details,
         created_at: act.createdAt.toISOString(),
       })),
-      metrics: {
-        totalLtv,
-        totalPaid,
-        totalOutstanding,
-        activeDealsCount,
-      },
     };
   } catch (e) {
     console.error(`Error generating Customer Dossier for ${id}:`, e);
@@ -467,4 +524,137 @@ export async function deleteCRMDeal(id: string): Promise<boolean> {
     console.error(`Error deleting CRM deal ${id}:`, e);
     return false;
   }
+}
+
+export async function searchCRMContacts(
+  term: string,
+  limit: number = 10,
+): Promise<CRMContact[]> {
+  try {
+    const clean = term.trim();
+    if (!clean) {
+      const all = await db.crmContact.findMany({
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      });
+      return all.map(mapContact);
+    }
+
+    const contacts = await db.crmContact.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: clean, mode: "insensitive" } },
+          { lastName: { contains: clean, mode: "insensitive" } },
+          { companyName: { contains: clean, mode: "insensitive" } },
+          { email: { contains: clean, mode: "insensitive" } },
+          { phone: { contains: clean, mode: "insensitive" } },
+        ],
+      },
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    });
+
+    return contacts.map(mapContact);
+  } catch (e) {
+    console.error("Error searching CRM contacts:", e);
+    return [];
+  }
+}
+
+export interface GlobalSearchResult {
+  category: "customers" | "invoices" | "deals";
+  id: string;
+  title: string;
+  subtitle: string;
+  url: string;
+  badge?: string;
+}
+
+export async function globalAdminSearch(
+  query: string,
+  limit: number = 8,
+): Promise<GlobalSearchResult[]> {
+  const clean = query.trim();
+  if (!clean || clean.length < 2) return [];
+
+  const results: GlobalSearchResult[] = [];
+
+  try {
+    // 1. Search Contacts/Customers
+    const contacts = await db.crmContact.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: clean, mode: "insensitive" } },
+          { lastName: { contains: clean, mode: "insensitive" } },
+          { companyName: { contains: clean, mode: "insensitive" } },
+          { email: { contains: clean, mode: "insensitive" } },
+          { phone: { contains: clean, mode: "insensitive" } },
+        ],
+      },
+      take: limit,
+    });
+
+    for (const c of contacts) {
+      results.push({
+        category: "customers",
+        id: c.id,
+        title: `${c.firstName || ""} ${c.lastName || ""}`.trim() || c.companyName || "Client",
+        subtitle: c.companyName ? `${c.companyName} • ${c.email || c.phone || ""}` : (c.email || c.phone || "Client"),
+        url: `/dashboard/crm/customers/${c.id}`,
+        badge: c.contactType || "client",
+      });
+    }
+
+    // 2. Search Invoices
+    const invoices = await db.invoice.findMany({
+      where: {
+        OR: [
+          { invoiceNumber: { contains: clean, mode: "insensitive" } },
+          { notesEn: { contains: clean, mode: "insensitive" } },
+          { client: { companyName: { contains: clean, mode: "insensitive" } } },
+          { client: { firstName: { contains: clean, mode: "insensitive" } } },
+        ],
+      },
+      include: { client: true },
+      take: limit,
+    });
+
+    for (const inv of invoices) {
+      results.push({
+        category: "invoices",
+        id: inv.id,
+        title: inv.invoiceNumber,
+        subtitle: `${Number(inv.totalAmount).toFixed(3)} ${inv.currency} • ${inv.client?.companyName || inv.client?.firstName || "Client"}`,
+        url: `/dashboard/invoices/${inv.id}`,
+        badge: inv.status,
+      });
+    }
+
+    // 3. Search Deals
+    const deals = await db.crmDeal.findMany({
+      where: {
+        OR: [
+          { title: { contains: clean, mode: "insensitive" } },
+          { contact: { companyName: { contains: clean, mode: "insensitive" } } },
+        ],
+      },
+      include: { contact: true },
+      take: limit,
+    });
+
+    for (const d of deals) {
+      results.push({
+        category: "deals",
+        id: d.id,
+        title: d.title,
+        subtitle: `${Number(d.dealValue).toFixed(3)} ${d.currency} • ${d.contact?.companyName || d.contact?.firstName || ""}`,
+        url: `/dashboard/crm/deals/${d.id}`,
+        badge: d.dealStage,
+      });
+    }
+  } catch (e) {
+    console.error("Error running global admin search:", e);
+  }
+
+  return results;
 }

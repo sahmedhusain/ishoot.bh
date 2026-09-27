@@ -11,6 +11,10 @@ import {
   updateInquiryStatus,
   deleteInquiry,
   createActivityLog,
+  lookupCRMContactByEmailOrPhone,
+  searchCRMContacts,
+  globalAdminSearch,
+  getCustomerDossier,
   DealStage,
   InquiryStatus,
 } from "@ishoot/database";
@@ -147,6 +151,30 @@ export async function deleteContactAction(id: string) {
 
   revalidatePath("/dashboard/crm/contacts");
   return { success: true };
+}
+
+export async function lookupClientAction(term: string) {
+  await requirePermission("contacts", "read");
+  const contact = await lookupCRMContactByEmailOrPhone(term);
+  return { success: !!contact, contact };
+}
+
+export async function searchContactsAction(query: string) {
+  await requirePermission("contacts", "read");
+  const contacts = await searchCRMContacts(query, 12);
+  return { success: true, contacts };
+}
+
+export async function globalSearchAction(query: string) {
+  // Allow any authenticated user with dashboard access to search
+  const results = await globalAdminSearch(query, 8);
+  return { success: true, results };
+}
+
+export async function getCustomerDossierAction(id: string) {
+  await requirePermission("contacts", "read");
+  const dossier = await getCustomerDossier(id);
+  return { success: !!dossier, dossier };
 }
 
 export async function updateInquiryStatusAction(
