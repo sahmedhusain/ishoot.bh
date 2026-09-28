@@ -1,5 +1,7 @@
 import * as React from "react";
 import { getTranslations, Locale } from "@ishoot/locales";
+import { getCompanySettings } from "@ishoot/database";
+import initialCompanyConfig from "@ishoot/database/config";
 import { SectionBadge } from "../../../components/shared/SectionBadge";
 import { ContactForm } from "../../../components/contact/ContactForm";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
@@ -11,6 +13,18 @@ export default async function ContactPage({
 }) {
   const { locale } = await params;
   const t = getTranslations(locale as Locale);
+  const companySettings = await getCompanySettings().catch(() => null);
+  const rawInitial = initialCompanyConfig.company;
+
+  const company = {
+    companyNameEn: companySettings?.company_name_en ?? rawInitial.companyNameEn,
+    companyNameAr: companySettings?.company_name_ar ?? rawInitial.companyNameAr,
+    addressEn: companySettings?.address_en ?? rawInitial.addressEn,
+    addressAr: companySettings?.address_ar ?? rawInitial.addressAr,
+    phone: companySettings?.phone ?? rawInitial.phone,
+    whatsappPhone: companySettings?.whatsapp_phone ?? rawInitial.whatsappPhone,
+    email: companySettings?.email ?? rawInitial.email,
+  };
 
   return (
     <div className="py-20 max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
@@ -35,27 +49,27 @@ export default async function ContactPage({
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-[#09937F] shrink-0 mt-0.5" />
                 <span className="text-[#9EADA9]">
-                  {t.contact.studioAddress}
+                  {locale === "ar" ? company.addressAr : company.addressEn}
                 </span>
               </div>
 
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-[#09937F] shrink-0" />
                 <a
-                  href="mailto:hello@ishoot.bh"
+                  href={`mailto:${company.email}`}
                   className="text-[#9EADA9] hover:text-[#09937F] transition-colors"
                 >
-                  hello@ishoot.bh
+                  {company.email}
                 </a>
               </div>
 
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-[#09937F] shrink-0" />
                 <a
-                  href="tel:+97317000000"
+                  href={`tel:${company.phone.replace(/\s+/g, "")}`}
                   className="text-[#9EADA9] hover:text-[#09937F] transition-colors font-mono"
                 >
-                  +973 1700 0000
+                  {company.phone}
                 </a>
               </div>
 
@@ -75,7 +89,11 @@ export default async function ContactPage({
             </div>
             <p className="text-xs text-[#9EADA9]">{t.contact.whatsappDesc}</p>
             <a
-              href="https://wa.me/97339000000?text=Hello%20ishoot%20team,%20I%20would%20like%20to%20inquire%20about%20a%20production%20project."
+              href={`https://wa.me/${company.whatsappPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
+                locale === "ar"
+                  ? `مرحباً، أود الاستفسار عن مشروع إنتاج سينمائي مع ${company.companyNameAr}`
+                  : `Hello, I would like to inquire about a production project with ${company.companyNameEn}`,
+              )}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block mt-2 text-sm font-semibold text-[#09937F] hover:text-[#0BB49B] transition-colors"

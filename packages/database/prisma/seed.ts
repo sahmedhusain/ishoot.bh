@@ -5,23 +5,39 @@ dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
+import fs from "fs";
 import { PrismaClient } from "./generated/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting comprehensive database seed for ishoot...");
+  console.log("🌱 Starting dynamic enterprise database seed...");
 
-  const passwordHash = await bcrypt.hash("Admin123!", 10);
+  const configPath = path.resolve(__dirname, "initial-company-config.json");
+  const initialConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+
+  const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
+  const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD;
+
+  if (!superAdminEmail || !superAdminPassword) {
+    throw new Error(
+      "SECURITY CONFIGURATION REQUISITE: SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD must be strictly defined in environment (.env). Fallback credentials or '||' operators are strictly prohibited for database bootstrapping.",
+    );
+  }
+
+  const superAdminName = process.env.SUPER_ADMIN_NAME ?? "Super Admin";
+  const superAdminPhone = process.env.SUPER_ADMIN_PHONE ?? "";
+
+  const passwordHash = await bcrypt.hash(superAdminPassword, 10);
 
   const usersData = [
     {
-      email: "admin@ishoot.bh",
-      fullName: "سيد أحمد حسين",
+      email: superAdminEmail,
+      fullName: superAdminName,
       role: "super_admin",
       department: "executive",
-      phone: "+973 3900 1100",
+      phone: superAdminPhone,
     },
     {
       email: "director@ishoot.bh",
@@ -255,35 +271,33 @@ async function main() {
   const companySettingId = "00000000-0000-0000-0000-000000000001";
   await prisma.companySetting.upsert({
     where: { id: companySettingId },
-    update: {},
+    update: { ...initialConfig.company },
     create: {
       id: companySettingId,
-      companyNameEn: "ishoot Cinema Production S.P.C.",
-      companyNameAr: "دار آي شوت للإنتاج السينمائي ذ.م.م",
-      crNumber: "CR-142859-1",
-      vatId: "200019283700002",
-      vatEnabled: false, 
-      vatPercentage: 10.0,
-      defaultCurrency: "BHD",
-      currencyDecimals: 3,
-      addressEn:
-        "Office 402, Platinum Tower, Seef District, Manama, Kingdom of Bahrain",
-      addressAr: "مكتب 402، برج بلاتينيوم، ضاحية السيف، المنامة، مملكة البحرين",
-      phone: "+973 1700 0000",
-      email: "hello@ishoot.bh",
-      website: "https://ishoot.bh",
-      bankName: "National Bank of Bahrain (NBB)",
-      bankIban: "BH29NBOB00000012345678",
-      bankAccountNumber: "0012345678",
-      bankSwift: "NBOBBHBM",
-      logoUrl: "/images/logo-color.svg",
-      paymentTermsDays: 30,
-      invoicePrefix: "ISH",
-      invoiceNextNumber: 104,
-      receiptPrefix: "RCT",
-      receiptNextNumber: 106,
+      ...initialConfig.company,
     },
   });
+  console.log("✅ Created Company & Tax Settings from initial-company-config.json");
+
+  if (initialConfig.brandingAssets && Array.isArray(initialConfig.brandingAssets)) {
+    for (const asset of initialConfig.brandingAssets) {
+      await prisma.companyAsset.upsert({
+        where: { assetKey: asset.assetKey },
+        update: {
+          title: asset.title,
+          fileUrl: asset.fileUrl,
+          mimeType: asset.mimeType,
+        },
+        create: {
+          assetKey: asset.assetKey,
+          title: asset.title,
+          fileUrl: asset.fileUrl,
+          mimeType: asset.mimeType,
+        },
+      });
+    }
+    console.log("✅ Seeded Enterprise Brand Assets in Database");
+  }
   console.log("✅ Created Company & Tax Settings");
 
   const banners = [
@@ -296,8 +310,8 @@ async function main() {
       subtitleAr:
         "تصوير سينمائي إعلاني، وتصوير جوي سينمائي، وتصحيح ألوان متقدم في مملكة البحرين.",
       mediaType: "image",
-      mediaUrl: "/banners/Youtube cover 01.jpg",
-      posterUrl: "/banners/Youtube cover 01.jpg",
+      mediaUrl: "/banners/youtube-cover-01.jpg",
+      posterUrl: "/banners/youtube-cover-01.jpg",
       displayOrder: 1,
       isActive: true,
       ctaLabelEn: "Explore Works",
@@ -313,8 +327,8 @@ async function main() {
       subtitleAr:
         "مجهزون بأحدث كاميرات ريد في-رابتور 8 كي وعدسات آرّي للعلامات التجارية الرائدة.",
       mediaType: "image",
-      mediaUrl: "/banners/Web Banner 04.jpg",
-      posterUrl: "/banners/Web Banner 04.jpg",
+      mediaUrl: "/banners/web-banner-04.jpg",
+      posterUrl: "/banners/web-banner-04.jpg",
       displayOrder: 2,
       isActive: true,
       ctaLabelEn: "Our Gear Locker",
@@ -330,8 +344,8 @@ async function main() {
       subtitleAr:
         "نلتقط زوايا جوية مذهلة في سماء الخليج العربي بطائرات الدرون السينمائية.",
       mediaType: "image",
-      mediaUrl: "/banners/web banner 02.jpg",
-      posterUrl: "/banners/web banner 02.jpg",
+      mediaUrl: "/banners/web-banner-02.jpg",
+      posterUrl: "/banners/web-banner-02.jpg",
       displayOrder: 3,
       isActive: true,
       ctaLabelEn: "Start a Project",

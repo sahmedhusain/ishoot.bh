@@ -11,13 +11,13 @@ import {
   deleteSession,
 } from "@ishoot/database";
 
-export const SESSION_COOKIE_NAME = "ishoot_session";
+export const SESSION_COOKIE_NAME = "ishoot_admin_session";
 export const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   path: "/",
-  maxAge: 60 * 60 * 24 * 7, 
+  maxAge: 60 * 60 * 24 * 7,
 };
 
 export async function getJwtPayload(): Promise<SessionJwtPayload | null> {
@@ -61,7 +61,7 @@ export async function requirePermission(
 
   if (!allowed) {
     throw new Error(
-      `Unauthorized: Role '${user.role}' lacks '${action}' permission on '${resource}'`,
+      `Unauthorized: Role '${user.role}' cannot perform '${action}' on '${resource}'.`,
     );
   }
 

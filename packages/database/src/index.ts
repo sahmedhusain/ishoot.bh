@@ -20,4 +20,6 @@ export * from "./queries/sessions";
 export * from "./queries/company-documents";
 export * from "./queries/services";
 export * from "./queries/attachments";
+export * from "./queries/company-assets";
 export * from "./services/lead-resolver";
+export { default as initialCompanyConfig } from "./initial-company-config.json";

@@ -4,9 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight, MessageSquare, Sparkles } from "lucide-react";
+import initialCompanyConfig from "@ishoot/database/config";
 
 export function CTASection() {
   const { t, locale } = useTranslation();
+  const company = initialCompanyConfig.company;
 
   return (
     <section
@@ -39,7 +41,7 @@ export function CTASection() {
 
         <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
           <a
-            href="https://wa.me/97317000000"
+            href={`https://wa.me/${company.whatsappPhone.replace(/\D/g, "")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-3 rounded-full border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 py-3 ps-6 pe-3 text-xs sm:text-sm font-bold text-emerald-400 transition-all shadow-xl"
@@ -65,7 +67,7 @@ export function CTASection() {
         <div className="pt-12 text-xs font-mono text-[#9EADA9]/70 space-y-1">
           <div>{t("cta.address")}</div>
           <div className="text-[10px] text-[#09937F]">
-            © {new Date().getFullYear()} ishoot CINEMA PRODUCTION.{" "}
+            © {new Date().getFullYear()} {t("footer.companyName")}.{" "}
             {t("cta.rights")}
           </div>
         </div>

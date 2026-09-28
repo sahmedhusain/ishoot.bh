@@ -110,7 +110,7 @@ export function PaymentDetailView({
             className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#09937F] dark:text-slate-400 dark:hover:text-[#09937F] transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
-            <span>Back to Payments</span>
+            <span>{t.paymentDetailView.back}</span>
           </Link>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display flex items-center gap-2">
@@ -118,7 +118,7 @@ export function PaymentDetailView({
               <span>{payment.receipt_number}</span>
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              Verified Payment
+              {t.paymentDetailView.verifiedPayment}
             </span>
 
             {invoice && (
@@ -128,7 +128,7 @@ export function PaymentDetailView({
                 title="View Linked Invoice"
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>Invoice: {invoice.invoice_number}</span>
+                <span>{t.paymentDetailView.invoice}: {invoice.invoice_number}</span>
                 <span className="text-[10px] opacity-70">↗</span>
               </Link>
             )}
@@ -140,7 +140,7 @@ export function PaymentDetailView({
                 title="View Client Dossier in CRM"
               >
                 <User className="w-3.5 h-3.5" />
-                <span>Client: {clientName}</span>
+                <span>{t.paymentDetailView.client}: {clientName}</span>
                 <span className="text-[10px] opacity-70">↗</span>
               </Link>
             )}
@@ -154,7 +154,7 @@ export function PaymentDetailView({
             onClick={() => window.print()}
             className="gap-2 text-xs font-semibold"
           >
-            <span>Print Receipt</span>
+            <span>{t.paymentDetailView.printReceipt}</span>
           </Button>
         </div>
       </div>
@@ -180,12 +180,12 @@ export function PaymentDetailView({
             </div>
             <div>
               <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Settlement Proof Documents & Archive Vault
+                {t.paymentDetailView.settlementVaultTitle}
               </h2>
               <p className="text-[11px] text-slate-500 dark:text-neutral-400">
                 {payment.payment_method === "cheque"
-                  ? "Cheque copy and bank transfer statements indexed in central archive."
-                  : "Payment receipts and bank transfer slips indexed in central archive."}
+                  ? t.paymentDetailView.settlementVaultDescCheque
+                  : t.paymentDetailView.settlementVaultDescGeneral}
               </p>
             </div>
           </div>
@@ -196,7 +196,7 @@ export function PaymentDetailView({
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#014842] dark:text-[#7de0d1] bg-[#e6f5f2] dark:bg-[#004d40]/40 border border-[#014842]/30 dark:border-[#004d40] hover:underline transition-colors"
             >
               <FolderArchive className="w-3.5 h-3.5" />
-              <span>View in Archive Vault</span>
+              <span>{t.paymentDetailView.viewArchive}</span>
             </Link>
 
             <input
@@ -216,12 +216,12 @@ export function PaymentDetailView({
               {uploading ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Uploading...</span>
+                  <span>{t.paymentDetailView.uploading}</span>
                 </>
               ) : (
                 <>
                   <UploadCloud className="w-3.5 h-3.5" />
-                  <span>Upload Proof</span>
+                  <span>{t.paymentDetailView.uploadProof}</span>
                 </>
               )}
             </button>
@@ -264,7 +264,7 @@ export function PaymentDetailView({
                       <p className="text-[10px] text-slate-500 dark:text-neutral-400 font-mono">
                         {att.file_size
                           ? `${(att.file_size / 1024).toFixed(0)} KB`
-                          : "Document"}{" "}
+                          : t.paymentDetailView.document}{" "}
                         • {att.created_at?.split("T")[0]}
                       </p>
                     </div>
@@ -288,9 +288,7 @@ export function PaymentDetailView({
         ) : (
           <div className="p-4 rounded-xl border border-dashed border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/20 text-center">
             <p className="text-xs text-slate-500 dark:text-neutral-400">
-              No settlement proof documents attached yet. Click{" "}
-              <strong>Upload Proof</strong> above to attach cheque scans or bank
-              transfer slips.
+              {t.paymentDetailView.noAttachmentsYet}
             </p>
           </div>
         )}

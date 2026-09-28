@@ -1,4 +1,5 @@
 import { db } from "../db";
+import initialConfig from "../initial-company-config.json";
 import {
   Invoice,
   InvoiceLineItem,
@@ -250,48 +251,60 @@ export async function createInvoice(data: {
   );
 
   const year = new Date().getFullYear();
-  const count = await db.invoice.count();
-  const invoiceNumber = `ISH-${year}-${String(count + 1).padStart(3, "0")}`;
+  const created = await db.$transaction(async (tx) => {
+    let company = await tx.companySetting.findFirst();
+    if (!company) {
+      company = await tx.companySetting.create({ data: { ...initialConfig.company } });
+    }
+    const prefix = company.invoicePrefix || initialConfig.company.invoicePrefix;
+    const num = company.invoiceNextNumber ?? initialConfig.company.invoiceNextNumber;
+    const invoiceNumber = `${prefix}-${year}-${String(num).padStart(4, "0")}`;
 
-  const created = await db.invoice.create({
-    data: {
-      invoiceNumber,
-      clientId: data.contact_id || null,
-      dealId: data.deal_id || null,
-      issueDate: new Date(data.issue_date),
-      dueDate: new Date(data.due_date),
-      subtotal: totals.subtotal,
-      discountType: data.discount_type || "none",
-      discountValue: data.discount_value || 0,
-      discountAmount: totals.discountAmount,
-      vatEnabled: data.vat_enabled ?? false,
-      vatPercentage: data.vat_percentage ?? 10,
-      vatAmount: totals.vatAmount,
-      totalAmount: totals.totalAmount,
-      currency,
-      language: data.language || "ar",
-      status: "draft",
-      notesEn: data.notes_en || null,
-      notesAr: data.notes_ar || null,
-      createdById: data.created_by || null,
-      lineItems: {
-        create: data.line_items.map((li, idx) => ({
-          serviceId: li.service_id || null,
-          descriptionEn: li.description_en,
-          descriptionAr: li.description_ar || null,
-          quantity: li.quantity,
-          unitPrice: li.unit_price,
-          lineTotal: li.quantity * li.unit_price,
-          displayOrder: idx + 1,
-        })),
+    await tx.companySetting.update({
+      where: { id: company.id },
+      data: { invoiceNextNumber: num + 1 },
+    });
+
+    return await tx.invoice.create({
+      data: {
+        invoiceNumber,
+        clientId: data.contact_id || null,
+        dealId: data.deal_id || null,
+        issueDate: new Date(data.issue_date),
+        dueDate: new Date(data.due_date),
+        subtotal: totals.subtotal,
+        discountType: data.discount_type || "none",
+        discountValue: data.discount_value || 0,
+        discountAmount: totals.discountAmount,
+        vatEnabled: data.vat_enabled ?? false,
+        vatPercentage: data.vat_percentage ?? 10,
+        vatAmount: totals.vatAmount,
+        totalAmount: totals.totalAmount,
+        currency,
+        language: data.language || "ar",
+        status: "draft",
+        notesEn: data.notes_en || null,
+        notesAr: data.notes_ar || null,
+        createdById: data.created_by || null,
+        lineItems: {
+          create: data.line_items.map((li, idx) => ({
+            serviceId: li.service_id || null,
+            descriptionEn: li.description_en,
+            descriptionAr: li.description_ar || null,
+            quantity: li.quantity,
+            unitPrice: li.unit_price,
+            lineTotal: li.quantity * li.unit_price,
+            displayOrder: idx + 1,
+          })),
+        },
       },
-    },
-    include: {
-      client: true,
-      lineItems: true,
-      payments: true,
-      deal: { include: { contact: true } },
-    },
+      include: {
+        client: true,
+        lineItems: true,
+        payments: true,
+        deal: { include: { contact: true } },
+      },
+    });
   });
 
   return mapPrismaInvoiceToInvoice(created);

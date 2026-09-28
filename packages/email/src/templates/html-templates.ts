@@ -1,38 +1,70 @@
+import { initialCompanyConfig } from "@ishoot/database";
+import { getTranslations, type Locale } from "@ishoot/locales";
+
+const defaultCompany = initialCompanyConfig.company;
+
+export interface BrandEmailCompanyInfo {
+  nameEn?: string;
+  nameAr?: string;
+  cr?: string;
+  website?: string;
+  email?: string;
+  addressEn?: string;
+  addressAr?: string;
+}
+
 export function renderBrandEmailLayout(
   title: string,
   contentHtml: string,
   isRtl: boolean = false,
+  companyInfo?: BrandEmailCompanyInfo,
 ): string {
   const dir = isRtl ? "rtl" : "ltr";
   const textAlign = isRtl ? "right" : "left";
   const fontFamily = isRtl
-    ? "'IBM Plex Sans Arabic', Tahoma, Arial, sans-serif"
+    ? "'IBM Plex Sans Arabic', 'SF Pro Arabic', Tahoma, Arial, sans-serif"
     : "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+  const comp = {
+    nameEn: companyInfo?.nameEn ?? defaultCompany.companyNameEn,
+    nameAr: companyInfo?.nameAr ?? defaultCompany.companyNameAr,
+    cr: companyInfo?.cr ?? defaultCompany.crNumber,
+    website: companyInfo?.website ?? defaultCompany.website,
+    email: companyInfo?.email ?? defaultCompany.email,
+    addressEn: companyInfo?.addressEn ?? defaultCompany.addressEn,
+    addressAr: companyInfo?.addressAr ?? defaultCompany.addressAr,
+  };
+
+  const displayName = isRtl ? comp.nameAr : comp.nameEn;
+  const displayAddress = isRtl ? comp.addressAr : comp.addressEn;
+  const cleanWebsiteDomain = comp.website.replace(/^https?:\/\//, "");
+  const localeKey: Locale = isRtl ? "ar" : "en";
+  const t = getTranslations(localeKey);
 
   return `
 <!DOCTYPE html>
-<html dir="${dir}" lang="${isRtl ? "ar" : "en"}">
+<html dir="${dir}" lang="${localeKey}">
 <head>
   <meta charset="utf-8">
   <title>${title}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #050807; font-family: ${fontFamily}; color: #F2F6F5;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #050807; padding: 40px 10px;">
+<body style="margin: 0; padding: 0; background-color: #050807; font-family: ${fontFamily}; color: #F2F6F5; -webkit-font-smoothing: antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #050807; padding: 40px 12px;">
     <tr>
       <td align="center">
-        <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #0B1210; border: 1px solid rgba(9, 147, 127, 0.25); border-radius: 16px; overflow: hidden;">
-          <!-- Header Bar: #014842 (Brand Emerald) -->
+        <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: #0B1210; border: 1px solid rgba(9, 147, 127, 0.3); border-radius: 20px; overflow: hidden; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);">
+          <!-- Header Bar with Emerald Accent Line -->
           <tr>
             <td style="background-color: #014842; padding: 28px 36px; border-bottom: 2px solid #09937F;">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="${textAlign}">
-                    <span style="font-size: 26px; font-weight: 700; letter-spacing: 1px; color: #FFFFFF;">
-                      ishoot<span style="color: #09937F;">.</span>
+                    <span style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #FFFFFF;">
+                      ${displayName}<span style="color: #09937F;">.</span>
                     </span>
-                    <div style="font-size: 11px; text-transform: uppercase; tracking: 2px; color: #9EADA9; margin-top: 4px;">
-                      ${isRtl ? "دار الإنتاج السينمائي — مملكة البحرين" : "Cinema Production House — Kingdom of Bahrain"}
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #9EADA9; margin-top: 4px; font-weight: 500;">
+                      ${displayAddress}
                     </div>
                   </td>
                 </tr>
@@ -40,21 +72,24 @@ export function renderBrandEmailLayout(
             </td>
           </tr>
 
-          <!-- Body Content -->
+          <!-- Body Content Container -->
           <tr>
-            <td style="padding: 36px 36px; text-align: ${textAlign}; line-height: 1.65; color: #F2F6F5;">
+            <td style="padding: 40px 36px; text-align: ${textAlign}; line-height: 1.65; color: #F2F6F5;">
               ${contentHtml}
             </td>
           </tr>
 
-          <!-- Footer -->
+          <!-- Footer Bar -->
           <tr>
-            <td style="background-color: #050807; padding: 24px 36px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 12px; color: #9EADA9;">
-              <div style="margin-bottom: 8px;">
-                ishoot Cinema Production • Seef District, Kingdom of Bahrain
+            <td style="background-color: #050807; padding: 28px 36px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 12px; color: #9EADA9;">
+              <div style="margin-bottom: 10px; font-weight: 500; color: #C5D1CD;">
+                ${displayName} • ${displayAddress}
               </div>
-              <div>
-                CR: CR-142859-1 • <a href="https://ishoot.bh" style="color: #09937F; text-decoration: none;">ishoot.bh</a> • hello@ishoot.bh
+              <div style="color: #839490; font-size: 11px;">
+                ${t.email.layout.cr.replace("{cr}", comp.cr)} • <a href="${comp.website}" style="color: #09937F; text-decoration: none; font-weight: 600;">${cleanWebsiteDomain}</a> • ${comp.email}
+              </div>
+              <div style="margin-top: 12px; color: #556662; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
+                ${t.email.layout.rights}
               </div>
             </td>
           </tr>
@@ -71,63 +106,51 @@ export function createInquiryConfirmationEmail(
   name: string,
   services: string[],
   locale: string = "en",
+  companyInfo?: BrandEmailCompanyInfo,
 ): string {
-  const isAr = locale === "ar";
+  const localeKey: Locale = locale === "ar" ? "ar" : "en";
+  const isAr = localeKey === "ar";
+  const t = getTranslations(localeKey);
+
+  const compName = isAr
+    ? (companyInfo?.nameAr ?? defaultCompany.companyNameAr)
+    : (companyInfo?.nameEn ?? defaultCompany.companyNameEn);
+
   const serviceList = services
-    .map((s) => `<li style="margin-bottom: 6px; color: #09937F;">${s}</li>`)
+    .map((s) => `<li style="margin-bottom: 8px; color: #09937F; font-weight: 500;"><span style="color: #F2F6F5;">${s}</span></li>`)
     .join("");
 
-  if (isAr) {
-    const content = `
-      <h2 style="color: #FFFFFF; font-size: 22px; margin-top: 0;">شكراً لتواصلك معنا، ${name}!</h2>
-      <p style="font-size: 15px; color: #9EADA9;">
-        استلمنا تفاصيل مشروعك وسيقوم فريق الإنتاج بمراجعة متطلباتك والتواصل معك خلال <strong>24 ساعة</strong> لتحديد موعد الاجتماع المبدئي ومناقشة تفاصيل العمل.
-      </p>
-      <div style="background-color: #111C19; border: 1px solid rgba(9, 147, 127, 0.2); border-radius: 12px; padding: 20px; margin: 24px 0;">
-        <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; color: #FFFFFF; margin-bottom: 12px;">
-          الخدمات المطلوبة:
-        </div>
-        <ul style="margin: 0; padding-right: 20px; font-size: 14px;">
-          ${serviceList}
-        </ul>
-      </div>
-      <p style="font-size: 14px; color: #9EADA9;">
-        إذا كانت لديك أي استفسارات عاجلة، يمكنك مراسلتنا مباشرة عبر الواتساب أو الرد على هذا البريد الإلكتروني.
-      </p>
-      <div style="margin-top: 28px;">
-        <span style="font-weight: 600; color: #FFFFFF;">مع أطيب التحيات،</span><br>
-        <span style="color: #09937F;">فريق إنتاج آي شوت</span>
-      </div>
-    `;
-    return renderBrandEmailLayout("شكراً لتواصلك مع آي شوت", content, true);
-  }
+  const subject = t.email.confirmation.subject.replace("{companyName}", compName);
+  const title = t.email.confirmation.title.replace("{name}", name);
+  const receivedMsg = t.email.confirmation.receivedMessage;
+  const servicesTitle = t.email.confirmation.servicesRequested;
+  const urgentInquiries = t.email.confirmation.urgentInquiries;
+  const warmRegards = t.email.confirmation.warmRegards;
+  const prodTeam = t.email.confirmation.productionTeam.replace("{companyName}", compName);
 
   const content = `
-    <h2 style="color: #FFFFFF; font-size: 22px; margin-top: 0;">Thank you for contacting us, ${name}!</h2>
-    <p style="font-size: 15px; color: #9EADA9;">
-      We have received your project brief. Our production team is reviewing your requirements and will connect with you within <strong>24 hours</strong> to coordinate initial discussions.
+    <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 16px;">${title}</h2>
+    <p style="font-size: 15px; color: #9EADA9; margin-bottom: 24px;">
+      ${receivedMsg}
     </p>
-    <div style="background-color: #111C19; border: 1px solid rgba(9, 147, 127, 0.2); border-radius: 12px; padding: 20px; margin: 24px 0;">
-      <div style="font-size: 13px; font-weight: 600; text-transform: uppercase; color: #FFFFFF; margin-bottom: 12px;">
-        Services Requested:
+    <div style="background-color: #111C19; border: 1px solid rgba(9, 147, 127, 0.25); border-radius: 14px; padding: 22px; margin: 24px 0;">
+      <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #FFFFFF; margin-bottom: 14px;">
+        ${servicesTitle}
       </div>
-      <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+      <ul style="margin: 0; ${isAr ? "padding-right: 20px;" : "padding-left: 20px;"} font-size: 14px;">
         ${serviceList}
       </ul>
     </div>
-    <p style="font-size: 14px; color: #9EADA9;">
-      For urgent production inquiries, you may reach us directly via WhatsApp or reply to this message.
+    <p style="font-size: 14px; color: #9EADA9; line-height: 1.6;">
+      ${urgentInquiries}
     </p>
-    <div style="margin-top: 28px;">
-      <span style="font-weight: 600; color: #FFFFFF;">Warm regards,</span><br>
-      <span style="color: #09937F;">The ishoot Production Team</span>
+    <div style="margin-top: 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px;">
+      <span style="font-weight: 600; color: #FFFFFF; font-size: 15px;">${warmRegards}</span><br>
+      <span style="color: #09937F; font-weight: 600; font-size: 14px;">${prodTeam}</span>
     </div>
   `;
-  return renderBrandEmailLayout(
-    "Thank you for contacting ishoot",
-    content,
-    false,
-  );
+
+  return renderBrandEmailLayout(subject, content, isAr, companyInfo);
 }
 
 export function createInquiryNotificationEmail(inquiry: {
@@ -138,52 +161,55 @@ export function createInquiryNotificationEmail(inquiry: {
   services: string[];
   budget?: string;
   message?: string;
+  companyInfo?: BrandEmailCompanyInfo;
 }): string {
-  const serviceList = inquiry.services.map((s) => `<li>${s}</li>`).join("");
+  const t = getTranslations("en");
+  const serviceList = inquiry.services.map((s) => `<li style="margin-bottom: 4px;">${s}</li>`).join("");
+
+  const badgeText = t.email.notification.badge;
+  const titleText = t.email.notification.title.replace("{fullName}", inquiry.fullName);
+  const subjectText = t.email.notification.subject.replace("{fullName}", inquiry.fullName);
 
   const content = `
-    <div style="display: inline-block; background-color: rgba(9, 147, 127, 0.15); border: 1px solid #09937F; color: #09937F; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px; text-transform: uppercase; margin-bottom: 16px;">
-      New Lead Received
+    <div style="display: inline-block; background-color: rgba(9, 147, 127, 0.15); border: 1px solid #09937F; color: #09937F; font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;">
+      ${badgeText}
     </div>
-    <h2 style="color: #FFFFFF; font-size: 22px; margin-top: 0;">${inquiry.fullName} is requesting to collaborate</h2>
+    <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 20px;">${titleText}</h2>
     
-    <table width="100%" border="0" cellspacing="0" cellpadding="8" style="background-color: #111C19; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 14px; margin: 20px 0;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="10" style="background-color: #111C19; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 14px; margin: 20px 0;">
       <tr>
-        <td width="140" style="color: #9EADA9;">Full Name:</td>
-        <td style="color: #FFFFFF; font-weight: 600;">${inquiry.fullName}</td>
+        <td width="140" style="color: #9EADA9; font-weight: 500;">${t.email.notification.fullName}</td>
+        <td style="color: #FFFFFF; font-weight: 700;">${inquiry.fullName}</td>
       </tr>
       <tr>
-        <td style="color: #9EADA9;">Email:</td>
-        <td><a href="mailto:${inquiry.email}" style="color: #09937F; text-decoration: none;">${inquiry.email}</a></td>
+        <td style="color: #9EADA9; font-weight: 500;">${t.email.notification.email}</td>
+        <td><a href="mailto:${inquiry.email}" style="color: #09937F; text-decoration: none; font-weight: 600;">${inquiry.email}</a></td>
       </tr>
       <tr>
-        <td style="color: #9EADA9;">Phone:</td>
-        <td><a href="tel:${inquiry.phone || ""}" style="color: #09937F; text-decoration: none;">${inquiry.phone || "Not specified"}</a></td>
+        <td style="color: #9EADA9; font-weight: 500;">${t.email.notification.phone}</td>
+        <td><a href="tel:${inquiry.phone ?? ""}" style="color: #09937F; text-decoration: none; font-family: monospace;">${inquiry.phone ?? t.email.notification.notSpecified}</a></td>
       </tr>
       <tr>
-        <td style="color: #9EADA9;">Company:</td>
-        <td style="color: #FFFFFF;">${inquiry.company || "Direct / Individual"}</td>
+        <td style="color: #9EADA9; font-weight: 500;">${t.email.notification.company}</td>
+        <td style="color: #FFFFFF;">${inquiry.company ?? t.email.notification.directIndividual}</td>
       </tr>
       <tr>
-        <td style="color: #9EADA9;">Anticipated Budget:</td>
-        <td style="color: #09937F; font-weight: 600;">${inquiry.budget || "To be discussed"}</td>
+        <td style="color: #9EADA9; font-weight: 500;">${t.email.notification.budget}</td>
+        <td style="color: #09937F; font-weight: 700;">${inquiry.budget ?? t.email.notification.toBeDiscussed}</td>
       </tr>
       <tr>
-        <td valign="top" style="color: #9EADA9;">Services:</td>
+        <td valign="top" style="color: #9EADA9; font-weight: 500;">${t.email.notification.services}</td>
         <td style="color: #FFFFFF;"><ul style="margin: 0; padding-left: 18px;">${serviceList}</ul></td>
       </tr>
     </table>
 
-    <div style="font-size: 13px; font-weight: 600; color: #9EADA9; margin-bottom: 8px;">Project Brief:</div>
-    <div style="background-color: #050807; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 16px; font-size: 14px; color: #F2F6F5; white-space: pre-wrap;">
-      ${inquiry.message || "No additional message provided."}
+    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #9EADA9; margin-bottom: 8px;">${t.email.notification.projectBrief}</div>
+    <div style="background-color: #050807; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 18px; font-size: 14px; color: #F2F6F5; white-space: pre-wrap; line-height: 1.6;">
+      ${inquiry.message ?? t.email.notification.noMessage}
     </div>
   `;
-  return renderBrandEmailLayout(
-    `🔔 New Inquiry: ${inquiry.fullName}`,
-    content,
-    false,
-  );
+
+  return renderBrandEmailLayout(subjectText, content, false, inquiry.companyInfo);
 }
 
 export function createInvoiceDeliveryEmail(params: {
@@ -194,88 +220,60 @@ export function createInvoiceDeliveryEmail(params: {
   bankName: string;
   bankIban: string;
   locale?: "en" | "ar";
+  companyInfo?: BrandEmailCompanyInfo;
 }): string {
-  const isAr = params.locale === "ar";
+  const localeKey: Locale = params.locale === "ar" ? "ar" : "en";
+  const isAr = localeKey === "ar";
+  const t = getTranslations(localeKey);
 
-  if (isAr) {
-    const content = `
-      <h2 style="color: #FFFFFF; font-size: 22px; margin-top: 0;">عزيزنا ${params.clientName}،</h2>
-      <p style="font-size: 15px; color: #9EADA9;">
-        نرفق لكم طيه الفاتورة رقم <strong>${params.invoiceNumber}</strong> الخاصة بالمشروع الإنتاجي المعتمد.
-      </p>
+  const compName = isAr
+    ? (params.companyInfo?.nameAr ?? defaultCompany.companyNameAr)
+    : (params.companyInfo?.nameEn ?? defaultCompany.companyNameEn);
 
-      <div style="background-color: #111C19; border: 1px solid rgba(9, 147, 127, 0.25); border-radius: 12px; padding: 24px; margin: 24px 0;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="6" style="font-size: 14px;">
-          <tr>
-            <td style="color: #9EADA9;">رقم الفاتورة:</td>
-            <td style="color: #FFFFFF; font-weight: 600;">${params.invoiceNumber}</td>
-          </tr>
-          <tr>
-            <td style="color: #9EADA9;">تاريخ الاستحقاق:</td>
-            <td style="color: #FFFFFF;">${params.dueDate}</td>
-          </tr>
-          <tr>
-            <td style="color: #9EADA9; font-size: 16px; padding-top: 12px;">المبلغ المطلوب سداده:</td>
-            <td style="color: #09937F; font-size: 20px; font-weight: 700; padding-top: 12px;">${params.totalAmountFormatted}</td>
-          </tr>
-        </table>
+  const subject = t.email.invoiceDelivery.subject
+    .replace("{invoiceNumber}", params.invoiceNumber)
+    .replace("{companyName}", compName);
 
-        <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); margin-top: 16px; padding-top: 16px; font-size: 13px;">
-          <div style="font-weight: 600; color: #FFFFFF; margin-bottom: 6px;">بيانات التحويل البنكي:</div>
-          <div style="color: #9EADA9;">البنك: ${params.bankName}</div>
-          <div style="color: #9EADA9;">الآيبان: <span style="color: #FFFFFF; font-family: monospace;">${params.bankIban}</span></div>
-        </div>
-      </div>
-
-      <p style="font-size: 14px; color: #9EADA9;">
-        تجدون نسخة الفاتورة الرسمية بصيغة PDF مرفقة مع هذا البريد الإلكتروني.
-      </p>
-    `;
-    return renderBrandEmailLayout(
-      `فاتورة رقم ${params.invoiceNumber} من آي شوت`,
-      content,
-      true,
-    );
-  }
+  const greeting = t.email.invoiceDelivery.greeting.replace("{clientName}", params.clientName);
+  const body = t.email.invoiceDelivery.body.replace("{invoiceNumber}", params.invoiceNumber);
 
   const content = `
-    <h2 style="color: #FFFFFF; font-size: 22px; margin-top: 0;">Dear ${params.clientName},</h2>
-    <p style="font-size: 15px; color: #9EADA9;">
-      Please find attached official invoice <strong>${params.invoiceNumber}</strong> for your production project.
+    <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 16px;">${greeting}</h2>
+    <p style="font-size: 15px; color: #9EADA9; margin-bottom: 24px;">
+      ${body}
     </p>
 
-    <div style="background-color: #111C19; border: 1px solid rgba(9, 147, 127, 0.25); border-radius: 12px; padding: 24px; margin: 24px 0;">
-      <table width="100%" border="0" cellspacing="0" cellpadding="6" style="font-size: 14px;">
+    <div style="background-color: #111C19; border: 1px solid rgba(9, 147, 127, 0.3); border-radius: 16px; padding: 26px; margin: 24px 0;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="8" style="font-size: 14px;">
         <tr>
-          <td style="color: #9EADA9;">Invoice Number:</td>
-          <td style="color: #FFFFFF; font-weight: 600;">${params.invoiceNumber}</td>
+          <td style="color: #9EADA9;">${t.email.invoiceDelivery.invoiceNumber}</td>
+          <td style="color: #FFFFFF; font-weight: 700;">${params.invoiceNumber}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9;">Payment Due Date:</td>
+          <td style="color: #9EADA9;">${t.email.invoiceDelivery.dueDate}</td>
           <td style="color: #FFFFFF;">${params.dueDate}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9; font-size: 16px; padding-top: 12px;">Amount Due:</td>
-          <td style="color: #09937F; font-size: 20px; font-weight: 700; padding-top: 12px;">${params.totalAmountFormatted}</td>
+          <td style="color: #9EADA9; font-size: 15px; padding-top: 14px;">${t.email.invoiceDelivery.amountDue}</td>
+          <td style="color: #09937F; font-size: 22px; font-weight: 800; padding-top: 14px;">${params.totalAmountFormatted}</td>
         </tr>
       </table>
 
-      <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); margin-top: 16px; padding-top: 16px; font-size: 13px;">
-        <div style="font-weight: 600; color: #FFFFFF; margin-bottom: 6px;">Bank Transfer Details:</div>
-        <div style="color: #9EADA9;">Bank: ${params.bankName}</div>
-        <div style="color: #9EADA9;">IBAN: <span style="color: #FFFFFF; font-family: monospace;">${params.bankIban}</span></div>
+      <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 20px; padding-top: 18px; font-size: 13px;">
+        <div style="font-weight: 700; color: #FFFFFF; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
+          ${t.email.invoiceDelivery.bankDetails}
+        </div>
+        <div style="color: #9EADA9; margin-bottom: 4px;">${t.email.invoiceDelivery.bank} <span style="color: #FFFFFF;">${params.bankName}</span></div>
+        <div style="color: #9EADA9;">${t.email.invoiceDelivery.iban} <span style="color: #FFFFFF; font-family: monospace; font-weight: 600;">${params.bankIban}</span></div>
       </div>
     </div>
 
-    <p style="font-size: 14px; color: #9EADA9;">
-      The complete printable PDF document is attached to this email.
+    <p style="font-size: 14px; color: #9EADA9; line-height: 1.6;">
+      ${t.email.invoiceDelivery.pdfNotice}
     </p>
   `;
-  return renderBrandEmailLayout(
-    `Invoice ${params.invoiceNumber} from ishoot`,
-    content,
-    false,
-  );
+
+  return renderBrandEmailLayout(subject, content, isAr, params.companyInfo);
 }
 
 export function createPaymentReceiptEmail(params: {
@@ -287,88 +285,62 @@ export function createPaymentReceiptEmail(params: {
   paymentMethod: string;
   isPaidInFull: boolean;
   locale?: "en" | "ar";
+  companyInfo?: BrandEmailCompanyInfo;
 }): string {
-  const isAr = params.locale === "ar";
+  const localeKey: Locale = params.locale === "ar" ? "ar" : "en";
+  const isAr = localeKey === "ar";
+  const t = getTranslations(localeKey);
 
-  if (isAr) {
-    const content = `
-      <div style="display: inline-block; background-color: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px; text-transform: uppercase; margin-bottom: 16px;">
-        ${params.isPaidInFull ? "تم سداد الفاتورة بالكامل" : "استلام دفعة جزئية"}
-      </div>
-      <h2 style="color: #FFFFFF; font-size: 22px; margin-top: 0;">تأكيد استلام الدفعة</h2>
-      <p style="font-size: 15px; color: #9EADA9;">
-        عزيزنا ${params.clientName}، نؤكد لكم استلام الدفعة المالية الموضحة أدناه للفاتورة رقم <strong>${params.invoiceNumber}</strong>.
-      </p>
+  const compName = isAr
+    ? (params.companyInfo?.nameAr ?? defaultCompany.companyNameAr)
+    : (params.companyInfo?.nameEn ?? defaultCompany.companyNameEn);
 
-      <div style="background-color: #111C19; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 24px; margin: 24px 0;">
-        <table width="100%" border="0" cellspacing="0" cellpadding="6" style="font-size: 14px;">
-          <tr>
-            <td style="color: #9EADA9;">رقم الإيصال:</td>
-            <td style="color: #FFFFFF; font-weight: 600;">${params.receiptNumber}</td>
-          </tr>
-          <tr>
-            <td style="color: #9EADA9;">طريقة الدفع:</td>
-            <td style="color: #FFFFFF;">${params.paymentMethod}</td>
-          </tr>
-          <tr>
-            <td style="color: #9EADA9; font-size: 16px; padding-top: 12px;">المبلغ المستلم:</td>
-            <td style="color: #10B981; font-size: 20px; font-weight: 700; padding-top: 12px;">${params.amountReceivedFormatted}</td>
-          </tr>
-          <tr>
-            <td style="color: #9EADA9;">المتبقي على الفاتورة:</td>
-            <td style="color: #F2F6F5; font-weight: 600;">${params.remainingDueFormatted}</td>
-          </tr>
-        </table>
-      </div>
+  const subject = t.email.paymentReceipt.subject
+    .replace("{receiptNumber}", params.receiptNumber)
+    .replace("{companyName}", compName);
 
-      <p style="font-size: 14px; color: #9EADA9;">
-        تجدون إيصال الاستلام الرسمي بصيغة PDF مرفقاً مع هذه الرسالة.
-      </p>
-    `;
-    return renderBrandEmailLayout(
-      `إيصال استلام دفعة ${params.receiptNumber} — آي شوت`,
-      content,
-      true,
-    );
-  }
+  const badgeText = params.isPaidInFull
+    ? t.email.paymentReceipt.badgePaidInFull
+    : t.email.paymentReceipt.badgePartial;
+
+  const title = t.email.paymentReceipt.title;
+  const greeting = t.email.paymentReceipt.greeting.replace("{clientName}", params.clientName);
+  const body = t.email.paymentReceipt.body.replace("{invoiceNumber}", params.invoiceNumber);
 
   const content = `
-    <div style="display: inline-block; background-color: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 999px; text-transform: uppercase; margin-bottom: 16px;">
-      ${params.isPaidInFull ? "Paid in Full" : "Partial Payment Received"}
+    <div style="display: inline-block; background-color: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;">
+      ${badgeText}
     </div>
-    <h2 style="color: #FFFFFF; font-size: 22px; margin-top: 0;">Payment Receipt Confirmation</h2>
-    <p style="font-size: 15px; color: #9EADA9;">
-      Dear ${params.clientName}, we confirm receipt of your payment for invoice <strong>${params.invoiceNumber}</strong>.
+    <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 12px;">${title}</h2>
+    <p style="font-size: 15px; color: #9EADA9; margin-bottom: 24px;">
+      ${greeting} ${body}
     </p>
 
-    <div style="background-color: #111C19; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 24px; margin: 24px 0;">
-      <table width="100%" border="0" cellspacing="0" cellpadding="6" style="font-size: 14px;">
+    <div style="background-color: #111C19; border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 16px; padding: 26px; margin: 24px 0;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="8" style="font-size: 14px;">
         <tr>
-          <td style="color: #9EADA9;">Receipt Number:</td>
-          <td style="color: #FFFFFF; font-weight: 600;">${params.receiptNumber}</td>
+          <td style="color: #9EADA9;">${t.email.paymentReceipt.receiptNumber}</td>
+          <td style="color: #FFFFFF; font-weight: 700;">${params.receiptNumber}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9;">Payment Method:</td>
+          <td style="color: #9EADA9;">${t.email.paymentReceipt.paymentMethod}</td>
           <td style="color: #FFFFFF;">${params.paymentMethod}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9; font-size: 16px; padding-top: 12px;">Amount Received:</td>
-          <td style="color: #10B981; font-size: 20px; font-weight: 700; padding-top: 12px;">${params.amountReceivedFormatted}</td>
+          <td style="color: #9EADA9; font-size: 15px; padding-top: 14px;">${t.email.paymentReceipt.amountReceived}</td>
+          <td style="color: #10B981; font-size: 22px; font-weight: 800; padding-top: 14px;">${params.amountReceivedFormatted}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9;">Remaining Balance:</td>
+          <td style="color: #9EADA9;">${t.email.paymentReceipt.remainingBalance}</td>
           <td style="color: #F2F6F5; font-weight: 600;">${params.remainingDueFormatted}</td>
         </tr>
       </table>
     </div>
 
-    <p style="font-size: 14px; color: #9EADA9;">
-      Your formal payment receipt document is attached to this email.
+    <p style="font-size: 14px; color: #9EADA9; line-height: 1.6;">
+      ${t.email.paymentReceipt.pdfNotice}
     </p>
   `;
-  return renderBrandEmailLayout(
-    `Payment Receipt ${params.receiptNumber} — ishoot`,
-    content,
-    false,
-  );
+
+  return renderBrandEmailLayout(subject, content, isAr, params.companyInfo);
 }

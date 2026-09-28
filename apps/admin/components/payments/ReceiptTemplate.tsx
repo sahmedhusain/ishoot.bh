@@ -47,13 +47,13 @@ export function ReceiptTemplate({
       <DocumentLetterhead
         documentType="receipt"
         documentNumber={payment.receipt_number}
-        titleEn="PAYMENT RECEIPT"
-        titleAr="سند قبض واستلام"
+        titleEn={adminTranslations.en.pdfReceipt.title.toUpperCase()}
+        titleAr={adminTranslations.ar.pdfReceipt.title}
         company={company}
         language={locale}
         issueDateLabel={rcpt.paymentDate}
         issueDate={payment.payment_date}
-        statusLabel="Settlement Status"
+        statusLabel={t.paymentsView.tableStatus}
         statusValue={isPaidInFull ? rcpt.paidInFull : rcpt.partial}
         clientSectionTitle={rcpt.receivedFrom}
         client={{
@@ -160,10 +160,10 @@ export function ReceiptTemplate({
 
       <DocumentFooter
         company={company}
-        thankYouMessage={rcpt.generatedBy || "Payment receipt verified and processed by ishoot Cinema Production."}
+        thankYouMessage={adminTranslations[isAr ? "ar" : "en"].pdfReceipt.verifiedNotice}
         showSignature={true}
-        signatureTitle={isAr ? "أمين الصندوق / الإدارة المالية" : "Cashier / Financial Management"}
-        signatureTitleAr={isAr ? "سند قبض رسمي" : "Official Receipt Voucher"}
+        signatureTitle={isAr ? adminTranslations.ar.pdfReceipt.cashier : adminTranslations.en.pdfReceipt.cashier}
+        signatureTitleAr={adminTranslations.ar.pdfReceipt.title}
       />
     </div>
   );

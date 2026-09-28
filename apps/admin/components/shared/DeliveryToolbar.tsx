@@ -4,6 +4,7 @@ import * as React from "react";
 import { Button } from "@ishoot/ui";
 import { Mail, MessageCircle, Printer, Download, Check } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import initialCompanyConfig from "@ishoot/database/config";
 
 interface DeliveryToolbarProps {
   documentType: "invoice" | "receipt";
@@ -47,18 +48,22 @@ export function DeliveryToolbar({
         documentType === "invoice"
           ? t.deliveryToolbar.invoice
           : t.deliveryToolbar.receipt;
+      const compName =
+        locale === "ar"
+          ? initialCompanyConfig.company.companyNameAr
+          : initialCompanyConfig.company.companyNameEn;
       const subject = encodeURIComponent(
-        `${docLabel} ${documentNumber} - ishoot`,
+        `${docLabel} ${documentNumber} - ${compName}`,
       );
       const body = encodeURIComponent(
-        (t.deliveryToolbar.emailBody || "")
+        (t.deliveryToolbar.emailBody ?? "")
           .replace("{clientName}", clientName)
           .replace("{docLabel}", docLabel)
           .replace("{documentNumber}", documentNumber)
           .replace("{amountFormatted}", amountFormatted),
       );
       window.open(
-        `mailto:${clientEmail || ""}?subject=${subject}&body=${body}`,
+        `mailto:${clientEmail ?? ""}?subject=${subject}&body=${body}`,
       );
       setEmailSent(true);
       setTimeout(() => setEmailSent(false), 3000);
@@ -66,14 +71,14 @@ export function DeliveryToolbar({
   };
 
   const handleWhatsApp = () => {
-    const cleanPhone = (clientPhone || "").replace(/[^0-9]/g, "");
+    const cleanPhone = (clientPhone ?? "").replace(/[^0-9]/g, "");
     const docLabel =
       documentType === "invoice"
         ? t.deliveryToolbar.invoice
         : t.deliveryToolbar.receipt;
 
     const message = encodeURIComponent(
-      (t.deliveryToolbar.whatsappBody || "")
+      (t.deliveryToolbar.whatsappBody ?? "")
         .replace("{clientName}", clientName)
         .replace("{docLabel}", docLabel)
         .replace("{documentNumber}", documentNumber)

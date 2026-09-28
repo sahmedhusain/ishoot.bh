@@ -4,9 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Instagram, Linkedin, Youtube, ArrowUpRight } from "lucide-react";
+import initialCompanyConfig from "@ishoot/database/config";
 
 export function Footer() {
   const { t, locale, isRTL } = useTranslation();
+  const company = initialCompanyConfig.company;
 
   return (
     <footer className="relative bg-[#050807] border-t border-white/10 pt-20 pb-12 overflow-hidden">
@@ -19,13 +21,13 @@ export function Footer() {
               <div className="relative h-9 w-9 flex items-center justify-center shrink-0">
                 <img
                   src="/icon.svg"
-                  alt="ishoot"
+                  alt={t("common.brandIconAlt")}
                   className="h-8 w-auto object-contain"
                 />
               </div>
               <img
                 src="/images/logo-color.svg"
-                alt="ishoot"
+                alt={t("common.brandLogoAlt")}
                 className="h-7 w-auto object-contain brightness-125"
               />
             </Link>
@@ -83,7 +85,7 @@ export function Footer() {
             </h4>
             <div className="flex items-center gap-3">
               <a
-                href="https://instagram.com"
+                href={company.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
@@ -92,7 +94,7 @@ export function Footer() {
                 <Instagram className="w-4 h-4" />
               </a>
               <a
-                href="https://linkedin.com"
+                href={company.linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
@@ -101,7 +103,7 @@ export function Footer() {
                 <Linkedin className="w-4 h-4" />
               </a>
               <a
-                href="https://youtube.com"
+                href={company.youtubeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
@@ -112,10 +114,10 @@ export function Footer() {
             </div>
             <div className="pt-2 text-xs text-[#9EADA9]">
               <a
-                href="mailto:hello@ishoot.bh"
+                href={`mailto:${company.email}`}
                 className="hover:text-[#09937F] transition-colors"
               >
-                hello@ishoot.bh
+                {company.email}
               </a>
             </div>
           </div>
@@ -123,7 +125,7 @@ export function Footer() {
 
         <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#9EADA9]/60">
           <div>
-            © {new Date().getFullYear()} ishoot. {t("footer.allRights")}
+            © {new Date().getFullYear()} {t("footer.companyName")}. {t("footer.allRights")}
           </div>
           <div className="flex items-center gap-6">
             <Link

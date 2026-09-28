@@ -103,10 +103,10 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
             <Briefcase className="w-6 h-6 text-[#09937F]" />
-            <span>Edit Commercial Deal</span>
+            <span>{t.dealEdit.title}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Update deal details, stage, value, and production scheduling
+            {t.dealEdit.subtitle}
           </p>
         </div>
       </div>
@@ -116,7 +116,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Deal Title / Project Name *
+                {t.dealEdit.titleLabel} *
               </label>
               <Input
                 required
@@ -129,7 +129,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
-                  Client / Contact
+                  {t.dealEdit.clientLabel}
                 </label>
                 {selectedContact && (
                   <Link
@@ -138,7 +138,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
                     target="_blank"
                   >
                     <span>Dossier</span>
-                    <ExternalLink className="w-3 h-3" />
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                 )}
               </div>
@@ -146,7 +146,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
                 value={contactId}
                 onChange={(e) => setContactId(e.target.value)}
               >
-                <option value="">-- Select Contact --</option>
+                <option value="">-- {t.dealEdit.clientLabel} --</option>
                 {contacts.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.company ? `${c.company} (${c.full_name})` : c.full_name}
@@ -159,7 +159,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Pipeline Stage
+                {t.dealEdit.stageLabel}
               </label>
               <Select
                 value={dealStage}
@@ -175,7 +175,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
 
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Deal Value (BHD)
+                {t.dealEdit.valueLabel} ({t.financials.currency})
               </label>
               <Input
                 type="number"
@@ -190,7 +190,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Win Probability (%)
+                {t.dealEdit.probabilityLabel}
               </label>
               <Input
                 type="number"
@@ -204,7 +204,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
 
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Expected Close Date
+                {t.dealEdit.closeDateLabel}
               </label>
               <Input
                 type="date"
@@ -216,7 +216,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
 
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-              Shoot / Production Date
+              {t.dealEdit.shootDateLabel}
             </label>
             <Input
               type="date"
@@ -227,7 +227,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
 
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-              Notes & Background
+              {t.dealEdit.notesLabel}
             </label>
             <Textarea
               rows={4}
@@ -252,7 +252,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
             className="gap-2 bg-[#014842] hover:bg-[#014842]/90 text-white"
           >
             <CheckCircle2 className="w-4 h-4" />
-            <span>{saving ? "Saving Changes..." : "Save Changes"}</span>
+            <span>{saving ? t.dealEdit.saving : t.dealEdit.save}</span>
           </Button>
         </div>
       </form>

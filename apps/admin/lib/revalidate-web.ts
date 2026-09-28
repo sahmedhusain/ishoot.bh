@@ -2,9 +2,12 @@ export async function revalidatePublicSite(
   tags: string[] = [],
   paths: string[] = ["/"],
 ): Promise<void> {
-  const webUrl = process.env.WEB_URL || "http://localhost:3000";
-  const secret =
-    process.env.REVALIDATION_SECRET || "ishoot-revalidate-secret-2026";
+  const webUrl = process.env.WEB_URL;
+  const secret = process.env.REVALIDATION_SECRET;
+
+  if (!webUrl || !secret) {
+    return;
+  }
 
   try {
     await fetch(`${webUrl}/api/revalidate`, {
@@ -17,6 +20,6 @@ export async function revalidatePublicSite(
       signal: AbortSignal.timeout(3000),
     });
   } catch (err) {
-    console.warn("Cross-app revalidation to web failed (non-blocking):", err);
+    console.warn("Failed to revalidate public site cache:", err);
   }
 }

@@ -23,7 +23,7 @@ import {
 import { formatDate } from "@ishoot/ui";
 
 export function NotificationCenter() {
-  const { t, locale, isRTL } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
   const [isOpen, setIsOpen] = React.useState(false);
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -120,11 +120,7 @@ export function NotificationCenter() {
 
       {isOpen && (
         <div
-          className={`absolute top-full mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col ${
-            isRTL
-              ? "left-0 sm:left-auto sm:right-0"
-              : "right-0 sm:right-auto sm:left-0"
-          }`}
+          className="absolute top-full end-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col"
           style={{ maxHeight: "80vh" }}
         >
           <div className="p-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
@@ -168,9 +164,8 @@ export function NotificationCenter() {
                   <div
                     key={n.id}
                     onClick={() => handleMarkAsRead(n.id)}
-                    className={`p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors cursor-pointer flex items-start gap-3 relative ${
-                      !n.is_read ? "bg-[#09937F]/[0.06]" : ""
-                    }`}
+                    className={`p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors cursor-pointer flex items-start gap-3 relative ${!n.is_read ? "bg-[#09937F]/[0.06]" : ""
+                      }`}
                   >
                     <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 mt-0.5">
                       {getNotificationIcon(n.type, n.entity_type)}

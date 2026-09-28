@@ -33,8 +33,8 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
       <DocumentLetterhead
         documentType="invoice"
         documentNumber={invoice.invoice_number}
-        titleEn={isVatActive ? "TAX INVOICE" : "INVOICE"}
-        titleAr={isVatActive ? "فاتورة ضريبية" : "فاتورة"}
+        titleEn={isVatActive ? adminTranslations.en.pdfInvoice.taxInvoiceTitle.toUpperCase() : adminTranslations.en.pdfInvoice.standardInvoiceTitle.toUpperCase()}
+        titleAr={isVatActive ? adminTranslations.ar.pdfInvoice.taxInvoiceTitle : adminTranslations.ar.pdfInvoice.standardInvoiceTitle}
         company={company}
         language={invoice.language as "en" | "ar"}
         issueDateLabel={inv.issueDate}
@@ -124,8 +124,8 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
           <div className="space-y-4">
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] mb-1.5 flex items-center justify-between">
-                <span>Terms & Conditions / Notes</span>
-                <span className="text-[10px] text-slate-400 font-arabic">الشروط والأحكام وملاحظات الدفع</span>
+                <span>{adminTranslations.en.documentLetterhead.termsNotes}</span>
+                <span className="text-[10px] text-slate-400 font-arabic">{adminTranslations.ar.documentLetterhead.termsNotes}</span>
               </h3>
               <div className="text-[11px] leading-relaxed text-slate-600 space-y-1.5 bg-slate-50 p-4 rounded-xl border border-slate-200 print:bg-white print:border-slate-300 print:text-[10px]">
                 <p>1. Payment is due within <strong className="text-slate-800 font-semibold">{company.payment_terms_days || 30} days</strong> from invoice date ({invoice.due_date}).</p>
@@ -218,8 +218,8 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
         company={company}
         thankYouMessage={inv.thankYou}
         showSignature={true}
-        signatureTitle={isAr ? "المخول بالتوقيع" : "Authorized Signatory"}
-        signatureTitleAr={isAr ? "إدارة الشؤون المالية" : "Finance Department"}
+        signatureTitle={isAr ? adminTranslations.ar.documentLetterhead.authorizedSignatory : adminTranslations.en.documentLetterhead.authorizedSignatory}
+        signatureTitleAr={adminTranslations.ar.documentLetterhead.financeDepartment}
       />
     </div>
   );

@@ -20,9 +20,16 @@ export async function createUserAction(data: {
   department?: string;
 }) {
   const actor = await requirePermission("users", "write");
+  const initialPassword = data.password
+    ? data.password
+    : (process.env.DEFAULT_USER_PASSWORD ? process.env.DEFAULT_USER_PASSWORD : "");
+  if (!initialPassword) {
+    throw new Error("Password is required to create a user");
+  }
+
   const user = await createUser({
     ...data,
-    password: data.password || "ishoot2026!",
+    password: initialPassword,
   });
 
   await createActivityLog({

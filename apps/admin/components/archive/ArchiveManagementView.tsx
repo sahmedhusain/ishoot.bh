@@ -51,7 +51,7 @@ export function ArchiveManagementView({
   invoices = [],
   payments = [],
 }: ArchiveManagementViewProps) {
-  const { isRTL, locale } = useAdminLocale();
+  const { isRTL, locale, t } = useAdminLocale();
   const [attachments, setAttachments] =
     React.useState<EnrichedAttachment[]>(initialAttachments);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -311,10 +311,10 @@ export function ArchiveManagementView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Archive & Attachments Vault
+            {t.archiveView.title}
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Centralized repository for payment settlement proofs, cheques, VAT certificates, invoices, and client dossiers.
+            {t.archiveView.subtitle}
           </p>
         </div>
 
@@ -327,38 +327,38 @@ export function ArchiveManagementView({
           className="bg-[#014842] hover:bg-[#014842]/90 text-white gap-2 rounded-full px-4 h-9 text-xs font-semibold self-start sm:self-auto shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          <span>Upload File</span>
+          <span>{t.archiveView.uploadFile}</span>
         </Button>
       </div>
 
       {/* KPI Cards / Google Cloud Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
-          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">Total Documents</div>
+          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.totalDocuments}</div>
           <div className="text-lg font-bold text-slate-900 dark:text-white font-mono mt-0.5">
             {attachments.length}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
-          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">Payments & Cheques</div>
+          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.filterPayments}</div>
           <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
             {attachments.filter((a) => a.entity_type === "payment").length}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
-          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">VAT & Legal</div>
+          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.filterLegal}</div>
           <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
             {attachments.filter((a) => a.entity_type === "company_setting").length}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
-          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">Invoice PDFs</div>
+          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.invoicePdfs}</div>
           <div className="text-lg font-bold text-slate-900 dark:text-white font-mono mt-0.5">
             {attachments.filter((a) => a.entity_type === "invoice").length}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
-          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">Client Vaults</div>
+          <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.clientVaults}</div>
           <div className="text-lg font-bold text-[#014842] dark:text-[#7de0d1] font-mono mt-0.5">
             {attachments.filter((a) => a.entity_type === "contact" || a.entity_type === "customer_vault").length}
           </div>
@@ -371,7 +371,7 @@ export function ArchiveManagementView({
           <Search className="w-4 h-4 text-slate-400 absolute start-3 top-2.5" />
           <input
             type="text"
-            placeholder="Search by file name, client, cheque or receipt..."
+            placeholder={t.archiveView.searchPlaceholder}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full ps-9 pe-4 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
@@ -380,12 +380,12 @@ export function ArchiveManagementView({
 
         <div className="flex items-center gap-1.5 overflow-x-auto text-xs pb-1 sm:pb-0">
           {[
-            { id: "all", label: "All Files" },
-            { id: "payment", label: "Payments & Cheques" },
-            { id: "vat", label: "VAT & Legal" },
-            { id: "invoice", label: "Invoices" },
-            { id: "contact", label: "Clients" },
-            { id: "deal", label: "Deals" },
+            { id: "all", label: t.archiveView.filterAll },
+            { id: "payment", label: t.archiveView.filterPayments },
+            { id: "vat", label: t.archiveView.filterLegal },
+            { id: "invoice", label: t.archiveView.filterInvoices },
+            { id: "contact", label: t.archiveView.filterClients },
+            { id: "deal", label: t.archiveView.filterDeals },
             { id: "pdf", label: "PDFs" },
             { id: "image", label: "Images" },
           ].map((tab) => (
@@ -410,12 +410,12 @@ export function ArchiveManagementView({
           <table className="w-full text-start text-xs">
             <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-slate-600 dark:text-neutral-400 uppercase font-mono tracking-wider text-[11px]">
               <tr>
-                <th className="p-3.5 text-start font-semibold">Document Name</th>
-                <th className="p-3.5 text-start font-semibold">Linked Entity</th>
-                <th className="p-3.5 text-start font-semibold">Category</th>
-                <th className="p-3.5 text-end font-semibold">File Size</th>
-                <th className="p-3.5 text-start font-semibold">Date Uploaded</th>
-                <th className="p-3.5 text-end font-semibold">Actions</th>
+                <th className="p-3.5 text-start font-semibold">{t.archiveView.tableDocName}</th>
+                <th className="p-3.5 text-start font-semibold">{t.archiveView.tableLinkedEntity}</th>
+                <th className="p-3.5 text-start font-semibold">{t.archiveView.tableCategory}</th>
+                <th className="p-3.5 text-end font-semibold">{t.archiveView.tableFileSize}</th>
+                <th className="p-3.5 text-start font-semibold">{t.archiveView.tableUploadDate}</th>
+                <th className="p-3.5 text-end font-semibold">{t.archiveView.tableActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#dadce0]/70 dark:divide-[#3c4043]/70">
@@ -545,7 +545,7 @@ export function ArchiveManagementView({
                 <tr>
                   <td colSpan={6} className="p-12 text-center text-slate-400 dark:text-neutral-500">
                     <FolderOpen className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-neutral-600" />
-                    No documents found matching your filter criteria.
+                    {t.archiveView.noDocsFound}
                   </td>
                 </tr>
               )}
@@ -562,7 +562,7 @@ export function ArchiveManagementView({
               <div className="flex items-center gap-2">
                 <UploadCloud className="w-5 h-5 text-[#014842] dark:text-[#7de0d1]" />
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Upload Vault Document
+                  {t.archiveView.uploadModalTitle}
                 </h2>
               </div>
               <button
@@ -592,7 +592,7 @@ export function ArchiveManagementView({
                       : "text-slate-500 hover:text-slate-900 dark:text-neutral-400"
                   }`}
                 >
-                  File Upload (Drag & Drop)
+                  {t.archiveView.tabUploadFile}
                 </button>
                 <button
                   type="button"
@@ -603,7 +603,7 @@ export function ArchiveManagementView({
                       : "text-slate-500 hover:text-slate-900 dark:text-neutral-400"
                   }`}
                 >
-                  Manual URL / Storage Path
+                  {t.archiveView.tabExternalUrl}
                 </button>
               </div>
 
@@ -683,10 +683,10 @@ export function ArchiveManagementView({
                       <div className="space-y-1.5">
                         <UploadCloud className="w-8 h-8 mx-auto text-slate-400 dark:text-neutral-500" />
                         <div className="font-semibold text-slate-700 dark:text-neutral-300">
-                          Click to browse or drop file here
+                          {t.archiveView.dragDropText}
                         </div>
                         <p className="text-[11px] text-slate-400">
-                          Supports PDF documents, cheques, bank slips, images (PNG, JPG), up to 25MB
+                          {t.archiveView.dragDropHint}
                         </p>
                       </div>
                     )}
@@ -695,7 +695,7 @@ export function ArchiveManagementView({
               ) : (
                 <div>
                   <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    File URL or Storage Path *
+                    {t.archiveView.fieldFileUrl}
                   </label>
                   <input
                     type="text"
@@ -711,7 +711,7 @@ export function ArchiveManagementView({
               {/* Document Name */}
               <div>
                 <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                  Document / File Name *
+                  {t.archiveView.fieldDocName}
                 </label>
                 <input
                   type="text"
@@ -727,7 +727,7 @@ export function ArchiveManagementView({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    Entity Category
+                    {t.archiveView.entityCategory}
                   </label>
                   <select
                     value={entityType}
@@ -738,35 +738,35 @@ export function ArchiveManagementView({
                     }}
                     className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
                   >
-                    <option value="payment">Payment Proof & Cheques</option>
-                    <option value="company_setting">Company VAT & Legal</option>
-                    <option value="invoice">Billed Invoice</option>
-                    <option value="contact">Client Dossier</option>
-                    <option value="deal">Commercial Deal</option>
-                    <option value="general">General Vault</option>
+                    <option value="payment">{t.archiveView.catPayment}</option>
+                    <option value="company_setting">{t.archiveView.catCompany}</option>
+                    <option value="invoice">{t.archiveView.catInvoice}</option>
+                    <option value="contact">{t.archiveView.catContact}</option>
+                    <option value="deal">{t.archiveView.catDeal}</option>
+                    <option value="general">{t.archiveView.catGeneral}</option>
                   </select>
                 </div>
 
                 {entityType === "payment" ? (
                   <div>
                     <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                      Proof Sub-Type
+                      {t.archiveView.proofSubtype}
                     </label>
                     <select
                       value={documentSubtype}
                       onChange={(e) => setDocumentSubtype(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
                     >
-                      <option value="cheque_copy">Cheque Copy / Scan</option>
-                      <option value="bank_slip">Bank Transfer / Deposit Slip</option>
-                      <option value="receipt">Official Receipt Voucher</option>
-                      <option value="general">General Payment Proof</option>
+                      <option value="cheque_copy">{t.archiveView.proofCheque}</option>
+                      <option value="bank_slip">{t.archiveView.proofBankSlip}</option>
+                      <option value="receipt">{t.archiveView.proofReceipt}</option>
+                      <option value="general">{t.archiveView.proofGeneral}</option>
                     </select>
                   </div>
                 ) : (
                   <div>
                     <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                      Mime / File Type
+                      {t.archiveView.mimeType}
                     </label>
                     <select
                       value={mimeType}
@@ -786,14 +786,14 @@ export function ArchiveManagementView({
               {entityType === "payment" && (
                 <div>
                   <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    Select Related Payment Receipt
+                    {t.archiveView.selectPayment}
                   </label>
                   <select
                     value={entityId}
                     onChange={(e) => setEntityId(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
                   >
-                    <option value="">Select a payment receipt...</option>
+                    <option value="">{t.archiveView.selectPaymentPlaceholder}</option>
                     {payments.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.receipt_number} — {p.amount} BHD ({p.payment_method})
@@ -807,7 +807,7 @@ export function ArchiveManagementView({
                 <div className="p-3 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900 text-indigo-800 dark:text-indigo-300 flex items-start gap-2">
                   <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
                   <div className="text-[11px] leading-relaxed">
-                    This file will be set as the official <strong>NBR VAT Registration Certificate</strong> for the company and directly accessible under Company Settings.
+                    {t.archiveView.vatCertNotice}
                   </div>
                 </div>
               )}
@@ -815,14 +815,14 @@ export function ArchiveManagementView({
               {entityType === "contact" && (
                 <div>
                   <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    Select Client
+                    {t.archiveView.selectClient}
                   </label>
                   <select
                     value={entityId}
                     onChange={(e) => setEntityId(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
                   >
-                    <option value="">Select a client...</option>
+                    <option value="">{t.archiveView.selectClientPlaceholder}</option>
                     {contacts.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.company ? `${c.company} (${c.full_name})` : c.full_name}
@@ -835,14 +835,14 @@ export function ArchiveManagementView({
               {entityType === "deal" && (
                 <div>
                   <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    Select Deal
+                    {t.archiveView.selectDeal}
                   </label>
                   <select
                     value={entityId}
                     onChange={(e) => setEntityId(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
                   >
-                    <option value="">Select a deal...</option>
+                    <option value="">{t.archiveView.selectDealPlaceholder}</option>
                     {deals.map((d) => (
                       <option key={d.id} value={d.id}>
                         {d.title} ({d.contact?.company || d.contact?.full_name || "Direct"})
@@ -855,14 +855,14 @@ export function ArchiveManagementView({
               {entityType === "invoice" && (
                 <div>
                   <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    Select Invoice
+                    {t.archiveView.selectInvoice}
                   </label>
                   <select
                     value={entityId}
                     onChange={(e) => setEntityId(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
                   >
-                    <option value="">Select an invoice...</option>
+                    <option value="">{t.archiveView.selectInvoicePlaceholder}</option>
                     {invoices.map((i) => (
                       <option key={i.id} value={i.id}>
                         {i.invoice_number} ({i.contact?.company || i.contact?.full_name || "Client"})
@@ -879,7 +879,7 @@ export function ArchiveManagementView({
                   size="sm"
                   onClick={() => setIsUploadOpen(false)}
                 >
-                  Cancel
+                  {t.actions.cancel}
                 </Button>
                 <Button
                   type="submit"
@@ -887,7 +887,7 @@ export function ArchiveManagementView({
                   className="bg-[#014842] hover:bg-[#014842]/90 text-white rounded-full px-5 text-xs font-semibold gap-2"
                 >
                   {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>{submitting ? "Uploading..." : "Save & Vault"}</span>
+                  <span>{submitting ? t.archiveView.uploading : t.archiveView.saveVault}</span>
                 </Button>
               </div>
             </form>
@@ -900,10 +900,10 @@ export function ArchiveManagementView({
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={handleDelete}
-        title="Delete Document"
-        description="Are you sure you want to remove this document from the vault? This action cannot be undone."
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title={t.archiveView.deleteConfirmTitle}
+        description={t.archiveView.deleteConfirmDesc}
+        confirmLabel={t.archiveView.delete}
+        cancelLabel={t.actions.cancel}
       />
     </div>
   );

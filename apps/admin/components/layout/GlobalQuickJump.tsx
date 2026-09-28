@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { Search, Command, Users, FileText, Briefcase, ArrowRight, Loader2, X } from "lucide-react";
 import { globalSearchAction } from "../../app/actions/crm";
 import type { GlobalSearchResult } from "@ishoot/database";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function GlobalQuickJump({ className }: { className?: string } = {}) {
   const router = useRouter();
+  const { t } = useAdminLocale();
   const [isOpen, setIsOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [loading, setLoading] = React.useState(false);
@@ -112,7 +114,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
       >
         <span className="flex items-center gap-2 text-slate-500 dark:text-slate-400 truncate">
           <Search className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">Quick jump...</span>
+          <span className="truncate">{t.quickJump.navigate}...</span>
         </span>
         <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 text-[10px] font-mono text-slate-400">
           ⌘K
@@ -137,7 +139,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search clients, invoices, or deals..."
+                placeholder={t.quickJump.placeholder}
                 className="w-full bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
               />
               {loading && (
@@ -156,13 +158,13 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
             <div className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-white/5">
               {!query.trim() && (
                 <div className="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
-                  Type at least 2 characters to search across CRM clients, invoices, and deals
+                  {t.quickJump.helper}
                 </div>
               )}
 
               {query.trim().length >= 2 && results.length === 0 && !loading && (
                 <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
-                  No matches found for <span className="font-semibold text-slate-700 dark:text-slate-300">"{query}"</span>
+                  {t.quickJump.noMatches} <span className="font-semibold text-slate-700 dark:text-slate-300">"{query}"</span>
                 </div>
               )}
 
@@ -209,11 +211,11 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
             {/* Footer */}
             <div className="px-4 py-2.5 bg-slate-50 dark:bg-[#0B1312] border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-3">
-                <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">↑↓</kbd> Navigate</span>
-                <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">↵</kbd> Select</span>
-                <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">esc</kbd> Close</span>
+                <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">↑↓</kbd> {t.quickJump.navigate}</span>
+                <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">↵</kbd> {t.quickJump.select}</span>
+                <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">esc</kbd> {t.actions.cancel}</span>
               </span>
-              <span className="font-mono text-[10px] text-[#09937F] font-semibold">ishoot.bh Universal Search</span>
+              <span className="font-mono text-[10px] text-[#09937F] font-semibold">{t.quickJump.universalSearch}</span>
             </div>
           </div>
         </div>

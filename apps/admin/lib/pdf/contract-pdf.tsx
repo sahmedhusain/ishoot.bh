@@ -2,6 +2,9 @@ import * as React from "react";
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { pdfStyles } from "./shared-styles";
 import type { Contract, CompanySettings } from "@ishoot/database/types";
+import initialCompanyConfig from "@ishoot/database/config";
+
+const defaultCompany = initialCompanyConfig.company;
 
 interface ContractPdfProps {
   contract: Contract;
@@ -18,26 +21,54 @@ function formatDate(dateStr: string | undefined): string {
 }
 
 export function ContractPdfDocument({ contract, company }: ContractPdfProps) {
-  const clientName = contract.contact?.full_name || "Client Name";
+  const compNameEn = company.company_name_en || defaultCompany.companyNameEn;
+  const compNameAr = company.company_name_ar || defaultCompany.companyNameAr;
+  const clientName = contract.contact?.full_name ?? "Client";
   const clientCompany = contract.contact?.company || "";
   const clientEmail = contract.contact?.email || "";
 
+  const labels = {
+    crPrefix: "CR:",
+    country: "Kingdom of Bahrain",
+    productionAgreement: "PRODUCTION AGREEMENT",
+    status: "Status",
+    validFrom: "Valid From",
+    to: "To",
+    firstParty: "FIRST PARTY (SERVICE PROVIDER)",
+    secondParty: "SECOND PARTY (CLIENT)",
+    crNumber: "CR Number",
+    termsAndScope: "TERMS & SCOPE OF PRODUCTION",
+  };
+
+  const statusMap: Record<string, string> = {
+    draft: "DRAFT",
+    sent: "SENT FOR REVIEW",
+    signed: "DIGITALLY SIGNED",
+    active: "ACTIVE & IN EFFECT",
+    expired: "EXPIRED",
+    terminated: "TERMINATED",
+  };
+
+  const statusText = statusMap[contract.status] || contract.status?.toUpperCase() || "DRAFT";
+
   return (
-    <Document title={`Contract ${contract.contract_number} - ishoot`}>
+    <Document title={`Contract ${contract.contract_number} - ${compNameEn}`}>
       <Page size="A4" style={pdfStyles.page}>
         <View style={pdfStyles.headerBanner}>
           <View>
             <Text style={pdfStyles.brandTitle}>
-              ishoot<Text style={pdfStyles.brandDot}>.</Text>
+              {compNameEn}
             </Text>
             <Text style={pdfStyles.companySubtitle}>
-              {company.company_name_en}
+              {compNameAr}
             </Text>
-            <Text style={pdfStyles.companyMeta}>CR: {company.cr_number}</Text>
+            <Text style={pdfStyles.companyMeta}>
+              {labels.crPrefix} {company.cr_number || defaultCompany.crNumber} • {labels.country}
+            </Text>
           </View>
 
           <View style={pdfStyles.docTitleBlock}>
-            <Text style={pdfStyles.docMainTitle}>PRODUCTION AGREEMENT</Text>
+            <Text style={pdfStyles.docMainTitle}>{labels.productionAgreement}</Text>
             <Text style={pdfStyles.docNumber}>{contract.contract_number}</Text>
           </View>
         </View>
@@ -47,8 +78,8 @@ export function ContractPdfDocument({ contract, company }: ContractPdfProps) {
             {contract.title_en}
           </Text>
           <Text style={{ fontSize: 8, color: "#6B7280", marginTop: 3 }}>
-            Status: {contract.status.toUpperCase()} • Valid From:{" "}
-            {formatDate(contract.valid_from)} To:{" "}
+            {labels.status}: {statusText} • {labels.validFrom}:{" "}
+            {formatDate(contract.valid_from)} {labels.to}:{" "}
             {formatDate(contract.valid_until)}
           </Text>
         </View>
@@ -56,19 +87,23 @@ export function ContractPdfDocument({ contract, company }: ContractPdfProps) {
         <View style={pdfStyles.metaGrid}>
           <View style={pdfStyles.metaCard}>
             <Text style={pdfStyles.metaLabel}>
-              FIRST PARTY (SERVICE PROVIDER)
+              {labels.firstParty}
             </Text>
-            <Text style={pdfStyles.metaValue}>{company.company_name_en}</Text>
-            <Text style={pdfStyles.metaSub}>
-              CR Number: {company.cr_number}
-            </Text>
-            <Text style={pdfStyles.metaSub}>
-              {company.address_en || "Seef District, Manama, Bahrain"}
-            </Text>
+            <Text style={pdfStyles.metaValue}>{company.company_name_en || defaultCompany.companyNameEn}</Text>
+            {company.cr_number ? (
+              <Text style={pdfStyles.metaSub}>
+                {labels.crNumber}: {company.cr_number}
+              </Text>
+            ) : null}
+            {company.address_en ? (
+              <Text style={pdfStyles.metaSub}>
+                {company.address_en}
+              </Text>
+            ) : null}
           </View>
 
           <View style={pdfStyles.metaCard}>
-            <Text style={pdfStyles.metaLabel}>SECOND PARTY (CLIENT)</Text>
+            <Text style={pdfStyles.metaLabel}>{labels.secondParty}</Text>
             <Text style={pdfStyles.metaValue}>{clientName}</Text>
             {clientCompany ? (
               <Text style={pdfStyles.metaSub}>{clientCompany}</Text>
@@ -81,7 +116,7 @@ export function ContractPdfDocument({ contract, company }: ContractPdfProps) {
 
         <View style={{ marginBottom: 20 }}>
           <Text style={[pdfStyles.metaLabel, { marginBottom: 8 }]}>
-            TERMS & SCOPE OF ENGAGEMENT
+            {labels.termsAndScope}
           </Text>
           <View
             style={{
@@ -95,23 +130,21 @@ export function ContractPdfDocument({ contract, company }: ContractPdfProps) {
           >
             <Text style={{ fontSize: 8.5, color: "#374151", marginBottom: 8 }}>
               1. SCOPE OF SERVICES: The Service Provider shall execute
-              commercial cinema production, aerial capture, and post-production
-              color mastering as agreed upon in the linked project treatment.
+              commercial services, deliverables, and production as agreed upon in the linked project treatment.
             </Text>
             <Text style={{ fontSize: 8.5, color: "#374151", marginBottom: 8 }}>
               2. INTELLECTUAL PROPERTY: Upon receipt of full payment, all
               commercial broadcast and exhibition rights for the produced
               deliverables shall transfer to the Client. RAW master assets and
-              cinema project files remain the property of ishoot.
+              project files remain the property of the Service Provider.
             </Text>
             <Text style={{ fontSize: 8.5, color: "#374151", marginBottom: 8 }}>
               3. PAYMENT TERMS: Payments shall adhere to standard invoice
-              milestones (50% upfront pre-production, 50% upon final master
-              color delivery) within 30 calendar days.
+              milestones within agreed calendar days.
             </Text>
             <Text style={{ fontSize: 8.5, color: "#374151" }}>
               4. GOVERNING LAW: This agreement is governed by the laws and
-              commercial regulations of the Kingdom of Bahrain.
+              commercial regulations of the local jurisdiction.
             </Text>
           </View>
         </View>
@@ -136,7 +169,7 @@ export function ContractPdfDocument({ contract, company }: ContractPdfProps) {
               FOR FIRST PARTY:
             </Text>
             <Text style={{ fontSize: 7.5, color: "#6B7280", marginTop: 2 }}>
-              Authorized Signatory, ishoot Cinema Production
+              Authorized Signatory, {company.company_name_en || defaultCompany.companyNameEn}
             </Text>
             <Text
               style={{
@@ -185,11 +218,12 @@ export function ContractPdfDocument({ contract, company }: ContractPdfProps) {
 
         <View style={pdfStyles.footer} fixed>
           <Text>
-            Legal Production Agreement • ishoot Cinema Production S.P.C.
+            Legal Agreement • {compNameEn}
           </Text>
           <Text>
-            {company.website || "https://ishoot.bh"} •{" "}
-            {company.email || "hello@ishoot.bh"}
+            {company.website || defaultCompany.website}
+            {` • ${company.email || defaultCompany.email}`}
+            {` • ${company.phone || defaultCompany.phone}`}
           </Text>
         </View>
       </Page>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { X, Play, Pause, Volume2, VolumeX, Maximize2 } from "lucide-react";
+import { useTranslation } from "../../hooks/useTranslation";
 
 interface CinemaOverlayProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export function CinemaOverlay({
   videoUrl,
   title,
 }: CinemaOverlayProps) {
+  const { t } = useTranslation();
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = React.useState(true);
   const [isMuted, setIsMuted] = React.useState(false);
@@ -139,7 +141,7 @@ export function CinemaOverlay({
               </button>
             </div>
             <div className="text-xs text-[#9EADA9] font-mono">
-              ishoot 4K Cinema Stream
+              {t("showreel.streamTitle")}
             </div>
           </div>
         </div>

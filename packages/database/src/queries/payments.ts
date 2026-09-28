@@ -1,4 +1,5 @@
 import { db } from "../db";
+import initialConfig from "../initial-company-config.json";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
 function mapPayment(p: any): Payment {
@@ -207,124 +208,132 @@ export async function recordPayment(paymentData: {
   }>;
 }): Promise<Payment> {
   const year = new Date().getFullYear();
-  const count = await db.payment.count();
-  const receiptNumber = `RCT-${year}-${String(count + 1).padStart(3, "0")}`;
-
-  const created = await db.payment.create({
-    data: {
-      invoiceId: paymentData.invoice_id,
-      receiptNumber,
-      paymentDate: paymentData.payment_date
-        ? new Date(paymentData.payment_date)
-        : new Date(),
-      amount: paymentData.amount,
-      currency: paymentData.currency || "BHD",
-      paymentMethod: paymentData.payment_method || "bank_transfer",
-      referenceNumber: paymentData.reference_number || null,
-      notes: paymentData.notes || null,
-      notificationSent: paymentData.notification_sent || false,
-      notificationChannel: paymentData.notification_channel || null,
-      createdById: paymentData.created_by || null,
-    },
-    include: {
-      invoice: {
-        include: {
-          client: true,
-          payments: true,
-          deal: { include: { contact: true } },
-        },
-      },
-    },
-  });
-
-  if (paymentData.proof_attachments && paymentData.proof_attachments.length > 0) {
-    for (const att of paymentData.proof_attachments) {
-      await db.attachment.create({
-        data: {
-          fileName: att.fileName,
-          fileUrl: att.fileUrl,
-          fileSize: att.fileSize,
-          mimeType: att.mimeType,
-          entityType: "payment",
-          entityId: created.id,
-          uploadedById: paymentData.created_by || null,
-        },
-      });
+  const createdId = await db.$transaction(async (tx) => {
+    let company = await tx.companySetting.findFirst();
+    if (!company) {
+      company = await tx.companySetting.create({ data: { ...initialConfig.company } });
     }
-  }
+    const prefix = company.receiptPrefix || initialConfig.company.receiptPrefix;
+    const num = company.receiptNextNumber ?? initialConfig.company.receiptNextNumber;
+    const receiptNumber = `${prefix}-${year}-${String(num).padStart(4, "0")}`;
 
-  try {
-    const invoice = await db.invoice.findUnique({
+    await tx.companySetting.update({
+      where: { id: company.id },
+      data: { receiptNextNumber: num + 1 },
+    });
+
+    const payment = await tx.payment.create({
+      data: {
+        invoiceId: paymentData.invoice_id,
+        receiptNumber,
+        paymentDate: paymentData.payment_date
+          ? new Date(paymentData.payment_date)
+          : new Date(),
+        amount: paymentData.amount,
+        currency: paymentData.currency || "BHD",
+        paymentMethod: paymentData.payment_method || "bank_transfer",
+        referenceNumber: paymentData.reference_number || null,
+        notes: paymentData.notes || null,
+        notificationSent: paymentData.notification_sent || false,
+        notificationChannel: paymentData.notification_channel || null,
+        createdById: paymentData.created_by || null,
+      },
+    });
+
+    if (paymentData.proof_attachments && paymentData.proof_attachments.length > 0) {
+      for (const att of paymentData.proof_attachments) {
+        await tx.attachment.create({
+          data: {
+            fileName: att.fileName,
+            fileUrl: att.fileUrl,
+            fileSize: att.fileSize,
+            mimeType: att.mimeType,
+            entityType: "payment",
+            entityId: payment.id,
+            uploadedById: paymentData.created_by || null,
+          },
+        });
+      }
+    }
+
+    // Auto-reconcile invoice status inside same transaction
+    const invoice = await tx.invoice.findUnique({
       where: { id: paymentData.invoice_id },
       include: { payments: true },
     });
     if (invoice) {
-      const totalPaid = invoice.payments.reduce(
+      const allPayments = invoice.payments;
+      const totalPaid = allPayments.reduce(
         (acc, p) => acc + Number(p.amount),
         0,
       );
       const totalInvoice = Number(invoice.totalAmount);
       let newStatus = invoice.status;
 
-      if (totalPaid >= totalInvoice) {
+      if (totalPaid >= totalInvoice && totalInvoice > 0) {
         newStatus = "paid";
       } else if (totalPaid > 0) {
         newStatus = "partially_paid";
       }
 
       if (newStatus !== invoice.status) {
-        await db.invoice.update({
+        await tx.invoice.update({
           where: { id: invoice.id },
           data: { status: newStatus },
         });
       }
     }
-  } catch (err) {
-    console.error("Error auto-reconciling invoice status after payment:", err);
-  }
 
-  const result = await getPaymentById(created.id);
-  return result || mapPayment(created);
+    return payment.id;
+  });
+
+  const result = await getPaymentById(createdId);
+  if (!result) {
+    throw new Error("Failed to retrieve created payment record");
+  }
+  return result;
 }
 
 export async function deletePayment(id: string): Promise<boolean> {
   try {
-    const payment = await db.payment.findUnique({
-      where: { id },
-      select: { invoiceId: true },
-    });
-
-    await db.payment.delete({ where: { id } });
-
-    if (payment?.invoiceId) {
-      const invoice = await db.invoice.findUnique({
-        where: { id: payment.invoiceId },
-        include: { payments: true },
+    await db.$transaction(async (tx) => {
+      const payment = await tx.payment.findUnique({
+        where: { id },
+        select: { invoiceId: true },
       });
-      if (invoice) {
-        const totalPaid = invoice.payments.reduce(
-          (acc, p) => acc + Number(p.amount),
-          0,
-        );
-        const totalInvoice = Number(invoice.totalAmount);
-        let newStatus = invoice.status;
 
-        if (totalPaid >= totalInvoice && totalInvoice > 0) {
-          newStatus = "paid";
-        } else if (totalPaid > 0) {
-          newStatus = "partially_paid";
-        } else {
-          newStatus = "sent";
-        }
+      await tx.payment.delete({ where: { id } });
 
-        if (newStatus !== invoice.status) {
-          await db.invoice.update({
-            where: { id: invoice.id },
-            data: { status: newStatus },
-          });
+      if (payment?.invoiceId) {
+        const invoice = await tx.invoice.findUnique({
+          where: { id: payment.invoiceId },
+          include: { payments: true },
+        });
+        if (invoice) {
+          const totalPaid = invoice.payments.reduce(
+            (acc, p) => acc + Number(p.amount),
+            0,
+          );
+          const totalInvoice = Number(invoice.totalAmount);
+          let newStatus = invoice.status;
+
+          if (totalPaid >= totalInvoice && totalInvoice > 0) {
+            newStatus = "paid";
+          } else if (totalPaid > 0) {
+            newStatus = "partially_paid";
+          } else {
+            newStatus = "sent";
+          }
+
+          if (newStatus !== invoice.status) {
+            await tx.invoice.update({
+              where: { id: invoice.id },
+              data: { status: newStatus },
+            });
+          }
         }
       }
-    }
+    });
     return true;
   } catch (e) {
     console.error(`Error deleting payment ${id}:`, e);

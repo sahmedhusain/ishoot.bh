@@ -1,5 +1,6 @@
 import { db } from "../db";
 import { CompanySettings, SupportedCurrency } from "../types";
+import initialConfig from "../initial-company-config.json";
 
 function mapSettings(s: any): CompanySettings {
   return {
@@ -22,7 +23,15 @@ function mapSettings(s: any): CompanySettings {
     bank_iban: s.bankIban || "",
     bank_account_number: s.bankAccountNumber || "",
     bank_swift: s.bankSwift || "",
-    logo_url: s.logoUrl || "/images/logo-color.svg",
+    logo_url: s.logoUrl || "",
+    dark_logo_url: s.darkLogoUrl || undefined,
+    icon_url: s.iconUrl || undefined,
+    stamp_url: s.stampUrl || undefined,
+    signature_url: s.signatureUrl || undefined,
+    whatsapp_phone: s.whatsappPhone || undefined,
+    instagram_url: s.instagramUrl || undefined,
+    linkedin_url: s.linkedinUrl || undefined,
+    youtube_url: s.youtubeUrl || undefined,
     payment_terms_days: s.paymentTermsDays,
     invoice_prefix: s.invoicePrefix,
     invoice_next_number: s.invoiceNextNumber,
@@ -37,13 +46,7 @@ export async function getCompanySettings(): Promise<CompanySettings> {
   if (!s) {
     s = await db.companySetting.create({
       data: {
-        companyNameEn: "ishoot Cinema Production S.P.C.",
-        companyNameAr: "دار آي شوت للإنتاج السينمائي ذ.م.م",
-        crNumber: "CR-142859-1",
-        vatEnabled: false,
-        vatPercentage: 10.0,
-        defaultCurrency: "BHD",
-        currencyDecimals: 3,
+        ...initialConfig.company,
       },
     });
   }
@@ -69,13 +72,21 @@ export async function updateCompanySettings(
       addressEn: updates.address_en,
       addressAr: updates.address_ar,
       phone: updates.phone,
+      whatsappPhone: updates.whatsapp_phone,
       email: updates.email,
       website: updates.website,
+      instagramUrl: updates.instagram_url,
+      linkedinUrl: updates.linkedin_url,
+      youtubeUrl: updates.youtube_url,
       bankName: updates.bank_name,
       bankIban: updates.bank_iban,
       bankAccountNumber: updates.bank_account_number,
       bankSwift: updates.bank_swift,
       logoUrl: updates.logo_url,
+      darkLogoUrl: updates.dark_logo_url,
+      iconUrl: updates.icon_url,
+      stampUrl: updates.stamp_url,
+      signatureUrl: updates.signature_url,
       paymentTermsDays: updates.payment_terms_days,
       invoicePrefix: updates.invoice_prefix,
       invoiceNextNumber: updates.invoice_next_number,

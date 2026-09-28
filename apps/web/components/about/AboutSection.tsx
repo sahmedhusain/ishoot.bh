@@ -46,8 +46,8 @@ export function AboutSection({
         <div className="mt-[clamp(3.5rem,8vh,6rem)] grid gap-10 lg:grid-cols-[minmax(0,440px)_1fr] items-center">
           <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-slate-900 shadow-2xl group">
             <img
-              src="/banners/Web Banner 04.jpg"
-              alt="ishoot Cinema Production"
+              src="/banners/web-banner-04.jpg"
+              alt="Production Studio"
               className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />

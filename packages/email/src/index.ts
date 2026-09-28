@@ -18,7 +18,7 @@ export async function sendEmail({
   to,
   subject,
   html,
-  from = "ishoot <hello@ishoot.bh>",
+  from = process.env.FROM_EMAIL ?? "",
   attachments,
 }: SendEmailOptions) {
   if (!resend) {

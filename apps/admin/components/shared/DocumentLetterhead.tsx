@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BrandLogo } from "@ishoot/ui";
 import type { CompanySettings } from "@ishoot/database/types";
 import { ExternalLink } from "lucide-react";
+import { adminTranslations } from "../../lib/translations";
 
 export interface DocumentClientInfo {
   id?: string | null;
@@ -222,37 +223,50 @@ export function DocumentLetterhead({
 
 export function DocumentFooter({
   company,
+  language = "en",
   thankYouMessage,
   showSignature = false,
-  signatureTitle = "Authorized Signature",
-  signatureTitleAr = "التوقيع المعتمد",
+  signatureTitle,
+  signatureTitleAr,
 }: {
   company: CompanySettings;
+  language?: "en" | "ar";
   thankYouMessage?: string;
   showSignature?: boolean;
   signatureTitle?: string;
   signatureTitleAr?: string;
 }) {
+  const isAr = language === "ar";
+  const t = adminTranslations[isAr ? "ar" : "en"].documentLetterhead;
+  const companyName = isAr
+    ? (company.company_name_ar ? company.company_name_ar : company.company_name_en)
+    : (company.company_name_en ? company.company_name_en : company.company_name_ar);
+
+  const defaultSig = signatureTitle ? signatureTitle : t.authorizedSignatory;
+  const defaultSigAr = signatureTitleAr ? signatureTitleAr : adminTranslations.ar.documentLetterhead.authorizedSignatory;
+
   return (
     <div className="border-t border-gray-200 bg-white">
       {showSignature && (
         <div className="p-6 sm:p-8 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-end gap-6 text-xs text-gray-700">
           <div className="space-y-1">
             <span className="text-gray-400 uppercase tracking-wider text-[10px] block font-bold">
-              Issued By / صادر عن
+              {t.issuedBy}
             </span>
             <div className="font-semibold text-gray-900">
-              {company.company_name_en}
+              {companyName}
             </div>
-            <div className="text-[11px] text-gray-500 font-arabic">
-              {company.company_name_ar}
-            </div>
+            {isAr && company.company_name_en && (
+              <div className="text-[11px] text-gray-500 font-mono">
+                {company.company_name_en}
+              </div>
+            )}
           </div>
 
           <div className="text-center sm:text-end space-y-2 min-w-[220px]">
             <div className="h-10 border-b border-gray-300 border-dashed" />
             <div className="text-[11px] font-semibold text-gray-800">
-              {signatureTitle} / <span className="font-arabic">{signatureTitleAr}</span>
+              {isAr ? defaultSigAr : defaultSig}
             </div>
           </div>
         </div>
@@ -260,7 +274,7 @@ export function DocumentFooter({
 
       <div className="p-6 sm:p-8 bg-gray-50/80 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500 print:bg-white print:border-gray-200">
         <div className="font-medium text-gray-700">
-          {thankYouMessage || "Thank you for partnering with ishoot."}
+          {thankYouMessage ? thankYouMessage : t.thankYou.replace("{companyName}", companyName)}
         </div>
         <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-gray-500">
           {company.website && (

@@ -15,30 +15,30 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
   const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
 
   const categories = [
-    { id: "all", label: "All Gear" },
+    { id: "all", label: t("about.gearAll") },
     {
       id: "cameras",
-      label: "Cinema Cameras",
+      label: t("about.gearCameras"),
       icon: <Camera className="w-4 h-4" />,
     },
     {
       id: "lenses",
-      label: "Cinema Glass",
+      label: t("about.gearLenses"),
       icon: <Aperture className="w-4 h-4" />,
     },
     {
       id: "lighting",
-      label: "Lighting Rigs",
+      label: t("about.gearLighting"),
       icon: <Sun className="w-4 h-4" />,
     },
     {
       id: "audio_grading",
-      label: "Mastering Suite",
+      label: t("about.gearAudioGrading"),
       icon: <Sliders className="w-4 h-4" />,
     },
     {
       id: "stages",
-      label: "Soundstage",
+      label: t("about.gearStages"),
       icon: <Warehouse className="w-4 h-4" />,
     },
   ];
@@ -94,9 +94,9 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
               </div>
               {gear.daily_rate_bhd && (
                 <div className="text-end">
-                  <div className="text-xs text-[#9EADA9]">Daily Rental</div>
+                  <div className="text-xs text-[#9EADA9]">{t("about.dailyRental")}</div>
                   <div className="text-sm font-mono font-bold text-[#09937F]">
-                    {gear.daily_rate_bhd.toFixed(3)} BHD
+                    {gear.daily_rate_bhd.toFixed(3)} {t("financials.currency")}
                   </div>
                 </div>
               )}

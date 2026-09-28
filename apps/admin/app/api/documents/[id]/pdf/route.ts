@@ -4,6 +4,7 @@ import {
   getPaymentByIdOrNumber,
   getCompanySettings,
 } from "@ishoot/database";
+import { getTranslations } from "@ishoot/locales";
 import {
   generateInvoicePdfBuffer,
   generateReceiptPdfBuffer,
@@ -13,6 +14,7 @@ export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
+  const trans = getTranslations("en");
   try {
     const { id } = await context.params;
     const url = new URL(request.url);
@@ -25,7 +27,7 @@ export async function GET(
       const payment = await getPaymentByIdOrNumber(id);
       if (!payment) {
         return NextResponse.json(
-          { error: "Receipt not found" },
+          { error: trans.api.pdf.receiptNotFound },
           { status: 404 },
         );
       }
@@ -44,7 +46,10 @@ export async function GET(
 
     const invoice = await getInvoiceByIdOrNumber(id);
     if (!invoice) {
-      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: trans.api.pdf.invoiceNotFound },
+        { status: 404 },
+      );
     }
 
     const buffer = await generateInvoicePdfBuffer(invoice, company);
@@ -60,7 +65,7 @@ export async function GET(
   } catch (err: any) {
     console.error("PDF generation error:", err);
     return NextResponse.json(
-      { error: err.message || "Error generating PDF" },
+      { error: err.message || trans.api.pdf.generationError },
       { status: 500 },
     );
   }

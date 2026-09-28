@@ -263,15 +263,15 @@ export function InvoiceEditFormView({
               className="gap-1.5 text-slate-600 dark:text-slate-300"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>{t.actions?.back || "Back"}</span>
+              <span>{t.actions.back}</span>
             </Button>
           </Link>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display">
-              Edit Invoice — {invoice.invoice_number}
+              {t.invoiceEdit.title} — {invoice.invoice_number}
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Modify deliverables, discounts, client associations, or void invoice under RBAC audit logging
+              {t.invoiceEdit.subtitle}
             </p>
           </div>
         </div>
@@ -284,7 +284,7 @@ export function InvoiceEditFormView({
             className="gap-1.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-500/10 border border-rose-300 dark:border-rose-500/30 self-start sm:self-auto"
           >
             <AlertTriangle className="w-3.5 h-3.5" />
-            <span>Void Invoice</span>
+            <span>{t.invoiceEdit.voidInvoice}</span>
           </Button>
         )}
       </div>
@@ -295,10 +295,10 @@ export function InvoiceEditFormView({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 pb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Client Information
+                {t.invoiceEdit.clientInfo}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Select client from CRM or auto-fetch by typing email or phone number
+                {t.invoiceEdit.clientHelper}
               </p>
             </div>
             {selectedContact && (
@@ -306,7 +306,7 @@ export function InvoiceEditFormView({
                 href={`/dashboard/crm/customers/${selectedContact.id}`}
                 className="text-xs text-[#09937F] hover:underline inline-flex items-center gap-1 font-semibold"
               >
-                <span>View Client 360 Dossier</span>
+                <span>{t.invoiceEdit.viewDossier}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </Link>
             )}
@@ -316,12 +316,12 @@ export function InvoiceEditFormView({
           {!isLocked && (
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-3">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
-                Quick Client Auto-Fetch (Email or Phone)
+                {t.invoiceEdit.quickAutoFetch}
               </label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
                   <Input
-                    placeholder="Enter client email or phone to fetch data directly..."
+                    placeholder={t.invoiceEdit.autoFetchPlaceholder}
                     value={lookupTerm}
                     onChange={(e) => setLookupTerm(e.target.value)}
                     onKeyDown={(e) => {
@@ -342,11 +342,11 @@ export function InvoiceEditFormView({
                   className="gap-1.5 shrink-0"
                 >
                   {lookupLoading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
                     <Search className="w-3.5 h-3.5" />
                   )}
-                  <span>Auto-Fetch</span>
+                  <span>{t.invoiceEdit.autoFetch}</span>
                 </Button>
               </div>
               {lookupMessage && (
@@ -367,7 +367,7 @@ export function InvoiceEditFormView({
           {/* Client Search / Autocomplete */}
           <div className="space-y-4">
             <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
-              Search & Select Client
+              {t.invoiceEdit.searchSelectClient}
             </label>
             <ClientAutocomplete
               contacts={contacts}
@@ -380,7 +380,7 @@ export function InvoiceEditFormView({
                 setSelectedContactId(contact.id);
               }}
               disabled={isLocked}
-              placeholder="Search existing client by name, company, or email..."
+              placeholder={t.invoiceEdit.clientSearchPlaceholder}
             />
 
             {/* Selected Client Live Card */}
@@ -397,7 +397,7 @@ export function InvoiceEditFormView({
                     href={`/dashboard/crm/customers/${selectedContact.id}`}
                     className="text-xs text-[#014842] dark:text-[#09937F] hover:underline inline-flex items-center gap-1"
                   >
-                    <span>View CRM Dossier</span>
+                    <span>{t.invoiceEdit.viewDossier}</span>
                     <ExternalLink className="w-3 h-3" />
                   </Link>
                 </div>
@@ -427,7 +427,7 @@ export function InvoiceEditFormView({
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100 dark:border-white/10">
             <div>
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Currency
+                {t.invoiceEdit.currency}
               </label>
               <Select
                 value={currency}
@@ -444,7 +444,7 @@ export function InvoiceEditFormView({
 
             <div>
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Language
+                {t.invoiceEdit.language}
               </label>
               <Select
                 value={language}
@@ -458,7 +458,7 @@ export function InvoiceEditFormView({
 
             <div>
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Issue Date *
+                {t.invoiceEdit.issueDate} *
               </label>
               <Input
                 type="date"
@@ -472,7 +472,7 @@ export function InvoiceEditFormView({
 
             <div>
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Due Date *
+                {t.invoiceEdit.dueDate} *
               </label>
               <Input
                 type="date"
@@ -490,7 +490,7 @@ export function InvoiceEditFormView({
         <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Line Items & Services
+              {t.invoiceEdit.lineItems}
             </h2>
             {!isLocked && (
               <Button
@@ -501,7 +501,7 @@ export function InvoiceEditFormView({
                 className="gap-1.5 text-xs text-[#09937F] border-[#09937F]/30 hover:bg-[#09937F]/10"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add Deliverable</span>
+                <span>{t.invoiceEdit.addDeliverable}</span>
               </Button>
             )}
           </div>
@@ -516,17 +516,17 @@ export function InvoiceEditFormView({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/60 dark:border-white/10">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
                     <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
-                    <span>Item #{idx + 1}</span>
+                    <span>{t.invoiceEdit.itemNumber} #{idx + 1}</span>
                     {item.service_id && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-[#09937F] border border-teal-200 dark:border-teal-800 font-mono">
-                        Catalog Linked
+                        {t.invoiceEdit.catalogLinked}
                       </span>
                     )}
                   </div>
                   {!isLocked && services && services.length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Preset Service:
+                        {t.invoiceEdit.presetService}
                       </span>
                       <select
                         value={item.service_id || ""}
@@ -555,7 +555,7 @@ export function InvoiceEditFormView({
                         }}
                         className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
                       >
-                        <option value="">-- Custom Item / None --</option>
+                        <option value="">{t.invoiceEdit.customItemNone}</option>
                         {services.map((srv) => (
                           <option key={srv.id} value={srv.id}>
                             {srv.name_en} ({srv.default_rate.toFixed(3)} BHD / {srv.unit})
@@ -569,11 +569,11 @@ export function InvoiceEditFormView({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-                      Description (English) *
+                      {t.invoiceEdit.descEn} *
                     </label>
                     <Input
                       required
-                      placeholder="e.g. Cinema Commercial Shoot Day 1"
+                      placeholder={t.invoiceEdit.descEnPlaceholder}
                       value={item.description_en}
                       onChange={(e) =>
                         handleLineItemChange(idx, "description_en", e.target.value)
@@ -583,7 +583,7 @@ export function InvoiceEditFormView({
                   </div>
                   <div>
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-                      Description (Arabic)
+                      {t.invoiceEdit.descAr}
                     </label>
                     <Input
                       placeholder={t.invoiceForm.placeholderAr}
@@ -599,7 +599,7 @@ export function InvoiceEditFormView({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                   <div>
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-                      Quantity
+                      {t.invoiceEdit.quantity}
                     </label>
                     <Input
                       type="number"
@@ -615,7 +615,7 @@ export function InvoiceEditFormView({
                   </div>
                   <div>
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-                      Unit Price ({currency})
+                      {t.invoiceEdit.unitPrice} ({currency})
                     </label>
                     <Input
                       type="number"
@@ -632,7 +632,7 @@ export function InvoiceEditFormView({
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
-                        Line Total
+                        {t.invoiceEdit.lineTotal}
                       </label>
                       <div className="text-sm font-bold text-slate-900 dark:text-white font-mono h-10 flex items-center">
                         {(item.quantity * item.unit_price).toFixed(3)} {currency}
@@ -643,7 +643,7 @@ export function InvoiceEditFormView({
                         type="button"
                         onClick={() => removeLineItem(idx)}
                         className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
-                        title="Remove item"
+                        title={t.invoiceEdit.removeItem}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -658,29 +658,29 @@ export function InvoiceEditFormView({
         {/* Section 3: Discounts & Tax Adjustments */}
         <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
-            Discount & Tax Adjustments
+            {t.invoiceEdit.discountTaxAdjustments}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Discount Type
+                {t.invoiceEdit.discountType}
               </label>
               <Select
                 value={discountType}
                 onChange={(e) => setDiscountType(e.target.value as any)}
                 disabled={isLocked}
               >
-                <option value="none">No Discount</option>
-                <option value="percentage">Percentage (%)</option>
-                <option value="fixed">Fixed Amount ({currency})</option>
+                <option value="none">{t.invoiceEdit.noDiscount}</option>
+                <option value="percentage">{t.invoiceEdit.discountPercentage}</option>
+                <option value="fixed">{t.invoiceEdit.discountFixed} ({currency})</option>
               </Select>
             </div>
 
             {discountType !== "none" && (
               <div>
                 <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
-                  Discount Value
+                  {t.invoiceEdit.discountValue}
                 </label>
                 <Input
                   type="number"
@@ -704,7 +704,7 @@ export function InvoiceEditFormView({
                   disabled={isLocked}
                   className="w-4 h-4 rounded text-[#014842] focus:ring-[#09937F]"
                 />
-                <span>Enable VAT ({vatPercentage}%)</span>
+                <span>{t.invoiceEdit.enableVat} ({vatPercentage}%)</span>
               </label>
             </div>
           </div>
@@ -713,17 +713,17 @@ export function InvoiceEditFormView({
         {/* Section 4: Terms & Notes */}
         <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
-            Invoice Terms & Notes
+            {t.invoiceEdit.invoiceTermsNotes}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Notes (English)
+                {t.invoiceEdit.notesEn}
               </label>
               <textarea
                 rows={3}
-                placeholder="Payment terms, delivery notes..."
+                placeholder={t.invoiceEdit.notesEnPlaceholder}
                 value={notesEn}
                 onChange={(e) => setNotesEn(e.target.value)}
                 disabled={isLocked}
@@ -733,7 +733,7 @@ export function InvoiceEditFormView({
 
             <div>
               <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Notes (Arabic)
+                {t.invoiceEdit.notesAr}
               </label>
               <textarea
                 rows={3}
@@ -750,7 +750,7 @@ export function InvoiceEditFormView({
         {/* Section 5: Totals Summary */}
         <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-3">
           <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
-            <span className="text-slate-500 dark:text-slate-400">Subtotal</span>
+            <span className="text-slate-500 dark:text-slate-400">{t.invoiceEdit.subtotal}</span>
             <span className="font-mono font-bold text-slate-900 dark:text-white">
               {totals.subtotal.toFixed(3)} {currency}
             </span>
@@ -758,26 +758,26 @@ export function InvoiceEditFormView({
 
           {discountType !== "none" && (
             <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
-              <span className="text-slate-500 dark:text-slate-400">Discount</span>
+              <span className="text-slate-500 dark:text-slate-400">{t.invoiceEdit.discount}</span>
               <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
                 -{totals.discountAmount.toFixed(3)} {currency}
               </span>
             </div>
           )}
 
-              {vatEnabled && (
-                <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    VAT ({vatPercentage}%)
-                  </span>
-                  <span className="font-mono font-bold text-[#09937F]">
-                    +{totals.vatAmount.toFixed(3)} {currency}
-                  </span>
-                </div>
-              )}
+          {vatEnabled && (
+            <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
+              <span className="text-slate-500 dark:text-slate-400">
+                {t.invoiceEdit.vatRate} ({vatPercentage}%)
+              </span>
+              <span className="font-mono font-bold text-[#09937F]">
+                +{totals.vatAmount.toFixed(3)} {currency}
+              </span>
+            </div>
+          )}
 
           <div className="flex items-center justify-between text-sm border-t-2 border-[#09937F]/40 pt-3">
-            <span className="font-bold text-slate-900 dark:text-white">Total Amount</span>
+            <span className="font-bold text-slate-900 dark:text-white">{t.invoiceEdit.totalAmount}</span>
             <span className="font-mono font-bold text-2xl text-[#014842] dark:text-[#09937F]">
               {totals.totalAmount.toFixed(3)} {currency}
             </span>
@@ -788,7 +788,7 @@ export function InvoiceEditFormView({
         <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-end gap-4">
           <Link href={`/dashboard/invoices/${invoice.id}`}>
             <Button type="button" variant="outline" size="sm">
-              {t.actions?.cancel || "Cancel"}
+              {t.actions.cancel}
             </Button>
           </Link>
           {!isLocked && (
@@ -801,7 +801,7 @@ export function InvoiceEditFormView({
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>
-                {submitting ? "Saving Changes..." : "Save Invoice Changes"}
+                {submitting ? t.invoiceEdit.saving : t.invoiceEdit.save}
               </span>
             </Button>
           )}
@@ -812,9 +812,9 @@ export function InvoiceEditFormView({
         isOpen={voidConfirmOpen}
         onClose={() => setVoidConfirmOpen(false)}
         onConfirm={handleVoid}
-        title="Void Invoice Checkpoint"
-        description={`This will permanently void invoice ${invoice.invoice_number}. No further payments can be recorded against this invoice. This action cannot be undone.`}
-        confirmLabel="Confirm Void Invoice"
+        title={t.invoiceEdit.voidCheckpointTitle}
+        description={t.invoiceEdit.voidCheckpointDesc.replace("invoice", `invoice ${invoice.invoice_number}`)}
+        confirmLabel={t.invoiceEdit.confirmVoid}
       />
     </div>
   );

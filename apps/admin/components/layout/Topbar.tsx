@@ -16,14 +16,18 @@ import { AdminProfileDropdown } from "./AdminProfileDropdown";
 import { GlobalQuickJump } from "./GlobalQuickJump";
 import { useSidebar } from "./SidebarContext";
 import { BrandWordmark } from "../shared/BrandWordmark";
-import type { CRMContact } from "@ishoot/database/types";
+import type { CRMContact, CompanySettings } from "@ishoot/database/types";
+import initialCompanyConfig from "@ishoot/database/config";
+
+const defaultCompany = initialCompanyConfig.company;
 
 interface TopbarProps {
   contacts?: CRMContact[];
+  company?: CompanySettings | null;
 }
 
-export function Topbar({ contacts = [] }: TopbarProps) {
-  const { t } = useAdminLocale();
+export function Topbar({ contacts = [], company }: TopbarProps) {
+  const { t, isRTL } = useAdminLocale();
   const { resolvedTheme, setTheme } = useAdminTheme();
   const { toggleMobileOpen } = useSidebar();
 
@@ -31,12 +35,16 @@ export function Topbar({ contacts = [] }: TopbarProps) {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
+  const companyTitle =
+    (isRTL ? company?.company_name_ar : company?.company_name_en) ||
+    (isRTL ? defaultCompany.companyNameAr : defaultCompany.companyNameEn);
+
   return (
     <header
       data-topbar
       className="h-14 w-full fixed top-0 left-0 right-0 z-40 bg-white dark:bg-[#1f1f1f] border-b border-[#dadce0] dark:border-[#3c4043] px-3 sm:px-4 flex items-center justify-between select-none shadow-[0_1px_2px_0_rgba(60,64,67,0.08)] dark:shadow-none transition-colors duration-150"
     >
-      {/* Start: Google-style Hamburger Menu + Official ishoot Brand Lockup */}
+      {/* Start: Hamburger Menu + Dynamic Brand Lockup */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         <button
           type="button"
@@ -50,21 +58,27 @@ export function Topbar({ contacts = [] }: TopbarProps) {
         <Link
           href="/dashboard"
           className="flex items-center gap-2 group focus:outline-none ps-1 sm:ps-2"
-          title="ishoot Admin Console"
+          title={`${companyTitle} Admin Console`}
         >
           <img
-            src="/icon.svg"
-            alt="ishoot"
+            src={company?.icon_url || defaultCompany.iconUrl}
+            alt={companyTitle}
             className="w-6 h-6 object-contain shrink-0"
           />
-          <BrandWordmark size="sm" />
+          {company?.logo_url && !company.logo_url.includes("logo-color.svg") ? (
+            <img
+              src={company.logo_url}
+              alt={companyTitle}
+              className="h-5 w-auto object-contain"
+            />
+          ) : (
+            <BrandWordmark size="sm" />
+          )}
         </Link>
 
         <div className="hidden md:flex items-center gap-2 ms-2">
           <div className="h-4 w-px bg-slate-200 dark:bg-neutral-700" />
-          <span className="text-xs font-medium text-slate-500 dark:text-neutral-400">
-            Console
-          </span>
+          <AdminProfileDropdown />
         </div>
       </div>
 

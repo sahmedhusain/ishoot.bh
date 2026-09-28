@@ -223,12 +223,12 @@ export function PaymentsManagementView({
             <DeliveryToolbar
               documentType="receipt"
               clientEmail={
-                activeReceipt.invoice?.contact?.email || "finance@ishoot.bh"
+                activeReceipt.invoice?.contact?.email || company?.email || ""
               }
               clientPhone={
-                activeReceipt.invoice?.contact?.phone || "+97339000000"
+                activeReceipt.invoice?.contact?.phone || company?.phone || ""
               }
-              clientName={activeReceipt.invoice?.contact?.full_name || "Client"}
+              clientName={activeReceipt.invoice?.contact?.full_name || ""}
               documentNumber={activeReceipt.receipt_number}
               amountFormatted={`${Number(activeReceipt.amount).toFixed(3)} BHD`}
             />

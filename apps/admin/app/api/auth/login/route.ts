@@ -4,6 +4,7 @@ import {
   createSession,
   createActivityLog,
 } from "@ishoot/database";
+import { getTranslations } from "@ishoot/locales";
 import { signSessionToken } from "../../../../lib/jwt";
 import {
   SESSION_COOKIE_NAME,
@@ -11,13 +12,14 @@ import {
 } from "../../../../lib/auth";
 
 export async function POST(req: NextRequest) {
+  const trans = getTranslations("en");
   try {
     const body = await req.json();
     const { email, password } = body;
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { error: trans.api.auth.requiredFields },
         { status: 400 },
       );
     }
@@ -25,7 +27,7 @@ export async function POST(req: NextRequest) {
     const user = await verifyUserCredentials(email, password);
     if (!user) {
       return NextResponse.json(
-        { error: "Invalid credentials or inactive account" },
+        { error: trans.api.auth.invalidCredentials },
         { status: 401 },
       );
     }
@@ -80,7 +82,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("Login error:", err);
     return NextResponse.json(
-      { error: err.message || "Internal server error" },
+      { error: err.message || trans.api.auth.serverError },
       { status: 500 },
     );
   }

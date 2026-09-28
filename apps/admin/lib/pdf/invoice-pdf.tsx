@@ -1,79 +1,112 @@
-import * as React from "react";
-import { Document, Page, Text, View } from "@react-pdf/renderer";
-import { pdfStyles } from "./shared-styles";
+import React from "react";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+} from "@react-pdf/renderer";
 import type { Invoice, CompanySettings } from "@ishoot/database/types";
+import { pdfStyles } from "./shared-styles";
+import { adminTranslations } from "../translations";
+import initialCompanyConfig from "@ishoot/database/config";
 
-interface InvoicePdfProps {
+const defaultCompany = initialCompanyConfig.company;
+
+interface InvoicePDFProps {
   invoice: Invoice;
   company: CompanySettings;
 }
 
-function formatAmount(val: number | string | undefined, decimals = 3): string {
-  const num = typeof val === "number" ? val : parseFloat(val as string) || 0;
-  return num.toLocaleString("en-US", {
+function formatDate(dateStr: string) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatAmount(amount: number, decimals: number = 3) {
+  return Number(amount || 0).toLocaleString("en-US", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });
 }
 
-function formatDate(dateStr: string | undefined): string {
-  if (!dateStr) return "-";
-  try {
-    return new Date(dateStr).toISOString().split("T")[0];
-  } catch {
-    return dateStr;
-  }
-}
-
-export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
-  const currency = invoice.currency || company.default_currency || "BHD";
-  const decimals = company.currency_decimals ?? 3;
+export function InvoicePDF({ invoice, company }: InvoicePDFProps) {
+  const isVatActive = !!(company.vat_enabled && invoice.vat_enabled);
+  const currency = invoice.currency || company.default_currency || defaultCompany.defaultCurrency;
+  const decimals = company.currency_decimals ?? defaultCompany.currencyDecimals;
   const lineItems = invoice.line_items || [];
-  const isVatActive = Boolean(
-    invoice.vat_enabled &&
-      (Number(invoice.vat_amount) > 0 || company.vat_enabled),
-  );
+  const isAr = invoice.language === "ar";
+  const t = adminTranslations[isAr ? "ar" : "en"].pdfInvoice;
 
   const clientName =
-    invoice.contact?.full_name ||
-    invoice.deal?.contact?.full_name ||
-    invoice.contact_name ||
-    "Client";
-  const clientCompany =
-    invoice.contact?.company || invoice.deal?.contact?.company || "";
-  const clientEmail =
-    invoice.contact?.email || invoice.deal?.contact?.email || "";
-  const clientPhone =
-    invoice.contact?.phone || invoice.deal?.contact?.phone || "";
-  const clientAddress =
-    invoice.contact?.address || invoice.deal?.contact?.address || "";
+    invoice.contact?.full_name ?? invoice.contact_name ?? t.defaultClient;
+  const clientCompany = invoice.contact?.company || "";
+  const clientEmail = invoice.contact?.email || "";
+  const clientPhone = invoice.contact?.phone || "";
+  const clientAddress = invoice.contact?.address || "";
   const clientVat = invoice.contact?.vat_number || "";
 
+  const compNameEn = company.company_name_en || defaultCompany.companyNameEn;
+  const compNameAr = company.company_name_ar || defaultCompany.companyNameAr;
+  const companyDisplayName = isAr ? compNameAr : compNameEn;
+
+  const labels = {
+    title: isVatActive ? t.taxInvoiceTitle : t.standardInvoiceTitle,
+    billedTo: t.clientDetails,
+    invoiceDetails: t.invoiceDetails,
+    issueDate: t.issueDate,
+    dueDate: t.dueDate,
+    status: t.status,
+    currencyLabel: t.currency,
+    description: t.description,
+    qty: t.qty,
+    unitPrice: `${t.unitPrice} (${currency})`,
+    total: `${t.total} (${currency})`,
+    subtotal: t.subtotal,
+    discount: t.discount,
+    vat: `${t.vat} (${invoice.vat_percentage || 10}%):`,
+    totalFinal: t.totalAmount,
+    amountPaid: t.amountPaid,
+    balanceDue: t.balanceDue,
+    bankDetails: t.bankDetails,
+    bankName: t.bankName,
+    iban: t.iban,
+    accountNo: t.accountNo,
+    swift: t.swift,
+    issuedBy: t.issuedBy,
+    authorizedSignatory: t.authorizedSignatory,
+    terms: t.termsNotice.replace("{days}", String(company.payment_terms_days || 30)).replace("{date}", formatDate(invoice.due_date)),
+    wireRef: t.wireRefNotice.replace("{invNum}", invoice.invoice_number),
+    thankYou: t.thankYou.replace("{companyName}", companyDisplayName),
+  };
+
   return (
-    <Document title={`Invoice ${invoice.invoice_number} - ishoot`}>
+    <Document title={`Invoice ${invoice.invoice_number} - ${compNameEn}`}>
       <Page size="A4" style={pdfStyles.page}>
         {/* Official Header Banner */}
         <View style={pdfStyles.headerBanner}>
           <View>
             <Text style={pdfStyles.brandTitle}>
-              ishoot<Text style={pdfStyles.brandDot}>.</Text>
+              {compNameEn}<Text style={pdfStyles.brandDot}>.</Text>
             </Text>
             <Text style={pdfStyles.companySubtitle}>
-              {company.company_name_en}
+              {isAr ? compNameAr : compNameEn}
             </Text>
             <Text style={pdfStyles.companyMeta}>
-              CR: {company.cr_number || "CR-142859-1"}
-              {isVatActive && company.vat_id
-                ? ` • VAT ID: ${company.vat_id}`
+              {t.crPrefix} {company.cr_number || defaultCompany.crNumber}
+              {isVatActive && (company.vat_id || defaultCompany.vatId)
+                ? ` • VAT ID: ${company.vat_id || defaultCompany.vatId}`
                 : ""}
-              {" • Kingdom of Bahrain"}
+              {` • ${t.country}`}
             </Text>
           </View>
 
           <View style={pdfStyles.docTitleBlock}>
-            <Text style={pdfStyles.docMainTitle}>
-              {isVatActive ? "TAX INVOICE" : "INVOICE"}
-            </Text>
+            <Text style={pdfStyles.docMainTitle}>{labels.title}</Text>
             <Text style={pdfStyles.docNumber}>{invoice.invoice_number}</Text>
           </View>
         </View>
@@ -81,7 +114,7 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
         {/* Client & Metadata Grid */}
         <View style={pdfStyles.metaGrid}>
           <View style={pdfStyles.metaCard}>
-            <Text style={pdfStyles.metaLabel}>BILLED TO / العميل</Text>
+            <Text style={pdfStyles.metaLabel}>{labels.billedTo}</Text>
             <Text style={pdfStyles.metaValue}>
               {clientCompany || clientName}
             </Text>
@@ -99,24 +132,24 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
             ) : null}
             {clientVat ? (
               <Text style={[pdfStyles.metaSub, { fontWeight: "bold" }]}>
-                Client VAT: {clientVat}
+                VAT: {clientVat}
               </Text>
             ) : null}
           </View>
 
           <View style={pdfStyles.metaCard}>
-            <Text style={pdfStyles.metaLabel}>INVOICE DETAILS / تفاصيل الفاتورة</Text>
+            <Text style={pdfStyles.metaLabel}>{labels.invoiceDetails}</Text>
             <Text style={pdfStyles.metaSub}>
-              Issue Date: {formatDate(invoice.issue_date)}
+              {labels.issueDate}: {formatDate(invoice.issue_date)}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              Due Date: {formatDate(invoice.due_date)}
+              {labels.dueDate}: {formatDate(invoice.due_date)}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              Status: {(invoice.status || "draft").replace("_", " ").toUpperCase()}
+              {labels.status}: {(invoice.status || "draft").replace("_", " ").toUpperCase()}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              Currency: {currency}
+              {labels.currencyLabel}: {currency}
             </Text>
           </View>
         </View>
@@ -124,10 +157,10 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
         {/* Line Items Table */}
         <View style={pdfStyles.table}>
           <View style={pdfStyles.tableHeader}>
-            <Text style={pdfStyles.colDesc}>DESCRIPTION / الوصف</Text>
-            <Text style={pdfStyles.colQty}>QTY / الكمية</Text>
-            <Text style={pdfStyles.colUnitPrice}>UNIT PRICE ({currency})</Text>
-            <Text style={pdfStyles.colTotal}>TOTAL ({currency})</Text>
+            <Text style={pdfStyles.colDesc}>{labels.description}</Text>
+            <Text style={pdfStyles.colQty}>{labels.qty}</Text>
+            <Text style={pdfStyles.colUnitPrice}>{labels.unitPrice}</Text>
+            <Text style={pdfStyles.colTotal}>{labels.total}</Text>
           </View>
 
           {lineItems.map((item, index) => (
@@ -140,13 +173,8 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
             >
               <View style={pdfStyles.colDesc}>
                 <Text style={{ fontWeight: "bold" }}>
-                  {item.description_en || "Service item"}
+                  {isAr ? (item.description_ar || item.description_en) : (item.description_en || item.description_ar)}
                 </Text>
-                {item.description_ar ? (
-                  <Text style={{ fontSize: 7.5, color: "#6B7280", marginTop: 1 }}>
-                    {item.description_ar}
-                  </Text>
-                ) : null}
               </View>
               <Text style={pdfStyles.colQty}>{item.quantity}</Text>
               <Text style={pdfStyles.colUnitPrice}>
@@ -162,29 +190,27 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
         {/* Bank & Totals Block */}
         <View style={pdfStyles.totalsContainer}>
           <View style={pdfStyles.bankBlock}>
-            <Text style={pdfStyles.metaLabel}>
-              BANK COORDINATES / تفاصيل الحساب البنكي
+            <Text style={pdfStyles.metaLabel}>{labels.bankDetails}</Text>
+            <Text style={pdfStyles.metaSub}>
+              {labels.bankName} {company.bank_name || defaultCompany.bankName}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              Bank: {company.bank_name || "National Bank of Bahrain (NBB)"}
+              {labels.iban} {company.bank_iban || defaultCompany.bankIban}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              IBAN: {company.bank_iban || "-"}
+              {labels.accountNo} {company.bank_account_number || defaultCompany.bankAccountNumber}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              Account: {company.bank_account_number || "-"}
-            </Text>
-            <Text style={pdfStyles.metaSub}>
-              SWIFT: {company.bank_swift || "-"}
+              {labels.swift} {company.bank_swift || defaultCompany.bankSwift}
             </Text>
 
             {/* Terms and notes */}
             <View style={{ marginTop: 8, paddingTop: 6, borderTopWidth: 1, borderTopColor: "#E5E7EB" }}>
               <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.3 }}>
-                • Payment is due within {company.payment_terms_days || 30} days ({formatDate(invoice.due_date)}).
+                {labels.terms}
               </Text>
               <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.3 }}>
-                • Wire payments must reference invoice: {invoice.invoice_number}.
+                {labels.wireRef}
               </Text>
               {invoice.notes_en ? (
                 <Text style={{ fontSize: 7, color: "#111827", marginTop: 2, fontWeight: "bold" }}>
@@ -201,7 +227,7 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
 
           <View style={pdfStyles.totalsBlock}>
             <View style={pdfStyles.totalRow}>
-              <Text>Subtotal / المجموع:</Text>
+              <Text>{labels.subtotal}</Text>
               <Text>
                 {currency} {formatAmount(invoice.subtotal, decimals)}
               </Text>
@@ -209,7 +235,7 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
 
             {invoice.discount_amount > 0 && (
               <View style={pdfStyles.totalRow}>
-                <Text>Discount / الخصم:</Text>
+                <Text>{labels.discount}</Text>
                 <Text style={{ color: "#DC2626" }}>
                   - {currency} {formatAmount(invoice.discount_amount, decimals)}
                 </Text>
@@ -218,7 +244,7 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
 
             {isVatActive && (
               <View style={pdfStyles.totalRow}>
-                <Text>VAT ({invoice.vat_percentage || 10}%):</Text>
+                <Text>{labels.vat}</Text>
                 <Text>
                   {currency} {formatAmount(invoice.vat_amount, decimals)}
                 </Text>
@@ -226,7 +252,7 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
             )}
 
             <View style={pdfStyles.totalRowFinal}>
-              <Text>TOTAL / الإجمالي:</Text>
+              <Text>{labels.totalFinal}</Text>
               <Text>
                 {currency} {formatAmount(invoice.total_amount, decimals)}
               </Text>
@@ -234,7 +260,7 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
 
             {invoice.amount_paid > 0 && (
               <View style={pdfStyles.paidRow}>
-                <Text>Amount Paid / المدفوع:</Text>
+                <Text>{labels.amountPaid}</Text>
                 <Text>
                   {currency} {formatAmount(invoice.amount_paid, decimals)}
                 </Text>
@@ -242,7 +268,7 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
             )}
 
             <View style={pdfStyles.dueRow}>
-              <Text>Balance Due / المستحق:</Text>
+              <Text>{labels.balanceDue}</Text>
               <Text>
                 {currency} {formatAmount(invoice.amount_due, decimals)}
               </Text>
@@ -254,31 +280,34 @@ export function InvoicePdfDocument({ invoice, company }: InvoicePdfProps) {
         <View style={pdfStyles.signatureContainer}>
           <View>
             <Text style={{ fontSize: 7.5, color: "#6B7280" }}>
-              Issued by / صادر عن
+              {labels.issuedBy}
             </Text>
             <Text style={{ fontSize: 8.5, fontWeight: "bold", color: "#111827", marginTop: 1 }}>
-              {company.company_name_en}
+              {isAr ? (company.company_name_ar || company.company_name_en) : (company.company_name_en || company.company_name_ar)}
             </Text>
           </View>
 
           <View style={{ alignItems: "flex-end" }}>
             <View style={pdfStyles.signatureBox} />
             <Text style={pdfStyles.signatureLabel}>
-              Authorized Signatory / التوقيع المعتمد
+              {labels.authorizedSignatory}
             </Text>
           </View>
         </View>
 
         {/* Footer */}
         <View style={pdfStyles.footer} fixed>
-          <Text>Thank you for choosing ishoot Cinema Production.</Text>
+          <Text>{labels.thankYou}</Text>
           <Text>
-            {company.website || "https://ishoot.bh"}
-            {company.email ? ` • ${company.email}` : ""}
-            {company.phone ? ` • ${company.phone}` : ""}
+            {company.website || defaultCompany.website}
+            {` • ${company.email || defaultCompany.email}`}
+            {` • ${company.phone || defaultCompany.phone}`}
           </Text>
         </View>
       </Page>
     </Document>
   );
 }
+
+export { InvoicePDF as InvoicePdfDocument };
+

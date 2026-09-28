@@ -272,7 +272,7 @@ export function NewPaymentFormView({
             {/* Step 1: Select Client */}
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
-                1. Select Client (Customer) *
+                {t.newPaymentView.selectClientLabel} *
               </label>
               <ClientAutocomplete
                 initialContacts={contacts}
@@ -290,10 +290,10 @@ export function NewPaymentFormView({
             {/* Step 2: Select Invoice */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
-                <label>2. Select Related Invoice *</label>
+                <label>{t.newPaymentView.selectInvoiceLabel} *</label>
                 {fetchingInvoices && (
                   <span className="text-[10px] text-[#09937F] font-mono animate-pulse">
-                    Refreshing invoices...
+                    {t.newPaymentView.refreshingInvoices}
                   </span>
                 )}
               </div>
@@ -305,10 +305,10 @@ export function NewPaymentFormView({
               >
                 <option value="">
                   {!selectedClientId
-                    ? "-- Select a client first --"
+                    ? t.newPaymentView.selectClientFirst
                     : clientInvoices.length === 0
-                    ? "-- No invoices found for this client --"
-                    : "-- Choose an invoice --"}
+                    ? t.newPaymentView.noInvoicesFound
+                    : t.newPaymentView.chooseInvoice}
                 </option>
                 {clientInvoices.map((inv) => (
                   <option key={inv.id} value={inv.id}>
@@ -318,12 +318,12 @@ export function NewPaymentFormView({
               </Select>
               {selectedClientId && clientInvoices.length === 0 && !fetchingInvoices && (
                 <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                  This client currently has no invoices on file.{" "}
+                  {t.newPaymentView.noInvoicesClientNotice}{" "}
                   <Link
                     href={`/dashboard/invoices/new?clientId=${selectedClientId}`}
                     className="underline font-bold text-[#09937F]"
                   >
-                    Create an invoice first
+                    {t.newPaymentView.createInvoiceFirst}
                   </Link>
                 </p>
               )}
@@ -334,7 +334,7 @@ export function NewPaymentFormView({
           {selectedInvoice && (
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs animate-fade-in">
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Invoice Number</span>
+                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.invoiceNumber}</span>
                 <Link
                   href={`/dashboard/invoices/${selectedInvoice.id}`}
                   target="_blank"
@@ -346,7 +346,7 @@ export function NewPaymentFormView({
               </div>
 
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Total Invoiced</span>
+                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.totalInvoiced}</span>
                 <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
                   <CurrencyDisplay
                     amount={selectedInvoice.total_amount}
@@ -356,7 +356,7 @@ export function NewPaymentFormView({
               </div>
 
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Balance Currently Due</span>
+                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.balanceDue}</span>
                 <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
                   <CurrencyDisplay
                     amount={selectedInvoice.amount_due}
@@ -366,14 +366,14 @@ export function NewPaymentFormView({
               </div>
 
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Balance After Payment</span>
+                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.balanceAfterPayment}</span>
                 <span className={`font-mono font-bold ${remainingBalance === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
                   <CurrencyDisplay
                     amount={remainingBalance}
                     currency={selectedInvoice.currency}
                   />
                   {remainingBalance === 0 && (
-                    <span className="text-[10px] ms-1 text-emerald-500">(Settled)</span>
+                    <span className="text-[10px] ms-1 text-emerald-500">{t.newPaymentView.settled}</span>
                   )}
                 </span>
               </div>
@@ -400,7 +400,7 @@ export function NewPaymentFormView({
 
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
-                Payment Date
+                {t.newPaymentView.paymentDate}
               </label>
               <Input
                 type="date"
@@ -417,11 +417,11 @@ export function NewPaymentFormView({
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value as any)}
               >
-                <option value="bank_transfer">Bank Transfer (تحويل بنكي)</option>
-                <option value="cash">Cash (نقدي)</option>
-                <option value="cheque">Cheque (شيك)</option>
-                <option value="card">Credit / Debit Card (بطاقة)</option>
-                <option value="online">Online Gateway / BenefitPay (إلكتروني)</option>
+                <option value="bank_transfer">{t.finance.bankTransfer}</option>
+                <option value="cash">{t.finance.cash}</option>
+                <option value="cheque">{t.finance.cheque}</option>
+                <option value="card">{t.finance.card}</option>
+                <option value="online">{t.finance.online}</option>
               </Select>
             </div>
           </div>
@@ -429,20 +429,20 @@ export function NewPaymentFormView({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
-                Reference Number / Transaction ID
+                {t.newPaymentView.referenceNumber}
               </label>
               <Input
-                placeholder="TRX-984210"
+                placeholder={t.newPaymentView.referenceNumberPlaceholder}
                 value={referenceNumber}
                 onChange={(e) => setReferenceNumber(e.target.value)}
               />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
-                Notes & Allocation
+                {t.newPaymentView.notesAllocation}
               </label>
               <Input
-                placeholder="Advance payment for production..."
+                placeholder={t.newPaymentView.notesAllocationPlaceholder}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -457,11 +457,11 @@ export function NewPaymentFormView({
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-[#014842] dark:text-[#7de0d1]" />
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                      Required Cheque Settlement Documents / مستندات تسوية الشيك (2 Documents)
+                      {t.newPaymentView.chequeSettlementDocsTitle}
                     </h3>
                   </div>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 font-bold">
-                    Mandatory for Cheques
+                    {t.newPaymentView.mandatoryForCheques}
                   </span>
                 </div>
 
@@ -471,9 +471,9 @@ export function NewPaymentFormView({
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
                         <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
-                        <span>1. Cheque Copy / صورة الشيك *</span>
+                        <span>{t.newPaymentView.chequeCopyLabel} *</span>
                       </label>
-                      <span className="text-[10px] text-rose-500 font-bold">Required</span>
+                      <span className="text-[10px] text-rose-500 font-bold">{t.newPaymentView.required}</span>
                     </div>
 
                     <input
@@ -496,7 +496,7 @@ export function NewPaymentFormView({
                               {chequeFile.fileName}
                             </p>
                             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
-                              ✓ Uploaded & ready to archive
+                              {t.newPaymentView.uploadedReady}
                             </span>
                           </div>
                         </div>
@@ -534,9 +534,9 @@ export function NewPaymentFormView({
                             )}
                           </div>
                           <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
-                            {uploadingCheque ? "Uploading cheque..." : "Click or drop Cheque Scan"}
+                            {uploadingCheque ? t.newPaymentView.uploadingCheque : t.newPaymentView.clickOrDropCheque}
                           </p>
-                          <p className="text-[10px] text-slate-400">PDF, PNG, JPG (Front & back)</p>
+                          <p className="text-[10px] text-slate-400">{t.newPaymentView.chequeFormats}</p>
                         </div>
                       </div>
                     )}
@@ -547,9 +547,9 @@ export function NewPaymentFormView({
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
                         <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
-                        <span>2. Bank Transfer Slip / كشف الحساب *</span>
+                        <span>{t.newPaymentView.bankSlipLabel} *</span>
                       </label>
-                      <span className="text-[10px] text-rose-500 font-bold">Required</span>
+                      <span className="text-[10px] text-rose-500 font-bold">{t.newPaymentView.required}</span>
                     </div>
 
                     <input
@@ -572,7 +572,7 @@ export function NewPaymentFormView({
                               {bankReceiptFile.fileName}
                             </p>
                             <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
-                              ✓ Uploaded & ready to archive
+                              {t.newPaymentView.uploadedReady}
                             </span>
                           </div>
                         </div>
@@ -610,9 +610,9 @@ export function NewPaymentFormView({
                             )}
                           </div>
                           <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
-                            {uploadingBankReceipt ? "Uploading statement..." : "Click or drop Bank Slip"}
+                            {uploadingBankReceipt ? t.newPaymentView.uploadingBankSlip : t.newPaymentView.clickOrDropBankSlip}
                           </p>
-                          <p className="text-[10px] text-slate-400">PDF, PNG, JPG (Deposit/Statement)</p>
+                          <p className="text-[10px] text-slate-400">{t.newPaymentView.bankSlipFormats}</p>
                         </div>
                       </div>
                     )}
@@ -624,9 +624,9 @@ export function NewPaymentFormView({
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
                     <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
-                    <span>Proof of Payment / إيصال التحويل أو سند الدفع (Optional Archive Proof)</span>
+                    <span>{t.newPaymentView.proofOptionalTitle}</span>
                   </label>
-                  <span className="text-[10px] text-slate-400 font-mono">Saved to Archive Vault</span>
+                  <span className="text-[10px] text-slate-400 font-mono">{t.newPaymentView.savedToVault}</span>
                 </div>
 
                 <input
@@ -649,7 +649,7 @@ export function NewPaymentFormView({
                           {generalProofFile.fileName}
                         </p>
                         <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
-                          ✓ Ready to archive with payment
+                          {t.newPaymentView.uploadedReady}
                         </span>
                       </div>
                     </div>
@@ -687,9 +687,9 @@ export function NewPaymentFormView({
                         )}
                       </div>
                       <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
-                        {uploadingProof ? "Uploading proof..." : "Click or drag BenefitPay / Wire Transfer Receipt"}
+                        {uploadingProof ? t.newPaymentView.uploadingProof : t.newPaymentView.clickOrDropProof}
                       </p>
-                      <p className="text-[10px] text-slate-400">PDF, JPG, PNG up to 25MB</p>
+                      <p className="text-[10px] text-slate-400">{t.newPaymentView.proofFormats}</p>
                     </div>
                   </div>
                 )}
@@ -708,7 +708,7 @@ export function NewPaymentFormView({
           <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-white/10">
             <Link href="/dashboard/payments">
               <Button type="button" variant="outline">
-                Cancel
+                {t.actions.cancel}
               </Button>
             </Link>
             <Button
@@ -718,7 +718,7 @@ export function NewPaymentFormView({
               className="gap-2 shadow-sm hover:shadow-md"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{saving ? "Recording..." : "Record Payment & Issue Receipt"}</span>
+              <span>{saving ? t.newPaymentView.saving : t.newPaymentView.save}</span>
             </Button>
           </div>
         </form>

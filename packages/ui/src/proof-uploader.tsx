@@ -6,10 +6,7 @@ import {
   X,
   FileText,
   Image as ImageIcon,
-  CheckCircle,
-  AlertCircle,
 } from "lucide-react";
-import { Button } from "./button";
 
 export interface ProofFile {
   id: string;
@@ -22,14 +19,18 @@ export interface ProofFile {
 interface ProofUploaderProps {
   label?: string;
   hint?: string;
+  clickText?: string;
+  dropText?: string;
   value?: ProofFile[];
   onChange?: (files: ProofFile[]) => void;
   maxFiles?: number;
 }
 
 export function ProofUploader({
-  label = "Proof of Payment & Attachments",
-  hint = "Upload bank transfer receipt, BenefitPay slip, wire screenshot, or scanned cheque (PNG, JPG, PDF up to 10MB)",
+  label,
+  hint,
+  clickText = "Click to upload",
+  dropText = "or drag and drop files",
   value = [],
   onChange,
   maxFiles = 5,
@@ -85,9 +86,9 @@ export function ProofUploader({
           <div>
             <p className="text-xs font-medium text-white">
               <span className="text-[#09937F] underline font-bold">
-                Click to upload
+                {clickText}
               </span>{" "}
-              or drag and drop files
+              {dropText}
             </p>
             {hint && <p className="text-[11px] text-[#9EADA9] mt-1">{hint}</p>}
           </div>

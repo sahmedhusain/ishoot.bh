@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resolveIncomingLead } from "@ishoot/database";
+import { resolveIncomingLead, getCompanySettings } from "@ishoot/database";
 import {
   sendEmail,
   createInquiryConfirmationEmail,
   createInquiryNotificationEmail,
 } from "@ishoot/email";
-import { getTranslations } from "@ishoot/locales";
+import { getTranslations, type Locale } from "@ishoot/locales";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,9 +22,12 @@ export async function POST(req: NextRequest) {
       locale = "en",
     } = body;
 
+    const localeKey: Locale = locale === "ar" ? "ar" : "en";
+    const trans = getTranslations(localeKey);
+
     if (!fullName || !email || !message) {
       return NextResponse.json(
-        { error: "Full name, email, and message are required." },
+        { error: trans.api.inquiry.requiredFields },
         { status: 400 },
       );
     }
@@ -47,8 +50,10 @@ export async function POST(req: NextRequest) {
       services,
       locale,
     );
-    const trans = getTranslations(locale === "ar" ? "ar" : "en");
-    const clientSubject = trans.contact.emailSubject;
+    const clientSubject = trans.email.confirmation.subject.replace(
+      "{companyName}",
+      company || trans.common.brandName,
+    );
 
     await sendEmail({
       to: email,
@@ -66,23 +71,33 @@ export async function POST(req: NextRequest) {
       message,
     });
 
-    await sendEmail({
-      to: "hello@ishoot.bh",
-      subject: `🔔 New Inquiry: ${fullName} — ${services[0] || "Production"}`,
-      html: teamHtml,
-    });
+    const companySettings = await getCompanySettings();
+    const notificationRecipient = process.env.NOTIFICATION_EMAIL || companySettings.email;
+
+    if (notificationRecipient) {
+      const notificationSubject = trans.email.notification.subject.replace(
+        "{fullName}",
+        fullName,
+      );
+      await sendEmail({
+        to: notificationRecipient,
+        subject: notificationSubject,
+        html: teamHtml,
+      });
+    }
 
     return NextResponse.json({
       success: true,
       inquiryId: resolved.inquiryId,
       customerId: resolved.customerId,
       resolution: resolved.resolution,
-      message: "Inquiry received and notifications dispatched.",
+      message: trans.api.inquiry.success,
     });
   } catch (error) {
     console.error("Inquiry API Error:", error);
+    const trans = getTranslations("en");
     return NextResponse.json(
-      { error: "Internal server error processing inquiry." },
+      { error: trans.api.inquiry.serverError },
       { status: 500 },
     );
   }

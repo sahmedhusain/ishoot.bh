@@ -1,6 +1,11 @@
-const DEFAULT_DB_URL =
-  "postgresql://ishoot:ishoot_password@localhost:5432/ishoot_db?schema=public";
-const databaseUrl = process.env.DATABASE_URL || DEFAULT_DB_URL;
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "FATAL: DATABASE_URL environment variable is missing in production. Please configure it in your environment.",
+    );
+  }
+}
 
 import { PrismaClient } from "../prisma/generated/client";
 

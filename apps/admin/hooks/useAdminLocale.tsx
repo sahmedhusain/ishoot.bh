@@ -1,13 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { AdminLocale, adminTranslations } from "../lib/translations";
+import { AdminLocale, adminTranslations, AdminTranslations } from "../lib/translations";
+
+const STORAGE_KEY = "ishoot_admin_locale";
+const DEFAULT_LOCALE: AdminLocale = "ar";
 
 interface AdminLocaleContextType {
   locale: AdminLocale;
   isRTL: boolean;
   setLocale: (locale: AdminLocale) => void;
-  t: (typeof adminTranslations)["ar"];
+  t: AdminTranslations;
 }
 
 const AdminLocaleContext = React.createContext<
@@ -19,10 +22,10 @@ export function AdminLocaleProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [locale, setLocaleState] = React.useState<AdminLocale>("ar");
+  const [locale, setLocaleState] = React.useState<AdminLocale>(DEFAULT_LOCALE);
 
   React.useEffect(() => {
-    const saved = localStorage.getItem("ishoot_admin_locale") as AdminLocale;
+    const saved = localStorage.getItem(STORAGE_KEY) as AdminLocale;
     if (saved === "en" || saved === "ar") {
       setLocaleState(saved);
       document.documentElement.dir = saved === "ar" ? "rtl" : "ltr";
@@ -35,7 +38,7 @@ export function AdminLocaleProvider({
 
   const setLocale = (newLocale: AdminLocale) => {
     setLocaleState(newLocale);
-    localStorage.setItem("ishoot_admin_locale", newLocale);
+    localStorage.setItem(STORAGE_KEY, newLocale);
     document.documentElement.dir = newLocale === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = newLocale;
   };
@@ -56,7 +59,7 @@ export function useAdminLocale() {
     return {
       locale: "ar" as AdminLocale,
       isRTL: true,
-      setLocale: () => {},
+      setLocale: () => { },
       t: adminTranslations.ar,
     };
   }

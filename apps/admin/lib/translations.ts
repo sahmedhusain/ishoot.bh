@@ -7,4 +7,6 @@ export const adminTranslations = {
   en: en.admin,
 };
 
-export type AdminTranslations = typeof ar.admin;
+export type AdminTranslations = typeof en.admin;
+export type Translations = AdminTranslations;
+

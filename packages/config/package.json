@@ -5,6 +5,10 @@
   "type": "module",
   "main": "./tailwind.config.ts",
   "types": "./tailwind.config.ts",
+  "exports": {
+    ".": "./tailwind.config.ts",
+    "./constants": "./src/constants/index.ts"
+  },
   "dependencies": {
     "tailwindcss-animate": "^1.0.7"
   },

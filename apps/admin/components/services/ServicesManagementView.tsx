@@ -26,24 +26,7 @@ import {
   deleteServiceAction,
 } from "../../app/actions/services";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-
-const CATEGORIES: { value: string; labelEn: string; labelAr: string; color: string }[] = [
-  { value: "all", labelEn: "All Services", labelAr: "جميع الخدمات", color: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200" },
-  { value: "production", labelEn: "Production & Shoot", labelAr: "التصوير والإنتاج", color: "bg-teal-50 text-teal-800 border-teal-200 dark:bg-teal-950/60 dark:text-teal-300" },
-  { value: "post_production", labelEn: "Post-Production & VFX", labelAr: "المونتاج والمؤثرات", color: "bg-indigo-50 text-indigo-800 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300" },
-  { value: "pre_production", labelEn: "Pre-Production & Script", labelAr: "ما قبل الإنتاج والسيناريو", color: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300" },
-  { value: "studio_rental", labelEn: "Studio & Stages", labelAr: "تأجير الاستوديو والمواقع", color: "bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300" },
-  { value: "equipment", labelEn: "Camera & Lighting Gear", labelAr: "تأجير الكاميرات والإضاءة", color: "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300" },
-  { value: "consulting", labelEn: "Consulting & Creative", labelAr: "الاستشارات والرؤية الإبداعية", color: "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300" },
-];
-
-const UNITS = [
-  { value: "day", labelEn: "Per Day (يومياً)", labelAr: "يومي" },
-  { value: "hour", labelEn: "Per Hour (بالساعة)", labelAr: "بالساعة" },
-  { value: "project", labelEn: "Per Project (مشروع)", labelAr: "لكل مشروع" },
-  { value: "minute", labelEn: "Per Minute (بالدقيقة)", labelAr: "بالدقيقة" },
-  { value: "unit", labelEn: "Per Unit / Item (قطعة)", labelAr: "لكل قطعة" },
-];
+import { SERVICE_CATEGORIES, SERVICE_UNITS } from "@ishoot/config/constants";
 
 interface ServicesManagementViewProps {
   initialServices: ServiceItem[];
@@ -52,7 +35,7 @@ interface ServicesManagementViewProps {
 export function ServicesManagementView({
   initialServices,
 }: ServicesManagementViewProps) {
-  const { isRTL } = useAdminLocale();
+  const { isRTL, locale, t } = useAdminLocale();
   const [services, setServices] = React.useState<ServiceItem[]>(initialServices);
   const [activeCategory, setActiveCategory] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -151,7 +134,7 @@ export function ServicesManagementView({
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this service item?")) return;
+    if (!window.confirm(t.servicesView.deleteConfirmDesc)) return;
     setDeletingId(id);
     try {
       const res = await deleteServiceAction(id);
@@ -195,7 +178,7 @@ export function ServicesManagementView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Services & Rate Catalog
+            {t.servicesView.title}
           </h1>
         </div>
 
@@ -205,7 +188,7 @@ export function ServicesManagementView({
             className="bg-[#014842] hover:bg-[#014842]/90 text-white gap-2 shadow-xs rounded-full px-4 h-8 text-xs font-semibold"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Add Standard Service</span>
+            <span>{t.servicesView.addService}</span>
           </Button>
         </div>
       </div>
@@ -214,7 +197,7 @@ export function ServicesManagementView({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">Total Services</span>
+            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.totalServices}</span>
             <Layers className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
           </div>
           <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
@@ -224,7 +207,7 @@ export function ServicesManagementView({
 
         <div className="p-3.5 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">Active Offerings</span>
+            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.activeOfferings}</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
@@ -234,7 +217,7 @@ export function ServicesManagementView({
 
         <div className="p-3.5 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">Average Rate</span>
+            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.avgRate}</span>
             <DollarSign className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
           </div>
           <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
@@ -244,18 +227,18 @@ export function ServicesManagementView({
 
         <div className="p-3.5 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">Categories</span>
+            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.categoriesCount}</span>
             <Tag className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
           </div>
           <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
-            {CATEGORIES.length - 1}
+            {SERVICE_CATEGORIES.length - 1}
           </div>
         </div>
       </div>
 
       {/* Categories Horizontal Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-        {CATEGORIES.map((cat) => {
+        {SERVICE_CATEGORIES.map((cat) => {
           const isActive = activeCategory === cat.value;
           return (
             <button
@@ -294,15 +277,15 @@ export function ServicesManagementView({
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <span className="text-[11px] text-slate-500">Status:</span>
+          <span className="text-[11px] text-slate-500">{t.servicesView.statusFilterLabel}:</span>
           <select
             value={statusFilter}
             onChange={(e: any) => setStatusFilter(e.target.value)}
             className="text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
           >
-            <option value="all">All Statuses</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
+            <option value="all">{t.servicesView.filterAll}</option>
+            <option value="active">{t.servicesView.filterActive}</option>
+            <option value="inactive">{t.servicesView.filterInactive}</option>
           </select>
         </div>
       </div>
@@ -332,8 +315,10 @@ export function ServicesManagementView({
                 </tr>
               ) : (
                 filteredServices.map((service) => {
-                  const catConfig = CATEGORIES.find((c) => c.value === service.category) || CATEGORIES[1];
-                  const unitLabel = UNITS.find((u) => u.value === service.unit)?.labelEn || service.unit;
+                  const catConfig = SERVICE_CATEGORIES.find((c) => c.value === service.category) || SERVICE_CATEGORIES[1];
+                  const unitLabel = isRTL
+                    ? SERVICE_UNITS.find((u) => u.value === service.unit)?.labelAr || service.unit
+                    : SERVICE_UNITS.find((u) => u.value === service.unit)?.labelEn || service.unit;
 
                   return (
                     <tr
@@ -346,7 +331,7 @@ export function ServicesManagementView({
                             {service.name_en}
                           </span>
                           <span className="text-[11px] text-slate-400 font-mono">
-                            {service.code || "CUSTOM"}
+                            {service.code ?? t.servicesView.customCode}
                           </span>
                         </div>
                       </td>
@@ -356,8 +341,8 @@ export function ServicesManagementView({
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-medium border ${catConfig.color}`}>
-                          {catConfig.labelEn}
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-medium border ${catConfig.colorClass}`}>
+                          {isRTL ? catConfig.labelAr : catConfig.labelEn}
                         </span>
                       </td>
                       <td className="py-3 px-4">
@@ -419,7 +404,7 @@ export function ServicesManagementView({
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[#09937F]" />
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  {editingService ? "Edit Service Item" : "Add Standard Service"}
+                  {editingService ? t.servicesView.modalEditTitle : t.servicesView.modalNewTitle}
                 </h3>
               </div>
               <button
@@ -434,7 +419,7 @@ export function ServicesManagementView({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Service Code
+                    {t.servicesView.codeLabel}
                   </label>
                   <Input
                     placeholder="e.g. SRV-CINE-01"
@@ -445,20 +430,17 @@ export function ServicesManagementView({
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Category *
+                    {t.servicesView.categoryLabel} *
                   </label>
                   <select
                     value={formCategory}
                     onChange={(e: any) => setFormCategory(e.target.value)}
                     className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
                   >
-                    <option value="production">Production & Cinematography</option>
-                    <option value="post_production">Post-Production & VFX</option>
-                    <option value="pre_production">Pre-Production & Creative</option>
-                    <option value="studio_rental">Studio & Stage Rental</option>
-                    <option value="equipment">Camera & Lighting Gear</option>
-                    <option value="consulting">Consulting & Direction</option>
-                    <option value="other">Other</option>
+                    <option value="production">{t.servicesView.categoryProduction}</option>
+                    <option value="post_production">{t.servicesView.categoryPost}</option>
+                    <option value="equipment">{t.servicesView.categoryEquipment}</option>
+                    <option value="other">{t.servicesView.categoryOther}</option>
                   </select>
                 </div>
               </div>
@@ -466,7 +448,7 @@ export function ServicesManagementView({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    English Name *
+                    {t.servicesView.nameEnLabel}
                   </label>
                   <Input
                     placeholder="e.g. Cinema Drone Aerial 8K Capture"
@@ -478,7 +460,7 @@ export function ServicesManagementView({
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Arabic Name *
+                    {t.servicesView.nameArLabel}
                   </label>
                   <Input
                     placeholder="e.g. تصوير درون سينمائي جوي بدقة 8K"
@@ -493,7 +475,7 @@ export function ServicesManagementView({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Standard Rate (BHD) *
+                    {t.servicesView.rateLabel} ({t.financials.currency}) *
                   </label>
                   <Input
                     type="number"
@@ -508,16 +490,16 @@ export function ServicesManagementView({
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    Billing Unit *
+                    {t.servicesView.unitLabel} *
                   </label>
                   <select
                     value={formUnit}
                     onChange={(e: any) => setFormUnit(e.target.value)}
                     className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
                   >
-                    {UNITS.map((u) => (
+                    {SERVICE_UNITS.map((u) => (
                       <option key={u.value} value={u.value}>
-                        {u.labelEn}
+                        {isRTL ? u.labelAr : u.labelEn}
                       </option>
                     ))}
                   </select>
@@ -526,7 +508,7 @@ export function ServicesManagementView({
 
               <div>
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  English Description / Deliverables
+                  {t.servicesView.descEnLabel}
                 </label>
                 <textarea
                   rows={2}
@@ -539,7 +521,7 @@ export function ServicesManagementView({
 
               <div>
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  Arabic Description
+                  {t.servicesView.descArLabel}
                 </label>
                 <textarea
                   rows={2}
@@ -559,7 +541,7 @@ export function ServicesManagementView({
                   className="rounded text-[#09937F] focus:ring-[#09937F]"
                 />
                 <label htmlFor="formIsActive" className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                  Active in invoice line item catalog
+                  {t.servicesView.statusActive}
                 </label>
               </div>
 
@@ -571,7 +553,7 @@ export function ServicesManagementView({
                   onClick={() => setIsModalOpen(false)}
                   disabled={saving}
                 >
-                  Cancel
+                  {t.actions.cancel}
                 </Button>
                 <Button
                   type="submit"
@@ -579,7 +561,7 @@ export function ServicesManagementView({
                   disabled={saving}
                   className="bg-[#09937F] hover:bg-[#014842] text-white"
                 >
-                  {saving ? "Saving..." : editingService ? "Update Service" : "Add Service"}
+                  {saving ? t.actions.saving : editingService ? t.actions.update : t.actions.add}
                 </Button>
               </div>
             </form>

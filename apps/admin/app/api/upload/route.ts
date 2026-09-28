@@ -3,18 +3,20 @@ import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { getCurrentUser } from "../../../lib/auth";
 import { createAttachment, db, createActivityLog } from "@ishoot/database";
+import { getTranslations } from "@ishoot/locales";
 import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  const trans = getTranslations("en");
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
     if (!file) {
       return NextResponse.json(
-        { success: false, error: "No file provided" },
+        { success: false, error: trans.api.upload.noFile },
         { status: 400 },
       );
     }
@@ -106,7 +108,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("Upload error in /api/upload:", err);
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to upload file" },
+      { success: false, error: err.message || trans.api.upload.failed },
       { status: 500 },
     );
   }

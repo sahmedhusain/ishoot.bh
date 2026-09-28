@@ -36,12 +36,12 @@ export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
         >
           <img
             src="/icon.svg"
-            alt="ishoot Icon"
+            alt={t("common.brandIconAlt")}
             className="h-8 w-auto object-contain"
           />
           <img
             src="/images/logo-wordmark.svg"
-            alt="ishoot"
+            alt={t("common.brandLogoAlt")}
             className="h-8 w-auto object-contain"
           />
         </Link>

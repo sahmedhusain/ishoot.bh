@@ -86,7 +86,7 @@ export function CinematicPreloader({ isRTL = false }: CinematicPreloaderProps) {
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#0B1210] border border-[#09937F]/40 p-3.5 flex items-center justify-center shadow-2xl shadow-[#09937F]/20 group">
             <img
               src="/icon.svg"
-              alt="ishoot"
+              alt={t("common.brandIconAlt")}
               className="w-full h-full object-contain filter drop-shadow-[0_0_12px_rgba(9,147,127,0.4)]"
             />
           </div>
@@ -95,7 +95,7 @@ export function CinematicPreloader({ isRTL = false }: CinematicPreloaderProps) {
 
         <img
           src="/images/logo-color.svg"
-          alt="ishoot"
+          alt={t("common.brandLogoAlt")}
           className="h-8 sm:h-10 w-auto object-contain brightness-110 mb-8"
         />
 

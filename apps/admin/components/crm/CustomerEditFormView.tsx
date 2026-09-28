@@ -71,10 +71,10 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
             <UserCog className="w-6 h-6 text-[#09937F]" />
-            <span>Edit Customer Dossier</span>
+            <span>{t.customerEdit.title}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            Update client profile, contact information, and account classification
+            {t.customerEdit.subtitle}
           </p>
         </div>
       </div>
@@ -84,7 +84,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Full Name / Contact Person *
+                {t.customerEdit.fullName} *
               </label>
               <Input
                 required
@@ -95,7 +95,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Company / Organization Name
+                {t.customerEdit.companyName}
               </label>
               <Input
                 placeholder="e.g. Zain Bahrain"
@@ -108,7 +108,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Email Address
+                {t.customerEdit.email}
               </label>
               <Input
                 type="email"
@@ -119,7 +119,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Phone Number (E.164 Format)
+                {t.customerEdit.phone}
               </label>
               <Input
                 placeholder="+973 3900 0000"
@@ -132,7 +132,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Job Title / Position
+                {t.customerEdit.jobTitle}
               </label>
               <Input
                 placeholder="e.g. Marketing Director"
@@ -142,23 +142,23 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-                Account Classification
+                {t.customerEdit.classification}
               </label>
               <Select
                 value={contactType}
                 onChange={(e) => setContactType(e.target.value as any)}
               >
-                <option value="client">Direct Client</option>
-                <option value="agency">Advertising Agency</option>
-                <option value="vendor">Vendor / Supplier</option>
-                <option value="freelancer">Freelancer / Crew</option>
+                <option value="client">{t.customerEdit.typeDirect}</option>
+                <option value="agency">{t.customerEdit.typeAgency}</option>
+                <option value="vendor">{t.customer360.clientType}</option>
+                <option value="freelancer">{t.customer360.clientType}</option>
               </Select>
             </div>
           </div>
 
           <div>
             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
-              Notes & Context
+              {t.customerEdit.notes}
             </label>
             <textarea
               rows={4}
@@ -172,7 +172,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
           <div className="pt-6 border-t border-slate-100 dark:border-white/10 flex items-center justify-end gap-4">
             <Link href={`/dashboard/crm/customers/${contact.id}`}>
               <Button type="button" variant="outline" size="sm">
-                Cancel
+                {t.actions.cancel}
               </Button>
             </Link>
             <Button
@@ -183,7 +183,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               className="gap-2 bg-[#014842] hover:bg-[#014842]/90 text-white"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{saving ? "Saving Changes..." : "Save Changes"}</span>
+              <span>{saving ? t.customerEdit.saving : t.customerEdit.save}</span>
             </Button>
           </div>
         </form>

@@ -13,6 +13,7 @@ export interface ConfirmDestructiveModalProps {
   typePromptLabel?: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  loadingLabel?: string;
   loading?: boolean;
   variant?: "danger" | "warning";
 }
@@ -27,6 +28,7 @@ export function ConfirmDestructiveModal({
   typePromptLabel,
   confirmLabel = "Confirm",
   cancelLabel = "Cancel",
+  loadingLabel = "...",
   loading = false,
   variant = "danger",
 }: ConfirmDestructiveModalProps) {
@@ -72,8 +74,7 @@ export function ConfirmDestructiveModal({
         {confirmMatchText && (
           <div className="space-y-2">
             <p className="text-xs text-[#9EADA9]">
-              {typePromptLabel ||
-                `To proceed, type "${confirmMatchText}" below:`}
+              {typePromptLabel || confirmMatchText}
             </p>
             <Input
               type="text"
@@ -102,7 +103,7 @@ export function ConfirmDestructiveModal({
             onClick={handleConfirm}
             disabled={!canConfirm || isSubmitting || loading}
           >
-            {isSubmitting || loading ? "..." : confirmLabel}
+            {isSubmitting || loading ? loadingLabel : confirmLabel}
           </Button>
         </div>
       </div>

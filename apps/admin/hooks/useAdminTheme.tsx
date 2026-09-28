@@ -4,6 +4,9 @@ import * as React from "react";
 
 export type AdminTheme = "light" | "dark" | "system";
 
+const STORAGE_KEY = "ishoot_admin_theme";
+const DEFAULT_THEME: AdminTheme = "dark";
+
 interface AdminThemeContextType {
   theme: AdminTheme;
   resolvedTheme: "light" | "dark";
@@ -19,7 +22,7 @@ export function AdminThemeProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [theme, setThemeState] = React.useState<AdminTheme>("dark");
+  const [theme, setThemeState] = React.useState<AdminTheme>(DEFAULT_THEME);
   const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(
     "dark",
   );
@@ -49,17 +52,17 @@ export function AdminThemeProvider({
   }, []);
 
   React.useEffect(() => {
-    const saved = localStorage.getItem("ishoot_admin_theme") as AdminTheme;
+    const saved = localStorage.getItem(STORAGE_KEY) as AdminTheme;
     const initial =
       saved === "light" || saved === "dark" || saved === "system"
         ? saved
-        : "dark";
+        : DEFAULT_THEME;
     setThemeState(initial);
     applyTheme(initial);
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
-      const current = localStorage.getItem("ishoot_admin_theme") as AdminTheme;
+      const current = localStorage.getItem(STORAGE_KEY) as AdminTheme;
       if (current === "system") {
         applyTheme("system");
       }
@@ -70,7 +73,7 @@ export function AdminThemeProvider({
 
   const setTheme = (newTheme: AdminTheme) => {
     setThemeState(newTheme);
-    localStorage.setItem("ishoot_admin_theme", newTheme);
+    localStorage.setItem(STORAGE_KEY, newTheme);
     applyTheme(newTheme);
   };
 
@@ -87,7 +90,7 @@ export function useAdminTheme() {
     return {
       theme: "dark" as AdminTheme,
       resolvedTheme: "dark" as "light" | "dark",
-      setTheme: () => {},
+      setTheme: () => { },
     };
   }
   return context;

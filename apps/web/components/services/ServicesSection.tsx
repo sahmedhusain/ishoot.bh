@@ -15,10 +15,10 @@ type ServiceItem = {
 };
 
 const SERVICE_IMAGES: Record<string, string> = {
-  commercial: "/banners/Youtube cover-02.jpg",
-  aerial: "/banners/Youtube cover-03.jpg",
-  color: "/banners/Youtube cover-04.jpg",
-  soundstage: "/banners/Web Banner 04.jpg",
+  commercial: "/banners/youtube-cover-02.jpg",
+  aerial: "/banners/youtube-cover-03.jpg",
+  color: "/banners/youtube-cover-04.jpg",
+  soundstage: "/banners/web-banner-04.jpg",
 };
 
 const SERVICE_ICONS: Record<

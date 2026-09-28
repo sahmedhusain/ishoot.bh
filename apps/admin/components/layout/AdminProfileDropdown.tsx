@@ -30,7 +30,7 @@ interface CurrentUser {
 
 export function AdminProfileDropdown() {
   const router = useRouter();
-  const { t, locale, isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
   const { theme, resolvedTheme } = useAdminTheme();
   const [isOpen, setIsOpen] = React.useState(false);
   const [confirmSignOutOpen, setConfirmSignOutOpen] = React.useState(false);
@@ -89,7 +89,7 @@ export function AdminProfileDropdown() {
   };
 
   const displayName = currentUser?.fullName || t.profileDropdown.adminUser;
-  const displayEmail = currentUser?.email || "admin@ishoot.bh";
+  const displayEmail = currentUser?.email || "";
   const displayRole = currentUser?.role
     ? currentUser.role.replace("_", " ").toUpperCase()
     : t.profileDropdown.superAdmin;
@@ -111,7 +111,7 @@ export function AdminProfileDropdown() {
         aria-expanded={isOpen}
       >
         <div className="w-8 h-8 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center text-xs font-bold text-white font-mono shadow-sm">
-          {initials}
+          <User className="w-4 h-4" />
         </div>
         <div className="hidden xl:block text-start leading-tight">
           <div className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1">
@@ -129,15 +129,12 @@ export function AdminProfileDropdown() {
 
       {isOpen && (
         <div
-          className={`absolute top-full mt-2 w-72 rounded-2xl bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col ${isRTL
-              ? "left-0 sm:left-auto sm:right-0"
-              : "right-0 sm:right-auto sm:left-0"
-            }`}
+          className="absolute top-full end-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col"
         >
           <div className="p-4 bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-[#014842] border border-[#09937F]/50 flex items-center justify-center text-sm font-bold text-white font-mono shrink-0 shadow-md">
-                {initials}
+                <User className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
@@ -198,19 +195,21 @@ export function AdminProfileDropdown() {
               <span>{t.profileDropdown.auditTrail}</span>
             </Link>
 
-            <a
-              href="http://localhost:3000"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-[#9EADA9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
-            >
-              <Globe className="w-4 h-4 text-[#09937F]" />
-              <div className="flex-1 flex items-center justify-between">
-                <span>{t.profileDropdown.liveSite}</span>
-                <ExternalLink className="w-3 h-3 text-slate-400 dark:text-[#9EADA9]/70" />
-              </div>
-            </a>
+            {process.env.NEXT_PUBLIC_WEB_URL ? (
+              <a
+                href={process.env.NEXT_PUBLIC_WEB_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-[#9EADA9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+              >
+                <Globe className="w-4 h-4 text-[#09937F]" />
+                <div className="flex-1 flex items-center justify-between">
+                  <span>{t.profileDropdown.liveSite}</span>
+                  <ExternalLink className="w-3 h-3 text-slate-400 dark:text-[#9EADA9]/70" />
+                </div>
+              </a>
+            ) : null}
           </div>
 
           <div className="p-3 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] text-[10px] font-mono text-slate-500 dark:text-[#9EADA9] space-y-1">

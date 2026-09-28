@@ -1,7 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 
-const JWT_SECRET_STRING =
-  process.env.JWT_SECRET || "super-secret-jwt-key-change-in-production-2026";
+const JWT_SECRET_STRING = process.env.JWT_SECRET || "ishoot_default_jwt_secret_key_change_in_production";
 const key = new TextEncoder().encode(JWT_SECRET_STRING);
 
 export interface SessionJwtPayload {

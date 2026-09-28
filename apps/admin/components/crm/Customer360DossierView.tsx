@@ -115,28 +115,28 @@ export function Customer360DossierView({
           <Link href={`/dashboard/invoices/new?clientId=${contact.id}`}>
             <Button variant="primary" size="sm" className="gap-1.5">
               <Plus className="w-3.5 h-3.5" />
-              <span>Issue Invoice</span>
+              <span>{t.customer360.issueInvoice}</span>
             </Button>
           </Link>
 
           <Link href={`/dashboard/payments/new?clientId=${contact.id}`}>
             <Button variant="secondary" size="sm" className="gap-1.5">
               <CreditCard className="w-3.5 h-3.5" />
-              <span>Record Payment</span>
+              <span>{t.customer360.recordPayment}</span>
             </Button>
           </Link>
 
           <Link href={`/dashboard/crm/deals/new?clientId=${contact.id}`}>
             <Button variant="outline" size="sm" className="gap-1.5">
               <Briefcase className="w-3.5 h-3.5" />
-              <span>New Deal</span>
+              <span>{t.customer360.newDeal}</span>
             </Button>
           </Link>
 
           <Link href={`/dashboard/crm/customers/${contact.id}/edit`}>
             <Button variant="ghost" size="sm" className="gap-1.5">
               <Edit className="w-3.5 h-3.5" />
-              <span>Edit</span>
+              <span>{t.customer360.edit}</span>
             </Button>
           </Link>
         </div>
@@ -147,15 +147,15 @@ export function Customer360DossierView({
         {/* LTV */}
         <Card className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Lifetime Value (LTV)</span>
+            <span>{t.customer360.ltv}</span>
             <DollarSign className="w-4 h-4 text-[#09937F]" />
           </div>
           <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
             <CurrencyDisplay amount={metrics.totalLtv} currency="BHD" />
           </div>
           <div className="text-[11px] text-[#09937F] font-mono flex items-center justify-between">
-            <span>{metrics.invoicesCount} Invoices Billed</span>
-            <span>{collectionRate}% Collected</span>
+            <span>{metrics.invoicesCount} {t.customer360.invoicesBilled}</span>
+            <span>{collectionRate}% {t.customer360.collected}</span>
           </div>
           {/* Progress bar */}
           <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
@@ -169,35 +169,35 @@ export function Customer360DossierView({
         {/* Total Settled */}
         <Card className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Total Paid & Settled</span>
+            <span>{t.customer360.totalSettled}</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
             <CurrencyDisplay amount={metrics.totalPaid} currency="BHD" />
           </div>
           <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-            {metrics.settledReceiptsCount || payments.length} Reconciled Receipts
+            {metrics.settledReceiptsCount || payments.length} {t.customer360.reconciledReceipts}
           </div>
         </Card>
 
         {/* Outstanding Balance */}
         <Card className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Outstanding Balance</span>
+            <span>{t.customer360.outstandingBalance}</span>
             <AlertCircle className={`w-4 h-4 ${metrics.totalOutstanding > 0 ? "text-amber-500" : "text-emerald-500"}`} />
           </div>
           <div className={`text-2xl font-bold font-mono ${metrics.totalOutstanding > 0 ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
             <CurrencyDisplay amount={metrics.totalOutstanding} currency="BHD" />
           </div>
           <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-            {metrics.totalOutstanding > 0 ? "Pending Payment Collection" : "Fully Settled Account"}
+            {metrics.totalOutstanding > 0 ? t.customer360.pendingCollection : t.customer360.fullySettled}
           </div>
         </Card>
 
         {/* Pipeline & Win Rate */}
         <Card className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Commercial Win Rate</span>
+            <span>{t.customer360.winRate}</span>
             <TrendingUp className="w-4 h-4 text-blue-500" />
           </div>
           <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white flex items-baseline gap-2">
@@ -207,8 +207,8 @@ export function Customer360DossierView({
             </span>
           </div>
           <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono flex items-center justify-between">
-            <span>Active: {metrics.activeDealsCount}</span>
-            <span>Avg: {Number(metrics.avgDealSize || 0).toFixed(2)} BHD</span>
+            <span>{t.customer360.activeDeals}: {metrics.activeDealsCount}</span>
+            <span>{t.customer360.avgDeal}: {Number(metrics.avgDealSize || 0).toFixed(2)} BHD</span>
           </div>
         </Card>
       </div>
@@ -216,25 +216,25 @@ export function Customer360DossierView({
       {/* Tabs Bar */}
       <div className="border-b border-slate-200 dark:border-white/10 flex items-center gap-6 text-sm font-semibold overflow-x-auto">
         {[
-          { id: "overview", label: "Customer Overview", icon: User },
+          { id: "overview", label: t.customer360.tabOverview, icon: User },
           {
             id: "interactions",
-            label: `Interactions & Inquiries (${inquiries.length})`,
+            label: `${t.customer360.tabInteractions} (${inquiries.length})`,
             icon: Mail,
           },
           {
             id: "deals",
-            label: `Commercial History (${deals.length})`,
+            label: `${t.customer360.tabDeals} (${deals.length})`,
             icon: Briefcase,
           },
           {
             id: "finance",
-            label: `Financial Ledger (${invoices.length})`,
+            label: `${t.customer360.tabFinance} (${invoices.length})`,
             icon: CreditCard,
           },
           {
             id: "vault",
-            label: `Client Vault (${attachments.length})`,
+            label: `${t.customer360.tabVault} (${attachments.length})`,
             icon: FolderLock,
           },
         ].map((tab) => {
@@ -263,36 +263,36 @@ export function Customer360DossierView({
           <Card className="p-6 space-y-4 md:col-span-2">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <User className="w-4 h-4 text-[#09937F]" />
-              <span>Primary Contact Details</span>
+              <span>{t.customer360.primaryContact}</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">Company Name</span>
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">{t.customer360.companyName}</span>
                 <span className="text-slate-900 dark:text-white font-bold text-sm">
                   {contact.company || "Direct Client"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">Contact Person</span>
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">{t.customer360.contactPerson}</span>
                 <span className="text-slate-800 dark:text-slate-200 font-medium text-sm">
                   {contact.full_name || "N/A"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">Job Title</span>
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">{t.customerEdit.jobTitle}</span>
                 <span className="text-slate-700 dark:text-slate-300 font-medium">
                   {contact.job_title || "N/A"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">Contact Type</span>
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">{t.customer360.clientType}</span>
                 <span className="text-slate-700 dark:text-slate-300 font-medium capitalize">
                   {contact.contact_type || "Client"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">Primary Email</span>
+                <span className="text-slate-400 dark:text-slate-500 block mb-1">{t.customer360.email}</span>
                 <a
                   href={`mailto:${contact.email}`}
                   className="text-[#09937F] hover:underline font-mono"
@@ -302,7 +302,7 @@ export function Customer360DossierView({
               </div>
               <div>
                 <span className="text-slate-400 dark:text-slate-500 block mb-1">
-                  Phone (E.164)
+                  {t.customer360.phone}
                 </span>
                 <a
                   href={`tel:${contact.phone}`}
@@ -317,7 +317,7 @@ export function Customer360DossierView({
             {contact.notes && (
               <div className="pt-4 border-t border-slate-100 dark:border-white/10">
                 <span className="text-slate-400 dark:text-slate-500 text-xs block mb-1">
-                  Client Notes & Requirements
+                  {t.customer360.notes}
                 </span>
                 <p className="text-xs text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/5 whitespace-pre-wrap">
                   {contact.notes}
@@ -329,36 +329,36 @@ export function Customer360DossierView({
           <Card className="p-6 space-y-4">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#09937F]" />
-              <span>Account Summary</span>
+              <span>{t.customer360.accountSummary}</span>
             </h3>
 
             <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Total Deals</span>
+                <span className="text-slate-500 dark:text-slate-400">{t.customer360.totalDeals}</span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
                   {deals.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Total Invoices</span>
+                <span className="text-slate-500 dark:text-slate-400">{t.customer360.totalInvoices}</span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
                   {invoices.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Settled Receipts</span>
+                <span className="text-slate-500 dark:text-slate-400">{t.customer360.settledReceipts}</span>
                 <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                   {payments.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Contracts Issued</span>
+                <span className="text-slate-500 dark:text-slate-400">{t.customer360.contractsIssued}</span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
                   {contracts.length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-slate-400">Vault Documents</span>
+                <span className="text-slate-500 dark:text-slate-400">{t.customer360.vaultDocuments}</span>
                 <span className="font-mono font-bold text-slate-900 dark:text-white">
                   {attachments.length}
                 </span>
@@ -373,12 +373,12 @@ export function Customer360DossierView({
         <Card className="p-6 space-y-6">
           <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Mail className="w-4 h-4 text-[#09937F]" />
-            <span>Inbound Inquiries & Form Submissions</span>
+            <span>{t.customer360.inboundInquiries}</span>
           </h3>
 
           {inquiries.length === 0 ? (
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              No inbound contact form submissions logged yet for this client.
+              {t.customer360.noInquiries}
             </p>
           ) : (
             <div className="space-y-4">
@@ -409,17 +409,17 @@ export function Customer360DossierView({
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Briefcase className="w-4 h-4 text-[#09937F]" />
-              <span>Commercial Deals & Production History</span>
+              <span>{t.customer360.commercialDeals}</span>
             </h3>
             <Link href={`/dashboard/crm/deals/new?clientId=${contact.id}`}>
               <Button variant="primary" size="sm" className="gap-1">
-                <span>+ Create Deal</span>
+                <span>+ {t.customer360.createDeal}</span>
               </Button>
             </Link>
           </div>
 
           {deals.length === 0 ? (
-            <p className="text-xs text-slate-500 dark:text-slate-400">No deals created yet.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{t.customer360.noDeals}</p>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-white/5">
               {deals.map((deal) => (
@@ -457,17 +457,17 @@ export function Customer360DossierView({
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-[#09937F]" />
-              <span>Financial Ledger & Invoices</span>
+              <span>{t.customer360.financialLedger}</span>
             </h3>
             <div className="flex items-center gap-2">
               <Link href={`/dashboard/payments/new?clientId=${contact.id}`}>
                 <Button variant="outline" size="sm" className="gap-1">
-                  <span>+ Record Payment</span>
+                  <span>+ {t.customer360.recordPayment}</span>
                 </Button>
               </Link>
               <Link href={`/dashboard/invoices/new?clientId=${contact.id}`}>
                 <Button variant="primary" size="sm" className="gap-1">
-                  <span>+ New Invoice</span>
+                  <span>+ {t.customer360.newInvoice}</span>
                 </Button>
               </Link>
             </div>
@@ -534,12 +534,12 @@ export function Customer360DossierView({
         <Card className="p-6 space-y-6">
           <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <FolderLock className="w-4 h-4 text-[#09937F]" />
-            <span>Client Legal Repository & Vault Documents</span>
+            <span>{t.customer360.legalRepo}</span>
           </h3>
 
           {attachments.length === 0 ? (
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              No legal documents or attachments uploaded yet for this customer.
+              {t.customer360.noAttachments}
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

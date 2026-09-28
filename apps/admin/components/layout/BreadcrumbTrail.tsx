@@ -33,7 +33,7 @@ export function BreadcrumbTrail() {
     preferences: t.nav.appearance,
     audit: t.nav.auditLogs,
     integrations: t.nav.integrations,
-    services: (t.nav as any).services || "Services & Rates",
+    services: t.nav.services,
     new: t.actions.newInvoice,
   };
 

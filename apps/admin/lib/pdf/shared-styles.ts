@@ -2,19 +2,12 @@ import { StyleSheet } from "@react-pdf/renderer";
 
 export const PDF_COLORS = {
   primary: "#014842",
-  primaryLight: "#02665D",
   accent: "#09937F",
-  dark: "#050807",
-  textDark: "#111827",
-  textMuted: "#6B7280",
-  textLight: "#9CA3AF",
-  white: "#FFFFFF",
-  bgLight: "#F9FAFB",
-  bgCard: "#F3F4F6",
+  darkBg: "#050807",
+  cardBg: "#F9FAFB",
   border: "#E5E7EB",
-  borderDark: "#D1D5DB",
-  success: "#059669",
-  danger: "#DC2626",
+  textPrimary: "#111827",
+  textMuted: "#6B7280",
 };
 
 export const pdfStyles = StyleSheet.create({
