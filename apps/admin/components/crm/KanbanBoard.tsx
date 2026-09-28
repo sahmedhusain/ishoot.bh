@@ -60,17 +60,16 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             {t.nav.deals}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t.deals.subtitle}</p>
         </div>
 
         <Link href="/dashboard/crm/deals/new">
           <Button
             variant="primary"
             size="sm"
-            className="gap-1.5 shrink-0 bg-[#014842] hover:bg-[#014842]/90 text-white"
+            className="gap-1.5 shrink-0 bg-[#014842] hover:bg-[#014842]/90 text-white rounded-full px-4 h-8 text-xs font-semibold shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.actions.newDeal}</span>

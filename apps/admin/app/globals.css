@@ -238,10 +238,6 @@ body:hover::-webkit-scrollbar-thumb,
   background-color: #e2e8f0 !important;
 }
 
-.light .text-white {
-  color: #0f172a !important;
-}
-
 .light .text-\[\#9EADA9\] {
   color: #64748b !important;
 }
@@ -265,9 +261,9 @@ body:hover::-webkit-scrollbar-thumb,
 }
 
 /* ==========================================================================
-   PRINT ISOLATION LAYER
-   Ensures window.print() prints ONLY [data-print-target] documents without
-   sidebar, topbar, breadcrumbs, delivery toolbar, or chrome buttons.
+   PRINT ISOLATION LAYER & MULTI-PAGE ENGINE
+   Ensures window.print() prints ONLY [data-print-target] documents cleanly across
+   single or multiple pages without truncation, overlapping, or element clipping.
    ========================================================================== */
 @media print {
   @page {
@@ -275,7 +271,7 @@ body:hover::-webkit-scrollbar-thumb,
     margin: 12mm 10mm 15mm 10mm;
   }
 
-  /* Kill the entire dashboard chrome */
+  /* Hide entire dashboard navigation and interaction chrome */
   aside,
   header[data-topbar],
   [data-topbar],
@@ -311,30 +307,55 @@ body:hover::-webkit-scrollbar-thumb,
     max-width: none !important;
   }
 
-  /* Printable document template fills canvas cleanly */
+  /* Printable document template fills canvas cleanly without height locking */
   [data-print-target] {
     width: 100% !important;
     max-width: none !important;
+    min-height: 0 !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
     background: #ffffff !important;
+    overflow: visible !important;
   }
 
-  /* Page-break handling */
-  tr {
-    page-break-inside: avoid;
+  /* Multi-page anti-clipping rules */
+  tr,
+  .print-avoid-break,
+  .page-break-inside-avoid {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
+
   thead {
-    display: table-header-group;
-  }
-  tfoot {
-    display: table-footer-group;
+    display: table-header-group !important;
   }
 
-  /* Disable animations and transitions */
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+  /* Guarantee Terms & Conditions and Bank Details are visible in print */
+  [data-terms-section] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem !important;
+    visibility: visible !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .print-force-show {
+    display: block !important;
+    visibility: visible !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Disable animations and transitions for crisp rendering */
   * {
     animation: none !important;
     transition: none !important;

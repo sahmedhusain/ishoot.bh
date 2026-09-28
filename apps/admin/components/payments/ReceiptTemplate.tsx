@@ -33,7 +33,7 @@ export function ReceiptTemplate({
     <div
       dir={dir}
       data-print-target
-      className={`w-full max-w-[800px] mx-auto bg-white text-[#111827] shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none print:max-w-none print:w-full relative ${
+      className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none print:max-w-none print:w-full print:min-h-0 print:overflow-visible relative ${
         isAr ? "font-arabic" : "font-sans"
       }`}
       style={{ minHeight: "900px" }}

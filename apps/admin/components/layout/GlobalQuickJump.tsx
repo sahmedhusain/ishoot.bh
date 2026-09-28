@@ -6,7 +6,7 @@ import { Search, Command, Users, FileText, Briefcase, ArrowRight, Loader2, X } f
 import { globalSearchAction } from "../../app/actions/crm";
 import type { GlobalSearchResult } from "@ishoot/database";
 
-export function GlobalQuickJump() {
+export function GlobalQuickJump({ className }: { className?: string } = {}) {
   const router = useRouter();
   const [isOpen, setIsOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -105,7 +105,10 @@ export function GlobalQuickJump() {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/70 text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 text-xs transition-colors border border-slate-200/80 dark:border-white/10 w-44 sm:w-64 justify-between"
+        className={
+          className ||
+          "flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/70 text-slate-600 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 text-xs transition-colors border border-slate-200/80 dark:border-white/10 w-44 sm:w-64 justify-between"
+        }
       >
         <span className="flex items-center gap-2 text-slate-500 dark:text-slate-400 truncate">
           <Search className="w-3.5 h-3.5 shrink-0" />

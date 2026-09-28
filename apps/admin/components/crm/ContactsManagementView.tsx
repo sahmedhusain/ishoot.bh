@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { CRMContact } from "@ishoot/database/types";
-import { Card, Button, Input, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Button, Input, ConfirmDestructiveModal } from "@ishoot/ui";
 import {
   Plus,
   Search,
@@ -54,22 +54,20 @@ export function ContactsManagementView({
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-16">
+    <div className="space-y-6 max-w-7xl mx-auto pb-16">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             {t.nav.contacts}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            {t.contactsView.subtitle}
-          </p>
         </div>
 
         <Link href="/dashboard/crm/customers/new">
           <Button
             variant="primary"
             size="sm"
-            className="gap-1.5 bg-[#014842] hover:bg-[#014842]/90 text-white self-start sm:self-auto"
+            className="gap-1.5 bg-[#014842] hover:bg-[#014842]/90 text-white rounded-full px-4 h-8 text-xs font-semibold self-start sm:self-auto shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.actions.newContact}</span>
@@ -77,36 +75,39 @@ export function ContactsManagementView({
         </Link>
       </div>
 
+      {/* Search Input */}
       <div className="relative max-w-md">
-        <Search className="w-4 h-4 absolute start-3.5 top-3.5 text-slate-400" />
-        <Input
+        <Search className="w-4 h-4 absolute start-3 top-2.5 text-slate-400" />
+        <input
+          type="text"
           placeholder={t.actions.search}
-          className="ps-10"
+          className="w-full ps-9 pe-4 py-1.5 text-xs rounded-lg bg-white border border-[#dadce0] text-slate-900 placeholder:text-slate-400 dark:bg-[#1a1a1a] dark:border-[#3c4043] dark:text-white focus:outline-none focus:border-[#09937F]"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Grid of Client Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {filtered.map((c) => (
-          <Card
+          <div
             key={c.id}
-            className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 hover:border-[#09937F]/50 dark:hover:border-[#09937F]/40 transition-all rounded-2xl shadow-sm space-y-4 flex flex-col justify-between"
+            className="p-4 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] hover:border-slate-300 dark:hover:border-neutral-600 transition-colors rounded-xl shadow-xs space-y-3.5 flex flex-col justify-between"
           >
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center font-bold text-white text-sm font-mono shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-[#014842] text-white flex items-center justify-center font-bold text-xs font-mono shrink-0">
                     {c.full_name.charAt(0)}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Link
                       href={`/dashboard/crm/customers/${c.id}`}
-                      className="text-sm font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#09937F] hover:underline flex items-center gap-1.5"
+                      className="text-xs font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline flex items-center gap-1 truncate"
                     >
-                      <span>{c.full_name}</span>
+                      <span className="truncate">{c.full_name}</span>
                     </Link>
-                    <div className="text-xs text-[#09937F] font-medium">
+                    <div className="text-[11px] text-[#014842] dark:text-[#7de0d1] font-medium truncate">
                       {c.job_title || t.contactsView.clientPartner}
                     </div>
                   </div>
@@ -114,37 +115,37 @@ export function ContactsManagementView({
 
                 <button
                   onClick={() => setDeleteTargetId(c.id)}
-                  className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
+                  className="p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors shrink-0"
                   title={t.actions.delete}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-100 dark:border-white/5">
+              <div className="space-y-1.5 text-xs text-slate-600 dark:text-neutral-400 pt-2 border-t border-slate-100 dark:border-neutral-800">
                 {c.company && (
                   <div className="flex items-center gap-2 text-slate-900 dark:text-white">
-                    <Building className="w-3.5 h-3.5 text-[#09937F]" />
-                    <span className="font-semibold">{c.company}</span>
+                    <Building className="w-3.5 h-3.5 text-[#09937F] shrink-0" />
+                    <span className="font-semibold truncate">{c.company}</span>
                   </div>
                 )}
                 {c.email && (
                   <div className="flex items-center gap-2">
-                    <Mail className="w-3.5 h-3.5 text-[#09937F]" />
+                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <a
                       href={`mailto:${c.email}`}
-                      className="hover:text-slate-900 dark:hover:text-white transition-colors"
+                      className="hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors truncate"
                     >
                       {c.email}
                     </a>
                   </div>
                 )}
                 {c.phone && (
-                  <div className="flex items-center gap-2 font-mono" dir="ltr">
-                    <Phone className="w-3.5 h-3.5 text-[#09937F]" />
+                  <div className="flex items-center gap-2 font-mono text-[11px]" dir="ltr">
+                    <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <a
                       href={`tel:${c.phone}`}
-                      className="hover:text-slate-900 dark:hover:text-white transition-colors"
+                      className="hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors"
                     >
                       {c.phone}
                     </a>
@@ -153,19 +154,18 @@ export function ContactsManagementView({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
-              <Link href={`/dashboard/crm/customers/${c.id}`} className="w-full">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full gap-1.5 text-xs text-[#014842] dark:text-[#09937F] border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5"
+            <div className="pt-2 border-t border-slate-100 dark:border-neutral-800">
+              <Link href={`/dashboard/crm/customers/${c.id}`} className="block">
+                <button
+                  type="button"
+                  className="w-full h-7 px-3 rounded-lg border border-[#dadce0] dark:border-[#3c4043] hover:bg-slate-50 dark:hover:bg-neutral-800 text-[11px] font-semibold text-[#014842] dark:text-[#7de0d1] flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Customer 360 Dossier</span>
-                </Button>
+                  <ExternalLink className="w-3 h-3" />
+                  <span>Client Dossier 360</span>
+                </button>
               </Link>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
 

@@ -127,7 +127,14 @@ export function PaymentsManagementView({
                 className="hover:bg-slate-50/70 dark:hover:bg-white/[0.02] transition-colors"
               >
                 <td className="p-4 font-mono font-bold text-[#09937F]">
-                  {payment.receipt_number}
+                  <Link
+                    href={`/dashboard/payments/${payment.id}`}
+                    className="hover:underline inline-flex items-center gap-1 group"
+                    title="Open Official Receipt"
+                  >
+                    <span>{payment.receipt_number}</span>
+                    <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+                  </Link>
                 </td>
                 <td className="p-4 font-mono">
                   {payment.invoice ? (

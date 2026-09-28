@@ -18,4 +18,6 @@ export * from "./queries/activity";
 export * from "./queries/permissions";
 export * from "./queries/sessions";
 export * from "./queries/company-documents";
+export * from "./queries/services";
+export * from "./queries/attachments";
 export * from "./services/lead-resolver";

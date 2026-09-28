@@ -106,13 +106,13 @@ export function NotificationCenter() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-white hover:border-[#09937F]/40 transition-colors relative"
+        className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-[#09937F]/40 transition-colors relative"
         aria-label={t.actions.notifications}
         aria-expanded={isOpen}
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="min-w-4 h-4 px-1 rounded-full bg-[#09937F] text-black text-[9px] font-mono font-bold flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-[#070C0A] animate-pulse">
+          <span className="min-w-4 h-4 px-1 rounded-full bg-[#09937F] text-white text-[9px] font-mono font-bold flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white dark:ring-[#070C0A] animate-pulse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -120,21 +120,21 @@ export function NotificationCenter() {
 
       {isOpen && (
         <div
-          className={`absolute top-full mt-2 w-80 sm:w-96 rounded-2xl bg-[#0B1210] border border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col ${
+          className={`absolute top-full mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col ${
             isRTL
               ? "left-0 sm:left-auto sm:right-0"
               : "right-0 sm:right-auto sm:left-0"
           }`}
           style={{ maxHeight: "80vh" }}
         >
-          <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+          <div className="p-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-[#09937F]" />
-              <span className="text-xs font-bold text-white">
+              <span className="text-xs font-bold text-slate-900 dark:text-white">
                 {t.notificationsCenter.title}
               </span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#09937F]/20 text-[#09937F]">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#09937F]/15 text-[#09937F]">
                   {unreadCount} {t.notificationsCenter.new}
                 </span>
               )}
@@ -152,11 +152,11 @@ export function NotificationCenter() {
             )}
           </div>
 
-          <div className="overflow-y-auto divide-y divide-white/5 max-h-[380px]">
+          <div className="overflow-y-auto divide-y divide-slate-100 dark:divide-white/5 max-h-[380px]">
             {notifications.length === 0 ? (
-              <div className="p-8 text-center text-xs text-[#9EADA9] space-y-1">
-                <Bell className="w-8 h-8 text-[#9EADA9]/30 mx-auto mb-2" />
-                <div className="font-semibold text-white">
+              <div className="p-8 text-center text-xs text-slate-400 dark:text-[#9EADA9] space-y-1">
+                <Bell className="w-8 h-8 text-slate-300 dark:text-[#9EADA9]/30 mx-auto mb-2" />
+                <div className="font-semibold text-slate-800 dark:text-white">
                   {t.notificationsCenter.noNotifications}
                 </div>
                 <div>{t.notificationsCenter.allUpToDate}</div>
@@ -168,18 +168,18 @@ export function NotificationCenter() {
                   <div
                     key={n.id}
                     onClick={() => handleMarkAsRead(n.id)}
-                    className={`p-3.5 hover:bg-white/[0.03] transition-colors cursor-pointer flex items-start gap-3 relative ${
+                    className={`p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors cursor-pointer flex items-start gap-3 relative ${
                       !n.is_read ? "bg-[#09937F]/[0.06]" : ""
                     }`}
                   >
-                    <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 mt-0.5">
                       {getNotificationIcon(n.type, n.entity_type)}
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <span
-                          className={`text-xs font-bold truncate ${!n.is_read ? "text-white" : "text-[#9EADA9]"}`}
+                          className={`text-xs font-bold truncate ${!n.is_read ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-[#9EADA9]"}`}
                         >
                           {n.title}
                         </span>
@@ -187,10 +187,10 @@ export function NotificationCenter() {
                           <span className="w-2 h-2 rounded-full bg-[#09937F] shrink-0" />
                         )}
                       </div>
-                      <p className="text-[11px] text-[#9EADA9] mt-0.5 line-clamp-2 leading-relaxed">
+                      <p className="text-[11px] text-slate-500 dark:text-[#9EADA9] mt-0.5 line-clamp-2 leading-relaxed">
                         {n.message}
                       </p>
-                      <div className="flex items-center justify-between mt-2 pt-1 text-[10px] font-mono text-[#9EADA9]/70">
+                      <div className="flex items-center justify-between mt-2 pt-1 text-[10px] font-mono text-slate-400 dark:text-[#9EADA9]/70">
                         <span>{formatDate(n.created_at, locale, "time")}</span>
                         {link && (
                           <Link
@@ -213,11 +213,11 @@ export function NotificationCenter() {
             )}
           </div>
 
-          <div className="p-2.5 border-t border-white/10 bg-white/[0.02] text-center">
+          <div className="p-2.5 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-center">
             <Link
               href="/dashboard/settings/audit"
               onClick={() => setIsOpen(false)}
-              className="text-[11px] text-[#9EADA9] hover:text-[#09937F] transition-colors font-medium inline-block"
+              className="text-[11px] text-slate-500 dark:text-[#9EADA9] hover:text-[#09937F] transition-colors font-medium inline-block"
             >
               {t.notificationsCenter.viewAudit}
             </Link>

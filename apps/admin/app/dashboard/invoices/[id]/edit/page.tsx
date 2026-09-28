@@ -4,6 +4,7 @@ import {
   getInvoiceById,
   getCRMContacts,
   getCompanySettings,
+  getAllServices,
 } from "@ishoot/database";
 import { InvoiceEditFormView } from "../../../../../components/invoices/InvoiceEditFormView";
 
@@ -18,10 +19,11 @@ export default async function InvoiceEditPage({
 }: InvoiceEditPageProps) {
   const { id } = await params;
 
-  const [invoice, contacts, company] = await Promise.all([
+  const [invoice, contacts, company, services] = await Promise.all([
     getInvoiceById(id),
     getCRMContacts(),
     getCompanySettings(),
+    getAllServices({ isActive: true }),
   ]);
 
   if (!invoice || !company) {
@@ -33,6 +35,7 @@ export default async function InvoiceEditPage({
       invoice={invoice}
       initialContacts={contacts}
       company={company}
+      services={services}
     />
   );
 }

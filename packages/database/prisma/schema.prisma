@@ -247,12 +247,16 @@ model InvoiceLineItem {
   id            String   @id @default(uuid())
   invoiceId     String
   invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  serviceId     String?
+  service       Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   descriptionEn String
   descriptionAr String?
   quantity      Decimal  @default(1.00) @db.Decimal(10, 2)
   unitPrice     Decimal  @default(0.000) @db.Decimal(12, 3)
   lineTotal     Decimal  @default(0.000) @db.Decimal(12, 3)
   displayOrder  Int      @default(0)
+
+  @@index([serviceId])
 }
 
 model Payment {
@@ -483,4 +487,25 @@ model CompanyDocument {
 
   @@index([category])
 }
+
+model Service {
+  id            String            @id @default(uuid())
+  code          String?           @unique
+  nameEn        String
+  nameAr        String
+  category      String            @default("production") // "pre_production", "production", "post_production", "studio_rental", "equipment", "consulting"
+  descriptionEn String?
+  descriptionAr String?
+  unit          String            @default("day") // "hour", "day", "project", "unit", "minute"
+  defaultRate   Decimal           @default(0.000) @db.Decimal(12, 3)
+  isActive      Boolean           @default(true)
+  displayOrder  Int               @default(0)
+  lineItems     InvoiceLineItem[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+}
+
 

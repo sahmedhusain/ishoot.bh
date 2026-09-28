@@ -33,6 +33,7 @@ export function BreadcrumbTrail() {
     preferences: t.nav.appearance,
     audit: t.nav.auditLogs,
     integrations: t.nav.integrations,
+    services: (t.nav as any).services || "Services & Rates",
     new: t.actions.newInvoice,
   };
 
@@ -41,11 +42,11 @@ export function BreadcrumbTrail() {
   return (
     <nav
       data-breadcrumb
-      className="flex items-center gap-1.5 text-xs text-[#9EADA9]"
+      className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400"
     >
       <Link
         href="/dashboard"
-        className="hover:text-white transition-colors font-medium"
+        className="hover:text-slate-900 dark:hover:text-white transition-colors font-medium"
       >
         {t.layout.home}
       </Link>
@@ -56,11 +57,14 @@ export function BreadcrumbTrail() {
 
         return (
           <React.Fragment key={url}>
-            <Chevron className="w-3.5 h-3.5 text-white/20" />
+            <Chevron className="w-3.5 h-3.5 text-slate-300 dark:text-white/20" />
             {isLast ? (
-              <span className="text-[#09937F] font-semibold">{label}</span>
+              <span className="text-[#014842] dark:text-[#09937F] font-semibold">{label}</span>
             ) : (
-              <Link href={url} className="hover:text-white transition-colors">
+              <Link
+                href={url}
+                className="hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
                 {label}
               </Link>
             )}
@@ -70,3 +74,4 @@ export function BreadcrumbTrail() {
     </nav>
   );
 }
+

@@ -2,6 +2,14 @@ import { db } from "../db";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
 function mapPayment(p: any): Payment {
+  const invPayments = p.invoice?.payments || [];
+  const totalPaidOnInvoice = invPayments.length > 0
+    ? invPayments.reduce((acc: number, item: any) => acc + Number(item.amount), 0)
+    : Number(p.amount);
+  const totalInvoice = p.invoice ? Number(p.invoice.totalAmount) : 0;
+  const amountDue = Math.max(0, totalInvoice - totalPaidOnInvoice);
+  const contactObj = p.invoice?.client || p.invoice?.deal?.contact;
+
   return {
     id: p.id,
     invoice_id: p.invoiceId,
@@ -21,40 +29,39 @@ function mapPayment(p: any): Payment {
       ? {
           id: p.invoice.id,
           invoice_number: p.invoice.invoiceNumber,
-          contact_id: p.invoice.deal?.contactId || p.invoice.clientId || "",
+          contact_id: p.invoice.clientId || p.invoice.deal?.contactId || "",
           deal_id: p.invoice.dealId || undefined,
           issue_date: p.invoice.issueDate.toISOString().split("T")[0],
           due_date: p.invoice.dueDate.toISOString().split("T")[0],
           subtotal: Number(p.invoice.subtotal),
-          discount_type: "none",
-          discount_value: 0,
-          discount_amount: Number(p.invoice.discountAmount),
+          discount_type: (p.invoice.discountType as any) || "none",
+          discount_value: Number(p.invoice.discountValue || 0),
+          discount_amount: Number(p.invoice.discountAmount || 0),
           after_discount:
-            Number(p.invoice.subtotal) - Number(p.invoice.discountAmount),
+            Number(p.invoice.subtotal) - Number(p.invoice.discountAmount || 0),
           vat_enabled: Number(p.invoice.vatAmount) > 0,
           vat_percentage: 10,
           vat_amount: Number(p.invoice.vatAmount),
-          total_amount: Number(p.invoice.totalAmount),
-          amount_paid: Number(p.amount),
-          amount_due: Math.max(
-            0,
-            Number(p.invoice.totalAmount) - Number(p.amount),
-          ),
+          total_amount: totalInvoice,
+          amount_paid: totalPaidOnInvoice,
+          amount_due: amountDue,
           currency: p.invoice.currency as SupportedCurrency,
           language: p.invoice.language as "en" | "ar",
           status: p.invoice.status as any,
           created_at: p.invoice.createdAt.toISOString(),
           updated_at: p.invoice.updatedAt.toISOString(),
-          contact: p.invoice.deal?.contact
+          contact: contactObj
             ? {
-                id: p.invoice.deal.contact.id,
+                id: contactObj.id,
                 full_name:
-                  `${p.invoice.deal.contact.firstName} ${p.invoice.deal.contact.lastName || ""}`.trim(),
-                email: p.invoice.deal.contact.email || "",
-                phone: p.invoice.deal.contact.phone || undefined,
-                company: p.invoice.deal.contact.companyName || undefined,
-                created_at: p.invoice.deal.contact.createdAt.toISOString(),
-                updated_at: p.invoice.deal.contact.updatedAt.toISOString(),
+                  `${contactObj.firstName || ""} ${contactObj.lastName || ""}`.trim() ||
+                  contactObj.companyName ||
+                  "Client",
+                email: contactObj.email || "",
+                phone: contactObj.phone || undefined,
+                company: contactObj.companyName || undefined,
+                created_at: contactObj.createdAt ? contactObj.createdAt.toISOString() : new Date().toISOString(),
+                updated_at: contactObj.updatedAt ? contactObj.updatedAt.toISOString() : new Date().toISOString(),
               }
             : undefined,
         }
@@ -68,7 +75,9 @@ export async function getAllPayments(): Promise<Payment[]> {
       include: {
         invoice: {
           include: {
+            client: true,
             lineItems: true,
+            payments: true,
             deal: {
               include: { contact: true },
             },
@@ -91,7 +100,9 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
       include: {
         invoice: {
           include: {
+            client: true,
             lineItems: true,
+            payments: true,
             deal: {
               include: { contact: true },
             },
@@ -117,7 +128,9 @@ export async function getPaymentByIdOrNumber(
       include: {
         invoice: {
           include: {
+            client: true,
             lineItems: true,
+            payments: true,
             deal: {
               include: { contact: true },
             },
@@ -168,6 +181,7 @@ export async function recordPayment(paymentData: {
     include: {
       invoice: {
         include: {
+          client: true,
           payments: true,
           deal: { include: { contact: true } },
         },
@@ -210,12 +224,48 @@ export async function recordPayment(paymentData: {
 
 export async function deletePayment(id: string): Promise<boolean> {
   try {
+    const payment = await db.payment.findUnique({
+      where: { id },
+      select: { invoiceId: true },
+    });
+
     await db.payment.delete({ where: { id } });
+
+    if (payment?.invoiceId) {
+      const invoice = await db.invoice.findUnique({
+        where: { id: payment.invoiceId },
+        include: { payments: true },
+      });
+      if (invoice) {
+        const totalPaid = invoice.payments.reduce(
+          (acc, p) => acc + Number(p.amount),
+          0,
+        );
+        const totalInvoice = Number(invoice.totalAmount);
+        let newStatus = invoice.status;
+
+        if (totalPaid >= totalInvoice && totalInvoice > 0) {
+          newStatus = "paid";
+        } else if (totalPaid > 0) {
+          newStatus = "partially_paid";
+        } else {
+          newStatus = "sent";
+        }
+
+        if (newStatus !== invoice.status) {
+          await db.invoice.update({
+            where: { id: invoice.id },
+            data: { status: newStatus },
+          });
+        }
+      }
+    }
     return true;
   } catch (e) {
     console.error(`Error deleting payment ${id}:`, e);
     return false;
   }
 }
+
 
 export const createPayment = recordPayment;

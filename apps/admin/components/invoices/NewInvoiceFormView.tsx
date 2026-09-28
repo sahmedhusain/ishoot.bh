@@ -9,6 +9,7 @@ import type {
   InvoiceLineItem,
   SupportedCurrency,
   DiscountType,
+  ServiceItem,
 } from "@ishoot/database/types";
 import {
   Card,
@@ -30,6 +31,7 @@ import {
   Mail,
   Phone,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { createInvoiceAction } from "../../app/actions/finance";
 import { lookupClientAction } from "../../app/actions/crm";
@@ -40,12 +42,14 @@ import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 interface NewInvoiceFormViewProps {
   initialContacts: CRMContact[];
   company: CompanySettings | null;
+  services?: ServiceItem[];
   preselectedClientId?: string;
 }
 
 export function NewInvoiceFormView({
   initialContacts,
   company,
+  services = [],
   preselectedClientId,
 }: NewInvoiceFormViewProps) {
   const router = useRouter();
@@ -193,6 +197,7 @@ export function NewInvoiceFormView({
         vat_enabled: vatEnabled,
         vat_percentage: company?.vat_percentage || 10,
         line_items: lineItems.map((li) => ({
+          service_id: li.service_id || undefined,
           description_en: li.description_en || "Service",
           description_ar: li.description_ar || undefined,
           quantity: Number(li.quantity),
@@ -390,6 +395,60 @@ export function NewInvoiceFormView({
                 key={idx}
                 className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
               >
+                {/* Standard Service Quick Selector */}
+                <div className="md:col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 mb-1 border-b border-slate-200/60 dark:border-white/10">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
+                    <span>Item #{idx + 1}</span>
+                    {item.service_id && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-[#09937F] border border-teal-200 dark:border-teal-800 font-mono">
+                        Catalog Linked
+                      </span>
+                    )}
+                  </div>
+                  {services && services.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Preset Service:
+                      </span>
+                      <select
+                        value={item.service_id || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!val) {
+                            updateLineItem(idx, "service_id" as any, undefined);
+                            return;
+                          }
+                          const s = services.find((srv) => srv.id === val);
+                          if (s) {
+                            setLineItems((prev) => {
+                              const next = [...prev];
+                              const qty = Number(next[idx].quantity) || 1;
+                              next[idx] = {
+                                ...next[idx],
+                                service_id: s.id,
+                                description_en: s.name_en,
+                                description_ar: s.name_ar || undefined,
+                                unit_price: s.default_rate,
+                                line_total: qty * s.default_rate,
+                              };
+                              return next;
+                            });
+                          }
+                        }}
+                        className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                      >
+                        <option value="">-- Custom Item / None --</option>
+                        {services.map((srv) => (
+                          <option key={srv.id} value={srv.id}>
+                            {srv.name_en} ({srv.default_rate.toFixed(3)} BHD / {srv.unit})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
                 <div className="md:col-span-5 space-y-1">
                   <label className="text-[11px] text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.descEnLabel}

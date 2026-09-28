@@ -269,9 +269,36 @@ export type InvoiceStatus =
 export type DiscountType = "none" | "percentage" | "fixed";
 export type DeliveryChannel = "email" | "whatsapp" | "print" | "download";
 
+export type ServiceCategory =
+  | "pre_production"
+  | "production"
+  | "post_production"
+  | "studio_rental"
+  | "equipment"
+  | "consulting"
+  | "other";
+
+export interface ServiceItem {
+  id: string;
+  code?: string;
+  name_en: string;
+  name_ar: string;
+  category: ServiceCategory;
+  description_en?: string;
+  description_ar?: string;
+  unit: "hour" | "day" | "project" | "unit" | "minute";
+  default_rate: number;
+  is_active: boolean;
+  display_order: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface InvoiceLineItem {
   id?: string;
   invoice_id?: string;
+  service_id?: string;
+  service?: ServiceItem;
   description_en: string;
   description_ar?: string;
   quantity: number;

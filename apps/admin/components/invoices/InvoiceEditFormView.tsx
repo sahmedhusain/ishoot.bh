@@ -10,6 +10,7 @@ import type {
   InvoiceLineItem,
   DiscountType,
   SupportedCurrency,
+  ServiceItem,
 } from "@ishoot/database/types";
 import {
   CURRENCY_CONFIGS,
@@ -35,6 +36,7 @@ import {
   Mail,
   Phone,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
@@ -48,12 +50,14 @@ interface InvoiceEditFormViewProps {
   invoice: Invoice;
   initialContacts: CRMContact[];
   company: CompanySettings | null;
+  services?: ServiceItem[];
 }
 
 export function InvoiceEditFormView({
   invoice,
   initialContacts,
   company,
+  services = [],
 }: InvoiceEditFormViewProps) {
   const router = useRouter();
   const { t, locale } = useAdminLocale();
@@ -218,6 +222,7 @@ export function InvoiceEditFormView({
         discount_value: discountValue,
         vat_enabled: vatEnabled,
         line_items: validItems.map((item) => ({
+          service_id: item.service_id || undefined,
           description_en: item.description_en,
           description_ar: item.description_ar || undefined,
           quantity: Number(item.quantity),
@@ -503,6 +508,60 @@ export function InvoiceEditFormView({
                 key={idx}
                 className="p-4 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/5 space-y-3"
               >
+                {/* Standard Service Quick Selector */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/60 dark:border-white/10">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
+                    <span>Item #{idx + 1}</span>
+                    {item.service_id && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-[#09937F] border border-teal-200 dark:border-teal-800 font-mono">
+                        Catalog Linked
+                      </span>
+                    )}
+                  </div>
+                  {!isLocked && services && services.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Preset Service:
+                      </span>
+                      <select
+                        value={item.service_id || ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (!val) {
+                            handleLineItemChange(idx, "service_id" as any, undefined);
+                            return;
+                          }
+                          const s = services.find((srv) => srv.id === val);
+                          if (s) {
+                            setLineItems((prev) => {
+                              const next = [...prev];
+                              const qty = Number(next[idx].quantity) || 1;
+                              next[idx] = {
+                                ...next[idx],
+                                service_id: s.id,
+                                description_en: s.name_en,
+                                description_ar: s.name_ar || undefined,
+                                unit_price: s.default_rate,
+                                line_total: qty * s.default_rate,
+                              };
+                              return next;
+                            });
+                          }
+                        }}
+                        className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                      >
+                        <option value="">-- Custom Item / None --</option>
+                        {services.map((srv) => (
+                          <option key={srv.id} value={srv.id}>
+                            {srv.name_en} ({srv.default_rate.toFixed(3)} BHD / {srv.unit})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">

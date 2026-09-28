@@ -60,6 +60,7 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
       ? inv.lineItems.map((li: any) => ({
           id: li.id,
           invoice_id: li.invoiceId,
+          service_id: li.serviceId || undefined,
           description_en: li.descriptionEn,
           description_ar: li.descriptionAr || undefined,
           quantity: Number(li.quantity),
@@ -227,6 +228,7 @@ export async function createInvoice(data: {
   vat_enabled?: boolean;
   vat_percentage?: number;
   line_items: Array<{
+    service_id?: string;
     description_en: string;
     description_ar?: string;
     quantity: number;
@@ -272,6 +274,7 @@ export async function createInvoice(data: {
       createdById: data.created_by || null,
       lineItems: {
         create: data.line_items.map((li, idx) => ({
+          serviceId: li.service_id || null,
           descriptionEn: li.description_en,
           descriptionAr: li.description_ar || null,
           quantity: li.quantity,
@@ -282,6 +285,7 @@ export async function createInvoice(data: {
       },
     },
     include: {
+      client: true,
       lineItems: true,
       payments: true,
       deal: { include: { contact: true } },
@@ -307,6 +311,7 @@ export async function updateInvoice(
     vat_enabled?: boolean;
     vat_percentage?: number;
     line_items?: Array<{
+      service_id?: string;
       description_en: string;
       description_ar?: string;
       quantity: number;
@@ -326,6 +331,7 @@ export async function updateInvoice(
     const lineItemsToCalc =
       data.line_items ||
       existing.lineItems.map((li) => ({
+        service_id: li.serviceId || undefined,
         description_en: li.descriptionEn,
         description_ar: li.descriptionAr || undefined,
         quantity: Number(li.quantity),
@@ -372,6 +378,7 @@ export async function updateInvoice(
           ? {
               lineItems: {
                 create: data.line_items.map((li, idx) => ({
+                  serviceId: li.service_id || null,
                   descriptionEn: li.description_en,
                   descriptionAr: li.description_ar || null,
                   quantity: li.quantity,
@@ -384,6 +391,7 @@ export async function updateInvoice(
           : {}),
       },
       include: {
+        client: true,
         lineItems: true,
         payments: true,
         deal: { include: { contact: true } },

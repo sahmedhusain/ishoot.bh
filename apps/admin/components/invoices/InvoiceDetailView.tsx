@@ -114,37 +114,42 @@ export function InvoiceDetailView({
         />
       </div>
 
-      <div className="p-2 sm:p-6 bg-[#070C0A] rounded-3xl border border-white/10 shadow-2xl flex justify-center">
+      <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-[#070C0A] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
         <InvoiceTemplate invoice={invoice} company={company} />
       </div>
 
       {payments.length > 0 && (
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-4 no-print">
-          <div className="flex items-center gap-2 text-sm font-bold text-white uppercase tracking-wider">
-            <Receipt className="w-4 h-4 text-[#10B981]" />
+        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl space-y-4 no-print shadow-sm">
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+            <Receipt className="w-4 h-4 text-[#09937F]" />
             <span>{t.actions.associatedReceipts}</span>
           </div>
 
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-slate-100 dark:divide-white/5">
             {payments.map((p) => (
               <div
                 key={p.id}
                 className="py-3 flex items-center justify-between text-xs"
               >
                 <div>
-                  <div className="font-mono font-bold text-[#10B981]">
-                    {p.receipt_number}
-                  </div>
-                  <div className="text-[#9EADA9] text-[11px]">
+                  <Link
+                    href={`/dashboard/payments/${p.id}`}
+                    className="font-mono font-bold text-[#09937F] hover:underline inline-flex items-center gap-1 group"
+                    title="View Official Receipt"
+                  >
+                    <span>{p.receipt_number}</span>
+                    <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+                  </Link>
+                  <div className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">
                     {p.payment_date} • {p.payment_method.replace("_", " ")}
                   </div>
                 </div>
 
                 <div className="text-end">
-                  <div className="font-mono font-bold text-white">
+                  <div className="font-mono font-bold text-slate-900 dark:text-white">
                     <CurrencyDisplay amount={p.amount} currency={p.currency} />
                   </div>
-                  <span className="text-[10px] text-emerald-400 font-mono">
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
                     {t.finance.reconciled}
                   </span>
                 </div>
