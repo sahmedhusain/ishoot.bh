@@ -145,7 +145,10 @@ export function InvoiceEditFormView({
     Number(invoice.discount_value) || 0,
   );
   const [vatEnabled, setVatEnabled] = React.useState<boolean>(
-    invoice.vat_enabled ?? true,
+    invoice.vat_enabled ?? (invoice.vat_amount > 0),
+  );
+  const [vatPercentage, setVatPercentage] = React.useState<number>(
+    invoice.vat_percentage || company?.vat_percentage || 10,
   );
 
   const isLocked = invoice.status === "void";
@@ -155,7 +158,7 @@ export function InvoiceEditFormView({
     discountType,
     discountValue,
     vatEnabled,
-    company?.vat_percentage || 10,
+    vatPercentage,
     currency,
   );
 
@@ -221,6 +224,7 @@ export function InvoiceEditFormView({
         discount_type: discountType,
         discount_value: discountValue,
         vat_enabled: vatEnabled,
+        vat_percentage: vatPercentage,
         line_items: validItems.map((item) => ({
           service_id: item.service_id || undefined,
           description_en: item.description_en,
@@ -700,7 +704,7 @@ export function InvoiceEditFormView({
                   disabled={isLocked}
                   className="w-4 h-4 rounded text-[#014842] focus:ring-[#09937F]"
                 />
-                <span>Enable VAT ({company?.vat_percentage || 10}%)</span>
+                <span>Enable VAT ({vatPercentage}%)</span>
               </label>
             </div>
           </div>
@@ -761,16 +765,16 @@ export function InvoiceEditFormView({
             </div>
           )}
 
-          {vatEnabled && (
-            <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
-              <span className="text-slate-500 dark:text-slate-400">
-                VAT ({company?.vat_percentage || 10}%)
-              </span>
-              <span className="font-mono font-bold text-[#09937F]">
-                +{totals.vatAmount.toFixed(3)} {currency}
-              </span>
-            </div>
-          )}
+              {vatEnabled && (
+                <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
+                  <span className="text-slate-500 dark:text-slate-400">
+                    VAT ({vatPercentage}%)
+                  </span>
+                  <span className="font-mono font-bold text-[#09937F]">
+                    +{totals.vatAmount.toFixed(3)} {currency}
+                  </span>
+                </div>
+              )}
 
           <div className="flex items-center justify-between text-sm border-t-2 border-[#09937F]/40 pt-3">
             <span className="font-bold text-slate-900 dark:text-white">Total Amount</span>

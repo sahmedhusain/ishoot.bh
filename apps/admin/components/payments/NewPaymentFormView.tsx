@@ -14,6 +14,12 @@ import {
   FileText,
   AlertCircle,
   ExternalLink,
+  UploadCloud,
+  Loader2,
+  Trash2,
+  ShieldCheck,
+  FileCheck,
+  FolderArchive,
 } from "lucide-react";
 import {
   createPaymentAction,
@@ -26,6 +32,13 @@ interface NewPaymentFormViewProps {
   initialContacts: CRMContact[];
   initialInvoices: Invoice[];
   preselectedClientId?: string;
+}
+
+interface UploadedDocument {
+  fileName: string;
+  fileUrl: string;
+  fileSize?: number;
+  mimeType?: string;
 }
 
 export function NewPaymentFormView({
@@ -54,6 +67,72 @@ export function NewPaymentFormView({
   const [notes, setNotes] = React.useState("");
   const [saving, setSaving] = React.useState(false);
   const [fetchingInvoices, setFetchingInvoices] = React.useState(false);
+
+  // Upload States
+  const [chequeFile, setChequeFile] = React.useState<UploadedDocument | null>(null);
+  const [bankReceiptFile, setBankReceiptFile] = React.useState<UploadedDocument | null>(null);
+  const [generalProofFile, setGeneralProofFile] = React.useState<UploadedDocument | null>(null);
+
+  const [uploadingCheque, setUploadingCheque] = React.useState(false);
+  const [uploadingBankReceipt, setUploadingBankReceipt] = React.useState(false);
+  const [uploadingProof, setUploadingProof] = React.useState(false);
+
+  const chequeInputRef = React.useRef<HTMLInputElement>(null);
+  const bankReceiptInputRef = React.useRef<HTMLInputElement>(null);
+  const proofInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleUploadFile = async (
+    file: File,
+    type: "cheque" | "bank_receipt" | "general_proof",
+  ) => {
+    if (type === "cheque") setUploadingCheque(true);
+    else if (type === "bank_receipt") setUploadingBankReceipt(true);
+    else setUploadingProof(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("entityType", "payment");
+      formData.append("entityId", "pending");
+      formData.append(
+        "customName",
+        type === "cheque"
+          ? `Cheque Copy - ${file.name}`
+          : type === "bank_receipt"
+            ? `Bank Statement Slip - ${file.name}`
+            : `Payment Proof - ${file.name}`,
+      );
+      formData.append("documentType", type);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const fileData: UploadedDocument = {
+        fileName: data.fileName,
+        fileUrl: data.fileUrl,
+        fileSize: data.fileSize,
+        mimeType: data.mimeType,
+      };
+
+      if (type === "cheque") setChequeFile(fileData);
+      else if (type === "bank_receipt") setBankReceiptFile(fileData);
+      else setGeneralProofFile(fileData);
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      alert(err.message || "Failed to upload document");
+    } finally {
+      if (type === "cheque") setUploadingCheque(false);
+      else if (type === "bank_receipt") setUploadingBankReceipt(false);
+      else setUploadingProof(false);
+    }
+  };
 
   // Dynamically fetch fresh client invoices whenever selectedClientId changes
   React.useEffect(() => {
@@ -115,12 +194,31 @@ export function NewPaymentFormView({
     return Math.max(0, (selectedInvoice.amount_due || 0) - (Number(amount) || 0));
   }, [selectedInvoice, amount]);
 
+  const [formError, setFormError] = React.useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     if (!selectedInvoiceId || amount <= 0) return;
+
+    if (paymentMethod === "cheque" && (!chequeFile || !bankReceiptFile)) {
+      setFormError(
+        "Cheque payments require uploading both documents: (1) Cheque Copy and (2) Bank Statement Transfer Slip before issuing a receipt.",
+      );
+      return;
+    }
+
     setSaving(true);
 
     try {
+      const attachmentsToSave: UploadedDocument[] = [];
+      if (paymentMethod === "cheque") {
+        if (chequeFile) attachmentsToSave.push(chequeFile);
+        if (bankReceiptFile) attachmentsToSave.push(bankReceiptFile);
+      } else {
+        if (generalProofFile) attachmentsToSave.push(generalProofFile);
+      }
+
       await createPaymentAction({
         invoice_id: selectedInvoiceId,
         amount: Number(amount),
@@ -128,11 +226,14 @@ export function NewPaymentFormView({
         payment_method: paymentMethod,
         reference_number: referenceNumber || undefined,
         notes: notes || undefined,
+        proof_attachments:
+          attachmentsToSave.length > 0 ? attachmentsToSave : undefined,
       });
 
       router.push("/dashboard/payments");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to record payment:", err);
+      setFormError(err.message || "Failed to record payment");
     } finally {
       setSaving(false);
     }
@@ -347,6 +448,262 @@ export function NewPaymentFormView({
               />
             </div>
           </div>
+
+          {/* Document Attachments & Archive Integration */}
+          <div className="pt-2 border-t border-slate-100 dark:border-white/10 space-y-4">
+            {paymentMethod === "cheque" ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-[#014842] dark:text-[#7de0d1]" />
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                      Required Cheque Settlement Documents / مستندات تسوية الشيك (2 Documents)
+                    </h3>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 font-bold">
+                    Mandatory for Cheques
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Document 1: Cheque Copy */}
+                  <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-[#152B27]/20 border border-slate-200 dark:border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
+                        <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
+                        <span>1. Cheque Copy / صورة الشيك *</span>
+                      </label>
+                      <span className="text-[10px] text-rose-500 font-bold">Required</span>
+                    </div>
+
+                    <input
+                      ref={chequeInputRef}
+                      type="file"
+                      accept="application/pdf,image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadFile(file, "cheque");
+                      }}
+                    />
+
+                    {chequeFile ? (
+                      <div className="p-3 rounded-xl bg-white dark:bg-neutral-800 border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-2 shadow-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                              {chequeFile.fileName}
+                            </p>
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                              ✓ Uploaded & ready to archive
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <a
+                            href={chequeFile.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                            title="View"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => setChequeFile(null)}
+                            className="p-1 text-rose-500 hover:text-rose-700"
+                            title="Remove"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => !uploadingCheque && chequeInputRef.current?.click()}
+                        className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-[#014842] dark:hover:border-[#7de0d1] rounded-xl p-4 text-center cursor-pointer transition-colors"
+                      >
+                        <div className="flex flex-col items-center justify-center space-y-1.5">
+                          <div className="w-8 h-8 rounded-full bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1] flex items-center justify-center">
+                            {uploadingCheque ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <UploadCloud className="w-4 h-4" />
+                            )}
+                          </div>
+                          <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
+                            {uploadingCheque ? "Uploading cheque..." : "Click or drop Cheque Scan"}
+                          </p>
+                          <p className="text-[10px] text-slate-400">PDF, PNG, JPG (Front & back)</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Document 2: Bank Transfer Slip / Statement Advice */}
+                  <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-[#152B27]/20 border border-slate-200 dark:border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
+                        <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
+                        <span>2. Bank Transfer Slip / كشف الحساب *</span>
+                      </label>
+                      <span className="text-[10px] text-rose-500 font-bold">Required</span>
+                    </div>
+
+                    <input
+                      ref={bankReceiptInputRef}
+                      type="file"
+                      accept="application/pdf,image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleUploadFile(file, "bank_receipt");
+                      }}
+                    />
+
+                    {bankReceiptFile ? (
+                      <div className="p-3 rounded-xl bg-white dark:bg-neutral-800 border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-2 shadow-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                              {bankReceiptFile.fileName}
+                            </p>
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                              ✓ Uploaded & ready to archive
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <a
+                            href={bankReceiptFile.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                            title="View"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => setBankReceiptFile(null)}
+                            className="p-1 text-rose-500 hover:text-rose-700"
+                            title="Remove"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={() => !uploadingBankReceipt && bankReceiptInputRef.current?.click()}
+                        className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-[#014842] dark:hover:border-[#7de0d1] rounded-xl p-4 text-center cursor-pointer transition-colors"
+                      >
+                        <div className="flex flex-col items-center justify-center space-y-1.5">
+                          <div className="w-8 h-8 rounded-full bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1] flex items-center justify-center">
+                            {uploadingBankReceipt ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <UploadCloud className="w-4 h-4" />
+                            )}
+                          </div>
+                          <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
+                            {uploadingBankReceipt ? "Uploading statement..." : "Click or drop Bank Slip"}
+                          </p>
+                          <p className="text-[10px] text-slate-400">PDF, PNG, JPG (Deposit/Statement)</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
+                    <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
+                    <span>Proof of Payment / إيصال التحويل أو سند الدفع (Optional Archive Proof)</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-mono">Saved to Archive Vault</span>
+                </div>
+
+                <input
+                  ref={proofInputRef}
+                  type="file"
+                  accept="application/pdf,image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleUploadFile(file, "general_proof");
+                  }}
+                />
+
+                {generalProofFile ? (
+                  <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-neutral-800 border border-emerald-300 dark:border-emerald-700 flex items-center justify-between gap-2 shadow-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
+                          {generalProofFile.fileName}
+                        </p>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                          ✓ Ready to archive with payment
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <a
+                        href={generalProofFile.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+                        title="View"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setGeneralProofFile(null)}
+                        className="p-1.5 text-rose-500 hover:text-rose-700"
+                        title="Remove"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => !uploadingProof && proofInputRef.current?.click()}
+                    className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-[#014842] dark:hover:border-[#7de0d1] rounded-xl p-4 text-center cursor-pointer transition-colors"
+                  >
+                    <div className="flex flex-col items-center justify-center space-y-1">
+                      <div className="w-8 h-8 rounded-full bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1] flex items-center justify-center">
+                        {uploadingProof ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <UploadCloud className="w-4 h-4" />
+                        )}
+                      </div>
+                      <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
+                        {uploadingProof ? "Uploading proof..." : "Click or drag BenefitPay / Wire Transfer Receipt"}
+                      </p>
+                      <p className="text-[10px] text-slate-400">PDF, JPG, PNG up to 25MB</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Form Error Banner */}
+          {formError && (
+            <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 flex items-center gap-2.5 text-rose-800 dark:text-rose-200 text-xs font-semibold animate-fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
+              <span>{formError}</span>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-white/10">
             <Link href="/dashboard/payments">

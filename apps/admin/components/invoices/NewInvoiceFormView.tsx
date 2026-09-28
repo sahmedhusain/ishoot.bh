@@ -119,8 +119,11 @@ export function NewInvoiceFormView({
 
   const [discountType, setDiscountType] = React.useState<DiscountType>("none");
   const [discountValue, setDiscountValue] = React.useState<number>(0);
-  const [vatEnabled, setVatEnabled] = React.useState(
-    company?.tax_registration_status ?? true,
+  const [vatEnabled, setVatEnabled] = React.useState<boolean>(
+    company?.vat_enabled ?? false,
+  );
+  const [vatPercentage, setVatPercentage] = React.useState<number>(
+    company?.vat_percentage ? Number(company.vat_percentage) : 10,
   );
 
   const [lineItems, setLineItems] = React.useState<InvoiceLineItem[]>([
@@ -173,10 +176,10 @@ export function NewInvoiceFormView({
       discountType,
       discountValue,
       vatEnabled,
-      company?.vat_percentage || 10,
+      vatPercentage,
       currency,
     );
-  }, [lineItems, discountType, discountValue, vatEnabled, company, currency]);
+  }, [lineItems, discountType, discountValue, vatEnabled, vatPercentage, currency]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,7 +198,7 @@ export function NewInvoiceFormView({
         discount_type: discountType,
         discount_value: discountValue,
         vat_enabled: vatEnabled,
-        vat_percentage: company?.vat_percentage || 10,
+        vat_percentage: vatPercentage,
         line_items: lineItems.map((li) => ({
           service_id: li.service_id || undefined,
           description_en: li.description_en || "Service",
@@ -635,14 +638,16 @@ export function NewInvoiceFormView({
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                <span>{t.finance.vat}:</span>
-                <span className="font-mono font-medium">
-                  {totals.vatAmount > 0
-                    ? `${totals.vatAmount.toFixed(3)} ${currency}`
-                    : "0.000"}
-                </span>
-              </div>
+              {vatEnabled && (
+                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
+                  <span>
+                    {t.finance.vat} ({vatPercentage}%):
+                  </span>
+                  <span className="font-mono font-medium">
+                    {totals.vatAmount.toFixed(3)} {currency}
+                  </span>
+                </div>
+              )}
 
               <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
                 <span className="text-sm font-bold text-slate-900 dark:text-white">

@@ -12,6 +12,8 @@ import {
   LogOut,
   ChevronDown,
   Database,
+  Globe,
+  ExternalLink,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useAdminTheme } from "../../hooks/useAdminTheme";
@@ -115,9 +117,8 @@ export function AdminProfileDropdown() {
           <div className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1">
             <span>{displayName}</span>
             <ChevronDown
-              className={`w-3 h-3 text-slate-400 dark:text-[#9EADA9] transition-transform duration-200 ${
-                isOpen ? "rotate-180" : ""
-              }`}
+              className={`w-3 h-3 text-slate-400 dark:text-[#9EADA9] transition-transform duration-200 ${isOpen ? "rotate-180" : ""
+                }`}
             />
           </div>
           <div className="text-[10px] text-[#09937F] font-semibold font-mono">
@@ -128,11 +129,10 @@ export function AdminProfileDropdown() {
 
       {isOpen && (
         <div
-          className={`absolute top-full mt-2 w-72 rounded-2xl bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col ${
-            isRTL
+          className={`absolute top-full mt-2 w-72 rounded-2xl bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col ${isRTL
               ? "left-0 sm:left-auto sm:right-0"
               : "right-0 sm:right-auto sm:left-0"
-          }`}
+            }`}
         >
           <div className="p-4 bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/10">
             <div className="flex items-center gap-3">
@@ -197,6 +197,20 @@ export function AdminProfileDropdown() {
               <History className="w-4 h-4 text-[#09937F]" />
               <span>{t.profileDropdown.auditTrail}</span>
             </Link>
+
+            <a
+              href="http://localhost:3000"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-[#9EADA9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+            >
+              <Globe className="w-4 h-4 text-[#09937F]" />
+              <div className="flex-1 flex items-center justify-between">
+                <span>{t.profileDropdown.liveSite}</span>
+                <ExternalLink className="w-3 h-3 text-slate-400 dark:text-[#9EADA9]/70" />
+              </div>
+            </a>
           </div>
 
           <div className="p-3 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] text-[10px] font-mono text-slate-500 dark:text-[#9EADA9] space-y-1">

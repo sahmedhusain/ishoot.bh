@@ -110,7 +110,28 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
         },
       },
     });
-    return payment ? mapPayment(payment) : null;
+    if (!payment) return null;
+
+    const attachments = await db.attachment.findMany({
+      where: { entityType: "payment", entityId: payment.id },
+      include: { uploadedBy: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const mapped = mapPayment(payment);
+    mapped.proof_attachments = attachments.map((a: any) => ({
+      id: a.id,
+      file_name: a.fileName,
+      file_url: a.fileUrl,
+      file_size: a.fileSize || undefined,
+      mime_type: a.mimeType || undefined,
+      entity_type: a.entityType,
+      entity_id: a.entityId,
+      uploaded_by: a.uploadedBy?.fullName || a.uploadedBy?.email || undefined,
+      created_at: a.createdAt.toISOString(),
+    }));
+
+    return mapped;
   } catch (e) {
     console.error(`Error fetching payment ${id}:`, e);
     return null;
@@ -138,7 +159,28 @@ export async function getPaymentByIdOrNumber(
         },
       },
     });
-    return payment ? mapPayment(payment) : null;
+    if (!payment) return null;
+
+    const attachments = await db.attachment.findMany({
+      where: { entityType: "payment", entityId: payment.id },
+      include: { uploadedBy: true },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const mapped = mapPayment(payment);
+    mapped.proof_attachments = attachments.map((a: any) => ({
+      id: a.id,
+      file_name: a.fileName,
+      file_url: a.fileUrl,
+      file_size: a.fileSize || undefined,
+      mime_type: a.mimeType || undefined,
+      entity_type: a.entityType,
+      entity_id: a.entityId,
+      uploaded_by: a.uploadedBy?.fullName || a.uploadedBy?.email || undefined,
+      created_at: a.createdAt.toISOString(),
+    }));
+
+    return mapped;
   } catch (e) {
     console.error(`Error fetching payment ${idOrNumber}:`, e);
     return null;
@@ -157,6 +199,12 @@ export async function recordPayment(paymentData: {
   notification_channel?: any;
   notification_sent?: boolean;
   created_by?: string;
+  proof_attachments?: Array<{
+    fileName: string;
+    fileUrl: string;
+    fileSize?: number;
+    mimeType?: string;
+  }>;
 }): Promise<Payment> {
   const year = new Date().getFullYear();
   const count = await db.payment.count();
@@ -189,6 +237,22 @@ export async function recordPayment(paymentData: {
     },
   });
 
+  if (paymentData.proof_attachments && paymentData.proof_attachments.length > 0) {
+    for (const att of paymentData.proof_attachments) {
+      await db.attachment.create({
+        data: {
+          fileName: att.fileName,
+          fileUrl: att.fileUrl,
+          fileSize: att.fileSize,
+          mimeType: att.mimeType,
+          entityType: "payment",
+          entityId: created.id,
+          uploadedById: paymentData.created_by || null,
+        },
+      });
+    }
+  }
+
   try {
     const invoice = await db.invoice.findUnique({
       where: { id: paymentData.invoice_id },
@@ -219,7 +283,8 @@ export async function recordPayment(paymentData: {
     console.error("Error auto-reconciling invoice status after payment:", err);
   }
 
-  return mapPayment(created);
+  const result = await getPaymentById(created.id);
+  return result || mapPayment(created);
 }
 
 export async function deletePayment(id: string): Promise<boolean> {

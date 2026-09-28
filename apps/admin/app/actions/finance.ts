@@ -68,9 +68,18 @@ export async function createPaymentAction(data: {
   payment_date?: string;
   reference_number?: string;
   notes?: string;
+  proof_attachments?: Array<{
+    fileName: string;
+    fileUrl: string;
+    fileSize?: number;
+    mimeType?: string;
+  }>;
 }) {
   const user = await requirePermission("payments", "write");
-  const payment = await createPayment(data);
+  const payment = await createPayment({
+    ...data,
+    created_by: user.id,
+  });
 
   await createActivityLog({
     user_id: user.id,
@@ -81,12 +90,14 @@ export async function createPaymentAction(data: {
       invoice_id: data.invoice_id,
       amount: data.amount,
       receiptNumber: payment.receipt_number,
+      attachmentCount: data.proof_attachments?.length || 0,
     },
   });
 
   revalidatePath("/dashboard/payments");
   revalidatePath("/dashboard/invoices");
   revalidatePath("/dashboard/finance");
+  revalidatePath("/dashboard/archive");
   revalidatePath("/dashboard");
   return { success: true, payment };
 }

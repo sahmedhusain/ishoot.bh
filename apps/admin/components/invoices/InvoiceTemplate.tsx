@@ -19,22 +19,22 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
   const t = isAr ? adminTranslations.ar : adminTranslations.en;
   const inv = t.invoice;
   const currency = invoice.currency || "BHD";
+  const isVatActive = Boolean(invoice.vat_enabled && (invoice.vat_amount > 0 || company.vat_enabled));
 
   return (
     <div
       dir={isAr ? "rtl" : "ltr"}
       data-print-target
-      className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none print:max-w-none print:w-full print:min-h-0 print:overflow-visible ${
+      className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden min-h-[1050px] print:min-h-0 print:shadow-none print:rounded-none print:max-w-none print:w-full print:overflow-visible ${
         isAr ? "font-arabic" : "font-sans"
       }`}
-      style={{ minHeight: "1050px" }}
     >
       {/* Unified Brand Letterhead */}
       <DocumentLetterhead
         documentType="invoice"
         documentNumber={invoice.invoice_number}
-        titleEn="TAX INVOICE"
-        titleAr="فاتورة ضريبية"
+        titleEn={isVatActive ? "TAX INVOICE" : "INVOICE"}
+        titleAr={isVatActive ? "فاتورة ضريبية" : "فاتورة"}
         company={company}
         language={invoice.language as "en" | "ar"}
         issueDateLabel={inv.issueDate}
@@ -118,7 +118,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
         {/* Financial Summary & Terms Section */}
         <div
           data-terms-section
-          className="pt-6 border-t-2 border-slate-900 grid grid-cols-1 sm:grid-cols-2 gap-8 print-avoid-break print:pt-4 print:mt-4 print:border-slate-800"
+          className="pt-6 border-t-2 border-slate-900 grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-8 print:gap-6 print-avoid-break print:pt-4 print:mt-4 print:border-slate-800"
         >
           {/* Left Column: Terms & Conditions and Bank Coordinates */}
           <div className="space-y-4">
@@ -175,18 +175,16 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
               </div>
             )}
 
-            <div className="flex justify-between py-1.5 border-b border-slate-100 text-slate-600">
-              <span className="font-sans text-xs">
-                {invoice.vat_enabled
-                  ? `${inv.vatLabel} (${invoice.vat_percentage}%):`
-                  : inv.vatColon}
-              </span>
-              <span>
-                {invoice.vat_enabled
-                  ? formatCurrencyValue(invoice.vat_amount, currency, isAr)
-                  : inv.notApplicable}
-              </span>
-            </div>
+            {isVatActive && (
+              <div className="flex justify-between py-1.5 border-b border-slate-100 text-slate-600">
+                <span className="font-sans text-xs">
+                  {inv.vatLabel} ({invoice.vat_percentage || 10}%):
+                </span>
+                <span>
+                  {formatCurrencyValue(invoice.vat_amount, currency, isAr)}
+                </span>
+              </div>
+            )}
 
             <div className="flex justify-between py-3 border-t-2 border-slate-900 text-base font-extrabold text-[#014842]">
               <span className="font-sans">{inv.totalAmount}</span>
@@ -219,6 +217,9 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
       <DocumentFooter
         company={company}
         thankYouMessage={inv.thankYou}
+        showSignature={true}
+        signatureTitle={isAr ? "المخول بالتوقيع" : "Authorized Signatory"}
+        signatureTitleAr={isAr ? "إدارة الشؤون المالية" : "Finance Department"}
       />
     </div>
   );

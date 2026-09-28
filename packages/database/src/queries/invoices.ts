@@ -39,8 +39,8 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
     discount_value: Number(inv.discountValue || discountAmount),
     discount_amount: discountAmount,
     after_discount: afterDiscount,
-    vat_enabled: vatAmount > 0,
-    vat_percentage: 10,
+    vat_enabled: inv.vatEnabled ?? (vatAmount > 0),
+    vat_percentage: inv.vatPercentage ? Number(inv.vatPercentage) : 10,
     vat_amount: vatAmount,
     total_amount: totalAmount,
     amount_paid: amountPaid,
@@ -264,6 +264,8 @@ export async function createInvoice(data: {
       discountType: data.discount_type || "none",
       discountValue: data.discount_value || 0,
       discountAmount: totals.discountAmount,
+      vatEnabled: data.vat_enabled ?? false,
+      vatPercentage: data.vat_percentage ?? 10,
       vatAmount: totals.vatAmount,
       totalAmount: totals.totalAmount,
       currency,
@@ -368,6 +370,14 @@ export async function updateInvoice(
         discountType: data.discount_type || existing.discountType,
         discountValue: data.discount_value ?? existing.discountValue,
         discountAmount: totals.discountAmount,
+        vatEnabled:
+          data.vat_enabled !== undefined
+            ? data.vat_enabled
+            : existing.vatEnabled,
+        vatPercentage:
+          data.vat_percentage !== undefined
+            ? data.vat_percentage
+            : (existing.vatPercentage ?? 10),
         vatAmount: totals.vatAmount,
         totalAmount: totals.totalAmount,
         currency,

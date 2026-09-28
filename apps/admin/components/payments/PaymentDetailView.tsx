@@ -5,18 +5,91 @@ import Link from "next/link";
 import type { Payment, CompanySettings } from "@ishoot/database/types";
 import { ReceiptTemplate } from "./ReceiptTemplate";
 import { DeliveryToolbar } from "../shared/DeliveryToolbar";
-import { Button, StatusBadge } from "@ishoot/ui";
-import { ArrowLeft, ArrowRight, Receipt, FileText, User } from "lucide-react";
+import { Button } from "@ishoot/ui";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Receipt,
+  FileText,
+  User,
+  Download,
+  ExternalLink,
+  ShieldCheck,
+  FileCheck,
+  FolderArchive,
+  UploadCloud,
+  Loader2,
+  Landmark,
+} from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { deleteAttachmentAction } from "../../app/actions/attachments";
 
 interface PaymentDetailViewProps {
   payment: Payment;
   company: CompanySettings;
 }
 
-export function PaymentDetailView({ payment, company }: PaymentDetailViewProps) {
+export function PaymentDetailView({
+  payment: initialPayment,
+  company,
+}: PaymentDetailViewProps) {
   const { t, isRTL, locale } = useAdminLocale();
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
+  const [payment, setPayment] = React.useState<Payment>(initialPayment);
+  const [uploading, setUploading] = React.useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const attachments = payment.proof_attachments || [];
+
+  const handleInstantUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("entityType", "payment");
+      formData.append("entityId", payment.id);
+      formData.append(
+        "customName",
+        payment.payment_method === "cheque"
+          ? `Cheque Document - ${payment.receipt_number} - ${file.name}`
+          : `Payment Slip - ${payment.receipt_number} - ${file.name}`,
+      );
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      const newAtt = {
+        id: data.attachment?.id || `att-${Date.now()}`,
+        file_name: data.fileName,
+        file_url: data.fileUrl,
+        file_size: data.fileSize,
+        mime_type: data.mimeType,
+        entity_type: "payment",
+        entity_id: payment.id,
+        created_at: new Date().toISOString(),
+      };
+
+      setPayment((prev) => ({
+        ...prev,
+        proof_attachments: [newAtt, ...(prev.proof_attachments || [])],
+      }));
+    } catch (err: any) {
+      console.error("Instant upload error:", err);
+      alert(err.message || "Failed to upload document");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const invoice = payment.invoice;
   const clientName =
@@ -96,6 +169,131 @@ export function PaymentDetailView({ payment, company }: PaymentDetailViewProps) 
           clientPhone={invoice?.contact?.phone}
           amountFormatted={`${payment.amount.toFixed(3)} ${payment.currency}`}
         />
+      </div>
+
+      {/* Attached Documents & Archive Integration (Screen Only) */}
+      <div className="no-print bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1]">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                Settlement Proof Documents & Archive Vault
+              </h2>
+              <p className="text-[11px] text-slate-500 dark:text-neutral-400">
+                {payment.payment_method === "cheque"
+                  ? "Cheque copy and bank transfer statements indexed in central archive."
+                  : "Payment receipts and bank transfer slips indexed in central archive."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/dashboard/archive?search=${payment.receipt_number}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#014842] dark:text-[#7de0d1] bg-[#e6f5f2] dark:bg-[#004d40]/40 border border-[#014842]/30 dark:border-[#004d40] hover:underline transition-colors"
+            >
+              <FolderArchive className="w-3.5 h-3.5" />
+              <span>View in Archive Vault</span>
+            </Link>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf,image/*"
+              className="hidden"
+              onChange={handleInstantUpload}
+            />
+
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#014842] hover:bg-[#014842]/90 text-white transition-colors shadow-xs"
+            >
+              {uploading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-3.5 h-3.5" />
+                  <span>Upload Proof</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {attachments.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+            {attachments.map((att) => {
+              const isCheque =
+                att.file_name.toLowerCase().includes("cheque") ||
+                payment.payment_method === "cheque";
+              const isBankStatement =
+                att.file_name.toLowerCase().includes("bank") ||
+                att.file_name.toLowerCase().includes("slip") ||
+                att.file_name.toLowerCase().includes("statement");
+
+              return (
+                <div
+                  key={att.id}
+                  className="p-3.5 rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50/70 dark:bg-neutral-800/40 flex items-center justify-between gap-2.5"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-[#014842] dark:text-[#7de0d1] flex items-center justify-center shrink-0">
+                      {isCheque ? (
+                        <FileCheck className="w-4 h-4" />
+                      ) : isBankStatement ? (
+                        <Landmark className="w-4 h-4" />
+                      ) : (
+                        <FileText className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p
+                        className="text-xs font-bold text-slate-900 dark:text-white truncate"
+                        title={att.file_name}
+                      >
+                        {att.file_name}
+                      </p>
+                      <p className="text-[10px] text-slate-500 dark:text-neutral-400 font-mono">
+                        {att.file_size
+                          ? `${(att.file_size / 1024).toFixed(0)} KB`
+                          : "Document"}{" "}
+                        • {att.created_at?.split("T")[0]}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <a
+                      href={att.file_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-700 transition-colors"
+                      title="View / Download"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl border border-dashed border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/20 text-center">
+            <p className="text-xs text-slate-500 dark:text-neutral-400">
+              No settlement proof documents attached yet. Click{" "}
+              <strong>Upload Proof</strong> above to attach cheque scans or bank
+              transfer slips.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Official Receipt Template with Multi-Page Engine */}

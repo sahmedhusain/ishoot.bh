@@ -33,10 +33,9 @@ export function ReceiptTemplate({
     <div
       dir={dir}
       data-print-target
-      className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none print:max-w-none print:w-full print:min-h-0 print:overflow-visible relative ${
+      className={`w-full max-w-[850px] mx-auto bg-white text-slate-900 shadow-2xl rounded-2xl overflow-hidden min-h-[850px] print:min-h-0 print:shadow-none print:rounded-none print:max-w-none print:w-full print:overflow-visible relative ${
         isAr ? "font-arabic" : "font-sans"
       }`}
-      style={{ minHeight: "900px" }}
     >
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] rotate-[-25deg] select-none">
         <span className="text-8xl font-black uppercase text-gray-900 border-8 border-gray-900 px-12 py-6 rounded-3xl">
@@ -161,7 +160,10 @@ export function ReceiptTemplate({
 
       <DocumentFooter
         company={company}
-        thankYouMessage={rcpt.generatedBy}
+        thankYouMessage={rcpt.generatedBy || "Payment receipt verified and processed by ishoot Cinema Production."}
+        showSignature={true}
+        signatureTitle={isAr ? "أمين الصندوق / الإدارة المالية" : "Cashier / Financial Management"}
+        signatureTitleAr={isAr ? "سند قبض رسمي" : "Official Receipt Voucher"}
       />
     </div>
   );

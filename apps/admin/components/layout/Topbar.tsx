@@ -7,7 +7,6 @@ import {
   Sun,
   Moon,
   Menu,
-  Globe,
   Search,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -85,18 +84,6 @@ export function Topbar({ contacts = [] }: TopbarProps) {
         >
           <Calendar className="w-4 h-4" />
         </Link>
-
-        {/* Public Website Link */}
-        <a
-          href="http://localhost:3000"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-9 h-9 rounded-full hidden sm:flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
-          title={t.actions.liveSite}
-          aria-label={t.actions.liveSite}
-        >
-          <Globe className="w-4 h-4" />
-        </a>
 
         {/* Theme Switcher */}
         <button

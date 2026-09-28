@@ -94,7 +94,7 @@ export function DocumentLetterhead({
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/70 font-mono">
             <span>CR: {company.cr_number}</span>
-            {company.vat_id && (
+            {company.vat_enabled && company.vat_id && (
               <>
                 <span className="text-white/40">•</span>
                 <span>VAT ID: {company.vat_id}</span>
@@ -223,40 +223,80 @@ export function DocumentLetterhead({
 export function DocumentFooter({
   company,
   thankYouMessage,
+  showSignature = false,
+  signatureTitle = "Authorized Signature",
+  signatureTitleAr = "التوقيع المعتمد",
 }: {
   company: CompanySettings;
   thankYouMessage?: string;
+  showSignature?: boolean;
+  signatureTitle?: string;
+  signatureTitleAr?: string;
 }) {
   return (
-    <div className="p-6 sm:p-8 border-t border-gray-100 bg-gray-50/80 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500 print:bg-white print:border-gray-200">
-      <div className="font-medium text-gray-700">
-        {thankYouMessage || "Thank you for partnering with ishoot."}
-      </div>
-      <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-gray-500">
-        {company.website && (
-          <a
-            href={company.website.startsWith("http") ? company.website : `https://${company.website}`}
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-[#014842]"
-          >
-            {company.website}
-          </a>
-        )}
-        {company.email && (
-          <>
-            <span>•</span>
-            <a href={`mailto:${company.email}`} className="hover:text-[#014842]">
-              {company.email}
+    <div className="border-t border-gray-200 bg-white">
+      {showSignature && (
+        <div className="p-6 sm:p-8 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-end gap-6 text-xs text-gray-700">
+          <div className="space-y-1">
+            <span className="text-gray-400 uppercase tracking-wider text-[10px] block font-bold">
+              Issued By / صادر عن
+            </span>
+            <div className="font-semibold text-gray-900">
+              {company.company_name_en}
+            </div>
+            <div className="text-[11px] text-gray-500 font-arabic">
+              {company.company_name_ar}
+            </div>
+          </div>
+
+          <div className="text-center sm:text-end space-y-2 min-w-[220px]">
+            <div className="h-10 border-b border-gray-300 border-dashed" />
+            <div className="text-[11px] font-semibold text-gray-800">
+              {signatureTitle} / <span className="font-arabic">{signatureTitleAr}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="p-6 sm:p-8 bg-gray-50/80 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500 print:bg-white print:border-gray-200">
+        <div className="font-medium text-gray-700">
+          {thankYouMessage || "Thank you for partnering with ishoot."}
+        </div>
+        <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-gray-500">
+          {company.website && (
+            <a
+              href={
+                company.website.startsWith("http")
+                  ? company.website
+                  : `https://${company.website}`
+              }
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-[#014842]"
+            >
+              {company.website}
             </a>
-          </>
-        )}
-        {company.phone && (
-          <>
-            <span>•</span>
-            <span dir="ltr">{company.phone}</span>
-          </>
-        )}
+          )}
+          {company.email && (
+            <>
+              <span>•</span>
+              <a
+                href={`mailto:${company.email}`}
+                className="hover:text-[#014842]"
+              >
+                {company.email}
+              </a>
+            </>
+          )}
+          {company.phone && (
+            <>
+              <span>•</span>
+              <span dir="ltr">{company.phone}</span>
+            </>
+          )}
+          <span>•</span>
+          <span>Kingdom of Bahrain</span>
+        </div>
       </div>
     </div>
   );

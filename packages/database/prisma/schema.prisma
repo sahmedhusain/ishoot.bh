@@ -46,6 +46,7 @@ model CompanySetting {
   vatId               String?
   vatEnabled          Boolean  @default(false)
   vatPercentage       Decimal  @default(10.00) @db.Decimal(5, 2)
+  vatCertificateUrl   String?
   defaultCurrency     String   @default("BHD")
   currencyDecimals    Int      @default(3)
   addressEn           String?
@@ -219,6 +220,8 @@ model Invoice {
   issueDate        DateTime          @default(now()) @db.Date
   dueDate          DateTime          @db.Date
   subtotal         Decimal           @default(0.000) @db.Decimal(12, 3)
+  vatEnabled       Boolean           @default(false)
+  vatPercentage    Decimal           @default(10.00) @db.Decimal(5, 2)
   vatAmount        Decimal           @default(0.000) @db.Decimal(12, 3)
   discountType     String            @default("none") // "none", "percentage", "fixed"
   discountValue    Decimal           @default(0.000) @db.Decimal(12, 3)

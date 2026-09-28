@@ -4,17 +4,19 @@ import {
   getCRMContacts,
   getCRMDeals,
   getAllInvoices,
+  getAllPayments,
 } from "@ishoot/database";
 import { ArchiveManagementView } from "../../../components/archive/ArchiveManagementView";
 
 export const dynamic = "force-dynamic";
 
 export default async function ArchiveVaultPage() {
-  const [attachments, contacts, deals, invoices] = await Promise.all([
+  const [attachments, contacts, deals, invoices, payments] = await Promise.all([
     getAllAttachments(),
     getCRMContacts(),
     getCRMDeals(),
     getAllInvoices(),
+    getAllPayments(),
   ]);
 
   return (
@@ -23,6 +25,7 @@ export default async function ArchiveVaultPage() {
       contacts={contacts}
       deals={deals}
       invoices={invoices}
+      payments={payments}
     />
   );
 }

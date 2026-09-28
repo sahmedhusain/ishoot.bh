@@ -53,6 +53,7 @@ export interface CompanySettings {
   vat_id?: string | null;
   vat_enabled: boolean;
   vat_percentage: number;
+  vat_certificate_url?: string | null;
   default_currency: SupportedCurrency;
   currency_decimals: number;
   address_en: string;

@@ -268,26 +268,10 @@ body:hover::-webkit-scrollbar-thumb,
 @media print {
   @page {
     size: A4 portrait;
-    margin: 12mm 10mm 15mm 10mm;
+    margin: 10mm 10mm 12mm 10mm;
   }
 
-  /* Hide entire dashboard navigation and interaction chrome */
-  aside,
-  header[data-topbar],
-  [data-topbar],
-  .no-print,
-  [data-breadcrumb],
-  nav,
-  button:not([data-print-keep]),
-  [data-delivery-toolbar] {
-    display: none !important;
-    visibility: hidden !important;
-    width: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
-  }
-
-  /* Reset layout to fill page with white background */
+  /* Universal reset for clean white canvas and exact color preservation */
   html,
   body {
     background: #ffffff !important;
@@ -298,6 +282,74 @@ body:hover::-webkit-scrollbar-thumb,
     print-color-adjust: exact !important;
   }
 
+  *,
+  *::before,
+  *::after,
+  [data-print-target],
+  [data-print-target] * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* When printing any page containing [data-print-target], hide all non-target siblings */
+  body:has([data-print-target]) > *:not(:has([data-print-target])) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Hide entire dashboard navigation, app shell, toolbars, and controls */
+  aside,
+  header[data-topbar],
+  [data-topbar],
+  .no-print,
+  [data-breadcrumb],
+  nav,
+  button:not([data-print-keep]),
+  [data-delivery-toolbar],
+  [data-modal-header],
+  [data-modal-backdrop],
+  [role="dialog"] button {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Strip modal backdrops, dialog shells, blur overlays, and bounding constraints */
+  [data-modal-container],
+  body:has([data-print-target]) .fixed {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  [data-modal-card],
+  body:has([data-print-target]) .max-h-\[90vh\] {
+    position: static !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    background: transparent !important;
+  }
+
   /* Unconstrain main content container during print */
   main,
   [role="main"] {
@@ -305,12 +357,13 @@ body:hover::-webkit-scrollbar-thumb,
     padding: 0 !important;
     width: 100% !important;
     max-width: none !important;
+    overflow: visible !important;
   }
 
-  /* Printable document template fills canvas cleanly without height locking */
+  /* Printable document template fills canvas cleanly without height or scroll locking */
   [data-print-target] {
     width: 100% !important;
-    max-width: none !important;
+    max-width: 100% !important;
     min-height: 0 !important;
     height: auto !important;
     margin: 0 !important;
@@ -319,13 +372,15 @@ body:hover::-webkit-scrollbar-thumb,
     border: none !important;
     border-radius: 0 !important;
     background: #ffffff !important;
+    color: #111827 !important;
     overflow: visible !important;
   }
 
-  /* Multi-page anti-clipping rules */
+  /* Multi-page anti-clipping & table flow rules */
   tr,
   .print-avoid-break,
-  .page-break-inside-avoid {
+  .page-break-inside-avoid,
+  [data-terms-section] {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }
@@ -344,8 +399,6 @@ body:hover::-webkit-scrollbar-thumb,
     grid-template-columns: 1fr 1fr !important;
     gap: 1.5rem !important;
     visibility: visible !important;
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
   }
 
   .print-force-show {
@@ -355,7 +408,7 @@ body:hover::-webkit-scrollbar-thumb,
     break-inside: avoid !important;
   }
 
-  /* Disable animations and transitions for crisp rendering */
+  /* Disable animations and transitions for crisp, immediate rendering */
   * {
     animation: none !important;
     transition: none !important;

@@ -26,8 +26,11 @@ export async function getAllAttachments(): Promise<EnrichedAttachment[]> {
   const dealIds = records
     .filter((r) => r.entityType === "deal")
     .map((r) => r.entityId);
+  const paymentIds = records
+    .filter((r) => r.entityType === "payment")
+    .map((r) => r.entityId);
 
-  const [contacts, invoices, deals] = await Promise.all([
+  const [contacts, invoices, deals, payments, companySetting] = await Promise.all([
     contactIds.length > 0
       ? db.crmContact.findMany({
           where: { id: { in: contactIds } },
@@ -46,6 +49,33 @@ export async function getAllAttachments(): Promise<EnrichedAttachment[]> {
           select: { id: true, title: true },
         })
       : [],
+    paymentIds.length > 0
+      ? db.payment.findMany({
+          where: { id: { in: paymentIds } },
+          select: {
+            id: true,
+            receiptNumber: true,
+            invoice: {
+              select: {
+                invoiceNumber: true,
+                client: {
+                  select: { firstName: true, lastName: true, companyName: true },
+                },
+                deal: {
+                  select: {
+                    contact: {
+                      select: { firstName: true, lastName: true, companyName: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        })
+      : [],
+    db.companySetting.findFirst({
+      select: { vatCertificateUrl: true, vatId: true },
+    }),
   ]);
 
   const contactMap = new Map(
@@ -56,8 +86,20 @@ export async function getAllAttachments(): Promise<EnrichedAttachment[]> {
   );
   const invoiceMap = new Map(invoices.map((i) => [i.id, i.invoiceNumber]));
   const dealMap = new Map(deals.map((d) => [d.id, d.title]));
+  const paymentMap = new Map(
+    payments.map((p) => {
+      const client = p.invoice?.client || p.invoice?.deal?.contact;
+      const clientName =
+        client?.companyName ||
+        `${client?.firstName || ""} ${client?.lastName || ""}`.trim();
+      const label = clientName
+        ? `${p.receiptNumber} (${clientName})`
+        : p.receiptNumber;
+      return [p.id, label];
+    }),
+  );
 
-  return records.map((r: any) => {
+  const mapped = records.map((r: any) => {
     let entityLabel = r.entityId;
     let entityLink: string | undefined;
 
@@ -70,6 +112,13 @@ export async function getAllAttachments(): Promise<EnrichedAttachment[]> {
     } else if (r.entityType === "deal") {
       entityLabel = dealMap.get(r.entityId) || "Deal Document";
       entityLink = `/dashboard/crm/deals/${r.entityId}`;
+    } else if (r.entityType === "payment") {
+      entityLabel =
+        paymentMap.get(r.entityId) || `Payment Receipt (${r.entityId.slice(0, 8)})`;
+      entityLink = `/dashboard/payments/${r.entityId}`;
+    } else if (r.entityType === "company_setting") {
+      entityLabel = "NBR VAT Registration Certificate";
+      entityLink = `/dashboard/settings/company`;
     }
 
     return {
@@ -86,6 +135,27 @@ export async function getAllAttachments(): Promise<EnrichedAttachment[]> {
       created_at: r.createdAt.toISOString(),
     };
   });
+
+  if (
+    companySetting?.vatCertificateUrl &&
+    !records.some((r) => r.entityType === "company_setting")
+  ) {
+    mapped.unshift({
+      id: "company-vat-cert",
+      file_name: "VAT Registration Certificate (NBR).pdf",
+      file_url: companySetting.vatCertificateUrl,
+      file_size: 512 * 1024,
+      mime_type: "application/pdf",
+      entity_type: "company_setting",
+      entity_id: "company_setting",
+      entity_label: "NBR VAT Registration Certificate",
+      entity_link: "/dashboard/settings/company",
+      uploaded_by: "System / Admin",
+      created_at: new Date().toISOString(),
+    });
+  }
+
+  return mapped;
 }
 
 export async function createAttachment(data: {
