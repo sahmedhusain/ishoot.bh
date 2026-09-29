@@ -636,3 +636,4 @@ export interface CompanyDocument {
   created_at: string;
   updated_at: string;
 }
+export type { Faq, Statistic, Review, FeatureToggle, Role } from '../prisma/generated/client';

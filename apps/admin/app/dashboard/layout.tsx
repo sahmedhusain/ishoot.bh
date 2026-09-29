@@ -2,7 +2,8 @@ import * as React from "react";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { Topbar } from "../../components/layout/Topbar";
 import { SidebarProvider } from "../../components/layout/SidebarContext";
-import { getCRMContacts, getCompanySettings } from "@ishoot/database";
+import { getCRMContacts, getCompanySettings, getFeatureToggles } from "@ishoot/database";
+import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
 
 export const dynamic = "force-dynamic";
 
@@ -11,25 +12,28 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [contacts, company] = await Promise.all([
+  const [contacts, company, toggles] = await Promise.all([
     getCRMContacts(),
     getCompanySettings(),
+    getFeatureToggles(),
   ]);
 
   return (
-    <SidebarProvider>
-      <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#F8FAF9] text-slate-800 dark:bg-[#080E0D] dark:text-[#F2F6F5] transition-colors duration-200">
-        {/* Fixed Topbar spanning full width with Logo at start */}
-        <Topbar contacts={contacts} company={company} />
+    <FeatureTogglesProvider initialFeatures={toggles}>
+      <SidebarProvider>
+        <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#F8FAF9] text-slate-800 dark:bg-[#080E0D] dark:text-[#F2F6F5] transition-colors duration-200">
+          {/* Fixed Topbar spanning full width with Logo at start */}
+          <Topbar contacts={contacts} company={company} />
 
-        {/* Workspace below Topbar: Sidebar (fixed on side) + Main Content (scrolls independently) */}
-        <div className="flex-1 flex min-h-0 pt-14 overflow-hidden relative">
-          <Sidebar />
-          <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
-            {children}
-          </main>
+          {/* Workspace below Topbar: Sidebar (fixed on side) + Main Content (scrolls independently) */}
+          <div className="flex-1 flex min-h-0 pt-14 overflow-hidden relative">
+            <Sidebar />
+            <main className="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </FeatureTogglesProvider>
   );
 }

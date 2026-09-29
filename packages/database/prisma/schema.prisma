@@ -72,6 +72,21 @@ model CompanySetting {
   invoiceNextNumber   Int      @default(1)
   receiptPrefix       String   @default("RCT")
   receiptNextNumber   Int      @default(1)
+
+  // Headless CMS / Brand Profile
+  ceoNameEn           String?
+  ceoNameAr           String?
+  ceoTitleEn          String?
+  ceoTitleAr          String?
+  ceoQuoteEn          String?  @db.Text
+  ceoQuoteAr          String?  @db.Text
+  missionEn           String?  @db.Text
+  missionAr           String?  @db.Text
+  visionEn            String?  @db.Text
+  visionAr            String?  @db.Text
+  aboutTextEn         String?  @db.Text
+  aboutTextAr         String?  @db.Text
+
   updatedAt           DateTime @updatedAt
 }
 
@@ -201,6 +216,7 @@ model CrmContact {
   inquiries     Inquiry[]
   contracts     Contract[]
   invoices      Invoice[]
+  reviews       Review[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
@@ -542,6 +558,67 @@ model Service {
 
   @@index([category])
   @@index([isActive])
+}
+
+// ==========================================
+// ENTERPRISE & HEADLESS CMS MODELS
+// ==========================================
+
+model Role {
+  id          String   @id @default(cuid()) // e.g. "sales_lead", "agency_partner"
+  nameEn      String
+  nameAr      String
+  isSystem    Boolean  @default(false)      // Prevents deletion of core roles
+  createdAt   DateTime @default(now())
+}
+
+model FeatureToggle {
+  id          String   @id @default(cuid())
+  moduleKey   String   @unique              // e.g. "crm_deals", "ticketing", "reviews", "expenses"
+  isEnabled   Boolean  @default(true)
+  nameEn      String
+  nameAr      String
+  description String?  @db.Text
+}
+
+model Review {
+  id          String      @id @default(cuid())
+  clientId    String?
+  client      CrmContact? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  authorEn    String
+  authorAr    String
+  companyEn   String?
+  companyAr   String?
+  quoteEn     String      @db.Text
+  quoteAr     String      @db.Text
+  rating      Int         @default(5)       // 1 to 5 stars
+  isApproved  Boolean     @default(false)
+  sortOrder   Int         @default(0)
+  year        String      @default("2026")
+  createdAt   DateTime    @default(now())
+}
+
+model Faq {
+  id          String   @id @default(cuid())
+  questionEn  String   @db.Text
+  questionAr  String   @db.Text
+  answerEn    String   @db.Text
+  answerAr    String   @db.Text
+  category    String   @default("general")
+  isPublished Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model Statistic {
+  id          String   @id @default(cuid())
+  value       String   // e.g., "150+" or "8K"
+  labelEn     String
+  labelAr     String
+  subLabelEn  String?
+  subLabelAr  String?
+  icon        String?  // Lucide icon name, e.g. "Film"
+  sortOrder   Int      @default(0)
 }
 
 

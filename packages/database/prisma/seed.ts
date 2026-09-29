@@ -2653,7 +2653,141 @@ async function main() {
     await prisma.attachment.create({ data: att });
   }
 
-  console.log("✨ Massive database seed completed successfully with verified financial data and vault attachments!");
+  // ==========================================
+  // ENTERPRISE & HEADLESS CMS SEEDING
+  // ==========================================
+  console.log("🌱 Seeding Enterprise Headless CMS & RBAC Tables...");
+
+  // Update company profile with CEO / Mission
+  await prisma.companySetting.update({
+    where: { id: companySettingId },
+    data: {
+      ceoNameEn: "Sayed Ahmed Husain",
+      ceoNameAr: "سيد أحمد حسين",
+      ceoTitleEn: "Founder & Creative Director",
+      ceoTitleAr: "المؤسس والمدير الإبداعي",
+      ceoQuoteEn: "We don't merely capture light; we shape the way memories, emotions, and brands resonate through time.",
+      ceoQuoteAr: "نحن لا نلتقط الضوء فحسب، بل نصوغ الذكريات والمشاعر لترسخ في الأذهان عبر الزمن.",
+      missionEn: "Empower market leaders to tell their brand narratives with uncompromised visual precision and emotional depth.",
+      missionAr: "تمكين رواد السوق من سرد قصص علاماتهم التجارية بدقة بصرية متناهية وعمق عاطفي.",
+      visionEn: "To be the premier commercial cinema production destination in Bahrain and the Arabian Gulf.",
+      visionAr: "أن نكون الوجهة الأولى للإنتاج السينمائي التجاري في البحرين والخليج العربي.",
+      aboutTextEn: "Founded in the Kingdom of Bahrain, ishoot is a premier creative media production house uniting cinematic storytelling with engineering precision. We believe that true visual impact is created at the intersection of technical discipline and unconstrained creative curiosity.",
+      aboutTextAr: "تأسست دار آي شوت في مملكة البحرين كدار إنتاج سينمائي إبداعية رائدة تجمع بين القصص السينمائية والدقة الهندسية. نؤمن بأن التأثير البصري الحقيقي ينبع من تقاطع الانضباط التقني والفضول الإبداعي اللامحدود.",
+    },
+  });
+
+  const roles = [
+    { id: "super_admin", nameEn: "Super Administrator", nameAr: "مسؤول النظام العام", isSystem: true },
+    { id: "admin", nameEn: "System Administrator", nameAr: "مدير النظام", isSystem: true },
+    { id: "finance_manager", nameEn: "Finance Manager", nameAr: "المدير المالي", isSystem: true },
+    { id: "production_manager", nameEn: "Production Manager", nameAr: "مدير الإنتاج", isSystem: true },
+    { id: "sales", nameEn: "Commercial Sales Director", nameAr: "مدير المبيعات التجارية", isSystem: true },
+    { id: "producer", nameEn: "Executive Producer", nameAr: "المنتج المنفذ", isSystem: true },
+    { id: "editor", nameEn: "Post-Production Editor", nameAr: "محرر المونتاج", isSystem: true },
+    { id: "accountant", nameEn: "Accountant", nameAr: "محاسب", isSystem: true },
+    { id: "viewer", nameEn: "Read-Only Observer", nameAr: "مراقب", isSystem: true },
+  ];
+
+  for (const role of roles) {
+    await prisma.role.upsert({
+      where: { id: role.id },
+      update: role,
+      create: role,
+    });
+  }
+
+  const features = [
+    { moduleKey: "crm_deals", nameEn: "Deals & Pipeline", nameAr: "الصفقات ومسارات البيع" },
+    { moduleKey: "invoicing", nameEn: "Invoicing & Billing", nameAr: "الفواتير والتحصيل" },
+    { moduleKey: "calendar", nameEn: "Shoot Calendar", nameAr: "جدول التصوير" },
+    { moduleKey: "equipment", nameEn: "Gear Inventory", nameAr: "خزانة المعدات" },
+    { moduleKey: "cms", nameEn: "Content Management", nameAr: "إدارة محتوى الموقع" },
+    { moduleKey: "reviews", nameEn: "Customer Reviews", nameAr: "تقييمات العملاء" },
+  ];
+
+  for (const feature of features) {
+    await prisma.featureToggle.upsert({
+      where: { moduleKey: feature.moduleKey },
+      update: feature,
+      create: feature,
+    });
+  }
+
+  const stats = [
+    { value: "150+", labelEn: "Commercial Films Delivered", labelAr: "فيلم تجاري سينمائي", subLabelEn: "For GCC Brands & Corporations", subLabelAr: "لكبرى الشركات والجهات في الخليج", icon: "Film", sortOrder: 1 },
+    { value: "8K", labelEn: "RAW Cinema Resolution", labelAr: "دقة تصوير سينمائي خام", subLabelEn: "RED V-Raptor & ARRI ALEXA LF", subLabelAr: "كاميرات ريد وفانتوم وآري", icon: "Video", sortOrder: 2 },
+    { value: "100%", labelEn: "Licensed Aerial Drone Ops", labelAr: "تصاريح طيران جوي مرخصة", subLabelEn: "Bahrain Civil Aviation Authority", subLabelAr: "شؤون الطيران المدني بمملكة البحرين", icon: "Plane", sortOrder: 3 },
+    { value: "10+", labelEn: "Years of Industry Excellence", labelAr: "سنوات من التميز الإبداعي", subLabelEn: "Headquartered in Manama, Seef", subLabelAr: "المقر الرئيسي ضاحية السيف، المنامة", icon: "Award", sortOrder: 4 },
+  ];
+
+  await prisma.statistic.deleteMany();
+  for (const stat of stats) {
+    await prisma.statistic.create({ data: stat });
+  }
+
+  const faqs = [
+    {
+      questionEn: "What camera systems and lenses do you use for commercial shoots?",
+      questionAr: "ما هي أنظمة الكاميرات والعدسات المستخدمة في الإعلانات؟",
+      answerEn: "We shoot primarily on RED V-Raptor 8K, ARRI ALEXA Mini LF, and Sony FX9 camera systems paired with ARRI Master Primes, Cooke Anamorphic, and Leica Cine lenses.",
+      answerAr: "نعتمد بشكل أساسي على كاميرات RED V-Raptor 8K وكاميرات ARRI ALEXA Mini LF وسوني FX9 مع طقم عدسات آري ماستر برايم وكوك وأنامورفيك.",
+      sortOrder: 1,
+    },
+    {
+      questionEn: "Are your aerial drone operators licensed for commercial filming in Bahrain?",
+      questionAr: "هل مشغلو طائرات الدرون حاصلون على تراخيص رسمية في البحرين؟",
+      answerEn: "Yes, all our heavy-lift RED drone and custom FPV operators are fully licensed and certified by the Bahrain Civil Aviation Authority (BCAA) with full public liability insurance.",
+      answerAr: "نعم، جميع طياري الدرون وكاميرات FPV لدينا مرخصون رسمياً من شؤون الطيران المدني بمملكة البحرين مع تغطية تأمينية شاملة.",
+      sortOrder: 2,
+    },
+    {
+      questionEn: "How long does post-production and DaVinci Resolve color grading take?",
+      questionAr: "كم تستغرق مرحلة المونتاج وتصحيح الألوان في استوديو دافينشي؟",
+      answerEn: "Standard post-production timelines range from 5 to 14 business days depending on visual effects, sound design complexity, and color grading review rounds.",
+      answerAr: "تستغرق مرحلة ما بعد الإنتاج عادة من 5 إلى 14 يوم عمل، وتشمل المونتاج، الهندسة الصوتية، الخدع البصرية، ومعايرة الألوان.",
+      sortOrder: 3,
+    },
+  ];
+
+  await prisma.faq.deleteMany();
+  for (const faq of faqs) {
+    await prisma.faq.create({ data: faq });
+  }
+
+  const reviews = [
+    {
+      authorEn: "Marketing & Brand Director",
+      authorAr: "مدير التسويق والعلامة التجارية",
+      companyEn: "National Bank of Bahrain (NBB)",
+      companyAr: "بنك البحرين الوطني",
+      quoteEn: "iShoot delivered an exceptional TV commercial campaign that exceeded our highest cinematic expectations. Their color grading and drone shots were world-class.",
+      quoteAr: "قدمت آي شوت حملة إعلانية سينمائية استثنائية فاقت توقعاتنا. كانت الألوان والتصوير الجوي بمستوى عالمي رائع.",
+      year: "2026",
+      rating: 5,
+      isApproved: true,
+      sortOrder: 1,
+    },
+    {
+      authorEn: "Corporate Communications Lead",
+      authorAr: "رئيس الاتصال المؤسسي",
+      companyEn: "Zain Bahrain",
+      companyAr: "زين البحرين",
+      quoteEn: "The professionalism of the camera crew and the precision of the 8K footage transformed our brand film. Truly the finest cinema house in Bahrain.",
+      quoteAr: "احترافية طاقم التصوير ودقة مشاهد 8K أحدثت فارقاً كبيراً في فيلماً الترويجي. بحق أفضل استوديو إنتاج سينمائي في البحرين.",
+      year: "2025",
+      rating: 5,
+      isApproved: true,
+      sortOrder: 2,
+    },
+  ];
+
+  await prisma.review.deleteMany();
+  for (const review of reviews) {
+    await prisma.review.create({ data: review });
+  }
+
+  console.log("✨ Massive database seed completed successfully with verified financial data, vault attachments, and headless CMS records!");
 }
 
 main()

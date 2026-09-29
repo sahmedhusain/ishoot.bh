@@ -235,3 +235,78 @@ export async function createPortfolioItemAction(data: {
   await revalidatePublicSite(["portfolio"], ["/works", "/"]);
   return { success: true, project };
 }
+
+import { createReview, updateReview, deleteReview, createFaq, updateFaq, deleteFaq, createStatistic, updateStatistic, deleteStatistic } from '@ishoot/database';
+
+export async function createReviewAction(data: any) {
+  await requirePermission('reviews', 'write');
+  const review = await createReview(data);
+  revalidatePublicSite(['reviews']);
+  revalidatePath('/dashboard/cms/reviews');
+  return { success: true, review };
+}
+
+export async function updateReviewAction(id: string, data: any) {
+  await requirePermission('reviews', 'write');
+  const review = await updateReview(id, data);
+  revalidatePublicSite(['reviews']);
+  revalidatePath('/dashboard/cms/reviews');
+  return { success: true, review };
+}
+
+export async function deleteReviewAction(id: string) {
+  await requirePermission('reviews', 'delete');
+  await deleteReview(id);
+  revalidatePublicSite(['reviews']);
+  revalidatePath('/dashboard/cms/reviews');
+  return { success: true };
+}
+
+export async function createFaqAction(data: any) {
+  await requirePermission('faqs', 'write');
+  const faq = await createFaq(data);
+  revalidatePublicSite(['faqs']);
+  revalidatePath('/dashboard/cms/faqs');
+  return { success: true, faq };
+}
+
+export async function updateFaqAction(id: string, data: any) {
+  await requirePermission('faqs', 'write');
+  const faq = await updateFaq(id, data);
+  revalidatePublicSite(['faqs']);
+  revalidatePath('/dashboard/cms/faqs');
+  return { success: true, faq };
+}
+
+export async function deleteFaqAction(id: string) {
+  await requirePermission('faqs', 'delete');
+  await deleteFaq(id);
+  revalidatePublicSite(['faqs']);
+  revalidatePath('/dashboard/cms/faqs');
+  return { success: true };
+}
+
+export async function createStatisticAction(data: any) {
+  await requirePermission('stats', 'write');
+  const stat = await createStatistic(data);
+  revalidatePublicSite(['stats']);
+  revalidatePath('/dashboard/cms/stats');
+  return { success: true, stat };
+}
+
+export async function updateStatisticAction(id: string, data: any) {
+  await requirePermission('stats', 'write');
+  const stat = await updateStatistic(id, data);
+  revalidatePublicSite(['stats']);
+  revalidatePath('/dashboard/cms/stats');
+  return { success: true, stat };
+}
+
+export async function deleteStatisticAction(id: string) {
+  await requirePermission('stats', 'delete');
+  await deleteStatistic(id);
+  revalidatePublicSite(['stats']);
+  revalidatePath('/dashboard/cms/stats');
+  return { success: true };
+}
+

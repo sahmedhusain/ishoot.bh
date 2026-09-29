@@ -17,7 +17,7 @@ export type PermissionResource =
   | "calendar"
   | "users"
   | "settings"
-  | "audit_logs";
+  | "audit_logs" | "reviews" | "faqs" | "stats";
 
 export type PermissionAction =
   "read" | "write" | "delete" | "export" | "approve";

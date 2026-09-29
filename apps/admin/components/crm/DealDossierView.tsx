@@ -78,8 +78,7 @@ export function DealDossierView({
               </Badge>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">
-              Deal ID: {deal.id} • Registered{" "}
-              <DateDisplay date={deal.created_at} locale={locale} />
+              ID: {deal.id} • <DateDisplay date={deal.created_at} locale={locale} />
             </p>
           </div>
         </div>

@@ -3,6 +3,9 @@ import {
   getActiveBanners,
   getActiveClientLogos,
   getPortfolioItems,
+  getStatistics,
+  getReviews,
+  getFaqs,
 } from "@ishoot/database";
 import { CinemaHero } from "../../components/hero/CinemaHero";
 import { AboutSection } from "../../components/about/AboutSection";
@@ -21,10 +24,13 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
 
-  const [banners, clientLogos, portfolioItems] = await Promise.all([
+  const [banners, clientLogos, portfolioItems, stats, reviews, faqs] = await Promise.all([
     getActiveBanners(),
     getActiveClientLogos(),
     getPortfolioItems(),
+    getStatistics(),
+    getReviews(false),
+    getFaqs(false),
   ]);
 
   return (
@@ -39,11 +45,11 @@ export default async function HomePage({
 
       <WorksSection items={portfolioItems} />
 
-      <StatsSection />
+      <StatsSection stats={stats} />
 
-      <ReviewsSection />
+      <ReviewsSection reviews={reviews} />
 
-      <FAQSection />
+      <FAQSection faqs={faqs} />
 
       <CTASection />
     </div>

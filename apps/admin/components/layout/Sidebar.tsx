@@ -18,15 +18,23 @@ import {
   ShieldCheck,
   Sparkles,
   FolderOpen,
+  MessageSquareQuote,
+  HelpCircle,
+  BarChart,
+  ToggleLeft,
+  Key,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { useFeatureToggles } from "../../hooks/useFeatureToggles";
 
 interface NavItem {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   resource?: PermissionResource;
+  moduleKey?: string;
 }
 
 interface NavSection {
@@ -38,108 +46,174 @@ export function Sidebar() {
   const pathname = usePathname();
   const { can, loading } = usePermissions();
   const { isMobileOpen, setIsMobileOpen } = useSidebar();
+  const { t } = useAdminLocale();
+  const { isFeatureEnabled } = useFeatureToggles();
 
   const sections: NavSection[] = [
     {
-      title: "Core",
+      title: t.nav.overview,
       items: [
-        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard },
         {
           href: "/dashboard/calendar",
-          label: "Calendar & Shoots",
+          label: t.nav.calendar,
           icon: Calendar,
           resource: "calendar",
+          moduleKey: "calendar",
         },
       ],
     },
     {
-      title: "CRM",
+      title: t.nav.crm,
       items: [
         {
           href: "/dashboard/crm/contacts",
-          label: "Clients",
+          label: t.nav.contacts,
           icon: Users,
           resource: "contacts",
+          moduleKey: "crm_deals",
         },
         {
           href: "/dashboard/crm/deals",
-          label: "Deals Pipeline",
+          label: t.nav.deals,
           icon: Kanban,
           resource: "deals",
+          moduleKey: "crm_deals",
         },
         {
           href: "/dashboard/crm/leads",
-          label: "Inquiries",
+          label: t.nav.leads,
           icon: Inbox,
           resource: "leads",
+          moduleKey: "crm_deals",
         },
       ],
     },
     {
-      title: "Billing & Finance",
+      title: t.nav.finance,
       items: [
         {
           href: "/dashboard/invoices",
-          label: "Invoices",
+          label: t.nav.invoices,
           icon: FileText,
           resource: "invoices",
+          moduleKey: "invoicing",
         },
         {
           href: "/dashboard/payments",
-          label: "Payment Receipts",
+          label: t.nav.payments,
           icon: CreditCard,
           resource: "payments",
+          moduleKey: "invoicing",
         },
         {
           href: "/dashboard/expenses",
-          label: "Operating Expenses",
+          label: t.nav.expenses,
           icon: Receipt,
           resource: "expenses",
+          moduleKey: "invoicing",
         },
         {
           href: "/dashboard/services",
-          label: "Services & Rates",
+          label: t.nav.services,
           icon: Sparkles,
           resource: "invoices",
         },
         {
           href: "/dashboard/finance",
-          label: "Analytics & P&L",
+          label: t.nav.analytics,
           icon: PieChart,
           resource: "finance_analytics",
+          moduleKey: "invoicing",
         },
       ],
     },
     {
-      title: "Vault",
-      items: [
-        {
-          href: "/dashboard/archive",
-          label: "Archive & Files",
-          icon: FolderOpen,
-        },
-      ],
-    },
-    {
-      title: "Management",
+      title: t.nav.cms,
       items: [
         {
           href: "/dashboard/cms/banners",
-          label: "CMS & Assets",
+          label: t.nav.banners,
           icon: Film,
           resource: "banners",
+          moduleKey: "cms",
         },
         {
+          href: "/dashboard/cms/portfolio",
+          label: t.nav.portfolio,
+          icon: FolderOpen,
+          resource: "portfolio",
+          moduleKey: "cms",
+        },
+        {
+          href: "/dashboard/cms/clients",
+          label: t.nav.clients,
+          icon: Users,
+          resource: "clients",
+          moduleKey: "cms",
+        },
+        {
+          href: "/dashboard/cms/equipment",
+          label: t.nav.equipment,
+          icon: Building2,
+          resource: "equipment",
+          moduleKey: "equipment",
+        },
+        {
+          href: "/dashboard/cms/reviews",
+          label: t.nav.reviews,
+          icon: MessageSquareQuote,
+          resource: "reviews",
+          moduleKey: "reviews",
+        },
+        {
+          href: "/dashboard/cms/faqs",
+          label: t.nav.faqs,
+          icon: HelpCircle,
+          resource: "faqs",
+          moduleKey: "cms",
+        },
+        {
+          href: "/dashboard/cms/stats",
+          label: t.nav.stats,
+          icon: BarChart,
+          resource: "stats",
+          moduleKey: "cms",
+        },
+      ],
+    },
+    {
+      title: t.nav.system,
+      items: [
+        {
           href: "/dashboard/settings/company",
-          label: "Company Settings",
+          label: t.nav.companySettings,
           icon: Building2,
           resource: "settings",
         },
         {
+          href: "/dashboard/settings/modules",
+          label: t.nav.modules,
+          icon: ToggleLeft,
+          resource: "settings",
+        },
+        {
+          href: "/dashboard/settings/roles",
+          label: t.nav.roles,
+          icon: Key,
+          resource: "users",
+        },
+        {
           href: "/dashboard/users",
-          label: "Users & Access",
+          label: t.nav.users,
           icon: ShieldCheck,
           resource: "users",
+        },
+        {
+          href: "/dashboard/settings/audit",
+          label: t.nav.auditLogs,
+          icon: FileText,
+          resource: "audit_logs",
         },
       ],
     },
@@ -152,12 +226,13 @@ export function Sidebar() {
       .map((section) => ({
         ...section,
         items: section.items.filter((item) => {
+          if (item.moduleKey && !isFeatureEnabled(item.moduleKey)) return false;
           if (!item.resource) return true;
           return can(item.resource, "read");
         }),
       }))
       .filter((section) => section.items.length > 0);
-  }, [sections, can, loading]);
+  }, [sections, can, loading, isFeatureEnabled]);
 
   const navContent = (
     <nav className="h-full overflow-y-auto py-2.5 space-y-3 select-none">

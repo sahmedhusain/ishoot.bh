@@ -369,7 +369,12 @@
       "companySettings": "Company & Tax Settings",
       "integrations": "Integrations",
       "appearance": "Appearance & Language",
-      "auditLogs": "Audit Logs & Sessions"
+      "auditLogs": "Audit Logs & Sessions",
+      "reviews": "Customer Reviews",
+      "faqs": "Website FAQs",
+      "stats": "Studio Statistics",
+      "roles": "Roles & Permissions",
+      "modules": "System Modules"
     },
     "actions": {
       "newInvoice": "New Invoice",

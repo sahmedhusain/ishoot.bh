@@ -37,9 +37,13 @@ export function ServicesSection() {
   const serviceKeys = ["commercial", "aerial", "color", "soundstage"] as const;
 
   const services: ServiceItem[] = serviceKeys.map((key, i) => {
-    const item = t(`services.${key}`) as unknown as Omit<ServiceItem, "image">;
+    const item = t(`services.${key}`) as unknown as Omit<ServiceItem, "image" | "id" | "number">;
     return {
-      ...item,
+      id: key,
+      number: `0${i + 1}`,
+      title: item.title,
+      desc: item.desc,
+      specs: item.specs || [],
       image: SERVICE_IMAGES[key] ?? "",
     };
   });

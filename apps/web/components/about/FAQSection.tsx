@@ -3,15 +3,18 @@
 import * as React from "react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ChevronDown } from "lucide-react";
+import type { Faq } from "@ishoot/database/types";
 
-export function FAQSection() {
-  const { t } = useTranslation();
+interface FAQSectionProps {
+  faqs: Faq[];
+}
+
+export function FAQSection({ faqs }: FAQSectionProps) {
+  const { t, locale } = useTranslation();
   const [openIdx, setOpenIdx] = React.useState<number | null>(0);
+  const isAr = locale === "ar";
 
-  const items = t("faq.items") as unknown as Array<{
-    question: string;
-    answer: string;
-  }>;
+  if (!faqs || faqs.length === 0) return null;
 
   return (
     <section
@@ -43,10 +46,10 @@ export function FAQSection() {
         </div>
 
         <div className="max-w-4xl mx-auto divide-y divide-white/10">
-          {(Array.isArray(items) ? items : []).map((faq, idx) => {
+          {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
-              <div key={idx} className="py-6 first:pt-0 last:pb-0">
+              <div key={faq.id} className="py-6 first:pt-0 last:pb-0">
                 <button
                   type="button"
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
@@ -54,7 +57,7 @@ export function FAQSection() {
                   aria-expanded={isOpen}
                 >
                   <span className="text-base sm:text-lg font-bold text-white group-hover:text-[#5EEAD4] transition-colors font-sans">
-                    {faq.question}
+                    {isAr ? faq.questionAr : faq.questionEn}
                   </span>
                   <div
                     className={`w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-[#09937F] transition-transform duration-300 ${isOpen ? "rotate-180 bg-[#014842] text-white" : ""}`}
@@ -65,7 +68,7 @@ export function FAQSection() {
 
                 {isOpen && (
                   <div className="mt-4 text-xs sm:text-sm text-[#9EADA9] leading-relaxed font-sans max-w-3xl animate-fade-in">
-                    {faq.answer}
+                    {isAr ? faq.answerAr : faq.answerEn}
                   </div>
                 )}
               </div>

@@ -1,0 +1,120 @@
+"use client";
+
+import * as React from "react";
+import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Plus, Edit, Trash2 } from "lucide-react";
+import { createFaqAction, updateFaqAction, deleteFaqAction } from "../../app/actions/cms";
+
+export function FaqsManagementView({ initialFaqs }: { initialFaqs: any[] }) {
+  const [faqs, setFaqs] = React.useState(initialFaqs);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [editingItem, setEditingItem] = React.useState<any | null>(null);
+  const [deleteId, setDeleteId] = React.useState<string | null>(null);
+
+  const [questionEn, setQuestionEn] = React.useState("");
+  const [questionAr, setQuestionAr] = React.useState("");
+  const [answerEn, setAnswerEn] = React.useState("");
+  const [answerAr, setAnswerAr] = React.useState("");
+  const [isPublished, setIsPublished] = React.useState(true);
+  const [sortOrder, setSortOrder] = React.useState(0);
+
+  const handleOpenNew = () => {
+    setEditingItem(null);
+    setQuestionEn(""); setQuestionAr("");
+    setAnswerEn(""); setAnswerAr("");
+    setSortOrder(0); setIsPublished(true);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (item: any) => {
+    setEditingItem(item);
+    setQuestionEn(item.questionEn); setQuestionAr(item.questionAr);
+    setAnswerEn(item.answerEn); setAnswerAr(item.answerAr);
+    setSortOrder(item.sortOrder); setIsPublished(item.isPublished);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const data = { questionEn, questionAr, answerEn, answerAr, sortOrder, isPublished };
+    try {
+      if (editingItem) {
+        await updateFaqAction(editingItem.id, data);
+      } else {
+        await createFaqAction(data);
+      }
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await deleteFaqAction(deleteId);
+      setFaqs(faqs.filter((f) => f.id !== deleteId));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setDeleteId(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6 max-w-5xl mx-auto pb-16">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Frequently Asked Questions
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">Manage public FAQs displayed on the website.</p>
+        </div>
+        <Button onClick={handleOpenNew} className="bg-[#09937F] text-white">
+          <Plus className="w-4 h-4 mr-2" /> New FAQ
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {faqs.map((faq) => (
+          <Card key={faq.id} className="p-4 dark:bg-[#111C19] flex justify-between items-start gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant={faq.isPublished ? "emerald" : "default"}>{faq.isPublished ? "Published" : "Hidden"}</Badge>
+                <span className="text-xs text-slate-400 font-mono">Order: {faq.sortOrder}</span>
+              </div>
+              <h3 className="font-bold text-sm dark:text-white">{faq.questionEn}</h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{faq.answerEn}</p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <Button variant="outline" size="sm" onClick={() => handleOpenEdit(faq)}><Edit className="w-3.5 h-3.5" /></Button>
+              <Button variant="danger" size="sm" onClick={() => setDeleteId(faq.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? "Edit FAQ" : "New FAQ"} >
+        <form onSubmit={handleSave} className="space-y-4">
+          <div><label className="text-xs font-bold block mb-1">Question (En)</label><Input value={questionEn} onChange={e=>setQuestionEn(e.target.value)} required /></div>
+          <div><label className="text-xs font-bold block mb-1">Question (Ar)</label><Input value={questionAr} onChange={e=>setQuestionAr(e.target.value)} required /></div>
+          <div><label className="text-xs font-bold block mb-1">Answer (En)</label><textarea className="w-full rounded-md border p-2 text-sm bg-transparent dark:border-white/20" rows={4} value={answerEn} onChange={e=>setAnswerEn(e.target.value)} required /></div>
+          <div><label className="text-xs font-bold block mb-1">Answer (Ar)</label><textarea className="w-full rounded-md border p-2 text-sm bg-transparent dark:border-white/20" rows={4} value={answerAr} onChange={e=>setAnswerAr(e.target.value)} required /></div>
+
+          <div className="flex justify-between items-center pt-2">
+            <div><label className="text-xs font-bold block mb-1">Sort Order</label><Input type="number" value={sortOrder} onChange={e=>setSortOrder(Number(e.target.value))} /></div>
+            <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
+              <input type="checkbox" checked={isPublished} onChange={e=>setIsPublished(e.target.checked)} className="w-4 h-4" /> Publish on Website
+            </label>
+          </div>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+            <Button type="submit" className="bg-[#09937F] text-white">Save FAQ</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <ConfirmDestructiveModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} title="Delete FAQ" description="Are you sure you want to permanently delete this FAQ?" />
+    </div>
+  );
+}

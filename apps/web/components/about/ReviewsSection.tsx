@@ -3,17 +3,17 @@
 import * as React from "react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Star } from "lucide-react";
+import type { Review } from "@ishoot/database/types";
 
-export function ReviewsSection() {
-  const { t } = useTranslation();
+interface ReviewsSectionProps {
+  reviews: Review[];
+}
 
-  const items = t("reviews.items") as unknown as Array<{
-    id: string;
-    client: string;
-    author: string;
-    quote: string;
-    year: string;
-  }>;
+export function ReviewsSection({ reviews }: ReviewsSectionProps) {
+  const { t, locale } = useTranslation();
+  const isAr = locale === "ar";
+
+  if (!reviews || reviews.length === 0) return null;
 
   return (
     <section
@@ -45,29 +45,29 @@ export function ReviewsSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {(Array.isArray(items) ? items : []).map((rev) => (
+          {reviews.map((rev) => (
             <div
               key={rev.id}
               className="group relative rounded-3xl bg-[#0B1210] border border-white/10 hover:border-[#09937F]/50 transition-all duration-500 p-8 space-y-6 shadow-xl flex flex-col justify-between"
             >
               <div className="space-y-4">
                 <div className="flex items-center gap-1 text-emerald-400">
-                  {[...Array(5)].map((_, i) => (
+                  {[...Array(rev.rating || 5)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-current" />
                   ))}
                 </div>
 
                 <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-sans italic">
-                  {rev.quote}
+                  {isAr ? rev.quoteAr : rev.quoteEn}
                 </p>
               </div>
 
               <div className="pt-4 border-t border-white/5 space-y-1">
                 <div className="text-xs font-bold text-white font-sans">
-                  {rev.client}
+                  {isAr ? rev.companyAr : rev.companyEn}
                 </div>
                 <div className="text-[11px] text-[#9EADA9] font-sans">
-                  {rev.author}
+                  {isAr ? rev.authorAr : rev.authorEn}
                 </div>
                 <div className="text-[10px] font-mono text-[#09937F]">
                   {t("reviews.bahrain")} · {rev.year}

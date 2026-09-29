@@ -96,3 +96,11 @@ export async function deleteCompanyAssetAction(assetKey: string) {
   return { success: deleted };
 }
 
+
+export async function toggleFeatureAction(moduleKey: string, isEnabled: boolean) {
+  const { updateFeatureToggle } = require('@ishoot/database');
+  const feature = await updateFeatureToggle(moduleKey, isEnabled);
+  revalidatePath('/dashboard', 'layout');
+  return { success: true, feature };
+}
+

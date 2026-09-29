@@ -2,18 +2,27 @@
 
 import * as React from "react";
 import { useTranslation } from "../../hooks/useTranslation";
-import { Film, Video, Building2, Flame } from "lucide-react";
+import { Film, Video, Building2, Flame, Plane, Award } from "lucide-react";
+import type { Statistic } from "@ishoot/database/types";
 
-export function StatsSection() {
-  const { t } = useTranslation();
+interface StatsSectionProps {
+  stats: Statistic[];
+}
 
-  const items = t("stats.items") as unknown as Array<{
-    value: string;
-    label: string;
-    sub: string;
-  }>;
+const ICONS_MAP: Record<string, React.ElementType> = {
+  Film,
+  Video,
+  Building2,
+  Flame,
+  Plane,
+  Award,
+};
 
-  const icons = [Film, Video, Building2, Flame];
+export function StatsSection({ stats }: StatsSectionProps) {
+  const { t, locale } = useTranslation();
+  const isAr = locale === "ar";
+
+  const items = stats.length > 0 ? stats : [];
 
   return (
     <section
@@ -36,11 +45,11 @@ export function StatsSection() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {(Array.isArray(items) ? items : []).map((stat, i) => {
-            const Icon = icons[i] ?? Film;
+          {items.map((stat, i) => {
+            const Icon = (stat.icon && ICONS_MAP[stat.icon]) ? ICONS_MAP[stat.icon] : Film;
             return (
               <div
-                key={i}
+                key={stat.id}
                 className="group relative rounded-3xl bg-[#0B1210] border border-white/10 hover:border-[#09937F]/50 transition-all duration-500 p-8 space-y-4 shadow-xl hover:shadow-2xl hover:shadow-[#09937F]/10 flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between">
@@ -57,10 +66,10 @@ export function StatsSection() {
                     {stat.value}
                   </div>
                   <div className="mt-2 text-sm sm:text-base font-bold text-white font-sans">
-                    {stat.label}
+                    {isAr ? stat.labelAr : stat.labelEn}
                   </div>
                   <div className="mt-1 text-xs text-[#9EADA9] font-sans leading-relaxed">
-                    {stat.sub}
+                    {isAr ? stat.subLabelAr : stat.subLabelEn}
                   </div>
                 </div>
               </div>
