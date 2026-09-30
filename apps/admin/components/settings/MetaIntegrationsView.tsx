@@ -118,7 +118,7 @@ export function MetaIntegrationsView() {
             <Input
               value={whatsappPhoneId}
               onChange={(e) => setWhatsappPhoneId(e.target.value)}
-              className="bg-[#050807] border-white/10 font-mono text-xs"
+              className="bg-[#050807] border-white/10  text-xs"
             />
           </div>
 
@@ -129,7 +129,7 @@ export function MetaIntegrationsView() {
             <Input
               value={whatsappBusinessId}
               onChange={(e) => setWhatsappBusinessId(e.target.value)}
-              className="bg-[#050807] border-white/10 font-mono text-xs"
+              className="bg-[#050807] border-white/10  text-xs"
             />
           </div>
 
@@ -141,7 +141,7 @@ export function MetaIntegrationsView() {
               type="password"
               value={whatsappToken}
               onChange={(e) => setWhatsappToken(e.target.value)}
-              className="bg-[#050807] border-white/10 font-mono text-xs"
+              className="bg-[#050807] border-white/10  text-xs"
             />
           </div>
 
@@ -204,7 +204,7 @@ export function MetaIntegrationsView() {
             <Input
               value={instagramAccountId}
               onChange={(e) => setInstagramAccountId(e.target.value)}
-              className="bg-[#050807] border-white/10 font-mono text-xs"
+              className="bg-[#050807] border-white/10  text-xs"
             />
           </div>
 
@@ -215,7 +215,7 @@ export function MetaIntegrationsView() {
             <Input
               value={facebookPageId}
               onChange={(e) => setFacebookPageId(e.target.value)}
-              className="bg-[#050807] border-white/10 font-mono text-xs"
+              className="bg-[#050807] border-white/10  text-xs"
             />
           </div>
 

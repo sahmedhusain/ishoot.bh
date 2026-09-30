@@ -63,16 +63,16 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
         <div className="overflow-x-auto print:overflow-visible">
           <table className="w-full text-start text-xs border-collapse">
             <thead>
-              <tr className="border-y-2 border-slate-900 bg-slate-50/80 text-slate-900 uppercase font-mono tracking-wider print:bg-slate-100">
+              <tr className="border-y-2 border-slate-900 bg-slate-50/80 text-slate-900 uppercase  tracking-wider print:bg-slate-100">
                 <th className="py-3 px-3 text-start font-bold w-12">#</th>
                 <th className="py-3 px-3 text-start font-bold">
                   {inv.serviceDesc}
                 </th>
                 <th className="py-3 px-3 text-center font-bold w-20">{inv.qty}</th>
-                <th className="py-3 px-3 text-end font-bold font-mono w-28">
+                <th className="py-3 px-3 text-end font-bold  w-28">
                   {inv.unitPrice}
                 </th>
-                <th className="py-3 px-3 text-end font-bold font-mono w-28">
+                <th className="py-3 px-3 text-end font-bold  w-28">
                   {inv.total}
                 </th>
               </tr>
@@ -80,7 +80,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
             <tbody className="divide-y divide-slate-100 print:divide-slate-200">
               {invoice.line_items?.map((item, index) => (
                 <tr key={index} className="hover:bg-slate-50/50 print-avoid-break">
-                  <td className="py-4 px-3 text-slate-400 font-mono align-top text-xs">
+                  <td className="py-4 px-3 text-slate-400  align-top text-xs">
                     {String(index + 1).padStart(2, "0")}
                   </td>
                   <td className="py-4 px-3 align-top">
@@ -100,13 +100,13 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
                       </div>
                     )}
                   </td>
-                  <td className="py-4 px-3 text-center font-mono text-slate-700 align-top">
+                  <td className="py-4 px-3 text-center  text-slate-700 align-top">
                     {item.quantity}
                   </td>
-                  <td className="py-4 px-3 text-end font-mono text-slate-700 align-top">
+                  <td className="py-4 px-3 text-end  text-slate-700 align-top">
                     {formatCurrencyValue(item.unit_price, currency, isAr)}
                   </td>
-                  <td className="py-4 px-3 text-end font-mono font-bold text-slate-900 align-top">
+                  <td className="py-4 px-3 text-end  font-bold text-slate-900 align-top">
                     {formatCurrencyValue(item.line_total, currency, isAr)}
                   </td>
                 </tr>
@@ -131,13 +131,13 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
                 {isAr ? (
                   <>
                     <p>1. يستحق السداد خلال <strong className="text-slate-800 font-semibold">{company.payment_terms_days || 30} يوماً</strong> من تاريخ الفاتورة ({invoice.due_date}).</p>
-                    <p>2. يجب ذكر رقم الفاتورة في التحويل البنكي: <strong className="font-mono text-slate-900">{invoice.invoice_number}</strong>.</p>
+                    <p>2. يجب ذكر رقم الفاتورة في التحويل البنكي: <strong className=" text-slate-900">{invoice.invoice_number}</strong>.</p>
                     <p>3. تنتقل حقوق الملكية الفكرية والمواد الخام بعد سداد كامل الرصيد المستحق.</p>
                   </>
                 ) : (
                   <>
                     <p>1. Payment is due within <strong className="text-slate-800 font-semibold">{company.payment_terms_days || 30} days</strong> from invoice date ({invoice.due_date}).</p>
-                    <p>2. Electronic wire payments must reference invoice number: <strong className="font-mono text-slate-900">{invoice.invoice_number}</strong>.</p>
+                    <p>2. Electronic wire payments must reference invoice number: <strong className=" text-slate-900">{invoice.invoice_number}</strong>.</p>
                     <p>3. Raw footage and intellectual property rights transfer upon complete settlement of balance due.</p>
                   </>
                 )}
@@ -158,7 +158,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
               <div className="text-[10px] font-bold text-slate-900 uppercase tracking-wider mb-1">
                 {inv.bankCoords}
               </div>
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 font-mono text-[11px] space-y-1 print:bg-white print:border-slate-300 print:text-[10px]">
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200  text-[11px] space-y-1 print:bg-white print:border-slate-300 print:text-[10px]">
                 <div><span className="text-slate-400 font-sans">{t.pdfInvoice.bankName}</span> {company.bank_name || (isAr ? "بنك البحرين الوطني" : "National Bank of Bahrain (NBB)")}</div>
                 <div><span className="text-slate-400 font-sans">{t.pdfInvoice.iban}</span> {company.bank_iban || "BH00NBBB00000000000000"}</div>
                 <div><span className="text-slate-400 font-sans">{t.pdfInvoice.accountNo}</span> {company.bank_account_number || "0000-000000-001"}</div>
@@ -168,7 +168,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
           </div>
 
           {/* Right Column: Financial Calculations */}
-          <div className="space-y-2 text-xs font-mono">
+          <div className="space-y-2 text-xs ">
             <div className="flex justify-between py-1.5 border-b border-slate-100 text-slate-600">
               <span className="font-sans text-xs">{inv.subtotal}</span>
               <span className="font-bold">

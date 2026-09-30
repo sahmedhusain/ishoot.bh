@@ -137,10 +137,10 @@ export function ExecutiveDashboardView({
               <DollarSign className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-lg font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-lg font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay amount={finance.revenue} currency="BHD" />
           </div>
-          <div className="text-[10px] text-[#10B981] font-mono flex items-center gap-1 font-medium">
+          <div className="text-[10px] text-[#10B981]  flex items-center gap-1 font-medium">
             <span>+18.4%</span>
             <span className="text-slate-400">
               {t.dashboardView.vsLastMonth}
@@ -157,10 +157,10 @@ export function ExecutiveDashboardView({
               <Briefcase className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-lg font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-lg font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay amount={activePipelineValue} currency="BHD" />
           </div>
-          <div className="text-[10px] text-[#09937F] font-mono font-medium">
+          <div className="text-[10px] text-[#09937F]  font-medium">
             {deals.length} {t.kpi.activeDealsCount}
           </div>
         </div>
@@ -174,10 +174,10 @@ export function ExecutiveDashboardView({
               <TrendingUp className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-lg font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-lg font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay amount={finance.outstanding} currency="BHD" />
           </div>
-          <div className="text-[10px] text-amber-600 dark:text-amber-400 font-mono font-medium">
+          <div className="text-[10px] text-amber-600 dark:text-amber-400  font-medium">
             {finance.overdue > 0
               ? `${finance.overdue.toFixed(3)} BHD ${t.kpi.overdueAlert}`
               : t.kpi.allOnTrack}
@@ -193,7 +193,7 @@ export function ExecutiveDashboardView({
               <TrendingDown className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-lg font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-lg font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay amount={finance.expenses} currency="BHD" />
           </div>
           <div className="text-[10px] text-slate-500 dark:text-neutral-400 truncate">
@@ -207,15 +207,15 @@ export function ExecutiveDashboardView({
               {t.kpi.profitMargin}
             </span>
             <div className="w-6 h-6 rounded-md bg-[#09937F]/10 flex items-center justify-center text-[#09937F]">
-              <span className="text-[10px] font-mono font-bold">%</span>
+              <span className="text-[10px]  font-bold">%</span>
             </div>
           </div>
           <div
-            className={`text-lg font-bold font-mono ${finance.netProfit >= 0 ? "text-[#014842] dark:text-[#7de0d1]" : "text-rose-500"}`}
+            className={`text-lg font-bold  ${finance.netProfit >= 0 ? "text-[#014842] dark:text-[#7de0d1]" : "text-rose-500"}`}
           >
             {finance.profitMargin.toFixed(1)}%
           </div>
-          <div className="text-[10px] text-[#09937F] font-mono font-medium">
+          <div className="text-[10px] text-[#09937F]  font-medium">
             <CurrencyDisplay amount={finance.netProfit} currency="BHD" />{" "}
             {t.kpi.netProfit}
           </div>
@@ -230,10 +230,10 @@ export function ExecutiveDashboardView({
               <Inbox className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="text-lg font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-lg font-bold text-slate-900 dark:text-white ">
             {inquiries.length}
           </div>
-          <div className="text-[10px] text-blue-600 dark:text-blue-400 font-mono font-medium">
+          <div className="text-[10px] text-blue-600 dark:text-blue-400  font-medium">
             {t.kpi.lastSevenDays}
           </div>
         </div>
@@ -248,7 +248,7 @@ export function ExecutiveDashboardView({
                 {t.charts.monthlyRevenueExpenses}
               </h2>
             </div>
-            <div className="flex items-center gap-4 text-xs font-mono">
+            <div className="flex items-center gap-4 text-xs ">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-xs bg-[#09937F]" />
                 <span className="text-slate-700 dark:text-neutral-300 font-semibold">{t.dashboardView.revenue}</span>
@@ -338,7 +338,7 @@ export function ExecutiveDashboardView({
                     <span className="text-slate-600 dark:text-slate-400 font-medium">
                       {label} ({data.count})
                     </span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    <span className=" font-bold text-slate-900 dark:text-white">
                       <CurrencyDisplay amount={data.value} currency="BHD" />
                     </span>
                   </div>
@@ -355,7 +355,7 @@ export function ExecutiveDashboardView({
             })}
           </div>
 
-          <div className="pt-3 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between text-xs font-mono">
+          <div className="pt-3 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between text-xs ">
             <span className="text-slate-500 dark:text-neutral-400 font-semibold">
               {t.dashboardView.activePipeline}
             </span>
@@ -409,7 +409,7 @@ export function ExecutiveDashboardView({
                       <span>{t.dashboardView.directLead}</span>
                     )}
                     {deal.shoot_date && (
-                      <span className="font-mono text-[10px] text-[#09937F] bg-[#09937F]/10 px-2 py-0.5 rounded font-medium">
+                      <span className=" text-[10px] text-[#09937F] bg-[#09937F]/10 px-2 py-0.5 rounded font-medium">
                         {t.dashboardView.shootDate} {deal.shoot_date}
                       </span>
                     )}
@@ -418,7 +418,7 @@ export function ExecutiveDashboardView({
 
                 <div className="flex items-center gap-3">
                   <StatusBadge status={deal.stage} />
-                  <div className="text-xs font-bold text-slate-900 dark:text-white font-mono text-end min-w-[80px]">
+                  <div className="text-xs font-bold text-slate-900 dark:text-white  text-end min-w-[80px]">
                     <CurrencyDisplay
                       amount={deal.value}
                       currency={deal.currency}
@@ -454,7 +454,7 @@ export function ExecutiveDashboardView({
                   >
                     <div className="flex items-center justify-between">
                       <span
-                        className="text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase"
+                        className="text-[9px]  px-1.5 py-0.5 rounded font-bold uppercase"
                         style={{
                           backgroundColor: `${event.color || "#09937F"}20`,
                           color: event.color || "#09937F",
@@ -466,7 +466,7 @@ export function ExecutiveDashboardView({
                       <DateDisplay
                         date={event.start_date}
                         locale={locale}
-                        className="text-[10px] text-slate-400 font-mono"
+                        className="text-[10px] text-slate-400 "
                       />
                     </div>
                     <div className="text-xs font-semibold text-slate-900 dark:text-white line-clamp-1">
@@ -501,7 +501,7 @@ export function ExecutiveDashboardView({
                     ? company.company_name_ar
                     : company.company_name_en}
                 </div>
-                <div className="text-[10px] text-slate-500 dark:text-neutral-400 font-mono">
+                <div className="text-[10px] text-slate-500 dark:text-neutral-400 ">
                   CR: {company.cr_number}
                 </div>
               </div>
@@ -511,7 +511,7 @@ export function ExecutiveDashboardView({
               <div className="flex items-center justify-between">
                 <span className="text-slate-500 dark:text-neutral-400">{t.settings.vatTitle}:</span>
                 <span
-                  className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold ${
+                  className={`px-2 py-0.5 rounded  text-[10px] font-bold ${
                     company.vat_enabled
                       ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
                       : "bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 border border-slate-200 dark:border-neutral-700"
@@ -524,13 +524,13 @@ export function ExecutiveDashboardView({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-500 dark:text-neutral-400">{t.settings.bankName}:</span>
-                <span className="text-slate-900 dark:text-white text-end truncate max-w-[140px] font-mono text-[11px] font-medium">
+                <span className="text-slate-900 dark:text-white text-end truncate max-w-[140px]  text-[11px] font-medium">
                   {company.bank_name}
                 </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-500 dark:text-neutral-400">{t.settings.bankIban}:</span>
-                <span className="text-slate-900 dark:text-white text-end truncate max-w-[140px] font-mono text-[10px]">
+                <span className="text-slate-900 dark:text-white text-end truncate max-w-[140px]  text-[10px]">
                   {company.bank_iban}
                 </span>
               </div>

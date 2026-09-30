@@ -58,7 +58,7 @@ export function InvoiceReceiptSequencesTab({
                   setSettings({ ...settings, invoice_prefix: e.target.value.toUpperCase() })
                 }
                 placeholder={t.companySettingsTabs.invPrefixPlaceholder}
-                className="font-mono text-sm uppercase rounded-lg"
+                className=" text-sm uppercase rounded-lg"
               />
             </div>
 
@@ -76,7 +76,7 @@ export function InvoiceReceiptSequencesTab({
                     invoice_next_number: parseInt(e.target.value, 10) || 1,
                   })
                 }
-                className="font-mono text-sm rounded-lg"
+                className=" text-sm rounded-lg"
               />
             </div>
 
@@ -84,7 +84,7 @@ export function InvoiceReceiptSequencesTab({
               <span className="text-slate-500 dark:text-neutral-400">
                 {t.companySettingsTabs.nextInvoicePreview}
               </span>
-              <span className="font-mono font-bold text-[#014842] dark:text-[#7de0d1]">
+              <span className=" font-bold text-[#014842] dark:text-[#7de0d1]">
                 {settings.invoice_prefix || "INV"}-
                 {new Date().getFullYear()}-
                 {String(settings.invoice_next_number || 1).padStart(3, "0")}
@@ -111,7 +111,7 @@ export function InvoiceReceiptSequencesTab({
                   setSettings({ ...settings, receipt_prefix: e.target.value.toUpperCase() })
                 }
                 placeholder={t.companySettingsTabs.rctPrefixPlaceholder}
-                className="font-mono text-sm uppercase rounded-lg"
+                className=" text-sm uppercase rounded-lg"
               />
             </div>
 
@@ -129,7 +129,7 @@ export function InvoiceReceiptSequencesTab({
                     receipt_next_number: parseInt(e.target.value, 10) || 1,
                   })
                 }
-                className="font-mono text-sm rounded-lg"
+                className=" text-sm rounded-lg"
               />
             </div>
 
@@ -137,7 +137,7 @@ export function InvoiceReceiptSequencesTab({
               <span className="text-slate-500 dark:text-neutral-400">
                 {t.companySettingsTabs.nextReceiptPreview}
               </span>
-              <span className="font-mono font-bold text-[#09937F]">
+              <span className=" font-bold text-[#09937F]">
                 {settings.receipt_prefix || "RCT"}-
                 {new Date().getFullYear()}-
                 {String(settings.receipt_next_number || 1).padStart(3, "0")}
@@ -170,7 +170,7 @@ export function InvoiceReceiptSequencesTab({
                       payment_terms_days: parseInt(e.target.value, 10) || 30,
                     })
                   }
-                  className="font-mono text-sm rounded-lg"
+                  className=" text-sm rounded-lg"
                 />
               </div>
 

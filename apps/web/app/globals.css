@@ -3,44 +3,125 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "Virtual";
-  src: url("/fonts/Virtual.otf") format("opentype");
-  font-weight: normal;
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyahsans-Light.woff2") format("woff2");
+  font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "IBM Plex Sans Arabic";
-  src: url("/fonts/IBMPlexSansArabic-Regular.ttf") format("truetype");
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyahsans-Regular.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "IBM Plex Sans Arabic";
-  src: url("/fonts/IBMPlexSansArabic-Medium.ttf") format("truetype");
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyahsans-Medium.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "IBM Plex Sans Arabic";
-  src: url("/fonts/IBMPlexSansArabic-SemiBold.ttf") format("truetype");
-  font-weight: 600;
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyahsans-Bold.woff2") format("woff2");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "IBM Plex Sans Arabic";
-  src: url("/fonts/IBMPlexSansArabic-Bold.ttf") format("truetype");
+  font-family: "Thmanyah Sans";
+  src: url("/fonts/thmanyahsans-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyahseriftext-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyahseriftext-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyahseriftext-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyahseriftext-Bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
+
+@font-face {
+  font-family: "Thmanyah Serif Text";
+  src: url("/fonts/thmanyahseriftext-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: url("/fonts/thmanyahserifdisplay-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: url("/fonts/thmanyahserifdisplay-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: url("/fonts/thmanyahserifdisplay-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: url("/fonts/thmanyahserifdisplay-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Thmanyah Serif Display";
+  src: url("/fonts/thmanyahserifdisplay-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 
 :root {
   --ishoot-primary: #014842;

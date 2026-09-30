@@ -223,7 +223,7 @@ export function OdooCalendarView({
 
       {viewMode === "month" && (
         <Card className="p-4 sm:p-6 bg-[#0B1210] border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
-          <div className="grid grid-cols-7 gap-1 text-center font-mono text-xs text-[#9EADA9] uppercase pb-3 border-b border-white/10 font-bold">
+          <div className="grid grid-cols-7 gap-1 text-center  text-xs text-[#9EADA9] uppercase pb-3 border-b border-white/10 font-bold">
             {weekDayNames.map((d) => (
               <div key={d} className="py-1">
                 {d}
@@ -270,7 +270,7 @@ export function OdooCalendarView({
                 >
                   <div className="flex items-center justify-between">
                     <span
-                      className={`text-xs font-mono font-bold w-6 h-6 rounded-full flex items-center justify-center ${
+                      className={`text-xs  font-bold w-6 h-6 rounded-full flex items-center justify-center ${
                         isToday ? "bg-[#09937F] text-white" : "text-[#9EADA9]"
                       }`}
                     >
@@ -302,7 +302,7 @@ export function OdooCalendarView({
                       </div>
                     ))}
                     {dayEvents.length > 2 && (
-                      <div className="text-[9px] font-mono text-[#9EADA9] text-center">
+                      <div className="text-[9px]  text-[#9EADA9] text-center">
                         +{dayEvents.length - 2} {t.calendarView.more}
                       </div>
                     )}
@@ -330,7 +330,7 @@ export function OdooCalendarView({
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span
-                      className="px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold"
+                      className="px-2 py-0.5 rounded text-[10px]  uppercase font-bold"
                       style={{
                         backgroundColor: `${ev.color || "#09937F"}20`,
                         color: ev.color || "#09937F",
@@ -344,7 +344,7 @@ export function OdooCalendarView({
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4 text-xs text-[#9EADA9]">
-                    <span className="flex items-center gap-1 font-mono">
+                    <span className="flex items-center gap-1 ">
                       <Clock className="w-3.5 h-3.5 text-[#09937F]" />
                       <span>
                         {new Date(ev.start_date).toLocaleString(
@@ -406,7 +406,7 @@ export function OdooCalendarView({
                 <span className="text-[#9EADA9]">
                   {t.calendarView.startTime}
                 </span>
-                <span className="text-white font-mono">
+                <span className="text-white ">
                   {new Date(selectedEvent.start_date).toLocaleString(
                     locale === "ar" ? "ar-BH" : "en-US",
                   )}
@@ -414,7 +414,7 @@ export function OdooCalendarView({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[#9EADA9]">{t.calendarView.endTime}</span>
-                <span className="text-white font-mono">
+                <span className="text-white ">
                   {new Date(selectedEvent.end_date).toLocaleString(
                     locale === "ar" ? "ar-BH" : "en-US",
                   )}
@@ -518,7 +518,7 @@ export function OdooCalendarView({
                 required
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="font-mono text-xs"
+                className=" text-xs"
               />
             </div>
 
@@ -531,7 +531,7 @@ export function OdooCalendarView({
                 required
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="font-mono text-xs"
+                className=" text-xs"
               />
             </div>
           </div>

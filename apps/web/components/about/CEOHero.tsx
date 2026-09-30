@@ -32,7 +32,7 @@ export function CEOHero({ company }: CEOHeroProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-[#050807] via-transparent to-transparent opacity-80" />
 
           <div className="absolute bottom-6 left-6 right-6 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/10">
-            <div className="text-xs text-[#09937F] font-mono uppercase tracking-wider">
+            <div className="text-xs text-[#09937F]  uppercase tracking-wider">
               {ceoTitle}
             </div>
             <div className="text-xl font-bold text-white mt-0.5">

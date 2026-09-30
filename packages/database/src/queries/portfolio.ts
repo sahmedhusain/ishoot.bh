@@ -42,7 +42,7 @@ export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
     });
     return cats.map(mapCategory);
   } catch (e) {
-    console.error("Error fetching portfolio categories:", e);
+    console.error("Error fetching portfolio categories:", e instanceof Error ? e.message : e);
     return [];
   }
 }
@@ -82,7 +82,7 @@ export async function updatePortfolioCategory(
     });
     return mapCategory(updated);
   } catch (e) {
-    console.error(`Error updating portfolio category ${id}:`, e);
+    console.error(`Error updating portfolio category ${id}:`, e instanceof Error ? e.message : e);
     return null;
   }
 }
@@ -92,7 +92,7 @@ export async function deletePortfolioCategory(id: string): Promise<boolean> {
     await db.portfolioCategory.delete({ where: { id } });
     return true;
   } catch (e) {
-    console.error(`Error deleting portfolio category ${id}:`, e);
+    console.error(`Error deleting portfolio category ${id}:`, e instanceof Error ? e.message : e);
     return false;
   }
 }
@@ -118,7 +118,7 @@ export async function getPortfolioItems(
     });
     return items.map(mapItem);
   } catch (e) {
-    console.error("Error fetching portfolio items:", e);
+    console.error("Error fetching portfolio items:", e instanceof Error ? e.message : e);
     return [];
   }
 }
@@ -133,7 +133,7 @@ export async function getPortfolioItemBySlug(
     });
     return item ? mapItem(item) : null;
   } catch (e) {
-    console.error(`Error fetching portfolio item ${slug}:`, e);
+    console.error(`Error fetching portfolio item ${slug}:`, e instanceof Error ? e.message : e);
     return null;
   }
 }
@@ -219,7 +219,7 @@ export async function updatePortfolioItem(
     });
     return mapItem(updated);
   } catch (e) {
-    console.error(`Error updating portfolio item ${id}:`, e);
+    console.error(`Error updating portfolio item ${id}:`, e instanceof Error ? e.message : e);
     return null;
   }
 }
@@ -229,7 +229,7 @@ export async function deletePortfolioItem(id: string): Promise<boolean> {
     await db.portfolioItem.delete({ where: { id } });
     return true;
   } catch (e) {
-    console.error(`Error deleting portfolio item ${id}:`, e);
+    console.error(`Error deleting portfolio item ${id}:`, e instanceof Error ? e.message : e);
     return false;
   }
 }

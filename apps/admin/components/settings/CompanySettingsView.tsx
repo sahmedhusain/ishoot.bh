@@ -460,7 +460,7 @@ export function CompanySettingsView({
                       <div className="flex items-center justify-between font-bold text-[11px] text-slate-700 dark:text-neutral-300">
                         <span>{label}</span>
                         {diff.isVat ? (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-200 text-amber-900 font-mono">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-200 text-amber-900 ">
                             {t.companySettingsView.vatActiveBadge}
                           </span>
                         ) : null}
@@ -468,7 +468,7 @@ export function CompanySettingsView({
 
                       <div className="grid grid-cols-2 gap-2 text-[11px] items-center">
                         <div className="p-2 rounded-lg bg-white/70 dark:bg-neutral-900/60 border border-slate-200/80 dark:border-neutral-700/60 text-slate-500 dark:text-neutral-400">
-                          <span className="block text-[9px] uppercase font-mono tracking-wider text-slate-400">
+                          <span className="block text-[9px] uppercase  tracking-wider text-slate-400">
                             {t.companySettingsView.currentVal}
                           </span>
                           <span className="truncate block font-medium mt-0.5">
@@ -477,7 +477,7 @@ export function CompanySettingsView({
                         </div>
 
                         <div className="p-2 rounded-lg bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200">
-                          <span className="block text-[9px] uppercase font-mono tracking-wider text-emerald-600 dark:text-emerald-400">
+                          <span className="block text-[9px] uppercase  tracking-wider text-emerald-600 dark:text-emerald-400">
                             {t.companySettingsView.newVal}
                           </span>
                           <span className="truncate block font-bold mt-0.5">

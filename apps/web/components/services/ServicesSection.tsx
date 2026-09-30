@@ -56,7 +56,7 @@ export function ServicesSection() {
       <div className="shell space-y-16">
         <div className="relative w-full">
           <span aria-hidden="true" className="block h-px w-full bg-white/10" />
-          <div className="mt-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#9EADA9]">
+          <div className="mt-4 flex items-center justify-between  text-xs uppercase tracking-wider text-[#9EADA9]">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#09937F]" />
               <span>{t("services.sectionIndex")}</span>
@@ -80,7 +80,7 @@ export function ServicesSection() {
 
           <Link
             href={`/${locale}/contact`}
-            className="group inline-flex items-center gap-2 font-mono text-xs font-bold text-[#09937F] hover:text-[#5EEAD4] transition-colors"
+            className="group inline-flex items-center gap-2  text-xs font-bold text-[#09937F] hover:text-[#5EEAD4] transition-colors"
           >
             <span>{t("services.requestProposal")}</span>
             <ArrowUpRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -105,7 +105,7 @@ export function ServicesSection() {
                     <div className="w-12 h-12 rounded-2xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center text-[#5EEAD4] shadow-lg group-hover:rotate-6 transition-transform">
                       <Icon className="w-6 h-6" />
                     </div>
-                    <span className="font-mono text-xs text-[#9EADA9] font-bold">
+                    <span className=" text-xs text-[#9EADA9] font-bold">
                       ({item.number})
                     </span>
                   </div>
@@ -124,7 +124,7 @@ export function ServicesSection() {
                   {(item.specs || []).map((spec, i) => (
                     <span
                       key={i}
-                      className="px-2.5 py-1 rounded-full text-[10px] font-mono font-medium bg-white/5 text-[#9EADA9] border border-white/10 group-hover:border-[#09937F]/30 group-hover:text-white transition-colors"
+                      className="px-2.5 py-1 rounded-full text-[10px]  font-medium bg-white/5 text-[#9EADA9] border border-white/10 group-hover:border-[#09937F]/30 group-hover:text-white transition-colors"
                     >
                       {spec}
                     </span>

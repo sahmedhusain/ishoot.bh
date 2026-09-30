@@ -175,7 +175,7 @@ export function PortfolioManagementView({
 
       <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
         <table className="w-full text-start text-xs">
-          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider">
+          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">
                 {t.portfolioView.projectClient}
@@ -203,16 +203,16 @@ export function PortfolioManagementView({
                       <div className="font-bold text-white text-sm">
                         {locale === "ar" ? item.title_ar : item.title_en}
                       </div>
-                      <div className="text-[#09937F] font-mono text-[11px]">
+                      <div className="text-[#09937F]  text-[11px]">
                         {item.client_name}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="p-4 font-mono text-[#9EADA9]">
+                <td className="p-4  text-[#9EADA9]">
                   <Badge variant="outline">{item.aspect_ratio}</Badge>
                 </td>
-                <td className="p-4 font-mono text-white">{item.year}</td>
+                <td className="p-4  text-white">{item.year}</td>
                 <td className="p-4 text-center">
                   <button
                     onClick={() =>

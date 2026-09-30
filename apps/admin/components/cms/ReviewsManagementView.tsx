@@ -79,7 +79,7 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <span>{t.reviewsView.title}</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#09937F]/10 text-[#09937F] border border-[#09937F]/20 font-mono font-medium">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#09937F]/10 text-[#09937F] border border-[#09937F]/20  font-medium">
               {t.reviewsView.badge}
             </span>
           </h1>
@@ -93,7 +93,7 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-4 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-mono text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
+            <div className="text-[11px]  text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
               {t.reviewsView.pendingApproval}
             </div>
             <div className="text-2xl font-black text-amber-500 mt-0.5">
@@ -107,7 +107,7 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
 
         <Card className="p-4 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-mono text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
+            <div className="text-[11px]  text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
               {t.reviewsView.liveOnWebsite}
             </div>
             <div className="text-2xl font-black text-emerald-500 mt-0.5">
@@ -121,7 +121,7 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
 
         <Card className="p-4 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-mono text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
+            <div className="text-[11px]  text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
               {t.reviewsView.avgRating}
             </div>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5 flex items-center gap-1.5">
@@ -246,7 +246,7 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
                     )}
                   </div>
 
-                  <div className="text-[10px] font-mono text-slate-400 dark:text-neutral-500 text-end">
+                  <div className="text-[10px]  text-slate-400 dark:text-neutral-500 text-end">
                     {rev.year || "2026"}
                   </div>
                 </div>

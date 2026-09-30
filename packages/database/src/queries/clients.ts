@@ -21,7 +21,7 @@ export async function getActiveClientLogos(): Promise<ClientLogo[]> {
     });
     return logos.map(mapClient);
   } catch (e) {
-    console.error("Error fetching active client logos from DB:", e);
+    console.error("Error fetching active client logos from DB:", e instanceof Error ? e.message : e);
     return [];
   }
 }
@@ -33,7 +33,7 @@ export async function getAllClientLogos(): Promise<ClientLogo[]> {
     });
     return logos.map(mapClient);
   } catch (e) {
-    console.error("Error fetching all client logos from DB:", e);
+    console.error("Error fetching all client logos from DB:", e instanceof Error ? e.message : e);
     return [];
   }
 }
@@ -77,7 +77,7 @@ export async function updateClientLogo(
     });
     return mapClient(updated);
   } catch (e) {
-    console.error(`Error updating client logo ${id}:`, e);
+    console.error(`Error updating client logo ${id}:`, e instanceof Error ? e.message : e);
     return null;
   }
 }
@@ -87,7 +87,7 @@ export async function deleteClientLogo(id: string): Promise<boolean> {
     await db.clientLogo.delete({ where: { id } });
     return true;
   } catch (e) {
-    console.error(`Error deleting client logo ${id}:`, e);
+    console.error(`Error deleting client logo ${id}:`, e instanceof Error ? e.message : e);
     return false;
   }
 }

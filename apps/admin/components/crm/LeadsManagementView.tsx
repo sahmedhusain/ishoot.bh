@@ -137,7 +137,7 @@ export function LeadsManagementView({
                     </span>
                     {inq.phone && (
                       <span
-                        className="flex items-center gap-1 font-mono text-[11px]"
+                        className="flex items-center gap-1  text-[11px]"
                         dir="ltr"
                       >
                         <Phone className="w-3.5 h-3.5 text-slate-400" />
@@ -212,7 +212,7 @@ export function LeadsManagementView({
               {/* Tags: Budget & Services */}
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
                 {inq.budget_range && (
-                  <span className="px-2.5 py-0.5 rounded-md bg-[#e6f5f2] text-[#014842] dark:bg-[#004d40]/40 dark:text-[#7de0d1] text-[11px] font-mono font-semibold">
+                  <span className="px-2.5 py-0.5 rounded-md bg-[#e6f5f2] text-[#014842] dark:bg-[#004d40]/40 dark:text-[#7de0d1] text-[11px]  font-semibold">
                     {t.leads.budgetPrefix}{inq.budget_range}
                   </span>
                 )}

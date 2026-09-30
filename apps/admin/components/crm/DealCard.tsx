@@ -64,7 +64,7 @@ export function DealCard({ deal }: DealCardProps) {
         </div>
 
         {deal.shoot_date && (
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 ">
             <Calendar className="w-3 h-3 text-slate-400" />
             <span>
               {t.deals.shootPrefix}
@@ -74,10 +74,10 @@ export function DealCard({ deal }: DealCardProps) {
         )}
 
         <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-xs">
-          <span className="text-slate-500 dark:text-slate-400 font-mono">
+          <span className="text-slate-500 dark:text-slate-400 ">
             {t.deals.dealValue}
           </span>
-          <span className="font-mono font-bold text-[#014842] dark:text-[#09937F]">
+          <span className=" font-bold text-[#014842] dark:text-[#09937F]">
             <CurrencyDisplay amount={deal.value} currency={deal.currency} />
           </span>
         </div>

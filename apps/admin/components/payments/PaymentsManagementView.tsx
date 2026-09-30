@@ -68,10 +68,10 @@ export function PaymentsManagementView({
               <CreditCard className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay amount={totalCollected} currency="BHD" />
           </div>
-          <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono">
+          <div className="text-[11px] text-emerald-600 dark:text-emerald-400 ">
             {t.kpi.revenueDesc}
           </div>
         </Card>
@@ -83,7 +83,7 @@ export function PaymentsManagementView({
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white ">
             {payments.length}
           </div>
           <div className="text-[11px] text-[#09937F] font-medium">
@@ -98,7 +98,7 @@ export function PaymentsManagementView({
               <Search className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white ">
             {invoices.length}
           </div>
           <div className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
@@ -109,7 +109,7 @@ export function PaymentsManagementView({
 
       <div className="bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
         <table className="w-full text-start text-xs">
-          <thead className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase font-mono tracking-wider">
+          <thead className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.finance.receiptNumber}</th>
               <th className="p-4 text-start">{t.finance.invoiceNumber}</th>
@@ -126,7 +126,7 @@ export function PaymentsManagementView({
                 key={payment.id}
                 className="hover:bg-slate-50/70 dark:hover:bg-white/[0.02] transition-colors"
               >
-                <td className="p-4 font-mono font-bold text-[#09937F]">
+                <td className="p-4  font-bold text-[#09937F]">
                   <Link
                     href={`/dashboard/payments/${payment.id}`}
                     className="hover:underline inline-flex items-center gap-1 group"
@@ -136,7 +136,7 @@ export function PaymentsManagementView({
                     <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
                   </Link>
                 </td>
-                <td className="p-4 font-mono">
+                <td className="p-4 ">
                   {payment.invoice ? (
                     <Link
                       href={`/dashboard/invoices/${payment.invoice_id}`}
@@ -175,7 +175,7 @@ export function PaymentsManagementView({
                     </span>
                   )}
                 </td>
-                <td className="p-4 font-mono text-slate-600 dark:text-slate-400">
+                <td className="p-4  text-slate-600 dark:text-slate-400">
                   <DateDisplay date={payment.payment_date} locale={locale} />
                 </td>
                 <td className="p-4">
@@ -183,7 +183,7 @@ export function PaymentsManagementView({
                     {payment.payment_method.replace("_", " ").toUpperCase()}
                   </Badge>
                 </td>
-                <td className="p-4 text-end font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                <td className="p-4 text-end  font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                   +
                   <CurrencyDisplay
                     amount={Number(payment.amount)}

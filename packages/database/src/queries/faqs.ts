@@ -1,14 +1,24 @@
 import { db } from "../db";
 
 export async function getFaqs(adminOnly = true) {
-  return await db.faq.findMany({
-    where: adminOnly ? undefined : { isPublished: true },
-    orderBy: { sortOrder: "asc" },
-  });
+  try {
+    return await db.faq.findMany({
+      where: adminOnly ? undefined : { isPublished: true },
+      orderBy: { sortOrder: "asc" },
+    });
+  } catch (e) {
+    console.error("Error fetching FAQs from DB:", e instanceof Error ? e.message : e);
+    return [];
+  }
 }
 
 export async function getFaqById(id: string) {
-  return await db.faq.findUnique({ where: { id } });
+  try {
+    return await db.faq.findUnique({ where: { id } });
+  } catch (e) {
+    console.error(`Error fetching FAQ ${id}:`, e instanceof Error ? e.message : e);
+    return null;
+  }
 }
 
 export async function createFaq(data: {

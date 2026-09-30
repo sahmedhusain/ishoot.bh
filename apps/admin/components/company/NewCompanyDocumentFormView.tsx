@@ -149,7 +149,7 @@ export function NewCompanyDocumentFormView() {
                 placeholder={t.companyDocumentsNew.docNumberPlaceholder}
                 value={documentNumber}
                 onChange={(e) => setDocumentNumber(e.target.value)}
-                className="font-mono"
+                className=""
               />
             </div>
           </div>
@@ -163,7 +163,7 @@ export function NewCompanyDocumentFormView() {
                 type="date"
                 value={validFrom}
                 onChange={(e) => setValidFrom(e.target.value)}
-                className="font-mono"
+                className=""
               />
             </div>
             <div>
@@ -174,7 +174,7 @@ export function NewCompanyDocumentFormView() {
                 type="date"
                 value={validUntil}
                 onChange={(e) => setValidUntil(e.target.value)}
-                className="font-mono"
+                className=""
               />
             </div>
           </div>

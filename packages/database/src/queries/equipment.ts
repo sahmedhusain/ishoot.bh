@@ -26,7 +26,7 @@ export async function getStudioEquipment(): Promise<StudioEquipment[]> {
     });
     return items.map(mapEquipment);
   } catch (e) {
-    console.error("Error fetching studio equipment from DB:", e);
+    console.error("Error fetching studio equipment from DB:", e instanceof Error ? e.message : e);
     return [];
   }
 }

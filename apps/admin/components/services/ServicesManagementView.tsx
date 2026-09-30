@@ -200,7 +200,7 @@ export function ServicesManagementView({
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.totalServices}</span>
             <Layers className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-xl font-bold text-slate-900 dark:text-white ">
             {services.length}
           </div>
         </div>
@@ -210,7 +210,7 @@ export function ServicesManagementView({
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.activeOfferings}</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+          <div className="text-xl font-bold text-emerald-600 dark:text-emerald-400 ">
             {activeCount}
           </div>
         </div>
@@ -220,7 +220,7 @@ export function ServicesManagementView({
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.avgRate}</span>
             <DollarSign className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-xl font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay amount={avgRate} currency="BHD" />
           </div>
         </div>
@@ -230,7 +230,7 @@ export function ServicesManagementView({
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.categoriesCount}</span>
             <Tag className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-xl font-bold text-slate-900 dark:text-white ">
             {SERVICE_CATEGORIES.length - 1}
           </div>
         </div>
@@ -252,7 +252,7 @@ export function ServicesManagementView({
             >
               <span>{isRTL ? cat.labelAr : cat.labelEn}</span>
               {cat.value !== "all" && (
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full  ${
                   isActive ? "bg-[#014842]/20 dark:bg-[#7de0d1]/20" : "bg-slate-100 dark:bg-neutral-800 text-slate-500"
                 }`}>
                   {services.filter((s) => s.category === cat.value).length}
@@ -330,7 +330,7 @@ export function ServicesManagementView({
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {service.name_en}
                           </span>
-                          <span className="text-[11px] text-slate-400 font-mono">
+                          <span className="text-[11px] text-slate-400 ">
                             {service.code ?? t.servicesView.customCode}
                           </span>
                         </div>
@@ -347,7 +347,7 @@ export function ServicesManagementView({
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
-                          <span className="font-bold text-slate-900 dark:text-white font-mono">
+                          <span className="font-bold text-slate-900 dark:text-white ">
                             <CurrencyDisplay amount={service.default_rate} currency="BHD" />
                           </span>
                           <span className="text-[10px] text-slate-400">
@@ -425,7 +425,7 @@ export function ServicesManagementView({
                     placeholder={t.servicesView.codePlaceholder}
                     value={formCode}
                     onChange={(e) => setFormCode(e.target.value)}
-                    className="text-xs font-mono"
+                    className="text-xs "
                   />
                 </div>
                 <div>
@@ -485,7 +485,7 @@ export function ServicesManagementView({
                     value={formRate}
                     onChange={(e) => setFormRate(parseFloat(e.target.value) || 0)}
                     required
-                    className="text-xs font-mono"
+                    className="text-xs "
                   />
                 </div>
                 <div>

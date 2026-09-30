@@ -24,7 +24,7 @@ export function FAQSection({ faqs }: FAQSectionProps) {
       <div className="shell space-y-16">
         <div className="relative w-full">
           <span aria-hidden="true" className="block h-px w-full bg-white/10" />
-          <div className="mt-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#9EADA9]">
+          <div className="mt-4 flex items-center justify-between  text-xs uppercase tracking-wider text-[#9EADA9]">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#09937F]" />
               <span>{t("faq.sectionIndex")}</span>

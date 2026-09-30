@@ -97,10 +97,10 @@ export function FinancialAnalyticsView({
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-white ">
             <CurrencyDisplay amount={finance.revenue} currency="BHD" />
           </div>
-          <div className="text-[11px] text-emerald-400 font-mono">
+          <div className="text-[11px] text-emerald-400 ">
             {t.kpi.revenueDesc}
           </div>
         </Card>
@@ -112,7 +112,7 @@ export function FinancialAnalyticsView({
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-white ">
             <CurrencyDisplay amount={finance.expenses} currency="BHD" />
           </div>
           <div className="text-[11px] text-[#9EADA9]">{t.kpi.expensesDesc}</div>
@@ -126,11 +126,11 @@ export function FinancialAnalyticsView({
             </div>
           </div>
           <div
-            className={`text-2xl sm:text-3xl font-bold font-mono ${finance.netProfit >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
+            className={`text-2xl sm:text-3xl font-bold  ${finance.netProfit >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
           >
             <CurrencyDisplay amount={finance.netProfit} currency="BHD" />
           </div>
-          <div className="text-[11px] text-[#09937F] font-mono">
+          <div className="text-[11px] text-[#09937F] ">
             {t.financialView.revenueMinusExpenses}
           </div>
         </Card>
@@ -143,7 +143,7 @@ export function FinancialAnalyticsView({
             </div>
           </div>
           <div
-            className={`text-2xl sm:text-3xl font-bold font-mono ${finance.profitMargin >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
+            className={`text-2xl sm:text-3xl font-bold  ${finance.profitMargin >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
           >
             {finance.profitMargin.toFixed(1)}%
           </div>
@@ -234,7 +234,7 @@ export function FinancialAnalyticsView({
               {t.charts.pnlStatement}
             </h2>
           </div>
-          <span className="text-xs font-mono px-3 py-1 rounded-full bg-white/5 text-[#9EADA9]">
+          <span className="text-xs  px-3 py-1 rounded-full bg-white/5 text-[#9EADA9]">
             {t.financialView.fiscalYear}
           </span>
         </div>
@@ -249,7 +249,7 @@ export function FinancialAnalyticsView({
                 {t.financialView.depositedViaBank}
               </p>
             </div>
-            <span className="font-mono font-bold text-emerald-400 text-base">
+            <span className=" font-bold text-emerald-400 text-base">
               +<CurrencyDisplay amount={finance.revenue} currency="BHD" />
             </span>
           </div>
@@ -263,7 +263,7 @@ export function FinancialAnalyticsView({
                 {t.financialView.approvedDiscounts}
               </p>
             </div>
-            <span className="font-mono text-amber-400">
+            <span className=" text-amber-400">
               -
               <CurrencyDisplay amount={finance.discountsGiven} currency="BHD" />
             </span>
@@ -278,7 +278,7 @@ export function FinancialAnalyticsView({
                 {t.financialView.productionCostsDesc}
               </p>
             </div>
-            <span className="font-mono font-bold text-rose-400 text-base">
+            <span className=" font-bold text-rose-400 text-base">
               -<CurrencyDisplay amount={finance.expenses} currency="BHD" />
             </span>
           </div>
@@ -288,7 +288,7 @@ export function FinancialAnalyticsView({
               {t.charts.bottomLineProfit}
             </span>
             <span
-              className={`font-mono font-bold text-lg ${finance.netProfit >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
+              className={` font-bold text-lg ${finance.netProfit >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
             >
               <CurrencyDisplay amount={finance.netProfit} currency="BHD" />
             </span>
@@ -315,11 +315,11 @@ export function FinancialAnalyticsView({
                   <span className="text-xs font-semibold text-white">
                     {locale === "ar" ? c.name_ar : c.name_en}
                   </span>
-                  <span className="text-[11px] font-mono text-[#9EADA9]">
+                  <span className="text-[11px]  text-[#9EADA9]">
                     {percentage.toFixed(0)}%
                   </span>
                 </div>
-                <div className="text-base font-bold text-white font-mono">
+                <div className="text-base font-bold text-white ">
                   <CurrencyDisplay amount={sum} currency="BHD" />
                 </div>
                 <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">

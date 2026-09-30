@@ -67,7 +67,7 @@ export default async function ContactPage({
                 <Phone className="w-5 h-5 text-[#09937F] shrink-0" />
                 <a
                   href={`tel:${company.phone.replace(/\s+/g, "")}`}
-                  className="text-[#9EADA9] hover:text-[#09937F] transition-colors font-mono"
+                  className="text-[#9EADA9] hover:text-[#09937F] transition-colors "
                 >
                   {company.phone}
                 </a>
@@ -81,7 +81,7 @@ export default async function ContactPage({
           </div>
 
           <div className="bg-gradient-to-br from-[#014842]/40 to-[#0B1210] border border-[#09937F]/30 rounded-3xl p-8 space-y-3">
-            <div className="text-xs font-mono uppercase tracking-widest text-[#09937F]">
+            <div className="text-xs  uppercase tracking-widest text-[#09937F]">
               {t.contact.immediateResponse}
             </div>
             <div className="text-xl font-bold text-white">

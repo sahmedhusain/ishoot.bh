@@ -43,7 +43,7 @@ export function CinemaLightbox({ item, isOpen, onClose }: CinemaLightboxProps) {
       <div className="relative w-full max-w-5xl bg-[#0B1210] border border-[#09937F]/30 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-white/10">
           <div>
-            <span className="text-xs font-mono text-[#09937F] uppercase tracking-wider">
+            <span className="text-xs  text-[#09937F] uppercase tracking-wider">
               {item.client_name} • {item.year}
             </span>
             <h3 className="text-xl sm:text-2xl font-bold text-white mt-1">

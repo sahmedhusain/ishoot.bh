@@ -63,7 +63,7 @@ export function BankCoordinatesTab({
                 setSettings({ ...settings, bank_iban: e.target.value })
               }
               placeholder={t.companySettingsTabs.ibanPlaceholder}
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
 
@@ -80,7 +80,7 @@ export function BankCoordinatesTab({
                 })
               }
               placeholder={t.companySettingsTabs.accountPlaceholder}
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
 
@@ -94,7 +94,7 @@ export function BankCoordinatesTab({
                 setSettings({ ...settings, bank_swift: e.target.value })
               }
               placeholder={t.companySettingsTabs.swiftPlaceholder}
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
         </div>

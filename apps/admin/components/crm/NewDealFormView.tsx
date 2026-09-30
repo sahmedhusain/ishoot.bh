@@ -91,7 +91,7 @@ export function NewDealFormView() {
                 placeholder={t.dealsNew.valuePlaceholder}
                 value={value || ""}
                 onChange={(e) => setValue(parseFloat(e.target.value) || 0)}
-                className="font-mono"
+                className=""
               />
             </div>
           </div>
@@ -124,7 +124,7 @@ export function NewDealFormView() {
                 type="date"
                 value={shootDate}
                 onChange={(e) => setShootDate(e.target.value)}
-                className="font-mono"
+                className=""
               />
             </div>
           </div>

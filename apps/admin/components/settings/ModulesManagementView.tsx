@@ -68,7 +68,7 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
                 <h3 className="font-bold text-slate-900 dark:text-white">
                   {isRTL ? toggle.nameAr : toggle.nameEn}
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-[#9EADA9] font-mono mt-1">
+                <p className="text-xs text-slate-500 dark:text-[#9EADA9]  mt-1">
                   ID: {toggle.moduleKey}
                 </p>
                 {toggle.description && (

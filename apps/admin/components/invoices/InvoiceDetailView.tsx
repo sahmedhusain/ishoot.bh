@@ -134,7 +134,7 @@ export function InvoiceDetailView({
                 <div>
                   <Link
                     href={`/dashboard/payments/${p.id}`}
-                    className="font-mono font-bold text-[#09937F] hover:underline inline-flex items-center gap-1 group"
+                    className=" font-bold text-[#09937F] hover:underline inline-flex items-center gap-1 group"
                     title="View Official Receipt"
                   >
                     <span>{p.receipt_number}</span>
@@ -146,10 +146,10 @@ export function InvoiceDetailView({
                 </div>
 
                 <div className="text-end">
-                  <div className="font-mono font-bold text-slate-900 dark:text-white">
+                  <div className=" font-bold text-slate-900 dark:text-white">
                     <CurrencyDisplay amount={p.amount} currency={p.currency} />
                   </div>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ">
                     {t.finance.reconciled}
                   </span>
                 </div>

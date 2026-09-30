@@ -91,7 +91,7 @@ export function PreferencesView() {
             <p className="text-xs text-[#9EADA9] mt-2 leading-relaxed">
               {t.preferences.arabicDesc}
             </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/5 text-[#9EADA9]">
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px]  font-bold bg-white/5 text-[#9EADA9]">
               <span>RTL</span>
               <span>•</span>
               <span>IBM Plex Sans Arabic</span>
@@ -117,7 +117,7 @@ export function PreferencesView() {
             <p className="text-xs text-[#9EADA9] mt-2 leading-relaxed">
               {t.preferences.englishDesc}
             </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-white/5 text-[#9EADA9]">
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px]  font-bold bg-white/5 text-[#9EADA9]">
               <span>LTR</span>
               <span>•</span>
               <span>Inter Sans</span>
@@ -168,7 +168,7 @@ export function PreferencesView() {
               <span className="w-3 h-3 rounded-full bg-[#050807] border border-white/30" />
               <span className="w-3 h-3 rounded-full bg-[#014842]" />
               <span className="w-3 h-3 rounded-full bg-[#09937F]" />
-              <span className="text-[10px] text-[#9EADA9] ms-auto font-mono">
+              <span className="text-[10px] text-[#9EADA9] ms-auto ">
                 #050807
               </span>
             </div>
@@ -202,7 +202,7 @@ export function PreferencesView() {
               <span className="w-3 h-3 rounded-full bg-[#F8FAFC] border border-black/20" />
               <span className="w-3 h-3 rounded-full bg-[#FFFFFF] border border-black/20" />
               <span className="w-3 h-3 rounded-full bg-[#09937F]" />
-              <span className="text-[10px] text-[#9EADA9] ms-auto font-mono">
+              <span className="text-[10px] text-[#9EADA9] ms-auto ">
                 #F8FAFC
               </span>
             </div>
@@ -232,7 +232,7 @@ export function PreferencesView() {
                 {t.preferences.systemDesc}
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-white/10 text-[10px] text-[#09937F] font-mono">
+            <div className="mt-4 pt-3 border-t border-white/10 text-[10px] text-[#09937F] ">
               {t.preferences.activePrefix}
               {resolvedTheme === "dark"
                 ? t.preferences.darkWord

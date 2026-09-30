@@ -110,7 +110,7 @@ export function AdminProfileDropdown() {
         className="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus:outline-none"
         aria-expanded={isOpen}
       >
-        <div className="w-8 h-8 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center text-xs font-bold text-white font-mono shadow-sm">
+        <div className="w-8 h-8 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center text-xs font-bold text-white  shadow-sm">
           <User className="w-4 h-4" />
         </div>
         <div className="hidden xl:block text-start leading-tight">
@@ -121,7 +121,7 @@ export function AdminProfileDropdown() {
                 }`}
             />
           </div>
-          <div className="text-[10px] text-[#09937F] font-semibold font-mono">
+          <div className="text-[10px] text-[#09937F] font-semibold ">
             {displayRole}
           </div>
         </div>
@@ -133,17 +133,17 @@ export function AdminProfileDropdown() {
         >
           <div className="p-4 bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/10">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#014842] border border-[#09937F]/50 flex items-center justify-center text-sm font-bold text-white font-mono shrink-0 shadow-md">
+              <div className="w-10 h-10 rounded-2xl bg-[#014842] border border-[#09937F]/50 flex items-center justify-center text-sm font-bold text-white  shrink-0 shadow-md">
                 <User className="w-5 h-5" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-bold text-slate-900 dark:text-white truncate">
                   {displayName}
                 </div>
-                <div className="text-[11px] text-slate-500 dark:text-[#9EADA9] font-mono truncate">
+                <div className="text-[11px] text-slate-500 dark:text-[#9EADA9]  truncate">
                   {displayEmail}
                 </div>
-                <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#09937F]/15 text-[#09937F] border border-[#09937F]/30">
+                <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px]  font-bold bg-[#09937F]/15 text-[#09937F] border border-[#09937F]/30">
                   <Shield className="w-2.5 h-2.5" />
                   <span>{displayRole}</span>
                 </div>
@@ -187,7 +187,7 @@ export function AdminProfileDropdown() {
               <Sliders className="w-4 h-4 text-[#09937F]" />
               <div className="flex-1 flex items-center justify-between">
                 <span>{t.profileDropdown.appearance}</span>
-                <span className="text-[10px] font-mono text-[#09937F] bg-[#09937F]/10 px-1.5 py-0.5 rounded">
+                <span className="text-[10px]  text-[#09937F] bg-[#09937F]/10 px-1.5 py-0.5 rounded">
                   {resolvedTheme === "dark"
                     ? t.profileDropdown.dark
                     : t.profileDropdown.light}
@@ -221,7 +221,7 @@ export function AdminProfileDropdown() {
             ) : null}
           </div>
 
-          <div className="p-3 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] text-[10px] font-mono text-slate-500 dark:text-[#9EADA9] space-y-1">
+          <div className="p-3 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] text-[10px]  text-slate-500 dark:text-[#9EADA9] space-y-1">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
                 <Database className="w-3 h-3 text-[#09937F]" />

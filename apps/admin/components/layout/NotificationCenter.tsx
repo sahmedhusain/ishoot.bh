@@ -112,7 +112,7 @@ export function NotificationCenter() {
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="min-w-4 h-4 px-1 rounded-full bg-[#09937F] text-white text-[9px] font-mono font-bold flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white dark:ring-[#070C0A] animate-pulse">
+          <span className="min-w-4 h-4 px-1 rounded-full bg-[#09937F] text-white text-[9px]  font-bold flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white dark:ring-[#070C0A] animate-pulse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -130,7 +130,7 @@ export function NotificationCenter() {
                 {t.notificationsCenter.title}
               </span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#09937F]/15 text-[#09937F]">
+                <span className="px-1.5 py-0.5 rounded text-[10px]  font-bold bg-[#09937F]/15 text-[#09937F]">
                   {unreadCount} {t.notificationsCenter.new}
                 </span>
               )}
@@ -185,7 +185,7 @@ export function NotificationCenter() {
                       <p className="text-[11px] text-slate-500 dark:text-[#9EADA9] mt-0.5 line-clamp-2 leading-relaxed">
                         {n.message}
                       </p>
-                      <div className="flex items-center justify-between mt-2 pt-1 text-[10px] font-mono text-slate-400 dark:text-[#9EADA9]/70">
+                      <div className="flex items-center justify-between mt-2 pt-1 text-[10px]  text-slate-400 dark:text-[#9EADA9]/70">
                         <span>{formatDate(n.created_at, locale, "time")}</span>
                         {link && (
                           <Link

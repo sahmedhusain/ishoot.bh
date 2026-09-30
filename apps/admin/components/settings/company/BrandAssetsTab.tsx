@@ -236,7 +236,7 @@ export function BrandAssetsTab({
             <div>
               <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                 <span>Brand Identity Pairing (Icon + Wordmark)</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono lowercase">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20  lowercase">
                   live database state
                 </span>
               </h3>
@@ -251,7 +251,7 @@ export function BrandAssetsTab({
             <div className="p-6 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold border-b border-slate-100 pb-2">
                 <span>{isRTL ? "الخلفية الفاتحة (فواتير، مستندات رسمية، طباعة)" : "Light Surface (Invoices, Letters, Print)"}</span>
-                <span className="text-[10px] text-slate-400 font-mono">Pine Green + Emerald</span>
+                <span className="text-[10px] text-slate-400 ">Pine Green + Emerald</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
                 <img
@@ -265,7 +265,7 @@ export function BrandAssetsTab({
                   className="h-7 w-auto object-contain"
                 />
               </div>
-              <div className="text-[10px] text-slate-400 text-center font-mono">
+              <div className="text-[10px] text-slate-400 text-center ">
                 icon_light (mark) + logo_light (dark text)
               </div>
             </div>
@@ -274,7 +274,7 @@ export function BrandAssetsTab({
             <div className="p-6 rounded-xl bg-[#050807] border border-white/10 shadow-xs flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between text-[11px] text-white/70 font-semibold border-b border-white/10 pb-2">
                 <span>{isRTL ? "الخلفية الداكنة (الموقع، لوحة التحكم، السينما)" : "Dark Surface (Web, Admin Portal, Cinema)"}</span>
-                <span className="text-[10px] text-emerald-400 font-mono">Crisp White + Emerald</span>
+                <span className="text-[10px] text-emerald-400 ">Crisp White + Emerald</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
                 <img
@@ -288,7 +288,7 @@ export function BrandAssetsTab({
                   className="h-7 w-auto object-contain"
                 />
               </div>
-              <div className="text-[10px] text-white/40 text-center font-mono">
+              <div className="text-[10px] text-white/40 text-center ">
                 icon_dark (mark) + logo_dark (light text)
               </div>
             </div>

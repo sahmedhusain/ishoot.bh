@@ -335,31 +335,31 @@ export function ArchiveManagementView({
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.totalDocuments}</div>
-          <div className="text-lg font-bold text-slate-900 dark:text-white font-mono mt-0.5">
+          <div className="text-lg font-bold text-slate-900 dark:text-white  mt-0.5">
             {attachments.length}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.filterPayments}</div>
-          <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
+          <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400  mt-0.5">
             {attachments.filter((a) => a.entity_type === "payment").length}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.filterLegal}</div>
-          <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400 font-mono mt-0.5">
+          <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400  mt-0.5">
             {attachments.filter((a) => a.entity_type === "company_setting").length}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.invoicePdfs}</div>
-          <div className="text-lg font-bold text-slate-900 dark:text-white font-mono mt-0.5">
+          <div className="text-lg font-bold text-slate-900 dark:text-white  mt-0.5">
             {attachments.filter((a) => a.entity_type === "invoice").length}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.clientVaults}</div>
-          <div className="text-lg font-bold text-[#014842] dark:text-[#7de0d1] font-mono mt-0.5">
+          <div className="text-lg font-bold text-[#014842] dark:text-[#7de0d1]  mt-0.5">
             {attachments.filter((a) => a.entity_type === "contact" || a.entity_type === "customer_vault").length}
           </div>
         </div>
@@ -408,7 +408,7 @@ export function ArchiveManagementView({
       <div className="bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-xs">
-            <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-slate-600 dark:text-neutral-400 uppercase font-mono tracking-wider text-[11px]">
+            <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-slate-600 dark:text-neutral-400 uppercase  tracking-wider text-[11px]">
               <tr>
                 <th className="p-3.5 text-start font-semibold">{t.archiveView.tableDocName}</th>
                 <th className="p-3.5 text-start font-semibold">{t.archiveView.tableLinkedEntity}</th>
@@ -440,7 +440,7 @@ export function ArchiveManagementView({
                         >
                           {att.file_name}
                         </a>
-                        <div className="text-[10px] text-slate-400 dark:text-neutral-500 font-mono">
+                        <div className="text-[10px] text-slate-400 dark:text-neutral-500 ">
                           {att.mime_type || "application/octet-stream"}
                         </div>
                       </div>
@@ -479,36 +479,36 @@ export function ArchiveManagementView({
                   <td className="p-3.5">
                     {att.entity_type === "payment" ? (
                       att.file_name.toLowerCase().includes("cheque") ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px]  font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
                           Cheque Copy
                         </span>
                       ) : att.file_name.toLowerCase().includes("bank") || att.file_name.toLowerCase().includes("transfer") ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px]  font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
                           Bank Transfer Slip
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px]  font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
                           Payment Proof
                         </span>
                       )
                     ) : att.entity_type === "company_setting" ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px]  font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800">
                         VAT & Legal
                       </span>
                     ) : (
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-mono font-medium capitalize bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-[10px]  font-medium capitalize bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
                         {att.entity_type.replace("_", " ")}
                       </span>
                     )}
                   </td>
 
                   {/* File Size */}
-                  <td className="p-3.5 text-end font-mono text-slate-600 dark:text-neutral-400">
+                  <td className="p-3.5 text-end  text-slate-600 dark:text-neutral-400">
                     {formatFileSize(att.file_size)}
                   </td>
 
                   {/* Date Uploaded */}
-                  <td className="p-3.5 font-mono text-[11px] text-slate-500 dark:text-neutral-400">
+                  <td className="p-3.5  text-[11px] text-slate-500 dark:text-neutral-400">
                     {att.created_at.split("T")[0]}
                     {att.uploaded_by && (
                       <div className="text-[10px] text-slate-400">
@@ -660,7 +660,7 @@ export function ArchiveManagementView({
                             <div className="font-semibold text-slate-900 dark:text-white truncate">
                               {selectedFile.name}
                             </div>
-                            <div className="text-[11px] text-slate-500 font-mono">
+                            <div className="text-[11px] text-slate-500 ">
                               {(selectedFile.size / 1024).toFixed(1)} KB • {selectedFile.type || "Document"}
                             </div>
                           </div>

@@ -83,7 +83,7 @@ export function GeneralInfoTab({
               onChange={(e) =>
                 setSettings({ ...settings, cr_number: e.target.value })
               }
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
 
@@ -94,7 +94,7 @@ export function GeneralInfoTab({
             <Input
               disabled
               value={`${settings.default_currency} (${settings.currency_decimals} ${t.companySettingsView.decimalsWord})`}
-              className="font-mono bg-slate-50 dark:bg-slate-800/50 opacity-80 rounded-lg"
+              className=" bg-slate-50 dark:bg-slate-800/50 opacity-80 rounded-lg"
             />
           </div>
 
@@ -152,7 +152,7 @@ export function GeneralInfoTab({
               onChange={(e) =>
                 setSettings({ ...settings, phone: e.target.value })
               }
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
 
@@ -165,7 +165,7 @@ export function GeneralInfoTab({
               onChange={(e) =>
                 setSettings({ ...settings, whatsapp_phone: e.target.value })
               }
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
 
@@ -179,7 +179,7 @@ export function GeneralInfoTab({
               onChange={(e) =>
                 setSettings({ ...settings, email: e.target.value })
               }
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
 
@@ -193,7 +193,7 @@ export function GeneralInfoTab({
               onChange={(e) =>
                 setSettings({ ...settings, website: e.target.value })
               }
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
 
@@ -206,7 +206,7 @@ export function GeneralInfoTab({
               onChange={(e) =>
                 setSettings({ ...settings, instagram_url: e.target.value })
               }
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
 
@@ -219,7 +219,7 @@ export function GeneralInfoTab({
               onChange={(e) =>
                 setSettings({ ...settings, linkedin_url: e.target.value })
               }
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
 
@@ -232,7 +232,7 @@ export function GeneralInfoTab({
               onChange={(e) =>
                 setSettings({ ...settings, youtube_url: e.target.value })
               }
-              className="font-mono rounded-lg"
+              className=" rounded-lg"
             />
           </div>
         </div>
@@ -262,7 +262,7 @@ export function GeneralInfoTab({
                 {t.companySettingsView.googleConnected}
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+            <p className="text-xs text-slate-500 dark:text-slate-400 ">
               {settings.email || "admin"} • {t.companySettingsView.googleSyncActive}
             </p>
           </div>

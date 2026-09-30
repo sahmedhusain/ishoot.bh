@@ -116,7 +116,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
           <Search className="w-3.5 h-3.5 shrink-0" />
           <span className="truncate">{t.quickJump.navigate}...</span>
         </span>
-        <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 text-[10px] font-mono text-slate-400">
+        <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 text-[10px]  text-slate-400">
           ⌘K
         </kbd>
       </button>
@@ -197,7 +197,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
 
                     <div className="flex items-center gap-2 shrink-0">
                       {result.badge && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase bg-slate-200/60 dark:bg-white/10">
+                        <span className="px-2 py-0.5 rounded-full text-[10px]  uppercase bg-slate-200/60 dark:bg-white/10">
                           {result.badge}
                         </span>
                       )}
@@ -215,7 +215,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                 <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">↵</kbd> {t.quickJump.select}</span>
                 <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">esc</kbd> {t.actions.cancel}</span>
               </span>
-              <span className="font-mono text-[10px] text-[#09937F] font-semibold">{t.quickJump.universalSearch}</span>
+              <span className=" text-[10px] text-[#09937F] font-semibold">{t.quickJump.universalSearch}</span>
             </div>
           </div>
         </div>

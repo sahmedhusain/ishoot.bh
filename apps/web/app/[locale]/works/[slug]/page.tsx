@@ -39,7 +39,7 @@ export default async function ProjectDetailPage({
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-4 text-xs font-mono text-[#09937F] uppercase tracking-widest">
+        <div className="flex items-center gap-4 text-xs  text-[#09937F] uppercase tracking-widest">
           <span>{item.client_name}</span>
           <span>•</span>
           <span>{item.year}</span>

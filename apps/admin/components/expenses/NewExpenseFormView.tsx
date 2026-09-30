@@ -97,7 +97,7 @@ export function NewExpenseFormView() {
                 placeholder={t.expensesNew.amountPlaceholder}
                 value={amount || ""}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                className="font-mono"
+                className=""
               />
             </div>
           </div>
@@ -122,7 +122,7 @@ export function NewExpenseFormView() {
                 required
                 value={expenseDate}
                 onChange={(e) => setExpenseDate(e.target.value)}
-                className="font-mono"
+                className=""
               />
             </div>
           </div>

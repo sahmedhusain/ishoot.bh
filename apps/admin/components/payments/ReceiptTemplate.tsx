@@ -82,7 +82,7 @@ export function ReceiptTemplate({
                 <span className="text-gray-400 font-bold uppercase text-[10px]">
                   {rcpt.referenceNo}
                 </span>
-                <span className="font-mono text-gray-700">
+                <span className=" text-gray-700">
                   {payment.reference_number}
                 </span>
               </div>
@@ -97,12 +97,12 @@ export function ReceiptTemplate({
             <span className="text-xs font-bold uppercase tracking-wider text-gray-600">
               {rcpt.linkedInvoice}
             </span>
-            <span className="font-mono font-bold text-[#014842]">
+            <span className=" font-bold text-[#014842]">
               {invoice?.invoice_number || rcpt.directPayment}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs ">
             <div>
               <span className="text-gray-500 block">{rcpt.totalInvoice}</span>
               <span className="text-sm font-bold text-gray-900">
@@ -143,7 +143,7 @@ export function ReceiptTemplate({
               {rcpt.fundsVerified}
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-black font-mono text-[#014842]">
+          <div className="text-3xl sm:text-4xl font-black  text-[#014842]">
             {formatCurrencyValue(payment.amount, currency, isAr)}
           </div>
         </div>

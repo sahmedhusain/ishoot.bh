@@ -25,7 +25,7 @@ export function CTASection() {
       />
 
       <div className="shell relative z-20 text-center space-y-10 max-w-4xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-mono font-bold text-[#5EEAD4]">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs  font-bold text-[#5EEAD4]">
           <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
           <span>{t("cta.badge")}</span>
         </div>
@@ -64,7 +64,7 @@ export function CTASection() {
           </Link>
         </div>
 
-        <div className="pt-12 text-xs font-mono text-[#9EADA9]/70 space-y-1">
+        <div className="pt-12 text-xs  text-[#9EADA9]/70 space-y-1">
           <div>{t("cta.address")}</div>
           <div className="text-[10px] text-[#09937F]">
             © {new Date().getFullYear()} {t("footer.companyName")}.{" "}

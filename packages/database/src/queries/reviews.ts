@@ -1,15 +1,25 @@
 import { db } from "../db";
 
 export async function getReviews(adminOnly = true) {
-  return await db.review.findMany({
-    where: adminOnly ? undefined : { isApproved: true },
-    orderBy: { sortOrder: "asc" },
-    include: { client: true },
-  });
+  try {
+    return await db.review.findMany({
+      where: adminOnly ? undefined : { isApproved: true },
+      orderBy: { sortOrder: "asc" },
+      include: { client: true },
+    });
+  } catch (e) {
+    console.error("Error fetching reviews from DB:", e instanceof Error ? e.message : e);
+    return [];
+  }
 }
 
 export async function getReviewById(id: string) {
-  return await db.review.findUnique({ where: { id } });
+  try {
+    return await db.review.findUnique({ where: { id } });
+  } catch (e) {
+    console.error(`Error fetching review ${id}:`, e instanceof Error ? e.message : e);
+    return null;
+  }
 }
 
 export async function createReview(data: {

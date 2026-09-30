@@ -59,15 +59,24 @@ function mapSettings(s: any): CompanySettings {
 }
 
 export async function getCompanySettings(): Promise<CompanySettings> {
-  let s = await db.companySetting.findFirst();
-  if (!s) {
-    s = await db.companySetting.create({
-      data: {
-        ...initialConfig.company,
-      },
+  try {
+    let s = await db.companySetting.findFirst();
+    if (!s) {
+      s = await db.companySetting.create({
+        data: {
+          ...initialConfig.company,
+        },
+      });
+    }
+    return mapSettings(s);
+  } catch (e) {
+    console.error("Error fetching company settings from DB:", e instanceof Error ? e.message : e);
+    return mapSettings({
+      id: "fallback-id",
+      updatedAt: new Date(),
+      ...initialConfig.company,
     });
   }
-  return mapSettings(s);
 }
 
 export async function updateCompanySettings(

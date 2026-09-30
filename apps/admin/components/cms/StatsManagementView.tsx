@@ -81,7 +81,7 @@ export function StatsManagementView({ initialStats }: { initialStats: any[] }) {
         {stats.map((stat) => (
           <Card key={stat.id} className="p-5 dark:bg-[#111C19] flex flex-col justify-between">
             <div>
-              <div className="text-2xl font-mono font-bold text-[#09937F] mb-2">{stat.value}</div>
+              <div className="text-2xl  font-bold text-[#09937F] mb-2">{stat.value}</div>
               <h3 className="font-bold text-sm dark:text-white">
                 {isRTL && stat.labelAr ? stat.labelAr : stat.labelEn}
               </h3>

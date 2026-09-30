@@ -109,7 +109,7 @@ export function WebSettingsView({
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <span>{t.webSettingsView.title}</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#09937F]/10 text-[#09937F] border border-[#09937F]/20 font-mono font-medium">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#09937F]/10 text-[#09937F] border border-[#09937F]/20  font-medium">
               {t.webSettingsView.badge}
             </span>
           </h1>
@@ -624,7 +624,7 @@ export function WebSettingsView({
                       <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
                         {t.webSettingsView.manageShowcaseBanners}
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono">
+                      <div className="text-[11px] text-slate-400 ">
                         {t.webSettingsView.cmsSlidesConfigured.replace("{count}", String(cmsCounts.banners))}
                       </div>
                     </div>
@@ -644,7 +644,7 @@ export function WebSettingsView({
                       <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
                         {t.webSettingsView.managePortfolio}
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono">
+                      <div className="text-[11px] text-slate-400 ">
                         {t.webSettingsView.cmsProjectsPublished.replace("{count}", String(cmsCounts.portfolio))}
                       </div>
                     </div>
@@ -664,7 +664,7 @@ export function WebSettingsView({
                       <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
                         {t.webSettingsView.manageClients}
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono">
+                      <div className="text-[11px] text-slate-400 ">
                         {t.webSettingsView.cmsPartnerLogos.replace("{count}", String(cmsCounts.clients))}
                       </div>
                     </div>
@@ -684,7 +684,7 @@ export function WebSettingsView({
                       <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
                         {t.webSettingsView.manageEquipment}
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono">
+                      <div className="text-[11px] text-slate-400 ">
                         {t.webSettingsView.cmsCameraSystems.replace("{count}", String(cmsCounts.equipment))}
                       </div>
                     </div>
@@ -709,7 +709,7 @@ export function WebSettingsView({
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono">
+                      <div className="text-[11px] text-slate-400 ">
                         {t.webSettingsView.cmsClientReviews.replace("{count}", String(cmsCounts.reviews))}
                       </div>
                     </div>
@@ -729,7 +729,7 @@ export function WebSettingsView({
                       <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
                         {t.webSettingsView.manageFaqs}
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono">
+                      <div className="text-[11px] text-slate-400 ">
                         {t.webSettingsView.cmsQuestionsConfigured.replace("{count}", String(cmsCounts.faqs))}
                       </div>
                     </div>

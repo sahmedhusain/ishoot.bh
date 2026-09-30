@@ -261,7 +261,7 @@ export function PaymentDetailView({
                       >
                         {att.file_name}
                       </p>
-                      <p className="text-[10px] text-slate-500 dark:text-neutral-400 font-mono">
+                      <p className="text-[10px] text-slate-500 dark:text-neutral-400 ">
                         {att.file_size
                           ? `${(att.file_size / 1024).toFixed(0)} KB`
                           : t.paymentDetailView.document}{" "}

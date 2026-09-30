@@ -409,13 +409,13 @@ export function InvoiceEditFormView({
                   {selectedContact.email && (
                     <div className="flex items-center gap-1.5">
                       <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="font-mono">{selectedContact.email}</span>
+                      <span className="">{selectedContact.email}</span>
                     </div>
                   )}
                   {selectedContact.phone && (
                     <div className="flex items-center gap-1.5" dir="ltr">
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="font-mono">{selectedContact.phone}</span>
+                      <span className="">{selectedContact.phone}</span>
                     </div>
                   )}
                 </div>
@@ -466,7 +466,7 @@ export function InvoiceEditFormView({
                 value={issueDate}
                 onChange={(e) => setIssueDate(e.target.value)}
                 disabled={isLocked}
-                className="font-mono"
+                className=""
               />
             </div>
 
@@ -480,7 +480,7 @@ export function InvoiceEditFormView({
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 disabled={isLocked}
-                className="font-mono"
+                className=""
               />
             </div>
           </div>
@@ -518,7 +518,7 @@ export function InvoiceEditFormView({
                     <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
                     <span>{t.invoiceEdit.itemNumber} #{idx + 1}</span>
                     {item.service_id && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-[#09937F] border border-teal-200 dark:border-teal-800 font-mono">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-[#09937F] border border-teal-200 dark:border-teal-800 ">
                         {t.invoiceEdit.catalogLinked}
                       </span>
                     )}
@@ -610,7 +610,7 @@ export function InvoiceEditFormView({
                         handleLineItemChange(idx, "quantity", e.target.value)
                       }
                       disabled={isLocked}
-                      className="font-mono"
+                      className=""
                     />
                   </div>
                   <div>
@@ -626,7 +626,7 @@ export function InvoiceEditFormView({
                         handleLineItemChange(idx, "unit_price", e.target.value)
                       }
                       disabled={isLocked}
-                      className="font-mono"
+                      className=""
                     />
                   </div>
                   <div className="flex items-center justify-between gap-3">
@@ -634,7 +634,7 @@ export function InvoiceEditFormView({
                       <label className="text-[11px] font-medium text-slate-600 dark:text-slate-400 mb-1 block">
                         {t.invoiceEdit.lineTotal}
                       </label>
-                      <div className="text-sm font-bold text-slate-900 dark:text-white font-mono h-10 flex items-center">
+                      <div className="text-sm font-bold text-slate-900 dark:text-white  h-10 flex items-center">
                         {(item.quantity * item.unit_price).toFixed(3)} {currency}
                       </div>
                     </div>
@@ -690,7 +690,7 @@ export function InvoiceEditFormView({
                     setDiscountValue(parseFloat(e.target.value) || 0)
                   }
                   disabled={isLocked}
-                  className="font-mono"
+                  className=""
                 />
               </div>
             )}
@@ -751,7 +751,7 @@ export function InvoiceEditFormView({
         <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-3">
           <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
             <span className="text-slate-500 dark:text-slate-400">{t.invoiceEdit.subtotal}</span>
-            <span className="font-mono font-bold text-slate-900 dark:text-white">
+            <span className=" font-bold text-slate-900 dark:text-white">
               {totals.subtotal.toFixed(3)} {currency}
             </span>
           </div>
@@ -759,7 +759,7 @@ export function InvoiceEditFormView({
           {discountType !== "none" && (
             <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
               <span className="text-slate-500 dark:text-slate-400">{t.invoiceEdit.discount}</span>
-              <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
+              <span className=" font-bold text-rose-600 dark:text-rose-400">
                 -{totals.discountAmount.toFixed(3)} {currency}
               </span>
             </div>
@@ -770,7 +770,7 @@ export function InvoiceEditFormView({
               <span className="text-slate-500 dark:text-slate-400">
                 {t.invoiceEdit.vatRate} ({vatPercentage}%)
               </span>
-              <span className="font-mono font-bold text-[#09937F]">
+              <span className=" font-bold text-[#09937F]">
                 +{totals.vatAmount.toFixed(3)} {currency}
               </span>
             </div>
@@ -778,7 +778,7 @@ export function InvoiceEditFormView({
 
           <div className="flex items-center justify-between text-sm border-t-2 border-[#09937F]/40 pt-3">
             <span className="font-bold text-slate-900 dark:text-white">{t.invoiceEdit.totalAmount}</span>
-            <span className="font-mono font-bold text-2xl text-[#014842] dark:text-[#09937F]">
+            <span className=" font-bold text-2xl text-[#014842] dark:text-[#09937F]">
               {totals.totalAmount.toFixed(3)} {currency}
             </span>
           </div>

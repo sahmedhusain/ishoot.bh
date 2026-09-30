@@ -134,7 +134,7 @@ export function TaxVatSettingsTab({
                   : t.companySettingsView.vatInactiveBadge}
               </span>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                className={`px-2.5 py-0.5 rounded-full text-[10px]  font-bold ${
                   settings.vat_enabled
                     ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700"
                     : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
@@ -187,7 +187,7 @@ export function TaxVatSettingsTab({
                   setSettings({ ...settings, vat_id: e.target.value })
                 }
                 placeholder={t.companySettingsTabs.trnPlaceholder}
-                className="font-mono text-sm rounded-lg"
+                className=" text-sm rounded-lg"
               />
             </div>
 
@@ -205,7 +205,7 @@ export function TaxVatSettingsTab({
                     vat_percentage: parseFloat(e.target.value) || 10,
                   })
                 }
-                className="font-mono text-sm rounded-lg"
+                className=" text-sm rounded-lg"
               />
             </div>
 
@@ -217,7 +217,7 @@ export function TaxVatSettingsTab({
                     {t.companySettingsTabs.certificateTitle}
                   </span>
                 </label>
-                <span className="text-[10px] font-mono text-slate-500 dark:text-neutral-400">
+                <span className="text-[10px]  text-slate-500 dark:text-neutral-400">
                   {isRTL ? "شهادة الجهاز الوطني للإيرادات (PDF / صورة)" : "NBR Official Certificate (PDF / Image)"}
                 </span>
               </div>
@@ -245,7 +245,7 @@ export function TaxVatSettingsTab({
                           {t.companySettingsTabs.archivedInVault}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-neutral-400 font-mono truncate">
+                      <p className="text-[11px] text-slate-500 dark:text-neutral-400  truncate">
                         {settings.vat_certificate_url}
                       </p>
                     </div>
@@ -406,7 +406,7 @@ export function TaxVatSettingsTab({
                   <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-2">
                     <div className="flex items-center justify-between font-bold text-xs">
                       <span>{t.companySettingsTabs.vatModalNewStatusEnabled}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 font-mono">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 ">
                         {settings.vat_percentage}% VAT
                       </span>
                     </div>

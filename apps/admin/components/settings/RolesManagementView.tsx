@@ -189,7 +189,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
               <tbody className="divide-y dark:divide-white/10">
                 {MODULES.map((mod) => (
                   <tr key={mod} className="dark:bg-[#111C19]">
-                    <td className="px-4 py-3 font-mono text-xs">{mod}</td>
+                    <td className="px-4 py-3  text-xs">{mod}</td>
                     <td className="px-4 py-3 text-center">
                       <input type="checkbox" checked={permissions[mod]?.canRead || false} onChange={() => togglePermission(mod, "canRead")} />
                     </td>

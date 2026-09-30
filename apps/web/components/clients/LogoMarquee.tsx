@@ -18,7 +18,7 @@ export function LogoMarquee({ logos }: LogoMarqueeProps) {
       <div className="absolute top-0 bottom-0 left-0 w-24 sm:w-44 bg-gradient-to-r from-[#050807] to-transparent z-10 pointer-events-none" />
       <div className="absolute top-0 bottom-0 right-0 w-24 sm:w-44 bg-gradient-to-l from-[#050807] to-transparent z-10 pointer-events-none" />
 
-      <div className="shell mb-8 flex items-center justify-between text-xs font-mono text-[#9EADA9]">
+      <div className="shell mb-8 flex items-center justify-between text-xs  text-[#9EADA9]">
         <span className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-[#09937F]" />
           <span>{t("clients.marqueeBadge")}</span>

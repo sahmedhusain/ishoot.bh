@@ -292,7 +292,7 @@ export function NewPaymentFormView({
               <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
                 <label>{t.newPaymentView.selectInvoiceLabel} *</label>
                 {fetchingInvoices && (
-                  <span className="text-[10px] text-[#09937F] font-mono animate-pulse">
+                  <span className="text-[10px] text-[#09937F]  animate-pulse">
                     {t.newPaymentView.refreshingInvoices}
                   </span>
                 )}
@@ -338,7 +338,7 @@ export function NewPaymentFormView({
                 <Link
                   href={`/dashboard/invoices/${selectedInvoice.id}`}
                   target="_blank"
-                  className="font-mono font-bold text-[#09937F] hover:underline flex items-center gap-1"
+                  className=" font-bold text-[#09937F] hover:underline flex items-center gap-1"
                 >
                   <span>{selectedInvoice.invoice_number}</span>
                   <ExternalLink className="w-3 h-3" />
@@ -347,7 +347,7 @@ export function NewPaymentFormView({
 
               <div>
                 <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.totalInvoiced}</span>
-                <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                <span className=" font-bold text-slate-800 dark:text-slate-200">
                   <CurrencyDisplay
                     amount={selectedInvoice.total_amount}
                     currency={selectedInvoice.currency}
@@ -357,7 +357,7 @@ export function NewPaymentFormView({
 
               <div>
                 <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.balanceDue}</span>
-                <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
+                <span className=" font-bold text-amber-600 dark:text-amber-400">
                   <CurrencyDisplay
                     amount={selectedInvoice.amount_due}
                     currency={selectedInvoice.currency}
@@ -367,7 +367,7 @@ export function NewPaymentFormView({
 
               <div>
                 <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.balanceAfterPayment}</span>
-                <span className={`font-mono font-bold ${remainingBalance === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                <span className={` font-bold ${remainingBalance === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
                   <CurrencyDisplay
                     amount={remainingBalance}
                     currency={selectedInvoice.currency}
@@ -394,7 +394,7 @@ export function NewPaymentFormView({
                 placeholder="0.000"
                 value={amount || ""}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                className="font-mono text-lg font-bold text-[#09937F]"
+                className=" text-lg font-bold text-[#09937F]"
               />
             </div>
 
@@ -460,7 +460,7 @@ export function NewPaymentFormView({
                       {t.newPaymentView.chequeSettlementDocsTitle}
                     </h3>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 font-bold">
+                  <span className="text-[10px]  px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 font-bold">
                     {t.newPaymentView.mandatoryForCheques}
                   </span>
                 </div>
@@ -495,7 +495,7 @@ export function NewPaymentFormView({
                             <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                               {chequeFile.fileName}
                             </p>
-                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ">
                               {t.newPaymentView.uploadedReady}
                             </span>
                           </div>
@@ -571,7 +571,7 @@ export function NewPaymentFormView({
                             <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                               {bankReceiptFile.fileName}
                             </p>
-                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ">
                               {t.newPaymentView.uploadedReady}
                             </span>
                           </div>
@@ -626,7 +626,7 @@ export function NewPaymentFormView({
                     <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
                     <span>{t.newPaymentView.proofOptionalTitle}</span>
                   </label>
-                  <span className="text-[10px] text-slate-400 font-mono">{t.newPaymentView.savedToVault}</span>
+                  <span className="text-[10px] text-slate-400 ">{t.newPaymentView.savedToVault}</span>
                 </div>
 
                 <input
@@ -648,7 +648,7 @@ export function NewPaymentFormView({
                         <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                           {generalProofFile.fileName}
                         </p>
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 ">
                           {t.newPaymentView.uploadedReady}
                         </span>
                       </div>

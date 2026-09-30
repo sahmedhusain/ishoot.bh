@@ -138,7 +138,7 @@ export function ClientsManagementView({
                     href={logo.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] text-[#09937F] hover:underline font-mono"
+                    className="inline-flex items-center gap-1 text-[11px] text-[#09937F] hover:underline "
                   >
                     <Globe className="w-3 h-3" />
                     <span>{t.clientsView.website}</span>

@@ -151,7 +151,7 @@ export function CompanyDocumentsClientView({
                   </div>
                   <Badge
                     variant="outline"
-                    className="text-[10px] uppercase font-mono border-white/20"
+                    className="text-[10px] uppercase  border-white/20"
                   >
                     {getCategoryLabel(doc.category)}
                   </Badge>
@@ -162,7 +162,7 @@ export function CompanyDocumentsClientView({
                     {locale === "ar" && doc.title_ar ? doc.title_ar : doc.title_en}
                   </h3>
                   {doc.document_number && (
-                    <p className="text-[11px] font-mono text-[#09937F] mt-0.5">
+                    <p className="text-[11px]  text-[#09937F] mt-0.5">
                       {t.companyDocumentsView.docNumberPrefix}{doc.document_number}
                     </p>
                   )}
@@ -174,7 +174,7 @@ export function CompanyDocumentsClientView({
                   </p>
                 )}
 
-                <div className="text-[11px] text-[#9EADA9] space-y-1 font-mono pt-2 border-t border-white/5">
+                <div className="text-[11px] text-[#9EADA9] space-y-1  pt-2 border-t border-white/5">
                   {doc.valid_until && (
                     <div className="flex items-center gap-1.5 text-amber-400">
                       <Calendar className="w-3.5 h-3.5" />

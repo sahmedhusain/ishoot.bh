@@ -85,7 +85,7 @@ export function PaymentRecorder({
               <span className="text-[#9EADA9] block">
                 {t.paymentRecorder.totalDue}
               </span>
-              <span className="text-base font-bold text-white font-mono">
+              <span className="text-base font-bold text-white ">
                 <CurrencyDisplay
                   amount={invoice.amount_due}
                   currency={invoice.currency}
@@ -113,7 +113,7 @@ export function PaymentRecorder({
               required
               value={amount}
               onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-              className="font-mono text-base font-bold text-[#09937F]"
+              className=" text-base font-bold text-[#09937F]"
             />
             <span className="text-[11px] text-[#9EADA9]">
               {t.paymentRecorder.paymentAmountHint}

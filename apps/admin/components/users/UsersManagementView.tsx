@@ -326,14 +326,14 @@ export function UsersManagementView({
                 className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-[#050807] border border-white/10 text-white placeholder:text-[#9EADA9]/60 focus:outline-none focus:border-[#09937F]"
               />
             </div>
-            <div className="text-xs font-mono text-[#9EADA9]">
+            <div className="text-xs  text-[#9EADA9]">
               {filteredUsers.length} {t.roles.userCount}
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-start text-xs">
-              <thead className="bg-[#070C0A] text-[#9EADA9] font-mono uppercase text-[11px] border-b border-white/10">
+              <thead className="bg-[#070C0A] text-[#9EADA9]  uppercase text-[11px] border-b border-white/10">
                 <tr>
                   <th className="p-4 text-start">{t.usersView.userHeader}</th>
                   <th className="p-4 text-start">{t.roles.department}</th>
@@ -353,14 +353,14 @@ export function UsersManagementView({
                     >
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center font-mono font-bold text-white text-xs">
+                          <div className="w-9 h-9 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center  font-bold text-white text-xs">
                             {u.full_name.charAt(0)}
                           </div>
                           <div>
                             <div className="font-bold text-white text-sm">
                               {u.full_name}
                             </div>
-                            <div className="text-[#9EADA9] text-[11px] font-mono">
+                            <div className="text-[#9EADA9] text-[11px] ">
                               {u.email}
                             </div>
                           </div>
@@ -368,7 +368,7 @@ export function UsersManagementView({
                       </td>
 
                       <td className="p-4">
-                        <div className="flex items-center gap-1.5 text-[#9EADA9] font-mono">
+                        <div className="flex items-center gap-1.5 text-[#9EADA9] ">
                           <Building className="w-3.5 h-3.5 text-[#09937F]" />
                           <span className="capitalize">
                             {(u.department &&
@@ -396,7 +396,7 @@ export function UsersManagementView({
                       </td>
 
                       <td className="p-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px]  font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                           {t.roles.statusActive}
                         </span>
@@ -428,14 +428,14 @@ export function UsersManagementView({
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
               {t.usersView.matrixTitle}
             </h2>
-            <div className="flex items-center gap-3 text-[11px] font-mono">
+            <div className="flex items-center gap-3 text-[11px] ">
               <span className="text-emerald-400">{t.usersView.rwLegend}</span>
               <span className="text-blue-400">{t.usersView.rLegend}</span>
               <span className="text-[#9EADA9]/40">{t.usersView.naLegend}</span>
             </div>
           </div>
 
-          <table className="w-full text-xs font-mono">
+          <table className="w-full text-xs ">
             <thead>
               <tr className="border-b border-white/10 text-[#9EADA9] text-start">
                 <th className="py-2.5 text-start font-sans font-bold">

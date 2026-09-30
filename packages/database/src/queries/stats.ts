@@ -1,9 +1,14 @@
 import { db } from "../db";
 
 export async function getStatistics() {
-  return await db.statistic.findMany({
-    orderBy: { sortOrder: "asc" },
-  });
+  try {
+    return await db.statistic.findMany({
+      orderBy: { sortOrder: "asc" },
+    });
+  } catch (e) {
+    console.error("Error fetching statistics from DB:", e instanceof Error ? e.message : e);
+    return [];
+  }
 }
 
 export async function createStatistic(data: {

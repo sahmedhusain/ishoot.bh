@@ -182,7 +182,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
                 step="0.001"
                 value={dealValue}
                 onChange={(e) => setDealValue(parseFloat(e.target.value) || 0)}
-                className="font-mono text-[#014842] dark:text-[#09937F] font-bold"
+                className=" text-[#014842] dark:text-[#09937F] font-bold"
               />
             </div>
           </div>
@@ -198,7 +198,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
                 max="100"
                 value={probability}
                 onChange={(e) => setProbability(parseInt(e.target.value) || 0)}
-                className="font-mono"
+                className=""
               />
             </div>
 

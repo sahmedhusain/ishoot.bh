@@ -85,7 +85,7 @@ export function FaqsManagementView({ initialFaqs }: { initialFaqs: any[] }) {
                 <Badge variant={faq.isPublished ? "emerald" : "default"}>
                   {faq.isPublished ? t.faqsView.published : t.faqsView.hidden}
                 </Badge>
-                <span className="text-xs text-slate-400 font-mono">
+                <span className="text-xs text-slate-400 ">
                   {t.faqsView.order}: {faq.sortOrder}
                 </span>
               </div>

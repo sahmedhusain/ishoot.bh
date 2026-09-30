@@ -130,7 +130,7 @@ export function ExpensesManagementView({
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-white ">
             <CurrencyDisplay amount={totalExpense} currency="BHD" />
           </div>
           <div className="text-[11px] text-[#9EADA9]">
@@ -145,7 +145,7 @@ export function ExpensesManagementView({
               <Tag className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-white ">
             {categories.length}
           </div>
           <div className="text-[11px] text-emerald-400">
@@ -160,7 +160,7 @@ export function ExpensesManagementView({
               <Receipt className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white font-mono">
+          <div className="text-2xl sm:text-3xl font-bold text-white ">
             {deals.length}
           </div>
           <div className="text-[11px] text-[#09937F]">
@@ -171,7 +171,7 @@ export function ExpensesManagementView({
 
       <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
         <table className="w-full text-start text-xs">
-          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider">
+          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.expensesView.desc}</th>
               <th className="p-4 text-start">{t.expensesView.category}</th>
@@ -204,16 +204,16 @@ export function ExpensesManagementView({
                       : "—"}
                   </Badge>
                 </td>
-                <td className="p-4 text-[#9EADA9] font-mono">
+                <td className="p-4 text-[#9EADA9] ">
                   {expense.vendor_name || "—"}
                 </td>
-                <td className="p-4 text-[#09937F] font-mono">
+                <td className="p-4 text-[#09937F] ">
                   {expense.deal?.title || "—"}
                 </td>
-                <td className="p-4 text-[#9EADA9] font-mono">
+                <td className="p-4 text-[#9EADA9] ">
                   <DateDisplay date={expense.expense_date} locale={locale} />
                 </td>
-                <td className="p-4 text-end font-mono font-bold text-rose-400">
+                <td className="p-4 text-end  font-bold text-rose-400">
                   -
                   <CurrencyDisplay
                     amount={Number(expense.amount)}

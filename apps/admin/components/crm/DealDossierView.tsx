@@ -72,12 +72,12 @@ export function DealDossierView({
               <span>{deal.title}</span>
               <Badge
                 variant="outline"
-                className="text-xs uppercase font-mono border-[#09937F]/40 text-[#09937F]"
+                className="text-xs uppercase  border-[#09937F]/40 text-[#09937F]"
               >
                 {deal.stage}
               </Badge>
             </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-mono">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ">
               ID: {deal.id} • <DateDisplay date={deal.created_at} locale={locale} />
             </p>
           </div>
@@ -116,13 +116,13 @@ export function DealDossierView({
             <DollarSign className="w-3.5 h-3.5 text-[#09937F]" />
             <span>{t.dealDossier.dealValue}</span>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-2xl font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay
               amount={Number(deal.value) || 0}
               currency={deal.currency}
             />
           </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 ">
             {deal.probability
               ? `${deal.probability}% Probability`
               : "No probability set"}
@@ -134,10 +134,10 @@ export function DealDossierView({
             <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
             <span>{t.dealDossier.projectedRevenue}</span>
           </div>
-          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 ">
             <CurrencyDisplay amount={projectedValue} currency={deal.currency} />
           </div>
-          <span className="text-[11px] text-[#09937F] font-mono">
+          <span className="text-[11px] text-[#09937F] ">
             {t.dealDossier.weightedValue}
           </span>
         </Card>
@@ -147,14 +147,14 @@ export function DealDossierView({
             <Calendar className="w-3.5 h-3.5 text-amber-500" />
             <span>{t.dealDossier.targetClose}</span>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-2xl font-bold text-slate-900 dark:text-white ">
             {deal.target_close_date ? (
               <DateDisplay date={deal.target_close_date} locale={locale} />
             ) : (
               <span className="text-slate-400">—</span>
             )}
           </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 ">
             {deal.probability
               ? `(${(deal.probability / 100).toFixed(1)}x Expected)`
               : "No estimate"}
@@ -166,10 +166,10 @@ export function DealDossierView({
             <Briefcase className="w-3.5 h-3.5 text-[#014842] dark:text-[#09937F]" />
             <span>{t.dealDossier.invoicesGenerated}</span>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-2xl font-bold text-slate-900 dark:text-white ">
             {invoices.length}
           </div>
-          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 ">
             {t.dealDossier.billingRecords}
           </span>
         </Card>
@@ -315,7 +315,7 @@ export function DealDossierView({
                     {contact.phone && (
                       <a
                         href={`tel:${contact.phone}`}
-                        className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-mono"
+                        className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white "
                         dir="ltr"
                       >
                         <Phone className="w-3.5 h-3.5 text-[#09937F]" />
@@ -446,7 +446,7 @@ export function DealDossierView({
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.dealDossier.linkedInvoices}
             </h2>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono font-semibold">
+            <span className="text-xs text-slate-500 dark:text-slate-400  font-semibold">
               {invoices.length} Invoice(s)
             </span>
           </div>
@@ -467,7 +467,7 @@ export function DealDossierView({
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-start text-xs">
-                <thead className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase font-mono tracking-wider text-[11px]">
+                <thead className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase  tracking-wider text-[11px]">
                   <tr>
                     <th className="p-3 text-start">{t.dealDossier.invoiceNum}</th>
                     <th className="p-3 text-start">{t.dealDossier.issueDate}</th>
@@ -485,7 +485,7 @@ export function DealDossierView({
                       <td className="p-3">
                         <Link
                           href={`/dashboard/invoices/${inv.id}`}
-                          className="font-mono font-bold text-[#09937F] hover:underline"
+                          className=" font-bold text-[#09937F] hover:underline"
                         >
                           {inv.invoice_number}
                         </Link>
@@ -493,13 +493,13 @@ export function DealDossierView({
                       <td className="p-3 text-slate-600 dark:text-slate-400">
                         <DateDisplay date={inv.issue_date} locale={locale} />
                       </td>
-                      <td className="p-3 text-right font-mono text-slate-900 dark:text-white font-bold">
+                      <td className="p-3 text-right  text-slate-900 dark:text-white font-bold">
                         <CurrencyDisplay
                           amount={Number(inv.total_amount)}
                           currency={inv.currency}
                         />
                       </td>
-                      <td className="p-3 text-right font-mono text-rose-600 dark:text-rose-400 font-bold">
+                      <td className="p-3 text-right  text-rose-600 dark:text-rose-400 font-bold">
                         <CurrencyDisplay
                           amount={
                             Number(inv.total_amount) -

@@ -67,7 +67,7 @@ export function InvoicesListView({
           <div className="text-xs font-medium text-slate-500 dark:text-neutral-400">
             {t.kpi.receivables}
           </div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white font-mono">
+          <div className="text-xl font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay amount={finance.outstanding} currency="BHD" />
           </div>
         </div>
@@ -77,7 +77,7 @@ export function InvoicesListView({
             {t.kpi.overdueAlert}
           </div>
           <div
-            className={`text-xl font-bold font-mono ${
+            className={`text-xl font-bold  ${
               finance.overdue > 0
                 ? "text-rose-500 dark:text-rose-400"
                 : "text-emerald-600 dark:text-emerald-400"
@@ -91,7 +91,7 @@ export function InvoicesListView({
           <div className="text-xs font-medium text-slate-500 dark:text-neutral-400">
             {t.charts.discountsGiven}
           </div>
-          <div className="text-xl font-bold text-[#014842] dark:text-[#7de0d1] font-mono">
+          <div className="text-xl font-bold text-[#014842] dark:text-[#7de0d1] ">
             <CurrencyDisplay amount={finance.discountsGiven} currency="BHD" />
           </div>
         </div>
@@ -132,7 +132,7 @@ export function InvoicesListView({
 
         <div className="overflow-x-auto">
           <table className="w-full text-start text-xs">
-            <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-slate-600 dark:text-neutral-400 uppercase font-mono tracking-wider text-[11px]">
+            <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-slate-600 dark:text-neutral-400 uppercase  tracking-wider text-[11px]">
               <tr>
                 <th className="p-3.5 text-start font-semibold">{t.finance.invoiceNumber}</th>
                 <th className="p-3.5 text-start font-semibold">{t.finance.client}</th>
@@ -149,7 +149,7 @@ export function InvoicesListView({
                   key={inv.id}
                   className="hover:bg-slate-50/70 dark:hover:bg-neutral-800/40 transition-colors"
                 >
-                  <td className="p-3.5 font-mono font-bold text-slate-900 dark:text-white">
+                  <td className="p-3.5  font-bold text-slate-900 dark:text-white">
                     <Link
                       href={`/dashboard/invoices/${inv.id}`}
                       className="hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors"
@@ -181,19 +181,19 @@ export function InvoicesListView({
                       {inv.contact?.email}
                     </div>
                   </td>
-                  <td className="p-3.5 text-slate-500 dark:text-neutral-400 font-mono text-[11px]">
+                  <td className="p-3.5 text-slate-500 dark:text-neutral-400  text-[11px]">
                     <div>{inv.issue_date}</div>
                     <div className="opacity-60">
                       {t.invoicesList.duePrefix} {inv.due_date}
                     </div>
                   </td>
-                  <td className="p-3.5 text-end font-mono font-bold text-slate-900 dark:text-white">
+                  <td className="p-3.5 text-end  font-bold text-slate-900 dark:text-white">
                     <CurrencyDisplay
                       amount={inv.total_amount}
                       currency={inv.currency}
                     />
                   </td>
-                  <td className="p-3.5 text-end font-mono font-bold">
+                  <td className="p-3.5 text-end  font-bold">
                     {inv.amount_due > 0 ? (
                       <span className="text-amber-600 dark:text-amber-400">
                         <CurrencyDisplay
@@ -202,7 +202,7 @@ export function InvoicesListView({
                         />
                       </span>
                     ) : (
-                      <span className="text-emerald-600 dark:text-emerald-400 font-mono">
+                      <span className="text-emerald-600 dark:text-emerald-400 ">
                         0.000 {inv.currency}
                       </span>
                     )}

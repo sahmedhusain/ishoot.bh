@@ -82,7 +82,7 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
               className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
             >
               <div className="space-y-1">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#09937F]">
+                <span className="text-[10px]  uppercase tracking-widest text-[#09937F]">
                   {categories.find((c) => c.id === gear.category)?.label || gear.category.replace("_", " ")}
                 </span>
                 <div className="text-base sm:text-lg font-bold text-white">
@@ -95,7 +95,7 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
               {gear.daily_rate_bhd && (
                 <div className="text-end">
                   <div className="text-xs text-[#9EADA9]">{t("about.dailyRental")}</div>
-                  <div className="text-sm font-mono font-bold text-[#09937F]">
+                  <div className="text-sm  font-bold text-[#09937F]">
                     {gear.daily_rate_bhd.toFixed(3)} {t("financials.currency")}
                   </div>
                 </div>

@@ -97,7 +97,7 @@ export function ContactsManagementView({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-[#014842] text-white flex items-center justify-center font-bold text-xs font-mono shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-[#014842] text-white flex items-center justify-center font-bold text-xs  shrink-0">
                     {c.full_name.charAt(0)}
                   </div>
                   <div className="min-w-0">
@@ -141,7 +141,7 @@ export function ContactsManagementView({
                   </div>
                 )}
                 {c.phone && (
-                  <div className="flex items-center gap-2 font-mono text-[11px]" dir="ltr">
+                  <div className="flex items-center gap-2  text-[11px]" dir="ltr">
                     <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <a
                       href={`tel:${c.phone}`}

@@ -142,7 +142,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
         <div className="flex items-center gap-2">
           <Badge
             variant="outline"
-            className="font-mono text-xs px-3 py-1 bg-white/5 border-white/10"
+            className=" text-xs px-3 py-1 bg-white/5 border-white/10"
           >
             {filteredLogs.length} {t.audit.eventsLogged}
           </Badge>
@@ -155,7 +155,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-lg font-mono font-bold text-white">8</div>
+            <div className="text-lg  font-bold text-white">8</div>
             <div className="text-xs text-[#9EADA9]">
               {t.audit.authorizedUsers}
             </div>
@@ -167,7 +167,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             <Laptop className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-lg font-mono font-bold text-white">1</div>
+            <div className="text-lg  font-bold text-white">1</div>
             <div className="text-xs text-[#9EADA9]">
               {t.audit.activeSession}
             </div>
@@ -179,7 +179,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-lg font-mono font-bold text-white">100%</div>
+            <div className="text-lg  font-bold text-white">100%</div>
             <div className="text-xs text-[#9EADA9]">{t.audit.enforcement}</div>
           </div>
         </Card>
@@ -229,7 +229,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
       <Card className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-start">
-            <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider text-[11px]">
+            <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase  tracking-wider text-[11px]">
               <tr>
                 <th className="p-4 text-start">{t.audit.userCol}</th>
                 <th className="p-4 text-start">{t.audit.actionCol}</th>
@@ -254,7 +254,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-[#014842] border border-[#09937F]/40 flex items-center justify-center text-[10px] font-bold text-white font-mono shrink-0">
+                        <div className="w-7 h-7 rounded-lg bg-[#014842] border border-[#09937F]/40 flex items-center justify-center text-[10px] font-bold text-white  shrink-0">
                           {log.user?.full_name?.slice(0, 2).toUpperCase() ||
                             "SA"}
                         </div>
@@ -262,7 +262,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                           <div className="font-bold text-white">
                             {log.user?.full_name || "System / Admin"}
                           </div>
-                          <div className="text-[10px] text-[#9EADA9] font-mono">
+                          <div className="text-[10px] text-[#9EADA9] ">
                             {log.user?.email || "system@ishoot.bh"}
                           </div>
                         </div>
@@ -272,12 +272,12 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                     <td className="p-4">{getActionBadge(log.action)}</td>
 
                     <td className="p-4">
-                      <div className="flex items-center gap-1.5 font-mono text-white capitalize">
+                      <div className="flex items-center gap-1.5  text-white capitalize">
                         {getEntityIcon(log.entity_type)}
                         <span>{log.entity_type.replace("_", " ")}</span>
                       </div>
                       {log.entity_id && (
-                        <div className="text-[10px] text-[#9EADA9] font-mono mt-0.5">
+                        <div className="text-[10px] text-[#9EADA9]  mt-0.5">
                           #{log.entity_id}
                         </div>
                       )}
@@ -286,7 +286,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                     <td className="p-4 max-w-xs">
                       {log.details ? (
                         <div
-                          className="font-mono text-[11px] text-[#9EADA9] truncate"
+                          className=" text-[11px] text-[#9EADA9] truncate"
                           title={JSON.stringify(log.details)}
                         >
                           {Object.entries(log.details)
@@ -298,13 +298,13 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                       )}
                     </td>
 
-                    <td className="p-4 font-mono text-[#9EADA9]">
+                    <td className="p-4  text-[#9EADA9]">
                       <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[11px]">
                         {log.ip_address || "127.0.0.1"}
                       </span>
                     </td>
 
-                    <td className="p-4 text-end font-mono text-[#9EADA9]">
+                    <td className="p-4 text-end  text-[#9EADA9]">
                       {formatDate(log.created_at, locale, "time")}
                     </td>
                   </tr>

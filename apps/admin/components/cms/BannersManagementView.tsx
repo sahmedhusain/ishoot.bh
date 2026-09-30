@@ -146,7 +146,7 @@ export function BannersManagementView({
                     alt={locale === "ar" ? banner.title_ar : banner.title_en}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-[9px] font-mono text-white flex items-center gap-1">
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-[9px]  text-white flex items-center gap-1">
                     {banner.media_type === "video" ? (
                       <Film className="w-2.5 h-2.5" />
                     ) : (
@@ -165,7 +165,7 @@ export function BannersManagementView({
                       {banner.is_active ? t.cms.live : t.cms.hidden}
                     </Badge>
                   </div>
-                  <div className="text-xs text-[#09937F] font-mono">
+                  <div className="text-xs text-[#09937F] ">
                     {locale === "ar" ? banner.title_en : banner.title_ar}
                   </div>
                   <div className="text-xs text-[#9EADA9] max-w-lg line-clamp-1">

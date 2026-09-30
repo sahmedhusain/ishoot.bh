@@ -79,7 +79,7 @@ export function PortfolioCard({ item, onClick }: PortfolioCardProps) {
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-6 space-y-2">
-        <div className="flex items-center justify-between text-xs text-[#09937F] font-mono tracking-widest uppercase">
+        <div className="flex items-center justify-between text-xs text-[#09937F]  tracking-widest uppercase">
           <span>{item.client_name}</span>
           <span>{item.year}</span>
         </div>

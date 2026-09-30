@@ -32,7 +32,7 @@ export function StatsSection({ stats }: StatsSectionProps) {
       <div className="shell space-y-16">
         <div className="relative w-full">
           <span aria-hidden="true" className="block h-px w-full bg-white/10" />
-          <div className="mt-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#9EADA9]">
+          <div className="mt-4 flex items-center justify-between  text-xs uppercase tracking-wider text-[#9EADA9]">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#09937F]" />
               <span>{t("stats.sectionIndex")}</span>
@@ -56,13 +56,13 @@ export function StatsSection({ stats }: StatsSectionProps) {
                   <div className="w-10 h-10 rounded-xl bg-[#014842]/40 border border-[#09937F]/30 flex items-center justify-center text-[#5EEAD4] group-hover:scale-110 transition-transform">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-[10px] font-mono text-[#9EADA9]">
+                  <span className="text-[10px]  text-[#9EADA9]">
                     0{i + 1}
                   </span>
                 </div>
 
                 <div>
-                  <div className="text-4xl sm:text-5xl font-mono font-bold text-white tracking-tight group-hover:text-emerald-shine transition-colors">
+                  <div className="text-4xl sm:text-5xl  font-bold text-white tracking-tight group-hover:text-emerald-shine transition-colors">
                     {stat.value}
                   </div>
                   <div className="mt-2 text-sm sm:text-base font-bold text-white font-sans">

@@ -144,7 +144,7 @@ export function EquipmentManagementView({
 
       <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
         <table className="w-full text-start text-xs">
-          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase font-mono tracking-wider">
+          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.equipmentView.category}</th>
               <th className="p-4 text-start">{t.equipmentView.modelName}</th>
@@ -170,7 +170,7 @@ export function EquipmentManagementView({
                       : eq.model_name}
                   </div>
                   {eq.brand && (
-                    <div className="text-[11px] font-mono text-[#09937F]">
+                    <div className="text-[11px]  text-[#09937F]">
                       {eq.brand}
                     </div>
                   )}
@@ -178,10 +178,10 @@ export function EquipmentManagementView({
                 <td className="p-4 text-[#9EADA9] max-w-xs truncate">
                   {eq.specification || "—"}
                 </td>
-                <td className="p-4 text-center font-mono text-white">
+                <td className="p-4 text-center  text-white">
                   {eq.quantity || 1}
                 </td>
-                <td className="p-4 text-end font-mono font-bold text-[#09937F]">
+                <td className="p-4 text-end  font-bold text-[#09937F]">
                   {eq.daily_rate_bhd ? (
                     <CurrencyDisplay
                       amount={eq.daily_rate_bhd}

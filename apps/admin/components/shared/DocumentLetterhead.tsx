@@ -97,7 +97,7 @@ export function DocumentLetterhead({
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/70 font-mono">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/70 ">
             <span>{t.crLabel} {company.cr_number}</span>
             {company.vat_enabled && company.vat_id && (
               <>
@@ -114,12 +114,12 @@ export function DocumentLetterhead({
           <div className="text-2xl sm:text-3xl font-extrabold tracking-wider uppercase font-display text-white">
             {isAr ? titleAr : titleEn}
           </div>
-          <div className="text-sm font-mono text-[#09937F] font-bold tracking-wide">
+          <div className="text-sm  text-[#09937F] font-bold tracking-wide">
             {documentNumber}
           </div>
           <div className="inline-block">
             <span
-              className={`text-[10px] uppercase font-mono font-bold tracking-wider px-2.5 py-0.5 rounded-full border ${getStatusColor(
+              className={`text-[10px] uppercase  font-bold tracking-wider px-2.5 py-0.5 rounded-full border ${getStatusColor(
                 statusValue,
               )}`}
             >
@@ -159,19 +159,19 @@ export function DocumentLetterhead({
           )}
 
           {client.vatNumber && (
-            <div className="text-gray-500 font-mono text-[11px]">
+            <div className="text-gray-500  text-[11px]">
               Client VAT: {client.vatNumber}
             </div>
           )}
 
           {client.email && (
-            <div className="text-gray-500 font-mono">
+            <div className="text-gray-500 ">
               {client.email}
             </div>
           )}
 
           {client.phone && (
-            <div className="text-gray-500 font-mono" dir="ltr">
+            <div className="text-gray-500 " dir="ltr">
               {client.phone}
             </div>
           )}
@@ -189,7 +189,7 @@ export function DocumentLetterhead({
             <span className="text-gray-400 font-bold uppercase text-[10px]">
               {issueDateLabel}
             </span>
-            <span className="font-mono font-medium text-gray-900">
+            <span className=" font-medium text-gray-900">
               {issueDate}
             </span>
           </div>
@@ -199,7 +199,7 @@ export function DocumentLetterhead({
               <span className="text-gray-400 font-bold uppercase text-[10px]">
                 {secondaryDateLabel}
               </span>
-              <span className="font-mono font-bold text-[#014842]">
+              <span className=" font-bold text-[#014842]">
                 {secondaryDate}
               </span>
             </div>
@@ -261,7 +261,7 @@ export function DocumentFooter({
               {companyName}
             </div>
             {isAr && company.company_name_en && (
-              <div className="text-[11px] text-gray-500 font-mono">
+              <div className="text-[11px] text-gray-500 ">
                 {company.company_name_en}
               </div>
             )}
@@ -280,7 +280,7 @@ export function DocumentFooter({
         <div className="font-medium text-gray-700">
           {thankYouMessage ? thankYouMessage : t.thankYou.replace("{companyName}", companyName)}
         </div>
-        <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-gray-500">
+        <div className="flex flex-wrap items-center gap-3  text-[11px] text-gray-500">
           {company.website && (
             <a
               href={

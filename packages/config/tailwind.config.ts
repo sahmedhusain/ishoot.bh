@@ -32,9 +32,10 @@ const config: Omit<Config, "content"> = {
         },
       },
       fontFamily: {
-        display: ["Virtual", "sans-serif"],
-        arabic: ['"IBM Plex Sans Arabic"', "sans-serif"],
-        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ['"Thmanyah Serif Display"', "serif"],
+        arabic: ['"Thmanyah Sans"', "sans-serif"],
+        sans: ['"Thmanyah Sans"', "sans-serif"],
+        serif: ['"Thmanyah Serif Text"', "serif"],
       },
       animation: {
         shutter: "shutter 3s ease-in-out infinite",

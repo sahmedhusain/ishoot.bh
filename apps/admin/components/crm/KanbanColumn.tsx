@@ -47,12 +47,12 @@ export function KanbanColumn({
               {label}
             </h3>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-white/10 text-[11px] font-mono text-slate-700 dark:text-slate-300 font-semibold">
+          <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-white/10 text-[11px]  text-slate-700 dark:text-slate-300 font-semibold">
             {deals.length}
           </span>
         </div>
 
-        <div className="text-[11px] font-mono text-slate-500 dark:text-slate-400 flex justify-between items-center pt-1">
+        <div className="text-[11px]  text-slate-500 dark:text-slate-400 flex justify-between items-center pt-1">
           <span>{t.deals.stageSum}</span>
           <span className="text-slate-900 dark:text-white font-bold">
             <CurrencyDisplay amount={totalValue} currency="BHD" />

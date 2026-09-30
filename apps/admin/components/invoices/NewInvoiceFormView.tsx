@@ -250,7 +250,7 @@ export function NewInvoiceFormView({
               <Link
                 href={`/dashboard/crm/customers/${selectedContact.id}`}
                 target="_blank"
-                className="text-xs font-mono text-[#09937F] hover:underline flex items-center gap-1"
+                className="text-xs  text-[#09937F] hover:underline flex items-center gap-1"
               >
                 <span>{t.invoiceForm.clientProfile}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -263,7 +263,7 @@ export function NewInvoiceFormView({
             <div className="space-y-2 sm:col-span-2 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
               <label className="text-xs font-semibold text-slate-900 dark:text-white flex items-center justify-between">
                 <span>{t.finance.client} {t.invoiceForm.clientLookup}</span>
-                <span className="text-[10px] text-[#09937F] font-mono font-bold bg-[#E6F5F2] dark:bg-[#09937F]/20 px-2 py-0.5 rounded-full">{t.invoiceForm.autoFetch}</span>
+                <span className="text-[10px] text-[#09937F]  font-bold bg-[#E6F5F2] dark:bg-[#09937F]/20 px-2 py-0.5 rounded-full">{t.invoiceForm.autoFetch}</span>
               </label>
               <div className="flex gap-2">
                 <Input
@@ -354,7 +354,7 @@ export function NewInvoiceFormView({
                 type="date"
                 value={issueDate}
                 onChange={(e) => setIssueDate(e.target.value)}
-                className="font-mono text-xs"
+                className=" text-xs"
                 required
               />
             </div>
@@ -367,7 +367,7 @@ export function NewInvoiceFormView({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="font-mono text-xs"
+                className=" text-xs"
                 required
               />
             </div>
@@ -404,7 +404,7 @@ export function NewInvoiceFormView({
                     <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
                     <span>Item #{idx + 1}</span>
                     {item.service_id && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-[#09937F] border border-teal-200 dark:border-teal-800 font-mono">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-[#09937F] border border-teal-200 dark:border-teal-800 ">
                         Catalog Linked
                       </span>
                     )}
@@ -497,7 +497,7 @@ export function NewInvoiceFormView({
                         parseFloat(e.target.value) || 0,
                       )
                     }
-                    className="font-mono text-center"
+                    className=" text-center"
                   />
                 </div>
 
@@ -518,7 +518,7 @@ export function NewInvoiceFormView({
                         parseFloat(e.target.value) || 0,
                       )
                     }
-                    className="font-mono"
+                    className=""
                   />
                 </div>
 
@@ -581,7 +581,7 @@ export function NewInvoiceFormView({
                       onChange={(e) =>
                         setDiscountValue(parseFloat(e.target.value) || 0)
                       }
-                      className="font-mono"
+                      className=""
                     />
                   </div>
                 )}
@@ -603,7 +603,7 @@ export function NewInvoiceFormView({
                 <button
                   type="button"
                   onClick={() => setVatEnabled(!vatEnabled)}
-                  className={`text-xs px-3 py-1 rounded-lg border font-mono transition-colors ${
+                  className={`text-xs px-3 py-1 rounded-lg border  transition-colors ${
                     vatEnabled
                       ? "bg-[#09937F]/20 text-[#09937F] border-[#09937F]"
                       : "bg-slate-200/50 text-slate-500 border-slate-300 dark:bg-white/5 dark:text-slate-400 dark:border-white/10"
@@ -624,7 +624,7 @@ export function NewInvoiceFormView({
             <div className="space-y-2.5 text-xs">
               <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
                 <span>{t.finance.subtotal}:</span>
-                <span className="font-mono text-slate-900 dark:text-white text-sm font-semibold">
+                <span className=" text-slate-900 dark:text-white text-sm font-semibold">
                   {totals.subtotal.toFixed(3)} {currency}
                 </span>
               </div>
@@ -632,7 +632,7 @@ export function NewInvoiceFormView({
               {totals.discountAmount > 0 && (
                 <div className="flex items-center justify-between text-[#09937F]">
                   <span>{t.finance.discount}:</span>
-                  <span className="font-mono">
+                  <span className="">
                     -{totals.discountAmount.toFixed(3)} {currency}
                   </span>
                 </div>
@@ -643,7 +643,7 @@ export function NewInvoiceFormView({
                   <span>
                     {t.finance.vat} ({vatPercentage}%):
                   </span>
-                  <span className="font-mono font-medium">
+                  <span className=" font-medium">
                     {totals.vatAmount.toFixed(3)} {currency}
                   </span>
                 </div>
@@ -653,7 +653,7 @@ export function NewInvoiceFormView({
                 <span className="text-sm font-bold text-slate-900 dark:text-white">
                   {t.finance.totalAmount}:
                 </span>
-                <span className="text-xl font-bold font-mono text-[#09937F]">
+                <span className="text-xl font-bold  text-[#09937F]">
                   {totals.totalAmount.toFixed(3)} {currency}
                 </span>
               </div>

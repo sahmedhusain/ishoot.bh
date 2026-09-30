@@ -30,7 +30,7 @@ export function BudgetSelector({ selected, onChange }: BudgetSelectorProps) {
             key={range}
             type="button"
             onClick={() => onChange(range)}
-            className={`p-3 rounded-xl text-xs sm:text-sm font-mono font-medium transition-all duration-300 text-center ${
+            className={`p-3 rounded-xl text-xs sm:text-sm  font-medium transition-all duration-300 text-center ${
               isSelected
                 ? "bg-[#09937F]/20 text-[#09937F] border border-[#09937F]"
                 : "bg-[#111C19] text-[#9EADA9] hover:text-white border border-white/10"

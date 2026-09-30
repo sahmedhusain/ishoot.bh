@@ -9,7 +9,7 @@ export default function NotFound() {
     <html lang="en">
       <body className="min-h-screen bg-[#050807] text-[#F2F6F5] flex items-center justify-center p-6 font-sans">
         <div className="max-w-md w-full text-center space-y-6 bg-[#0B1210] border border-white/10 p-8 rounded-3xl shadow-2xl">
-          <div className="w-16 h-16 rounded-2xl bg-[#09937F]/10 border border-[#09937F]/30 text-[#09937F] flex items-center justify-center mx-auto text-2xl font-mono font-bold">
+          <div className="w-16 h-16 rounded-2xl bg-[#09937F]/10 border border-[#09937F]/30 text-[#09937F] flex items-center justify-center mx-auto text-2xl  font-bold">
             404
           </div>
 

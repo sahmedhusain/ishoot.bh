@@ -28,7 +28,7 @@ export async function getActiveBanners(): Promise<HeroBanner[]> {
     });
     return banners.map(mapBanner);
   } catch (e) {
-    console.error("Error fetching active banners from DB:", e);
+    console.error("Error fetching active banners from DB:", e instanceof Error ? e.message : e);
     return [];
   }
 }
@@ -40,7 +40,7 @@ export async function getAllBanners(): Promise<HeroBanner[]> {
     });
     return banners.map(mapBanner);
   } catch (e) {
-    console.error("Error fetching all banners from DB:", e);
+    console.error("Error fetching all banners from DB:", e instanceof Error ? e.message : e);
     return [];
   }
 }
@@ -97,7 +97,7 @@ export async function updateBanner(
     });
     return mapBanner(updated);
   } catch (e) {
-    console.error(`Error updating banner ${id}:`, e);
+    console.error(`Error updating banner ${id}:`, e instanceof Error ? e.message : e);
     return null;
   }
 }
@@ -107,7 +107,7 @@ export async function deleteBanner(id: string): Promise<boolean> {
     await db.heroBanner.delete({ where: { id } });
     return true;
   } catch (e) {
-    console.error(`Error deleting banner ${id}:`, e);
+    console.error(`Error deleting banner ${id}:`, e instanceof Error ? e.message : e);
     return false;
   }
 }

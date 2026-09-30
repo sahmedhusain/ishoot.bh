@@ -113,7 +113,7 @@ export function ClientAutocomplete({
             <Link
               href={`/dashboard/crm/customers/${selectedContact.id}`}
               target="_blank"
-              className="text-[#09937F] hover:underline inline-flex items-center gap-1 font-mono text-[11px]"
+              className="text-[#09937F] hover:underline inline-flex items-center gap-1  text-[11px]"
             >
               <span>{t.crm.viewDossier}</span>
               <ExternalLink className="w-3 h-3" />
@@ -144,7 +144,7 @@ export function ClientAutocomplete({
                   </span>
                 )}
                 {selectedContact.phone && (
-                  <span className="inline-flex items-center gap-1 font-mono">
+                  <span className="inline-flex items-center gap-1 ">
                     <Phone className="w-3 h-3" />
                     {selectedContact.phone}
                   </span>
@@ -204,7 +204,7 @@ export function ClientAutocomplete({
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-2">
                         {contact.email && <span>{contact.email}</span>}
                         {contact.email && contact.phone && <span>•</span>}
-                        {contact.phone && <span className="font-mono">{contact.phone}</span>}
+                        {contact.phone && <span className="">{contact.phone}</span>}
                       </div>
                     </div>
                     {selectedContactId === contact.id && (

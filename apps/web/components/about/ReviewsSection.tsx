@@ -23,7 +23,7 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
       <div className="shell space-y-16">
         <div className="relative w-full">
           <span aria-hidden="true" className="block h-px w-full bg-white/10" />
-          <div className="mt-4 flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#9EADA9]">
+          <div className="mt-4 flex items-center justify-between  text-xs uppercase tracking-wider text-[#9EADA9]">
             <span className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-[#09937F]" />
               <span>{t("reviews.sectionIndex")}</span>
@@ -85,7 +85,7 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
                 <div className="text-[11px] text-[#9EADA9] font-sans">
                   {isAr ? rev.authorAr : rev.authorEn}
                 </div>
-                <div className="text-[10px] font-mono text-[#09937F]">
+                <div className="text-[10px]  text-[#09937F]">
                   {t("reviews.bahrain")} · {rev.year}
                 </div>
               </div>
