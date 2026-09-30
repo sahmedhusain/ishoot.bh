@@ -49,13 +49,30 @@ export function CompanyDocumentsClientView({
   };
 
   const categories = [
-    { id: "all", label: "All Documents" },
-    { id: "cr_license", label: "Commercial Registration (CR)" },
-    { id: "vat_certificate", label: "VAT / Tax Certificates" },
-    { id: "company_profile", label: "Company Profile & Decks" },
-    { id: "bylaws", label: "Corporate Bylaws" },
-    { id: "standard_contract", label: "Standard Agreements & Guarantees" },
+    { id: "all", label: t.companyDocumentsView.categoryAll },
+    { id: "cr_license", label: t.companyDocumentsView.categoryCrLicense },
+    { id: "vat_certificate", label: t.companyDocumentsView.categoryVatCertificate },
+    { id: "company_profile", label: t.companyDocumentsView.categoryCompanyProfile },
+    { id: "bylaws", label: t.companyDocumentsView.categoryBylaws },
+    { id: "standard_contract", label: t.companyDocumentsView.categoryStandardContract },
   ];
+
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case "cr_license":
+        return t.companyDocumentsView.categoryCrLicense;
+      case "vat_certificate":
+        return t.companyDocumentsView.categoryVatCertificate;
+      case "company_profile":
+        return t.companyDocumentsView.categoryCompanyProfile;
+      case "bylaws":
+        return t.companyDocumentsView.categoryBylaws;
+      case "standard_contract":
+        return t.companyDocumentsView.categoryStandardContract;
+      default:
+        return category.replace("_", " ");
+    }
+  };
 
   const [selectedCat, setSelectedCat] = React.useState("all");
 
@@ -70,11 +87,10 @@ export function CompanyDocumentsClientView({
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-2">
             <Building2 className="w-7 h-7 text-[#09937F]" />
-            <span>Company Legal Repository & Document Vault</span>
+            <span>{t.companyDocumentsView.title}</span>
           </h1>
           <p className="text-xs text-[#9EADA9] mt-1">
-            Central repository for Commercial Registration (CR), VAT
-            certificates, bylaws, and standard agreements
+            {t.companyDocumentsView.subtitle}
           </p>
         </div>
 
@@ -85,7 +101,7 @@ export function CompanyDocumentsClientView({
             className="gap-1.5 self-start sm:self-auto"
           >
             <Plus className="w-4 h-4" />
-            <span>Upload Legal Asset</span>
+            <span>{t.companyDocumentsView.uploadLegalAsset}</span>
           </Button>
         </Link>
       </div>
@@ -110,15 +126,14 @@ export function CompanyDocumentsClientView({
         <Card className="p-12 text-center bg-[#0B1210] border border-white/10 rounded-3xl space-y-3">
           <FileText className="w-12 h-12 text-[#9EADA9]/40 mx-auto" />
           <p className="text-sm font-semibold text-white">
-            No Legal Assets Found
+            {t.companyDocumentsView.noAssetsFound}
           </p>
           <p className="text-xs text-[#9EADA9]">
-            Upload corporate legal documents to make them accessible across
-            company workflows.
+            {t.companyDocumentsView.noAssetsHint}
           </p>
           <Link href="/dashboard/company/documents/new">
             <Button variant="outline" size="sm" className="mt-2">
-              Upload First Asset
+              {t.companyDocumentsView.uploadFirstAsset}
             </Button>
           </Link>
         </Card>
@@ -138,17 +153,17 @@ export function CompanyDocumentsClientView({
                     variant="outline"
                     className="text-[10px] uppercase font-mono border-white/20"
                   >
-                    {doc.category.replace("_", " ")}
+                    {getCategoryLabel(doc.category)}
                   </Badge>
                 </div>
 
                 <div>
                   <h3 className="font-bold text-white text-sm line-clamp-1">
-                    {doc.title_en}
+                    {locale === "ar" && doc.title_ar ? doc.title_ar : doc.title_en}
                   </h3>
                   {doc.document_number && (
                     <p className="text-[11px] font-mono text-[#09937F] mt-0.5">
-                      Doc #: {doc.document_number}
+                      {t.companyDocumentsView.docNumberPrefix}{doc.document_number}
                     </p>
                   )}
                 </div>
@@ -163,11 +178,11 @@ export function CompanyDocumentsClientView({
                   {doc.valid_until && (
                     <div className="flex items-center gap-1.5 text-amber-400">
                       <Calendar className="w-3.5 h-3.5" />
-                      <span>Valid Until: {doc.valid_until}</span>
+                      <span>{t.companyDocumentsView.validUntilPrefix}{doc.valid_until}</span>
                     </div>
                   )}
                   <div>
-                    Uploaded:{" "}
+                    {t.companyDocumentsView.uploadedPrefix}
                     <DateDisplay date={doc.created_at} locale={locale} />
                   </div>
                 </div>
@@ -181,7 +196,7 @@ export function CompanyDocumentsClientView({
                 >
                   <Button variant="outline" size="sm" className="gap-1 text-xs">
                     <Download className="w-3.5 h-3.5" />
-                    <span>Download</span>
+                    <span>{t.companyDocumentsView.download}</span>
                   </Button>
                 </a>
 
@@ -203,8 +218,8 @@ export function CompanyDocumentsClientView({
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={handleDelete}
-        title="Delete Legal Document Asset"
-        description="Are you sure you want to delete this company legal document? This action will remove the asset from the legal vault."
+        title={t.companyDocumentsView.deleteConfirmTitle}
+        description={t.companyDocumentsView.deleteConfirmDesc}
       />
     </div>
   );

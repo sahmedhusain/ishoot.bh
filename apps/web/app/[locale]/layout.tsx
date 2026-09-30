@@ -6,6 +6,7 @@ import { Footer } from "../../components/layout/Footer";
 import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
 import { BackToTop } from "../../components/layout/BackToTop";
+import { getCompanySettings } from "@ishoot/database";
 
 export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -24,7 +25,7 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  const isRTL = locale === "ar";
+  const [isRTL, company] = [locale === "ar", await getCompanySettings()];
 
   return (
     <html dir={isRTL ? "rtl" : "ltr"} lang={locale}>
@@ -34,9 +35,9 @@ export default async function LocaleLayout({
         <FloatingScrollbar />
         <BackToTop />
         <SmoothScroll>
-          <Navbar />
+          <Navbar company={company} />
           <main className="w-full">{children}</main>
-          <Footer />
+          <Footer company={company} />
         </SmoothScroll>
       </body>
     </html>

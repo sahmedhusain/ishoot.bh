@@ -95,7 +95,7 @@ export function LeadsManagementView({
             {t.nav.leads}
           </h1>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-            Website inquiries and new project requests.
+            {t.leads.subtitle}
           </p>
         </div>
       </div>
@@ -164,22 +164,22 @@ export function LeadsManagementView({
                       <UserCheck className="w-3.5 h-3.5" />
                       <span>
                         {convertingId === inq.id
-                          ? "Converting..."
-                          : "Convert to Client"}
+                          ? t.crm.converting
+                          : t.crm.convertToClient}
                       </span>
                     </Button>
                   ) : (
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Client Created</span>
+                        <span>{t.crm.clientCreated}</span>
                       </span>
                       {conversionSuccess?.inquiryId === inq.id && (
                         <Link
                           href={`/dashboard/crm/customers/${conversionSuccess.contactId}`}
                           className="inline-flex items-center gap-1 text-xs font-medium text-[#014842] dark:text-[#7de0d1] hover:underline"
                         >
-                          <span>Open Dossier</span>
+                          <span>{t.crm.openDossier}</span>
                           <ExternalLink className="w-3 h-3" />
                         </Link>
                       )}
@@ -213,7 +213,7 @@ export function LeadsManagementView({
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
                 {inq.budget_range && (
                   <span className="px-2.5 py-0.5 rounded-md bg-[#e6f5f2] text-[#014842] dark:bg-[#004d40]/40 dark:text-[#7de0d1] text-[11px] font-mono font-semibold">
-                    Budget: {inq.budget_range}
+                    {t.leads.budgetPrefix}{inq.budget_range}
                   </span>
                 )}
                 {inq.services_requested.map((srv, idx) => (

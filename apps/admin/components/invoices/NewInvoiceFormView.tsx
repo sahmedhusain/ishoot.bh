@@ -83,14 +83,14 @@ export function NewInvoiceFormView({
         }
         setSelectedContactId(found.id);
         setLookupMessage(
-          `Auto-fetched: ${found.company ? `${found.company} - ` : ""}${found.full_name} (${found.email || found.phone || "Client"})`,
+          `${t.invoiceForm.autoFetchedPrefix}${found.company ? `${found.company} - ` : ""}${found.full_name} (${found.email || found.phone || ""})`,
         );
       } else {
-        setLookupMessage("No client found matching this email or phone number.");
+        setLookupMessage(t.invoiceForm.clientNotFound);
       }
     } catch (e) {
       console.error(e);
-      setLookupMessage("Error executing client lookup.");
+      setLookupMessage(t.invoiceForm.lookupError);
     } finally {
       setLookupLoading(false);
     }
@@ -252,7 +252,7 @@ export function NewInvoiceFormView({
                 target="_blank"
                 className="text-xs font-mono text-[#09937F] hover:underline flex items-center gap-1"
               >
-                <span>Client Profile</span>
+                <span>{t.invoiceForm.clientProfile}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </Link>
             )}
@@ -262,12 +262,12 @@ export function NewInvoiceFormView({
             {/* Quick Auto-Fetch Input */}
             <div className="space-y-2 sm:col-span-2 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
               <label className="text-xs font-semibold text-slate-900 dark:text-white flex items-center justify-between">
-                <span>{t.finance.client} Quick Lookup (Email / Phone)</span>
-                <span className="text-[10px] text-[#09937F] font-mono font-bold bg-[#E6F5F2] dark:bg-[#09937F]/20 px-2 py-0.5 rounded-full">Auto-Fetch</span>
+                <span>{t.finance.client} {t.invoiceForm.clientLookup}</span>
+                <span className="text-[10px] text-[#09937F] font-mono font-bold bg-[#E6F5F2] dark:bg-[#09937F]/20 px-2 py-0.5 rounded-full">{t.invoiceForm.autoFetch}</span>
               </label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Enter client email or phone..."
+                  placeholder={t.invoiceForm.enterEmailOrPhone}
                   value={lookupTerm}
                   onChange={(e) => setLookupTerm(e.target.value)}
                   onKeyDown={(e) => {
@@ -289,11 +289,11 @@ export function NewInvoiceFormView({
                   ) : (
                     <Search className="w-4 h-4 text-[#09937F]" />
                   )}
-                  <span>Fetch</span>
+                  <span>{t.invoiceForm.fetchBtn}</span>
                 </Button>
               </div>
               {lookupMessage && (
-                <p className={`text-[11px] font-medium ${lookupMessage.includes("Found") || lookupMessage.includes("Auto-fetched") ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                <p className={`text-[11px] font-medium ${lookupMessage.startsWith(t.invoiceForm.autoFetchedPrefix) ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
                   {lookupMessage}
                 </p>
               )}
@@ -412,7 +412,7 @@ export function NewInvoiceFormView({
                   {services && services.length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                        Preset Service:
+                        {t.invoiceForm.presetService}
                       </span>
                       <select
                         value={item.service_id || ""}
@@ -441,10 +441,10 @@ export function NewInvoiceFormView({
                         }}
                         className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
                       >
-                        <option value="">-- Custom Item / None --</option>
+                        <option value="">{t.invoiceForm.customItemNone}</option>
                         {services.map((srv) => (
                           <option key={srv.id} value={srv.id}>
-                            {srv.name_en} ({srv.default_rate.toFixed(3)} BHD / {srv.unit})
+                            {locale === "ar" && srv.name_ar ? srv.name_ar : srv.name_en} ({srv.default_rate.toFixed(3)} {t.financials.currency} / {srv.unit})
                           </option>
                         ))}
                       </select>

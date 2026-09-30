@@ -4,12 +4,9 @@ import {
   createExpense,
   deleteExpense,
   createPayment,
-  deletePayment,
   createInvoice,
   updateInvoice,
   updateInvoiceStatus,
-  deleteInvoice,
-  getInvoicesByClientId,
   getUnpaidInvoicesByClientId,
   createActivityLog,
   PaymentMethod,
@@ -102,23 +99,6 @@ export async function createPaymentAction(data: {
   return { success: true, payment };
 }
 
-export async function deletePaymentAction(id: string) {
-  const user = await requirePermission("payments", "delete");
-  await deletePayment(id);
-
-  await createActivityLog({
-    user_id: user.id,
-    action: "delete",
-    entity_type: "payment",
-    entity_id: id,
-  });
-
-  revalidatePath("/dashboard/payments");
-  revalidatePath("/dashboard/invoices");
-  revalidatePath("/dashboard/finance");
-  revalidatePath("/dashboard");
-  return { success: true };
-}
 
 export async function createInvoiceAction(data: {
   contact_id?: string;
@@ -216,28 +196,6 @@ export async function voidInvoiceAction(id: string) {
   return { success: true };
 }
 
-export async function deleteInvoiceAction(id: string) {
-  const user = await requirePermission("invoices", "delete");
-  await deleteInvoice(id);
-
-  await createActivityLog({
-    user_id: user.id,
-    action: "delete",
-    entity_type: "invoice",
-    entity_id: id,
-  });
-
-  revalidatePath("/dashboard/invoices");
-  revalidatePath("/dashboard/finance");
-  revalidatePath("/dashboard");
-  return { success: true };
-}
-
-export async function getInvoicesByClientAction(clientId: string) {
-  await requirePermission("invoices", "read");
-  const invoices = await getInvoicesByClientId(clientId);
-  return { success: true, invoices };
-}
 
 export async function getUnpaidInvoicesByClientAction(clientId: string) {
   await requirePermission("invoices", "read");

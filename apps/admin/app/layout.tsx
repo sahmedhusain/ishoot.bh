@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Enterprise operations portal for ishoot Cinema Production House.",
   icons: {
-    icon: "/icon.svg",
+    icon: "/brand/icon-dark.svg",
   },
 };
 

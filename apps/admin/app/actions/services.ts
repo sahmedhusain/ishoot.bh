@@ -1,7 +1,6 @@
 "use server";
 
 import {
-  getAllServices,
   createService,
   updateService,
   deleteService,
@@ -11,19 +10,6 @@ import {
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
 
-export async function getServicesAction(filters?: {
-  category?: string;
-  isActive?: boolean;
-  search?: string;
-}) {
-  try {
-    const services = await getAllServices(filters);
-    return { success: true, services };
-  } catch (error: any) {
-    console.error("Failed to fetch services:", error);
-    return { success: false, error: error.message || "Failed to fetch services" };
-  }
-}
 
 export async function createServiceAction(data: {
   code?: string;

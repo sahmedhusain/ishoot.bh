@@ -6,9 +6,9 @@ export const metadata: Metadata = {
   description:
     "High-end commercial cinematography, aerial drone capture, DaVinci Resolve color grading, and creative studio productions based in Bahrain.",
   icons: {
-    icon: "/images/icon.svg",
-    shortcut: "/images/icon.svg",
-    apple: "/images/icon.svg",
+    icon: "/brand/icon-dark.svg",
+    shortcut: "/brand/icon-dark.svg",
+    apple: "/brand/icon-dark.svg",
   },
   openGraph: {
     title: "ishoot — Cinema Production House",

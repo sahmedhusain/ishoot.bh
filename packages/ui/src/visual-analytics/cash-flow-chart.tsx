@@ -11,9 +11,16 @@ export interface CashFlowDataPoint {
 interface CashFlowChartProps {
   data: CashFlowDataPoint[];
   height?: number;
+  inflowLabel?: string;
+  outflowLabel?: string;
 }
 
-export function CashFlowChart({ data, height = 240 }: CashFlowChartProps) {
+export function CashFlowChart({
+  data,
+  height = 240,
+  inflowLabel = "Inflow (Revenue)",
+  outflowLabel = "Outflow (Expenses)",
+}: CashFlowChartProps) {
   if (!data || data.length === 0) return null;
 
   const maxVal = Math.max(...data.flatMap((d) => [d.inflow, d.outflow]), 1000);
@@ -23,11 +30,11 @@ export function CashFlowChart({ data, height = 240 }: CashFlowChartProps) {
       <div className="flex items-center justify-end gap-5 text-xs font-mono">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-sm bg-[#09937F]" />
-          <span className="text-[#9EADA9]">Inflow (Revenue)</span>
+          <span className="text-[#9EADA9]">{inflowLabel}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-sm bg-rose-500/80" />
-          <span className="text-[#9EADA9]">Outflow (Expenses)</span>
+          <span className="text-[#9EADA9]">{outflowLabel}</span>
         </div>
       </div>
 

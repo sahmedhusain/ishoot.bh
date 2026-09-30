@@ -7,6 +7,7 @@ import {
 } from "@react-pdf/renderer";
 import type { Invoice, CompanySettings } from "@ishoot/database/types";
 import { pdfStyles } from "./shared-styles";
+import { PdfBrandLogo } from "./brand-logo-pdf";
 import { adminTranslations } from "../translations";
 import initialCompanyConfig from "@ishoot/database/config";
 
@@ -34,7 +35,7 @@ function formatAmount(amount: number, decimals: number = 3) {
   });
 }
 
-export function InvoicePDF({ invoice, company }: InvoicePDFProps) {
+function InvoicePDF({ invoice, company }: InvoicePDFProps) {
   const isVatActive = !!(company.vat_enabled && invoice.vat_enabled);
   const currency = invoice.currency || company.default_currency || defaultCompany.defaultCurrency;
   const decimals = company.currency_decimals ?? defaultCompany.currencyDecimals;
@@ -90,9 +91,7 @@ export function InvoicePDF({ invoice, company }: InvoicePDFProps) {
         {/* Official Header Banner */}
         <View style={pdfStyles.headerBanner}>
           <View>
-            <Text style={pdfStyles.brandTitle}>
-              {compNameEn}<Text style={pdfStyles.brandDot}>.</Text>
-            </Text>
+            <PdfBrandLogo company={company} theme="dark" iconHeight={24} wordmarkHeight={16} />
             <Text style={pdfStyles.companySubtitle}>
               {isAr ? compNameAr : compNameEn}
             </Text>

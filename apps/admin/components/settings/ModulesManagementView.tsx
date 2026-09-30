@@ -36,23 +36,19 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
     <div className="space-y-6 max-w-5xl mx-auto pb-16">
       <div>
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          {isRTL ? "إدارة وحدات النظام (Feature Toggles)" : "System Modules & Feature Toggles"}
+          {t.modulesView.title}
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-          {isRTL
-            ? "قم بتمكين أو تعطيل الوحدات الرئيسية للنظام للتحكم في الميزات المتاحة عبر لوحة التحكم وتطبيق الويب."
-            : "Enable or disable core system modules to control available features across the CRM dashboard and Web App."}
+          {t.modulesView.subtitle}
         </p>
       </div>
 
       <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex gap-3 text-amber-700 dark:text-amber-400">
         <ShieldAlert className="w-5 h-5 shrink-0" />
         <div className="text-sm">
-          <p className="font-semibold">{isRTL ? "تحذير المشرف العام" : "Super Admin Warning"}</p>
+          <p className="font-semibold">{t.modulesView.superAdminWarning}</p>
           <p className="text-xs mt-1 opacity-90">
-            {isRTL
-              ? "تعطيل وحدة نشطة سيؤدي إلى إخفائها من القائمة الجانبية لجميع المستخدمين. لا يتم حذف البيانات، لكن لن يمكن الوصول إليها."
-              : "Disabling an active module will hide it from the navigation sidebar for all users. Data is not deleted, but access will be restricted."}
+            {t.modulesView.superAdminWarningDesc}
           </p>
         </div>
       </div>

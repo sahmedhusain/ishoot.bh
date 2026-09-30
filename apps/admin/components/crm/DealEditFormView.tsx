@@ -120,7 +120,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
               </label>
               <Input
                 required
-                placeholder="e.g. Zain Bahrain Q4 Campaign"
+                placeholder={t.dealEdit.titlePlaceholder}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
@@ -137,7 +137,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
                     className="text-[11px] text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
                     target="_blank"
                   >
-                    <span>Dossier</span>
+                    <span>{t.crm.customerDossier}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                 )}
@@ -231,7 +231,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
             </label>
             <Textarea
               rows={4}
-              placeholder="Deal background, client requirements, special considerations..."
+              placeholder={t.dealEdit.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />

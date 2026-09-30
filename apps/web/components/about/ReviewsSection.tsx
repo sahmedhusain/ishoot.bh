@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { useTranslation } from "../../hooks/useTranslation";
-import { Star } from "lucide-react";
+import { Star, MessageSquarePlus } from "lucide-react";
 import type { Review } from "@ishoot/database/types";
+import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
 
 interface ReviewsSectionProps {
   reviews: Review[];
@@ -12,8 +13,7 @@ interface ReviewsSectionProps {
 export function ReviewsSection({ reviews }: ReviewsSectionProps) {
   const { t, locale } = useTranslation();
   const isAr = locale === "ar";
-
-  if (!reviews || reviews.length === 0) return null;
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   return (
     <section
@@ -35,14 +35,30 @@ export function ReviewsSection({ reviews }: ReviewsSectionProps) {
           </div>
         </div>
 
-        <div className="max-w-2xl space-y-3">
-          <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-display">
-            {t("reviews.headline")}
-          </h2>
-          <p className="text-sm sm:text-base text-[#9EADA9] leading-relaxed">
-            {t("reviews.subtitle")}
-          </p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="max-w-2xl space-y-3">
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-display">
+              {t("reviews.headline")}
+            </h2>
+            <p className="text-sm sm:text-base text-[#9EADA9] leading-relaxed">
+              {t("reviews.subtitle")}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="self-start md:self-end px-5 py-2.5 rounded-2xl bg-white/5 hover:bg-[#014842] border border-white/10 hover:border-[#09937F]/50 text-white text-xs font-semibold inline-flex items-center gap-2 transition-all group shrink-0"
+          >
+            <MessageSquarePlus className="w-4 h-4 text-[#09937F] group-hover:text-white transition-colors" />
+            <span>{t("reviews.writeReviewBtn")}</span>
+          </button>
         </div>
+
+        <ReviewSubmissionModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {reviews.map((rev) => (

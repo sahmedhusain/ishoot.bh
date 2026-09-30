@@ -21,9 +21,10 @@
     "bankIban": "BH29NBOB00000012345678",
     "bankAccountNumber": "0012345678",
     "bankSwift": "NBOBBHBM",
-    "logoUrl": "/images/logo-color.svg",
-    "darkLogoUrl": "/images/logo-color.svg",
-    "iconUrl": "/icon.svg",
+    "logoUrl": "/brand/logo-text-dark.svg",
+    "darkLogoUrl": "/brand/logo-text-light.svg",
+    "iconUrl": "/brand/icon-light.svg",
+    "darkIconUrl": "/brand/icon-dark.svg",
     "paymentTermsDays": 30,
     "invoicePrefix": "ISH",
     "invoiceNextNumber": 104,
@@ -33,26 +34,32 @@
   "brandingAssets": [
     {
       "assetKey": "logo_light",
-      "title": "Primary Brand Logo (Light)",
-      "fileUrl": "/images/logo-color.svg",
+      "title": "Brand Wordmark - Dark Text (Light Surfaces)",
+      "fileUrl": "/brand/logo-text-dark.svg",
       "mimeType": "image/svg+xml"
     },
     {
       "assetKey": "logo_dark",
-      "title": "Primary Brand Logo (Dark)",
-      "fileUrl": "/images/logo-color.svg",
+      "title": "Brand Wordmark - Light Text (Dark Surfaces)",
+      "fileUrl": "/brand/logo-text-light.svg",
       "mimeType": "image/svg+xml"
     },
     {
-      "assetKey": "icon",
-      "title": "Corporate Symbol / App Icon",
-      "fileUrl": "/icon.svg",
+      "assetKey": "icon_light",
+      "title": "Brand Icon (Light Background)",
+      "fileUrl": "/brand/icon-light.svg",
+      "mimeType": "image/svg+xml"
+    },
+    {
+      "assetKey": "icon_dark",
+      "title": "Brand Icon (Dark Background)",
+      "fileUrl": "/brand/icon-dark.svg",
       "mimeType": "image/svg+xml"
     },
     {
       "assetKey": "favicon",
       "title": "Square Brand Emblem / Favicon",
-      "fileUrl": "/icon.svg",
+      "fileUrl": "/brand/icon-light.svg",
       "mimeType": "image/svg+xml"
     },
     {

@@ -23,6 +23,7 @@ import {
   BarChart,
   ToggleLeft,
   Key,
+  Globe,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -46,7 +47,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { can, loading } = usePermissions();
   const { isMobileOpen, setIsMobileOpen } = useSidebar();
-  const { t } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
   const { isFeatureEnabled } = useFeatureToggles();
 
   const sections: NavSection[] = [
@@ -185,6 +186,12 @@ export function Sidebar() {
     {
       title: t.nav.system,
       items: [
+        {
+          href: "/dashboard/settings/web",
+          label: t.nav.webSettings,
+          icon: Globe,
+          resource: "settings",
+        },
         {
           href: "/dashboard/settings/company",
           label: t.nav.companySettings,

@@ -4,11 +4,14 @@ import * as React from "react";
 import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Instagram, Linkedin, Youtube, ArrowUpRight } from "lucide-react";
-import initialCompanyConfig from "@ishoot/database/config";
+import type { CompanySettings } from "@ishoot/database/types";
 
-export function Footer() {
+interface FooterProps {
+  company: CompanySettings;
+}
+
+export function Footer({ company }: FooterProps) {
   const { t, locale, isRTL } = useTranslation();
-  const company = initialCompanyConfig.company;
 
   return (
     <footer className="relative bg-[#050807] border-t border-white/10 pt-20 pb-12 overflow-hidden">
@@ -17,18 +20,16 @@ export function Footer() {
       <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="md:col-span-2 space-y-4">
-            <Link href={`/${locale}`} className="flex items-center gap-3 group">
-              <div className="relative h-9 w-9 flex items-center justify-center shrink-0">
-                <img
-                  src="/icon.svg"
-                  alt={t("common.brandIconAlt")}
-                  className="h-8 w-auto object-contain"
-                />
-              </div>
+            <Link href={`/${locale}`} className="flex items-center gap-3 group focus:outline-none">
               <img
-                src="/images/logo-color.svg"
+                src={company.dark_icon_url || company.icon_url || "/brand/icon-dark.svg"}
+                alt={t("common.brandIconAlt")}
+                className="h-9 w-9 object-contain"
+              />
+              <img
+                src={company.dark_logo_url || company.logo_url || "/brand/logo-text-light.svg"}
                 alt={t("common.brandLogoAlt")}
-                className="h-7 w-auto object-contain brightness-125"
+                className="h-7 w-auto object-contain"
               />
             </Link>
             <p className="text-sm text-[#9EADA9] max-w-md leading-relaxed">
@@ -85,7 +86,7 @@ export function Footer() {
             </h4>
             <div className="flex items-center gap-3">
               <a
-                href={company.instagramUrl}
+                href={company.instagram_url || "https://instagram.com"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
@@ -94,7 +95,7 @@ export function Footer() {
                 <Instagram className="w-4 h-4" />
               </a>
               <a
-                href={company.linkedinUrl}
+                href={company.linkedin_url || "https://linkedin.com"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
@@ -103,7 +104,7 @@ export function Footer() {
                 <Linkedin className="w-4 h-4" />
               </a>
               <a
-                href={company.youtubeUrl}
+                href={company.youtube_url || "https://youtube.com"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"

@@ -271,7 +271,7 @@ export function ServicesManagementView({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search service name, code, description..."
+            placeholder={t.servicesView.searchPlaceholder}
             className="w-full pl-9 pr-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
           />
         </div>
@@ -296,12 +296,12 @@ export function ServicesManagementView({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                <th className="py-3 px-4">Code / Item</th>
-                <th className="py-3 px-4">Arabic Title</th>
-                <th className="py-3 px-4">Category</th>
-                <th className="py-3 px-4">Rate & Unit</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-4">{t.servicesView.thCodeItem}</th>
+                <th className="py-3 px-4">{t.servicesView.thArabicTitle}</th>
+                <th className="py-3 px-4">{t.servicesView.thCategory}</th>
+                <th className="py-3 px-4">{t.servicesView.thRateUnit}</th>
+                <th className="py-3 px-4">{t.servicesView.thStatus}</th>
+                <th className="py-3 px-4 text-right">{t.servicesView.thActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
@@ -309,8 +309,8 @@ export function ServicesManagementView({
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-400">
                     <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                    <p className="font-medium text-slate-600 dark:text-slate-300">No services found</p>
-                    <p className="text-[11px] mt-1">Try adjusting your category or search filter.</p>
+                    <p className="font-medium text-slate-600 dark:text-slate-300">{t.servicesView.noServicesFound}</p>
+                    <p className="text-[11px] mt-1">{t.servicesView.noServicesHint}</p>
                   </td>
                 </tr>
               ) : (
@@ -422,7 +422,7 @@ export function ServicesManagementView({
                     {t.servicesView.codeLabel}
                   </label>
                   <Input
-                    placeholder="e.g. SRV-CINE-01"
+                    placeholder={t.servicesView.codePlaceholder}
                     value={formCode}
                     onChange={(e) => setFormCode(e.target.value)}
                     className="text-xs font-mono"
@@ -451,7 +451,7 @@ export function ServicesManagementView({
                     {t.servicesView.nameEnLabel}
                   </label>
                   <Input
-                    placeholder="e.g. Cinema Drone Aerial 8K Capture"
+                    placeholder={t.servicesView.nameEnPlaceholder}
                     value={formNameEn}
                     onChange={(e) => setFormNameEn(e.target.value)}
                     required
@@ -463,7 +463,7 @@ export function ServicesManagementView({
                     {t.servicesView.nameArLabel}
                   </label>
                   <Input
-                    placeholder="e.g. تصوير درون سينمائي جوي بدقة 8K"
+                    placeholder={t.servicesView.nameArPlaceholder}
                     value={formNameAr}
                     onChange={(e) => setFormNameAr(e.target.value)}
                     required
@@ -481,7 +481,7 @@ export function ServicesManagementView({
                     type="number"
                     step="0.001"
                     min="0"
-                    placeholder="0.000"
+                    placeholder={t.servicesView.ratePlaceholder}
                     value={formRate}
                     onChange={(e) => setFormRate(parseFloat(e.target.value) || 0)}
                     required
@@ -512,7 +512,7 @@ export function ServicesManagementView({
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Details of deliverables, crew inclusions, or gear specifications..."
+                  placeholder={t.servicesView.descEnPlaceholder}
                   value={formDescEn}
                   onChange={(e) => setFormDescEn(e.target.value)}
                   className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
@@ -525,7 +525,7 @@ export function ServicesManagementView({
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="تفاصيل ومخرجات الخدمة باللغة العربية..."
+                  placeholder={t.servicesView.descArPlaceholder}
                   value={formDescAr}
                   onChange={(e) => setFormDescAr(e.target.value)}
                   className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white text-right font-arabic focus:outline-none focus:ring-1 focus:ring-[#09937F]"

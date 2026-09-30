@@ -469,11 +469,11 @@ export function DealDossierView({
               <table className="w-full text-start text-xs">
                 <thead className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase font-mono tracking-wider text-[11px]">
                   <tr>
-                    <th className="p-3 text-start">Invoice #</th>
-                    <th className="p-3 text-start">Issue Date</th>
-                    <th className="p-3 text-end">Total Amount</th>
-                    <th className="p-3 text-end">Balance Due</th>
-                    <th className="p-3 text-center">Status</th>
+                    <th className="p-3 text-start">{t.dealDossier.invoiceNum}</th>
+                    <th className="p-3 text-start">{t.dealDossier.issueDate}</th>
+                    <th className="p-3 text-end">{t.dealDossier.totalAmount}</th>
+                    <th className="p-3 text-end">{t.dealDossier.balanceDue}</th>
+                    <th className="p-3 text-center">{t.dealDossier.status}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">

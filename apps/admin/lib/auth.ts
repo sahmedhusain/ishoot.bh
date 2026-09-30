@@ -7,8 +7,6 @@ import {
   Profile,
   PermissionResource,
   PermissionAction,
-  getSessionByToken,
-  deleteSession,
 } from "@ishoot/database";
 
 export const SESSION_COOKIE_NAME = "ishoot_admin_session";
@@ -20,7 +18,7 @@ export const SESSION_COOKIE_OPTIONS = {
   maxAge: 60 * 60 * 24 * 7,
 };
 
-export async function getJwtPayload(): Promise<SessionJwtPayload | null> {
+async function getJwtPayload(): Promise<SessionJwtPayload | null> {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!sessionToken) return null;
@@ -68,15 +66,3 @@ export async function requirePermission(
   return user;
 }
 
-export async function logoutSession(): Promise<void> {
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  if (sessionToken) {
-    try {
-      await deleteSession(sessionToken);
-    } catch (e) {
-      console.error("Error invalidating session in DB:", e);
-    }
-    cookieStore.delete(SESSION_COOKIE_NAME);
-  }
-}

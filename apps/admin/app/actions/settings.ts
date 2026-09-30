@@ -45,6 +45,8 @@ export async function saveCompanyAssetAction(
   const syncMap: Record<string, keyof CompanySettings> = {
     logo_light: "logo_url",
     logo_dark: "dark_logo_url",
+    icon_light: "icon_url",
+    icon_dark: "dark_icon_url",
     icon: "icon_url",
     stamp: "stamp_url",
     signature: "signature_url",
@@ -74,6 +76,8 @@ export async function deleteCompanyAssetAction(assetKey: string) {
   const syncMap: Record<string, keyof CompanySettings> = {
     logo_light: "logo_url",
     logo_dark: "dark_logo_url",
+    icon_light: "icon_url",
+    icon_dark: "dark_icon_url",
     icon: "icon_url",
     stamp: "stamp_url",
     signature: "signature_url",
@@ -102,5 +106,39 @@ export async function toggleFeatureAction(moduleKey: string, isEnabled: boolean)
   const feature = await updateFeatureToggle(moduleKey, isEnabled);
   revalidatePath('/dashboard', 'layout');
   return { success: true, feature };
+}
+
+export async function updateWebSettingsAction(settings: Partial<CompanySettings>) {
+  const user = await requirePermission("settings", "write");
+  const { revalidatePublicSite } = await import("../../lib/revalidate-web");
+  const updated = await updateCompanySettings(settings as CompanySettings);
+
+  await createActivityLog({
+    user_id: user.id,
+    action: "update",
+    entity_type: "web_settings",
+    entity_id: updated.id,
+    details: { type: "web_presentation_content" },
+  });
+
+  revalidatePath("/dashboard/settings/web");
+  revalidatePath("/dashboard/settings/company");
+  revalidatePath("/dashboard");
+  await revalidatePublicSite(
+    ["banners", "portfolio", "clients", "equipment", "reviews", "faqs", "stats", "company"],
+    ["/", "/en", "/ar", "/about", "/works", "/contact"]
+  );
+
+  return { success: true, settings: updated };
+}
+
+export async function revalidateEntireSiteAction() {
+  await requirePermission("settings", "write");
+  const { revalidatePublicSite } = await import("../../lib/revalidate-web");
+  await revalidatePublicSite(
+    ["banners", "portfolio", "clients", "equipment", "reviews", "faqs", "stats", "company"],
+    ["/", "/en", "/ar", "/about", "/works", "/contact"]
+  );
+  return { success: true };
 }
 

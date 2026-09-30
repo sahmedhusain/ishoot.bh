@@ -1,55 +1,62 @@
 "use client";
 
 import * as React from "react";
-import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from "@ishoot/ui";
-import { Plus, Edit, Trash2, Star, CheckCircle, XCircle } from "lucide-react";
-import { createReviewAction, updateReviewAction, deleteReviewAction } from "../../app/actions/cms";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { Card, Badge, ConfirmDestructiveModal } from "@ishoot/ui";
+import {
+  Star,
+  CheckCircle2,
+  XCircle,
+  Trash2,
+  Clock,
+  Sparkles,
+  Eye,
+  EyeOff,
+  Building2,
+  User,
+  MessageSquare,
+} from "lucide-react";
+import {
+  toggleReviewApprovalAction,
+  deleteReviewAction,
+} from "../../app/actions/cms";
 
 export function ReviewsManagementView({ initialReviews }: { initialReviews: any[] }) {
+  const { t, isRTL } = useAdminLocale();
   const [reviews, setReviews] = React.useState(initialReviews);
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [editingItem, setEditingItem] = React.useState<any | null>(null);
+  const [filter, setFilter] = React.useState<"all" | "pending" | "published">("all");
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
+  const [processingId, setProcessingId] = React.useState<string | null>(null);
 
-  const [authorEn, setAuthorEn] = React.useState("");
-  const [authorAr, setAuthorAr] = React.useState("");
-  const [companyEn, setCompanyEn] = React.useState("");
-  const [companyAr, setCompanyAr] = React.useState("");
-  const [quoteEn, setQuoteEn] = React.useState("");
-  const [quoteAr, setQuoteAr] = React.useState("");
-  const [rating, setRating] = React.useState(5);
-  const [isApproved, setIsApproved] = React.useState(true);
+  const pendingCount = reviews.filter((r) => !r.isApproved).length;
+  const publishedCount = reviews.filter((r) => r.isApproved).length;
 
-  const handleOpenNew = () => {
-    setEditingItem(null);
-    setAuthorEn(""); setAuthorAr("");
-    setCompanyEn(""); setCompanyAr("");
-    setQuoteEn(""); setQuoteAr("");
-    setRating(5); setIsApproved(true);
-    setIsModalOpen(true);
-  };
+  const averageRating =
+    reviews.length > 0
+      ? (
+          reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) /
+          reviews.length
+        ).toFixed(1)
+      : "5.0";
 
-  const handleOpenEdit = (item: any) => {
-    setEditingItem(item);
-    setAuthorEn(item.authorEn); setAuthorAr(item.authorAr);
-    setCompanyEn(item.companyEn || ""); setCompanyAr(item.companyAr || "");
-    setQuoteEn(item.quoteEn); setQuoteAr(item.quoteAr);
-    setRating(item.rating); setIsApproved(item.isApproved);
-    setIsModalOpen(true);
-  };
+  const filteredReviews = reviews.filter((r) => {
+    if (filter === "pending") return !r.isApproved;
+    if (filter === "published") return r.isApproved;
+    return true;
+  });
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const data = { authorEn, authorAr, companyEn, companyAr, quoteEn, quoteAr, rating, isApproved };
+  const handleToggleApproval = async (id: string, currentStatus: boolean) => {
+    setProcessingId(id);
     try {
-      if (editingItem) {
-        await updateReviewAction(editingItem.id, data);
-      } else {
-        await createReviewAction(data);
-      }
-      window.location.reload();
+      const newStatus = !currentStatus;
+      await toggleReviewApprovalAction(id, newStatus);
+      setReviews((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, isApproved: newStatus } : r))
+      );
     } catch (error) {
-      console.error(error);
+      console.error("Failed to toggle review status:", error);
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -57,76 +64,240 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
     if (!deleteId) return;
     try {
       await deleteReviewAction(deleteId);
-      setReviews(reviews.filter((r) => r.id !== deleteId));
+      setReviews((prev) => prev.filter((r) => r.id !== deleteId));
     } catch (error) {
-      console.error(error);
+      console.error("Failed to delete review:", error);
     } finally {
       setDeleteId(null);
     }
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-16">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Customer Reviews & Ratings
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+            <span>{t.reviewsView.title}</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#09937F]/10 text-[#09937F] border border-[#09937F]/20 font-mono font-medium">
+              {t.reviewsView.badge}
+            </span>
           </h1>
-          <p className="text-xs text-slate-500 mt-1">Manage client testimonials, star ratings, and web visibility.</p>
+          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 max-w-2xl">
+            {t.reviewsView.subtitle}
+          </p>
         </div>
-        <Button onClick={handleOpenNew} className="bg-[#09937F] text-white">
-          <Plus className="w-4 h-4 mr-2" /> New Review
-        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {reviews.map((rev) => (
-          <Card key={rev.id} className="p-5 dark:bg-[#111C19]">
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex items-center gap-1 text-amber-400">
-                {[...Array(rev.rating)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-mono text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
+              {t.reviewsView.pendingApproval}
+            </div>
+            <div className="text-2xl font-black text-amber-500 mt-0.5">
+              {pendingCount}
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-center justify-center">
+            <Clock className="w-5 h-5" />
+          </div>
+        </Card>
+
+        <Card className="p-4 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-mono text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
+              {t.reviewsView.liveOnWebsite}
+            </div>
+            <div className="text-2xl font-black text-emerald-500 mt-0.5">
+              {publishedCount}
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 flex items-center justify-center">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
+        </Card>
+
+        <Card className="p-4 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-mono text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
+              {t.reviewsView.avgRating}
+            </div>
+            <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5 flex items-center gap-1.5">
+              <span>{averageRating}</span>
+              <span className="text-xs font-normal text-amber-400">★ ★ ★ ★ ★</span>
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-[#09937F]/10 border border-[#09937F]/20 text-[#09937F] flex items-center justify-center">
+            <Star className="w-5 h-5 fill-current" />
+          </div>
+        </Card>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-3">
+        <button
+          type="button"
+          onClick={() => setFilter("all")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            filter === "all"
+              ? "bg-[#014842] text-white shadow-xs"
+              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+          }`}
+        >
+          {t.reviewsView.tabAll} ({reviews.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilter("pending")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            filter === "pending"
+              ? "bg-amber-600 text-white shadow-xs"
+              : "text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+          }`}
+        >
+          <span>{t.reviewsView.tabPending}</span>
+          {pendingCount > 0 && (
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+              {pendingCount}
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => setFilter("published")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            filter === "published"
+              ? "bg-emerald-600 text-white shadow-xs"
+              : "text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+          }`}
+        >
+          {t.reviewsView.tabPublished} ({publishedCount})
+        </button>
+      </div>
+
+      {/* Review List */}
+      {filteredReviews.length === 0 ? (
+        <Card className="p-12 text-center bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl">
+          <MessageSquare className="w-10 h-10 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
+          <p className="text-sm font-semibold text-slate-700 dark:text-neutral-300">
+            No reviews in this view.
+          </p>
+          <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1">
+            Client reviews submitted through the website will appear here for your moderation.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredReviews.map((rev) => (
+            <Card
+              key={rev.id}
+              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${
+                rev.isApproved
+                  ? "bg-white dark:bg-[#111C19] border-slate-200 dark:border-white/10"
+                  : "bg-amber-50/40 dark:bg-amber-950/20 border-amber-300 dark:border-amber-500/30"
+              }`}
+            >
+              <div>
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/10">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[...Array(Number(rev.rating) || 5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-current" />
+                    ))}
+                  </div>
+                  <Badge
+                    variant={rev.isApproved ? "emerald" : "default"}
+                    className={
+                      rev.isApproved
+                        ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                        : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                    }
+                  >
+                    {rev.isApproved ? t.reviewsView.statusPublished : t.reviewsView.statusPending}
+                  </Badge>
+                </div>
+
+                <div className="pt-3 space-y-2">
+                  <p className="text-xs sm:text-sm text-slate-800 dark:text-neutral-200 leading-relaxed italic">
+                    "{rev.quoteEn || rev.quoteAr}"
+                  </p>
+
+                  {rev.quoteAr && rev.quoteEn && rev.quoteAr !== rev.quoteEn && (
+                    <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed font-arabic text-right">
+                      "{rev.quoteAr}"
+                    </p>
+                  )}
+                </div>
               </div>
-              <Badge variant={rev.isApproved ? "emerald" : "default"}>
-                {rev.isApproved ? "Published" : "Hidden"}
-              </Badge>
-            </div>
-            <p className="text-sm italic text-slate-700 dark:text-slate-300">"{rev.quoteEn}"</p>
-            <div className="mt-4">
-              <p className="font-bold text-sm dark:text-white">{rev.authorEn}</p>
-              <p className="text-xs text-slate-500">{rev.companyEn}</p>
-            </div>
-            <div className="flex gap-2 mt-4 pt-4 border-t dark:border-white/10">
-              <Button variant="outline" size="sm" onClick={() => handleOpenEdit(rev)}><Edit className="w-3.5 h-3.5" /></Button>
-              <Button variant="danger" size="sm" onClick={() => setDeleteId(rev.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
-            </div>
-          </Card>
-        ))}
-      </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? "Edit Review" : "New Review"} >
-        <form onSubmit={handleSave} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div><label className="text-xs font-bold block mb-1">Author (En)</label><Input value={authorEn} onChange={e=>setAuthorEn(e.target.value)} required /></div>
-            <div><label className="text-xs font-bold block mb-1">Author (Ar)</label><Input value={authorAr} onChange={e=>setAuthorAr(e.target.value)} required /></div>
-            <div><label className="text-xs font-bold block mb-1">Company (En)</label><Input value={companyEn} onChange={e=>setCompanyEn(e.target.value)} /></div>
-            <div><label className="text-xs font-bold block mb-1">Company (Ar)</label><Input value={companyAr} onChange={e=>setCompanyAr(e.target.value)} /></div>
-          </div>
-          <div><label className="text-xs font-bold block mb-1">Quote (En)</label><textarea className="w-full rounded-md border p-2 text-sm bg-transparent dark:border-white/20" rows={3} value={quoteEn} onChange={e=>setQuoteEn(e.target.value)} required /></div>
-          <div><label className="text-xs font-bold block mb-1">Quote (Ar)</label><textarea className="w-full rounded-md border p-2 text-sm bg-transparent dark:border-white/20" rows={3} value={quoteAr} onChange={e=>setQuoteAr(e.target.value)} required /></div>
-          <div className="flex justify-between items-center pt-2">
-            <div><label className="text-xs font-bold block mb-1">Rating (1-5)</label><Input type="number" min="1" max="5" value={rating} onChange={e=>setRating(Number(e.target.value))} /></div>
-            <label className="flex items-center gap-2 text-sm font-bold cursor-pointer">
-              <input type="checkbox" checked={isApproved} onChange={e=>setIsApproved(e.target.checked)} className="w-4 h-4" /> Publish on Website
-            </label>
-          </div>
-          <div className="flex justify-end gap-2 pt-4">
-            <Button variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit" className="bg-[#09937F] text-white">Save Review</Button>
-          </div>
-        </form>
-      </Modal>
+              <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-white/10">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="space-y-0.5">
+                    <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-[#09937F]" />
+                      <span>{rev.authorEn || rev.authorAr}</span>
+                    </div>
+                    {(rev.companyEn || rev.companyAr) && (
+                      <div className="text-[11px] text-slate-500 dark:text-neutral-400 flex items-center gap-1.5">
+                        <Building2 className="w-3 h-3 text-slate-400" />
+                        <span>{rev.companyEn || rev.companyAr}</span>
+                      </div>
+                    )}
+                  </div>
 
-      <ConfirmDestructiveModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={handleDelete} title="Delete Review" description="Are you sure you want to permanently delete this review?" />
+                  <div className="text-[10px] font-mono text-slate-400 dark:text-neutral-500 text-end">
+                    {rev.year || "2026"}
+                  </div>
+                </div>
+
+                {/* Moderation Actions: Admin only adds (approves) or doesn't add (hides) */}
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                  <button
+                    type="button"
+                    disabled={processingId === rev.id}
+                    onClick={() => handleToggleApproval(rev.id, rev.isApproved)}
+                    className={`flex-1 px-3 py-1.5 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all ${
+                      rev.isApproved
+                        ? "bg-slate-100 hover:bg-amber-50 text-slate-700 hover:text-amber-700 dark:bg-white/5 dark:hover:bg-amber-950/40 dark:text-neutral-300 dark:hover:text-amber-300 border border-slate-200 dark:border-white/10"
+                        : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                    }`}
+                  >
+                    {rev.isApproved ? (
+                      <>
+                        <EyeOff className="w-3.5 h-3.5" />
+                        <span>{t.reviewsView.hideFromWeb}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>{t.reviewsView.approvePublish}</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setDeleteId(rev.id)}
+                    className="p-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                    title={t.reviewsView.deleteReview}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <ConfirmDestructiveModal
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        title={t.reviewsView.deleteReview}
+        description={t.reviewsView.deleteConfirm}
+      />
     </div>
   );
 }

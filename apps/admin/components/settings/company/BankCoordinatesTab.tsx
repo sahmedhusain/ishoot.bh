@@ -48,7 +48,7 @@ export function BankCoordinatesTab({
               onChange={(e) =>
                 setSettings({ ...settings, bank_name: e.target.value })
               }
-              placeholder="e.g. National Bank of Bahrain (NBB)"
+              placeholder={t.companySettingsTabs.bankNamePlaceholder}
               className="rounded-lg"
             />
           </div>
@@ -62,7 +62,7 @@ export function BankCoordinatesTab({
               onChange={(e) =>
                 setSettings({ ...settings, bank_iban: e.target.value })
               }
-              placeholder="BH29NBOB00000012345678"
+              placeholder={t.companySettingsTabs.ibanPlaceholder}
               className="font-mono rounded-lg"
             />
           </div>
@@ -79,7 +79,7 @@ export function BankCoordinatesTab({
                   bank_account_number: e.target.value,
                 })
               }
-              placeholder="0012345678"
+              placeholder={t.companySettingsTabs.accountPlaceholder}
               className="font-mono rounded-lg"
             />
           </div>
@@ -93,7 +93,7 @@ export function BankCoordinatesTab({
               onChange={(e) =>
                 setSettings({ ...settings, bank_swift: e.target.value })
               }
-              placeholder="NBOBBHBM"
+              placeholder={t.companySettingsTabs.swiftPlaceholder}
               className="font-mono rounded-lg"
             />
           </div>

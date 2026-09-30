@@ -15,7 +15,6 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
   },
   "devDependencies": {
-    "@types/dotenv": "^8.2.3",
     "prettier": "^3.5.1",
     "prisma": "^5.22.0",
     "ts-node": "^10.9.2",

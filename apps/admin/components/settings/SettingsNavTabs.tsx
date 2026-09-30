@@ -3,12 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sliders, Building2, History, Share2 } from "lucide-react";
+import { Sliders, Building2, History, Share2, Globe } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function SettingsNavTabs() {
   const pathname = usePathname();
-  const { t } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
 
   const tabs = [
     {
@@ -20,6 +20,11 @@ export function SettingsNavTabs() {
       href: "/dashboard/settings/company",
       label: t.settingsTabs.company,
       icon: Building2,
+    },
+    {
+      href: "/dashboard/settings/web",
+      label: t.settingsTabs.web,
+      icon: Globe,
     },
     {
       href: "/dashboard/settings/audit",

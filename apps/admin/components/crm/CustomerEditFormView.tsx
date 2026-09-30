@@ -88,7 +88,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               </label>
               <Input
                 required
-                placeholder="e.g. Sayed Ahmed"
+                placeholder={t.customerEdit.fullNamePlaceholder}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
@@ -98,7 +98,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
                 {t.customerEdit.companyName}
               </label>
               <Input
-                placeholder="e.g. Zain Bahrain"
+                placeholder={t.customerEdit.companyPlaceholder}
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
               />
@@ -112,7 +112,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               </label>
               <Input
                 type="email"
-                placeholder="client@company.com"
+                placeholder={t.customerEdit.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -122,7 +122,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
                 {t.customerEdit.phone}
               </label>
               <Input
-                placeholder="+973 3900 0000"
+                placeholder={t.customerEdit.phonePlaceholder}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
@@ -135,7 +135,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
                 {t.customerEdit.jobTitle}
               </label>
               <Input
-                placeholder="e.g. Marketing Director"
+                placeholder={t.customerEdit.jobTitlePlaceholder}
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
               />
@@ -148,10 +148,10 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
                 value={contactType}
                 onChange={(e) => setContactType(e.target.value as any)}
               >
-                <option value="client">{t.customerEdit.typeDirect}</option>
-                <option value="agency">{t.customerEdit.typeAgency}</option>
-                <option value="vendor">{t.customer360.clientType}</option>
-                <option value="freelancer">{t.customer360.clientType}</option>
+                <option value="client">{t.crm.contactTypes.client}</option>
+                <option value="agency">{t.crm.contactTypes.agency}</option>
+                <option value="vendor">{t.crm.contactTypes.vendor}</option>
+                <option value="freelancer">{t.crm.contactTypes.freelancer}</option>
               </Select>
             </div>
           </div>
@@ -162,7 +162,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
             </label>
             <textarea
               rows={4}
-              placeholder="Commercial preferences, legal registration details, background notes..."
+              placeholder={t.customerEdit.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#09937F]"

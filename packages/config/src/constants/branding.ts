@@ -1,6 +1,8 @@
 export type AssetType =
   | "LOGO_LIGHT"
   | "LOGO_DARK"
+  | "ICON_LIGHT"
+  | "ICON_DARK"
   | "ICON"
   | "FAVICON"
   | "STAMP"
@@ -24,7 +26,7 @@ export const BRANDING_ASSET_SLOTS: AssetSlotConfig[] = [
     translationKey: "branding.assets.logoLight",
     descriptionKey: "branding.assets.logoLightDesc",
     recommendedFormat: "SVG / PNG",
-    recommendedDimensions: "500x120px",
+    recommendedDimensions: "486x136px",
     isVectorRecommended: true,
   },
   {
@@ -32,15 +34,23 @@ export const BRANDING_ASSET_SLOTS: AssetSlotConfig[] = [
     translationKey: "branding.assets.logoDark",
     descriptionKey: "branding.assets.logoDarkDesc",
     recommendedFormat: "SVG / PNG",
-    recommendedDimensions: "500x120px",
+    recommendedDimensions: "486x136px",
     isVectorRecommended: true,
   },
   {
-    key: "ICON",
-    translationKey: "branding.assets.icon",
-    descriptionKey: "branding.assets.iconDesc",
+    key: "ICON_LIGHT",
+    translationKey: "branding.assets.iconLight",
+    descriptionKey: "branding.assets.iconLightDesc",
     recommendedFormat: "SVG / PNG",
-    recommendedDimensions: "128x128px",
+    recommendedDimensions: "310x470px or 1:1",
+    isVectorRecommended: true,
+  },
+  {
+    key: "ICON_DARK",
+    translationKey: "branding.assets.iconDark",
+    descriptionKey: "branding.assets.iconDarkDesc",
+    recommendedFormat: "SVG / PNG",
+    recommendedDimensions: "310x470px or 1:1",
     isVectorRecommended: true,
   },
   {

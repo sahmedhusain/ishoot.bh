@@ -700,7 +700,7 @@ export function ArchiveManagementView({
                   <input
                     type="text"
                     required
-                    placeholder="https://... or /uploads/documents/file.pdf"
+                    placeholder={t.archiveView.fieldFileUrlPlaceholder}
                     value={fileUrl}
                     onChange={(e) => setFileUrl(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
@@ -716,7 +716,7 @@ export function ArchiveManagementView({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Cheque No 48291 Copy or NBR VAT Certificate.pdf"
+                  placeholder={t.archiveView.fieldDocNamePlaceholder}
                   value={fileName}
                   onChange={(e) => setFileName(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
@@ -773,10 +773,10 @@ export function ArchiveManagementView({
                       onChange={(e) => setMimeType(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
                     >
-                      <option value="application/pdf">PDF Document (.pdf)</option>
-                      <option value="image/png">PNG Image (.png)</option>
-                      <option value="image/jpeg">JPEG Image (.jpg)</option>
-                      <option value="application/octet-stream">Other File</option>
+                      <option value="application/pdf">{t.archiveView.mimePdf}</option>
+                      <option value="image/png">{t.archiveView.mimePng}</option>
+                      <option value="image/jpeg">{t.archiveView.mimeJpg}</option>
+                      <option value="application/octet-stream">{t.archiveView.mimeOther}</option>
                     </select>
                   </div>
                 )}

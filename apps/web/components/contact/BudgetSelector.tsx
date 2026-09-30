@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslation } from "../../hooks/useTranslation";
 
 interface BudgetSelectorProps {
   selected: string;
@@ -8,13 +9,17 @@ interface BudgetSelectorProps {
 }
 
 export function BudgetSelector({ selected, onChange }: BudgetSelectorProps) {
-  const ranges = [
+  const { translations } = useTranslation();
+  const defaultRanges = [
     "< 800 BHD",
     "800 – 2,000 BHD",
     "2,000 – 5,000 BHD",
     "5,000 – 10,000 BHD",
     "> 10,000 BHD",
   ];
+  const ranges = Array.isArray(translations?.contact?.budgetRanges)
+    ? translations.contact.budgetRanges
+    : defaultRanges;
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">

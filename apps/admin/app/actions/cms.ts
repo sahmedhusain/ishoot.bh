@@ -254,10 +254,18 @@ export async function updateReviewAction(id: string, data: any) {
   return { success: true, review };
 }
 
+export async function toggleReviewApprovalAction(id: string, isApproved: boolean) {
+  await requirePermission('reviews', 'write');
+  const review = await updateReview(id, { isApproved });
+  await revalidatePublicSite(['reviews'], ['/']);
+  revalidatePath('/dashboard/cms/reviews');
+  return { success: true, review };
+}
+
 export async function deleteReviewAction(id: string) {
   await requirePermission('reviews', 'delete');
   await deleteReview(id);
-  revalidatePublicSite(['reviews']);
+  await revalidatePublicSite(['reviews'], ['/']);
   revalidatePath('/dashboard/cms/reviews');
   return { success: true };
 }

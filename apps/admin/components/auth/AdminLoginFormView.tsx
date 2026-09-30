@@ -72,20 +72,31 @@ export function AdminLoginFormView({ companyName }: { companyName?: string }) {
       </div>
 
       <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-[#09937F]/30 shadow-2xl rounded-3xl space-y-8">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl mx-auto flex items-center justify-center bg-[#014842] border border-[#09937F]/50 shadow-lg shadow-[#014842]/50">
-            <span className="w-4 h-4 rounded-full bg-[#09937F]" />
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3">
+            <img
+              src="/brand/icon-dark.svg"
+              alt="iShoot Icon"
+              className="h-10 w-auto object-contain shrink-0 filter drop-shadow-[0_0_12px_rgba(9,147,127,0.3)]"
+            />
+            <img
+              src="/brand/logo-text-light.svg"
+              alt="iShoot"
+              className="h-7 w-auto object-contain"
+            />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight font-display">
-            {companyName ? (
-              <span>{companyName}</span>
-            ) : (
-              <span>{t.portalTitle}</span>
-            )}
-          </h1>
-          <p className="text-xs text-[#9EADA9] tracking-wider uppercase">
-            {t.loginView.subtitle}
-          </p>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold text-white tracking-tight font-display">
+              {companyName ? (
+                <span>{companyName}</span>
+              ) : (
+                <span>{t.portalTitle}</span>
+              )}
+            </h1>
+            <p className="text-xs text-[#9EADA9] tracking-wider uppercase">
+              {t.loginView.subtitle}
+            </p>
+          </div>
         </div>
 
         {errorMessage && (

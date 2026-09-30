@@ -120,11 +120,11 @@ export function CinemaHero({ banners }: CinemaHeroProps) {
         <div className="hidden sm:flex items-center gap-6 text-[11px] uppercase tracking-widest">
           <span className="flex items-center gap-1.5">
             <Camera className="w-3.5 h-3.5 text-[#09937F]" />
-            <span>RED V-Raptor 8K</span>
+            <span>{t("hero.cameraTag")}</span>
           </span>
           <span className="flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
-            <span>ARRI Master Primes</span>
+            <span>{t("hero.lensTag")}</span>
           </span>
         </div>
       </div>

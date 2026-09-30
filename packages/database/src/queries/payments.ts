@@ -188,7 +188,7 @@ export async function getPaymentByIdOrNumber(
   }
 }
 
-export async function recordPayment(paymentData: {
+export async function createPayment(paymentData: {
   invoice_id: string;
   payment_date?: string;
   amount: number;
@@ -342,4 +342,3 @@ export async function deletePayment(id: string): Promise<boolean> {
 }
 
 
-export const createPayment = recordPayment;

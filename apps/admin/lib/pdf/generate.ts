@@ -2,11 +2,9 @@ import * as React from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoicePdfDocument } from "./invoice-pdf";
 import { ReceiptPdfDocument } from "./receipt-pdf";
-import { ContractPdfDocument } from "./contract-pdf";
 import type {
   Invoice,
   Payment,
-  Contract,
   CompanySettings,
 } from "@ishoot/database/types";
 
@@ -26,13 +24,3 @@ export async function generateReceiptPdfBuffer(
   return (await renderToBuffer(element as any)) as Buffer;
 }
 
-export async function generateContractPdfBuffer(
-  contract: Contract,
-  company: CompanySettings,
-): Promise<Buffer> {
-  const element = React.createElement(ContractPdfDocument, {
-    contract,
-    company,
-  });
-  return (await renderToBuffer(element as any)) as Buffer;
-}

@@ -1,14 +1,5 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
-export const PDF_COLORS = {
-  primary: "#014842",
-  accent: "#09937F",
-  darkBg: "#050807",
-  cardBg: "#F9FAFB",
-  border: "#E5E7EB",
-  textPrimary: "#111827",
-  textMuted: "#6B7280",
-};
 
 export const pdfStyles = StyleSheet.create({
   page: {

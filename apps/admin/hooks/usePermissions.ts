@@ -24,7 +24,7 @@ export type PermissionResource =
 export type PermissionAction =
   "read" | "write" | "delete" | "export" | "approve";
 
-export const CLIENT_ROLE_RULES: Record<
+const CLIENT_ROLE_RULES: Record<
   string,
   Partial<Record<PermissionResource, PermissionAction[]>>
 > = {

@@ -81,7 +81,7 @@ export function NewExpenseFormView() {
               </label>
               <Input
                 required
-                placeholder="e.g. Cinema prime lenses rental"
+                placeholder={t.expensesNew.descriptionPlaceholder}
                 value={descriptionEn}
                 onChange={(e) => setDescriptionEn(e.target.value)}
               />
@@ -94,7 +94,7 @@ export function NewExpenseFormView() {
                 type="number"
                 required
                 min={0}
-                placeholder="250.00"
+                placeholder={t.expensesNew.amountPlaceholder}
                 value={amount || ""}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
                 className="font-mono"
@@ -108,7 +108,7 @@ export function NewExpenseFormView() {
                 {t.expensesNew.vendorLabel}
               </label>
               <Input
-                placeholder="e.g. Media Rental Corp"
+                placeholder={t.expensesNew.vendorPlaceholder}
                 value={vendorName}
                 onChange={(e) => setVendorName(e.target.value)}
               />

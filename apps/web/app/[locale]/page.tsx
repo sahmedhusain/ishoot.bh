@@ -6,6 +6,7 @@ import {
   getStatistics,
   getReviews,
   getFaqs,
+  getCompanySettings,
 } from "@ishoot/database";
 import { CinemaHero } from "../../components/hero/CinemaHero";
 import { AboutSection } from "../../components/about/AboutSection";
@@ -24,20 +25,21 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
 
-  const [banners, clientLogos, portfolioItems, stats, reviews, faqs] = await Promise.all([
+  const [banners, clientLogos, portfolioItems, stats, reviews, faqs, company] = await Promise.all([
     getActiveBanners(),
     getActiveClientLogos(),
     getPortfolioItems(),
     getStatistics(),
     getReviews(false),
     getFaqs(false),
+    getCompanySettings(),
   ]);
 
   return (
     <div className="flex flex-col w-full">
       <CinemaHero banners={banners} />
 
-      <AboutSection clientLogos={clientLogos} />
+      <AboutSection clientLogos={clientLogos} company={company} />
 
       <LogoMarquee logos={clientLogos} />
 

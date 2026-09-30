@@ -57,7 +57,7 @@ export function InvoiceReceiptSequencesTab({
                 onChange={(e) =>
                   setSettings({ ...settings, invoice_prefix: e.target.value.toUpperCase() })
                 }
-                placeholder="INV"
+                placeholder={t.companySettingsTabs.invPrefixPlaceholder}
                 className="font-mono text-sm uppercase rounded-lg"
               />
             </div>
@@ -110,7 +110,7 @@ export function InvoiceReceiptSequencesTab({
                 onChange={(e) =>
                   setSettings({ ...settings, receipt_prefix: e.target.value.toUpperCase() })
                 }
-                placeholder="RCT"
+                placeholder={t.companySettingsTabs.rctPrefixPlaceholder}
                 className="font-mono text-sm uppercase rounded-lg"
               />
             </div>

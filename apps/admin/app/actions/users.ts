@@ -60,21 +60,6 @@ export async function updateUserRoleAction(id: string, role: UserRole) {
   return { success: true, user };
 }
 
-export async function toggleUserStatusAction(id: string, isActive: boolean) {
-  const actor = await requirePermission("users", "write");
-  const user = await updateUser(id, { is_active: isActive });
-
-  await createActivityLog({
-    user_id: actor.id,
-    action: "update",
-    entity_type: "user",
-    entity_id: id,
-    details: { is_active: isActive },
-  });
-
-  revalidatePath("/dashboard/users");
-  return { success: true, user };
-}
 
 export async function deleteUserAction(id: string) {
   const actor = await requirePermission("users", "delete");

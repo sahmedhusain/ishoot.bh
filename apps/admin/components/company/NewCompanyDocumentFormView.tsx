@@ -89,7 +89,7 @@ export function NewCompanyDocumentFormView() {
               </label>
               <Input
                 required
-                placeholder="e.g. Commercial Registration (CR) 2026"
+                placeholder={t.companyDocumentsNew.titleEnPlaceholder}
                 value={titleEn}
                 onChange={(e) => setTitleEn(e.target.value)}
               />
@@ -116,28 +116,28 @@ export function NewCompanyDocumentFormView() {
                 onChange={(e) => setCategory(e.target.value as any)}
               >
                 <option value="cr_license" className="bg-[#0B1210] text-white">
-                  Commercial Registration (CR)
+                  {t.companyDocumentsView.categoryCrLicense}
                 </option>
                 <option
                   value="vat_certificate"
                   className="bg-[#0B1210] text-white"
                 >
-                  VAT / Tax Certificate
+                  {t.companyDocumentsView.categoryVatCertificate}
                 </option>
                 <option
                   value="company_profile"
                   className="bg-[#0B1210] text-white"
                 >
-                  Company Profile / Pitch Deck
+                  {t.companyDocumentsView.categoryCompanyProfile}
                 </option>
                 <option value="bylaws" className="bg-[#0B1210] text-white">
-                  Corporate Bylaws & Resolution
+                  {t.companyDocumentsView.categoryBylaws}
                 </option>
                 <option
                   value="standard_contract"
                   className="bg-[#0B1210] text-white"
                 >
-                  Standard Agreement / Guarantee
+                  {t.companyDocumentsView.categoryStandardContract}
                 </option>
               </Select>
             </div>
@@ -146,7 +146,7 @@ export function NewCompanyDocumentFormView() {
                 {t.companyDocumentsNew.docNumberLabel}
               </label>
               <Input
-                placeholder="CR-142859-1"
+                placeholder={t.companyDocumentsNew.docNumberPlaceholder}
                 value={documentNumber}
                 onChange={(e) => setDocumentNumber(e.target.value)}
                 className="font-mono"
@@ -192,7 +192,7 @@ export function NewCompanyDocumentFormView() {
               {t.companyDocumentsNew.notesLabel}
             </label>
             <Input
-              placeholder="Notes on usage, signees, renewal dates..."
+              placeholder={t.companyDocumentsNew.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />

@@ -1,7 +1,6 @@
 "use server";
 
 import {
-  getAllAttachments,
   createAttachment,
   deleteAttachment,
   createActivityLog,
@@ -9,15 +8,6 @@ import {
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "../../lib/auth";
 
-export async function getAttachmentsAction() {
-  try {
-    const attachments = await getAllAttachments();
-    return { success: true, attachments };
-  } catch (error: any) {
-    console.error("Failed to fetch attachments:", error);
-    return { success: false, error: error.message || "Failed to fetch attachments" };
-  }
-}
 
 export async function createAttachmentAction(data: {
   fileName: string;

@@ -85,7 +85,7 @@ export function NewCustomerFormView() {
               </label>
               <Input
                 required
-                placeholder="e.g. Sayed Ahmed"
+                placeholder={t.customersNew.fullNamePlaceholder}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
@@ -95,7 +95,7 @@ export function NewCustomerFormView() {
                 {t.customersNew.companyLabel}
               </label>
               <Input
-                placeholder="e.g. Zain Bahrain"
+                placeholder={t.customersNew.companyPlaceholder}
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
               />
@@ -109,7 +109,7 @@ export function NewCustomerFormView() {
               </label>
               <Input
                 type="email"
-                placeholder="client@company.com"
+                placeholder={t.customersNew.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -119,7 +119,7 @@ export function NewCustomerFormView() {
                 {t.customersNew.phoneLabel}
               </label>
               <Input
-                placeholder="+973 3900 0000"
+                placeholder={t.customersNew.phonePlaceholder}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
@@ -132,7 +132,7 @@ export function NewCustomerFormView() {
                 {t.customersNew.jobTitleLabel}
               </label>
               <Input
-                placeholder="e.g. Marketing Director"
+                placeholder={t.customersNew.jobTitlePlaceholder}
                 value={jobTitle}
                 onChange={(e) => setJobTitle(e.target.value)}
               />
@@ -164,7 +164,7 @@ export function NewCustomerFormView() {
             </label>
             <textarea
               rows={4}
-              placeholder="Commercial preferences, legal registration details, background notes..."
+              placeholder={t.customersNew.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full bg-[#050807] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-[#9EADA9]/50 focus:outline-none focus:border-[#09937F]"

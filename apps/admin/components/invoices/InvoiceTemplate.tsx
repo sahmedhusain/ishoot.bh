@@ -128,9 +128,19 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
                 <span className="text-[10px] text-slate-400 font-arabic">{adminTranslations.ar.documentLetterhead.termsNotes}</span>
               </h3>
               <div className="text-[11px] leading-relaxed text-slate-600 space-y-1.5 bg-slate-50 p-4 rounded-xl border border-slate-200 print:bg-white print:border-slate-300 print:text-[10px]">
-                <p>1. Payment is due within <strong className="text-slate-800 font-semibold">{company.payment_terms_days || 30} days</strong> from invoice date ({invoice.due_date}).</p>
-                <p>2. Electronic wire payments must reference invoice number: <strong className="font-mono text-slate-900">{invoice.invoice_number}</strong>.</p>
-                <p>3. Raw footage and intellectual property rights transfer upon complete settlement of balance due.</p>
+                {isAr ? (
+                  <>
+                    <p>1. يستحق السداد خلال <strong className="text-slate-800 font-semibold">{company.payment_terms_days || 30} يوماً</strong> من تاريخ الفاتورة ({invoice.due_date}).</p>
+                    <p>2. يجب ذكر رقم الفاتورة في التحويل البنكي: <strong className="font-mono text-slate-900">{invoice.invoice_number}</strong>.</p>
+                    <p>3. تنتقل حقوق الملكية الفكرية والمواد الخام بعد سداد كامل الرصيد المستحق.</p>
+                  </>
+                ) : (
+                  <>
+                    <p>1. Payment is due within <strong className="text-slate-800 font-semibold">{company.payment_terms_days || 30} days</strong> from invoice date ({invoice.due_date}).</p>
+                    <p>2. Electronic wire payments must reference invoice number: <strong className="font-mono text-slate-900">{invoice.invoice_number}</strong>.</p>
+                    <p>3. Raw footage and intellectual property rights transfer upon complete settlement of balance due.</p>
+                  </>
+                )}
                 {invoice.notes_en && (
                   <p className="pt-1.5 border-t border-slate-200/80 font-medium text-slate-800">
                     {invoice.notes_en}
@@ -149,10 +159,10 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
                 {inv.bankCoords}
               </div>
               <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 font-mono text-[11px] space-y-1 print:bg-white print:border-slate-300 print:text-[10px]">
-                <div><span className="text-slate-400 font-sans">Bank:</span> {company.bank_name || "National Bank of Bahrain (NBB)"}</div>
-                <div><span className="text-slate-400 font-sans">IBAN:</span> {company.bank_iban || "BH00NBBB00000000000000"}</div>
-                <div><span className="text-slate-400 font-sans">Account:</span> {company.bank_account_number || "0000-000000-001"}</div>
-                <div><span className="text-slate-400 font-sans">Swift:</span> {company.bank_swift || "NBBBBHBM"}</div>
+                <div><span className="text-slate-400 font-sans">{t.pdfInvoice.bankName}</span> {company.bank_name || (isAr ? "بنك البحرين الوطني" : "National Bank of Bahrain (NBB)")}</div>
+                <div><span className="text-slate-400 font-sans">{t.pdfInvoice.iban}</span> {company.bank_iban || "BH00NBBB00000000000000"}</div>
+                <div><span className="text-slate-400 font-sans">{t.pdfInvoice.accountNo}</span> {company.bank_account_number || "0000-000000-001"}</div>
+                <div><span className="text-slate-400 font-sans">{t.pdfInvoice.swift}</span> {company.bank_swift || "NBBBBHBM"}</div>
               </div>
             </div>
           </div>

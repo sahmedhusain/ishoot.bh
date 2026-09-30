@@ -39,7 +39,8 @@
     "equipment": "Gear Locker",
     "bookNow": "Book Production",
     "switchLang": "العربية",
-    "adminPortal": "Admin Portal"
+    "adminPortal": "Admin Portal",
+    "webSettings": "Website Settings"
   },
   "hero": {
     "badge": "Cinema Production House",
@@ -49,7 +50,9 @@
     "startProject": "Start a Project",
     "audioOn": "Sound On",
     "audioOff": "Sound Off",
-    "scroll": "Scroll to Discover"
+    "scroll": "Scroll to Discover",
+    "cameraTag": "RED V-Raptor 8K",
+    "lensTag": "ARRI Master Primes"
   },
   "showreel": {
     "badge": "2026 Showreel",
@@ -156,7 +159,8 @@
     "badge": "Trust & Pedigree",
     "title": "TRUSTED BY VISIONARY BRANDS",
     "subtitle": "Collaborating with market leaders, government entities, and global enterprises across the GCC.",
-    "marqueeBadge": "TRUSTED BY VISIONARY BRANDS"
+    "marqueeBadge": "TRUSTED BY VISIONARY BRANDS",
+    "regionTag": "BAHRAIN · GCC"
   },
   "about": {
     "badge": "About ishoot",
@@ -191,7 +195,15 @@
     "gearLenses": "Cinema Glass",
     "gearLighting": "Lighting Rigs",
     "gearAudioGrading": "Mastering Suite",
-    "gearStages": "Soundstage"
+    "gearStages": "Soundstage",
+    "statFilmsValue": "180+",
+    "statFilmsLabel": "Commercials Delivered",
+    "statYearsValue": "8+",
+    "statYearsLabel": "Years of Craft",
+    "statAwardsValue": "14",
+    "statAwardsLabel": "Regional Awards",
+    "statClientsValue": "65+",
+    "statClientsLabel": "GCC Enterprise Clients"
   },
   "contact": {
     "badge": "Initiate Collaboration",
@@ -228,7 +240,18 @@
       "Studio & Gear Rental",
       "Documentary Production"
     ],
-    "emailSubject": "Thank you for contacting us"
+    "emailSubject": "Thank you for contacting us",
+    "budgetRanges": [
+      "< 800 BHD",
+      "800 – 2,000 BHD",
+      "2,000 – 5,000 BHD",
+      "5,000 – 10,000 BHD",
+      "> 10,000 BHD"
+    ],
+    "fullNamePlaceholder": "e.g. Sayed Ahmed",
+    "emailPlaceholder": "name@company.com",
+    "phonePlaceholder": "+973 3900 0000",
+    "companyPlaceholder": "e.g. Batelco / Agency"
   },
   "footer": {
     "tagline": "Cinema Production House based in Manama, Kingdom of Bahrain.",
@@ -374,7 +397,8 @@
       "faqs": "Website FAQs",
       "stats": "Studio Statistics",
       "roles": "Roles & Permissions",
-      "modules": "System Modules"
+      "modules": "System Modules",
+      "webSettings": "Website Settings"
     },
     "actions": {
       "newInvoice": "New Invoice",
@@ -615,13 +639,27 @@
         "contacted": "Contacted",
         "qualified": "Qualified",
         "archived": "Archived"
-      }
+      },
+      "converting": "Converting...",
+      "convertToClient": "Convert to Client",
+      "clientCreated": "Client Created",
+      "openDossier": "Open Dossier",
+      "customerDossier": "Dossier",
+      "viewDossier": "View Dossier",
+      "clientSearchPlaceholder": "Search by client name, email, company, or phone...",
+      "selectClientLabel": "Select Client",
+      "searchingClients": "Searching clients...",
+      "noMatchingClients": "No matching clients found in CRM",
+      "clearSelection": "Clear selection"
     },
     "settingsTabs": {
       "preferences": "Appearance & Language",
       "company": "Company & Tax",
       "audit": "Audit Logs & Sessions",
-      "integrations": "Meta & Integrations"
+      "integrations": "Meta & Integrations",
+      "web": "Website & CMS Settings",
+      "roles": "Roles & Permissions",
+      "modules": "System Modules"
     },
     "preferences": {
       "title": "Interface & Appearance",
@@ -704,7 +742,8 @@
       "statusContacted": "Contacted",
       "statusQualified": "Qualified",
       "statusArchived": "Archived",
-      "noInquiries": "Zero incoming inquiries"
+      "noInquiries": "Zero incoming inquiries",
+      "budgetPrefix": "Budget: "
     },
     "invoicesList": {
       "subtitle": "Commercial billing, multi-currency invoicing (BHD, SAR, AED, USD), discounts, and regulatory VAT management.",
@@ -744,7 +783,17 @@
       "summaryTitle": "Summary Breakdown",
       "submitting": "Generating Invoice...",
       "descEnLabel": "Description (English)",
-      "descArLabel": "Description (Arabic)"
+      "descArLabel": "Description (Arabic)",
+      "clientProfile": "Client Profile",
+      "clientLookup": "Quick Lookup (Email / Phone)",
+      "autoFetch": "Auto-Fetch",
+      "fetchBtn": "Fetch",
+      "enterEmailOrPhone": "Enter client email or phone...",
+      "autoFetchedPrefix": "Auto-fetched: ",
+      "clientNotFound": "No client found matching this email or phone number.",
+      "lookupError": "Error executing client lookup.",
+      "customItemNone": "-- Custom Item / None --",
+      "presetService": "Preset Service:"
     },
     "companySettingsView": {
       "subtitle": "Configure legal CR information, banking coordinates, VAT compliance, and Google Calendar sync.",
@@ -846,7 +895,15 @@
       "archivedInVault": "Archived in Vault",
       "replaceCert": "Replace",
       "clickToUpload": "Click to upload",
-      "viewInVault": "View in Archive Vault"
+      "viewInVault": "View in Archive Vault",
+      "uploading": "Uploading...",
+      "bankNamePlaceholder": "e.g. National Bank of Bahrain (NBB)",
+      "ibanPlaceholder": "BH29NBOB00000012345678",
+      "accountPlaceholder": "0012345678",
+      "swiftPlaceholder": "NBOBBHBM",
+      "invPrefixPlaceholder": "INV",
+      "rctPrefixPlaceholder": "RCT",
+      "trnPlaceholder": "200019283700002"
     },
     "deals": {
       "subtitle": "Interactive Kanban workspace with drag-and-drop live database updates.",
@@ -881,7 +938,10 @@
       "typeVendor": "Vendor / Supplier",
       "typeFreelancer": "Crew Freelancer",
       "notes": "Notes",
-      "notesPlaceholder": "Notes about decision maker..."
+      "notesPlaceholder": "Notes about decision maker...",
+      "clientDossier360": "Client Dossier 360",
+      "deleteConfirmTitle": "Delete Customer Profile",
+      "deleteConfirmDesc": "Are you sure you want to delete this customer record? This will remove their contact info and associated records."
     },
     "layout": {
       "home": "Dashboard Home",
@@ -1191,7 +1251,8 @@
       "serverless": "Serverless Cloud Architecture",
       "superAdmin": "Super Admin",
       "adminUser": "Sayed Ahmed Husain",
-      "connected": "Connected"
+      "connected": "Connected",
+      "websiteSettings": "Website Settings"
     },
     "loginView": {
       "title": "Admin",
@@ -1219,7 +1280,13 @@
       "classificationLabel": "Account Classification",
       "notesLabel": "Initial Notes & Context",
       "saving": "Creating Dossier...",
-      "submit": "Create Customer Dossier"
+      "submit": "Create Customer Dossier",
+      "fullNamePlaceholder": "e.g. Sayed Ahmed",
+      "companyPlaceholder": "e.g. Zain Bahrain",
+      "emailPlaceholder": "client@company.com",
+      "phonePlaceholder": "+973 3900 0000",
+      "jobTitlePlaceholder": "e.g. Marketing Director",
+      "notesPlaceholder": "Commercial preferences, legal registration details, background notes..."
     },
     "dealsNew": {
       "title": "Create New Production Deal",
@@ -1232,7 +1299,10 @@
       "targetDateLabel": "Target Close / Shoot Date",
       "descriptionLabel": "Scope of Work & Notes",
       "saving": "Creating Deal...",
-      "submit": "Create Commercial Deal"
+      "submit": "Create Commercial Deal",
+      "titlePlaceholder": "e.g. Commercial TVC Shoot Q4",
+      "valuePlaceholder": "0.000",
+      "notesPlaceholder": "Commercial deliverables, locations, specs..."
     },
     "companyDocumentsNew": {
       "title": "Upload Company Legal Asset",
@@ -1247,7 +1317,10 @@
       "assetFileHint": "Upload high-res PDF or scanned image copy of official certificate",
       "notesLabel": "Asset Notes & Restrictions",
       "saving": "Uploading...",
-      "submit": "Save Legal Asset"
+      "submit": "Save Legal Asset",
+      "titleEnPlaceholder": "e.g. Commercial Registration (CR) 2026",
+      "docNumberPlaceholder": "CR-142859-1",
+      "notesPlaceholder": "Notes on usage, signees, renewal dates..."
     },
     "expensesNew": {
       "title": "Log New Operational Expense",
@@ -1262,7 +1335,10 @@
       "proofLabel": "Expense Proof / Invoice Copy",
       "proofHint": "Upload receipt scan or official vendor tax invoice",
       "saving": "Logging Expense...",
-      "submit": "Log Expense Record"
+      "submit": "Log Expense Record",
+      "descriptionPlaceholder": "e.g. Cinema prime lenses rental",
+      "amountPlaceholder": "0.000",
+      "vendorPlaceholder": "e.g. Media Rental Corp"
     },
     "paymentsNew": {
       "title": "Record Payment Receipt",
@@ -1290,7 +1366,10 @@
       "statusLabel": "Initial Account Status",
       "notesLabel": "Notes & Security Instructions",
       "saving": "Creating Account...",
-      "submit": "Create User Account"
+      "submit": "Create User Account",
+      "fullNamePlaceholder": "e.g. Sayed Ahmed",
+      "emailPlaceholder": "colleague@domain.com",
+      "passwordPlaceholder": "••••••••••••"
     },
     "security": {
       "roles": {
@@ -1308,10 +1387,14 @@
     },
     "branding": {
       "assets": {
-        "logoLight": "Primary Logo (Light Background)",
-        "logoLightDesc": "Main colored vector logo used on light surfaces, invoices, and letterheads.",
-        "logoDark": "Monochrome Logo (Dark Background)",
-        "logoDarkDesc": "White or light vector logo used on dark themes and cinematic viewports.",
+        "logoLight": "Brand Wordmark - Dark Text (Light Surfaces)",
+        "logoLightDesc": "Text-only logotype in dark pine green for invoices, proposals, and light-themed surfaces.",
+        "logoDark": "Brand Wordmark - Light Text (Dark Surfaces)",
+        "logoDarkDesc": "Text-only logotype in crisp white for cinematic dark themes and high-contrast viewports.",
+        "iconLight": "Brand Icon (Light Background)",
+        "iconLightDesc": "Camera aperture symbol in pine green & emerald for light backgrounds and invoices.",
+        "iconDark": "Brand Icon (Dark Background)",
+        "iconDarkDesc": "Camera aperture symbol in crisp white & emerald for dark headers and portals.",
         "icon": "Compact Brand Icon / Mark",
         "iconDesc": "Square brand emblem or favicon symbol for badges and mobile apps.",
         "favicon": "Browser Favicon",
@@ -1411,7 +1494,13 @@
       "proofCheque": "Cheque Copy / Scan",
       "proofBankSlip": "Bank Transfer / Deposit Slip",
       "proofReceipt": "Official Receipt Voucher",
-      "proofGeneral": "General Payment Proof"
+      "proofGeneral": "General Payment Proof",
+      "fieldFileUrlPlaceholder": "https://... or /uploads/documents/file.pdf",
+      "fieldDocNamePlaceholder": "e.g. Cheque No 48291 Copy or NBR VAT Certificate.pdf",
+      "mimePdf": "PDF Document (.pdf)",
+      "mimePng": "PNG Image (.png)",
+      "mimeJpg": "JPEG Image (.jpg)",
+      "mimeOther": "Other File"
     },
     "customer360": {
       "back": "Back to Clients",
@@ -1456,7 +1545,13 @@
       "financialLedger": "Financial Ledger & Invoices",
       "newInvoice": "New Invoice",
       "legalRepo": "Client Legal Repository & Vault Documents",
-      "noAttachments": "No legal documents or attachments uploaded yet for this customer."
+      "noAttachments": "No legal documents or attachments uploaded yet for this customer.",
+      "invoiceNum": "Invoice #",
+      "issueDate": "Issue Date",
+      "status": "Status",
+      "totalAmount": "Total Amount",
+      "amountPaid": "Amount Paid",
+      "balanceDue": "Balance Due"
     },
     "dealDossier": {
       "back": "Back to Deals",
@@ -1482,7 +1577,12 @@
       "noInvoices": "No invoices generated yet for this deal.",
       "newInvoice": "New Invoice",
       "activityTimeline": "Deal Activity Timeline",
-      "noActivities": "No recorded activities for this deal yet."
+      "noActivities": "No recorded activities for this deal yet.",
+      "invoiceNum": "Invoice #",
+      "issueDate": "Issue Date",
+      "totalAmount": "Total Amount",
+      "balanceDue": "Balance Due",
+      "status": "Status"
     },
     "customerEdit": {
       "title": "Edit Customer Dossier",
@@ -1499,7 +1599,13 @@
       "typeCorporate": "Corporate Enterprise",
       "notes": "Internal Account Notes",
       "saving": "Saving Changes...",
-      "save": "Save Changes"
+      "save": "Save Changes",
+      "fullNamePlaceholder": "e.g. Sayed Ahmed",
+      "companyPlaceholder": "e.g. Zain Bahrain",
+      "emailPlaceholder": "client@company.com",
+      "phonePlaceholder": "+973 3900 0000",
+      "jobTitlePlaceholder": "e.g. Marketing Director",
+      "notesPlaceholder": "Commercial preferences, legal registration details, background notes..."
     },
     "dealEdit": {
       "title": "Edit Commercial Deal",
@@ -1513,7 +1619,9 @@
       "shootDateLabel": "Shoot / Production Date",
       "notesLabel": "Production Scope & Notes",
       "saving": "Updating Deal...",
-      "save": "Save Deal Changes"
+      "save": "Save Deal Changes",
+      "titlePlaceholder": "e.g. Commercial TVC Shoot Q4",
+      "notesPlaceholder": "Deal background, client requirements, special considerations..."
     },
     "servicesView": {
       "title": "Service Catalog & Production Rates",
@@ -1550,7 +1658,22 @@
       "deleteConfirmTitle": "Delete Service Offering",
       "deleteConfirmDesc": "Are you sure you want to delete this service? Invoices using this service will retain their historical records.",
       "statusFilterLabel": "Status",
-      "customCode": "CUSTOM"
+      "customCode": "CUSTOM",
+      "searchPlaceholder": "Search service name, code, description...",
+      "thCodeItem": "Code / Item",
+      "thArabicTitle": "Arabic Title",
+      "thCategory": "Category",
+      "thRateUnit": "Rate & Unit",
+      "thStatus": "Status",
+      "thActions": "Actions",
+      "noServicesFound": "No services found",
+      "noServicesHint": "Try adjusting your category or search filter.",
+      "codePlaceholder": "e.g. SRV-CINE-01",
+      "nameEnPlaceholder": "e.g. Cinema Drone Aerial 8K Capture",
+      "nameArPlaceholder": "مثال: تصوير درون سينمائي جوي بدقة 8K",
+      "ratePlaceholder": "0.000",
+      "descEnPlaceholder": "Details of deliverables, crew inclusions, or gear specifications...",
+      "descArPlaceholder": "تفاصيل ومخرجات الخدمة باللغة العربية..."
     },
     "invoiceEdit": {
       "title": "Edit Invoice",
@@ -1734,7 +1857,199 @@
       "officialReceipt": "Official Receipt Voucher",
       "termsNotes": "Terms, Conditions & Payment Instructions",
       "countryBahrain": "Kingdom of Bahrain",
-      "thankYou": "Thank you for partnering with {companyName}."
+      "thankYou": "Thank you for partnering with {companyName}.",
+      "crLabel": "CR:",
+      "vatIdLabel": "VAT ID:"
+    },
+    "rolesView": {
+      "title": "Roles & Permissions (RBAC)",
+      "subtitle": "Create custom roles and define access permissions per module.",
+      "newRole": "New Role",
+      "editRole": "Edit Role",
+      "systemRole": "System Role",
+      "customRole": "Custom Role",
+      "usersAssigned": "{count} Users Assigned",
+      "editPermissions": "Edit Permissions",
+      "roleNameEn": "Role Name (En)",
+      "roleNameAr": "Role Name (Ar)",
+      "thModule": "Module",
+      "thRead": "Read",
+      "thWrite": "Write",
+      "thDelete": "Delete",
+      "thApprove": "Approve",
+      "cancel": "Cancel",
+      "saveRole": "Save Role",
+      "deleteError": "Cannot delete role in use or system role.",
+      "deleteConfirmTitle": "Delete Role",
+      "deleteConfirmDesc": "Are you sure you want to delete this role? Users with this role may lose access."
+    },
+    "modulesView": {
+      "title": "System Modules & Feature Toggles",
+      "subtitle": "Enable or disable core system modules to control available features across the CRM dashboard and Web App.",
+      "superAdminWarning": "Super Admin Warning",
+      "superAdminWarningDesc": "Disabling an active module will hide it from the navigation sidebar for all users. Data is not deleted, but access will be restricted.",
+      "enabled": "Module Enabled",
+      "disabled": "Module Disabled"
+    },
+    "faqsView": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Manage public FAQs displayed on the website.",
+      "newFaq": "New FAQ",
+      "editFaq": "Edit FAQ",
+      "published": "Published",
+      "hidden": "Hidden",
+      "order": "Order",
+      "questionEn": "Question (En)",
+      "questionAr": "Question (Ar)",
+      "answerEn": "Answer (En)",
+      "answerAr": "Answer (Ar)",
+      "sortOrder": "Sort Order",
+      "publishOnWebsite": "Publish on Website",
+      "saveFaq": "Save FAQ",
+      "cancel": "Cancel",
+      "deleteFaq": "Delete FAQ",
+      "deleteConfirm": "Are you sure you want to permanently delete this FAQ?"
+    },
+    "reviewsView": {
+      "title": "Client Ratings & Reviews Moderation",
+      "badge": "Client-Submitted Only",
+      "subtitle": "Reviews and star ratings are submitted exclusively by clients on the public website. Admin moderates entries by approving or hiding them from public display.",
+      "pendingApproval": "Pending Approval",
+      "liveOnWebsite": "Live on Website",
+      "avgRating": "Average Client Rating",
+      "tabAll": "All",
+      "tabPending": "Pending Moderation",
+      "tabPublished": "Published Live",
+      "hideFromWeb": "Hide from Web",
+      "approvePublish": "Approve & Publish to Web",
+      "deleteReview": "Delete Review",
+      "deleteConfirm": "Are you sure you want to permanently delete this client review?",
+      "statusPublished": "Published",
+      "statusPending": "Pending Moderation"
+    },
+    "statsView": {
+      "title": "Studio Statistics",
+      "subtitle": "Manage the KPI metric cards displayed on the website.",
+      "newStat": "New Statistic",
+      "editStat": "Edit Statistic",
+      "valueLabel": "Metric Value (e.g. 150+ or 8K)",
+      "lucideIcon": "Lucide Icon Name",
+      "iconPlaceholder": "Film, Video, Award, Camera, etc.",
+      "labelEn": "Label (En)",
+      "labelAr": "Label (Ar)",
+      "subLabelEn": "Sub-Label (En)",
+      "subLabelAr": "Sub-Label (Ar)",
+      "sortOrder": "Sort Order",
+      "saveStat": "Save Statistic",
+      "cancel": "Cancel",
+      "deleteStat": "Delete Statistic",
+      "deleteConfirm": "Are you sure you want to permanently delete this statistic?"
+    },
+    "webSettingsView": {
+      "title": "Website Management & Settings",
+      "badge": "Live Web Control",
+      "subtitle": "Centrally manage public website narrative, hero banners, social links, and live synchronization.",
+      "purgeCache": "Purge Web Cache",
+      "cachePurged": "Cache Purged!",
+      "viewLiveWebsite": "View Live Website",
+      "tabHero": "Hero & Showcase",
+      "tabNarrative": "Brand Story & CEO",
+      "tabSocial": "Contact & Social Links",
+      "tabCms": "CMS Content Hub",
+      "heroCardTitle": "Cinema Hero & Media Presentation",
+      "heroCardDesc": "Configure main headlines, video showreels, and full-screen video background banners.",
+      "manageBanners": "Manage {count} Banners",
+      "webNameEn": "Website Name (English)",
+      "webNameAr": "Website Name (Arabic)",
+      "brandPresentationTitle": "Brand Identity Presentation (Navbar & Footer)",
+      "brandPresentationDesc": "Always displays Brand Icon (Symbol) alongside Brand Wordmark (Text) side-by-side.",
+      "brandPortal": "Brand Assets Portal",
+      "ceoStoryTitle": "Executive Leadership & CEO Story",
+      "ceoStoryDesc": "Featured profile, visionary statement, and executive credentials displayed in the about section.",
+      "ceoNameEn": "CEO & Founder Full Name (English)",
+      "ceoNameAr": "CEO & Founder Full Name (Arabic)",
+      "ceoTitleEn": "Executive Designation / Title (English)",
+      "ceoTitleAr": "Executive Designation / Title (Arabic)",
+      "ceoQuoteEn": "Signature Visionary Quote (English)",
+      "ceoQuoteAr": "Signature Visionary Quote (Arabic)",
+      "corporateMissionVision": "Corporate Mission & Regional Vision",
+      "missionVisionDesc": "Define the creative philosophy, purpose, and visual arts ambition of the cinema production house.",
+      "missionEn": "Our Mission (English)",
+      "missionAr": "Our Mission (Arabic)",
+      "visionEn": "Our Vision (English)",
+      "visionAr": "Our Vision (Arabic)",
+      "socialContactTitle": "Direct Communication Channels & Social Presence",
+      "socialContactDesc": "Official social handles, direct WhatsApp booking link, studio telephone, and inquiry addresses.",
+      "igUrl": "Instagram URL",
+      "linkedinUrl": "LinkedIn URL",
+      "youtubeUrl": "YouTube Channel URL",
+      "waPhone": "WhatsApp Booking Phone",
+      "studioPhone": "Main Studio Phone",
+      "inquiriesEmail": "Inquiries Email",
+      "cmsHubTitle": "Public Website Content Hub (Headless CMS)",
+      "cmsHubDesc": "Direct shortcuts to manage dynamic media arrays and website modules.",
+      "manageShowcaseBanners": "Hero Banners",
+      "manageShowcaseBannersDesc": "Full-screen video and showcase slides",
+      "managePortfolio": "Portfolio Works",
+      "managePortfolioDesc": "Films, commercials, and visual projects",
+      "manageClients": "Client Brand Marks",
+      "manageClientsDesc": "Corporate logos in infinite marquee",
+      "manageReviews": "Client Reviews",
+      "manageReviewsDesc": "Ratings and testimonials moderation",
+      "manageFaqs": "Website FAQs",
+      "manageFaqsDesc": "Frequently asked questions & answers",
+      "manageStats": "Studio Metrics",
+      "manageStatsDesc": "KPI numbers and achievements",
+      "manageEquipment": "Studio Inventory",
+      "manageEquipmentDesc": "Cameras, lenses, and gear catalog",
+      "saveSettings": "Save Web Settings",
+      "saving": "Saving Changes...",
+      "purgeTooltip": "Purge Next.js static cache and refresh all public web pages",
+      "addressEn": "Physical Studio Address (English)",
+      "addressAr": "Physical Studio Address (Arabic)",
+      "ceoNameEnPlaceholder": "e.g. Sayed Ahmed Husain",
+      "ceoNameArPlaceholder": "e.g. Sayed Ahmed Husain",
+      "ceoTitleEnPlaceholder": "e.g. Founder & Cinema Director",
+      "ceoTitleArPlaceholder": "e.g. Founder & Cinema Director",
+      "ceoQuoteEnPlaceholder": "Cinema is not merely frames per second; it is the craft of making the viewer feel every second.",
+      "ceoQuoteArPlaceholder": "السينما ليست مجرد إطارات بالثانية، بل هي فن جعل المشاهد يشعر بكل ثانية.",
+      "missionEnPlaceholder": "To elevate regional cinema and TV commercial production through world-class optics, lighting, and storytelling.",
+      "missionArPlaceholder": "الارتقاء بالإنتاج السينمائي والتلفزيوني في مملكة البحرين عبر أحدث تقنيات التصوير العالمية.",
+      "visionEnPlaceholder": "To be the leading cinema production house across the Arabian Gulf, setting international benchmarks for visual arts.",
+      "visionArPlaceholder": "أن نكون بيت الإنتاج السينمائي الرائد في منطقة الخليج العربي بمعايير دولية ملهمة.",
+      "phonePlaceholder": "+973 3900 0000",
+      "igUrlPlaceholder": "https://instagram.com/ishoot.bh",
+      "linkedinUrlPlaceholder": "https://linkedin.com/company/ishoot-bh",
+      "youtubeUrlPlaceholder": "https://youtube.com/@ishootbh",
+      "cmsSlidesConfigured": "{count} Slides Configured",
+      "cmsProjectsPublished": "{count} Projects Published",
+      "cmsPartnerLogos": "{count} Partner Logos",
+      "cmsCameraSystems": "{count} Camera Systems",
+      "cmsClientReviews": "{count} Client Reviews",
+      "cmsNewBadge": "{count} new",
+      "cmsQuestionsConfigured": "{count} Questions Configured",
+      "savedSuccessMsg": "Settings saved & website cache automatically revalidated!",
+      "instantUpdateNotice": "Modifications will instantly update database & website presentation."
+    },
+    "companyDocumentsView": {
+      "title": "Company Legal Repository & Document Vault",
+      "subtitle": "Central repository for Commercial Registration (CR), VAT certificates, bylaws, and standard agreements",
+      "uploadLegalAsset": "Upload Legal Asset",
+      "download": "Download",
+      "categoryAll": "All Legal Assets",
+      "categoryCrLicense": "Commercial Registration (CR)",
+      "categoryVatCertificate": "VAT / Tax Certificates",
+      "categoryCompanyProfile": "Company Profile & Decks",
+      "categoryBylaws": "Corporate Bylaws",
+      "categoryStandardContract": "Standard Agreements & Guarantees",
+      "noAssetsFound": "No Legal Assets Found",
+      "noAssetsHint": "Upload corporate legal documents to make them accessible across company workflows.",
+      "uploadFirstAsset": "Upload First Asset",
+      "docNumberPrefix": "Doc #: ",
+      "validUntilPrefix": "Valid Until: ",
+      "uploadedPrefix": "Uploaded: ",
+      "deleteConfirmTitle": "Delete Legal Document Asset",
+      "deleteConfirmDesc": "Are you sure you want to delete this company legal document? This action will remove the asset from the legal vault."
     }
   },
   "stats": {
@@ -1791,7 +2106,26 @@
     ],
     "sectionLabel": "Client & Partner Testimonials",
     "headline": "Trusted by Industry Leaders",
-    "subtitle": "Our commitment to visual perfection has built enduring partnerships with Bahrain's most prestigious organizations."
+    "subtitle": "Our commitment to visual perfection has built enduring partnerships with Bahrain's most prestigious organizations.",
+    "writeReviewBtn": "Rate & Review Us",
+    "modal": {
+      "title": "Rate Your Experience",
+      "subtitle": "Your feedback guides our cinematic craftsmanship",
+      "thankYouTitle": "Thank You For Your Review!",
+      "thankYouDesc": "Your review has been submitted for moderation and will appear on our live testimonials once verified by our team.",
+      "close": "Close",
+      "starRating": "Your Rating",
+      "fullName": "Full Name *",
+      "fullNamePlaceholder": "e.g. Tariq Al-Manama",
+      "company": "Company / Brand (Optional)",
+      "companyPlaceholder": "e.g. Zain Bahrain",
+      "quote": "Your Review & Testimonial *",
+      "quotePlaceholder": "Describe how our cinema cameras, production crew, and deliverables exceeded your vision...",
+      "validationError": "Please provide your name and review quote.",
+      "cancel": "Cancel",
+      "submit": "Submit Review",
+      "submitting": "Submitting..."
+    }
   },
   "faq": {
     "sectionIndex": "(06)",
@@ -1908,6 +2242,11 @@
       "receiptNotFound": "Receipt not found.",
       "invoiceNotFound": "Invoice not found.",
       "generationError": "Error generating PDF."
+    },
+    "reviews": {
+      "requiredFields": "Author name and review quote are required.",
+      "success": "Thank you for sharing your feedback! Your review has been submitted and will appear on the website once approved by our team.",
+      "serverError": "Failed to submit review. Please try again later."
     }
   }
 }

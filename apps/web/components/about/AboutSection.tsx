@@ -5,14 +5,19 @@ import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight, Target, Eye } from "lucide-react";
 
+import type { CompanySettings } from "@ishoot/database/types";
+
 interface AboutSectionProps {
   clientLogos?: any[];
+  company?: CompanySettings;
 }
 
 export function AboutSection({
   clientLogos = [],
+  company,
 }: AboutSectionProps) {
   const { t, locale } = useTranslation();
+  const isAr = locale === "ar";
 
   return (
     <section
@@ -68,7 +73,7 @@ export function AboutSection({
                 <span>({t("about.missionLabel")})</span>
               </div>
               <p className="text-base sm:text-lg leading-relaxed text-slate-700 max-w-xl">
-                {t("about.mission")}
+                {(isAr ? company?.mission_ar : company?.mission_en) || t("about.mission")}
               </p>
             </div>
 
@@ -78,7 +83,7 @@ export function AboutSection({
                 <span>({t("about.visionLabel")})</span>
               </div>
               <p className="text-base sm:text-lg leading-relaxed text-slate-700 max-w-xl">
-                {t("about.vision")}
+                {(isAr ? company?.vision_ar : company?.vision_en) || t("about.vision")}
               </p>
             </div>
 

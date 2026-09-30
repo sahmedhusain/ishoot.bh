@@ -75,7 +75,7 @@ export function NewDealFormView() {
               </label>
               <Input
                 required
-                placeholder="e.g. Commercial TVC Shoot Q4"
+                placeholder={t.dealsNew.titlePlaceholder}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
@@ -88,7 +88,7 @@ export function NewDealFormView() {
                 type="number"
                 required
                 min={0}
-                placeholder="7500"
+                placeholder={t.dealsNew.valuePlaceholder}
                 value={value || ""}
                 onChange={(e) => setValue(parseFloat(e.target.value) || 0)}
                 className="font-mono"
@@ -135,7 +135,7 @@ export function NewDealFormView() {
             </label>
             <textarea
               rows={4}
-              placeholder="Commercial deliverables, locations, specs..."
+              placeholder={t.dealsNew.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full bg-[#050807] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-[#9EADA9]/50 focus:outline-none focus:border-[#09937F]"

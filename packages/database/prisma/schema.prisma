@@ -65,6 +65,7 @@ model CompanySetting {
   logoUrl             String?
   darkLogoUrl         String?
   iconUrl             String?
+  darkIconUrl         String?
   stampUrl            String?
   signatureUrl        String?
   paymentTermsDays    Int      @default(30)

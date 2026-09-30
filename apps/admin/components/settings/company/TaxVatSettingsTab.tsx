@@ -186,7 +186,7 @@ export function TaxVatSettingsTab({
                 onChange={(e) =>
                   setSettings({ ...settings, vat_id: e.target.value })
                 }
-                placeholder="200019283700002"
+                placeholder={t.companySettingsTabs.trnPlaceholder}
                 className="font-mono text-sm rounded-lg"
               />
             </div>
@@ -218,7 +218,7 @@ export function TaxVatSettingsTab({
                   </span>
                 </label>
                 <span className="text-[10px] font-mono text-slate-500 dark:text-neutral-400">
-                  NBR Official Certificate (PDF / Image)
+                  {isRTL ? "شهادة الجهاز الوطني للإيرادات (PDF / صورة)" : "NBR Official Certificate (PDF / Image)"}
                 </span>
               </div>
 
@@ -239,10 +239,10 @@ export function TaxVatSettingsTab({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                          VAT Certificate Document
+                          {isRTL ? "وثيقة شهادة ضريبة القيمة المضافة" : "VAT Certificate Document"}
                         </p>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-200 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
-                          Archived in Vault
+                          {t.companySettingsTabs.archivedInVault}
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-neutral-400 font-mono truncate">
@@ -259,7 +259,7 @@ export function TaxVatSettingsTab({
                       className="px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-800 dark:text-neutral-200 hover:text-[#014842] dark:hover:text-[#7de0d1] text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      <span>View</span>
+                      <span>{t.actions.view}</span>
                     </a>
                     <button
                       type="button"
@@ -270,12 +270,12 @@ export function TaxVatSettingsTab({
                       {vatUploading ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Uploading...</span>
+                          <span>{t.companySettingsTabs.uploading}</span>
                         </>
                       ) : (
                         <>
                           <UploadCloud className="w-3.5 h-3.5" />
-                          <span>Replace</span>
+                          <span>{t.companySettingsTabs.replaceCert}</span>
                         </>
                       )}
                     </button>
@@ -287,7 +287,7 @@ export function TaxVatSettingsTab({
                         await updateCompanySettingsAction(updated);
                       }}
                       className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-100/50 dark:hover:bg-rose-950/40 transition-colors"
-                      title="Remove Document"
+                      title={t.companySettingsTabs.assetRemove}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -313,18 +313,18 @@ export function TaxVatSettingsTab({
                     <div>
                       <p className="text-xs font-semibold text-slate-900 dark:text-white">
                         {vatUploading ? (
-                          "Uploading to Archive Vault..."
+                          t.companySettingsTabs.uploading
                         ) : (
                           <>
                             <span className="text-[#014842] dark:text-[#7de0d1] underline font-bold">
-                              Click to upload
+                              {t.companySettingsTabs.clickToUpload}
                             </span>{" "}
-                            or drag and drop VAT Certificate
+                            {isRTL ? "أو اسحب وأفلت شهادة الضريبة هنا" : "or drag and drop VAT Certificate"}
                           </>
                         )}
                       </p>
                       <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                        PDF, PNG, or JPG up to 25MB. File is stored securely in the Vault.
+                        {isRTL ? "PDF أو PNG أو JPG بحد أقصى 25 ميجابايت. يتم حفظ الملف بأمان في الخزينة." : "PDF, PNG, or JPG up to 25MB. File is stored securely in the Vault."}
                       </p>
                     </div>
                   </div>

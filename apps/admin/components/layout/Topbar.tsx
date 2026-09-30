@@ -15,7 +15,6 @@ import { NotificationCenter } from "./NotificationCenter";
 import { AdminProfileDropdown } from "./AdminProfileDropdown";
 import { GlobalQuickJump } from "./GlobalQuickJump";
 import { useSidebar } from "./SidebarContext";
-import { BrandWordmark } from "../shared/BrandWordmark";
 import type { CRMContact, CompanySettings } from "@ishoot/database/types";
 import initialCompanyConfig from "@ishoot/database/config";
 
@@ -57,27 +56,23 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
 
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 group focus:outline-none ps-1 sm:ps-2"
+          className="flex items-center gap-2.5 group focus:outline-none ps-1 sm:ps-2"
           title={`${companyTitle} Admin Console`}
         >
           <img
-            src={company?.icon_url || defaultCompany.iconUrl}
+            src={resolvedTheme === "dark" ? (company?.dark_icon_url || "/brand/icon-dark.svg") : (company?.icon_url || "/brand/icon-light.svg")}
             alt={companyTitle}
-            className="w-6 h-6 object-contain shrink-0"
+            className="w-7 h-7 object-contain shrink-0"
           />
-          {company?.logo_url && !company.logo_url.includes("logo-color.svg") ? (
-            <img
-              src={company.logo_url}
-              alt={companyTitle}
-              className="h-5 w-auto object-contain"
-            />
-          ) : (
-            <BrandWordmark size="sm" />
-          )}
+          <img
+            src={resolvedTheme === "dark" ? (company?.dark_logo_url || "/brand/logo-text-light.svg") : (company?.logo_url || "/brand/logo-text-dark.svg")}
+            alt={companyTitle}
+            className="h-6 w-auto object-contain"
+          />
         </Link>
 
-        <div className="hidden md:flex items-center gap-2 ms-2">
-          <div className="h-4 w-px bg-slate-200 dark:bg-neutral-700" />
+        <div className="flex items-center gap-2.5 ms-2">
+          <div className="h-5 w-px bg-slate-200 dark:bg-neutral-700" />
           <AdminProfileDropdown />
         </div>
       </div>
@@ -87,7 +82,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
         <GlobalQuickJump className="w-full flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg bg-[#f1f3f4] hover:bg-[#e8eaed] dark:bg-[#282a2d] dark:hover:bg-[#35373a] text-slate-500 dark:text-neutral-400 text-xs transition-colors border border-transparent focus-within:border-[#09937F] focus-within:bg-white dark:focus-within:bg-[#1f1f1f] focus-within:shadow-sm justify-between cursor-pointer" />
       </div>
 
-      {/* End: Google Suites Compact Action Cluster */}
+      {/* End: Action Cluster */}
       <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
         {/* Calendar Shortcut */}
         <Link
@@ -116,12 +111,6 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
 
         {/* Notifications Popover */}
         <NotificationCenter />
-
-        {/* Subtle Divider */}
-        <div className="h-5 w-px bg-slate-200 dark:bg-neutral-700 mx-1" />
-
-        {/* Google-style Profile Menu */}
-        <AdminProfileDropdown />
       </div>
     </header>
   );

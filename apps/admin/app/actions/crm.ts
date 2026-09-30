@@ -4,7 +4,6 @@ import {
   updateDealStage,
   createCRMDeal,
   updateCRMDeal,
-  deleteCRMDeal,
   createCRMContact,
   updateCRMContact,
   deleteCRMContact,
@@ -14,7 +13,6 @@ import {
   lookupCRMContactByEmailOrPhone,
   searchCRMContacts,
   globalAdminSearch,
-  getCustomerDossier,
   DealStage,
   InquiryStatus,
 } from "@ishoot/database";
@@ -81,21 +79,6 @@ export async function updateDealAction(id: string, data: any) {
   return { success: true, deal };
 }
 
-export async function deleteCRMDealAction(id: string) {
-  const user = await requirePermission("deals", "delete");
-  await deleteCRMDeal(id);
-
-  await createActivityLog({
-    user_id: user.id,
-    action: "delete",
-    entity_type: "deal",
-    entity_id: id,
-  });
-
-  revalidatePath("/dashboard/crm/deals");
-  revalidatePath("/dashboard");
-  return { success: true };
-}
 
 export async function createContactAction(data: {
   full_name: string;
@@ -171,11 +154,6 @@ export async function globalSearchAction(query: string) {
   return { success: true, results };
 }
 
-export async function getCustomerDossierAction(id: string) {
-  await requirePermission("contacts", "read");
-  const dossier = await getCustomerDossier(id);
-  return { success: !!dossier, dossier };
-}
 
 export async function updateInquiryStatusAction(
   id: string,

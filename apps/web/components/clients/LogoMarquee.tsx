@@ -25,7 +25,7 @@ export function LogoMarquee({ logos }: LogoMarqueeProps) {
           <span className="w-1.5 h-1.5 rounded-full bg-[#09937F]" />
           <span>{t("clients.marqueeBadge")}</span>
         </span>
-        <span className="text-[11px] text-white/40">BAHRAIN · GCC</span>
+        <span className="text-[11px] text-white/40">{t("clients.regionTag")}</span>
       </div>
 
       <div className="relative flex w-full overflow-hidden marquee-paused">

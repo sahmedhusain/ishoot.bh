@@ -107,7 +107,7 @@ export function AdminProfileDropdown() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2.5 ps-2 border-s border-slate-200 dark:border-white/10 hover:opacity-90 transition-opacity focus:outline-none"
+        className="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus:outline-none"
         aria-expanded={isOpen}
       >
         <div className="w-8 h-8 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center text-xs font-bold text-white font-mono shadow-sm">
@@ -168,6 +168,15 @@ export function AdminProfileDropdown() {
             >
               <Building2 className="w-4 h-4 text-[#09937F]" />
               <span>{t.profileDropdown.companySettings}</span>
+            </Link>
+
+            <Link
+              href="/dashboard/settings/web"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-[#9EADA9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+            >
+              <Globe className="w-4 h-4 text-[#09937F]" />
+              <span>{t.profileDropdown.websiteSettings}</span>
             </Link>
 
             <Link

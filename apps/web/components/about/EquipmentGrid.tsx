@@ -83,7 +83,7 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
             >
               <div className="space-y-1">
                 <span className="text-[10px] font-mono uppercase tracking-widest text-[#09937F]">
-                  {gear.category.replace("_", " ")}
+                  {categories.find((c) => c.id === gear.category)?.label || gear.category.replace("_", " ")}
                 </span>
                 <div className="text-base sm:text-lg font-bold text-white">
                   {gear.model_name}

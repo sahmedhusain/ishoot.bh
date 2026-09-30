@@ -7,8 +7,13 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { Menu } from "lucide-react";
+import type { CompanySettings } from "@ishoot/database/types";
 
-export function Navbar() {
+interface NavbarProps {
+  company: CompanySettings;
+}
+
+export function Navbar({ company }: NavbarProps) {
   const { t, locale } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -64,19 +69,19 @@ export function Navbar() {
         <div className="shell flex items-center justify-between">
           <Link
             href={`/${locale}`}
-            className={`flex items-center gap-3 group ${locale === "ar" ? "flex-row-reverse" : ""}`}
+            className="flex items-center gap-3 group focus:outline-none"
           >
             <div className="relative h-11 w-11 flex items-center justify-center shrink-0">
               <img
-                src="/icon.svg"
+                src={company.dark_icon_url || company.icon_url || "/brand/icon-dark.svg"}
                 alt={t("common.brandIconAlt")}
                 className="h-full w-full object-contain transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-45 filter drop-shadow-[0_0_8px_rgba(9,147,127,0.3)]"
               />
             </div>
             <img
-              src="/images/logo-wordmark.svg"
+              src={company.dark_logo_url || company.logo_url || "/brand/logo-text-light.svg"}
               alt={t("common.brandLogoAlt")}
-              className="h-8 w-auto object-contain"
+              className="h-7 w-auto object-contain"
             />
           </Link>
 
@@ -130,6 +135,7 @@ export function Navbar() {
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         links={navLinks}
+        company={company}
       />
     </>
   );

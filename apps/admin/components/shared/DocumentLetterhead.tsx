@@ -2,12 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { BrandLogo } from "@ishoot/ui";
 import type { CompanySettings } from "@ishoot/database/types";
 import { ExternalLink } from "lucide-react";
 import { adminTranslations } from "../../lib/translations";
 
-export interface DocumentClientInfo {
+interface DocumentClientInfo {
   id?: string | null;
   name: string;
   company?: string | null;
@@ -53,6 +52,7 @@ export function DocumentLetterhead({
   extraMeta,
 }: DocumentLetterheadProps) {
   const isAr = language === "ar";
+  const t = adminTranslations[isAr ? "ar" : "en"].documentLetterhead;
 
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase();
@@ -76,13 +76,17 @@ export function DocumentLetterhead({
         <div className="absolute right-0 top-0 w-96 h-96 bg-white/[0.02] rounded-full pointer-events-none -mr-20 -mt-20 blur-2xl" />
 
         <div className="relative z-10 space-y-2">
-          {/* Brand Logo with vector camera aperture */}
+          {/* Brand Logo: Icon + Wordmark beside each other */}
           <div className="flex items-center gap-3">
-            <BrandLogo
-              variant="full"
-              themeMode="dark"
-              size="lg"
-              className="text-white"
+            <img
+              src={company.dark_icon_url || company.icon_url || "/brand/icon-dark.svg"}
+              alt="Brand Icon"
+              className="h-10 w-auto object-contain shrink-0"
+            />
+            <img
+              src={company.dark_logo_url || company.logo_url || "/brand/logo-text-light.svg"}
+              alt={isAr ? company.company_name_ar : company.company_name_en}
+              className="h-7 w-auto object-contain"
             />
           </div>
 
@@ -94,15 +98,15 @@ export function DocumentLetterhead({
           </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/70 font-mono">
-            <span>CR: {company.cr_number}</span>
+            <span>{t.crLabel} {company.cr_number}</span>
             {company.vat_enabled && company.vat_id && (
               <>
                 <span className="text-white/40">•</span>
-                <span>VAT ID: {company.vat_id}</span>
+                <span>{t.vatIdLabel} {company.vat_id}</span>
               </>
             )}
             <span className="text-white/40">•</span>
-            <span>Kingdom of Bahrain</span>
+            <span>{t.countryBahrain}</span>
           </div>
         </div>
 
@@ -309,7 +313,7 @@ export function DocumentFooter({
             </>
           )}
           <span>•</span>
-          <span>Kingdom of Bahrain</span>
+          <span>{t.countryBahrain}</span>
         </div>
       </div>
     </div>

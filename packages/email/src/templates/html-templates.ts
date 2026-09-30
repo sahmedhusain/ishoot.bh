@@ -162,8 +162,11 @@ export function createInquiryNotificationEmail(inquiry: {
   budget?: string;
   message?: string;
   companyInfo?: BrandEmailCompanyInfo;
+  locale?: string;
 }): string {
-  const t = getTranslations("en");
+  const isAr = inquiry.locale === "ar";
+  const localeKey: Locale = isAr ? "ar" : "en";
+  const t = getTranslations(localeKey);
   const serviceList = inquiry.services.map((s) => `<li style="margin-bottom: 4px;">${s}</li>`).join("");
 
   const badgeText = t.email.notification.badge;
@@ -209,7 +212,7 @@ export function createInquiryNotificationEmail(inquiry: {
     </div>
   `;
 
-  return renderBrandEmailLayout(subjectText, content, false, inquiry.companyInfo);
+  return renderBrandEmailLayout(subjectText, content, isAr, inquiry.companyInfo);
 }
 
 export function createInvoiceDeliveryEmail(params: {

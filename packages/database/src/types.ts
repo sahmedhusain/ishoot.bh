@@ -69,9 +69,16 @@ export interface CompanySettings {
   bank_iban: string;
   bank_account_number: string;
   bank_swift: string;
-  logo_url: string;
-  dark_logo_url?: string;
-  icon_url?: string;
+  // Brand Wordmark (Text only)
+  logo_url: string; // Dark text (for light background)
+  dark_logo_url?: string; // Light text (for dark background)
+  logo_text_dark_url?: string;
+  logo_text_light_url?: string;
+  // Brand Icon (Icon only)
+  icon_url?: string; // Light background icon
+  dark_icon_url?: string; // Dark background icon
+  icon_light_url?: string;
+  icon_dark_url?: string;
   stamp_url?: string;
   signature_url?: string;
   payment_terms_days: number;
@@ -82,6 +89,18 @@ export interface CompanySettings {
   default_invoice_notes_en?: string;
   default_invoice_notes_ar?: string;
   tax_registration_status?: boolean;
+  ceo_name_en?: string;
+  ceo_name_ar?: string;
+  ceo_title_en?: string;
+  ceo_title_ar?: string;
+  ceo_quote_en?: string;
+  ceo_quote_ar?: string;
+  mission_en?: string;
+  mission_ar?: string;
+  vision_en?: string;
+  vision_ar?: string;
+  about_text_en?: string;
+  about_text_ar?: string;
   updated_at: string;
 }
 

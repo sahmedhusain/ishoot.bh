@@ -44,7 +44,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "logoLight",
     descKey: "logoLightDesc",
     accept: "image/svg+xml,image/png,image/webp",
-    recommended: "Vector SVG or high-res transparent PNG (min 800px width)",
+    recommended: "Vector SVG or transparent PNG (Dark Text for Light Surfaces)",
     themeContext: "light",
   },
   {
@@ -52,16 +52,24 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "logoDark",
     descKey: "logoDarkDesc",
     accept: "image/svg+xml,image/png,image/webp",
-    recommended: "Vector SVG or white monochrome PNG for dark surfaces",
+    recommended: "Vector SVG or white monochrome PNG (Light Text for Dark Surfaces)",
     themeContext: "dark",
   },
   {
-    key: "icon",
-    titleKey: "icon",
-    descKey: "iconDesc",
+    key: "icon_light",
+    titleKey: "iconLight",
+    descKey: "iconLightDesc",
     accept: "image/svg+xml,image/png",
-    recommended: "Square 1:1 ratio (min 512x512px) SVG or transparent PNG",
-    themeContext: "any",
+    recommended: "Square 1:1 or 310x470 SVG or transparent PNG (Light Background)",
+    themeContext: "light",
+  },
+  {
+    key: "icon_dark",
+    titleKey: "iconDark",
+    descKey: "iconDarkDesc",
+    accept: "image/svg+xml,image/png",
+    recommended: "Square 1:1 or 310x470 SVG or transparent PNG (Dark Background)",
+    themeContext: "dark",
   },
   {
     key: "favicon",
@@ -174,7 +182,8 @@ export function BrandAssetsTab({
         // Also update local settings state for matched keys
         if (slot.key === "logo_light") setSettings((s) => ({ ...s, logo_url: data.fileUrl }));
         if (slot.key === "logo_dark") setSettings((s) => ({ ...s, dark_logo_url: data.fileUrl }));
-        if (slot.key === "icon") setSettings((s) => ({ ...s, icon_url: data.fileUrl }));
+        if (slot.key === "icon_light") setSettings((s) => ({ ...s, icon_url: data.fileUrl }));
+        if (slot.key === "icon_dark") setSettings((s) => ({ ...s, dark_icon_url: data.fileUrl }));
         if (slot.key === "stamp") setSettings((s) => ({ ...s, stamp_url: data.fileUrl }));
         if (slot.key === "signature") setSettings((s) => ({ ...s, signature_url: data.fileUrl }));
       }
@@ -195,7 +204,8 @@ export function BrandAssetsTab({
 
       if (slotKey === "logo_light") setSettings((s) => ({ ...s, logo_url: "" }));
       if (slotKey === "logo_dark") setSettings((s) => ({ ...s, dark_logo_url: "" }));
-      if (slotKey === "icon") setSettings((s) => ({ ...s, icon_url: "" }));
+      if (slotKey === "icon_light") setSettings((s) => ({ ...s, icon_url: "" }));
+      if (slotKey === "icon_dark") setSettings((s) => ({ ...s, dark_icon_url: "" }));
       if (slotKey === "stamp") setSettings((s) => ({ ...s, stamp_url: "" }));
       if (slotKey === "signature") setSettings((s) => ({ ...s, signature_url: "" }));
     } catch (err: any) {
@@ -217,6 +227,71 @@ export function BrandAssetsTab({
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {t.companySettingsTabs.brandAssetsSubtitle}
             </p>
+          </div>
+        </div>
+
+        {/* Brand Pairing Live Verification Card */}
+        <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-100 to-slate-50 dark:from-neutral-900/60 dark:to-neutral-900/30 border border-slate-200 dark:border-neutral-800 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                <span>Brand Identity Pairing (Icon + Wordmark)</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono lowercase">
+                  live database state
+                </span>
+              </h3>
+              <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                Always ensure the Brand Icon (mark) and Brand Wordmark (text) are placed side-by-side without mixing them up.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Light Theme Surface */}
+            <div className="p-6 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold border-b border-slate-100 pb-2">
+                <span>{isRTL ? "الخلفية الفاتحة (فواتير، مستندات رسمية، طباعة)" : "Light Surface (Invoices, Letters, Print)"}</span>
+                <span className="text-[10px] text-slate-400 font-mono">Pine Green + Emerald</span>
+              </div>
+              <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
+                <img
+                  src={settings.icon_url || "/brand/icon-light.svg"}
+                  alt="Brand Icon Light"
+                  className="h-10 w-auto object-contain shrink-0"
+                />
+                <img
+                  src={settings.logo_url || "/brand/logo-text-dark.svg"}
+                  alt="Brand Wordmark Dark Text"
+                  className="h-7 w-auto object-contain"
+                />
+              </div>
+              <div className="text-[10px] text-slate-400 text-center font-mono">
+                icon_light (mark) + logo_light (dark text)
+              </div>
+            </div>
+
+            {/* Dark Theme Surface */}
+            <div className="p-6 rounded-xl bg-[#050807] border border-white/10 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="flex items-center justify-between text-[11px] text-white/70 font-semibold border-b border-white/10 pb-2">
+                <span>{isRTL ? "الخلفية الداكنة (الموقع، لوحة التحكم، السينما)" : "Dark Surface (Web, Admin Portal, Cinema)"}</span>
+                <span className="text-[10px] text-emerald-400 font-mono">Crisp White + Emerald</span>
+              </div>
+              <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
+                <img
+                  src={settings.dark_icon_url || "/brand/icon-dark.svg"}
+                  alt="Brand Icon Dark"
+                  className="h-10 w-auto object-contain shrink-0"
+                />
+                <img
+                  src={settings.dark_logo_url || "/brand/logo-text-light.svg"}
+                  alt="Brand Wordmark Light Text"
+                  className="h-7 w-auto object-contain"
+                />
+              </div>
+              <div className="text-[10px] text-white/40 text-center font-mono">
+                icon_dark (mark) + logo_dark (light text)
+              </div>
+            </div>
           </div>
         </div>
 
@@ -309,7 +384,7 @@ export function BrandAssetsTab({
                       {isUploading ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Uploading...</span>
+                          <span>{t.companySettingsTabs.uploading}</span>
                         </>
                       ) : (
                         <>
@@ -330,7 +405,7 @@ export function BrandAssetsTab({
                           target="_blank"
                           rel="noreferrer"
                           className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 hover:text-[#014842] dark:hover:text-[#7de0d1] hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
-                          title="Open Asset"
+                          title={t.actions.view}
                         >
                           <ExternalLink className="w-4 h-4" />
                         </a>

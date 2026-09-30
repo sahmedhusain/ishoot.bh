@@ -8,16 +8,23 @@ import { Input, Textarea, Button } from "@ishoot/ui";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 
 export function ContactForm() {
-  const { t, locale, isRTL } = useTranslation();
+  const { t, locale, isRTL, translations } = useTranslation();
 
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [company, setCompany] = React.useState("");
-  const [services, setServices] = React.useState<string[]>([
-    "Commercial Cinematography",
-  ]);
-  const [budget, setBudget] = React.useState("2,000 – 5,000 BHD");
+  const [services, setServices] = React.useState<string[]>([]);
+  const [budget, setBudget] = React.useState("");
+
+  React.useEffect(() => {
+    if (services.length === 0 && translations?.contact?.servicesList?.[0]) {
+      setServices([translations.contact.servicesList[0]]);
+    }
+    if (!budget && translations?.contact?.budgetRanges?.[2]) {
+      setBudget(translations.contact.budgetRanges[2]);
+    }
+  }, [translations]);
   const [timeline, setTimeline] = React.useState("");
   const [message, setMessage] = React.useState("");
 
@@ -121,7 +128,7 @@ export function ContactForm() {
             required
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="e.g. Sayed Ahmed"
+            placeholder={t("contact.fullNamePlaceholder")}
           />
         </div>
 
@@ -134,7 +141,7 @@ export function ContactForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@company.com"
+            placeholder={t("contact.emailPlaceholder")}
           />
         </div>
 
@@ -146,7 +153,7 @@ export function ContactForm() {
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="+973 3900 0000"
+            placeholder={t("contact.phonePlaceholder")}
           />
         </div>
 
@@ -157,7 +164,7 @@ export function ContactForm() {
           <Input
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            placeholder="e.g. Batelco / Agency"
+            placeholder={t("contact.companyPlaceholder")}
           />
         </div>
       </div>

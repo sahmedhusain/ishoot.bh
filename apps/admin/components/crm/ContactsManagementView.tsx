@@ -161,7 +161,7 @@ export function ContactsManagementView({
                   className="w-full h-7 px-3 rounded-lg border border-[#dadce0] dark:border-[#3c4043] hover:bg-slate-50 dark:hover:bg-neutral-800 text-[11px] font-semibold text-[#014842] dark:text-[#7de0d1] flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
-                  <span>Client Dossier 360</span>
+                  <span>{t.contactsView.clientDossier360}</span>
                 </button>
               </Link>
             </div>
@@ -173,8 +173,8 @@ export function ContactsManagementView({
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
         onConfirm={handleDelete}
-        title="Delete Customer Profile"
-        description="Are you sure you want to delete this customer record? This will remove their contact info and associated records."
+        title={t.contactsView.deleteConfirmTitle}
+        description={t.contactsView.deleteConfirmDesc}
       />
     </div>
   );

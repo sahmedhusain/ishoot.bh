@@ -1,11 +1,22 @@
 "use client";
 
 import * as React from "react";
+import type { CompanySettings } from "@ishoot/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 
-export function CEOHero() {
-  const { t, isRTL } = useTranslation();
+interface CEOHeroProps {
+  company?: CompanySettings;
+}
+
+export function CEOHero({ company }: CEOHeroProps) {
+  const { t, isRTL, locale } = useTranslation();
+  const isAr = locale === "ar";
+
+  const ceoTitle = (isAr ? company?.ceo_title_ar : company?.ceo_title_en) || t("about.ceoTitle");
+  const ceoName = (isAr ? company?.ceo_name_ar : company?.ceo_name_en) || t("about.ceoName");
+  const ceoQuote = (isAr ? company?.ceo_quote_ar : company?.ceo_quote_en) || t("about.ceoQuote");
+  const storyText = (isAr ? company?.about_text_ar : company?.about_text_en) || t("about.storyP1");
 
   return (
     <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-12 items-center py-12">
@@ -22,10 +33,10 @@ export function CEOHero() {
 
           <div className="absolute bottom-6 left-6 right-6 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/10">
             <div className="text-xs text-[#09937F] font-mono uppercase tracking-wider">
-              {t("about.ceoTitle")}
+              {ceoTitle}
             </div>
             <div className="text-xl font-bold text-white mt-0.5">
-              {t("about.ceoName")}
+              {ceoName}
             </div>
           </div>
         </div>
@@ -41,11 +52,11 @@ export function CEOHero() {
         </p>
 
         <blockquote className="p-6 rounded-2xl bg-[#0B1210] border-l-4 border-[#09937F] text-lg sm:text-xl font-serif italic text-white/90 leading-relaxed my-6">
-          {t("about.ceoQuote")}
+          {ceoQuote}
         </blockquote>
 
         <p className="text-sm text-[#9EADA9] leading-relaxed">
-          {t("about.storyP1")}
+          {storyText}
         </p>
       </div>
     </div>

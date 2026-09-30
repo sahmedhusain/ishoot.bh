@@ -75,7 +75,7 @@ export function NewUserFormView() {
               </label>
               <Input
                 required
-                placeholder="e.g. Sayed Ahmed"
+                placeholder={t.usersNew.fullNamePlaceholder}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
@@ -87,7 +87,7 @@ export function NewUserFormView() {
               <Input
                 type="email"
                 required
-                placeholder="colleague@domain.com"
+                placeholder={t.usersNew.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -102,7 +102,7 @@ export function NewUserFormView() {
               <Input
                 type="password"
                 required
-                placeholder="••••••••••••"
+                placeholder={t.usersNew.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

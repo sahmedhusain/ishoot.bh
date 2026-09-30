@@ -5,14 +5,16 @@ import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { X, ArrowRight, ArrowLeft } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import type { CompanySettings } from "@ishoot/database/types";
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   links?: { href: string; label: string }[];
+  company: CompanySettings;
 }
 
-export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
+export function MobileMenu({ isOpen, onClose, links, company }: MobileMenuProps) {
   const { t, locale, isRTL } = useTranslation();
 
   const navLinks = links || [
@@ -32,17 +34,17 @@ export function MobileMenu({ isOpen, onClose, links }: MobileMenuProps) {
         <Link
           href={`/${locale}`}
           onClick={onClose}
-          className="flex items-center gap-2.5"
+          className="flex items-center gap-2.5 focus:outline-none"
         >
           <img
-            src="/icon.svg"
+            src={company.dark_icon_url || company.icon_url || "/brand/icon-dark.svg"}
             alt={t("common.brandIconAlt")}
             className="h-8 w-auto object-contain"
           />
           <img
-            src="/images/logo-wordmark.svg"
+            src={company.dark_logo_url || company.logo_url || "/brand/logo-text-light.svg"}
             alt={t("common.brandLogoAlt")}
-            className="h-8 w-auto object-contain"
+            className="h-6 w-auto object-contain"
           />
         </Link>
         <div className="flex items-center gap-4">

@@ -6,6 +6,7 @@ import type { CRMContact } from "@ishoot/database/types";
 import { Input, Button } from "@ishoot/ui";
 import { Search, User, Building, Mail, Phone, ExternalLink, Check, Loader2, X } from "lucide-react";
 import { searchContactsAction, lookupClientAction } from "../../app/actions/crm";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export interface ClientAutocompleteProps {
   initialContacts?: CRMContact[];
@@ -27,11 +28,14 @@ export function ClientAutocomplete({
   onSelect,
   onSelectClient,
   disabled = false,
-  placeholder = "Search by client name, email, company, or phone...",
-  label = "Select Client",
+  placeholder,
+  label,
   required = false,
   className,
 }: ClientAutocompleteProps) {
+  const { t } = useAdminLocale();
+  const effectivePlaceholder = placeholder || t.crm.clientSearchPlaceholder;
+  const effectiveLabel = label || t.crm.selectClientLabel;
   const effectiveInitial = contactsProp || initialContacts;
   const [query, setQuery] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
@@ -100,10 +104,10 @@ export function ClientAutocomplete({
 
   return (
     <div className={`space-y-1.5 ${className || ""}`} ref={containerRef}>
-      {label && (
+      {effectiveLabel && (
         <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
           <label>
-            {label} {required && <span className="text-rose-500">*</span>}
+            {effectiveLabel} {required && <span className="text-rose-500">*</span>}
           </label>
           {selectedContact && (
             <Link
@@ -111,7 +115,7 @@ export function ClientAutocomplete({
               target="_blank"
               className="text-[#09937F] hover:underline inline-flex items-center gap-1 font-mono text-[11px]"
             >
-              <span>View Dossier</span>
+              <span>{t.crm.viewDossier}</span>
               <ExternalLink className="w-3 h-3" />
             </Link>
           )}
@@ -153,7 +157,7 @@ export function ClientAutocomplete({
             type="button"
             onClick={handleClear}
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 dark:hover:text-white dark:hover:bg-white/10 transition-colors shrink-0"
-            title="Clear client selection"
+            title={t.crm.clearSelection}
           >
             <X className="w-4 h-4" />
           </button>
@@ -169,7 +173,7 @@ export function ClientAutocomplete({
                 if (!isOpen) setIsOpen(true);
               }}
               onFocus={() => setIsOpen(true)}
-              placeholder={placeholder}
+              placeholder={effectivePlaceholder}
               className="pl-9 pr-9"
             />
             <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-400 pointer-events-none" />
@@ -182,7 +186,7 @@ export function ClientAutocomplete({
             <div className="absolute z-50 mt-1.5 w-full bg-white dark:bg-[#121B19] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5 animate-fade-in">
               {contacts.length === 0 ? (
                 <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400">
-                  {loading ? "Searching clients..." : "No matching clients found in CRM"}
+                  {loading ? t.crm.searchingClients : t.crm.noMatchingClients}
                 </div>
               ) : (
                 contacts.map((contact) => (
