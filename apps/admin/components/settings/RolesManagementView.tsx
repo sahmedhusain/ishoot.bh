@@ -31,6 +31,11 @@ const MODULES = [
 export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
   const { t, isRTL } = useAdminLocale();
   const [roles, setRoles] = React.useState(initialRoles);
+
+  React.useEffect(() => {
+    setRoles(initialRoles);
+  }, [initialRoles]);
+
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingRole, setEditingRole] = React.useState<any | null>(null);
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
@@ -53,7 +58,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
     setNameEn(role.nameEn);
     setNameAr(role.nameAr);
     const perms: Record<string, any> = {};
-    role.permissions.forEach((p: any) => {
+    (role.permissions || []).forEach((p: any) => {
       perms[p.module] = p;
     });
     setPermissions(perms);
@@ -139,7 +144,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
 
               <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
                 <Users className="w-4 h-4" />
-                {t.rolesView.usersAssigned.replace("{count}", String(role._count.users))}
+                {t.rolesView.usersAssigned.replace("{count}", String(role._count?.users ?? 0))}
               </div>
             </div>
 
@@ -147,7 +152,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
               <Button variant="outline" size="sm" onClick={() => handleOpenEdit(role)} className="flex-1">
                 <Edit className="w-3.5 h-3.5 mr-1" /> {t.rolesView.editPermissions}
               </Button>
-              {!role.isSystem && role._count.users === 0 && (
+              {!role.isSystem && (role._count?.users ?? 0) === 0 && (
                 <Button variant="danger" size="sm" onClick={() => setDeleteId(role.id)}>
                   <Trash2 className="w-3.5 h-3.5" />
                 </Button>

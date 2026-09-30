@@ -70,11 +70,16 @@ export async function upsertRoleAction(data: {
 export async function deleteRoleAction(id: string) {
   await requirePermission("users", "delete");
 
-  const role = await db.role.findUnique({ where: { id },   });
+  const role = await db.role.findUnique({ where: { id } });
   if (!role) throw new Error("Role not found");
   if (role.isSystem) throw new Error("Cannot delete system roles");
-  if (false) throw new Error("Cannot delete role currently assigned to users");
 
+  const assignedUsersCount = await db.user.count({ where: { role: id } });
+  if (assignedUsersCount > 0) {
+    throw new Error("Cannot delete role currently assigned to users");
+  }
+
+  await db.permission.deleteMany({ where: { role: id } });
   await db.role.delete({ where: { id } });
 
   revalidatePath("/dashboard/settings/roles");

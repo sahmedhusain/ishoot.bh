@@ -239,8 +239,8 @@ async function main() {
     },
   };
 
-  const roles = Object.keys(ROLE_RULES);
-  for (const role of roles) {
+  const rbacRoles = Object.keys(ROLE_RULES);
+  for (const role of rbacRoles) {
     const roleRules = ROLE_RULES[role] || {};
     for (const resource of ALL_RESOURCES) {
       const allowedActions = roleRules[resource] || [];
@@ -542,58 +542,114 @@ async function main() {
     {
       id: "logo-01",
       name: "Batelco",
-      logoUrl: "/images/icon.svg",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Batelco_By_Beyon_logo.svg",
       websiteUrl: "https://batelco.com",
       displayOrder: 1,
     },
     {
       id: "logo-02",
       name: "Gulf Air",
-      logoUrl: "/images/icon.svg",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/9/97/Gulf_Air_2018_wordmark.svg",
       websiteUrl: "https://gulfair.com",
       displayOrder: 2,
     },
     {
       id: "logo-03",
       name: "ALBA Aluminium",
-      logoUrl: "/images/icon.svg",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/8/85/Aluminium_Bahrain_Logo.png",
       websiteUrl: "https://albasmelter.com",
       displayOrder: 3,
     },
     {
       id: "logo-04",
-      name: "National Bank of Bahrain",
-      logoUrl: "/images/icon.svg",
+      name: "National Bank of Bahrain (NBB)",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/3/39/NBB_Logo_Primary.svg",
       websiteUrl: "https://nbbonline.com",
       displayOrder: 4,
     },
     {
       id: "logo-05",
-      name: "Bahrain Tourism & Exhibitions Authority",
-      logoUrl: "/images/icon.svg",
-      websiteUrl: "https://btea.bh",
+      name: "Zain Bahrain",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Zain_%28Unternehmen%29_logo.svg",
+      websiteUrl: "https://bh.zain.com",
       displayOrder: 5,
     },
     {
       id: "logo-06",
-      name: "Bahrain Economic Development Board",
-      logoUrl: "/images/icon.svg",
-      websiteUrl: "https://bahrainedb.com",
+      name: "stc Bahrain",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e3/STC-01.svg",
+      websiteUrl: "https://stc.com.bh",
       displayOrder: 6,
     },
     {
       id: "logo-07",
-      name: "Beyon Digital",
-      logoUrl: "/images/icon.svg",
-      websiteUrl: "https://beyon.com",
+      name: "Bapco Energies",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/en/d/da/Bapco_Energies_logo.svg",
+      websiteUrl: "https://bapcoenergies.com",
       displayOrder: 7,
     },
     {
       id: "logo-08",
-      name: "Seef Properties",
-      logoUrl: "/images/icon.svg",
-      websiteUrl: "https://seef.bh",
+      name: "Bahrain Mumtalakat Holding",
+      logoUrl: "https://d22x99z9pyemfq.cloudfront.net/static/mumtalakat-logo.svg",
+      websiteUrl: "https://mumtalakat.bh",
       displayOrder: 8,
+    },
+    {
+      id: "logo-09",
+      name: "Four Seasons Hotel Bahrain Bay",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/en/a/a1/Four_Seasons_logo.svg",
+      websiteUrl: "https://fourseasons.com/bahrain",
+      displayOrder: 9,
+    },
+    {
+      id: "logo-10",
+      name: "Bahrain Economic Development Board",
+      logoUrl: "https://www.bahrainedb.com/app/themes/bedb/assets/images/edb_logo_grey-01.svg",
+      websiteUrl: "https://bahrainedb.com",
+      displayOrder: 10,
+    },
+    {
+      id: "logo-11",
+      name: "Bahrain Tourism & Exhibitions Authority",
+      logoUrl: "https://tourismbh.com/uploads/footer-logo/BTEA_logo.svg",
+      websiteUrl: "https://btea.bh",
+      displayOrder: 11,
+    },
+    {
+      id: "logo-12",
+      name: "Seef Properties",
+      logoUrl: "https://seef.com.bh/wp-content/uploads/2021/03/logo-for-web-site.svg",
+      websiteUrl: "https://seef.bh",
+      displayOrder: 12,
+    },
+    {
+      id: "logo-13",
+      name: "Beyon Digital",
+      logoUrl: "https://beyon.com/wp-content/uploads/2026/08/Beyon_Logo_Full_Colour.svg",
+      websiteUrl: "https://beyon.com",
+      displayOrder: 13,
+    },
+    {
+      id: "logo-14",
+      name: "Bahrain International Circuit (BIC)",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/en/d/d1/Bahrain_International_Circuit_logo.png",
+      websiteUrl: "https://bahraingp.com",
+      displayOrder: 14,
+    },
+    {
+      id: "logo-15",
+      name: "Beyon Money FinTech",
+      logoUrl: "https://www.beyonmoney.com/wp-content/uploads/2026/06/2024_Beyon_Money_Logo_App_Icon.svg",
+      websiteUrl: "https://beyonmoney.com",
+      displayOrder: 15,
+    },
+    {
+      id: "logo-16",
+      name: "Royal Golf Club Bahrain",
+      logoUrl: "https://www.theroyalgolfclub.com/logo.png",
+      websiteUrl: "https://theroyalgolfclub.com",
+      displayOrder: 16,
     },
   ];
 
@@ -604,7 +660,7 @@ async function main() {
       create: l,
     });
   }
-  console.log("✅ Created 8 Enterprise Client Logos");
+  console.log("✅ Created 16 Enterprise Client Logos");
 
   const equipmentList = [
     {
@@ -2677,7 +2733,7 @@ async function main() {
     },
   });
 
-  const roles = [
+  const systemRoles = [
     { id: "super_admin", nameEn: "Super Administrator", nameAr: "مسؤول النظام العام", isSystem: true },
     { id: "admin", nameEn: "System Administrator", nameAr: "مدير النظام", isSystem: true },
     { id: "finance_manager", nameEn: "Finance Manager", nameAr: "المدير المالي", isSystem: true },
@@ -2689,7 +2745,7 @@ async function main() {
     { id: "viewer", nameEn: "Read-Only Observer", nameAr: "مراقب", isSystem: true },
   ];
 
-  for (const role of roles) {
+  for (const role of systemRoles) {
     await prisma.role.upsert({
       where: { id: role.id },
       update: role,
