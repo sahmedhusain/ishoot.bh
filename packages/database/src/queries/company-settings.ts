@@ -54,6 +54,10 @@ function mapSettings(s: any): CompanySettings {
     vision_ar: s.visionAr || undefined,
     about_text_en: s.aboutTextEn || undefined,
     about_text_ar: s.aboutTextAr || undefined,
+    terms_en: s.termsEn || undefined,
+    terms_ar: s.termsAr || undefined,
+    rules_en: s.rulesEn || undefined,
+    rules_ar: s.rulesAr || undefined,
     updated_at: s.updatedAt.toISOString(),
   };
 }
@@ -131,6 +135,10 @@ export async function updateCompanySettings(
       visionAr: updates.vision_ar,
       aboutTextEn: updates.about_text_en,
       aboutTextAr: updates.about_text_ar,
+      termsEn: updates.terms_en,
+      termsAr: updates.terms_ar,
+      rulesEn: updates.rules_en,
+      rulesAr: updates.rules_ar,
     },
   });
   return mapSettings(updated);

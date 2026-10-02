@@ -171,7 +171,7 @@
     "storyP2": "From national television campaigns to international brand anthems, our team brings cinema cameras, precision lighting rigs, and state-of-the-art post-production suites to elevate brand prestige.",
     "ceoTitle": "Founder & Creative Director",
     "ceoName": "Sayed Ahmed Husain",
-    "ceoQuote": "\"We don't merely capture light; we shape the way memories, emotions, and brands resonate through time.\"",
+    "ceoQuote": "We don't merely capture light; we shape the way memories, emotions, and brands resonate through time.",
     "gearTitle": "THE GEAR LOCKER",
     "gearSubtitle": "In-house owned cinema equipment calibrated for pristine optical performance.",
     "statFilms": "180+ Commercials Delivered",
@@ -203,7 +203,51 @@
     "statAwardsValue": "14",
     "statAwardsLabel": "Regional Awards",
     "statClientsValue": "65+",
-    "statClientsLabel": "GCC Enterprise Clients"
+    "statClientsLabel": "GCC Enterprise Clients",
+    "recTag": "REC · 8K VV",
+    "gccTag": "100% GCC",
+    "redTag": "RED V-Raptor XL",
+    "coloristTag": "DaVinci Certified",
+    "location": "Manama, Kingdom of Bahrain",
+    "pillars": {
+      "badge": "Pillars of Craft",
+      "title": "Engineering Precision & Visual Artistry",
+      "p1": {
+        "number": "01",
+        "title": "Cinematic Optics & Framing",
+        "desc": "8K VistaVision multi-format capture using RED V-Raptor XL systems paired with ARRI Master Primes for pristine optical rendering.",
+        "tag": "8K VistaVision"
+      },
+      "p2": {
+        "number": "02",
+        "title": "DaVinci Resolve HDR Grading",
+        "desc": "Dedicated post-production suite with Sony BVM reference monitoring to design bespoke film-emulation color palettes.",
+        "tag": "DCI-P3 Colorist"
+      },
+      "p3": {
+        "number": "03",
+        "title": "Narrative Direction & Motion",
+        "desc": "Crafting visual treatments, scripts, and rhythmic editing pacing that turn corporate briefs into memorable cinema.",
+        "tag": "Narrative Craft"
+      },
+      "p4": {
+        "number": "04",
+        "title": "Licensed Heavy-Lift & FPV Drones",
+        "desc": "Full Civil Aviation Authority (BCAA) licensed aerial drone operations capturing monumental landscapes and high-speed chases.",
+        "tag": "BCAA Licensed"
+      }
+    },
+    "stats": {
+      "badge": "Studio Telemetry & Track Record",
+      "verified": "Verified Production Data",
+      "tvcs": "High-End TVCs",
+      "leadership": "Cinema Leadership",
+      "trophies": "Regional Trophies",
+      "enterprises": "GCC Enterprises"
+    },
+    "gear": {
+      "calibrated": "Calibrated"
+    }
   },
   "contact": {
     "badge": "Initiate Collaboration",
@@ -262,7 +306,13 @@
     "social": "Follow Us",
     "privacy": "Privacy Policy",
     "terms": "Terms of Production",
-    "companyName": "ishoot Cinema Production"
+    "companyName": "ishoot Cinema Production",
+    "termsModalTitle": "Terms & Conditions",
+    "rulesModalTitle": "Rules of Production",
+    "termsUnavailable": "Terms and Conditions are not available.",
+    "rulesUnavailable": "Rules of Production are not available.",
+    "close": "Close",
+    "rules": "Rules of Production"
   },
   "financials": {
     "currency": "BHD",

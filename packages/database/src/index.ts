@@ -27,3 +27,5 @@ export * from "./queries/stats";
 export * from "./queries/features";
 export * from "./services/lead-resolver";
 export { default as initialCompanyConfig } from "./initial-company-config.json";
+
+export * from "./queries/social-links";

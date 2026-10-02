@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import type { CompanySettings } from "@ishoot/database/types";
+import type { CompanySettings, SocialLink } from "@ishoot/database/types";
 import { Card, Input, Textarea } from "@ishoot/ui";
 import {
   Globe,
@@ -36,12 +36,18 @@ import {
 import {
   updateWebSettingsAction,
   revalidateEntireSiteAction,
+  createSocialLinkAction,
+  updateSocialLinkAction,
+  deleteSocialLinkAction,
 } from "../../app/actions/settings";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
+import { IconPicker } from "../shared/IconPicker";
+import { PlatformPicker } from "../shared/PlatformPicker";
 
 interface WebSettingsViewProps {
   initialSettings: CompanySettings;
+  socialLinks?: SocialLink[];
   cmsCounts: {
     banners: number;
     portfolio: number;
@@ -57,14 +63,45 @@ interface WebSettingsViewProps {
 export function WebSettingsView({
   initialSettings,
   cmsCounts,
+socialLinks = [],
 }: WebSettingsViewProps) {
   const { isRTL, t } = useAdminLocale();
   const [settings, setSettings] = React.useState<CompanySettings>(initialSettings);
-  const [activeTab, setActiveTab] = React.useState<"hero" | "narrative" | "social" | "cms">("hero");
+  const [activeTab, setActiveTab] = React.useState<"hero" | "narrative" | "legal" | "social" | "cms">("hero");
+  const [links, setLinks] = React.useState<SocialLink[]>(socialLinks);
+  const [newLink, setNewLink] = React.useState({ platform: "", url: "", icon: "", is_active: true, display_order: 0 });
   const [isSaving, setIsSaving] = React.useState(false);
   const [isRevalidating, setIsRevalidating] = React.useState(false);
   const [saveSuccess, setSaveSuccess] = React.useState(false);
   const [revalidateSuccess, setRevalidateSuccess] = React.useState(false);
+
+  
+  const handleAddSocialLink = async () => {
+    if (!newLink.platform || !newLink.url) return;
+    try {
+      const res = await createSocialLinkAction(newLink);
+      if (res.success) {
+        setLinks([...links, res.link]);
+        setNewLink({ platform: "", url: "", icon: "", is_active: true, display_order: 0 });
+      }
+    } catch (e) {}
+  };
+
+  const handleToggleSocialLink = async (id: string, current: boolean) => {
+    try {
+      const res = await updateSocialLinkAction(id, { is_active: !current });
+      if (res.success) {
+        setLinks(links.map(l => l.id === id ? res.link : l));
+      }
+    } catch (e) {}
+  };
+
+  const handleDeleteSocialLink = async (id: string) => {
+    try {
+      await deleteSocialLinkAction(id);
+      setLinks(links.filter(l => l.id !== id));
+    } catch (e) {}
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,8 +146,8 @@ export function WebSettingsView({
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <span>{t.webSettingsView.title}</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#09937F]/10 text-[#09937F] border border-[#09937F]/20  font-medium">
-              {t.webSettingsView.badge}
+            <span className="text-xs font-bold text-[#09937F] font-sans">
+              &lt;&lt; {t.webSettingsView.badge} &gt;&gt;
             </span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
@@ -174,6 +211,19 @@ export function WebSettingsView({
         >
           <Building2 className="w-4 h-4 text-[#09937F]" />
           <span>{t.webSettingsView.tabNarrative}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("legal")}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            activeTab === "legal"
+              ? "bg-[#014842] text-white shadow-xs"
+              : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
+          }`}
+        >
+          <Shield className="w-4 h-4 text-[#09937F]" />
+          <span>Legal & Rules</span>
         </button>
 
         <button
@@ -458,6 +508,77 @@ export function WebSettingsView({
           </div>
         )}
 
+        
+        {/* TAB 2.5: Legal & Rules */}
+        {activeTab === "legal" && (
+          <div className="space-y-6">
+            <Card className="p-6 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
+                <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Terms & Rules
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400">
+                    Manage the terms and conditions and rules of production displayed on the website.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                    Terms & Conditions (English)
+                  </label>
+                  <Textarea
+                    rows={6}
+                    value={settings.terms_en || ""}
+                    onChange={(e) => setSettings({ ...settings, terms_en: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                    Terms & Conditions (Arabic)
+                  </label>
+                  <Textarea
+                    rows={6}
+                    value={settings.terms_ar || ""}
+                    onChange={(e) => setSettings({ ...settings, terms_ar: e.target.value })}
+                    className="text-right font-arabic"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                    Rules of Production (English)
+                  </label>
+                  <Textarea
+                    rows={6}
+                    value={settings.rules_en || ""}
+                    onChange={(e) => setSettings({ ...settings, rules_en: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
+                    Rules of Production (Arabic)
+                  </label>
+                  <Textarea
+                    rows={6}
+                    value={settings.rules_ar || ""}
+                    onChange={(e) => setSettings({ ...settings, rules_ar: e.target.value })}
+                    className="text-right font-arabic"
+                  />
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        
         {/* TAB 3: Contact & Social Channels */}
         {activeTab === "social" && (
           <div className="space-y-6">
@@ -468,57 +589,94 @@ export function WebSettingsView({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    {t.webSettingsView.socialContactTitle}
+                    Dynamic Social Links
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-neutral-400">
-                    {t.webSettingsView.socialContactDesc}
+                    Add and manage social media links displayed on the website.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500">Platform</label>
+                    <PlatformPicker
+                      platform={newLink.platform}
+                      onPlatformChange={(name, icon) => {
+                        setNewLink(prev => ({
+                          ...prev,
+                          platform: name,
+                          icon: icon || prev.icon
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500">URL</label>
+                    <Input placeholder="https://..." value={newLink.url} onChange={e => setNewLink({...newLink, url: e.target.value})} />
+                  </div>
+                  <div className="w-32 space-y-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-500">Icon (Optional)</label>
+                    <IconPicker value={newLink.icon} onChange={val => setNewLink({...newLink, icon: val})} placeholder="e.g. Instagram" />
+                  </div>
+                  <button type="button" onClick={handleAddSocialLink} className="h-10 px-4 rounded-xl bg-[#09937F] text-white text-xs font-bold hover:bg-[#0BB49B] transition-colors">
+                    Add Link
+                  </button>
+                </div>
+
+                <div className="border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 dark:bg-white/5 text-xs text-slate-500">
+                      <tr>
+                        <th className="px-4 py-3 font-semibold">Platform</th>
+                        <th className="px-4 py-3 font-semibold">URL</th>
+                        <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-white/5">
+                      {links.map(link => (
+                        <tr key={link.id} className="bg-white dark:bg-[#0B1210]">
+                          <td className="px-4 py-3 font-medium flex items-center gap-2">
+                            {link.platform}
+                            {!link.is_active && <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-500">Hidden</span>}
+                          </td>
+                          <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">{link.url}</td>
+                          <td className="px-4 py-3 text-right space-x-2">
+                            <button type="button" onClick={() => handleToggleSocialLink(link.id, link.is_active)} className="text-xs text-slate-500 hover:text-white">
+                              {link.is_active ? "Hide" : "Show"}
+                            </button>
+                            <button type="button" onClick={() => handleDeleteSocialLink(link.id)} className="text-xs text-rose-500 hover:text-rose-400">
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {links.length === 0 && (
+                        <tr><td colSpan={3} className="px-4 py-8 text-center text-slate-500 text-xs">No social links added yet.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
+                <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Contact Details
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400">
+                    Phone numbers and addresses for the website contact page.
                   </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
-                    <Instagram className="w-3.5 h-3.5 text-pink-500" />
-                    <span>{t.webSettingsView.igUrl}</span>
-                  </label>
-                  <Input
-                    placeholder={t.webSettingsView.igUrlPlaceholder}
-                    value={settings.instagram_url || ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, instagram_url: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
-                    <Linkedin className="w-3.5 h-3.5 text-blue-500" />
-                    <span>{t.webSettingsView.linkedinUrl}</span>
-                  </label>
-                  <Input
-                    placeholder={t.webSettingsView.linkedinUrlPlaceholder}
-                    value={settings.linkedin_url || ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, linkedin_url: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
-                    <Youtube className="w-3.5 h-3.5 text-red-500" />
-                    <span>{t.webSettingsView.youtubeUrl}</span>
-                  </label>
-                  <Input
-                    placeholder={t.webSettingsView.youtubeUrlPlaceholder}
-                    value={settings.youtube_url || ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, youtube_url: e.target.value })
-                    }
-                  />
-                </div>
-
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
                     <Phone className="w-3.5 h-3.5 text-emerald-500" />
@@ -548,7 +706,7 @@ export function WebSettingsView({
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 md:col-span-2">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5">
                     <Mail className="w-3.5 h-3.5 text-slate-400" />
                     <span>{t.webSettingsView.inquiriesEmail}</span>

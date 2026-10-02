@@ -9,6 +9,7 @@ import {
   getReviews,
   getFaqs,
   getStatistics,
+  getSocialLinks,
 } from "@ishoot/database";
 import { WebSettingsView } from "../../../../components/settings/WebSettingsView";
 
@@ -26,6 +27,7 @@ export default async function WebSettingsPage() {
     reviews,
     faqs,
     stats,
+    socialLinks,
   ] = await Promise.all([
     getCompanySettings(),
     getAllBanners(),
@@ -35,6 +37,7 @@ export default async function WebSettingsPage() {
     getReviews(true),
     getFaqs(true),
     getStatistics(),
+    getSocialLinks(false),
   ]);
 
   const pendingReviews = reviews.filter((r: any) => !r.isApproved).length;
@@ -42,6 +45,7 @@ export default async function WebSettingsPage() {
   return (
     <WebSettingsView
       initialSettings={company}
+      socialLinks={socialLinks}
       cmsCounts={{
         banners: banners.length,
         portfolio: portfolio.length,

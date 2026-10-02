@@ -206,6 +206,9 @@ importers:
       '@react-pdf/renderer':
         specifier: ^4.2.1
         version: 4.9.0(react@19.3.0)
+      framer-motion:
+        specifier: ^13.4.6
+        version: 13.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       jose:
         specifier: ^6.2.12
         version: 6.2.12

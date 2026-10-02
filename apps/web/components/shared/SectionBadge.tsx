@@ -9,10 +9,11 @@ export function SectionBadge({
 }) {
   return (
     <div
-      className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#09937F]/10 border border-[#09937F]/25 text-xs font-semibold text-[#09937F] uppercase tracking-widest ${className}`}
+      className={`inline-flex items-center gap-1.5 text-xs font-bold text-[#09937F] font-sans tracking-widest uppercase ${className}`}
     >
-      <span className="w-1.5 h-1.5 rounded-full bg-[#09937F] animate-pulse" />
+      <span className="text-[#09937F] font-mono opacity-80">&lt;&lt;</span>
       <span>{children}</span>
+      <span className="text-[#09937F] font-mono opacity-80">&gt;&gt;</span>
     </div>
   );
 }

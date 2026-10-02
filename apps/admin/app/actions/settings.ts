@@ -142,3 +142,31 @@ export async function revalidateEntireSiteAction() {
   return { success: true };
 }
 
+
+
+export async function createSocialLinkAction(data: any) {
+  const { createSocialLink } = require('@ishoot/database');
+  const { revalidatePublicSite } = await import("../../lib/revalidate-web");
+  const link = await createSocialLink(data);
+  revalidatePath("/dashboard/settings/web");
+  await revalidatePublicSite(["socialLinks"], ["/", "/en", "/ar", "/about", "/works", "/contact"]);
+  return { success: true, link };
+}
+
+export async function updateSocialLinkAction(id: string, data: any) {
+  const { updateSocialLink } = require('@ishoot/database');
+  const { revalidatePublicSite } = await import("../../lib/revalidate-web");
+  const link = await updateSocialLink(id, data);
+  revalidatePath("/dashboard/settings/web");
+  await revalidatePublicSite(["socialLinks"], ["/", "/en", "/ar", "/about", "/works", "/contact"]);
+  return { success: true, link };
+}
+
+export async function deleteSocialLinkAction(id: string) {
+  const { deleteSocialLink } = require('@ishoot/database');
+  const { revalidatePublicSite } = await import("../../lib/revalidate-web");
+  const deleted = await deleteSocialLink(id);
+  revalidatePath("/dashboard/settings/web");
+  await revalidatePublicSite(["socialLinks"], ["/", "/en", "/ar", "/about", "/works", "/contact"]);
+  return { success: deleted };
+}

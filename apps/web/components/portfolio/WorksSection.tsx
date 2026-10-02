@@ -99,13 +99,13 @@ export function WorksSection({ items }: WorksSectionProps) {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeCategory === cat.id
-                    ? "bg-[#014842] text-white border border-[#09937F]/50 shadow-md"
+                    ? "bg-[#014842] text-white border border-[#09937F] shadow-md"
                     : "bg-white/5 text-[#9EADA9] hover:text-white hover:bg-white/10 border border-white/10"
                 }`}
               >
-                {cat.label}
+                &lt;&lt; {cat.label} &gt;&gt;
               </button>
             ))}
           </motion.div>
@@ -129,22 +129,22 @@ export function WorksSection({ items }: WorksSectionProps) {
                   style={{ backgroundImage: `url('${item.thumbnail_url}')` }}
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
 
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <div className="w-14 h-14 rounded-full bg-[#014842]/90 backdrop-blur-md border border-[#09937F] flex items-center justify-center text-white shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300">
-                    <Play className="w-6 h-6 fill-current ms-1 text-[#5EEAD4]" />
-                  </div>
-                </div>
-
-                <div className="absolute top-5 end-5 z-10">
-                  <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-[#5EEAD4] border border-white/10 font-sans">
-                    {item.aspect_ratio || "16:9"}
+                <div className="absolute top-5 start-5 z-10">
+                  <span className="text-xs font-bold text-[#5EEAD4] font-sans">
+                    &lt;&lt; PLAY 4K REEL &gt;&gt;
                   </span>
                 </div>
 
-                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 space-y-2 z-10">
-                  <div className="flex items-center justify-between text-xs text-[#09937F] tracking-widest uppercase font-sans">
+                <div className="absolute top-5 end-5 z-10">
+                  <span className="text-[10px] font-bold text-[#9EADA9] font-sans">
+                    &lt;&lt; {item.aspect_ratio || "16:9"} &gt;&gt;
+                  </span>
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 space-y-2 z-20">
+                  <div className="flex items-center justify-between text-xs text-[#09937F] font-bold tracking-widest uppercase font-sans">
                     <span>{item.client_name}</span>
                     <span>{item.year}</span>
                   </div>

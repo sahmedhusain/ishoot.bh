@@ -1,0 +1,182 @@
+"use client";
+
+import * as React from "react";
+import * as LucideIcons from "lucide-react";
+import { Search, Check, ChevronDown, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+interface IconPickerProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}
+
+// Popular social & media icons curated for quick access
+const POPULAR_ICONS = [
+  "Instagram",
+  "Linkedin",
+  "Youtube",
+  "Facebook",
+  "Twitter",
+  "Video",
+  "Camera",
+  "Film",
+  "Globe",
+  "Share2",
+  "Phone",
+  "Mail",
+  "Send",
+  "MessageCircle",
+  "Music",
+  "Sparkles",
+  "Tv",
+  "Radio",
+  "Link",
+  "Compass",
+];
+
+const ALL_ICON_NAMES = Object.keys(LucideIcons).filter(
+  (name) => name !== "createLucideIcon" && typeof (LucideIcons as any)[name] === "function"
+);
+
+export function IconPicker({ value, onChange, placeholder = "Select icon" }: IconPickerProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const [tab, setTab] = React.useState<"popular" | "all">("popular");
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const displayedIcons = React.useMemo(() => {
+    if (search.trim()) {
+      return ALL_ICON_NAMES.filter((name) =>
+        name.toLowerCase().includes(search.toLowerCase().trim())
+      ).slice(0, 80);
+    }
+    return tab === "popular" ? POPULAR_ICONS : ALL_ICON_NAMES.slice(0, 100);
+  }, [search, tab]);
+
+  const SelectedIcon = value && (LucideIcons as any)[value] ? (LucideIcons as any)[value] : null;
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 rounded-xl text-xs hover:border-[#09937F] focus:outline-none focus:ring-2 focus:ring-[#09937F]/30 transition-all cursor-pointer shadow-2xs group"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 group-hover:border-[#09937F]/50 transition-colors">
+            {SelectedIcon ? (
+              <SelectedIcon className="w-4 h-4 text-[#09937F]" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-slate-400" />
+            )}
+          </div>
+          <span className="font-semibold text-slate-800 dark:text-neutral-200">
+            {value || placeholder}
+          </span>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#09937F]" : ""}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 6 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute z-50 top-full left-0 right-0 mt-2 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] max-w-[90vw]"
+          >
+            {/* Search Header */}
+            <div className="p-3 border-b border-slate-100 dark:border-white/10 space-y-2 bg-slate-50/50 dark:bg-black/20">
+              <div className="relative flex items-center">
+                <Search className="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search 1,000+ icons..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  autoFocus
+                  className="w-full pl-8 pr-3 py-1.5 bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 rounded-lg text-xs outline-none focus:border-[#09937F] text-slate-900 dark:text-white"
+                />
+              </div>
+
+              {!search && (
+                <div className="flex items-center gap-1 bg-slate-200/50 dark:bg-white/5 p-1 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => setTab("popular")}
+                    className={`flex-1 py-1 rounded-md text-[11px] font-bold transition-all ${
+                      tab === "popular"
+                        ? "bg-white dark:bg-[#014842] text-slate-900 dark:text-white shadow-2xs"
+                        : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    Popular
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab("all")}
+                    className={`flex-1 py-1 rounded-md text-[11px] font-bold transition-all ${
+                      tab === "all"
+                        ? "bg-white dark:bg-[#014842] text-slate-900 dark:text-white shadow-2xs"
+                        : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    All Icons
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Icon Grid */}
+            <div className="p-3 max-h-[220px] overflow-y-auto grid grid-cols-5 gap-1.5 custom-scrollbar">
+              {displayedIcons.map((iconName) => {
+                const IconComp = (LucideIcons as any)[iconName];
+                if (!IconComp) return null;
+
+                const isSelected = value === iconName;
+
+                return (
+                  <button
+                    key={iconName}
+                    type="button"
+                    onClick={() => {
+                      onChange(iconName);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={`p-2.5 flex flex-col items-center justify-center rounded-xl border transition-all group/btn ${
+                      isSelected
+                        ? "bg-[#014842] border-[#09937F] text-white shadow-md"
+                        : "border-transparent hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-neutral-300 hover:border-slate-200 dark:hover:border-white/10"
+                    }`}
+                    title={iconName}
+                  >
+                    <IconComp className={`w-5 h-5 transition-transform group-hover/btn:scale-110 ${isSelected ? "text-[#5EEAD4]" : ""}`} />
+                  </button>
+                );
+              })}
+
+              {displayedIcons.length === 0 && (
+                <div className="col-span-5 py-6 text-center text-xs text-slate-400">
+                  No matching icons found
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

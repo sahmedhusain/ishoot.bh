@@ -79,8 +79,8 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <span>{t.reviewsView.title}</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#09937F]/10 text-[#09937F] border border-[#09937F]/20  font-medium">
-              {t.reviewsView.badge}
+            <span className="text-xs font-bold text-[#09937F] font-sans">
+              &lt;&lt; {t.reviewsView.badge} &gt;&gt;
             </span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 max-w-2xl">

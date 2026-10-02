@@ -3,15 +3,43 @@
 import * as React from "react";
 import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
-import { Instagram, Linkedin, Youtube, ArrowUpRight } from "lucide-react";
-import type { CompanySettings } from "@ishoot/database/types";
+import { ArrowUpRight } from "lucide-react";
+import type { CompanySettings, SocialLink } from "@ishoot/database/types";
+import { SocialIcon } from "./SocialIcon";
+import { LegalModal } from "../shared/LegalModal";
 
 interface FooterProps {
   company: CompanySettings;
+  socialLinks?: SocialLink[];
 }
 
-export function Footer({ company }: FooterProps) {
+export function Footer({ company, socialLinks = [] }: FooterProps) {
   const { t, locale, isRTL } = useTranslation();
+  const [modalType, setModalType] = React.useState<"terms" | "rules" | null>(null);
+
+  const activeLinks = socialLinks.filter(link => link.is_active).sort((a, b) => a.display_order - b.display_order);
+
+  const renderModalContent = () => {
+    if (modalType === "terms") {
+      const content = isRTL ? company.terms_ar : company.terms_en;
+      return content ? content : t("footer.termsUnavailable");
+    }
+    if (modalType === "rules") {
+      const content = isRTL ? company.rules_ar : company.rules_en;
+      return content ? content : t("footer.rulesUnavailable");
+    }
+    return "";
+  };
+
+  const renderModalTitle = () => {
+    if (modalType === "terms") {
+      return t("footer.termsModalTitle");
+    }
+    if (modalType === "rules") {
+      return t("footer.rulesModalTitle");
+    }
+    return "";
+  };
 
   return (
     <footer className="relative bg-[#050807] border-t border-white/10 pt-20 pb-12 overflow-hidden">
@@ -32,19 +60,19 @@ export function Footer({ company }: FooterProps) {
                 className="h-7 w-auto object-contain"
               />
             </Link>
-            <p className="text-sm text-[#9EADA9] max-w-md leading-relaxed">
+            <p className="text-sm text-[#9EADA9] max-w-md leading-relaxed font-sans">
               {t("footer.tagline")}
             </p>
-            <div className="text-xs text-[#9EADA9]/70 pt-2">
+            <div className="text-xs text-[#9EADA9]/70 pt-2 font-sans">
               {t("footer.cr")}
             </div>
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
               {t("footer.navigation")}
             </h4>
-            <ul className="space-y-2.5 text-sm text-[#9EADA9]">
+            <ul className="space-y-2.5 text-sm text-[#9EADA9] font-sans">
               <li>
                 <Link
                   href={`/${locale}`}
@@ -81,39 +109,25 @@ export function Footer({ company }: FooterProps) {
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider">
+            <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
               {t("footer.social")}
             </h4>
-            <div className="flex items-center gap-3">
-              <a
-                href={company.instagram_url || "https://instagram.com"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
-                aria-label="Instagram"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a
-                href={company.linkedin_url || "https://linkedin.com"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="w-4 h-4" />
-              </a>
-              <a
-                href={company.youtube_url || "https://youtube.com"}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
-                aria-label="YouTube"
-              >
-                <Youtube className="w-4 h-4" />
-              </a>
+            <div className="flex flex-wrap items-center gap-3">
+              {activeLinks.map(link => (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
+                  aria-label={link.platform}
+                  title={link.platform}
+                >
+                  <SocialIcon name={link.icon || link.platform} className="w-4 h-4" />
+                </a>
+              ))}
             </div>
-            <div className="pt-2 text-xs text-[#9EADA9]">
+            <div className="pt-2 text-xs text-[#9EADA9] font-sans">
               <a
                 href={`mailto:${company.email}`}
                 className="hover:text-[#09937F] transition-colors"
@@ -124,26 +138,33 @@ export function Footer({ company }: FooterProps) {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#9EADA9]/60">
+        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#9EADA9]/60 font-sans">
           <div>
             © {new Date().getFullYear()} {t("footer.companyName")}. {t("footer.allRights")}
           </div>
           <div className="flex items-center gap-6">
-            <Link
-              href={`/${locale}/about`}
-              className="hover:text-[#09937F] transition-colors"
+            <button
+              onClick={() => setModalType("rules")}
+              className="hover:text-[#09937F] transition-colors bg-transparent border-none cursor-pointer"
             >
-              {t("footer.privacy")}
-            </Link>
-            <Link
-              href={`/${locale}/about`}
-              className="hover:text-[#09937F] transition-colors"
+              {t("footer.rules")}
+            </button>
+            <button
+              onClick={() => setModalType("terms")}
+              className="hover:text-[#09937F] transition-colors bg-transparent border-none cursor-pointer"
             >
               {t("footer.terms")}
-            </Link>
+            </button>
           </div>
         </div>
       </div>
+
+      <LegalModal
+        isOpen={modalType !== null}
+        onClose={() => setModalType(null)}
+        title={renderModalTitle()}
+        content={renderModalContent()}
+      />
     </footer>
   );
 }

@@ -86,7 +86,15 @@ model CompanySetting {
   visionEn            String?  @db.Text
   visionAr            String?  @db.Text
   aboutTextEn         String?  @db.Text
+
   aboutTextAr         String?  @db.Text
+
+  // Terms and Rules
+  termsEn             String?  @db.Text
+  termsAr             String?  @db.Text
+  rulesEn             String?  @db.Text
+  rulesAr             String?  @db.Text
+
 
   updatedAt           DateTime @updatedAt
 }
@@ -564,6 +572,18 @@ model Service {
 // ==========================================
 // ENTERPRISE & HEADLESS CMS MODELS
 // ==========================================
+
+
+model SocialLink {
+  id           String   @id @default(uuid())
+  platform     String   // "instagram", "linkedin", "youtube", "facebook", "twitter", "tiktok", "vimeo", "snapchat", etc.
+  url          String
+  icon         String?  // lucide icon name
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
 
 model Role {
   id          String   @id @default(cuid()) // e.g. "sales_lead", "agency_partner"

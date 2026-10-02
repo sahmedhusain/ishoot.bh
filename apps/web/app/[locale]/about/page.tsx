@@ -2,6 +2,7 @@ import { getStudioEquipment, getCompanySettings } from "@ishoot/database";
 import { CEOHero } from "../../../components/about/CEOHero";
 import { StatsCounter } from "../../../components/about/StatsCounter";
 import { EquipmentGrid } from "../../../components/about/EquipmentGrid";
+import { PillarsOfCraft } from "../../../components/about/PillarsOfCraft";
 
 export default async function AboutPage() {
   const [equipment, company] = await Promise.all([
@@ -10,8 +11,10 @@ export default async function AboutPage() {
   ]);
 
   return (
-    <div className="py-20 max-w-7xl mx-auto px-6 sm:px-8 space-y-12">
+    <div className="w-full flex flex-col">
       <CEOHero company={company} />
+
+      <PillarsOfCraft />
 
       <StatsCounter />
 

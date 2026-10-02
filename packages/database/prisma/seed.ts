@@ -300,6 +300,20 @@ async function main() {
   }
   console.log("✅ Created Company & Tax Settings");
 
+
+  const socialLinks = [
+    { platform: "Instagram", url: "https://instagram.com/ishoot.bh", icon: "Instagram", displayOrder: 1, isActive: true },
+    { platform: "LinkedIn", url: "https://linkedin.com/company/ishoot-bh", icon: "Linkedin", displayOrder: 2, isActive: true },
+    { platform: "YouTube", url: "https://youtube.com/@ishootbh", icon: "Youtube", displayOrder: 3, isActive: true },
+    { platform: "Vimeo", url: "https://vimeo.com/ishoot", icon: "Video", displayOrder: 4, isActive: true }
+  ];
+
+  for (const sl of socialLinks) {
+    await prisma.socialLink.create({ data: sl });
+  }
+  console.log("✅ Seeded Social Links");
+
+
   const banners = [
     {
       id: "banner-01",

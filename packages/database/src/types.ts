@@ -101,6 +101,10 @@ export interface CompanySettings {
   vision_ar?: string;
   about_text_en?: string;
   about_text_ar?: string;
+  terms_en?: string;
+  terms_ar?: string;
+  rules_en?: string;
+  rules_ar?: string;
   updated_at: string;
 }
 
@@ -656,3 +660,14 @@ export interface CompanyDocument {
   updated_at: string;
 }
 export type { Faq, Statistic, Review, FeatureToggle, Role } from '../prisma/generated/client';
+
+export interface SocialLink {
+  id: string;
+  platform: string;
+  url: string;
+  icon?: string;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
