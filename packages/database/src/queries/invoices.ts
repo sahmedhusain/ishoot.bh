@@ -41,7 +41,7 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
     discount_amount: discountAmount,
     after_discount: afterDiscount,
     vat_enabled: inv.vatEnabled ?? (vatAmount > 0),
-    vat_percentage: inv.vatPercentage ? Number(inv.vatPercentage) : 10,
+    vat_percentage: inv.vatPercentage != null ? Number(inv.vatPercentage) : 10,
     vat_amount: vatAmount,
     total_amount: totalAmount,
     amount_paid: amountPaid,
@@ -253,17 +253,13 @@ export async function createInvoice(data: {
   const year = new Date().getFullYear();
   const created = await db.$transaction(async (tx) => {
     let company = await tx.companySetting.findFirst();
-    if (!company) {
-      company = await tx.companySetting.create({ data: { ...initialConfig.company } });
-    }
+    if (!company) throw new Error("Configure company settings before creating financial records");
     const prefix = company.invoicePrefix || initialConfig.company.invoicePrefix;
-    const num = company.invoiceNextNumber ?? initialConfig.company.invoiceNextNumber;
-    const invoiceNumber = `${prefix}-${year}-${String(num).padStart(4, "0")}`;
-
-    await tx.companySetting.update({
+    const counter = await tx.companySetting.update({
       where: { id: company.id },
-      data: { invoiceNextNumber: num + 1 },
+      data: { invoiceNextNumber: { increment: 1 } },
     });
+    const invoiceNumber = `${prefix}-${year}-${String(counter.invoiceNextNumber - 1).padStart(4, "0")}`;
 
     return await tx.invoice.create({
       data: {
@@ -335,93 +331,97 @@ export async function updateInvoice(
   },
 ): Promise<Invoice | null> {
   try {
-    const existing = await db.invoice.findUnique({
-      where: { id },
-      include: { lineItems: true },
-    });
-    if (!existing) return null;
+    return await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${id} FOR UPDATE`;
+      const existing = await tx.invoice.findUnique({
+        where: { id },
+        include: { lineItems: true, payments: true },
+      });
+      if (!existing) return null;
+      if (existing.status === "void" || existing.payments.length > 0) throw new Error("Void or paid invoices cannot be edited");
 
-    const currency =
-      data.currency || (existing.currency as SupportedCurrency) || "BHD";
-    const lineItemsToCalc =
-      data.line_items ||
-      existing.lineItems.map((li) => ({
-        service_id: li.serviceId || undefined,
-        description_en: li.descriptionEn,
-        description_ar: li.descriptionAr || undefined,
-        quantity: Number(li.quantity),
-        unit_price: Number(li.unitPrice),
-      }));
+      const currency =
+        data.currency || (existing.currency as SupportedCurrency) || "BHD";
+      const lineItemsToCalc =
+        data.line_items ||
+        existing.lineItems.map((li) => ({
+          service_id: li.serviceId || undefined,
+          description_en: li.descriptionEn,
+          description_ar: li.descriptionAr || undefined,
+          quantity: Number(li.quantity),
+          unit_price: Number(li.unitPrice),
+        }));
 
-    const totals = calculateInvoiceTotals(
-      lineItemsToCalc.map((li) => ({
-        ...li,
-        line_total: li.quantity * li.unit_price,
-      })),
-      data.discount_type || (existing.discountType as DiscountType) || "none",
-      data.discount_value ?? Number(existing.discountValue || 0),
-      data.vat_enabled ?? Number(existing.vatAmount) > 0,
-      data.vat_percentage ?? 10,
-      currency,
-    );
-
-    if (data.line_items) {
-      await db.invoiceLineItem.deleteMany({ where: { invoiceId: id } });
-    }
-
-    const updated = await db.invoice.update({
-      where: { id },
-      data: {
-        clientId:
-          data.contact_id !== undefined ? data.contact_id : existing.clientId,
-        dealId: data.deal_id !== undefined ? data.deal_id : existing.dealId,
-        issueDate: data.issue_date
-          ? new Date(data.issue_date)
-          : existing.issueDate,
-        dueDate: data.due_date ? new Date(data.due_date) : existing.dueDate,
-        subtotal: totals.subtotal,
-        discountType: data.discount_type || existing.discountType,
-        discountValue: data.discount_value ?? existing.discountValue,
-        discountAmount: totals.discountAmount,
-        vatEnabled:
-          data.vat_enabled !== undefined
-            ? data.vat_enabled
-            : existing.vatEnabled,
-        vatPercentage:
-          data.vat_percentage !== undefined
-            ? data.vat_percentage
-            : (existing.vatPercentage ?? 10),
-        vatAmount: totals.vatAmount,
-        totalAmount: totals.totalAmount,
+      const totals = calculateInvoiceTotals(
+        lineItemsToCalc.map((li) => ({
+          ...li,
+          line_total: li.quantity * li.unit_price,
+        })),
+        data.discount_type || (existing.discountType as DiscountType) || "none",
+        data.discount_value ?? Number(existing.discountValue || 0),
+        data.vat_enabled ?? existing.vatEnabled,
+        data.vat_percentage ?? Number(existing.vatPercentage),
         currency,
-        language: data.language || existing.language,
-        notesEn: data.notes_en !== undefined ? data.notes_en : existing.notesEn,
-        notesAr: data.notes_ar !== undefined ? data.notes_ar : existing.notesAr,
-        ...(data.line_items
-          ? {
-              lineItems: {
-                create: data.line_items.map((li, idx) => ({
-                  serviceId: li.service_id || null,
-                  descriptionEn: li.description_en,
-                  descriptionAr: li.description_ar || null,
-                  quantity: li.quantity,
-                  unitPrice: li.unit_price,
-                  lineTotal: li.quantity * li.unit_price,
-                  displayOrder: idx + 1,
-                })),
-              },
-            }
-          : {}),
-      },
-      include: {
-        client: true,
-        lineItems: true,
-        payments: true,
-        deal: { include: { contact: true } },
-      },
-    });
+      );
 
-    return mapPrismaInvoiceToInvoice(updated);
+      if (data.line_items) {
+        await tx.invoiceLineItem.deleteMany({ where: { invoiceId: id } });
+      }
+
+      const updated = await tx.invoice.update({
+        where: { id },
+        data: {
+          clientId:
+            data.contact_id !== undefined ? data.contact_id : existing.clientId,
+          dealId: data.deal_id !== undefined ? data.deal_id : existing.dealId,
+          issueDate: data.issue_date
+            ? new Date(data.issue_date)
+            : existing.issueDate,
+          dueDate: data.due_date ? new Date(data.due_date) : existing.dueDate,
+          subtotal: totals.subtotal,
+          discountType: data.discount_type || existing.discountType,
+          discountValue: data.discount_value ?? existing.discountValue,
+          discountAmount: totals.discountAmount,
+          vatEnabled:
+            data.vat_enabled !== undefined
+              ? data.vat_enabled
+              : existing.vatEnabled,
+          vatPercentage:
+            data.vat_percentage !== undefined
+              ? data.vat_percentage
+              : (existing.vatPercentage ?? 10),
+          vatAmount: totals.vatAmount,
+          totalAmount: totals.totalAmount,
+          currency,
+          language: data.language || existing.language,
+          notesEn: data.notes_en !== undefined ? data.notes_en : existing.notesEn,
+          notesAr: data.notes_ar !== undefined ? data.notes_ar : existing.notesAr,
+          ...(data.line_items
+            ? {
+                lineItems: {
+                  create: data.line_items.map((li, idx) => ({
+                    serviceId: li.service_id || null,
+                    descriptionEn: li.description_en,
+                    descriptionAr: li.description_ar || null,
+                    quantity: li.quantity,
+                    unitPrice: li.unit_price,
+                    lineTotal: li.quantity * li.unit_price,
+                    displayOrder: idx + 1,
+                  })),
+                },
+              }
+            : {}),
+        },
+        include: {
+          client: true,
+          lineItems: true,
+          payments: true,
+          deal: { include: { contact: true } },
+        },
+      });
+
+      return mapPrismaInvoiceToInvoice(updated);
+    });
   } catch (e) {
     console.error(`Error updating invoice ${id}:`, e);
     return null;
@@ -433,9 +433,12 @@ export async function updateInvoiceStatus(
   status: InvoiceStatus,
 ): Promise<boolean> {
   try {
-    await db.invoice.update({
-      where: { id },
-      data: { status },
+    await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${id} FOR UPDATE`;
+      const invoice = await tx.invoice.findUnique({ where: { id }, include: { payments: true } });
+      if (!invoice) throw new Error("Invoice not found");
+      if (status === "void" && invoice.payments.length) throw new Error("Paid invoices require a credit adjustment before voiding");
+      await tx.invoice.update({ where: { id }, data: { status } });
     });
     return true;
   } catch (e) {

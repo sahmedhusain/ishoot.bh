@@ -1,3 +1,4 @@
+import { requirePermission } from "../../../../lib/auth";
 import * as React from "react";
 import { notFound } from "next/navigation";
 import {
@@ -16,6 +17,8 @@ interface InvoiceDetailPageProps {
 export default async function InvoiceDetailPage({
   params,
 }: InvoiceDetailPageProps) {
+  await requirePermission("invoices", "read");
+  await requirePermission("payments", "read");
   const { id } = await params;
 
   const [invoice, company, allPayments] = await Promise.all([

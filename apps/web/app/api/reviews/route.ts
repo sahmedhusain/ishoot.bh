@@ -16,7 +16,10 @@ export async function POST(req: NextRequest) {
     const localeKey: Locale = locale === "ar" ? "ar" : "en";
     const trans = getTranslations(localeKey);
 
-    if (!authorName || !quote) {
+    if (typeof authorName !== "string" || !authorName.trim() || authorName.length > 200
+      || typeof quote !== "string" || !quote.trim() || quote.length > 5000
+      || (companyName !== undefined && (typeof companyName !== "string" || companyName.length > 200))
+      || !Number.isInteger(rating) || rating < 1 || rating > 5 || !["en", "ar"].includes(locale)) {
       return NextResponse.json(
         {
           success: false,

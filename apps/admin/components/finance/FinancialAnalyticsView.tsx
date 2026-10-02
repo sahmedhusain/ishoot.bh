@@ -31,6 +31,7 @@ interface FinancialAnalyticsViewProps {
   expenses: Expense[];
   categories: ExpenseCategory[];
   invoices: Invoice[];
+  monthlyCashflow: Array<{ monthKey: string; revenue: number; expenses: number }>;
 }
 
 export function FinancialAnalyticsView({
@@ -38,47 +39,19 @@ export function FinancialAnalyticsView({
   expenses,
   categories,
   invoices,
+  monthlyCashflow,
 }: FinancialAnalyticsViewProps) {
   const { t, locale } = useAdminLocale();
 
   const categoryTotals: Record<string, number> = {};
-  expenses.forEach((e) => {
+  expenses.filter((expense) => expense.currency === "BHD").forEach((e) => {
     const slug = e.category?.slug || "other";
     categoryTotals[slug] = (categoryTotals[slug] || 0) + Number(e.amount);
   });
 
-  const chartData = [
-    {
-      name: "Jan",
-      revenue: finance.revenue * 0.1,
-      expenses: finance.expenses * 0.12,
-    },
-    {
-      name: "Feb",
-      revenue: finance.revenue * 0.15,
-      expenses: finance.expenses * 0.1,
-    },
-    {
-      name: "Mar",
-      revenue: finance.revenue * 0.2,
-      expenses: finance.expenses * 0.18,
-    },
-    {
-      name: "Apr",
-      revenue: finance.revenue * 0.25,
-      expenses: finance.expenses * 0.2,
-    },
-    {
-      name: "May",
-      revenue: finance.revenue * 0.1,
-      expenses: finance.expenses * 0.15,
-    },
-    {
-      name: "Jun",
-      revenue: finance.revenue * 0.2,
-      expenses: finance.expenses * 0.25,
-    },
-  ];
+  const chartData = monthlyCashflow.map((point) => ({
+    ...point, name: new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-BH", { month: "short", year: "2-digit", timeZone: "UTC" }).format(new Date(`${point.monthKey}-01T00:00:00Z`)),
+  }));
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">

@@ -1,6 +1,11 @@
 import { SignJWT, jwtVerify } from "jose";
 
+export const SESSION_COOKIE_NAME = "ishoot_admin_session";
+
 const JWT_SECRET_STRING = process.env.JWT_SECRET || "ishoot_default_jwt_secret_key_change_in_production";
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is required in production");
+}
 const key = new TextEncoder().encode(JWT_SECRET_STRING);
 
 export interface SessionJwtPayload {
@@ -16,6 +21,7 @@ export async function signSessionToken(
 ): Promise<string> {
   return await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
+    .setJti(crypto.randomUUID())
     .setIssuedAt()
     .setExpirationTime(expiresIn)
     .sign(key);

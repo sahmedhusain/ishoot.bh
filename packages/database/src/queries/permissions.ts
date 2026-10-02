@@ -203,10 +203,8 @@ export async function hasPermission(
       return perm.allowed;
     }
   } catch (err) {
-    console.error(
-      "Error checking permission from DB, falling back to static rules:",
-      err,
-    );
+    console.error("Error checking permission from DB:", err);
+    return false;
   }
 
   const roleRules = DEFAULT_ROLE_RULES[role as UserRole];

@@ -10,7 +10,7 @@ export async function revalidatePublicSite(
   }
 
   try {
-    await fetch(`${webUrl}/api/revalidate`, {
+    const response = await fetch(`${webUrl}/api/revalidate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,6 +19,7 @@ export async function revalidatePublicSite(
       body: JSON.stringify({ tags, paths }),
       signal: AbortSignal.timeout(3000),
     });
+    if (!response.ok) throw new Error(`Public site revalidation failed (${response.status})`);
   } catch (err) {
     console.warn("Failed to revalidate public site cache:", err);
   }

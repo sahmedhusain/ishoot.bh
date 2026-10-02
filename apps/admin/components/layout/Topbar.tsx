@@ -22,7 +22,7 @@ const defaultCompany = initialCompanyConfig.company;
 
 interface TopbarProps {
   contacts?: CRMContact[];
-  company?: CompanySettings | null;
+  company?: Pick<CompanySettings, "company_name_en" | "company_name_ar" | "logo_url" | "dark_logo_url" | "icon_url" | "dark_icon_url"> | null;
 }
 
 export function Topbar({ contacts = [], company }: TopbarProps) {

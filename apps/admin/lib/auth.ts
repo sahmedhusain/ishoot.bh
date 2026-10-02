@@ -1,15 +1,15 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifySessionToken, SessionJwtPayload } from "./jwt";
+import { verifySessionToken, SessionJwtPayload, SESSION_COOKIE_NAME } from "./jwt";
+export { SESSION_COOKIE_NAME } from "./jwt";
 import {
-  getUserById,
+  getSessionByToken,
   hasPermission,
   Profile,
   PermissionResource,
   PermissionAction,
 } from "@ishoot/database";
 
-export const SESSION_COOKIE_NAME = "ishoot_admin_session";
 export const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
@@ -30,7 +30,11 @@ export async function getCurrentUser(): Promise<Profile | null> {
   const jwt = await getJwtPayload();
   if (!jwt) return null;
 
-  const user = await getUserById(jwt.userId);
+  const token = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+  if (!token) return null;
+  const session = await getSessionByToken(token);
+  if (!session || session.user_id !== jwt.userId) return null;
+  const user = session.user;
   if (!user || !user.is_active) return null;
 
   return user;

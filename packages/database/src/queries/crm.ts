@@ -1,4 +1,5 @@
 import { db } from "../db";
+import { normalizeToE164 } from "../services/lead-resolver";
 import { CRMContact, CRMDeal, DealStage, SupportedCurrency } from "../types";
 
 function mapContact(c: any): CRMContact {
@@ -362,7 +363,9 @@ export async function createCRMContact(data: {
       firstName: firstName || "Client",
       lastName: lastName || null,
       email: data.email || null,
+      emailNorm: data.email?.trim().toLowerCase() || null,
       phone: data.phone || null,
+      phoneE164: data.phone ? normalizeToE164(data.phone) : null,
       companyName: data.company || null,
       jobTitle: data.job_title || null,
       contactType: data.contact_type || "client",
@@ -380,8 +383,14 @@ export async function updateCRMContact(
     const updateData: any = {};
     if (data.first_name !== undefined) updateData.firstName = data.first_name;
     if (data.last_name !== undefined) updateData.lastName = data.last_name;
-    if (data.email !== undefined) updateData.email = data.email;
-    if (data.phone !== undefined) updateData.phone = data.phone;
+    if (data.email !== undefined) {
+      updateData.email = data.email;
+      updateData.emailNorm = data.email?.trim().toLowerCase() || null;
+    }
+    if (data.phone !== undefined) {
+      updateData.phone = data.phone;
+      updateData.phoneE164 = data.phone ? normalizeToE164(data.phone) : null;
+    }
     if (data.company !== undefined) updateData.companyName = data.company;
     if (data.job_title !== undefined) updateData.jobTitle = data.job_title;
     if (data.contact_type !== undefined)
@@ -497,6 +506,10 @@ export async function updateCRMDeal(
     if (data.assigned_to !== undefined)
       updateData.assignedTo = data.assigned_to;
 
+    const existing = await db.crmDeal.findUnique({ where: { id } });
+    if (!existing) throw new Error("Deal not found");
+    if ((data.stage || existing.dealStage) === "closed_lost" && !(data.lost_reason ?? existing.lostReason)?.trim()) throw new Error("Lost reason is required");
+    if (data.assigned_to && !(await db.user.findFirst({ where: { id: data.assigned_to, isActive: true }, select: { id: true } }))) throw new Error("Invalid deal owner");
     const updated = await db.crmDeal.update({
       where: { id },
       data: updateData,

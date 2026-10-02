@@ -1,6 +1,6 @@
+import { getPublicCompanySettings } from "../../../lib/company";
 import * as React from "react";
 import { getTranslations, Locale } from "@ishoot/locales";
-import { getCompanySettings } from "@ishoot/database";
 import initialCompanyConfig from "@ishoot/database/config";
 import { SectionBadge } from "../../../components/shared/SectionBadge";
 import { ContactForm } from "../../../components/contact/ContactForm";
@@ -13,7 +13,7 @@ export default async function ContactPage({
 }) {
   const { locale } = await params;
   const t = getTranslations(locale as Locale);
-  const companySettings = await getCompanySettings().catch(() => null);
+  const companySettings = await getPublicCompanySettings().catch(() => null);
   const rawInitial = initialCompanyConfig.company;
 
   const company = {

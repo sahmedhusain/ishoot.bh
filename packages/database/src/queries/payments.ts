@@ -40,8 +40,8 @@ function mapPayment(p: any): Payment {
           discount_amount: Number(p.invoice.discountAmount || 0),
           after_discount:
             Number(p.invoice.subtotal) - Number(p.invoice.discountAmount || 0),
-          vat_enabled: Number(p.invoice.vatAmount) > 0,
-          vat_percentage: 10,
+          vat_enabled: p.invoice.vatEnabled,
+          vat_percentage: Number(p.invoice.vatPercentage),
           vat_amount: Number(p.invoice.vatAmount),
           total_amount: totalInvoice,
           amount_paid: totalPaidOnInvoice,
@@ -207,20 +207,24 @@ export async function createPayment(paymentData: {
     mimeType?: string;
   }>;
 }): Promise<Payment> {
+  if (!Number.isFinite(paymentData.amount) || paymentData.amount <= 0) throw new Error("Payment amount must be positive");
+  if (paymentData.payment_method && !["bank_transfer", "cash", "cheque", "card", "online"].includes(paymentData.payment_method)) throw new Error("Invalid payment method");
   const year = new Date().getFullYear();
   const createdId = await db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${paymentData.invoice_id} FOR UPDATE`;
+    const payable = await tx.invoice.findUnique({ where: { id: paymentData.invoice_id }, include: { payments: true } });
+    if (!payable || payable.status === "void") throw new Error("Invoice is not payable");
+    if (paymentData.currency && paymentData.currency !== payable.currency) throw new Error("Payment currency must match invoice");
+    const paid = payable.payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    if (Math.round((paid + paymentData.amount) * 1000) > Math.round(Number(payable.totalAmount) * 1000)) throw new Error("Payment exceeds outstanding balance");
     let company = await tx.companySetting.findFirst();
-    if (!company) {
-      company = await tx.companySetting.create({ data: { ...initialConfig.company } });
-    }
+    if (!company) throw new Error("Configure company settings before creating financial records");
     const prefix = company.receiptPrefix || initialConfig.company.receiptPrefix;
-    const num = company.receiptNextNumber ?? initialConfig.company.receiptNextNumber;
-    const receiptNumber = `${prefix}-${year}-${String(num).padStart(4, "0")}`;
-
-    await tx.companySetting.update({
+    const counter = await tx.companySetting.update({
       where: { id: company.id },
-      data: { receiptNextNumber: num + 1 },
+      data: { receiptNextNumber: { increment: 1 } },
     });
+    const receiptNumber = `${prefix}-${year}-${String(counter.receiptNextNumber - 1).padStart(4, "0")}`;
 
     const payment = await tx.payment.create({
       data: {
@@ -230,7 +234,7 @@ export async function createPayment(paymentData: {
           ? new Date(paymentData.payment_date)
           : new Date(),
         amount: paymentData.amount,
-        currency: paymentData.currency || "BHD",
+        currency: payable.currency,
         paymentMethod: paymentData.payment_method || "bank_transfer",
         referenceNumber: paymentData.reference_number || null,
         notes: paymentData.notes || null,
@@ -309,7 +313,7 @@ export async function deletePayment(id: string): Promise<boolean> {
           where: { id: payment.invoiceId },
           include: { payments: true },
         });
-        if (invoice) {
+        if (invoice && invoice.status !== "void") {
           const totalPaid = invoice.payments.reduce(
             (acc, p) => acc + Number(p.amount),
             0,

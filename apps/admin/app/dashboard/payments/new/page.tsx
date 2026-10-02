@@ -1,3 +1,4 @@
+import { requirePermission } from "../../../../lib/auth";
 import * as React from "react";
 import { getCRMContacts, getAllInvoices } from "@ishoot/database";
 import { NewPaymentFormView } from "../../../../components/payments/NewPaymentFormView";
@@ -9,6 +10,9 @@ export default async function NewPaymentPage({
 }: {
   searchParams: Promise<{ clientId?: string }>;
 }) {
+  await requirePermission("payments", "write");
+  await requirePermission("invoices", "read");
+  await requirePermission("contacts", "read");
   const params = await searchParams;
   const [contacts, invoices] = await Promise.all([
     getCRMContacts(),

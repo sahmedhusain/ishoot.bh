@@ -13,15 +13,17 @@ import {
   lookupCRMContactByEmailOrPhone,
   searchCRMContacts,
   globalAdminSearch,
+  hasPermission,
   DealStage,
   InquiryStatus,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
-import { requirePermission } from "../../lib/auth";
+import { requireAuth, requirePermission } from "../../lib/auth";
 
 export async function updateDealStageAction(id: string, stage: DealStage) {
   const user = await requirePermission("deals", "write");
   const deal = await updateDealStage(id, stage);
+  if (!deal) throw new Error("Deal stage update failed; closed lost requires a lost reason");
 
   await createActivityLog({
     user_id: user.id,
@@ -64,6 +66,7 @@ export async function createCRMDealAction(data: {
 export async function updateDealAction(id: string, data: any) {
   const user = await requirePermission("deals", "write");
   const deal = await updateCRMDeal(id, data);
+  if (!deal) throw new Error("Deal update failed");
 
   await createActivityLog({
     user_id: user.id,
@@ -107,6 +110,7 @@ export async function createContactAction(data: {
 export async function updateContactAction(id: string, data: any) {
   const user = await requirePermission("contacts", "write");
   const contact = await updateCRMContact(id, data);
+  if (!contact) throw new Error("Contact update failed");
 
   await createActivityLog({
     user_id: user.id,
@@ -123,7 +127,7 @@ export async function updateContactAction(id: string, data: any) {
 
 export async function deleteContactAction(id: string) {
   const user = await requirePermission("contacts", "delete");
-  await deleteCRMContact(id);
+  if (!(await deleteCRMContact(id))) throw new Error("Contact deletion failed");
 
   await createActivityLog({
     user_id: user.id,
@@ -149,9 +153,14 @@ export async function searchContactsAction(query: string) {
 }
 
 export async function globalSearchAction(query: string) {
-  // Allow any authenticated user with dashboard access to search
+  const user = await requireAuth();
+  const categories = { customers: "contacts", invoices: "invoices", deals: "deals" } as const;
+  const allowed = new Set<string>();
+  for (const [category, resource] of Object.entries(categories)) {
+    if (await hasPermission(user.role, resource, "read", user.permissions as Record<string, boolean> | undefined)) allowed.add(category);
+  }
   const results = await globalAdminSearch(query, 8);
-  return { success: true, results };
+  return { success: true, results: results.filter((result) => allowed.has(result.category)) };
 }
 
 
@@ -197,6 +206,7 @@ export async function convertInquiryToClientAction(inquiryId: string) {
   const { db } = await import("@ishoot/database");
 
   const result = await db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Inquiry" WHERE id = ${inquiryId} FOR UPDATE`;
     const inquiry = await tx.inquiry.findUnique({
       where: { id: inquiryId },
     });
@@ -205,16 +215,19 @@ export async function convertInquiryToClientAction(inquiryId: string) {
       throw new Error("Inquiry not found");
     }
 
-    if (inquiry.customerId) {
-      return {
-        contactId: inquiry.customerId,
-        dealId: undefined,
-        alreadyConverted: true,
-      };
+    if (inquiry.mergeFlag) throw new Error("Resolve the contact conflict before converting this inquiry");
+    // ponytail: audit metadata holds conversion identity; add an inquiry/deal FK before pruning audit history.
+    const priorConversion = await tx.activityLog.findFirst({
+      where: { entityType: "deal", action: "create", details: { path: ["convertedFromInquiry"], equals: inquiryId } },
+    });
+    if (priorConversion?.entityId && inquiry.customerId) {
+      return { contactId: inquiry.customerId, dealId: priorConversion.entityId, alreadyConverted: true };
     }
 
     // 1. Check if contact exists by normalized email or phone
-    let contact = await tx.crmContact.findFirst({
+    let contact = inquiry.customerId
+      ? await tx.crmContact.findUnique({ where: { id: inquiry.customerId } })
+      : await tx.crmContact.findFirst({
       where: {
         OR: [
           ...(inquiry.email ? [{ email: inquiry.email }] : []),
@@ -235,7 +248,9 @@ export async function convertInquiryToClientAction(inquiryId: string) {
           lastName,
           companyName: inquiry.companyName || null,
           email: inquiry.email,
+          emailNorm: inquiry.email.trim().toLowerCase(),
           phone: inquiry.phone || null,
+          phoneE164: inquiry.phoneE164,
           contactType: "client",
           notes: `Converted from Website Inquiry.\nMessage: ${inquiry.message || "N/A"}`,
         },
@@ -254,7 +269,7 @@ export async function convertInquiryToClientAction(inquiryId: string) {
     // 4. Create Deal
     let estimatedValue = 1000;
     if (inquiry.budgetRange) {
-      const numbers = inquiry.budgetRange.match(/\d+/g);
+      const numbers = inquiry.budgetRange.replace(/,/g, "").match(/\d+(?:\.\d+)?/g);
       if (numbers && numbers.length > 0) {
         estimatedValue = Number(numbers[0]) || 1000;
       }

@@ -10,3 +10,6 @@ allowBuilds:
   "@prisma/engines": true
   "@prisma/engines-version": true
   bcrypt: true
+
+overrides:
+  "next>postcss": "8.5.23"

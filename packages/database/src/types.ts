@@ -347,6 +347,11 @@ export function calculateInvoiceTotals(
   vatPercentage: number,
   currency: SupportedCurrency = "BHD",
 ) {
+  if (!CURRENCY_CONFIGS[currency]) throw new Error("Unsupported currency");
+  if (!["none", "percentage", "fixed"].includes(discountType)) throw new Error("Invalid discount type");
+  if (!Number.isFinite(discountValue) || discountValue < 0 || (discountType === "percentage" && discountValue > 100)) throw new Error("Invalid discount");
+  if (!Number.isFinite(vatPercentage) || vatPercentage < 0 || vatPercentage > 100) throw new Error("Invalid VAT percentage");
+  if (!lineItems.length || lineItems.some((item) => !Number.isFinite(item.quantity) || item.quantity <= 0 || !Number.isFinite(item.unit_price) || item.unit_price < 0)) throw new Error("Invalid invoice line items");
   const currencyConfig = CURRENCY_CONFIGS[currency] || CURRENCY_CONFIGS.BHD;
   const factor = Math.pow(10, currencyConfig.decimals);
 

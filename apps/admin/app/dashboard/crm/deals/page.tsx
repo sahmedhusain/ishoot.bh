@@ -1,3 +1,4 @@
+import { requirePermission } from "../../../../lib/auth";
 import * as React from "react";
 import { getCRMDeals, getCRMContacts } from "@ishoot/database";
 import { KanbanBoard } from "../../../../components/crm/KanbanBoard";
@@ -5,6 +6,8 @@ import { KanbanBoard } from "../../../../components/crm/KanbanBoard";
 export const dynamic = "force-dynamic";
 
 export default async function DealsPipelinePage() {
+  await requirePermission("deals", "read");
+  await requirePermission("contacts", "read");
   const [deals, contacts] = await Promise.all([
     getCRMDeals(),
     getCRMContacts(),

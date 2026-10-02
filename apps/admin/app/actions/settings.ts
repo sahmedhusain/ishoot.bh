@@ -102,6 +102,7 @@ export async function deleteCompanyAssetAction(assetKey: string) {
 
 
 export async function toggleFeatureAction(moduleKey: string, isEnabled: boolean) {
+  await requirePermission("settings", "write");
   const { updateFeatureToggle } = require('@ishoot/database');
   const feature = await updateFeatureToggle(moduleKey, isEnabled);
   revalidatePath('/dashboard', 'layout');
@@ -145,6 +146,7 @@ export async function revalidateEntireSiteAction() {
 
 
 export async function createSocialLinkAction(data: any) {
+  await requirePermission("settings", "write");
   const { createSocialLink } = require('@ishoot/database');
   const { revalidatePublicSite } = await import("../../lib/revalidate-web");
   const link = await createSocialLink(data);
@@ -154,6 +156,7 @@ export async function createSocialLinkAction(data: any) {
 }
 
 export async function updateSocialLinkAction(id: string, data: any) {
+  await requirePermission("settings", "write");
   const { updateSocialLink } = require('@ishoot/database');
   const { revalidatePublicSite } = await import("../../lib/revalidate-web");
   const link = await updateSocialLink(id, data);
@@ -163,6 +166,7 @@ export async function updateSocialLinkAction(id: string, data: any) {
 }
 
 export async function deleteSocialLinkAction(id: string) {
+  await requirePermission("settings", "write");
   const { deleteSocialLink } = require('@ishoot/database');
   const { revalidatePublicSite } = await import("../../lib/revalidate-web");
   const deleted = await deleteSocialLink(id);

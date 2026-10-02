@@ -2,11 +2,12 @@
 
 import {
   createAttachment,
+  db,
   deleteAttachment,
   createActivityLog,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
-import { getCurrentUser } from "../../lib/auth";
+import { requireAttachmentAccess } from "../../lib/attachment-access";
 
 
 export async function createAttachmentAction(data: {
@@ -18,7 +19,7 @@ export async function createAttachmentAction(data: {
   entityId: string;
 }) {
   try {
-    const user = await getCurrentUser();
+    const user = await requireAttachmentAccess(data.entityType, data.entityId, "write");
     const attachment = await createAttachment({
       ...data,
       uploadedById: user?.id,
@@ -45,7 +46,9 @@ export async function createAttachmentAction(data: {
 
 export async function deleteAttachmentAction(id: string) {
   try {
-    const user = await getCurrentUser();
+    const attachment = await db.attachment.findUnique({ where: { id } });
+    if (!attachment) throw new Error("Attachment not found");
+    const user = await requireAttachmentAccess(attachment.entityType, attachment.entityId, "delete");
     await deleteAttachment(id);
 
     if (user) {

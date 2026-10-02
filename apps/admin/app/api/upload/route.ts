@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { getCurrentUser } from "../../../lib/auth";
+import { requireAttachmentAccess } from "../../../lib/attachment-access";
+import { randomUUID } from "crypto";
 import { createAttachment, db, createActivityLog } from "@ishoot/database";
 import { getTranslations } from "@ishoot/locales";
 import { revalidatePath } from "next/cache";
@@ -11,6 +13,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   const trans = getTranslations("en");
   try {
+    if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
 
@@ -26,6 +29,11 @@ export async function POST(req: NextRequest) {
     const customName = (formData.get("customName") as string) || file.name;
     const documentType = (formData.get("documentType") as string) || "";
 
+    const user = await requireAttachmentAccess(entityType, entityId, "write");
+    if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: "Maximum file size is 10 MB" }, { status: 413 });
+    const extensions: Record<string, string> = { "application/pdf": ".pdf", "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" };
+    if (!extensions[file.type]) return NextResponse.json({ error: "Unsupported file type" }, { status: 415 });
+
     // Determine target upload directory
     let subfolder = "general";
     if (entityType === "payment" || documentType.includes("cheque") || documentType.includes("bank")) {
@@ -40,21 +48,28 @@ export async function POST(req: NextRequest) {
       subfolder = "deals";
     }
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", subfolder);
+    const publicBrand = entityType === "company_asset" && ["logo_light", "logo_dark", "icon_light", "icon_dark", "icon"].includes(entityId);
+    if (publicBrand && file.type === "application/pdf") return NextResponse.json({ error: "Brand assets must be images" }, { status: 415 });
+    if (publicBrand) subfolder = "brand";
+    const uploadDir = path.join(process.cwd(), publicBrand ? "public" : "private", "uploads", subfolder);
     await mkdir(uploadDir, { recursive: true });
 
     // Generate sanitized unique filename
-    const ext = path.extname(file.name) || (file.type === "application/pdf" ? ".pdf" : ".jpg");
+    const ext = extensions[file.type];
     const rawBase = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
-    const uniqueFileName = `${Date.now()}_${rawBase}${ext}`;
+    const uniqueFileName = `${randomUUID()}_${rawBase}${ext}`;
     const filePath = path.join(uploadDir, uniqueFileName);
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
+    const valid = file.type === "application/pdf" ? buffer.subarray(0, 5).toString() === "%PDF-"
+      : file.type === "image/png" ? buffer.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))
+      : file.type === "image/jpeg" ? buffer[0] === 255 && buffer[1] === 216 && buffer[2] === 255
+      : buffer.subarray(0, 4).toString() === "RIFF" && buffer.subarray(8, 12).toString() === "WEBP";
+    if (!valid) return NextResponse.json({ error: "File content does not match its type" }, { status: 415 });
+    await writeFile(filePath, buffer, { flag: "wx" });
 
-    const fileUrl = `/uploads/${subfolder}/${uniqueFileName}`;
-    const user = await getCurrentUser();
+    const fileUrl = publicBrand ? `/uploads/brand/${uniqueFileName}` : `/api/files/${subfolder}/${uniqueFileName}`;
 
     let createdAttachment = null;
 
@@ -108,7 +123,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("Upload error in /api/upload:", err);
     return NextResponse.json(
-      { success: false, error: err.message || trans.api.upload.failed },
+      { success: false, error: trans.api.upload.failed },
       { status: 500 },
     );
   }

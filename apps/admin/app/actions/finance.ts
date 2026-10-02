@@ -43,7 +43,7 @@ export async function createExpenseAction(data: {
 
 export async function deleteExpenseAction(id: string) {
   const user = await requirePermission("expenses", "delete");
-  await deleteExpense(id);
+  if (!(await deleteExpense(id))) throw new Error("Expense deletion failed");
 
   await createActivityLog({
     user_id: user.id,
@@ -159,6 +159,7 @@ export async function updateInvoiceAction(
 ) {
   const user = await requirePermission("invoices", "write");
   const invoice = await updateInvoice(id, data as any);
+  if (!invoice) throw new Error("Invoice update failed");
 
   await createActivityLog({
     user_id: user.id,
@@ -180,7 +181,7 @@ export async function updateInvoiceAction(
 
 export async function voidInvoiceAction(id: string) {
   const user = await requirePermission("invoices", "write");
-  await updateInvoiceStatus(id, "void");
+  if (!(await updateInvoiceStatus(id, "void"))) throw new Error("Invoice void failed");
 
   await createActivityLog({
     user_id: user.id,

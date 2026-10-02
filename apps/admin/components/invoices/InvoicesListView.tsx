@@ -9,7 +9,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface InvoicesListViewProps {
   initialInvoices: Invoice[];
-  finance: FinancialSummary;
+  finance: Pick<FinancialSummary, "outstanding" | "overdue" | "discountsGiven">;
 }
 
 export function InvoicesListView({

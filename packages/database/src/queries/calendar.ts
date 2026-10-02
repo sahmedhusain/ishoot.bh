@@ -44,10 +44,10 @@ export async function getCalendarEvents(
   try {
     const where: any = {};
     if (startDate && endDate) {
-      where.OR = [
-        { startDate: { gte: startDate, lte: endDate } },
-        { endDate: { gte: startDate, lte: endDate } },
-      ];
+      where.startDate = { lte: endDate };
+      where.endDate = { gte: startDate };
+    } else if (startDate) {
+      where.endDate = { gte: startDate };
     }
 
     const events = await db.calendarEvent.findMany({

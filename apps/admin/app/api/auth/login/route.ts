@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email, password } = body;
 
-    if (!email || !password) {
+    if (typeof email !== "string" || typeof password !== "string" || !email.trim() || !password || email.length > 254 || password.length > 1024) {
       return NextResponse.json(
         { error: trans.api.auth.requiredFields },
         { status: 400 },

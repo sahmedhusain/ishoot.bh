@@ -1,3 +1,4 @@
+import { getPublicCompanySettings } from "../../lib/company";
 import * as React from "react";
 import {
   getActiveBanners,
@@ -6,7 +7,7 @@ import {
   getStatistics,
   getReviews,
   getFaqs,
-  getCompanySettings,
+
 } from "@ishoot/database";
 import { CinemaHero } from "../../components/hero/CinemaHero";
 import { AboutSection } from "../../components/about/AboutSection";
@@ -32,7 +33,7 @@ export default async function HomePage({
     getStatistics(),
     getReviews(false),
     getFaqs(false),
-    getCompanySettings(),
+    getPublicCompanySettings(),
   ]);
 
   return (

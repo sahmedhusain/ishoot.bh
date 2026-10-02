@@ -12,10 +12,7 @@ export function normalizeToE164(
     if (parsed && parsed.isValid()) {
       return parsed.format("E.164");
     }
-    const digitsOnly = clean.replace(/[^0-9+]/g, "");
-    if (digitsOnly.startsWith("+")) return digitsOnly;
-    if (digitsOnly.length === 8) return `+973${digitsOnly}`;
-    return `+${digitsOnly}`;
+    return null;
   } catch {
     return null;
   }
@@ -46,18 +43,23 @@ export async function resolveIncomingLead(
   const emailNorm = data.email.trim().toLowerCase();
   const phoneE164 = data.phone ? normalizeToE164(data.phone, "BH") : null;
 
-  const emailMatch = await db.crmContact.findFirst({
-    where: { emailNorm },
+  if (data.phone && !phoneE164) throw new Error("Invalid phone number");
+  return db.$transaction(async (tx) => {
+  for (const identity of [emailNorm, phoneE164].filter(Boolean).sort()) {
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${identity}, 0))`;
+  }
+  const emailMatch = await tx.crmContact.findFirst({
+    where: { OR: [{ emailNorm }, { email: { equals: emailNorm, mode: "insensitive" } }] },
   });
 
   const phoneMatch = phoneE164
-    ? await db.crmContact.findFirst({
+    ? await tx.crmContact.findFirst({
         where: { phoneE164 },
       })
     : null;
 
   if (emailMatch && phoneMatch && emailMatch.id !== phoneMatch.id) {
-    const inquiry = await db.inquiry.create({
+    const inquiry = await tx.inquiry.create({
       data: {
         name: data.name,
         email: data.email,
@@ -85,7 +87,7 @@ export async function resolveIncomingLead(
 
   const existingContact = emailMatch || phoneMatch;
   if (existingContact) {
-    const inquiry = await db.inquiry.create({
+    const inquiry = await tx.inquiry.create({
       data: {
         name: data.name,
         email: data.email,
@@ -115,7 +117,7 @@ export async function resolveIncomingLead(
   const firstName = nameParts[0] || data.name;
   const lastName = nameParts.slice(1).join(" ") || undefined;
 
-  const newContact = await db.crmContact.create({
+  const newContact = await tx.crmContact.create({
     data: {
       firstName,
       lastName,
@@ -128,7 +130,7 @@ export async function resolveIncomingLead(
     },
   });
 
-  const inquiry = await db.inquiry.create({
+  const inquiry = await tx.inquiry.create({
     data: {
       name: data.name,
       email: data.email,
@@ -152,4 +154,5 @@ export async function resolveIncomingLead(
     inquiryId: inquiry.id,
     resolution: "new_customer",
   };
+  });
 }

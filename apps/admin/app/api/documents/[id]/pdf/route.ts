@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser, requirePermission } from "../../../../../lib/auth";
 import {
   getInvoiceByIdOrNumber,
   getPaymentByIdOrNumber,
@@ -15,10 +16,12 @@ export async function GET(
   context: { params: Promise<{ id: string }> },
 ) {
   const trans = getTranslations("en");
+  if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await context.params;
     const url = new URL(request.url);
     const docType = url.searchParams.get("type") || "invoice";
+    await requirePermission(docType === "receipt" ? "payments" : "invoices", "read");
     const isDownload = url.searchParams.get("download") === "true";
 
     const company = await getCompanySettings();
@@ -65,7 +68,7 @@ export async function GET(
   } catch (err: any) {
     console.error("PDF generation error:", err);
     return NextResponse.json(
-      { error: err.message || trans.api.pdf.generationError },
+      { error: trans.api.pdf.generationError },
       { status: 500 },
     );
   }

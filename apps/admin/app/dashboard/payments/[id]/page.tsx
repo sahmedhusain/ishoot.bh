@@ -1,3 +1,4 @@
+import { requirePermission } from "../../../../lib/auth";
 import * as React from "react";
 import { notFound } from "next/navigation";
 import { getPaymentById, getCompanySettings } from "@ishoot/database";
@@ -12,6 +13,7 @@ interface PaymentDetailPageProps {
 export default async function PaymentDetailPage({
   params,
 }: PaymentDetailPageProps) {
+  await requirePermission("payments", "read");
   const { id } = await params;
 
   const [payment, company] = await Promise.all([

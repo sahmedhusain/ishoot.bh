@@ -9,6 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   serverExternalPackages: ['@react-pdf/renderer'],
   transpilePackages: ['@ishoot/ui', '@ishoot/database', '@ishoot/locales', '@ishoot/email', '@ishoot/config'],
   images: {

@@ -1,3 +1,4 @@
+import { requirePermission } from "../../../lib/auth";
 import * as React from "react";
 import {
   getAllExpenses,
@@ -9,6 +10,8 @@ import { ExpensesManagementView } from "../../../components/expenses/ExpensesMan
 export const dynamic = "force-dynamic";
 
 export default async function ExpensesPage() {
+  await requirePermission("expenses", "read");
+  await requirePermission("deals", "read");
   const [expenses, categories, deals] = await Promise.all([
     getAllExpenses(),
     getExpenseCategories(),

@@ -1,3 +1,4 @@
+import { requirePermission } from "../../../lib/auth";
 import * as React from "react";
 import {
   getAllAttachments,
@@ -11,6 +12,7 @@ import { ArchiveManagementView } from "../../../components/archive/ArchiveManage
 export const dynamic = "force-dynamic";
 
 export default async function ArchiveVaultPage() {
+  for (const resource of ["contacts", "deals", "invoices", "payments", "settings"] as const) await requirePermission(resource, "read");
   const [attachments, contacts, deals, invoices, payments] = await Promise.all([
     getAllAttachments(),
     getCRMContacts(),

@@ -25,7 +25,12 @@ export async function POST(req: NextRequest) {
     const localeKey: Locale = locale === "ar" ? "ar" : "en";
     const trans = getTranslations(localeKey);
 
-    if (!fullName || !email || !message) {
+    if (typeof fullName !== "string" || !fullName.trim() || fullName.length > 200
+      || typeof email !== "string" || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      || typeof message !== "string" || !message.trim() || message.length > 10000
+      || !Array.isArray(services) || services.length > 20 || services.some((service: unknown) => typeof service !== "string" || service.length > 200)
+      || [phone, company, budget, timeline].some((value) => value !== undefined && (typeof value !== "string" || value.length > 500))
+      || !["en", "ar"].includes(locale)) {
       return NextResponse.json(
         { error: trans.api.inquiry.requiredFields },
         { status: 400 },
@@ -55,7 +60,7 @@ export async function POST(req: NextRequest) {
       company || trans.common.brandName,
     );
 
-    await sendEmail({
+    const confirmationDelivery = await sendEmail({
       to: email,
       subject: clientSubject,
       html: clientHtml,
@@ -88,6 +93,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      confirmationSent: confirmationDelivery.success,
       inquiryId: resolved.inquiryId,
       customerId: resolved.customerId,
       resolution: resolved.resolution,

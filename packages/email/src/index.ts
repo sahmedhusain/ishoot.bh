@@ -22,6 +22,7 @@ export async function sendEmail({
   attachments,
 }: SendEmailOptions) {
   if (!resend) {
+    if (process.env.NODE_ENV === "production") return { success: false, error: "Email service is not configured" };
     console.log("\n========================================");
     console.log("[LOCAL EMAIL DISPATCH - RESEND DEV MODE]");
     console.log(`To: ${Array.isArray(to) ? to.join(", ") : to}`);

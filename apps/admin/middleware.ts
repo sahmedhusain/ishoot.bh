@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySessionToken } from "./lib/jwt";
-import { SESSION_COOKIE_NAME } from "./lib/auth";
+import { verifySessionToken, SESSION_COOKIE_NAME } from "./lib/jwt";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/uploads/") && !pathname.startsWith("/uploads/brand/")) {
+    const target = request.nextUrl.clone();
+    target.pathname = pathname.replace("/uploads/", "/api/files/");
+    return NextResponse.rewrite(target);
+  }
 
   if (
     pathname.startsWith("/api") ||
@@ -25,12 +30,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (pathname === "/login") {
-    if (session) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-    return NextResponse.next();
-  }
+  if (pathname === "/login") return NextResponse.next();
 
   if (pathname.startsWith("/dashboard")) {
     if (!session) {

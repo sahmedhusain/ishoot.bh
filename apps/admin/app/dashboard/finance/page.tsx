@@ -1,6 +1,8 @@
+import { requirePermission } from "../../../lib/auth";
 import * as React from "react";
 import {
   getFinancialSummary,
+  getMonthlyCashflow,
   getAllExpenses,
   getExpenseCategories,
   getAllInvoices,
@@ -10,11 +12,14 @@ import { FinancialAnalyticsView } from "../../../components/finance/FinancialAna
 export const dynamic = "force-dynamic";
 
 export default async function FinancialDashboardPage() {
-  const [finance, expenses, categories, invoices] = await Promise.all([
+  await requirePermission("finance_analytics", "read");
+  await requirePermission("invoices", "read");
+  const [finance, expenses, categories, invoices, monthlyCashflow] = await Promise.all([
     getFinancialSummary(),
     getAllExpenses(),
     getExpenseCategories(),
     getAllInvoices(),
+    getMonthlyCashflow(6),
   ]);
 
   return (
@@ -22,7 +27,8 @@ export default async function FinancialDashboardPage() {
       finance={finance}
       expenses={expenses}
       categories={categories}
-      invoices={invoices}
+      invoices={invoices.filter((invoice) => invoice.currency === "BHD")}
+      monthlyCashflow={monthlyCashflow}
     />
   );
 }

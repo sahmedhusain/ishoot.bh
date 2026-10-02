@@ -1,3 +1,4 @@
+import { requirePermission } from "../../../../lib/auth";
 import * as React from "react";
 import { getAllClientLogos } from "@ishoot/database";
 import { ClientsManagementView } from "../../../../components/cms/ClientsManagementView";
@@ -5,6 +6,7 @@ import { ClientsManagementView } from "../../../../components/cms/ClientsManagem
 export const dynamic = "force-dynamic";
 
 export default async function ClientLogosManagerPage() {
+  await requirePermission("clients", "read");
   const logos = await getAllClientLogos();
 
   return <ClientsManagementView initialLogos={logos} />;

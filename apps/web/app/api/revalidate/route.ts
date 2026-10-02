@@ -23,6 +23,13 @@ export async function POST(req: NextRequest) {
       for (const path of paths) {
         if (typeof path === "string") {
           revalidatePath(path);
+          if (path === "/") {
+            revalidatePath("/en", "layout");
+            revalidatePath("/ar", "layout");
+          } else if (!/^\/(en|ar)(\/|$)/.test(path)) {
+            revalidatePath(`/en${path}`);
+            revalidatePath(`/ar${path}`);
+          }
         }
       }
     }

@@ -12,11 +12,12 @@ import { updateDealAction } from "../../app/actions/crm";
 interface DealEditFormViewProps {
   deal: CRMDeal;
   contacts: CRMContact[];
+  owners: Array<{ id: string; fullName: string }>;
 }
 
-export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
+export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewProps) {
   const router = useRouter();
-  const { t } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
 
   const [title, setTitle] = React.useState(deal.title || "");
   const [contactId, setContactId] = React.useState(deal.contact_id || "");
@@ -38,6 +39,9 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
       : "",
   );
   const [notes, setNotes] = React.useState(deal.notes || "");
+  const [assignedTo, setAssignedTo] = React.useState(deal.assigned_to || "");
+  const [lostReason, setLostReason] = React.useState(deal.lost_reason || "");
+  const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   const selectedContact = contacts.find((c) => c.id === contactId);
@@ -45,6 +49,7 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) return;
+    setError("");
     setSaving(true);
 
     try {
@@ -57,10 +62,13 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
         target_close_date: expectedCloseDate || undefined,
         shoot_date: shootDate || undefined,
         notes: notes || undefined,
+        assigned_to: assignedTo || null,
+        lost_reason: lostReason.trim() || null,
       });
 
       router.push(`/dashboard/crm/deals/${deal.id}`);
     } catch (err) {
+      setError(isRTL ? "تعذّر حفظ الصفقة. تحقق من الحقول وحاول مرة أخرى." : "Could not save the deal. Check the fields and try again.");
       console.error("Failed to update deal:", err);
     } finally {
       setSaving(false);
@@ -112,6 +120,20 @@ export function DealEditFormView({ deal, contacts }: DealEditFormViewProps) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {error && <p role="alert" className="text-red-600">{error}</p>}
+        <Card className="p-6 space-y-4">
+          <div>
+            <label htmlFor="deal-owner" className="block mb-2">{isRTL ? "مسؤول الصفقة" : "Deal owner"}</label>
+            <select id="deal-owner" value={assignedTo} onChange={(event) => setAssignedTo(event.target.value)} className="w-full rounded border p-2 bg-white dark:bg-slate-900">
+              <option value="">{isRTL ? "غير معيّن" : "Unassigned"}</option>
+              {owners.map((owner) => <option key={owner.id} value={owner.id}>{owner.fullName}</option>)}
+            </select>
+          </div>
+          {dealStage === "closed_lost" && <div>
+            <label htmlFor="lost-reason" className="block mb-2">{isRTL ? "سبب خسارة الصفقة" : "Lost reason"}</label>
+            <Textarea id="lost-reason" required value={lostReason} onChange={(event) => setLostReason(event.target.value)} />
+          </div>}
+        </Card>
         <Card className="p-8 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>

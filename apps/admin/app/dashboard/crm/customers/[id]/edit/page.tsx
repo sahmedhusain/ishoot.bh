@@ -1,3 +1,4 @@
+import { requirePermission } from "../../../../../../lib/auth";
 import * as React from "react";
 import { getCRMContactById } from "@ishoot/database";
 import { notFound } from "next/navigation";
@@ -12,6 +13,7 @@ interface CustomerEditPageProps {
 export default async function CustomerEditPage({
   params,
 }: CustomerEditPageProps) {
+  await requirePermission("contacts", "write");
   const { id } = await params;
   const contact = await getCRMContactById(id);
 
