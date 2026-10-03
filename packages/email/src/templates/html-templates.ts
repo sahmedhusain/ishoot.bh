@@ -21,9 +21,8 @@ export function renderBrandEmailLayout(
 ): string {
   const dir = isRtl ? "rtl" : "ltr";
   const textAlign = isRtl ? "right" : "left";
-  const fontFamily = isRtl
-    ? "'IBM Plex Sans Arabic', 'SF Pro Arabic', Tahoma, Arial, sans-serif"
-    : "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  const fontFamily =
+    "'Thmanyah Sans', 'Thmanyah', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif";
 
   const comp = {
     nameEn: companyInfo?.nameEn ?? defaultCompany.companyNameEn,

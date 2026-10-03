@@ -83,7 +83,7 @@ export function Sidebar() {
         },
         {
           href: "/dashboard/crm/leads",
-          label: t.nav.leads,
+          label: isRTL ? "الطلبات والملاحظات" : "Requests & feedback",
           icon: Inbox,
           resource: "leads",
           moduleKey: "crm_deals",
@@ -132,6 +132,13 @@ export function Sidebar() {
     {
       title: t.nav.cms,
       items: [
+        {
+          href: "/dashboard/cms/website",
+          label: isRTL ? "تحرير ونشر الموقع" : "Website publishing",
+          icon: Globe,
+          resource: "settings",
+          moduleKey: "cms",
+        },
         {
           href: "/dashboard/cms/banners",
           label: t.nav.banners,
@@ -244,7 +251,14 @@ export function Sidebar() {
   const navContent = (
     <nav className="h-full overflow-y-auto py-2.5 space-y-3 select-none">
       {visibleSections.map((section, idx) => (
-        <div key={section.title} className={idx > 0 ? "pt-2 border-t border-slate-100 dark:border-neutral-800" : ""}>
+        <div
+          key={section.title}
+          className={
+            idx > 0
+              ? "pt-2 border-t border-slate-100 dark:border-neutral-800"
+              : ""
+          }
+        >
           <div className="px-4 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
             {section.title}
           </div>

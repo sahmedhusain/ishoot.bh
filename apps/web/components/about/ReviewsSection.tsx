@@ -1,128 +1,133 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
+import { Star, ArrowUpRight, MessageSquarePlus, Quote } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
-import { Star, MessageSquarePlus } from "lucide-react";
-import type { Review } from "@ishoot/database/types";
+import { SectionBadge } from "../shared/SectionBadge";
 import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
 import { motion } from "framer-motion";
+import type { Review } from "@ishoot/database/types";
 
-interface ReviewsSectionProps {
-  reviews: Review[];
-}
-
-export function ReviewsSection({ reviews }: ReviewsSectionProps) {
-  const { t, locale } = useTranslation();
-  const isAr = locale === "ar";
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
+export function ReviewsSection({
+  reviews,
+}: {
+  reviews: Pick<
+    Review,
+    | "id"
+    | "rating"
+    | "quoteAr"
+    | "quoteEn"
+    | "authorAr"
+    | "authorEn"
+    | "companyAr"
+    | "companyEn"
+  >[];
+}) {
+  const { t, locale, isRTL: ar } = useTranslation();
+  const [modalOpen, setModalOpen] = React.useState(false);
 
   return (
-    <section
-      id="reviews"
-      className="relative py-28 bg-[#050807] text-[#F2F6F5] select-none border-t border-white/5"
-    >
-      <div className="shell space-y-16">
-        <motion.div
-          initial={{ opacity: 0, width: 0 }}
-          whileInView={{ opacity: 1, width: "100%" }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
-          className="relative w-full"
-        >
-          <span aria-hidden="true" className="block h-px w-full bg-white/10" />
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-4 flex items-center justify-between text-xs uppercase tracking-wider text-[#9EADA9] font-sans"
-          >
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-              <span>{t("reviews.sectionIndex")}</span>
-            </span>
-            <span className="font-bold text-white">
-              ({t("reviews.sectionLabel")})
-            </span>
-            <span>© {new Date().getFullYear()}</span>
-          </motion.div>
-        </motion.div>
-
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <section id="reviews" className="relative z-10 bg-[#050807] text-[#F2F6F5] py-24 select-none border-t border-white/10">
+      <div className="shell space-y-12">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-white/10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="max-w-2xl space-y-3"
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="space-y-3"
           >
-            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white font-display">
-              {t("reviews.headline")}
+            <SectionBadge>{t("reviews.sectionLabel") || (ar ? "آراء العملاء" : "Client Testimonials")}</SectionBadge>
+            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-white leading-tight">
+              {t("reviews.headline") || (ar ? "ثقة رواد الصناعة والشركات." : "Trusted by Industry Leaders.")}
             </h2>
-            <p className="text-sm sm:text-base text-[#9EADA9] leading-relaxed font-sans">
-              {t("reviews.subtitle")}
+            <p className="text-sm sm:text-base text-[#9EADA9] font-sans max-w-xl leading-relaxed">
+              {t("reviews.subtitle") || (ar ? "تجارب حقيقية تعكس التزامنا بالدقة البصرية والإنتاج الاستثنائي." : "Real experiences reflecting our commitment to optical precision and cinema craft.")}
             </p>
           </motion.div>
 
-          <motion.button
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.4 }}
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="self-start md:self-end px-5 py-2.5 rounded-2xl bg-white/5 hover:bg-[#014842] border border-white/10 hover:border-[#09937F]/50 text-white text-xs font-semibold inline-flex items-center gap-2 transition-all group shrink-0 cursor-pointer font-sans"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <MessageSquarePlus className="w-4 h-4 text-[#09937F] group-hover:text-white transition-colors" />
-            <span>{t("reviews.writeReviewBtn")}</span>
-          </motion.button>
-        </div>
-
-        <ReviewSubmissionModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {reviews.map((rev, index) => (
-            <motion.div
-              key={rev.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -6, transition: { type: "spring", stiffness: 300, damping: 20 } }}
-              viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.5, delay: index * 0.12 }}
-              className="group relative rounded-3xl bg-[#0B1210] border border-white/10 hover:border-[#09937F]/50 transition-colors p-8 space-y-6 shadow-xl flex flex-col justify-between cursor-pointer"
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#09937F]/15 hover:bg-[#09937F]/25 text-[#5EEAD4] border border-[#09937F]/40 font-semibold text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
             >
-              <div className="space-y-4">
-                <div className="flex items-center gap-1 text-emerald-400">
-                  {[...Array(rev.rating || 5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-current" />
-                  ))}
-                </div>
-
-                <p className="text-sm sm:text-base text-slate-200 leading-relaxed font-serif italic">
-                  {isAr ? rev.quoteAr : rev.quoteEn}
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-white/5 space-y-1 font-sans">
-                <div className="text-xs font-bold text-white">
-                  {isAr ? rev.companyAr : rev.companyEn}
-                </div>
-                <div className="text-[11px] text-[#9EADA9]">
-                  {isAr ? rev.authorAr : rev.authorEn}
-                </div>
-                <div className="text-[10px] text-[#09937F]">
-                  {t("reviews.bahrain")} · {rev.year}
-                </div>
-              </div>
-            </motion.div>
-          ))}
+              <MessageSquarePlus className="w-4 h-4" />
+              <span>{t("reviews.writeReviewBtn") || (ar ? "شارك تجربتك" : "Rate & Review Us")}</span>
+            </button>
+          </motion.div>
         </div>
+
+        {reviews && reviews.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {reviews.slice(0, 6).map((review, idx) => (
+              <motion.figure
+                key={review.id}
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -4 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                className="group relative p-6 sm:p-8 rounded-3xl bg-[#0B1210] border border-white/10 hover:border-[#09937F]/50 transition-all flex flex-col justify-between space-y-6 shadow-xl"
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div
+                      aria-label={`${review.rating} / 5`}
+                      className="flex gap-1 text-amber-400"
+                    >
+                      {Array.from(
+                        { length: Math.max(0, Math.min(5, review.rating)) },
+                        (_, i) => (
+                          <Star
+                            key={i}
+                            aria-hidden
+                            className="w-4 h-4 fill-amber-400"
+                          />
+                        ),
+                      )}
+                    </div>
+                    <Quote className="w-5 h-5 text-white/10 group-hover:text-[#09937F]/40 transition-colors" />
+                  </div>
+
+                  <blockquote className="text-sm sm:text-base leading-relaxed text-[#F2F6F5] font-sans italic">
+                    "{ar ? review.quoteAr || review.quoteEn : review.quoteEn || review.quoteAr}"
+                  </blockquote>
+                </div>
+
+                <figcaption className="pt-4 border-t border-white/5 flex flex-col font-sans">
+                  <strong className="text-sm font-bold text-white group-hover:text-[#5EEAD4] transition-colors">
+                    {ar ? review.authorAr || review.authorEn : review.authorEn || review.authorAr}
+                  </strong>
+                  {(review.companyAr || review.companyEn) && (
+                    <span className="text-xs text-[#9EADA9] mt-0.5">
+                      {ar ? review.companyAr : review.companyEn}
+                    </span>
+                  )}
+                </figcaption>
+              </motion.figure>
+            ))}
+          </div>
+        ) : (
+          <div className="p-8 text-center rounded-2xl bg-white/[0.02] border border-white/5 text-[#9EADA9] text-sm">
+            {ar
+              ? "عملت معنا؟ يسعدنا أن نسمع تجربتك وننشر تقييمك."
+              : "Worked with us? We'd love to hear your feedback."}
+          </div>
+        )}
       </div>
+
+      <ReviewSubmissionModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+      />
     </section>
   );
 }
+

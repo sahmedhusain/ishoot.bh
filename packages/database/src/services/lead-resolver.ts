@@ -29,12 +29,22 @@ export interface ResolveLeadInput {
   message: string;
   source?: "website" | "email" | "whatsapp" | "manual";
   locale?: string;
+  intent?: "inquiry" | "quote_request" | "complaint" | "suggestion";
+  submissionKey?: string;
+  requestHash?: string;
+  serviceIds?: string[];
+  projectReference?: string;
+  location?: string;
 }
 
 export interface ResolvedLeadResult {
   customerId: string | null;
   inquiryId: string;
-  resolution: "new_customer" | "existing_customer" | "merge_conflict";
+  reference: string;
+  repeated: boolean;
+  confirmationStatus: string;
+  resolution:
+    "new_customer" | "existing_customer" | "merge_conflict" | "feedback";
 }
 
 export async function resolveIncomingLead(
@@ -42,117 +52,105 @@ export async function resolveIncomingLead(
 ): Promise<ResolvedLeadResult> {
   const emailNorm = data.email.trim().toLowerCase();
   const phoneE164 = data.phone ? normalizeToE164(data.phone, "BH") : null;
-
   if (data.phone && !phoneE164) throw new Error("Invalid phone number");
+  const intent = data.intent || "inquiry";
   return db.$transaction(async (tx) => {
-  for (const identity of [emailNorm, phoneE164].filter(Boolean).sort()) {
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${identity}, 0))`;
-  }
-  const emailMatch = await tx.crmContact.findFirst({
-    where: { OR: [{ emailNorm }, { email: { equals: emailNorm, mode: "insensitive" } }] },
-  });
-
-  const phoneMatch = phoneE164
-    ? await tx.crmContact.findFirst({
-        where: { phoneE164 },
-      })
-    : null;
-
-  if (emailMatch && phoneMatch && emailMatch.id !== phoneMatch.id) {
+    if (data.submissionKey) {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${data.submissionKey}, 0))::text`;
+      const prior = await tx.inquiry.findUnique({
+        where: { submissionKey: data.submissionKey },
+      });
+      if (prior) {
+        if (prior.requestHash !== data.requestHash)
+          throw new Error("Submission key already used");
+        return {
+          customerId: prior.customerId,
+          inquiryId: prior.id,
+          reference: prior.reference,
+          repeated: true,
+          confirmationStatus: prior.confirmationStatus,
+          resolution: "feedback" as const,
+        };
+      }
+    }
+    for (const identity of [emailNorm, phoneE164].filter(Boolean).sort()) {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${identity}, 0))::text`;
+    }
+    let customerId: string | null = null;
+    let resolution: ResolvedLeadResult["resolution"] = "feedback";
+    if (intent === "inquiry" || intent === "quote_request") {
+      const emailMatch = emailNorm
+        ? await tx.crmContact.findFirst({
+            where: {
+              OR: [
+                { emailNorm },
+                { email: { equals: emailNorm, mode: "insensitive" } },
+              ],
+            },
+          })
+        : null;
+      const phoneMatch = phoneE164
+        ? await tx.crmContact.findFirst({ where: { phoneE164 } })
+        : null;
+      if (emailMatch && phoneMatch && emailMatch.id !== phoneMatch.id) {
+        resolution = "merge_conflict";
+      } else {
+        const existing = emailMatch || phoneMatch;
+        if (existing) {
+          customerId = existing.id;
+          resolution = "existing_customer";
+        } else {
+          const [firstName, ...rest] = data.name.trim().split(/\s+/);
+          const contact = await tx.crmContact.create({
+            data: {
+              firstName,
+              lastName: rest.join(" ") || null,
+              email: data.email || null,
+              emailNorm: emailNorm || null,
+              phone: data.phone || null,
+              phoneE164,
+              companyName: data.companyName || null,
+              contactType: "client",
+            },
+          });
+          customerId = contact.id;
+          resolution = "new_customer";
+        }
+      }
+    }
     const inquiry = await tx.inquiry.create({
       data: {
         name: data.name,
         email: data.email,
-        emailNorm,
+        emailNorm: emailNorm || null,
         phone: data.phone || null,
         phoneE164,
         companyName: data.companyName || null,
         serviceType: data.serviceType || null,
+        serviceIds: data.serviceIds || [],
         budgetRange: data.budgetRange || null,
         timeline: data.timeline || null,
         message: data.message,
         source: data.source || "website",
         locale: data.locale || "ar",
-        mergeFlag: true,
-        customerId: null,
+        intent,
+        submissionKey: data.submissionKey,
+        requestHash: data.requestHash,
+        projectReference: data.projectReference || null,
+        location: data.location || null,
+        confirmationStatus: emailNorm ? "pending" : "not_requested",
+        notificationStatus: "pending",
+        mergeFlag: resolution === "merge_conflict",
+        customerId,
       },
     });
-
     return {
-      customerId: null,
+      customerId,
       inquiryId: inquiry.id,
-      resolution: "merge_conflict",
+      reference: inquiry.reference,
+      repeated: false,
+      confirmationStatus: inquiry.confirmationStatus,
+      resolution,
     };
-  }
-
-  const existingContact = emailMatch || phoneMatch;
-  if (existingContact) {
-    const inquiry = await tx.inquiry.create({
-      data: {
-        name: data.name,
-        email: data.email,
-        emailNorm,
-        phone: data.phone || null,
-        phoneE164,
-        companyName: data.companyName || null,
-        serviceType: data.serviceType || null,
-        budgetRange: data.budgetRange || null,
-        timeline: data.timeline || null,
-        message: data.message,
-        source: data.source || "website",
-        locale: data.locale || "ar",
-        mergeFlag: false,
-        customerId: existingContact.id,
-      },
-    });
-
-    return {
-      customerId: existingContact.id,
-      inquiryId: inquiry.id,
-      resolution: "existing_customer",
-    };
-  }
-
-  const nameParts = data.name.trim().split(" ");
-  const firstName = nameParts[0] || data.name;
-  const lastName = nameParts.slice(1).join(" ") || undefined;
-
-  const newContact = await tx.crmContact.create({
-    data: {
-      firstName,
-      lastName,
-      email: data.email,
-      emailNorm,
-      phone: data.phone || null,
-      phoneE164,
-      companyName: data.companyName || null,
-      contactType: "client",
-    },
-  });
-
-  const inquiry = await tx.inquiry.create({
-    data: {
-      name: data.name,
-      email: data.email,
-      emailNorm,
-      phone: data.phone || null,
-      phoneE164,
-      companyName: data.companyName || null,
-      serviceType: data.serviceType || null,
-      budgetRange: data.budgetRange || null,
-      timeline: data.timeline || null,
-      message: data.message,
-      source: data.source || "website",
-      locale: data.locale || "ar",
-      mergeFlag: false,
-      customerId: newContact.id,
-    },
-  });
-
-  return {
-    customerId: newContact.id,
-    inquiryId: inquiry.id,
-    resolution: "new_customer",
-  };
   });
 }

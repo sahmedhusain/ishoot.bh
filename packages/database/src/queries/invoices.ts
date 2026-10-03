@@ -89,9 +89,16 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
   };
 }
 
-export async function getAllInvoices(): Promise<Invoice[]> {
+export async function getAllInvoices(options?: {
+  limit?: number;
+  offset?: number;
+  status?: InvoiceStatus;
+}): Promise<Invoice[]> {
   try {
     const invoices = await db.invoice.findMany({
+      where: options?.status ? { status: options.status } : undefined,
+      take: options?.limit,
+      skip: options?.offset,
       include: {
         client: true,
         lineItems: true,

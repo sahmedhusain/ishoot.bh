@@ -25,6 +25,7 @@ import {
   toggleBannerStatusAction,
   deleteBannerAction,
   createBannerAction,
+  updateBannerContentAction,
 } from "../../app/actions/cms";
 
 interface BannersManagementViewProps {
@@ -40,6 +41,12 @@ export function BannersManagementView({
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
     null,
   );
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [error, setError] = React.useState("");
+  const [ctaEn, setCtaEn] = React.useState("");
+  const [ctaAr, setCtaAr] = React.useState("");
+  const [ctaLink, setCtaLink] = React.useState("");
+  const [order, setOrder] = React.useState(0);
   const [saving, setSaving] = React.useState(false);
 
   const [titleEn, setTitleEn] = React.useState("");
@@ -50,24 +57,40 @@ export function BannersManagementView({
   const [mediaUrl, setMediaUrl] = React.useState("");
   const [posterUrl, setPosterUrl] = React.useState("");
 
+  function openEditor(banner?: HeroBanner) {
+    setEditingId(banner?.id || null);
+    setError("");
+    setTitleEn(banner?.title_en || "");
+    setTitleAr(banner?.title_ar || "");
+    setSubtitleEn(banner?.subtitle_en || "");
+    setSubtitleAr(banner?.subtitle_ar || "");
+    setMediaType(banner?.media_type || "image");
+    setMediaUrl(banner?.media_url || "");
+    setPosterUrl(banner?.poster_url || "");
+    setCtaEn(banner?.cta_label_en || "");
+    setCtaAr(banner?.cta_label_ar || "");
+    setCtaLink(banner?.cta_link || "");
+    setOrder(banner?.display_order || 0);
+    setIsModalOpen(true);
+  }
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
     const nextStatus = !currentStatus;
-    setBanners((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, is_active: nextStatus } : b)),
-    );
     try {
       await toggleBannerStatusAction(id, nextStatus);
+      setBanners((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, is_active: nextStatus } : b)),
+      );
     } catch (err) {
-      console.error("Failed to toggle banner status:", err);
+      setError("Could not update banner. Please try again.");
     }
   };
 
   const handleDeleteBanner = async (id: string) => {
-    setBanners((prev) => prev.filter((b) => b.id !== id));
     try {
       await deleteBannerAction(id);
+      setBanners((prev) => prev.filter((b) => b.id !== id));
     } catch (err) {
-      console.error("Failed to delete banner:", err);
+      setError("Could not delete banner. Please try again.");
     }
   };
 
@@ -78,18 +101,29 @@ export function BannersManagementView({
     setSaving(true);
 
     try {
-      const res = await createBannerAction({
+      const data = {
         title_en: titleEn || titleAr,
         title_ar: titleAr || titleEn,
-        subtitle_en: subtitleEn || undefined,
-        subtitle_ar: subtitleAr || undefined,
+        subtitle_en: subtitleEn,
+        subtitle_ar: subtitleAr,
         media_type: mediaType,
         media_url: mediaUrl,
-        poster_url: posterUrl || undefined,
-      });
+        poster_url: posterUrl,
+        cta_label_en: ctaEn,
+        cta_label_ar: ctaAr,
+        cta_link: ctaLink,
+        display_order: order,
+      };
+      const res = editingId
+        ? await updateBannerContentAction(editingId, data)
+        : await createBannerAction(data);
 
       if (res.banner) {
-        setBanners((prev) => [...prev, res.banner]);
+        setBanners((prev) =>
+          editingId
+            ? prev.map((b) => (b.id === editingId ? res.banner : b))
+            : [...prev, res.banner],
+        );
       }
       setIsModalOpen(false);
       setTitleEn("");
@@ -99,7 +133,7 @@ export function BannersManagementView({
       setMediaUrl("");
       setPosterUrl("");
     } catch (err) {
-      console.error("Failed to create banner:", err);
+      setError(err instanceof Error ? err.message : "Could not save banner");
     } finally {
       setSaving(false);
     }
@@ -107,6 +141,19 @@ export function BannersManagementView({
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
+      {!isModalOpen && error && (
+        <p role="alert" className="text-red-400">
+          {error}
+        </p>
+      )}
+      <a
+        href="/dashboard/cms/website"
+        className="block text-sm text-[#5eead4] underline"
+      >
+        {isRTL
+          ? "راجع التغييرات وانشرها من محرر الموقع"
+          : "Review and publish changes in the website editor"}
+      </a>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -121,7 +168,7 @@ export function BannersManagementView({
           variant="primary"
           size="sm"
           className="gap-1.5 self-start sm:self-auto"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => openEditor()}
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t.actions.addBanner}</span>
@@ -162,7 +209,11 @@ export function BannersManagementView({
                       {locale === "ar" ? banner.title_ar : banner.title_en}
                     </h3>
                     <Badge variant={banner.is_active ? "emerald" : "outline"}>
-                      {banner.is_active ? t.cms.live : t.cms.hidden}
+                      {banner.is_active
+                        ? isRTL
+                          ? "مضمّن في المسودة"
+                          : "Included in draft"
+                        : t.cms.hidden}
                     </Badge>
                   </div>
                   <div className="text-xs text-[#09937F] ">
@@ -177,6 +228,13 @@ export function BannersManagementView({
               </div>
 
               <div className="flex items-center gap-2.5 shrink-0 self-end md:self-center">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => openEditor(banner)}
+                >
+                  {t.actions.edit}
+                </Button>
                 <Button
                   variant="secondary"
                   size="sm"
@@ -213,9 +271,19 @@ export function BannersManagementView({
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={t.actions.addBanner}
+        title={editingId ? t.actions.edit : t.actions.addBanner}
       >
         <form onSubmit={handleCreate} className="space-y-4">
+          {error && (
+            <p role="alert" className="text-red-400 text-sm">
+              {error}
+            </p>
+          )}
+          <p className="text-xs text-[#9EADA9]">
+            {isRTL
+              ? "احفظ ثم انشر من محرر الموقع."
+              : "Save, then publish from the website editor."}
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
@@ -304,6 +372,32 @@ export function BannersManagementView({
             </div>
           </div>
 
+          <div className="grid sm:grid-cols-2 gap-4">
+            <label className="text-sm">
+              CTA (English)
+              <Input value={ctaEn} onChange={(e) => setCtaEn(e.target.value)} />
+            </label>
+            <label className="text-sm">
+              نص الزر (عربي)
+              <Input value={ctaAr} onChange={(e) => setCtaAr(e.target.value)} />
+            </label>
+            <label className="text-sm">
+              {isRTL ? "رابط الزر" : "CTA destination"}
+              <Input
+                value={ctaLink}
+                onChange={(e) => setCtaLink(e.target.value)}
+                placeholder="/contact?intent=quote_request"
+              />
+            </label>
+            <label className="text-sm">
+              {isRTL ? "ترتيب العرض" : "Display order"}
+              <Input
+                type="number"
+                value={order}
+                onChange={(e) => setOrder(Number(e.target.value))}
+              />
+            </label>
+          </div>
           <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
             <Button
               type="button"

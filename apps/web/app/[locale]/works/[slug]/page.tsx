@@ -1,3 +1,4 @@
+import { getWebsite } from "../../../../lib/website";
 import * as React from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -15,7 +16,9 @@ export default async function ProjectDetailPage({
   const t = getTranslations(locale as Locale);
   const isRTL = locale === "ar";
 
-  const item = await getPortfolioItemBySlug(slug);
+  const item = (await getWebsite()).portfolio.find(
+    (project) => project.slug === slug,
+  );
 
   if (!item) {
     notFound();
@@ -27,7 +30,7 @@ export default async function ProjectDetailPage({
   const ArrowBackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <article className="py-16 max-w-6xl mx-auto px-6 sm:px-8 space-y-12">
+    <article className="pt-36 pb-16 max-w-6xl mx-auto px-6 sm:px-8 space-y-12">
       <div>
         <Link
           href={`/${locale}/works`}

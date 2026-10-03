@@ -29,3 +29,5 @@ graphify-out/
 apps/admin/private/uploads/
 apps/admin/public/uploads/
 apps/*/.next-verify/
+
+.next-website-test/

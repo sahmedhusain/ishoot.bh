@@ -17,13 +17,17 @@ import {
   DealStage,
   InquiryStatus,
 } from "@ishoot/database";
+import { requireInquiryAccess } from "../../lib/inquiry-access";
 import { revalidatePath } from "next/cache";
 import { requireAuth, requirePermission } from "../../lib/auth";
 
 export async function updateDealStageAction(id: string, stage: DealStage) {
   const user = await requirePermission("deals", "write");
   const deal = await updateDealStage(id, stage);
-  if (!deal) throw new Error("Deal stage update failed; closed lost requires a lost reason");
+  if (!deal)
+    throw new Error(
+      "Deal stage update failed; closed lost requires a lost reason",
+    );
 
   await createActivityLog({
     user_id: user.id,
@@ -81,7 +85,6 @@ export async function updateDealAction(id: string, data: any) {
   revalidatePath("/dashboard");
   return { success: true, deal };
 }
-
 
 export async function createContactAction(data: {
   full_name: string;
@@ -154,22 +157,56 @@ export async function searchContactsAction(query: string) {
 
 export async function globalSearchAction(query: string) {
   const user = await requireAuth();
-  const categories = { customers: "contacts", invoices: "invoices", deals: "deals" } as const;
+  const categories = {
+    customers: "contacts",
+    invoices: "invoices",
+    deals: "deals",
+  } as const;
   const allowed = new Set<string>();
   for (const [category, resource] of Object.entries(categories)) {
-    if (await hasPermission(user.role, resource, "read", user.permissions as Record<string, boolean> | undefined)) allowed.add(category);
+    if (
+      await hasPermission(
+        user.role,
+        resource,
+        "read",
+        user.permissions as Record<string, boolean> | undefined,
+      )
+    )
+      allowed.add(category);
   }
   const results = await globalAdminSearch(query, 8);
-  return { success: true, results: results.filter((result) => allowed.has(result.category)) };
+  return {
+    success: true,
+    results: results.filter((result) => allowed.has(result.category)),
+  };
 }
-
 
 export async function updateInquiryStatusAction(
   id: string,
   status: InquiryStatus,
 ) {
-  const user = await requirePermission("leads", "write");
+  const user = await requireInquiryAccess(id, "write");
+  if (
+    ![
+      "new",
+      "contacted",
+      "qualified",
+      "archived",
+      "in_progress",
+      "waiting",
+      "resolved",
+    ].includes(status)
+  )
+    throw new Error("Invalid status");
+  const { db } = await import("@ishoot/database");
+  const current = await db.inquiry.findUniqueOrThrow({ where: { id } });
+  if (
+    ["complaint", "suggestion"].includes(current.intent) &&
+    ["contacted", "qualified"].includes(status)
+  )
+    throw new Error("Invalid feedback status");
   const inquiry = await updateInquiryStatus(id, status);
+  if (!inquiry) throw new Error("Could not save request status");
 
   await createActivityLog({
     user_id: user.id,
@@ -185,8 +222,8 @@ export async function updateInquiryStatusAction(
 }
 
 export async function deleteInquiryAction(id: string) {
-  const user = await requirePermission("leads", "delete");
-  await deleteInquiry(id);
+  const user = await requireInquiryAccess(id, "delete");
+  if (!(await deleteInquiry(id))) throw new Error("Could not delete request");
 
   await createActivityLog({
     user_id: user.id,
@@ -215,26 +252,39 @@ export async function convertInquiryToClientAction(inquiryId: string) {
       throw new Error("Inquiry not found");
     }
 
-    if (inquiry.mergeFlag) throw new Error("Resolve the contact conflict before converting this inquiry");
+    if (inquiry.mergeFlag)
+      throw new Error(
+        "Resolve the contact conflict before converting this inquiry",
+      );
     // ponytail: audit metadata holds conversion identity; add an inquiry/deal FK before pruning audit history.
+    if (!["inquiry", "quote_request"].includes(inquiry.intent))
+      throw new Error("Only sales requests can be converted");
     const priorConversion = await tx.activityLog.findFirst({
-      where: { entityType: "deal", action: "create", details: { path: ["convertedFromInquiry"], equals: inquiryId } },
+      where: {
+        entityType: "deal",
+        action: "create",
+        details: { path: ["convertedFromInquiry"], equals: inquiryId },
+      },
     });
     if (priorConversion?.entityId && inquiry.customerId) {
-      return { contactId: inquiry.customerId, dealId: priorConversion.entityId, alreadyConverted: true };
+      return {
+        contactId: inquiry.customerId,
+        dealId: priorConversion.entityId,
+        alreadyConverted: true,
+      };
     }
 
     // 1. Check if contact exists by normalized email or phone
     let contact = inquiry.customerId
       ? await tx.crmContact.findUnique({ where: { id: inquiry.customerId } })
       : await tx.crmContact.findFirst({
-      where: {
-        OR: [
-          ...(inquiry.email ? [{ email: inquiry.email }] : []),
-          ...(inquiry.phone ? [{ phone: inquiry.phone }] : []),
-        ],
-      },
-    });
+          where: {
+            OR: [
+              ...(inquiry.email ? [{ email: inquiry.email }] : []),
+              ...(inquiry.phone ? [{ phone: inquiry.phone }] : []),
+            ],
+          },
+        });
 
     // 2. If not, create contact
     if (!contact) {
@@ -269,7 +319,9 @@ export async function convertInquiryToClientAction(inquiryId: string) {
     // 4. Create Deal
     let estimatedValue = 1000;
     if (inquiry.budgetRange) {
-      const numbers = inquiry.budgetRange.replace(/,/g, "").match(/\d+(?:\.\d+)?/g);
+      const numbers = inquiry.budgetRange
+        .replace(/,/g, "")
+        .match(/\d+(?:\.\d+)?/g);
       if (numbers && numbers.length > 0) {
         estimatedValue = Number(numbers[0]) || 1000;
       }
@@ -320,4 +372,48 @@ export async function convertInquiryToClientAction(inquiryId: string) {
     contactId: result.contactId,
     dealId: result.dealId,
   };
+}
+
+export async function manageInquiryAction(
+  id: string,
+  data: { priority?: string; claim?: boolean; note?: string },
+) {
+  const user = await requireInquiryAccess(id, "write");
+  const { db } = await import("@ishoot/database");
+  if (data.priority && !["normal", "high", "urgent"].includes(data.priority))
+    throw new Error("Invalid priority");
+  if (
+    data.note !== undefined &&
+    (typeof data.note !== "string" ||
+      !data.note.trim() ||
+      data.note.length > 5000)
+  )
+    throw new Error("Invalid note");
+  await db.$transaction(async (tx) => {
+    await tx.inquiry.update({
+      where: { id },
+      data: {
+        ...(data.priority ? { priority: data.priority } : {}),
+        ...(data.claim ? { assignedToId: user.id } : {}),
+        ...(data.note
+          ? { notes: { create: { body: data.note.trim(), authorId: user.id } } }
+          : {}),
+      },
+    });
+    await tx.activityLog.create({
+      data: {
+        userId: user.id,
+        action: "update",
+        entityType: "inquiry",
+        entityId: id,
+        details: {
+          priority: data.priority,
+          claimed: data.claim,
+          noteAdded: !!data.note,
+        },
+      },
+    });
+  });
+  revalidatePath("/dashboard/crm/leads");
+  return { success: true };
 }

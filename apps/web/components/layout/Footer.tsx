@@ -11,11 +11,25 @@ import { LegalModal } from "../shared/LegalModal";
 interface FooterProps {
   company: CompanySettings;
   socialLinks?: SocialLink[];
+  pages?: { id: string; visible: boolean }[];
 }
 
-export function Footer({ company, socialLinks = [] }: FooterProps) {
+export function Footer({ company, socialLinks = [], pages }: FooterProps) {
   const { t, locale, isRTL } = useTranslation();
   const [modalType, setModalType] = React.useState<"terms" | "rules" | null>(null);
+
+  const pageMap = React.useMemo(() => {
+    const map = new Map<string, boolean>();
+    pages?.forEach((p) => map.set(p.id, p.visible));
+    return map;
+  }, [pages]);
+
+  const navLinks = [
+    { id: "home", href: `/${locale}`, label: t("nav.home") },
+    { id: "works", href: `/${locale}/works`, label: t("nav.works") },
+    { id: "about", href: `/${locale}/about`, label: t("nav.about") },
+    { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
+  ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
 
   const activeLinks = socialLinks.filter(link => link.is_active).sort((a, b) => a.display_order - b.display_order);
 
@@ -73,38 +87,16 @@ export function Footer({ company, socialLinks = [] }: FooterProps) {
               {t("footer.navigation")}
             </h4>
             <ul className="space-y-2.5 text-sm text-[#9EADA9] font-sans">
-              <li>
-                <Link
-                  href={`/${locale}`}
-                  className="hover:text-[#09937F] transition-colors"
-                >
-                  {t("nav.home")}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={`/${locale}/works`}
-                  className="hover:text-[#09937F] transition-colors"
-                >
-                  {t("nav.works")}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={`/${locale}/about`}
-                  className="hover:text-[#09937F] transition-colors"
-                >
-                  {t("nav.about")}
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={`/${locale}/contact`}
-                  className="hover:text-[#09937F] transition-colors"
-                >
-                  {t("nav.contact")}
-                </Link>
-              </li>
+              {navLinks.map((link) => (
+                <li key={link.id}>
+                  <Link
+                    href={link.href}
+                    className="hover:text-[#09937F] transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

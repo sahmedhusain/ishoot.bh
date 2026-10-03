@@ -11,9 +11,10 @@ import type { CompanySettings } from "@ishoot/database/types";
 
 interface NavbarProps {
   company: CompanySettings;
+  pages?: { id: string; visible: boolean }[];
 }
 
-export function Navbar({ company }: NavbarProps) {
+export function Navbar({ company, pages }: NavbarProps) {
   const { t, locale } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -42,12 +43,18 @@ export function Navbar({ company }: NavbarProps) {
     };
   }, [pathname]);
 
+  const pageMap = React.useMemo(() => {
+    const map = new Map<string, boolean>();
+    pages?.forEach((p) => map.set(p.id, p.visible));
+    return map;
+  }, [pages]);
+
   const navLinks = [
-    { href: `/${locale}`, label: t("nav.home") },
-    { href: `/${locale}/works`, label: t("nav.works") },
-    { href: `/${locale}/about`, label: t("nav.about") },
-    { href: `/${locale}/contact`, label: t("nav.contact") },
-  ];
+    { id: "home", href: `/${locale}`, label: t("nav.home") },
+    { id: "works", href: `/${locale}/works`, label: t("nav.works") },
+    { id: "about", href: `/${locale}/about`, label: t("nav.about") },
+    { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
+  ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
 
   return (
     <>
@@ -73,13 +80,21 @@ export function Navbar({ company }: NavbarProps) {
           >
             <div className="relative h-11 w-11 flex items-center justify-center shrink-0">
               <img
-                src={company.dark_icon_url || company.icon_url || "/brand/icon-dark.svg"}
+                src={
+                  company.dark_icon_url ||
+                  company.icon_url ||
+                  "/brand/icon-dark.svg"
+                }
                 alt={t("common.brandIconAlt")}
-                className="h-full w-full object-contain transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-45 filter drop-shadow-[0_0_8px_rgba(9,147,127,0.3)]"
+                className="h-full w-full object-contain transition-transform duration-700 ease-out group-hover:rotate-45 filter drop-shadow-[0_0_8px_rgba(9,147,127,0.3)]"
               />
             </div>
             <img
-              src={company.dark_logo_url || company.logo_url || "/brand/logo-text-light.svg"}
+              src={
+                company.dark_logo_url ||
+                company.logo_url ||
+                "/brand/logo-text-light.svg"
+              }
               alt={t("common.brandLogoAlt")}
               className="h-7 w-auto object-contain"
             />
@@ -96,6 +111,7 @@ export function Navbar({ company }: NavbarProps) {
                 <Link
                   key={link.href}
                   href={link.href}
+                  aria-current={isActive ? "page" : undefined}
                   className={`group relative text-sm tracking-wide font-medium transition-colors duration-300 ${
                     isActive ? "text-white" : "text-[#9EADA9] hover:text-white"
                   }`}
@@ -103,7 +119,7 @@ export function Navbar({ company }: NavbarProps) {
                   <span className="relative pb-1">
                     {link.label}
                     <span
-                      className={`absolute -bottom-0.5 left-0 h-[1.5px] w-full origin-left bg-[#09937F] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                      className={`absolute -bottom-0.5 left-0 h-[1.5px] w-full origin-left bg-[#09937F] transition-transform duration-500 ease-out ${
                         isActive
                           ? "scale-x-100"
                           : "scale-x-0 group-hover:scale-x-100"

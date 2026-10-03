@@ -1,3 +1,4 @@
+import { isWebsitePreview, getWebsite } from "../../lib/website";
 import { getPublicCompanySettings } from "../../lib/company";
 // Database content must not be frozen into empty pages when the build database is unavailable.
 export const dynamic = "force-dynamic";
@@ -9,7 +10,7 @@ import { Footer } from "../../components/layout/Footer";
 import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
 import { BackToTop } from "../../components/layout/BackToTop";
-import {  getSocialLinks } from "@ishoot/database";
+import { getSocialLinks } from "@ishoot/database";
 
 export default async function LocaleLayout({
   children,
@@ -24,25 +25,52 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  const [isRTL, company, socialLinks] = await Promise.all([
+  const [isRTL, company, socialLinks, website] = await Promise.all([
     Promise.resolve(locale === "ar"),
     getPublicCompanySettings(),
     getSocialLinks(),
+    getWebsite().catch(() => null),
   ]);
+
+  const preview = await isWebsitePreview();
 
   return (
     <html dir={isRTL ? "rtl" : "ltr"} lang={locale}>
       <body
         className={`min-h-screen bg-[#050807] text-[#F2F6F5] selection:bg-[#09937F]/40 selection:text-white ${isRTL ? "font-arabic" : "font-sans"}`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:start-4 focus:z-[100] focus:bg-white focus:text-black focus:p-3"
+        >
+          {isRTL ? "انتقل إلى المحتوى" : "Skip to content"}
+        </a>
+        {preview && (
+          <div className="fixed bottom-4 start-4 z-[100] bg-amber-100 text-amber-950 p-3 rounded-lg shadow-lg flex gap-4 items-center text-sm">
+            <span>{isRTL ? "معاينة المسودة" : "Draft preview"}</span>
+            <form method="post" action="/api/preview">
+              <button className="underline">
+                {isRTL ? "إنهاء" : "Exit preview"}
+              </button>
+            </form>
+          </div>
+        )}
         <FloatingScrollbar />
         <BackToTop />
         <SmoothScroll>
-          <Navbar company={company} />
-          <main className="w-full">{children}</main>
-          <Footer company={company} socialLinks={socialLinks} />
+          <Navbar company={company} pages={website?.config?.pages} />
+          <main id="main-content" className="w-full">
+            {children}
+          </main>
+          <Footer company={company} socialLinks={socialLinks} pages={website?.config?.pages} />
         </SmoothScroll>
       </body>
     </html>
   );
+}
+
+export async function generateMetadata() {
+  return (await isWebsitePreview())
+    ? { robots: { index: false, follow: false } }
+    : {};
 }

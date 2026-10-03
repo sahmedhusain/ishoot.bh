@@ -17,13 +17,15 @@ import {
   StudioEquipment,
   PortfolioItem,
 } from "@ishoot/database";
+import { safeWebsiteUrl } from "@ishoot/database/website-config";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
 import { revalidatePublicSite } from "../../lib/revalidate-web";
 
 export async function toggleBannerStatusAction(id: string, isActive: boolean) {
   const user = await requirePermission("banners", "write");
-  await updateBanner(id, { is_active: isActive });
+  if (!(await updateBanner(id, { is_active: isActive })))
+    throw new Error("Could not update banner");
 
   await createActivityLog({
     user_id: user.id,
@@ -40,7 +42,7 @@ export async function toggleBannerStatusAction(id: string, isActive: boolean) {
 
 export async function deleteBannerAction(id: string) {
   const user = await requirePermission("banners", "delete");
-  await deleteBanner(id);
+  if (!(await deleteBanner(id))) throw new Error("Could not delete banner");
 
   await createActivityLog({
     user_id: user.id,
@@ -68,6 +70,7 @@ export async function createBannerAction(data: {
   display_order?: number;
 }) {
   const user = await requirePermission("banners", "write");
+  validateBannerData(data);
   const banner = await createBanner({
     ...data,
     display_order: data.display_order ?? 0,
@@ -174,7 +177,8 @@ export async function togglePortfolioFeaturedAction(
   isFeatured: boolean,
 ) {
   const user = await requirePermission("portfolio", "write");
-  await updatePortfolioItem(id, { is_featured: isFeatured });
+  if (!(await updatePortfolioItem(id, { is_featured: isFeatured })))
+    throw new Error("Could not update project");
 
   await createActivityLog({
     user_id: user.id,
@@ -191,7 +195,8 @@ export async function togglePortfolioFeaturedAction(
 
 export async function deletePortfolioItemAction(id: string) {
   const user = await requirePermission("portfolio", "delete");
-  await deletePortfolioItem(id);
+  if (!(await deletePortfolioItem(id)))
+    throw new Error("Could not delete project");
 
   await createActivityLog({
     user_id: user.id,
@@ -216,8 +221,14 @@ export async function createPortfolioItemAction(data: {
   thumbnail_url: string;
   preview_video_url?: string;
   is_featured?: boolean;
+  full_video_url?: string;
+  description_en?: string;
+  description_ar?: string;
+  gallery_urls?: string[];
+  display_order?: number;
 }) {
   const user = await requirePermission("portfolio", "write");
+  validatePortfolioData(data);
   const project = await createPortfolioItem({
     ...data,
     aspect_ratio: data.aspect_ratio || "16:9",
@@ -236,85 +247,186 @@ export async function createPortfolioItemAction(data: {
   return { success: true, project };
 }
 
-import { createReview, updateReview, deleteReview, createFaq, updateFaq, deleteFaq, createStatistic, updateStatistic, deleteStatistic } from '@ishoot/database';
+import {
+  createReview,
+  updateReview,
+  deleteReview,
+  createFaq,
+  updateFaq,
+  deleteFaq,
+  createStatistic,
+  updateStatistic,
+  deleteStatistic,
+} from "@ishoot/database";
 
 export async function createReviewAction(data: any) {
-  await requirePermission('reviews', 'write');
+  await requirePermission("reviews", "write");
   const review = await createReview(data);
-  revalidatePublicSite(['reviews']);
-  revalidatePath('/dashboard/cms/reviews');
+  revalidatePublicSite(["reviews"]);
+  revalidatePath("/dashboard/cms/reviews");
   return { success: true, review };
 }
 
 export async function updateReviewAction(id: string, data: any) {
-  await requirePermission('reviews', 'write');
+  await requirePermission("reviews", "write");
   const review = await updateReview(id, data);
-  revalidatePublicSite(['reviews']);
-  revalidatePath('/dashboard/cms/reviews');
+  revalidatePublicSite(["reviews"]);
+  revalidatePath("/dashboard/cms/reviews");
   return { success: true, review };
 }
 
-export async function toggleReviewApprovalAction(id: string, isApproved: boolean) {
-  await requirePermission('reviews', 'write');
+export async function toggleReviewApprovalAction(
+  id: string,
+  isApproved: boolean,
+) {
+  await requirePermission("reviews", "write");
   const review = await updateReview(id, { isApproved });
-  await revalidatePublicSite(['reviews'], ['/']);
-  revalidatePath('/dashboard/cms/reviews');
+  await revalidatePublicSite(["reviews"], ["/"]);
+  revalidatePath("/dashboard/cms/reviews");
   return { success: true, review };
 }
 
 export async function deleteReviewAction(id: string) {
-  await requirePermission('reviews', 'delete');
+  await requirePermission("reviews", "delete");
   await deleteReview(id);
-  await revalidatePublicSite(['reviews'], ['/']);
-  revalidatePath('/dashboard/cms/reviews');
+  await revalidatePublicSite(["reviews"], ["/"]);
+  revalidatePath("/dashboard/cms/reviews");
   return { success: true };
 }
 
 export async function createFaqAction(data: any) {
-  await requirePermission('faqs', 'write');
+  await requirePermission("faqs", "write");
   const faq = await createFaq(data);
-  revalidatePublicSite(['faqs']);
-  revalidatePath('/dashboard/cms/faqs');
+  revalidatePublicSite(["faqs"]);
+  revalidatePath("/dashboard/cms/faqs");
   return { success: true, faq };
 }
 
 export async function updateFaqAction(id: string, data: any) {
-  await requirePermission('faqs', 'write');
+  await requirePermission("faqs", "write");
   const faq = await updateFaq(id, data);
-  revalidatePublicSite(['faqs']);
-  revalidatePath('/dashboard/cms/faqs');
+  revalidatePublicSite(["faqs"]);
+  revalidatePath("/dashboard/cms/faqs");
   return { success: true, faq };
 }
 
 export async function deleteFaqAction(id: string) {
-  await requirePermission('faqs', 'delete');
+  await requirePermission("faqs", "delete");
   await deleteFaq(id);
-  revalidatePublicSite(['faqs']);
-  revalidatePath('/dashboard/cms/faqs');
+  revalidatePublicSite(["faqs"]);
+  revalidatePath("/dashboard/cms/faqs");
   return { success: true };
 }
 
 export async function createStatisticAction(data: any) {
-  await requirePermission('stats', 'write');
+  await requirePermission("stats", "write");
   const stat = await createStatistic(data);
-  revalidatePublicSite(['stats']);
-  revalidatePath('/dashboard/cms/stats');
+  revalidatePublicSite(["stats"]);
+  revalidatePath("/dashboard/cms/stats");
   return { success: true, stat };
 }
 
 export async function updateStatisticAction(id: string, data: any) {
-  await requirePermission('stats', 'write');
+  await requirePermission("stats", "write");
   const stat = await updateStatistic(id, data);
-  revalidatePublicSite(['stats']);
-  revalidatePath('/dashboard/cms/stats');
+  revalidatePublicSite(["stats"]);
+  revalidatePath("/dashboard/cms/stats");
   return { success: true, stat };
 }
 
 export async function deleteStatisticAction(id: string) {
-  await requirePermission('stats', 'delete');
+  await requirePermission("stats", "delete");
   await deleteStatistic(id);
-  revalidatePublicSite(['stats']);
-  revalidatePath('/dashboard/cms/stats');
+  revalidatePublicSite(["stats"]);
+  revalidatePath("/dashboard/cms/stats");
   return { success: true };
 }
 
+function validateBannerData(data: Parameters<typeof createBannerAction>[0]) {
+  for (const value of [data.title_en, data.title_ar])
+    if (typeof value !== "string" || !value.trim() || value.length > 500)
+      throw new Error("Both titles are required (max 500 characters)");
+  if (
+    !["image", "video"].includes(data.media_type) ||
+    !safeWebsiteUrl(data.media_url)
+  )
+    throw new Error("Provide a valid image or video URL");
+  for (const value of [data.poster_url, data.cta_link])
+    if (value && !safeWebsiteUrl(value))
+      throw new Error("Invalid website link");
+  if (
+    data.display_order !== undefined &&
+    (!Number.isInteger(data.display_order) ||
+      Math.abs(data.display_order) > 10000)
+  )
+    throw new Error("Invalid display order");
+}
+function validatePortfolioData(
+  data: Parameters<typeof createPortfolioItemAction>[0],
+) {
+  if (
+    ![data.title_en, data.title_ar, data.client_name].every(
+      (v) => typeof v === "string" && v.trim() && v.length <= 500,
+    )
+  )
+    throw new Error("Titles and client name are required");
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug) || data.slug.length > 150)
+    throw new Error(
+      "Use a unique slug with lowercase letters, numbers and hyphens",
+    );
+  if (!Number.isInteger(data.year) || data.year < 1900 || data.year > 2100)
+    throw new Error("Invalid year");
+  if (!safeWebsiteUrl(data.thumbnail_url))
+    throw new Error("Thumbnail URL is required");
+  for (const url of [
+    data.preview_video_url,
+    data.full_video_url,
+    ...(data.gallery_urls || []),
+  ])
+    if (url && !safeWebsiteUrl(url)) throw new Error("Invalid media URL");
+  if (data.gallery_urls && data.gallery_urls.length > 30)
+    throw new Error("Maximum 30 gallery images");
+  if (
+    data.display_order !== undefined &&
+    (!Number.isInteger(data.display_order) ||
+      Math.abs(data.display_order) > 10000)
+  )
+    throw new Error("Invalid display order");
+}
+export async function updateBannerContentAction(
+  id: string,
+  data: Parameters<typeof createBannerAction>[0],
+) {
+  const user = await requirePermission("banners", "write");
+  validateBannerData(data);
+  const banner = await updateBanner(id, data);
+  if (!banner) throw new Error("Banner could not be saved");
+  await createActivityLog({
+    user_id: user.id,
+    action: "update",
+    entity_type: "banner",
+    entity_id: id,
+  });
+  revalidatePath("/dashboard/cms/banners");
+  return { success: true, banner };
+}
+export async function updatePortfolioContentAction(
+  id: string,
+  data: Parameters<typeof createPortfolioItemAction>[0],
+) {
+  const user = await requirePermission("portfolio", "write");
+  validatePortfolioData(data);
+  const project = await updatePortfolioItem(id, {
+    ...data,
+    aspect_ratio: data.aspect_ratio as PortfolioItem["aspect_ratio"],
+  });
+  if (!project) throw new Error("Project could not be saved");
+  await createActivityLog({
+    user_id: user.id,
+    action: "update",
+    entity_type: "portfolio",
+    entity_id: id,
+  });
+  revalidatePath("/dashboard/cms/portfolio");
+  return { success: true, project };
+}

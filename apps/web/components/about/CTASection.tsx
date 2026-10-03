@@ -2,116 +2,60 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { ArrowUpRight, Film } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
-import { ArrowUpRight, MessageSquare, Sparkles } from "lucide-react";
-import initialCompanyConfig from "@ishoot/database/config";
+import { SectionBadge } from "../shared/SectionBadge";
 import { motion } from "framer-motion";
 
 export function CTASection() {
-  const { t, locale } = useTranslation();
-  const company = initialCompanyConfig.company;
+  const { t, locale, isRTL: ar } = useTranslation();
 
   return (
-    <section
-      id="contact-cta"
-      className="katana-top relative z-10 bg-[#070C0A] text-[#F2F6F5] select-none pt-[clamp(6rem,12vh,10rem)] pb-24 border-t border-white/5 overflow-hidden"
-    >
-      <motion.div
-        animate={{
-          scale: [1, 1.1, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+    <section className="relative z-10 bg-[#050807] text-[#F2F6F5] py-24 select-none border-t border-white/10 overflow-hidden">
+      {/* Background Graphic Grid */}
+      <div
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[60vmax] w-[60vmax] -translate-x-1/2 -translate-y-1/2"
+        className="absolute inset-0 z-0 pointer-events-none opacity-20"
         style={{
-          background:
-            "radial-gradient(circle, rgba(9,147,127,0.25) 0%, rgba(1,72,66,0.10) 40%, transparent 70%)",
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(9,147,127,0.3) 1px, transparent 0)`,
+          backgroundSize: "32px 32px",
         }}
       />
 
-      <div className="shell relative z-20 text-center space-y-10 max-w-4xl mx-auto">
+      <div className="shell relative z-10">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.5 }}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5EEAD4] font-sans uppercase tracking-widest"
-        >
-          <span className="text-[#09937F] font-mono opacity-80">&lt;&lt;</span>
-          <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
-          <span>{t("cta.badge")}</span>
-          <span className="text-[#09937F] font-mono opacity-80">&gt;&gt;</span>
-        </motion.div>
-
-        <motion.h2
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="font-display text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.05] tracking-tight font-bold text-white"
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="relative p-8 sm:p-14 rounded-3xl bg-[#0B1210] border border-[#09937F]/40 shadow-2xl overflow-hidden flex flex-col md:flex-row gap-8 md:items-center justify-between"
         >
-          {t("cta.titleLine1")} <br />
-          <span className="text-emerald-shine">{t("cta.titleLine2")}</span>
-        </motion.h2>
+          {/* Ambient Corner Glow */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-[#09937F]/15 rounded-full blur-3xl pointer-events-none" />
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-base sm:text-xl text-[#9EADA9] max-w-2xl mx-auto leading-relaxed font-sans"
-        >
-          {t("cta.description")}
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="pt-4 flex flex-wrap items-center justify-center gap-4 font-sans"
-        >
-          <motion.a
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            href={`https://wa.me/${company.whatsappPhone.replace(/\D/g, "")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-3 rounded-full border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 py-3 ps-6 pe-3 text-xs sm:text-sm font-bold text-emerald-400 transition-all shadow-xl cursor-pointer"
-          >
-            <MessageSquare className="w-4 h-4 text-emerald-400 group-hover:text-black transition-colors" />
-            <span>{t("cta.whatsapp")}</span>
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-emerald-500/20 group-hover:bg-black group-hover:text-emerald-400 transition-colors">
-              <ArrowUpRight className="w-4 h-4" />
-            </span>
-          </motion.a>
-
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Link
-              href={`/${locale}/contact`}
-              className="group inline-flex items-center gap-3 rounded-full border border-white/20 bg-white text-black py-3 ps-6 pe-3 text-xs sm:text-sm font-bold hover:bg-[#09937F] hover:text-white hover:border-[#09937F] transition-all shadow-2xl cursor-pointer"
-            >
-              <span>{t("cta.requestTreatment")}</span>
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-black text-white group-hover:bg-white group-hover:text-[#014842] transition-colors">
-                <ArrowUpRight className="w-4 h-4" />
-              </span>
-            </Link>
-          </motion.div>
-        </motion.div>
-
-        <div className="pt-12 text-xs text-[#9EADA9]/70 space-y-1 font-sans">
-          <div>{t("cta.address")}</div>
-          <div className="text-[10px] text-[#09937F]">
-            © {new Date().getFullYear()} {t("footer.companyName")}.{" "}
-            {t("cta.rights")}
+          <div className="space-y-4 max-w-2xl relative z-10">
+            <SectionBadge>{t("cta.badge") || (ar ? "جاهزون للبدء" : "Ready to Launch")}</SectionBadge>
+            <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.1]">
+              <span>{t("cta.titleLine1")}</span>{" "}
+              <span className="text-[#5EEAD4] block">{t("cta.titleLine2")}</span>
+            </h2>
+            <p className="text-sm sm:text-base text-[#9EADA9] font-sans leading-relaxed max-w-xl">
+              {t("cta.description")}
+            </p>
           </div>
-        </div>
+
+          <div className="relative z-10 shrink-0">
+            <Link
+              href={`/${locale}/contact?intent=quote_request`}
+              className="group inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-[#09937F] hover:bg-[#09937F]/90 text-white font-display font-bold text-sm sm:text-base transition-all duration-300 shadow-xl shadow-[#09937F]/25 hover:shadow-[#09937F]/40 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>{t("cta.requestTreatment") || (ar ? "ابدأ الحديث" : "Start Project")}</span>
+              <ArrowUpRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
 }
+

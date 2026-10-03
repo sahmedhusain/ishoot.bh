@@ -45,6 +45,7 @@ import {
 } from "../../app/actions/finance";
 import { lookupClientAction } from "../../app/actions/crm";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
+import { EditConfirmModal, type FieldChange } from "../shared/EditConfirmModal";
 
 interface InvoiceEditFormViewProps {
   invoice: Invoice;
@@ -60,7 +61,7 @@ export function InvoiceEditFormView({
   services = [],
 }: InvoiceEditFormViewProps) {
   const router = useRouter();
-  const { t, locale } = useAdminLocale();
+  const { t, locale, isRTL } = useAdminLocale();
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
@@ -201,7 +202,66 @@ export function InvoiceEditFormView({
     setLineItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+
+  const changes: FieldChange[] = React.useMemo(() => [
+    {
+      field: "issue_date",
+      label: isRTL ? "تاريخ الإصدار" : "Issue Date",
+      oldValue: invoice.issue_date,
+      newValue: issueDate,
+    },
+    {
+      field: "due_date",
+      label: isRTL ? "تاريخ الاستحقاق" : "Due Date",
+      oldValue: invoice.due_date,
+      newValue: dueDate,
+    },
+    {
+      field: "vat_enabled",
+      label: isRTL ? "تفعيل الضريبة" : "VAT Status",
+      oldValue: invoice.vat_enabled ? `Enabled (${invoice.vat_percentage}%)` : "Disabled (No VAT)",
+      newValue: vatEnabled ? `Enabled (${vatPercentage}%)` : "Disabled (No VAT)",
+    },
+    {
+      field: "subtotal",
+      label: isRTL ? "المجموع الفرعي" : "Subtotal",
+      oldValue: `${Number(invoice.subtotal).toFixed(3)} ${currency}`,
+      newValue: `${totals.subtotal.toFixed(3)} ${currency}`,
+    },
+    {
+      field: "discount_amount",
+      label: isRTL ? "الخصم" : "Discount",
+      oldValue: `${Number(invoice.discount_amount).toFixed(3)} ${currency}`,
+      newValue: `${totals.discountAmount.toFixed(3)} ${currency}`,
+    },
+    {
+      field: "vat_amount",
+      label: isRTL ? "مبلغ الضريبة" : "VAT Amount",
+      oldValue: `${Number(invoice.vat_amount).toFixed(3)} ${currency}`,
+      newValue: `${totals.vatAmount.toFixed(3)} ${currency}`,
+    },
+    {
+      field: "total_amount",
+      label: isRTL ? "المجموع الإجمالي" : "Total Amount",
+      oldValue: `${Number(invoice.total_amount).toFixed(3)} ${currency}`,
+      newValue: `${totals.totalAmount.toFixed(3)} ${currency}`,
+    },
+    {
+      field: "notes_en",
+      label: isRTL ? "ملاحظات بالإنجليزية" : "English Notes",
+      oldValue: invoice.notes_en || "",
+      newValue: notesEn,
+    },
+    {
+      field: "notes_ar",
+      label: isRTL ? "ملاحظات بالعربية" : "Arabic Notes",
+      oldValue: invoice.notes_ar || "",
+      newValue: notesAr,
+    },
+  ], [invoice, issueDate, dueDate, vatEnabled, vatPercentage, totals, currency, notesEn, notesAr, isRTL]);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isLocked || submitting) return;
 
@@ -210,6 +270,13 @@ export function InvoiceEditFormView({
     );
     if (validItems.length === 0) return;
 
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmedSave = async () => {
+    const validItems = lineItems.filter(
+      (item) => item.description_en.trim() !== "",
+    );
     setSubmitting(true);
 
     try {
@@ -239,6 +306,7 @@ export function InvoiceEditFormView({
       console.error("Failed to update invoice:", err);
     } finally {
       setSubmitting(false);
+      setShowConfirmModal(false);
     }
   };
 
@@ -815,6 +883,16 @@ export function InvoiceEditFormView({
         title={t.invoiceEdit.voidCheckpointTitle}
         description={t.invoiceEdit.voidCheckpointDesc.replace("invoice", `invoice ${invoice.invoice_number}`)}
         confirmLabel={t.invoiceEdit.confirmVoid}
+      />
+
+      <EditConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmedSave}
+        changes={changes}
+        isSaving={submitting}
+        title={isRTL ? `تأكيد تعديل الفاتورة ${invoice.invoice_number}` : `Confirm Edit on Invoice ${invoice.invoice_number}`}
+        description={isRTL ? "راجع تفاصيل التغييرات على الفاتورة قبل اعتماد التعديل في النظام:" : "Review the updated invoice values before committing changes:"}
       />
     </div>
   );

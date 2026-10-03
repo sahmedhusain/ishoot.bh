@@ -26,6 +26,8 @@
     "iconUrl": "/brand/icon-light.svg",
     "darkIconUrl": "/brand/icon-dark.svg",
     "paymentTermsDays": 30,
+    "stampUrl": "/brand/stamp.svg",
+    "signatureUrl": "/brand/signature.svg",
     "invoicePrefix": "ISH",
     "invoiceNextNumber": 104,
     "receiptPrefix": "RCT",
@@ -65,14 +67,14 @@
     {
       "assetKey": "stamp",
       "title": "Official Corporate Seal / Stamp",
-      "fileUrl": "",
-      "mimeType": "image/png"
+      "fileUrl": "/brand/stamp.svg",
+      "mimeType": "image/svg+xml"
     },
     {
       "assetKey": "signature",
       "title": "Authorized Signatory Digital Signature",
-      "fileUrl": "",
-      "mimeType": "image/png"
+      "fileUrl": "/brand/signature.svg",
+      "mimeType": "image/svg+xml"
     },
     {
       "assetKey": "letterhead_header",

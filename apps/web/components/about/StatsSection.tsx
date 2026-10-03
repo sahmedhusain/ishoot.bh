@@ -1,104 +1,73 @@
 "use client";
 
 import * as React from "react";
-import { useTranslation } from "../../hooks/useTranslation";
-import { Film, Video, Building2, Flame, Plane, Award } from "lucide-react";
 import type { Statistic } from "@ishoot/database/types";
+import { useTranslation } from "../../hooks/useTranslation";
 import { motion } from "framer-motion";
 
-interface StatsSectionProps {
-  stats: Statistic[];
-}
-
-const ICONS_MAP: Record<string, React.ElementType> = {
-  Film,
-  Video,
-  Building2,
-  Flame,
-  Plane,
-  Award,
-};
-
-export function StatsSection({ stats }: StatsSectionProps) {
-  const { t, locale } = useTranslation();
-  const isAr = locale === "ar";
-
-  const items = stats.length > 0 ? stats : [];
+export function StatsSection({ stats }: { stats: Statistic[] }) {
+  const { t, isRTL: ar } = useTranslation();
+  if (!stats || !stats.length) return null;
 
   return (
-    <section
-      id="stats"
-      className="relative py-28 bg-[#050807] text-[#F2F6F5] select-none border-t border-white/5"
-    >
-      <div className="shell space-y-16">
+    <section className="relative z-20 bg-[#050807] text-[#F2F6F5] py-20 select-none border-t border-white/10">
+      <div className="shell space-y-12">
         <motion.div
-          initial={{ opacity: 0, width: 0 }}
-          whileInView={{ opacity: 1, width: "100%" }}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.8 }}
-          className="relative w-full"
+          transition={{ duration: 0.7 }}
+          className="relative p-8 sm:p-10 rounded-3xl bg-[#0B1210] border border-white/10 shadow-2xl overflow-hidden"
         >
-          <span aria-hidden="true" className="block h-px w-full bg-white/10" />
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className="mt-4 flex items-center justify-between text-xs uppercase tracking-wider text-[#9EADA9] font-sans"
-          >
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-              <span>{t("stats.sectionIndex")}</span>
-            </span>
-            <span className="font-bold text-white">
-              ({t("stats.sectionLabel")})
-            </span>
-            <span>© {new Date().getFullYear()}</span>
-          </motion.div>
-        </motion.div>
+          {/* Background Graphic Grid */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 z-0 pointer-events-none opacity-10"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.2) 1px, transparent 0)`,
+              backgroundSize: "24px 24px",
+            }}
+          />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {items.map((stat, i) => {
-            const Icon = (stat.icon && ICONS_MAP[stat.icon]) ? ICONS_MAP[stat.icon] : Film;
-            return (
+          <div className="relative z-10 flex items-center justify-between pb-6 mb-6 border-b border-white/10 text-xs font-sans text-[#9EADA9]">
+            <div className="flex items-center gap-2 font-bold text-[#5EEAD4] uppercase tracking-wider">
+              &lt;&lt; {t("about.stats.badge")} &gt;&gt;
+            </div>
+            <div className="hidden sm:flex items-center gap-1 text-[11px] text-[#09937F] font-bold">
+              &lt;&lt; {t("about.stats.verified")} &gt;&gt;
+            </div>
+          </div>
+
+          <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+            {stats.map((stat, idx) => (
               <motion.div
                 key={stat.id}
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                whileHover={{ y: -8, transition: { type: "spring", stiffness: 300, damping: 15 } }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group relative rounded-3xl bg-[#0B1210] border border-white/10 hover:border-[#09937F]/50 transition-colors p-8 space-y-4 shadow-xl hover:shadow-2xl hover:shadow-[#09937F]/10 flex flex-col justify-between cursor-pointer"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.03 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                className="group p-6 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[#09937F]/40 transition-all text-center space-y-3 cursor-pointer"
               >
-                <div className="flex items-center justify-between font-sans">
-                  <motion.div
-                    whileHover={{ rotate: 15, scale: 1.15 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    className="w-10 h-10 rounded-xl bg-[#014842]/40 border border-[#09937F]/30 flex items-center justify-center text-[#5EEAD4]"
-                  >
-                    <Icon className="w-5 h-5" />
-                  </motion.div>
-                  <span className="text-[10px] text-[#9EADA9]">
-                    0{i + 1}
-                  </span>
-                </div>
-
+                {(stat.subLabelAr || stat.subLabelEn) && (
+                  <div className="text-xs font-bold text-[#09937F] font-sans">
+                    &lt;&lt; {ar ? stat.subLabelAr : stat.subLabelEn} &gt;&gt;
+                  </div>
+                )}
                 <div>
-                  <div className="text-4xl sm:text-5xl font-bold text-white tracking-tight group-hover:text-emerald-shine transition-colors font-display">
+                  <div className="text-3xl sm:text-5xl font-extrabold text-white group-hover:text-[#5EEAD4] transition-colors font-display tracking-tight tabular-nums">
                     {stat.value}
                   </div>
-                  <div className="mt-2 text-sm sm:text-base font-bold text-white font-sans">
-                    {isAr ? stat.labelAr : stat.labelEn}
-                  </div>
-                  <div className="mt-1 text-xs text-[#9EADA9] font-sans leading-relaxed">
-                    {isAr ? stat.subLabelAr : stat.subLabelEn}
+                  <div className="text-xs sm:text-sm font-bold text-[#F2F6F5] font-sans mt-2">
+                    {ar ? stat.labelAr : stat.labelEn}
                   </div>
                 </div>
               </motion.div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </section>
   );
 }
+

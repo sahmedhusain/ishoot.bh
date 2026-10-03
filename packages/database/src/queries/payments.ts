@@ -70,9 +70,14 @@ function mapPayment(p: any): Payment {
   };
 }
 
-export async function getAllPayments(): Promise<Payment[]> {
+export async function getAllPayments(options?: {
+  limit?: number;
+  offset?: number;
+}): Promise<Payment[]> {
   try {
     const payments = await db.payment.findMany({
+      take: options?.limit,
+      skip: options?.offset,
       include: {
         invoice: {
           include: {

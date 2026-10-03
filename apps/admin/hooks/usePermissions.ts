@@ -11,6 +11,7 @@ export type PermissionResource =
   | "deals"
   | "contacts"
   | "leads"
+  | "support"
   | "contracts"
   | "banners"
   | "portfolio"
@@ -19,7 +20,10 @@ export type PermissionResource =
   | "calendar"
   | "users"
   | "settings"
-  | "audit_logs" | "reviews" | "faqs" | "stats";
+  | "audit_logs"
+  | "reviews"
+  | "faqs"
+  | "stats";
 
 export type PermissionAction =
   "read" | "write" | "delete" | "export" | "approve";
@@ -46,6 +50,10 @@ const CLIENT_ROLE_RULES: Record<
     users: ["read", "write"],
     settings: ["read", "write"],
     audit_logs: ["read"],
+    support: ["read", "write", "delete"],
+    reviews: ["read", "write", "delete"],
+    faqs: ["read", "write", "delete"],
+    stats: ["read", "write", "delete"],
   },
   finance_manager: {
     invoices: ["read", "write", "export", "approve"],

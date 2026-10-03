@@ -25,6 +25,7 @@ import {
   togglePortfolioFeaturedAction,
   deletePortfolioItemAction,
   createPortfolioItemAction,
+  updatePortfolioContentAction,
 } from "../../app/actions/cms";
 
 interface PortfolioManagementViewProps {
@@ -36,13 +37,20 @@ export function PortfolioManagementView({
   initialItems,
   categories,
 }: PortfolioManagementViewProps) {
-  const { t, locale } = useAdminLocale();
+  const { t, locale, isRTL } = useAdminLocale();
   const [items, setItems] = React.useState<PortfolioItem[]>(initialItems);
   const [selectedCat, setSelectedCat] = React.useState<string>("all");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
     null,
   );
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [error, setError] = React.useState("");
+  const [descriptionEn, setDescriptionEn] = React.useState("");
+  const [descriptionAr, setDescriptionAr] = React.useState("");
+  const [fullVideo, setFullVideo] = React.useState("");
+  const [gallery, setGallery] = React.useState("");
+  const [order, setOrder] = React.useState(0);
   const [saving, setSaving] = React.useState(false);
 
   const [titleEn, setTitleEn] = React.useState("");
@@ -56,6 +64,26 @@ export function PortfolioManagementView({
   const [categoryId, setCategoryId] = React.useState("");
   const [isFeatured, setIsFeatured] = React.useState(false);
 
+  function openEditor(item?: PortfolioItem) {
+    setEditingId(item?.id || null);
+    setError("");
+    setTitleEn(item?.title_en || "");
+    setTitleAr(item?.title_ar || "");
+    setSlug(item?.slug || "");
+    setClientName(item?.client_name || "");
+    setYear(item?.year || new Date().getFullYear());
+    setAspectRatio(item?.aspect_ratio || "16:9");
+    setThumbnailUrl(item?.thumbnail_url || "");
+    setPreviewVideoUrl(item?.preview_video_url || "");
+    setCategoryId(item?.category_id || "");
+    setIsFeatured(item?.is_featured || false);
+    setDescriptionEn(item?.description_en || "");
+    setDescriptionAr(item?.description_ar || "");
+    setFullVideo(item?.full_video_url || "");
+    setGallery(item?.gallery_urls?.join("\n") || "");
+    setOrder(item?.display_order || 0);
+    setIsModalOpen(true);
+  }
   const filteredItems =
     selectedCat === "all"
       ? items
@@ -63,22 +91,24 @@ export function PortfolioManagementView({
 
   const handleToggleFeatured = async (id: string, currentFeatured: boolean) => {
     const nextFeatured = !currentFeatured;
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, is_featured: nextFeatured } : i)),
-    );
     try {
       await togglePortfolioFeaturedAction(id, nextFeatured);
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id ? { ...i, is_featured: nextFeatured } : i,
+        ),
+      );
     } catch (err) {
-      console.error("Failed to toggle featured status:", err);
+      setError("Could not update project. Please try again.");
     }
   };
 
   const handleDelete = async (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
     try {
       await deletePortfolioItemAction(id);
+      setItems((prev) => prev.filter((i) => i.id !== id));
     } catch (err) {
-      console.error("Failed to delete portfolio item:", err);
+      setError("Could not delete project. Please try again.");
     }
   };
 
@@ -92,7 +122,7 @@ export function PortfolioManagementView({
       slug || (titleEn || titleAr).toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
     try {
-      const res = await createPortfolioItemAction({
+      const data = {
         title_en: titleEn || titleAr,
         title_ar: titleAr || titleEn,
         slug: generatedSlug,
@@ -100,13 +130,28 @@ export function PortfolioManagementView({
         year,
         aspect_ratio: aspectRatio,
         thumbnail_url: thumbnailUrl,
-        preview_video_url: previewVideoUrl || undefined,
-        category_id: categoryId || undefined,
+        preview_video_url: previewVideoUrl,
+        category_id: categoryId,
         is_featured: isFeatured,
-      });
+        description_en: descriptionEn,
+        description_ar: descriptionAr,
+        full_video_url: fullVideo,
+        gallery_urls: gallery
+          .split("\n")
+          .map((url) => url.trim())
+          .filter(Boolean),
+        display_order: order,
+      };
+      const res = editingId
+        ? await updatePortfolioContentAction(editingId, data)
+        : await createPortfolioItemAction(data);
 
       if (res.project) {
-        setItems((prev) => [res.project, ...prev]);
+        setItems((prev) =>
+          editingId
+            ? prev.map((item) => (item.id === editingId ? res.project : item))
+            : [res.project, ...prev],
+        );
       }
       setIsModalOpen(false);
       setTitleEn("");
@@ -117,7 +162,7 @@ export function PortfolioManagementView({
       setPreviewVideoUrl("");
       setIsFeatured(false);
     } catch (err) {
-      console.error("Failed to create portfolio project:", err);
+      setError(err instanceof Error ? err.message : "Could not save project");
     } finally {
       setSaving(false);
     }
@@ -125,6 +170,19 @@ export function PortfolioManagementView({
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
+      {!isModalOpen && error && (
+        <p role="alert" className="text-red-400">
+          {error}
+        </p>
+      )}
+      <a
+        href="/dashboard/cms/website"
+        className="block text-sm text-[#5eead4] underline"
+      >
+        {isRTL
+          ? "راجع التغييرات وانشرها من محرر الموقع"
+          : "Review and publish changes in the website editor"}
+      </a>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -139,7 +197,7 @@ export function PortfolioManagementView({
           variant="primary"
           size="sm"
           className="gap-1.5 self-start sm:self-auto"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => openEditor()}
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t.actions.newProject}</span>
@@ -234,6 +292,12 @@ export function PortfolioManagementView({
                 </td>
                 <td className="p-4 text-end space-x-2">
                   <button
+                    className="p-2 text-emerald-300"
+                    onClick={() => openEditor(item)}
+                  >
+                    {t.actions.edit}
+                  </button>
+                  <button
                     onClick={() => setDeleteTargetId(item.id)}
                     className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors inline-flex"
                     title={t.actions.delete}
@@ -250,9 +314,14 @@ export function PortfolioManagementView({
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={t.actions.newProject}
+        title={editingId ? t.actions.edit : t.actions.newProject}
       >
         <form onSubmit={handleCreate} className="space-y-4">
+          {error && (
+            <p role="alert" className="text-red-400 text-sm">
+              {error}
+            </p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white mb-1.5 block">
@@ -383,6 +452,52 @@ export function PortfolioManagementView({
             </div>
           </div>
 
+          <div className="grid sm:grid-cols-2 gap-4">
+            <label className="text-sm">
+              Description (English)
+              <textarea
+                className="w-full rounded-lg bg-white/5 border border-white/20 p-3"
+                rows={3}
+                value={descriptionEn}
+                onChange={(e) => setDescriptionEn(e.target.value)}
+              />
+            </label>
+            <label className="text-sm">
+              الوصف (عربي)
+              <textarea
+                className="w-full rounded-lg bg-white/5 border border-white/20 p-3"
+                rows={3}
+                value={descriptionAr}
+                onChange={(e) => setDescriptionAr(e.target.value)}
+              />
+            </label>
+            <label className="text-sm">
+              {locale === "ar" ? "الفيلم الكامل" : "Full film URL"}
+              <Input
+                value={fullVideo}
+                onChange={(e) => setFullVideo(e.target.value)}
+              />
+            </label>
+            <label className="text-sm">
+              {locale === "ar" ? "ترتيب العرض" : "Display order"}
+              <Input
+                type="number"
+                value={order}
+                onChange={(e) => setOrder(Number(e.target.value))}
+              />
+            </label>
+            <label className="text-sm sm:col-span-2">
+              {locale === "ar"
+                ? "صور المعرض (رابط لكل سطر)"
+                : "Gallery images (one URL per line)"}
+              <textarea
+                className="w-full rounded-lg bg-white/5 border border-white/20 p-3"
+                rows={3}
+                value={gallery}
+                onChange={(e) => setGallery(e.target.value)}
+              />
+            </label>
+          </div>
           <div className="pt-2 flex items-center gap-2">
             <input
               type="checkbox"

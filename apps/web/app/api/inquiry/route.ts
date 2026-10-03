@@ -1,110 +1,200 @@
 import { NextRequest, NextResponse } from "next/server";
-import { resolveIncomingLead, getCompanySettings } from "@ishoot/database";
+import { createHash } from "node:crypto";
 import {
-  sendEmail,
-  createInquiryConfirmationEmail,
-  createInquiryNotificationEmail,
-} from "@ishoot/email";
-import { getTranslations, type Locale } from "@ishoot/locales";
+  resolveIncomingLead,
+  getCompanySettings,
+  getWebsiteSnapshot,
+  db,
+  normalizeToE164,
+} from "@ishoot/database";
+import { sendEmail } from "@ishoot/email";
+import {
+  readSubmission,
+  textField,
+  submissionKey,
+} from "../../../lib/submissions";
 
+const escape = (value: string) =>
+  value.replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        char
+      ]!,
+  );
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const {
-      fullName,
+    const body = await readSubmission(req);
+    const intent = textField(body, "intent") || "inquiry";
+    if (
+      !["inquiry", "quote_request", "complaint", "suggestion"].includes(intent)
+    )
+      throw new Error("INVALID_INPUT");
+    const locale = textField(body, "locale") || "en";
+    if (!["en", "ar"].includes(locale)) throw new Error("INVALID_INPUT");
+    const name =
+      textField(body, "fullName", 200, intent !== "suggestion") ||
+      (locale === "ar" ? "اقتراح مجهول" : "Anonymous suggestion");
+    const email = textField(body, "email", 254).toLowerCase();
+    const phone = textField(body, "phone", 40);
+    if (
+      (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) ||
+      (phone && !normalizeToE164(phone)) ||
+      (intent !== "suggestion" && !email && !phone)
+    )
+      throw new Error("INVALID_INPUT");
+    const serviceIds = body.services ?? [];
+    if (
+      !Array.isArray(serviceIds) ||
+      serviceIds.length > 20 ||
+      serviceIds.some((id) => typeof id !== "string")
+    )
+      throw new Error("INVALID_INPUT");
+    const available = (await getWebsiteSnapshot()).services;
+    const selected = available.filter((service) =>
+      serviceIds.includes(service.id),
+    );
+    if (selected.length !== new Set(serviceIds).size)
+      throw new Error("INVALID_INPUT");
+    const services = selected.map((service) =>
+      locale === "ar" ? service.nameAr : service.nameEn,
+    );
+    const budget = textField(body, "budget", 100);
+    if (
+      ![
+        "",
+        "not_sure",
+        "under_500",
+        "500_1500",
+        "1500_5000",
+        "5000_plus",
+      ].includes(budget)
+    )
+      throw new Error("INVALID_INPUT");
+    const data = {
+      name,
       email,
       phone,
-      company,
-      services = [],
-      budget,
-      timeline,
-      message,
-      locale = "en",
-    } = body;
-
-    const localeKey: Locale = locale === "ar" ? "ar" : "en";
-    const trans = getTranslations(localeKey);
-
-    if (typeof fullName !== "string" || !fullName.trim() || fullName.length > 200
-      || typeof email !== "string" || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-      || typeof message !== "string" || !message.trim() || message.length > 10000
-      || !Array.isArray(services) || services.length > 20 || services.some((service: unknown) => typeof service !== "string" || service.length > 200)
-      || [phone, company, budget, timeline].some((value) => value !== undefined && (typeof value !== "string" || value.length > 500))
-      || !["en", "ar"].includes(locale)) {
-      return NextResponse.json(
-        { error: trans.api.inquiry.requiredFields },
-        { status: 400 },
-      );
-    }
-
-    const resolved = await resolveIncomingLead({
-      name: fullName,
-      email,
-      phone,
-      companyName: company,
+      intent: intent as
+        "inquiry" | "quote_request" | "complaint" | "suggestion",
+      locale,
+      companyName: textField(body, "company", 200),
       serviceType: services.join(", "),
-      budgetRange: budget,
-      timeline,
-      message,
-      source: "website",
-      locale,
+      serviceIds: selected.map((s) => s.id),
+      budgetRange:
+        (
+          {
+            not_sure: "Not sure",
+            under_500: "Under BHD 500",
+            "500_1500": "BHD 500–1,500",
+            "1500_5000": "BHD 1,500–5,000",
+            "5000_plus": "BHD 5,000+",
+          } as Record<string, string>
+        )[budget] || "",
+      timeline: textField(body, "timeline", 100),
+      message: textField(body, "message", 10000, true),
+      location: textField(body, "location", 300),
+      projectReference: textField(body, "projectReference", 200),
+    };
+    const key = submissionKey(body);
+    const resolved = await resolveIncomingLead({
+      ...data,
+      submissionKey: key,
+      requestHash: createHash("sha256")
+        .update(JSON.stringify(data))
+        .digest("hex"),
     });
-
-    const clientHtml = createInquiryConfirmationEmail(
-      fullName,
-      services,
-      locale,
-    );
-    const clientSubject = trans.email.confirmation.subject.replace(
-      "{companyName}",
-      company || trans.common.brandName,
-    );
-
-    const confirmationDelivery = await sendEmail({
-      to: email,
-      subject: clientSubject,
-      html: clientHtml,
-    });
-
-    const teamHtml = createInquiryNotificationEmail({
-      fullName,
-      email,
-      phone,
-      company,
-      services,
-      budget,
-      message,
-    });
-
-    const companySettings = await getCompanySettings();
-    const notificationRecipient = process.env.NOTIFICATION_EMAIL || companySettings.email;
-
-    if (notificationRecipient) {
-      const notificationSubject = trans.email.notification.subject.replace(
-        "{fullName}",
-        fullName,
-      );
-      await sendEmail({
-        to: notificationRecipient,
-        subject: notificationSubject,
-        html: teamHtml,
-      });
+    let confirmationSent = resolved.confirmationStatus === "sent";
+    if (!resolved.repeated) {
+      // Persistence succeeds independently of notification delivery. Never ask the visitor to resubmit a saved request.
+      const reference = escape(resolved.reference);
+      try {
+        const settings = await getCompanySettings();
+        const recipient = process.env.NOTIFICATION_EMAIL || settings.email;
+        const deliveries = await Promise.allSettled([
+          email
+            ? sendEmail({
+                to: email,
+                subject:
+                  locale === "ar"
+                    ? `استلمنا رسالتك — ${resolved.reference}`
+                    : `We received your message — ${resolved.reference}`,
+                html: `<div dir="${locale === "ar" ? "rtl" : "ltr"}"><p>${locale === "ar" ? "شكراً لتواصلك معنا. استلمنا رسالتك وسيراجعها فريقنا." : "Thank you for contacting us. Your message has been received and will be reviewed by our team."}</p><p>${reference}</p></div>`,
+              })
+            : Promise.resolve(null),
+          recipient
+            ? sendEmail({
+                to: recipient,
+                subject: `Website ${intent}: ${resolved.reference}`,
+                html: `<p>A new ${escape(intent.replaceAll("_", " "))} is waiting in the dashboard.</p><p>Reference: ${reference}</p>`,
+              })
+            : Promise.resolve(null),
+        ]);
+        const result = (index: number) =>
+          deliveries[index].status === "fulfilled"
+            ? deliveries[index].value
+            : null;
+        const confirmation = result(0);
+        const notification = result(1);
+        confirmationSent =
+          !!confirmation?.success && !!process.env.RESEND_API_KEY;
+        await db.inquiry.update({
+          where: { id: resolved.inquiryId },
+          data: {
+            confirmationStatus: !email
+              ? "not_requested"
+              : confirmationSent
+                ? "sent"
+                : "failed",
+            notificationStatus:
+              notification?.success && process.env.RESEND_API_KEY
+                ? "sent"
+                : "failed",
+            confirmationProviderId: confirmation?.id,
+            notificationProviderId: notification?.id,
+          },
+        });
+      } catch (error) {
+        console.error("Request saved; notification processing failed", error);
+        await db.inquiry
+          .update({
+            where: { id: resolved.inquiryId },
+            data: {
+              confirmationStatus: email ? "failed" : "not_requested",
+              notificationStatus: "failed",
+            },
+          })
+          .catch(() => {});
+      }
     }
-
     return NextResponse.json({
       success: true,
-      confirmationSent: confirmationDelivery.success,
-      inquiryId: resolved.inquiryId,
-      customerId: resolved.customerId,
-      resolution: resolved.resolution,
-      message: trans.api.inquiry.success,
+      reference: resolved.reference,
+      confirmationSent,
     });
   } catch (error) {
-    console.error("Inquiry API Error:", error);
-    const trans = getTranslations("en");
+    const message = error instanceof Error ? error.message : "";
+    const status =
+      message === "RATE_LIMIT"
+        ? 429
+        : [
+              "INVALID_INPUT",
+              "Invalid phone number",
+              "Submission key already used",
+            ].includes(message)
+          ? 400
+          : 500;
+    if (status === 500) console.error("Inquiry submission failed", error);
     return NextResponse.json(
-      { error: trans.api.inquiry.serverError },
-      { status: 500 },
+      {
+        error:
+          status === 429
+            ? "Please wait a minute before trying again."
+            : status === 400
+              ? "Check the required fields and contact details."
+              : "We could not save your message. Please try again.",
+      },
+      { status },
     );
   }
 }

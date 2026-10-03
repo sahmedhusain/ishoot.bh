@@ -52,9 +52,12 @@ export function FloatingScrollbar() {
     };
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
     setIsDragging(true);
 
     const startY = e.clientY;
@@ -64,10 +67,10 @@ export function FloatingScrollbar() {
     const totalScroll = scrollHeight - clientHeight;
     const availableTrack = clientHeight - thumbHeight - 16;
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
+    const handlePointerMove = (moveEvent: PointerEvent) => {
       moveEvent.preventDefault();
       const deltaY = moveEvent.clientY - startY;
-      const scrollRatio = deltaY / availableTrack;
+      const scrollRatio = deltaY / Math.max(1, availableTrack);
       const targetScroll = Math.min(
         totalScroll,
         Math.max(0, startScroll + scrollRatio * totalScroll),
@@ -75,14 +78,19 @@ export function FloatingScrollbar() {
       window.scrollTo({ top: targetScroll, behavior: "instant" });
     };
 
-    const handleMouseUp = () => {
+    const handlePointerUp = (upEvent: PointerEvent) => {
       setIsDragging(false);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      try {
+        (e.target as HTMLElement).releasePointerCapture(upEvent.pointerId);
+      } catch {}
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
   };
 
   const handleTrackClick = (e: React.MouseEvent) => {
@@ -111,14 +119,14 @@ export function FloatingScrollbar() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       aria-hidden="true"
-      className="fixed top-0 bottom-0 end-1 z-[9999] w-4 flex justify-center pointer-events-auto select-none"
+      className="fixed top-0 bottom-0 end-1 z-[9999] w-4 flex justify-center pointer-events-auto select-none touch-none"
       style={{
         background: "transparent",
       }}
     >
       <div
-        onMouseDown={handleMouseDown}
-        className={`w-1.5 rounded-full cursor-grab active:cursor-grabbing transition-all duration-300 ease-out will-change-transform ${
+        onPointerDown={handlePointerDown}
+        className={`w-1.5 rounded-full cursor-grab active:cursor-grabbing transition-all duration-300 ease-out will-change-transform touch-none ${
           isVisible
             ? "opacity-100 scale-x-100"
             : "opacity-0 scale-x-50 pointer-events-none"

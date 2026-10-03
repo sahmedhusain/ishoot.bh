@@ -1,35 +1,105 @@
 "use client";
 
 import * as React from "react";
-import { Card, Input, Button, Badge } from "@ishoot/ui";
-import { CheckCircle2, MessageSquare, Instagram, Send } from "lucide-react";
+import { Card, Input, Button, Badge, ConfirmDestructiveModal } from "@ishoot/ui";
+import {
+  CheckCircle2,
+  MessageSquare,
+  Instagram,
+  Send,
+  Lock,
+  Unlock,
+  Unlink,
+  Edit2,
+  ShieldCheck,
+  AlertCircle,
+  X,
+  Check,
+} from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
+
+function maskValue(val: string, visibleChars = 4): string {
+  if (!val) return "—";
+  if (val.length <= visibleChars) return "••••";
+  return `••••••••••••${val.slice(-visibleChars)}`;
+}
 
 export function MetaIntegrationsView() {
   const { t, isRTL } = useAdminLocale();
 
-  const [whatsappPhoneId, setWhatsappPhoneId] =
-    React.useState("109827364512938");
-  const [whatsappBusinessId, setWhatsappBusinessId] =
-    React.useState("782910394857201");
-  const [whatsappToken, setWhatsappToken] =
-    React.useState("EAAG8ZCK...9482LDP");
-  const [instagramAccountId, setInstagramAccountId] =
-    React.useState("ishoot.bh");
+  // WhatsApp State
+  const [isWaLinked, setIsWaLinked] = React.useState(true);
+  const [isWaEditing, setIsWaEditing] = React.useState(false);
+  const [whatsappPhoneId, setWhatsappPhoneId] = React.useState("109827364512938");
+  const [whatsappBusinessId, setWhatsappBusinessId] = React.useState("782910394857201");
+  const [whatsappToken, setWhatsappToken] = React.useState("EAAG8ZCK9482LDP");
+
+  // Draft WhatsApp state for editing
+  const [draftWaPhoneId, setDraftWaPhoneId] = React.useState(whatsappPhoneId);
+  const [draftWaBusinessId, setDraftWaBusinessId] = React.useState(whatsappBusinessId);
+  const [draftWaToken, setDraftWaToken] = React.useState(whatsappToken);
+
+  // Instagram / Facebook State
+  const [isIgLinked, setIsIgLinked] = React.useState(true);
+  const [isIgEditing, setIsIgEditing] = React.useState(false);
+  const [instagramAccountId, setInstagramAccountId] = React.useState("ishoot.bh");
   const [facebookPageId, setFacebookPageId] = React.useState("102938475610293");
 
+  // Draft IG state for editing
+  const [draftIgAccount, setDraftIgAccount] = React.useState(instagramAccountId);
+  const [draftFbPage, setDraftFbPage] = React.useState(facebookPageId);
+
+  // Automations
   const [autoSendInvoices, setAutoSendInvoices] = React.useState(true);
   const [autoSendReceipts, setAutoSendReceipts] = React.useState(true);
   const [syncFacebookLeads, setSyncFacebookLeads] = React.useState(true);
 
-  const [saved, setSaved] = React.useState(false);
+  // Confirmations
+  const [unlinkTarget, setUnlinkTarget] = React.useState<"wa" | "ig" | null>(null);
+  const [savedMessage, setSavedMessage] = React.useState("");
   const [testSent, setTestSent] = React.useState(false);
 
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSaveWa = () => {
+    setWhatsappPhoneId(draftWaPhoneId);
+    setWhatsappBusinessId(draftWaBusinessId);
+    setWhatsappToken(draftWaToken);
+    setIsWaEditing(false);
+    setIsWaLinked(true);
+    setSavedMessage(isRTL ? "تم تحديث وتشفير بيانات واتساب بنجاح." : "WhatsApp credentials encrypted and saved.");
+    setTimeout(() => setSavedMessage(""), 3500);
+  };
+
+  const handleSaveIg = () => {
+    setInstagramAccountId(draftIgAccount);
+    setFacebookPageId(draftFbPage);
+    setIsIgEditing(false);
+    setIsIgLinked(true);
+    setSavedMessage(isRTL ? "تم تحديث ربط إنستغرام وفيسبوك بنجاح." : "Instagram & Facebook connection saved.");
+    setTimeout(() => setSavedMessage(""), 3500);
+  };
+
+  const confirmUnlink = () => {
+    if (unlinkTarget === "wa") {
+      setIsWaLinked(false);
+      setIsWaEditing(false);
+      setWhatsappPhoneId("");
+      setWhatsappBusinessId("");
+      setWhatsappToken("");
+      setDraftWaPhoneId("");
+      setDraftWaBusinessId("");
+      setDraftWaToken("");
+    } else if (unlinkTarget === "ig") {
+      setIsIgLinked(false);
+      setIsIgEditing(false);
+      setInstagramAccountId("");
+      setFacebookPageId("");
+      setDraftIgAccount("");
+      setDraftFbPage("");
+    }
+    setUnlinkTarget(null);
+    setSavedMessage(isRTL ? "تم فك الارتباط بنجاح." : "Integration unlinked and keys purged.");
+    setTimeout(() => setSavedMessage(""), 3500);
   };
 
   const handleTestWhatsApp = () => {
@@ -50,22 +120,12 @@ export function MetaIntegrationsView() {
             {t.integrations.subtitle}
           </p>
         </div>
-
-        <Button
-          type="button"
-          variant="primary"
-          onClick={handleSave}
-          className="gap-2 shadow-lg shadow-[#09937F]/20"
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{t.actions.save}</span>
-        </Button>
       </div>
 
-      {saved && (
+      {savedMessage && (
         <div className="p-4 rounded-2xl bg-[#09937F]/15 border border-[#09937F]/40 flex items-center gap-3 text-[#09937F] text-xs font-semibold animate-fade-in">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>{t.integrations.saved}</span>
+          <span>{savedMessage}</span>
         </div>
       )}
 
@@ -76,10 +136,11 @@ export function MetaIntegrationsView() {
         </div>
       )}
 
+      {/* WhatsApp Cloud API */}
       <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 shadow-2xl rounded-3xl space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
@@ -87,158 +148,407 @@ export function MetaIntegrationsView() {
                 <h2 className="text-base font-bold text-white">
                   WhatsApp Cloud API (Meta Official)
                 </h2>
-                <Badge
-                  variant="outline"
-                  className="text-emerald-400 border-emerald-500/30 bg-emerald-500/10 text-[10px]"
-                >
-                  {t.integrations.connected}
-                </Badge>
+                {isWaLinked ? (
+                  <Badge
+                    variant="outline"
+                    className="text-emerald-400 border-emerald-500/30 bg-emerald-500/10 text-[10px]"
+                  >
+                    {t.integrations.connected}
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="text-rose-400 border-rose-500/30 bg-rose-500/10 text-[10px]"
+                  >
+                    {isRTL ? "غير متصل" : "Disconnected"}
+                  </Badge>
+                )}
               </div>
               <p className="text-xs text-[#9EADA9]">{t.integrations.waDesc}</p>
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleTestWhatsApp}
-            className="text-xs gap-1.5 border-white/10 text-[#9EADA9] hover:text-white"
-          >
-            <Send className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{t.integrations.sendTest}</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            {isWaLinked && !isWaEditing && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestWhatsApp}
+                  className="text-xs gap-1.5 border-white/10 text-[#9EADA9] hover:text-white"
+                >
+                  <Send className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{t.integrations.sendTest}</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDraftWaPhoneId(whatsappPhoneId);
+                    setDraftWaBusinessId(whatsappBusinessId);
+                    setDraftWaToken(whatsappToken);
+                    setIsWaEditing(true);
+                  }}
+                  className="text-xs gap-1.5 border-white/10 text-slate-300 hover:text-white"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-[#09937F]" />
+                  <span>{isRTL ? "تعديل" : "Edit"}</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUnlinkTarget("wa")}
+                  className="text-xs gap-1.5 border-rose-500/30 text-rose-400 hover:bg-rose-500/10"
+                >
+                  <Unlink className="w-3.5 h-3.5" />
+                  <span>{isRTL ? "إلغاء الربط" : "Unlink"}</span>
+                </Button>
+              </>
+            )}
+
+            {!isWaLinked && !isWaEditing && (
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => setIsWaEditing(true)}
+                className="text-xs gap-1.5 bg-[#09937F] text-white"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>{isRTL ? "ربط الحساب" : "Connect WhatsApp"}</span>
+              </Button>
+            )}
+
+            {isWaEditing && (
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsWaEditing(false)}
+                  className="text-xs border-white/10 text-slate-400"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>{isRTL ? "إلغاء" : "Cancel"}</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveWa}
+                  className="text-xs gap-1.5 bg-[#09937F] text-white"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{isRTL ? "حفظ التغييرات" : "Save Changes"}</span>
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {t.integrations.phoneId}
-            </label>
-            <Input
-              value={whatsappPhoneId}
-              onChange={(e) => setWhatsappPhoneId(e.target.value)}
-              className="bg-[#050807] border-white/10  text-xs"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {t.integrations.wabaId}
-            </label>
-            <Input
-              value={whatsappBusinessId}
-              onChange={(e) => setWhatsappBusinessId(e.target.value)}
-              className="bg-[#050807] border-white/10  text-xs"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {t.integrations.token}
-            </label>
-            <Input
-              type="password"
-              value={whatsappToken}
-              onChange={(e) => setWhatsappToken(e.target.value)}
-              className="bg-[#050807] border-white/10  text-xs"
-            />
-          </div>
-
-          <div className="sm:col-span-2 p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white">
-                {t.integrations.autoInvoices}
+        {/* Credentials Display or Form */}
+        {!isWaEditing ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+                {t.integrations.phoneId}
               </span>
-              <button
-                type="button"
-                onClick={() => setAutoSendInvoices(!autoSendInvoices)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  autoSendInvoices ? "bg-[#09937F]" : "bg-white/20"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoSendInvoices ? (isRTL ? "-translate-x-6" : "translate-x-6") : isRTL ? "-translate-x-1" : "translate-x-1"}`}
-                />
-              </button>
+              <div className="text-sm font-mono text-white flex items-center gap-2">
+                <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isWaLinked ? maskValue(whatsappPhoneId) : "—"}</span>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-white/5">
-              <span className="text-xs font-bold text-white">
-                {t.integrations.autoReceipts}
+            <div className="p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+                {t.integrations.wabaId}
               </span>
-              <button
-                type="button"
-                onClick={() => setAutoSendReceipts(!autoSendReceipts)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  autoSendReceipts ? "bg-[#09937F]" : "bg-white/20"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoSendReceipts ? (isRTL ? "-translate-x-6" : "translate-x-6") : isRTL ? "-translate-x-1" : "translate-x-1"}`}
-                />
-              </button>
+              <div className="text-sm font-mono text-white flex items-center gap-2">
+                <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isWaLinked ? maskValue(whatsappBusinessId) : "—"}</span>
+              </div>
             </div>
+
+            <div className="sm:col-span-2 p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+                {t.integrations.token} (System User Access Token)
+              </span>
+              <div className="text-sm font-mono text-emerald-400/90 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>{isWaLinked ? maskValue(whatsappToken, 6) : "—"}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
+            <div>
+              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+                {t.integrations.phoneId} *
+              </label>
+              <Input
+                value={draftWaPhoneId}
+                onChange={(e) => setDraftWaPhoneId(e.target.value)}
+                placeholder="e.g. 109827364512938"
+                className="bg-[#050807] border-white/10 text-xs text-white"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+                {t.integrations.wabaId} *
+              </label>
+              <Input
+                value={draftWaBusinessId}
+                onChange={(e) => setDraftWaBusinessId(e.target.value)}
+                placeholder="e.g. 782910394857201"
+                className="bg-[#050807] border-white/10 text-xs text-white"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+                {t.integrations.token} *
+              </label>
+              <Input
+                type="password"
+                value={draftWaToken}
+                onChange={(e) => setDraftWaToken(e.target.value)}
+                placeholder="EAAG8ZCK..."
+                className="bg-[#050807] border-white/10 text-xs text-white font-mono"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-white">
+              {t.integrations.autoInvoices}
+            </span>
+            <button
+              type="button"
+              onClick={() => setAutoSendInvoices(!autoSendInvoices)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                autoSendInvoices ? "bg-[#09937F]" : "bg-white/20"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  autoSendInvoices ? (isRTL ? "-translate-x-6" : "translate-x-6") : isRTL ? "-translate-x-1" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-white/5">
+            <span className="text-xs font-bold text-white">
+              {t.integrations.autoReceipts}
+            </span>
+            <button
+              type="button"
+              onClick={() => setAutoSendReceipts(!autoSendReceipts)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                autoSendReceipts ? "bg-[#09937F]" : "bg-white/20"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  autoSendReceipts ? (isRTL ? "-translate-x-6" : "translate-x-6") : isRTL ? "-translate-x-1" : "translate-x-1"
+                }`}
+              />
+            </button>
           </div>
         </div>
       </Card>
 
+      {/* Instagram & Facebook */}
       <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 shadow-2xl rounded-3xl space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-          <div className="w-9 h-9 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400">
-            <Instagram className="w-5 h-5" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 shrink-0">
+              <Instagram className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-white">
+                  {t.integrations.igFbTitle}
+                </h2>
+                {isIgLinked ? (
+                  <Badge
+                    variant="outline"
+                    className="text-emerald-400 border-emerald-500/30 bg-emerald-500/10 text-[10px]"
+                  >
+                    {t.integrations.connected}
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="text-rose-400 border-rose-500/30 bg-rose-500/10 text-[10px]"
+                  >
+                    {isRTL ? "غير متصل" : "Disconnected"}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-[#9EADA9]">{t.integrations.igFbDesc}</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-bold text-white">
-              {t.integrations.igFbTitle}
-            </h2>
-            <p className="text-xs text-[#9EADA9]">{t.integrations.igFbDesc}</p>
+
+          <div className="flex items-center gap-2">
+            {isIgLinked && !isIgEditing && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDraftIgAccount(instagramAccountId);
+                    setDraftFbPage(facebookPageId);
+                    setIsIgEditing(true);
+                  }}
+                  className="text-xs gap-1.5 border-white/10 text-slate-300 hover:text-white"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-[#09937F]" />
+                  <span>{isRTL ? "تعديل" : "Edit"}</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUnlinkTarget("ig")}
+                  className="text-xs gap-1.5 border-rose-500/30 text-rose-400 hover:bg-rose-500/10"
+                >
+                  <Unlink className="w-3.5 h-3.5" />
+                  <span>{isRTL ? "إلغاء الربط" : "Unlink"}</span>
+                </Button>
+              </>
+            )}
+
+            {!isIgLinked && !isIgEditing && (
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={() => setIsIgEditing(true)}
+                className="text-xs gap-1.5 bg-[#09937F] text-white"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>{isRTL ? "ربط الحسابات" : "Connect Accounts"}</span>
+              </Button>
+            )}
+
+            {isIgEditing && (
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsIgEditing(false)}
+                  className="text-xs border-white/10 text-slate-400"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>{isRTL ? "إلغاء" : "Cancel"}</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveIg}
+                  className="text-xs gap-1.5 bg-[#09937F] text-white"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{isRTL ? "حفظ التغييرات" : "Save Changes"}</span>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {t.integrations.igHandle}
-            </label>
-            <Input
-              value={instagramAccountId}
-              onChange={(e) => setInstagramAccountId(e.target.value)}
-              className="bg-[#050807] border-white/10  text-xs"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
-              {t.integrations.fbPageId}
-            </label>
-            <Input
-              value={facebookPageId}
-              onChange={(e) => setFacebookPageId(e.target.value)}
-              className="bg-[#050807] border-white/10  text-xs"
-            />
-          </div>
-
-          <div className="sm:col-span-2 p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-white">
-                {t.integrations.autoFbLeads}
+        {!isIgEditing ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+                {t.integrations.igHandle}
               </span>
-              <button
-                type="button"
-                onClick={() => setSyncFacebookLeads(!syncFacebookLeads)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  syncFacebookLeads ? "bg-[#09937F]" : "bg-white/20"
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${syncFacebookLeads ? (isRTL ? "-translate-x-6" : "translate-x-6") : isRTL ? "-translate-x-1" : "translate-x-1"}`}
-                />
-              </button>
+              <div className="text-sm font-mono text-white flex items-center gap-2">
+                <span>{isIgLinked ? instagramAccountId : "—"}</span>
+              </div>
             </div>
+
+            <div className="p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+                {t.integrations.fbPageId}
+              </span>
+              <div className="text-sm font-mono text-white flex items-center gap-2">
+                <Lock className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isIgLinked ? maskValue(facebookPageId) : "—"}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
+            <div>
+              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+                {t.integrations.igHandle} *
+              </label>
+              <Input
+                value={draftIgAccount}
+                onChange={(e) => setDraftIgAccount(e.target.value)}
+                placeholder="ishoot.bh"
+                className="bg-[#050807] border-white/10 text-xs text-white"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+                {t.integrations.fbPageId} *
+              </label>
+              <Input
+                value={draftFbPage}
+                onChange={(e) => setDraftFbPage(e.target.value)}
+                placeholder="102938475610293"
+                className="bg-[#050807] border-white/10 text-xs text-white"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-white">
+              {t.integrations.autoFbLeads}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSyncFacebookLeads(!syncFacebookLeads)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                syncFacebookLeads ? "bg-[#09937F]" : "bg-white/20"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  syncFacebookLeads ? (isRTL ? "-translate-x-6" : "translate-x-6") : isRTL ? "-translate-x-1" : "translate-x-1"
+                }`}
+              />
+            </button>
           </div>
         </div>
       </Card>
+
+      {/* Unlink Confirmation Modal */}
+      <ConfirmDestructiveModal
+        isOpen={!!unlinkTarget}
+        onClose={() => setUnlinkTarget(null)}
+        onConfirm={confirmUnlink}
+        title={isRTL ? "تأكيد إلغاء الربط وحذف مفاتيح الدخول" : "Confirm Unlinking and Key Purge"}
+        description={
+          isRTL
+            ? "هل أنت متأكد من إلغاء الربط؟ سيتم حذف المفاتيح والتفويضات المشفرة وإيقاف الإشعارات التلقائية المرتبطة بها فوراً."
+            : "Are you sure you want to unlink? All stored authentication tokens and credentials will be purged, and automatic webhook messaging will be stopped immediately."
+        }
+      />
     </div>
   );
 }

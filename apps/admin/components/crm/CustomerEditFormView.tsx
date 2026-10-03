@@ -8,6 +8,7 @@ import { Card, Button, Input, Select } from "@ishoot/ui";
 import { ArrowLeft, CheckCircle2, UserCog } from "lucide-react";
 import { updateContactAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { EditConfirmModal, type FieldChange } from "../shared/EditConfirmModal";
 
 interface CustomerEditFormViewProps {
   contact: CRMContact;
@@ -15,7 +16,7 @@ interface CustomerEditFormViewProps {
 
 export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
   const router = useRouter();
-  const { t } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
 
   const [fullName, setFullName] = React.useState(contact.full_name || "");
   const [company, setCompany] = React.useState(contact.company || "");
@@ -30,12 +31,61 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
   );
   const [notes, setNotes] = React.useState(contact.notes || "");
   const [saving, setSaving] = React.useState(false);
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const changes: FieldChange[] = React.useMemo(() => [
+    {
+      field: "full_name",
+      label: isRTL ? "الاسم الكامل" : "Full Name",
+      oldValue: contact.full_name,
+      newValue: fullName,
+    },
+    {
+      field: "company",
+      label: isRTL ? "الشركة" : "Company",
+      oldValue: contact.company || "",
+      newValue: company,
+    },
+    {
+      field: "email",
+      label: isRTL ? "البريد الإلكتروني" : "Email",
+      oldValue: contact.email || "",
+      newValue: email,
+    },
+    {
+      field: "phone",
+      label: isRTL ? "رقم الهاتف" : "Phone",
+      oldValue: contact.phone || "",
+      newValue: phone,
+    },
+    {
+      field: "job_title",
+      label: isRTL ? "المسمى الوظيفي" : "Job Title",
+      oldValue: contact.job_title || "",
+      newValue: jobTitle,
+    },
+    {
+      field: "contact_type",
+      label: isRTL ? "نوع جهة الاتصال" : "Contact Type",
+      oldValue: contact.contact_type || "client",
+      newValue: contactType,
+    },
+    {
+      field: "notes",
+      label: isRTL ? "الملاحظات" : "Notes",
+      oldValue: contact.notes || "",
+      newValue: notes,
+    },
+  ], [contact, fullName, company, email, phone, jobTitle, contactType, notes, isRTL]);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName) return;
-    setSaving(true);
+    if (!fullName || saving) return;
+    setShowConfirmModal(true);
+  };
 
+  const handleConfirmedSave = async () => {
+    setSaving(true);
     try {
       await updateContactAction(contact.id, {
         full_name: fullName,
@@ -52,6 +102,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
       console.error("Failed to update customer:", err);
     } finally {
       setSaving(false);
+      setShowConfirmModal(false);
     }
   };
 
@@ -188,6 +239,16 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
           </div>
         </form>
       </Card>
+
+      <EditConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmedSave}
+        changes={changes}
+        isSaving={saving}
+        title={isRTL ? `تأكيد تعديل بيانات العميل: ${contact.full_name}` : `Confirm Edit on Client: ${contact.full_name}`}
+        description={isRTL ? "راجع تفاصيل التغييرات على بيانات العميل قبل حفظها في النظام:" : "Review the updated client fields before saving changes to CRM:"}
+      />
     </div>
   );
 }

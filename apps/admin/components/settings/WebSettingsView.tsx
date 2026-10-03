@@ -63,26 +63,40 @@ interface WebSettingsViewProps {
 export function WebSettingsView({
   initialSettings,
   cmsCounts,
-socialLinks = [],
+  socialLinks = [],
 }: WebSettingsViewProps) {
   const { isRTL, t } = useAdminLocale();
-  const [settings, setSettings] = React.useState<CompanySettings>(initialSettings);
-  const [activeTab, setActiveTab] = React.useState<"hero" | "narrative" | "legal" | "social" | "cms">("hero");
+  const [settings, setSettings] =
+    React.useState<CompanySettings>(initialSettings);
+  const [activeTab, setActiveTab] = React.useState<
+    "hero" | "narrative" | "legal" | "social" | "cms"
+  >("hero");
   const [links, setLinks] = React.useState<SocialLink[]>(socialLinks);
-  const [newLink, setNewLink] = React.useState({ platform: "", url: "", icon: "", is_active: true, display_order: 0 });
+  const [newLink, setNewLink] = React.useState({
+    platform: "",
+    url: "",
+    icon: "",
+    is_active: true,
+    display_order: 0,
+  });
   const [isSaving, setIsSaving] = React.useState(false);
   const [isRevalidating, setIsRevalidating] = React.useState(false);
   const [saveSuccess, setSaveSuccess] = React.useState(false);
   const [revalidateSuccess, setRevalidateSuccess] = React.useState(false);
 
-  
   const handleAddSocialLink = async () => {
     if (!newLink.platform || !newLink.url) return;
     try {
       const res = await createSocialLinkAction(newLink);
       if (res.success) {
         setLinks([...links, res.link]);
-        setNewLink({ platform: "", url: "", icon: "", is_active: true, display_order: 0 });
+        setNewLink({
+          platform: "",
+          url: "",
+          icon: "",
+          is_active: true,
+          display_order: 0,
+        });
       }
     } catch (e) {}
   };
@@ -91,7 +105,7 @@ socialLinks = [],
     try {
       const res = await updateSocialLinkAction(id, { is_active: !current });
       if (res.success) {
-        setLinks(links.map(l => l.id === id ? res.link : l));
+        setLinks(links.map((l) => (l.id === id ? res.link : l)));
       }
     } catch (e) {}
   };
@@ -99,7 +113,7 @@ socialLinks = [],
   const handleDeleteSocialLink = async (id: string) => {
     try {
       await deleteSocialLinkAction(id);
-      setLinks(links.filter(l => l.id !== id));
+      setLinks(links.filter((l) => l.id !== id));
     } catch (e) {}
   };
 
@@ -141,6 +155,14 @@ socialLinks = [],
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-fade-in select-none">
+      <Link
+        href="/dashboard/cms/website"
+        className="block rounded-xl bg-emerald-900 text-white p-5 font-semibold"
+      >
+        {isRTL
+          ? "تحرير الموقع والمعاينة والنشر ←"
+          : "Website editor, preview & publishing →"}
+      </Link>
       {/* Top Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -166,7 +188,11 @@ socialLinks = [],
             <RefreshCw
               className={`w-3.5 h-3.5 ${isRevalidating ? "animate-spin text-[#09937F]" : ""}`}
             />
-            <span>{revalidateSuccess ? t.webSettingsView.cachePurged : t.webSettingsView.purgeCache}</span>
+            <span>
+              {revalidateSuccess
+                ? t.webSettingsView.cachePurged
+                : t.webSettingsView.purgeCache}
+            </span>
           </button>
 
           <a
@@ -282,7 +308,12 @@ socialLinks = [],
                   href="/dashboard/cms/banners"
                   className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-neutral-300 inline-flex items-center gap-1.5 transition-colors"
                 >
-                  <span>{t.webSettingsView.manageBanners.replace("{count}", String(cmsCounts.banners))}</span>
+                  <span>
+                    {t.webSettingsView.manageBanners.replace(
+                      "{count}",
+                      String(cmsCounts.banners),
+                    )}
+                  </span>
                   <ExternalLink className="w-3 h-3 text-slate-400" />
                 </Link>
               </div>
@@ -295,7 +326,10 @@ socialLinks = [],
                   <Input
                     value={settings.company_name_en}
                     onChange={(e) =>
-                      setSettings({ ...settings, company_name_en: e.target.value })
+                      setSettings({
+                        ...settings,
+                        company_name_en: e.target.value,
+                      })
                     }
                   />
                 </div>
@@ -307,7 +341,10 @@ socialLinks = [],
                   <Input
                     value={settings.company_name_ar}
                     onChange={(e) =>
-                      setSettings({ ...settings, company_name_ar: e.target.value })
+                      setSettings({
+                        ...settings,
+                        company_name_ar: e.target.value,
+                      })
                     }
                     className="text-right font-arabic"
                   />
@@ -508,7 +545,6 @@ socialLinks = [],
           </div>
         )}
 
-        
         {/* TAB 2.5: Legal & Rules */}
         {activeTab === "legal" && (
           <div className="space-y-6">
@@ -522,7 +558,8 @@ socialLinks = [],
                     Terms & Rules
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-neutral-400">
-                    Manage the terms and conditions and rules of production displayed on the website.
+                    Manage the terms and conditions and rules of production
+                    displayed on the website.
                   </p>
                 </div>
               </div>
@@ -535,7 +572,9 @@ socialLinks = [],
                   <Textarea
                     rows={6}
                     value={settings.terms_en || ""}
-                    onChange={(e) => setSettings({ ...settings, terms_en: e.target.value })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, terms_en: e.target.value })
+                    }
                   />
                 </div>
 
@@ -546,7 +585,9 @@ socialLinks = [],
                   <Textarea
                     rows={6}
                     value={settings.terms_ar || ""}
-                    onChange={(e) => setSettings({ ...settings, terms_ar: e.target.value })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, terms_ar: e.target.value })
+                    }
                     className="text-right font-arabic"
                   />
                 </div>
@@ -558,7 +599,9 @@ socialLinks = [],
                   <Textarea
                     rows={6}
                     value={settings.rules_en || ""}
-                    onChange={(e) => setSettings({ ...settings, rules_en: e.target.value })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, rules_en: e.target.value })
+                    }
                   />
                 </div>
 
@@ -569,7 +612,9 @@ socialLinks = [],
                   <Textarea
                     rows={6}
                     value={settings.rules_ar || ""}
-                    onChange={(e) => setSettings({ ...settings, rules_ar: e.target.value })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, rules_ar: e.target.value })
+                    }
                     className="text-right font-arabic"
                   />
                 </div>
@@ -578,7 +623,6 @@ socialLinks = [],
           </div>
         )}
 
-        
         {/* TAB 3: Contact & Social Channels */}
         {activeTab === "social" && (
           <div className="space-y-6">
@@ -600,27 +644,47 @@ socialLinks = [],
               <div className="space-y-4">
                 <div className="flex gap-2 items-end">
                   <div className="flex-1 space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500">Platform</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-500">
+                      Platform
+                    </label>
                     <PlatformPicker
                       platform={newLink.platform}
                       onPlatformChange={(name, icon) => {
-                        setNewLink(prev => ({
+                        setNewLink((prev) => ({
                           ...prev,
                           platform: name,
-                          icon: icon || prev.icon
+                          icon: icon || prev.icon,
                         }));
                       }}
                     />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500">URL</label>
-                    <Input placeholder="https://..." value={newLink.url} onChange={e => setNewLink({...newLink, url: e.target.value})} />
+                    <label className="text-[10px] uppercase font-bold text-slate-500">
+                      URL
+                    </label>
+                    <Input
+                      placeholder="https://..."
+                      value={newLink.url}
+                      onChange={(e) =>
+                        setNewLink({ ...newLink, url: e.target.value })
+                      }
+                    />
                   </div>
                   <div className="w-32 space-y-1">
-                    <label className="text-[10px] uppercase font-bold text-slate-500">Icon (Optional)</label>
-                    <IconPicker value={newLink.icon} onChange={val => setNewLink({...newLink, icon: val})} placeholder="e.g. Instagram" />
+                    <label className="text-[10px] uppercase font-bold text-slate-500">
+                      Icon (Optional)
+                    </label>
+                    <IconPicker
+                      value={newLink.icon}
+                      onChange={(val) => setNewLink({ ...newLink, icon: val })}
+                      placeholder="e.g. Instagram"
+                    />
                   </div>
-                  <button type="button" onClick={handleAddSocialLink} className="h-10 px-4 rounded-xl bg-[#09937F] text-white text-xs font-bold hover:bg-[#0BB49B] transition-colors">
+                  <button
+                    type="button"
+                    onClick={handleAddSocialLink}
+                    className="h-10 px-4 rounded-xl bg-[#09937F] text-white text-xs font-bold hover:bg-[#0BB49B] transition-colors"
+                  >
                     Add Link
                   </button>
                 </div>
@@ -631,29 +695,57 @@ socialLinks = [],
                       <tr>
                         <th className="px-4 py-3 font-semibold">Platform</th>
                         <th className="px-4 py-3 font-semibold">URL</th>
-                        <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                        <th className="px-4 py-3 font-semibold text-right">
+                          Actions
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-white/5">
-                      {links.map(link => (
-                        <tr key={link.id} className="bg-white dark:bg-[#0B1210]">
+                      {links.map((link) => (
+                        <tr
+                          key={link.id}
+                          className="bg-white dark:bg-[#0B1210]"
+                        >
                           <td className="px-4 py-3 font-medium flex items-center gap-2">
                             {link.platform}
-                            {!link.is_active && <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-500">Hidden</span>}
+                            {!link.is_active && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-500">
+                                Hidden
+                              </span>
+                            )}
                           </td>
-                          <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">{link.url}</td>
+                          <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">
+                            {link.url}
+                          </td>
                           <td className="px-4 py-3 text-right space-x-2">
-                            <button type="button" onClick={() => handleToggleSocialLink(link.id, link.is_active)} className="text-xs text-slate-500 hover:text-white">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleToggleSocialLink(link.id, link.is_active)
+                              }
+                              className="text-xs text-slate-500 hover:text-white"
+                            >
                               {link.is_active ? "Hide" : "Show"}
                             </button>
-                            <button type="button" onClick={() => handleDeleteSocialLink(link.id)} className="text-xs text-rose-500 hover:text-rose-400">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSocialLink(link.id)}
+                              className="text-xs text-rose-500 hover:text-rose-400"
+                            >
                               Delete
                             </button>
                           </td>
                         </tr>
                       ))}
                       {links.length === 0 && (
-                        <tr><td colSpan={3} className="px-4 py-8 text-center text-slate-500 text-xs">No social links added yet.</td></tr>
+                        <tr>
+                          <td
+                            colSpan={3}
+                            className="px-4 py-8 text-center text-slate-500 text-xs"
+                          >
+                            No social links added yet.
+                          </td>
+                        </tr>
                       )}
                     </tbody>
                   </table>
@@ -686,7 +778,10 @@ socialLinks = [],
                     placeholder={t.webSettingsView.phonePlaceholder}
                     value={settings.whatsapp_phone || ""}
                     onChange={(e) =>
-                      setSettings({ ...settings, whatsapp_phone: e.target.value })
+                      setSettings({
+                        ...settings,
+                        whatsapp_phone: e.target.value,
+                      })
                     }
                     dir="ltr"
                   />
@@ -783,7 +878,10 @@ socialLinks = [],
                         {t.webSettingsView.manageShowcaseBanners}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsSlidesConfigured.replace("{count}", String(cmsCounts.banners))}
+                        {t.webSettingsView.cmsSlidesConfigured.replace(
+                          "{count}",
+                          String(cmsCounts.banners),
+                        )}
                       </div>
                     </div>
                   </div>
@@ -803,7 +901,10 @@ socialLinks = [],
                         {t.webSettingsView.managePortfolio}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsProjectsPublished.replace("{count}", String(cmsCounts.portfolio))}
+                        {t.webSettingsView.cmsProjectsPublished.replace(
+                          "{count}",
+                          String(cmsCounts.portfolio),
+                        )}
                       </div>
                     </div>
                   </div>
@@ -823,7 +924,10 @@ socialLinks = [],
                         {t.webSettingsView.manageClients}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsPartnerLogos.replace("{count}", String(cmsCounts.clients))}
+                        {t.webSettingsView.cmsPartnerLogos.replace(
+                          "{count}",
+                          String(cmsCounts.clients),
+                        )}
                       </div>
                     </div>
                   </div>
@@ -843,7 +947,10 @@ socialLinks = [],
                         {t.webSettingsView.manageEquipment}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsCameraSystems.replace("{count}", String(cmsCounts.equipment))}
+                        {t.webSettingsView.cmsCameraSystems.replace(
+                          "{count}",
+                          String(cmsCounts.equipment),
+                        )}
                       </div>
                     </div>
                   </div>
@@ -863,12 +970,18 @@ socialLinks = [],
                         <span>{t.webSettingsView.manageReviews}</span>
                         {cmsCounts.pendingReviews > 0 && (
                           <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white">
-                            {t.webSettingsView.cmsNewBadge.replace("{count}", String(cmsCounts.pendingReviews))}
+                            {t.webSettingsView.cmsNewBadge.replace(
+                              "{count}",
+                              String(cmsCounts.pendingReviews),
+                            )}
                           </span>
                         )}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsClientReviews.replace("{count}", String(cmsCounts.reviews))}
+                        {t.webSettingsView.cmsClientReviews.replace(
+                          "{count}",
+                          String(cmsCounts.reviews),
+                        )}
                       </div>
                     </div>
                   </div>
@@ -888,7 +1001,10 @@ socialLinks = [],
                         {t.webSettingsView.manageFaqs}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsQuestionsConfigured.replace("{count}", String(cmsCounts.faqs))}
+                        {t.webSettingsView.cmsQuestionsConfigured.replace(
+                          "{count}",
+                          String(cmsCounts.faqs),
+                        )}
                       </div>
                     </div>
                   </div>

@@ -1,15 +1,25 @@
 import { getPublicCompanySettings } from "../../../lib/company";
 import { getStudioEquipment } from "@ishoot/database";
 import { CEOHero } from "../../../components/about/CEOHero";
-import { StatsCounter } from "../../../components/about/StatsCounter";
+import { StatsSection } from "../../../components/about/StatsSection";
+import { getWebsite, isWebsitePreview } from "../../../lib/website";
 import { EquipmentGrid } from "../../../components/about/EquipmentGrid";
 import { PillarsOfCraft } from "../../../components/about/PillarsOfCraft";
+import { notFound } from "next/navigation";
 
 export default async function AboutPage() {
-  const [equipment, company] = await Promise.all([
+  const [equipment, company, website, isPreview] = await Promise.all([
     getStudioEquipment(),
     getPublicCompanySettings(),
+    getWebsite(),
+    isWebsitePreview(),
   ]);
+
+  const pageVisible =
+    website?.config?.pages?.find((p) => p.id === "about")?.visible ?? true;
+  if (!pageVisible && !isPreview) {
+    notFound();
+  }
 
   return (
     <div className="w-full flex flex-col">
@@ -17,7 +27,7 @@ export default async function AboutPage() {
 
       <PillarsOfCraft />
 
-      <StatsCounter />
+      <StatsSection stats={website.stats} />
 
       <EquipmentGrid equipment={equipment} />
     </div>

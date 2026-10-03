@@ -19,7 +19,8 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
   const t = isAr ? adminTranslations.ar : adminTranslations.en;
   const inv = t.invoice;
   const currency = invoice.currency || "BHD";
-  const isVatActive = Boolean(invoice.vat_enabled && (invoice.vat_amount > 0 || company.vat_enabled));
+  // VAT on an invoice is immutable: depends strictly on the invoice's own issued snapshot
+  const isVatActive = Boolean(invoice.vat_enabled && Number(invoice.vat_amount) > 0);
 
   return (
     <div

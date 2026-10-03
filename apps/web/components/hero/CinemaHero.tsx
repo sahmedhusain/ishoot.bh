@@ -1,164 +1,229 @@
 "use client";
-
 import * as React from "react";
 import Link from "next/link";
-import { HeroBanner as HeroBannerType } from "@ishoot/database";
+import type { HeroBanner } from "@ishoot/database/types";
+import { safeWebsiteUrl } from "@ishoot/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
-import { Sparkles, Video, Camera, ArrowRight, ArrowLeft } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-
-interface CinemaHeroProps {
-  banners: HeroBannerType[];
-}
-
-export function CinemaHero({ banners }: CinemaHeroProps) {
-  const { t, locale, isRTL } = useTranslation();
-  const [currentIdx, setCurrentIdx] = React.useState(0);
-  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
-
-  const activeBanner = banners[currentIdx];
-
+import { ArrowUpRight, Pause, Play } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
+  const { locale, isRTL: ar } = useTranslation();
+  const [index, setIndex] = React.useState(0);
+  const [paused, setPaused] = React.useState(false);
+  const [visible, setVisible] = React.useState(true);
+  const reduced = useReducedMotion();
+  const section = React.useRef<HTMLElement>(null);
+  const video = React.useRef<HTMLVideoElement>(null);
+  const banner = banners[index % Math.max(1, banners.length)];
+  const moving = !paused && reduced === false && visible;
   React.useEffect(() => {
-    if (banners.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentIdx((prev) => (prev + 1) % banners.length);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [banners.length]);
-
-  if (!activeBanner) return null;
-
+    const observer = new IntersectionObserver((entries) =>
+      setVisible(entries[0].isIntersecting && !document.hidden),
+    );
+    if (section.current) observer.observe(section.current);
+    const update = () =>
+      setVisible(
+        !document.hidden &&
+          !!section.current &&
+          section.current.getBoundingClientRect().bottom > 0,
+      );
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, []);
+  React.useEffect(() => {
+    if (!moving || banners.length < 2) return;
+    const timer = setInterval(
+      () => setIndex((i) => (i + 1) % banners.length),
+      8000,
+    );
+    return () => clearInterval(timer);
+  }, [moving, banners.length]);
+  React.useEffect(() => {
+    if (moving) video.current?.play().catch(() => {});
+    else video.current?.pause();
+  }, [moving, banner?.id]);
+  const title = banner
+    ? ar
+      ? banner.title_ar
+      : banner.title_en
+    : ar
+      ? "قصص تُرى.\nوأثر يبقى."
+      : "Stories in motion.\nAn impression that stays.";
+  const subtitle = banner
+    ? ar
+      ? banner.subtitle_ar
+      : banner.subtitle_en
+    : ar
+      ? "إنتاج مرئي من الفكرة الأولى إلى المشهد الأخير، من البحرين."
+      : "Visual production from the first idea to the final frame. Based in Bahrain.";
+  let href = safeWebsiteUrl(
+    banner?.cta_link || "",
+    `/${locale}/contact?intent=quote_request`,
+  );
+  if (/^\/(contact|works|about|services)([/?#]|$)/.test(href))
+    href = `/${locale}${href}`;
   return (
     <section
+      ref={section}
       id="home"
       data-hero="true"
-      className="relative isolate z-[1] flex min-h-[100svh] flex-col overflow-x-clip bg-hero text-[#F2F6F5] select-none"
+      className="relative min-h-[88svh] flex items-end bg-[#101b16] overflow-hidden"
     >
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeBanner.id}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, transition: { duration: 1 } }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="w-full h-full absolute inset-0"
-          >
-            {activeBanner.media_type === "video" ? (
-              <video
-                src={activeBanner.media_url}
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="w-full h-full object-cover object-center opacity-40"
-              />
-            ) : (
-              <div
-                className="w-full h-full bg-cover bg-center opacity-35"
-                style={{ backgroundImage: `url('${activeBanner.media_url}')` }}
-              />
+      <div className="absolute inset-0" aria-hidden="true">
+        {banner?.media_type === "video" ? (
+          <video
+            ref={video}
+            key={banner.id}
+            src={safeWebsiteUrl(banner.media_url)}
+            poster={safeWebsiteUrl(
+              banner.poster_url || "",
+              "/banners/web-banner-04.jpg",
             )}
-          </motion.div>
-        </AnimatePresence>
-
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <img
+            src={safeWebsiteUrl(
+              banner?.media_url || "",
+              "/banners/web-banner-04.jpg",
+            )}
+            alt=""
+            fetchPriority="high"
+            className="w-full h-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050807] via-[#050807]/60 to-[#050807]/30" />
+        {/* Background Graphic Grid */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0"
+          className="absolute inset-0 pointer-events-none opacity-20"
           style={{
-            background:
-              "radial-gradient(120% 78% at 50% 6%, rgba(1,72,66,0.50), transparent 55%), radial-gradient(90% 60% at 50% 118%, rgba(5,8,7,0.95), transparent)",
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
+            backgroundSize: "32px 32px",
           }}
         />
-
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050807] via-[#050807]/60 to-transparent" />
+        <div
+          aria-hidden="true"
+          className="absolute -top-40 start-1/4 w-[600px] h-[600px] bg-radial from-[#09937F]/20 via-[#014842]/10 to-transparent blur-3xl pointer-events-none"
+        />
       </div>
 
-      <div className="shell relative z-20 flex-1 flex flex-col justify-center pt-28 sm:pt-32 pb-12 md:pb-16">
-        <div className="max-w-4xl space-y-6">
-          <AnimatePresence mode="wait">
-            <motion.h1
-              key={activeBanner.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20, transition: { duration: 0.5 } }}
-              transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display text-[clamp(2.2rem,6.8vw,5.5rem)] leading-[1.02] tracking-[-0.03em] font-bold text-white"
-            >
-              <span className="block">
-                {isRTL ? activeBanner.title_ar : activeBanner.title_en}
-              </span>
-              {(isRTL ? activeBanner.subtitle_ar : activeBanner.subtitle_en) && (
-                <span className="block text-[#09937F]">
-                  {isRTL ? activeBanner.subtitle_ar : activeBanner.subtitle_en}
-                </span>
-              )}
-            </motion.h1>
-          </AnimatePresence>
+      {/* Viewfinder Corner Framing Brackets */}
+      <div className="absolute top-24 start-6 w-5 h-5 border-t-2 border-s-2 border-[#09937F]/40 pointer-events-none hidden md:block" />
+      <div className="absolute top-24 end-6 w-5 h-5 border-t-2 border-e-2 border-[#09937F]/40 pointer-events-none hidden md:block" />
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="pt-4 flex flex-wrap items-center gap-4"
-          >
-            <Link
-              href={`/${locale}/contact`}
-              className="group inline-flex items-center gap-3 rounded-full border border-white/20 bg-white text-black py-2.5 ps-2.5 pe-7 font-sans text-sm font-bold transition-all duration-300 hover:bg-[#09937F] hover:text-white hover:border-[#09937F] shadow-2xl hover:shadow-[#09937F]/30 h-11"
-            >
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-black text-white transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:bg-white group-hover:text-[#014842] group-hover:rotate-45">
-                <ArrowIcon className="w-4 h-4 transition-transform duration-300" />
-              </span>
-              <span>
-                {activeBanner.cta_label_en && !isRTL
-                  ? activeBanner.cta_label_en
-                  : (activeBanner.cta_label_ar ?? t("hero.startProject"))}
-              </span>
-            </Link>
-
-            <Link
-              href={`/${locale}/works`}
-              className="group inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] py-2.5 ps-3 pe-6 font-sans text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:border-white/30 backdrop-blur-md h-11"
-            >
-              <Video className="w-4 h-4 text-[#09937F] group-hover:scale-110 transition-transform" />
-              <span>{t("hero.exploreWorks")}</span>
-            </Link>
-          </motion.div>
+      {/* Viewfinder Telemetry HUD */}
+      <div className="absolute top-24 end-6 sm:end-12 z-20 hidden sm:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-[#09937F]/40 shadow-xl select-none">
+        <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#5EEAD4]">
+          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          <span>REC · 8K VV · 24FPS</span>
         </div>
+        <span className="text-white/20">|</span>
+        <span className="text-[10px] font-mono text-[#9EADA9] font-medium tracking-widest">
+          SHUTTER 180°
+        </span>
+        <span className="text-white/20">|</span>
+        <span className="text-[10px] font-mono text-[#09937F] font-bold">
+          ISO 800
+        </span>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 1 }}
-        className="shell relative z-20 pb-8 flex items-center justify-between text-xs text-[#9EADA9] font-sans"
-      >
-        <div className="flex items-center gap-2">
-          {banners.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentIdx(i)}
-              className={`h-1.5 transition-all duration-500 rounded-full ${
-                i === currentIdx
-                  ? "w-8 bg-[#09937F]"
-                  : "w-2 bg-white/20 hover:bg-white/40"
-              }`}
-              aria-label={`Go to slide ${i + 1}`}
-            />
-          ))}
-        </div>
-
-        <div className="hidden sm:flex items-center gap-6 text-[11px] uppercase tracking-widest">
-          <span className="flex items-center gap-1.5">
-            <Camera className="w-3.5 h-3.5 text-[#09937F]" />
-            <span>{t("hero.cameraTag")}</span>
+      <div className="shell relative pt-40 pb-16 md:pb-24">
+        <motion.div
+          key={banner?.id || "fallback"}
+          initial={reduced ? false : { opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="max-w-5xl"
+        >
+          <p className="web-eyebrow text-[#5EEAD4] mb-6 flex items-center gap-2">
+            <span className="text-[#09937F] font-mono opacity-80">&lt;&lt;</span>
+            <span>
+              {ar
+                ? "آي شوت / إنتاج مرئي سينمائي / البحرين"
+                : "iShoot / Cinematic Production / Bahrain"}
+            </span>
+            <span className="text-[#09937F] font-mono opacity-80">&gt;&gt;</span>
+          </p>
+          <h1 className="font-display text-5xl sm:text-6xl lg:text-8xl leading-[1.04] tracking-tight font-bold whitespace-pre-line text-white">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#d4dfd8]">
+              {subtitle}
+            </p>
+          )}
+          <div className="mt-9 flex flex-wrap items-center gap-5">
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Link href={href} className="web-button">
+                {(ar ? banner?.cta_label_ar : banner?.cta_label_en) ||
+                  (ar ? "ناقش مشروعك" : "Tell us your idea")}
+                <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                href={`/${locale}/works`}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-[#09937F]/40 bg-white/5 hover:bg-[#09937F]/15 hover:border-[#09937F] text-white text-sm font-medium transition-all duration-300"
+              >
+                <span>{ar ? "استكشف أعمالنا" : "Explore our work"}</span>
+                <span className="text-[#09937F] font-mono">&gt;</span>
+              </Link>
+            </motion.div>
+          </div>
+        </motion.div>
+        <div className="mt-12 flex items-center justify-between gap-4 border-t border-white/20 pt-5">
+          <span className="text-xs text-[#bdcec4]">
+            {ar ? "من الفكرة إلى الشاشة" : "From an idea to the screen"}
           </span>
-          <span className="flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
-            <span>{t("hero.lensTag")}</span>
-          </span>
+          <div className="flex items-center gap-3">
+            {banners.length > 1 &&
+              banners.map((item, i) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    setIndex(i);
+                    setPaused(true);
+                  }}
+                  aria-label={`${ar ? "الشريحة" : "Slide"} ${i + 1}`}
+                  aria-pressed={i === index % banners.length}
+                  className={`w-8 h-8 rounded-full border text-xs ${i === index % banners.length ? "bg-white text-[#162a24] border-white" : "border-white/30 text-white"}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            {(banners.length > 1 || banner?.media_type === "video") && (
+              <button
+                onClick={() => setPaused((p) => !p)}
+                aria-label={
+                  paused
+                    ? ar
+                      ? "تشغيل الحركة"
+                      : "Resume motion"
+                    : ar
+                      ? "إيقاف الحركة"
+                      : "Pause motion"
+                }
+                aria-pressed={paused}
+                className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center"
+              >
+                {paused ? (
+                  <Play className="w-4 h-4" />
+                ) : (
+                  <Pause className="w-4 h-4" />
+                )}
+              </button>
+            )}
+          </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

@@ -14,7 +14,12 @@ interface MobileMenuProps {
   company: CompanySettings;
 }
 
-export function MobileMenu({ isOpen, onClose, links, company }: MobileMenuProps) {
+export function MobileMenu({
+  isOpen,
+  onClose,
+  links,
+  company,
+}: MobileMenuProps) {
   const { t, locale, isRTL } = useTranslation();
 
   const navLinks = links || [
@@ -24,12 +29,34 @@ export function MobileMenu({ isOpen, onClose, links, company }: MobileMenuProps)
     { href: `/${locale}/contact`, label: t("nav.contact") },
   ];
 
+  const dialog = React.useRef<HTMLDialogElement>(null);
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    dialog.current?.showModal();
+    document.body.style.overflow = "hidden";
+    return () => {
+      dialog.current?.close();
+      document.body.style.overflow = overflow;
+      previous?.focus();
+    };
+  }, [isOpen]);
   if (!isOpen) return null;
 
   const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-between bg-[#050807]/95 backdrop-blur-2xl p-6 sm:p-10 animate-fade-in">
+    <dialog
+      ref={dialog}
+      aria-label={isRTL ? "القائمة" : "Navigation menu"}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+      className="fixed inset-0 m-0 w-full max-w-none h-[100dvh] max-h-none z-50 flex flex-col justify-between bg-[#050807] text-white p-6 sm:p-10"
+      data-lenis-prevent
+    >
       <div className="flex items-center justify-between">
         <Link
           href={`/${locale}`}
@@ -37,18 +64,27 @@ export function MobileMenu({ isOpen, onClose, links, company }: MobileMenuProps)
           className="flex items-center gap-2.5 focus:outline-none"
         >
           <img
-            src={company.dark_icon_url || company.icon_url || "/brand/icon-dark.svg"}
+            src={
+              company.dark_icon_url ||
+              company.icon_url ||
+              "/brand/icon-dark.svg"
+            }
             alt={t("common.brandIconAlt")}
             className="h-8 w-auto object-contain"
           />
           <img
-            src={company.dark_logo_url || company.logo_url || "/brand/logo-text-light.svg"}
+            src={
+              company.dark_logo_url ||
+              company.logo_url ||
+              "/brand/logo-text-light.svg"
+            }
             alt={t("common.brandLogoAlt")}
             className="h-6 w-auto object-contain"
           />
         </Link>
         <div className="flex items-center gap-4">
           <button
+            aria-label={isRTL ? "إغلاق القائمة" : "Close menu"}
             onClick={onClose}
             className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:text-[#09937F] transition-colors"
           >
@@ -62,6 +98,7 @@ export function MobileMenu({ isOpen, onClose, links, company }: MobileMenuProps)
           <Link
             key={link.href}
             href={link.href}
+            aria-label={isRTL ? "إغلاق القائمة" : "Close menu"}
             onClick={onClose}
             className="group flex items-center justify-between text-3xl sm:text-4xl font-bold text-[#F2F6F5] hover:text-[#09937F] transition-colors py-2 border-b border-white/5"
             style={{ animationDelay: `${idx * 80}ms` }}
@@ -80,6 +117,6 @@ export function MobileMenu({ isOpen, onClose, links, company }: MobileMenuProps)
           {t("common.location")}
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

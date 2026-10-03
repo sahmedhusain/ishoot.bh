@@ -108,6 +108,7 @@ export async function getCustomerDossier(id: string) {
 
     const inquiriesRaw = await db.inquiry.findMany({
       where: {
+        intent: { in: ["inquiry", "quote_request"] },
         OR: [
           { customerId: id },
           ...(contact.email ? [{ email: contact.email }] : []),
@@ -508,8 +509,19 @@ export async function updateCRMDeal(
 
     const existing = await db.crmDeal.findUnique({ where: { id } });
     if (!existing) throw new Error("Deal not found");
-    if ((data.stage || existing.dealStage) === "closed_lost" && !(data.lost_reason ?? existing.lostReason)?.trim()) throw new Error("Lost reason is required");
-    if (data.assigned_to && !(await db.user.findFirst({ where: { id: data.assigned_to, isActive: true }, select: { id: true } }))) throw new Error("Invalid deal owner");
+    if (
+      (data.stage || existing.dealStage) === "closed_lost" &&
+      !(data.lost_reason ?? existing.lostReason)?.trim()
+    )
+      throw new Error("Lost reason is required");
+    if (
+      data.assigned_to &&
+      !(await db.user.findFirst({
+        where: { id: data.assigned_to, isActive: true },
+        select: { id: true },
+      }))
+    )
+      throw new Error("Invalid deal owner");
     const updated = await db.crmDeal.update({
       where: { id },
       data: updateData,
@@ -611,8 +623,13 @@ export async function globalAdminSearch(
       results.push({
         category: "customers",
         id: c.id,
-        title: `${c.firstName || ""} ${c.lastName || ""}`.trim() || c.companyName || "Client",
-        subtitle: c.companyName ? `${c.companyName} • ${c.email || c.phone || ""}` : (c.email || c.phone || "Client"),
+        title:
+          `${c.firstName || ""} ${c.lastName || ""}`.trim() ||
+          c.companyName ||
+          "Client",
+        subtitle: c.companyName
+          ? `${c.companyName} • ${c.email || c.phone || ""}`
+          : c.email || c.phone || "Client",
         url: `/dashboard/crm/customers/${c.id}`,
         badge: c.contactType || "client",
       });
@@ -648,7 +665,9 @@ export async function globalAdminSearch(
       where: {
         OR: [
           { title: { contains: clean, mode: "insensitive" } },
-          { contact: { companyName: { contains: clean, mode: "insensitive" } } },
+          {
+            contact: { companyName: { contains: clean, mode: "insensitive" } },
+          },
         ],
       },
       include: { contact: true },

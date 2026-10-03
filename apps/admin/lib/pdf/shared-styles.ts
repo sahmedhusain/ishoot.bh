@@ -1,9 +1,22 @@
-import { StyleSheet } from "@react-pdf/renderer";
+import { StyleSheet, Font } from "@react-pdf/renderer";
+import path from "path";
 
+try {
+  const fontDir = path.resolve(process.cwd(), "public/fonts");
+  Font.register({
+    family: "Thmanyah Sans",
+    fonts: [
+      { src: path.join(fontDir, "ThmanyahSans-Regular.ttf"), fontWeight: "normal" },
+      { src: path.join(fontDir, "ThmanyahSans-Bold.ttf"), fontWeight: "bold" },
+    ],
+  });
+} catch (e) {
+  console.warn("Could not register local Thmanyah Sans font for PDF, falling back to system fonts", e);
+}
 
 export const pdfStyles = StyleSheet.create({
   page: {
-    fontFamily: "Helvetica",
+    fontFamily: "Thmanyah Sans",
     fontSize: 9,
     paddingTop: 30,
     paddingBottom: 40,
@@ -241,5 +254,16 @@ export const pdfStyles = StyleSheet.create({
     color: "#4B5563",
     fontWeight: "bold",
     textTransform: "uppercase",
+  },
+  stampImage: {
+    width: 54,
+    height: 54,
+    objectFit: "contain",
+  },
+  signatureImage: {
+    width: 100,
+    height: 32,
+    objectFit: "contain",
+    marginBottom: 2,
   },
 });

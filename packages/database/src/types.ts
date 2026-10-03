@@ -195,9 +195,26 @@ export interface StudioEquipment {
   created_at: string;
 }
 
-export type InquiryStatus = "new" | "contacted" | "qualified" | "archived";
+export type InquiryStatus =
+  | "new"
+  | "contacted"
+  | "qualified"
+  | "archived"
+  | "in_progress"
+  | "waiting"
+  | "resolved";
 
 export interface Inquiry {
+  intent?: "inquiry" | "quote_request" | "complaint" | "suggestion";
+  reference?: string;
+  assigned_to_id?: string;
+  assigned_to_name?: string;
+  priority?: string;
+  project_reference?: string;
+  location?: string;
+  confirmation_status?: string;
+  notification_status?: string;
+  notes?: { id: string; body: string; author: string; created_at: string }[];
   id: string;
   full_name: string;
   email: string;
@@ -348,10 +365,31 @@ export function calculateInvoiceTotals(
   currency: SupportedCurrency = "BHD",
 ) {
   if (!CURRENCY_CONFIGS[currency]) throw new Error("Unsupported currency");
-  if (!["none", "percentage", "fixed"].includes(discountType)) throw new Error("Invalid discount type");
-  if (!Number.isFinite(discountValue) || discountValue < 0 || (discountType === "percentage" && discountValue > 100)) throw new Error("Invalid discount");
-  if (!Number.isFinite(vatPercentage) || vatPercentage < 0 || vatPercentage > 100) throw new Error("Invalid VAT percentage");
-  if (!lineItems.length || lineItems.some((item) => !Number.isFinite(item.quantity) || item.quantity <= 0 || !Number.isFinite(item.unit_price) || item.unit_price < 0)) throw new Error("Invalid invoice line items");
+  if (!["none", "percentage", "fixed"].includes(discountType))
+    throw new Error("Invalid discount type");
+  if (
+    !Number.isFinite(discountValue) ||
+    discountValue < 0 ||
+    (discountType === "percentage" && discountValue > 100)
+  )
+    throw new Error("Invalid discount");
+  if (
+    !Number.isFinite(vatPercentage) ||
+    vatPercentage < 0 ||
+    vatPercentage > 100
+  )
+    throw new Error("Invalid VAT percentage");
+  if (
+    !lineItems.length ||
+    lineItems.some(
+      (item) =>
+        !Number.isFinite(item.quantity) ||
+        item.quantity <= 0 ||
+        !Number.isFinite(item.unit_price) ||
+        item.unit_price < 0,
+    )
+  )
+    throw new Error("Invalid invoice line items");
   const currencyConfig = CURRENCY_CONFIGS[currency] || CURRENCY_CONFIGS.BHD;
   const factor = Math.pow(10, currencyConfig.decimals);
 
@@ -664,7 +702,13 @@ export interface CompanyDocument {
   created_at: string;
   updated_at: string;
 }
-export type { Faq, Statistic, Review, FeatureToggle, Role } from '../prisma/generated/client';
+export type {
+  Faq,
+  Statistic,
+  Review,
+  FeatureToggle,
+  Role,
+} from "../prisma/generated/client";
 
 export interface SocialLink {
   id: string;

@@ -205,15 +205,6 @@ export function DocumentLetterhead({
             </div>
           )}
 
-          <div className="flex justify-between sm:justify-end gap-6 w-full">
-            <span className="text-gray-400 font-bold uppercase text-[10px]">
-              {statusLabel}
-            </span>
-            <span className="font-bold uppercase text-[11px] text-[#09937F]">
-              {statusValue}
-            </span>
-          </div>
-
           {extraMeta && (
             <div className="w-full pt-1">
               {extraMeta}
@@ -267,10 +258,31 @@ export function DocumentFooter({
             )}
           </div>
 
-          <div className="text-center sm:text-end space-y-2 min-w-[220px]">
-            <div className="h-10 border-b border-gray-300 border-dashed" />
-            <div className="text-[11px] font-semibold text-gray-800">
-              {isAr ? defaultSigAr : defaultSig}
+          <div className="flex items-center gap-6">
+            {company.stamp_url && (
+              <div className="relative w-20 h-20 shrink-0 opacity-90 print:opacity-85">
+                <img
+                  src={company.stamp_url}
+                  alt="Official Corporate Seal"
+                  className="w-full h-full object-contain select-none"
+                />
+              </div>
+            )}
+            <div className="text-center sm:text-end space-y-1.5 min-w-[180px]">
+              <div className="relative h-14 flex items-end justify-center sm:justify-end pb-1">
+                {company.signature_url ? (
+                  <img
+                    src={company.signature_url}
+                    alt="Authorized Signature"
+                    className="max-h-12 w-auto object-contain select-none"
+                  />
+                ) : (
+                  <div className="h-10 w-full border-b border-gray-300 border-dashed" />
+                )}
+              </div>
+              <div className="border-t border-gray-300 pt-1 text-[11px] font-semibold text-gray-800">
+                {isAr ? defaultSigAr : defaultSig}
+              </div>
             </div>
           </div>
         </div>

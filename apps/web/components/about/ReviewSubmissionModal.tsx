@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Star, X, CheckCircle2, MessageSquarePlus, Loader2 } from "lucide-react";
+import {
+  Star,
+  X,
+  CheckCircle2,
+  MessageSquarePlus,
+  Loader2,
+} from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
 
 interface ReviewSubmissionModalProps {
@@ -15,6 +21,7 @@ export function ReviewSubmissionModal({
 }: ReviewSubmissionModalProps) {
   const { t, locale, isRTL } = useTranslation();
 
+  const submissionKey = React.useRef<string>("");
   const [rating, setRating] = React.useState(5);
   const [hoverRating, setHoverRating] = React.useState(0);
   const [authorName, setAuthorName] = React.useState("");
@@ -37,10 +44,12 @@ export function ReviewSubmissionModal({
     setError(null);
 
     try {
+      if (!submissionKey.current) submissionKey.current = crypto.randomUUID();
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          submissionKey: submissionKey.current,
           authorName,
           companyName,
           rating,
@@ -56,13 +65,16 @@ export function ReviewSubmissionModal({
 
       setSubmitted(true);
     } catch (err: any) {
-      setError(err.message || "An unexpected error occurred. Please try again.");
+      setError(
+        err.message || "An unexpected error occurred. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleReset = () => {
+    submissionKey.current = "";
     setSubmitted(false);
     setAuthorName("");
     setCompanyName("");

@@ -1,261 +1,353 @@
 "use client";
-
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Inquiry } from "@ishoot/database/types";
-import { Card, StatusBadge, Button, ConfirmDestructiveModal } from "@ishoot/ui";
-import {
-  Mail,
-  Phone,
-  Building,
-  Trash2,
-  UserCheck,
-  Briefcase,
-  ExternalLink,
-  CheckCircle2,
-} from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateInquiryStatusAction,
-  deleteInquiryAction,
   convertInquiryToClientAction,
+  manageInquiryAction,
 } from "../../app/actions/crm";
-
-interface LeadsManagementViewProps {
-  initialInquiries: Inquiry[];
-}
 
 export function LeadsManagementView({
   initialInquiries,
-}: LeadsManagementViewProps) {
-  const { t } = useAdminLocale();
-  const [inquiries, setInquiries] = React.useState<Inquiry[]>(initialInquiries);
-  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
-    null,
-  );
-  const [convertingId, setConvertingId] = React.useState<string | null>(null);
-  const [conversionSuccess, setConversionSuccess] = React.useState<{
-    inquiryId: string;
-    contactId: string;
-    dealId: string;
-  } | null>(null);
-
-  const handleStatusChange = async (
-    id: string,
-    newStatus: Inquiry["status"],
-  ) => {
-    setInquiries((prev) =>
-      prev.map((inq) => (inq.id === id ? { ...inq, status: newStatus } : inq)),
-    );
-    try {
-      await updateInquiryStatusAction(id, newStatus);
-    } catch (err) {
-      console.error("Failed to update inquiry status:", err);
-    }
-  };
-
-  const handleConvert = async (inquiryId: string) => {
-    setConvertingId(inquiryId);
-    try {
-      const res = await convertInquiryToClientAction(inquiryId);
-      if (res.success && res.contactId && res.dealId) {
-        setConversionSuccess({
-          inquiryId,
-          contactId: res.contactId,
-          dealId: res.dealId,
-        });
-        setInquiries((prev) =>
-          prev.map((inq) =>
-            inq.id === inquiryId ? { ...inq, status: "qualified" } : inq,
-          ),
-        );
+  page = 1,
+}: {
+  initialInquiries: Inquiry[];
+  page?: number;
+}) {
+  const { locale } = useAdminLocale();
+  const ar = locale === "ar";
+  const router = useRouter();
+  const [filter, setFilter] = React.useState("all");
+  const [busy, setBusy] = React.useState("");
+  const [error, setError] = React.useState("");
+  const [notes, setNotes] = React.useState<Record<string, string>>({});
+  const intents: Record<string, string> = ar
+    ? {
+        all: "كل الطلبات",
+        inquiry: "استفسار",
+        quote_request: "طلب عرض سعر",
+        complaint: "شكوى",
+        suggestion: "اقتراح",
       }
-    } catch (err) {
-      console.error("Failed to convert inquiry:", err);
-    } finally {
-      setConvertingId(null);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    setInquiries((prev) => prev.filter((inq) => inq.id !== id));
+    : {
+        all: "All requests",
+        inquiry: "Inquiry",
+        quote_request: "Quote request",
+        complaint: "Complaint",
+        suggestion: "Suggestion",
+      };
+  const statuses: Record<string, string> = ar
+    ? {
+        new: "جديد",
+        contacted: "تم التواصل",
+        qualified: "مؤهل",
+        in_progress: "قيد المعالجة",
+        waiting: "بانتظار العميل",
+        resolved: "تم الحل",
+        archived: "مؤرشف",
+      }
+    : {
+        new: "New",
+        contacted: "Contacted",
+        qualified: "Qualified",
+        in_progress: "In progress",
+        waiting: "Waiting for customer",
+        resolved: "Resolved",
+        archived: "Archived",
+      };
+  async function run(id: string, action: () => Promise<unknown>) {
+    setBusy(id);
+    setError("");
     try {
-      await deleteInquiryAction(id);
-    } catch (err) {
-      console.error("Failed to delete inquiry:", err);
+      await action();
+      router.refresh();
+    } catch {
+      setError(
+        ar
+          ? "تعذر حفظ التغيير. تحقق من صلاحياتك وحاول مجدداً."
+          : "Could not save the change. Check your permissions and try again.",
+      );
+    } finally {
+      setBusy("");
     }
-  };
-
+  }
+  const field =
+    "rounded-lg border border-slate-300 dark:border-neutral-600 bg-transparent px-3 py-2 text-sm";
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-6xl mx-auto space-y-6 pb-16">
+      <header className="flex flex-wrap justify-between items-end gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {t.nav.leads}
+          <h1 className="text-2xl font-bold">
+            {ar ? "صندوق الطلبات والملاحظات" : "Requests & feedback"}
           </h1>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
-            {t.leads.subtitle}
+          <p className="text-sm text-slate-500 mt-2">
+            {ar
+              ? "تابع الاستفسارات وعروض الأسعار والشكاوى والاقتراحات."
+              : "Assign, follow up and resolve inquiries, quotes, complaints and suggestions."}
           </p>
         </div>
+        <Link
+          className="text-emerald-700 dark:text-emerald-400 underline"
+          href="/dashboard/cms/reviews"
+        >
+          {ar ? "تقييمات بانتظار المراجعة" : "Review moderation"}
+        </Link>
+      </header>
+      {error && (
+        <p role="alert" className="p-4 bg-red-50 text-red-800 rounded-lg">
+          {error}
+        </p>
+      )}
+      <div
+        className="flex flex-wrap gap-2"
+        aria-label={ar ? "تصفية الصفحة" : "Filter this page"}
+      >
+        {Object.entries(intents).map(([value, label]) => (
+          <button
+            key={value}
+            aria-pressed={filter === value}
+            onClick={() => setFilter(value)}
+            className={`${field} ${filter === value ? "bg-emerald-900 text-white" : ""}`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
-
-      {/* Inquiries List */}
-      <div className="space-y-3.5">
-        {inquiries.map((inq) => {
-          const isConverted =
-            conversionSuccess?.inquiryId === inq.id || inq.status === "qualified";
-
+      {initialInquiries
+        .filter((i) => filter === "all" || i.intent === filter)
+        .map((inquiry) => {
+          const sales = ["inquiry", "quote_request"].includes(
+            inquiry.intent || "inquiry",
+          );
           return (
-            <div
-              key={inq.id}
-              className="p-5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs space-y-3.5 hover:border-slate-300 dark:hover:border-neutral-600 transition-colors"
+            <article
+              key={inquiry.id}
+              className="rounded-xl border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-5 space-y-4"
             >
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-100 dark:border-neutral-800 pb-3.5">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {inq.full_name}
-                    </h3>
-                    <StatusBadge status={inq.status} />
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-neutral-400 mt-1">
-                    {inq.company && (
-                      <span className="flex items-center gap-1 text-slate-800 dark:text-neutral-200 font-medium">
-                        <Building className="w-3.5 h-3.5 text-[#09937F]" />
-                        <span>{inq.company}</span>
-                      </span>
+                  <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                    {intents[inquiry.intent || "inquiry"]} · {inquiry.reference}
+                  </p>
+                  <h2 className="font-bold text-lg mt-1">
+                    {inquiry.full_name}
+                  </h2>
+                  <p className="text-sm text-slate-500">
+                    {inquiry.company} ·{" "}
+                    {new Date(inquiry.created_at).toLocaleString(
+                      ar ? "ar-BH" : "en-GB",
                     )}
-                    <span className="flex items-center gap-1">
-                      <Mail className="w-3.5 h-3.5 text-slate-400" />
-                      <a
-                        href={`mailto:${inq.email}`}
-                        className="hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline transition-colors"
-                      >
-                        {inq.email}
-                      </a>
-                    </span>
-                    {inq.phone && (
-                      <span
-                        className="flex items-center gap-1  text-[11px]"
-                        dir="ltr"
-                      >
-                        <Phone className="w-3.5 h-3.5 text-slate-400" />
-                        <a
-                          href={`tel:${inq.phone}`}
-                          className="hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors"
-                        >
-                          {inq.phone}
-                        </a>
-                      </span>
-                    )}
-                  </div>
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
-                  {/* Convert to Client Button */}
-                  {!isConverted ? (
-                    <Button
-                      size="sm"
-                      onClick={() => handleConvert(inq.id)}
-                      disabled={convertingId === inq.id}
-                      className="bg-[#014842] hover:bg-[#014842]/90 text-white rounded-full px-3.5 h-8 text-xs font-semibold gap-1.5"
-                    >
-                      <UserCheck className="w-3.5 h-3.5" />
-                      <span>
-                        {convertingId === inq.id
-                          ? t.crm.converting
-                          : t.crm.convertToClient}
-                      </span>
-                    </Button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>{t.crm.clientCreated}</span>
-                      </span>
-                      {conversionSuccess?.inquiryId === inq.id && (
-                        <Link
-                          href={`/dashboard/crm/customers/${conversionSuccess.contactId}`}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-[#014842] dark:text-[#7de0d1] hover:underline"
-                        >
-                          <span>{t.crm.openDossier}</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </Link>
-                      )}
-                    </div>
-                  )}
-
+                <label className="text-xs">
+                  {ar ? "الحالة" : "Status"}
                   <select
-                    value={inq.status}
+                    aria-label={ar ? "الحالة" : "Status"}
+                    className={`${field} block mt-1`}
+                    disabled={busy === inquiry.id}
+                    value={inquiry.status}
                     onChange={(e) =>
-                      handleStatusChange(inq.id, e.target.value as any)
+                      run(inquiry.id, () =>
+                        updateInquiryStatusAction(
+                          inquiry.id,
+                          e.target.value as Inquiry["status"],
+                        ),
+                      )
                     }
-                    className="bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-[#09937F] cursor-pointer"
                   >
-                    <option value="new">{t.leads.statusNew}</option>
-                    <option value="contacted">{t.leads.statusContacted}</option>
-                    <option value="qualified">{t.leads.statusQualified}</option>
-                    <option value="archived">{t.leads.statusArchived}</option>
+                    {Object.entries(statuses)
+                      .filter(
+                        ([s]) =>
+                          sales || !["contacted", "qualified"].includes(s),
+                      )
+                      .map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
                   </select>
-
-                  <button
-                    onClick={() => setDeleteTargetId(inq.id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                    title={t.actions.delete}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                </label>
               </div>
-
-              {/* Tags: Budget & Services */}
-              <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                {inq.budget_range && (
-                  <span className="px-2.5 py-0.5 rounded-md bg-[#e6f5f2] text-[#014842] dark:bg-[#004d40]/40 dark:text-[#7de0d1] text-[11px]  font-semibold">
-                    {t.leads.budgetPrefix}{inq.budget_range}
-                  </span>
+              <div className="flex flex-wrap gap-4 text-sm">
+                {inquiry.email && (
+                  <a className="underline" href={`mailto:${inquiry.email}`}>
+                    {inquiry.email}
+                  </a>
                 )}
-                {inq.services_requested.map((srv, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300 text-[11px] font-medium"
+                {inquiry.phone && (
+                  <a
+                    dir="ltr"
+                    className="underline"
+                    href={`tel:${inquiry.phone}`}
                   >
-                    {srv}
-                  </span>
-                ))}
+                    {inquiry.phone}
+                  </a>
+                )}
               </div>
-
-              {inq.message && (
-                <div className="text-xs text-slate-600 dark:text-neutral-300 bg-slate-50 dark:bg-neutral-800/40 p-3 rounded-lg border border-slate-100 dark:border-neutral-800 leading-relaxed">
-                  {inq.message}
-                </div>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed break-words">
+                {inquiry.message}
+              </p>
+              <dl className="grid sm:grid-cols-2 gap-3 text-sm text-slate-600 dark:text-neutral-300">
+                {[
+                  [
+                    ar ? "الخدمات" : "Services",
+                    inquiry.services_requested.join(", "),
+                  ],
+                  [ar ? "الميزانية" : "Budget", inquiry.budget_range],
+                  [ar ? "الموعد" : "Timeline", inquiry.target_timeline],
+                  [ar ? "الموقع" : "Location", inquiry.location],
+                  [
+                    ar ? "مرجع المشروع" : "Project reference",
+                    inquiry.project_reference,
+                  ],
+                ]
+                  .filter(([, v]) => v)
+                  .map(([k, v]) => (
+                    <div key={k}>
+                      <dt className="text-xs text-slate-500">{k}</dt>
+                      <dd>{v}</dd>
+                    </div>
+                  ))}
+              </dl>
+              {inquiry.merge_flag && (
+                <p className="text-amber-700 text-sm">
+                  {ar
+                    ? "تعارض في بيانات العميل — راجع الربط قبل التحويل."
+                    : "Customer identity conflict — review before conversion."}
+                </p>
               )}
-            </div>
+              <div className="flex flex-wrap gap-3 items-center border-t border-slate-100 dark:border-neutral-800 pt-4 text-sm">
+                <span>
+                  {ar ? "المسؤول:" : "Owner:"}{" "}
+                  {inquiry.assigned_to_name || (ar ? "غير محدد" : "Unassigned")}
+                </span>
+                <button
+                  disabled={!!busy}
+                  className={field}
+                  onClick={() =>
+                    run(inquiry.id, () =>
+                      manageInquiryAction(inquiry.id, { claim: true }),
+                    )
+                  }
+                >
+                  {ar ? "إسناد إليّ" : "Assign to me"}
+                </button>
+                <select
+                  className={field}
+                  aria-label={ar ? "الأولوية" : "Priority"}
+                  value={inquiry.priority || "normal"}
+                  disabled={!!busy}
+                  onChange={(e) =>
+                    run(inquiry.id, () =>
+                      manageInquiryAction(inquiry.id, {
+                        priority: e.target.value,
+                      }),
+                    )
+                  }
+                >
+                  {["normal", "high", "urgent"].map((value, index) => (
+                    <option key={value} value={value}>
+                      {ar ? ["عادية", "مرتفعة", "عاجلة"][index] : value}
+                    </option>
+                  ))}
+                </select>
+                {sales &&
+                  inquiry.status !== "qualified" &&
+                  !inquiry.merge_flag && (
+                    <button
+                      disabled={!!busy}
+                      className={`${field} text-emerald-700 dark:text-emerald-400`}
+                      onClick={() =>
+                        run(inquiry.id, () =>
+                          convertInquiryToClientAction(inquiry.id),
+                        )
+                      }
+                    >
+                      {ar ? "تحويل إلى فرصة" : "Convert to opportunity"}
+                    </button>
+                  )}
+              </div>
+              <p className="text-xs text-slate-500">
+                {ar ? "تأكيد البريد:" : "Email confirmation:"}{" "}
+                {inquiry.confirmation_status} ·{" "}
+                {ar ? "إشعار الفريق:" : "Team notification:"}{" "}
+                {inquiry.notification_status}
+              </p>
+              <details>
+                <summary className="cursor-pointer text-sm font-semibold">
+                  {ar ? "ملاحظات داخلية" : "Internal notes"} (
+                  {inquiry.notes?.length || 0})
+                </summary>
+                <div className="mt-3 space-y-3">
+                  {inquiry.notes?.map((note) => (
+                    <div
+                      key={note.id}
+                      className="border-s-2 border-emerald-600 ps-3"
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{note.body}</p>
+                      <p className="text-xs text-slate-500">
+                        {note.author} ·{" "}
+                        {new Date(note.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                  <form
+                    className="flex gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      run(inquiry.id, async () => {
+                        await manageInquiryAction(inquiry.id, {
+                          note: notes[inquiry.id],
+                        });
+                        setNotes((n) => ({ ...n, [inquiry.id]: "" }));
+                      });
+                    }}
+                  >
+                    <textarea
+                      required
+                      maxLength={5000}
+                      aria-label={ar ? "ملاحظة داخلية" : "Internal note"}
+                      className={`${field} flex-1 min-w-0`}
+                      value={notes[inquiry.id] || ""}
+                      onChange={(e) =>
+                        setNotes((n) => ({
+                          ...n,
+                          [inquiry.id]: e.target.value,
+                        }))
+                      }
+                    />
+                    <button disabled={!!busy} className={field}>
+                      {ar ? "إضافة" : "Add note"}
+                    </button>
+                  </form>
+                </div>
+              </details>
+            </article>
           );
         })}
-
-        {inquiries.length === 0 && (
-          <div className="p-12 text-center text-slate-400 dark:text-neutral-500 bg-white dark:bg-[#1a1a1a] rounded-xl border border-[#dadce0] dark:border-[#3c4043]">
-            {t.leads.noInquiries}
-          </div>
+      {!initialInquiries.some(
+        (i) => filter === "all" || i.intent === filter,
+      ) && (
+        <p className="py-12 text-center text-slate-500">
+          {ar
+            ? "لا توجد طلبات مطابقة في هذه الصفحة."
+            : "No matching requests on this page."}
+        </p>
+      )}
+      <nav className="flex gap-4 text-sm">
+        {page > 1 && (
+          <Link href={`?page=${page - 1}`}>{ar ? "السابق" : "Previous"}</Link>
         )}
-      </div>
-
-      <ConfirmDestructiveModal
-        isOpen={!!deleteTargetId}
-        onClose={() => setDeleteTargetId(null)}
-        onConfirm={async () => {
-          if (deleteTargetId) {
-            await handleDelete(deleteTargetId);
-            setDeleteTargetId(null);
-          }
-        }}
-        title={t.actions.delete}
-        description={t.leads.confirmDelete}
-        confirmLabel={t.actions.delete}
-        cancelLabel={t.actions.cancel}
-      />
+        <span>
+          {ar ? "صفحة" : "Page"} {page}
+        </span>
+        {initialInquiries.length === 50 && (
+          <Link href={`?page=${page + 1}`}>{ar ? "التالي" : "Next"}</Link>
+        )}
+      </nav>
     </div>
   );
 }

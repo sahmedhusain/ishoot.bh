@@ -1,64 +1,54 @@
 "use client";
 
 import * as React from "react";
+import type { ClientLogo } from "@ishoot/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
-import { ClientLogo } from "@ishoot/database";
+import { motion } from "framer-motion";
 
-interface LogoMarqueeProps {
-  logos: ClientLogo[];
-}
-
-export function LogoMarquee({ logos }: LogoMarqueeProps) {
-  const { t } = useTranslation();
-
-  if (!logos || logos.length === 0) return null;
+export function LogoMarquee({ logos }: { logos: ClientLogo[] }) {
+  const { t, isRTL: ar } = useTranslation();
+  if (!logos || !logos.length) return null;
 
   return (
-    <section className="relative py-16 bg-[#050807] overflow-hidden select-none border-y border-white/5">
-      <div className="absolute top-0 bottom-0 left-0 w-24 sm:w-44 bg-gradient-to-r from-[#050807] to-transparent z-10 pointer-events-none" />
-      <div className="absolute top-0 bottom-0 right-0 w-24 sm:w-44 bg-gradient-to-l from-[#050807] to-transparent z-10 pointer-events-none" />
+    <section className="relative z-10 bg-[#050807] py-16 border-y border-white/10 select-none overflow-hidden">
+      <div className="shell space-y-8">
+        <div className="flex items-center justify-between text-xs font-sans text-[#9EADA9] border-b border-white/5 pb-4">
+          <span className="font-bold text-[#5EEAD4] uppercase tracking-wider">
+            &lt;&lt; {t("clients.marqueeBadge") || (ar ? "شركاء الإبداع والعلامات التجارية" : "Creative Brand Partners")} &gt;&gt;
+          </span>
+          <span className="text-[#09937F] font-bold">
+            &lt;&lt; {t("clients.regionTag") || (ar ? "البحرين · الخليج العربي" : "Bahrain · Arabian Gulf")} &gt;&gt;
+          </span>
+        </div>
 
-      <div className="shell mb-8 flex items-center justify-between text-xs  text-[#9EADA9]">
-        <span className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#09937F]" />
-          <span>{t("clients.marqueeBadge")}</span>
-        </span>
-        <span className="text-[11px] text-white/40">{t("clients.regionTag")}</span>
-      </div>
-
-      <div className="relative flex w-full overflow-hidden marquee-paused">
-        <div
-          className="flex w-max shrink-0 animate-marquee items-center"
-          style={{ "--marquee-duration": "80s" } as React.CSSProperties}
-        >
-          {[0, 1].map((setIndex) => (
-            <div
-              key={setIndex}
-              className="flex items-center shrink-0"
-              style={{ gap: "6rem", paddingRight: "6rem" }}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 sm:gap-8 items-center">
+          {logos.map((client, idx) => (
+            <motion.div
+              key={client.id}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.05 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: idx * 0.05 }}
+              className="h-20 px-6 py-4 rounded-2xl bg-[#0B1210] border border-white/5 hover:border-[#09937F]/40 flex items-center justify-center transition-all duration-300 shadow-md group cursor-pointer"
             >
-              {logos.map((client, idx) => (
-                <div
-                  key={`${client.id}-${idx}`}
-                  className="flex items-center justify-center shrink-0 w-52 h-28 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
-                >
-                  {client.logo_svg_url ? (
-                    <img
-                      src={client.logo_svg_url}
-                      alt={client.client_name}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <span className="text-2xl font-bold text-white/50">
-                      {client.client_name}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
+              {client.logo_svg_url ? (
+                <img
+                  src={client.logo_svg_url}
+                  alt={client.client_name}
+                  loading="lazy"
+                  className="max-w-full max-h-full object-contain filter brightness-0 invert opacity-70 group-hover:opacity-100 transition-opacity duration-300"
+                />
+              ) : (
+                <span className="font-display font-bold text-xs text-[#9EADA9] group-hover:text-white transition-colors text-center">
+                  {client.client_name}
+                </span>
+              )}
+            </motion.div>
           ))}
         </div>
       </div>
     </section>
   );
 }
+

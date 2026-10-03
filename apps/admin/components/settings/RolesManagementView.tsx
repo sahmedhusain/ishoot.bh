@@ -14,6 +14,7 @@ const MODULES = [
   "deals",
   "contacts",
   "leads",
+  "support",
   "contracts",
   "banners",
   "portfolio",

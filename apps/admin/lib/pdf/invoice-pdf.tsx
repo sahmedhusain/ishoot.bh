@@ -1,9 +1,12 @@
 import React from "react";
+import path from "path";
+import fs from "fs";
 import {
   Document,
   Page,
   Text,
   View,
+  Image,
 } from "@react-pdf/renderer";
 import type { Invoice, CompanySettings } from "@ishoot/database/types";
 import { pdfStyles } from "./shared-styles";
@@ -36,7 +39,8 @@ function formatAmount(amount: number, decimals: number = 3) {
 }
 
 function InvoicePDF({ invoice, company }: InvoicePDFProps) {
-  const isVatActive = !!(company.vat_enabled && invoice.vat_enabled);
+  // VAT on an invoice is immutable: depends strictly on the invoice's own issued snapshot
+  const isVatActive = Boolean(invoice.vat_enabled && Number(invoice.vat_amount) > 0);
   const currency = invoice.currency || company.default_currency || defaultCompany.defaultCurrency;
   const decimals = company.currency_decimals ?? defaultCompany.currencyDecimals;
   const lineItems = invoice.line_items || [];
@@ -276,23 +280,41 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
         </View>
 
         {/* Signature Authorization Block */}
-        <View style={pdfStyles.signatureContainer}>
-          <View>
-            <Text style={{ fontSize: 7.5, color: "#6B7280" }}>
-              {labels.issuedBy}
-            </Text>
-            <Text style={{ fontSize: 8.5, fontWeight: "bold", color: "#111827", marginTop: 1 }}>
-              {isAr ? (company.company_name_ar || company.company_name_en) : (company.company_name_en || company.company_name_ar)}
-            </Text>
-          </View>
+        {(() => {
+          const stampFile = path.resolve(process.cwd(), "public/brand/stamp.png");
+          const stampPath = fs.existsSync(stampFile) ? stampFile : undefined;
+          const sigFile = path.resolve(process.cwd(), "public/brand/signature.png");
+          const signaturePath = fs.existsSync(sigFile) ? sigFile : undefined;
 
-          <View style={{ alignItems: "flex-end" }}>
-            <View style={pdfStyles.signatureBox} />
-            <Text style={pdfStyles.signatureLabel}>
-              {labels.authorizedSignatory}
-            </Text>
-          </View>
-        </View>
+          return (
+            <View style={pdfStyles.signatureContainer}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                {stampPath && (
+                  <Image src={stampPath} style={pdfStyles.stampImage} />
+                )}
+                <View>
+                  <Text style={{ fontSize: 7.5, color: "#6B7280" }}>
+                    {labels.issuedBy}
+                  </Text>
+                  <Text style={{ fontSize: 8.5, fontWeight: "bold", color: "#111827", marginTop: 1 }}>
+                    {isAr ? (company.company_name_ar || company.company_name_en) : (company.company_name_en || company.company_name_ar)}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{ alignItems: "flex-end" }}>
+                {signaturePath ? (
+                  <Image src={signaturePath} style={pdfStyles.signatureImage} />
+                ) : (
+                  <View style={pdfStyles.signatureBox} />
+                )}
+                <Text style={pdfStyles.signatureLabel}>
+                  {labels.authorizedSignatory}
+                </Text>
+              </View>
+            </View>
+          );
+        })()}
 
         {/* Footer */}
         <View style={pdfStyles.footer} fixed>

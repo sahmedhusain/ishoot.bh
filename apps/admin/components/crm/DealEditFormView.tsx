@@ -8,6 +8,7 @@ import { Card, Input, Select, Button, Textarea } from "@ishoot/ui";
 import { ArrowLeft, CheckCircle2, Briefcase, ExternalLink } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateDealAction } from "../../app/actions/crm";
+import { EditConfirmModal, type FieldChange } from "../shared/EditConfirmModal";
 
 interface DealEditFormViewProps {
   deal: CRMDeal;
@@ -43,15 +44,58 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
   const [lostReason, setLostReason] = React.useState(deal.lost_reason || "");
   const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
 
   const selectedContact = contacts.find((c) => c.id === contactId);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const changes: FieldChange[] = React.useMemo(() => [
+    {
+      field: "title",
+      label: isRTL ? "عنوان الصفقة" : "Deal Title",
+      oldValue: deal.title,
+      newValue: title,
+    },
+    {
+      field: "stage",
+      label: isRTL ? "مرحلة الصفقة" : "Stage",
+      oldValue: deal.stage,
+      newValue: dealStage,
+    },
+    {
+      field: "value",
+      label: isRTL ? "قيمة الصفقة" : "Deal Value",
+      oldValue: `${Number(deal.value || 0).toFixed(3)} BHD`,
+      newValue: `${Number(dealValue || 0).toFixed(3)} BHD`,
+    },
+    {
+      field: "probability",
+      label: isRTL ? "نسبة النجاح المتوقعة" : "Probability",
+      oldValue: `${deal.probability}%`,
+      newValue: `${probability}%`,
+    },
+    {
+      field: "shoot_date",
+      label: isRTL ? "تاريخ التصوير" : "Shoot Date",
+      oldValue: deal.shoot_date ? new Date(deal.shoot_date).toISOString().split("T")[0] : "—",
+      newValue: shootDate || "—",
+    },
+    {
+      field: "target_close_date",
+      label: isRTL ? "تاريخ الإغلاق المتوقع" : "Expected Close",
+      oldValue: deal.target_close_date ? new Date(deal.target_close_date).toISOString().split("T")[0] : "—",
+      newValue: expectedCloseDate || "—",
+    },
+  ], [deal, title, dealStage, dealValue, probability, shootDate, expectedCloseDate, isRTL]);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title) return;
     setError("");
-    setSaving(true);
+    setShowConfirmModal(true);
+  };
 
+  const handleConfirmedSave = async () => {
+    setSaving(true);
     try {
       await updateDealAction(deal.id, {
         title,
@@ -72,6 +116,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
       console.error("Failed to update deal:", err);
     } finally {
       setSaving(false);
+      setShowConfirmModal(false);
     }
   };
 
@@ -278,6 +323,20 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
           </Button>
         </div>
       </form>
+
+      <EditConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmedSave}
+        title={isRTL ? "تأكيد تعديل الصفقة" : "Confirm Deal Update"}
+        description={
+          isRTL
+            ? "يرجى مراجعة التغييرات أدناه قبل حفظ التعديلات على الصفقة."
+            : "Please review the changes below before saving updates to the deal."
+        }
+        changes={changes}
+        isSaving={saving}
+      />
     </div>
   );
 }

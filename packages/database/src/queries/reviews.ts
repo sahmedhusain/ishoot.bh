@@ -5,10 +5,32 @@ export async function getReviews(adminOnly = true) {
     return await db.review.findMany({
       where: adminOnly ? undefined : { isApproved: true },
       orderBy: { sortOrder: "asc" },
-      include: { client: true },
+      select: {
+        id: true,
+        authorEn: true,
+        authorAr: true,
+        companyEn: true,
+        companyAr: true,
+        quoteEn: true,
+        quoteAr: true,
+        rating: true,
+        year: true,
+        isApproved: true,
+        sortOrder: true,
+        originalLocale: true,
+        ...(adminOnly
+          ? {
+              clientId: true,
+              client: { select: { id: true, firstName: true, lastName: true } },
+            }
+          : {}),
+      },
     });
   } catch (e) {
-    console.error("Error fetching reviews from DB:", e instanceof Error ? e.message : e);
+    console.error(
+      "Error fetching reviews from DB:",
+      e instanceof Error ? e.message : e,
+    );
     return [];
   }
 }
@@ -17,7 +39,10 @@ export async function getReviewById(id: string) {
   try {
     return await db.review.findUnique({ where: { id } });
   } catch (e) {
-    console.error(`Error fetching review ${id}:`, e instanceof Error ? e.message : e);
+    console.error(
+      `Error fetching review ${id}:`,
+      e instanceof Error ? e.message : e,
+    );
     return null;
   }
 }
@@ -33,9 +58,11 @@ export async function createReview(data: {
   year?: string;
   clientId?: string;
   isApproved?: boolean;
+  originalLocale?: string;
 }) {
   return await db.review.create({
     data: {
+      originalLocale: data.originalLocale,
       authorEn: data.authorEn,
       authorAr: data.authorAr,
       companyEn: data.companyEn,
@@ -50,7 +77,10 @@ export async function createReview(data: {
   });
 }
 
-export async function updateReview(id: string, data: Partial<Parameters<typeof createReview>[0]>) {
+export async function updateReview(
+  id: string,
+  data: Partial<Parameters<typeof createReview>[0]>,
+) {
   return await db.review.update({
     where: { id },
     data,

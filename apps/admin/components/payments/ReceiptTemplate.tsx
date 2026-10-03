@@ -37,8 +37,8 @@ export function ReceiptTemplate({
         isAr ? "font-arabic" : "font-sans"
       }`}
     >
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] rotate-[-25deg] select-none">
-        <span className="text-8xl font-black uppercase text-gray-900 border-8 border-gray-900 px-12 py-6 rounded-3xl">
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] print:opacity-[0.02] rotate-[-25deg] select-none z-0">
+        <span className="text-7xl font-black uppercase text-gray-900 border-4 border-gray-900 px-10 py-5 rounded-2xl">
           {isPaidInFull ? rcpt.paidInFull : rcpt.partial}
         </span>
       </div>

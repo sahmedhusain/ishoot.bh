@@ -1,79 +1,71 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createReview, createActivityLog } from "@ishoot/database";
-import { getTranslations, type Locale } from "@ishoot/locales";
-
+import { createHash } from "node:crypto";
+import { db } from "@ishoot/database";
+import {
+  readSubmission,
+  textField,
+  submissionKey,
+} from "../../../lib/submissions";
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const {
-      authorName,
-      companyName,
-      rating = 5,
-      quote,
-      locale = "en",
-    } = body;
-
-    const localeKey: Locale = locale === "ar" ? "ar" : "en";
-    const trans = getTranslations(localeKey);
-
-    if (typeof authorName !== "string" || !authorName.trim() || authorName.length > 200
-      || typeof quote !== "string" || !quote.trim() || quote.length > 5000
-      || (companyName !== undefined && (typeof companyName !== "string" || companyName.length > 200))
-      || !Number.isInteger(rating) || rating < 1 || rating > 5 || !["en", "ar"].includes(locale)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: trans.api.reviews.requiredFields,
-        },
-        { status: 400 }
-      );
-    }
-
-    const numericRating = Math.min(5, Math.max(1, Number(rating) || 5));
-
-    const review = await createReview({
-      authorEn: authorName.trim(),
-      authorAr: authorName.trim(),
-      companyEn: companyName ? companyName.trim() : undefined,
-      companyAr: companyName ? companyName.trim() : undefined,
-      quoteEn: quote.trim(),
-      quoteAr: quote.trim(),
-      rating: numericRating,
-      year: new Date().getFullYear().toString(),
-      isApproved: false, // Explicitly false: Requires admin approval in Dashboard
-    });
-
-    try {
-      await createActivityLog({
-        user_id: "00000000-0000-0000-0000-000000000001",
-        action: "create",
-        entity_type: "review",
-        entity_id: review.id,
-        details: {
-          author: authorName,
-          company: companyName,
-          rating: numericRating,
-          source: "web_client",
+    const body = await readSubmission(req);
+    const authorName = textField(body, "authorName", 200, true);
+    const companyName = textField(body, "companyName", 200);
+    const quote = textField(body, "quote", 5000, true);
+    const locale = textField(body, "locale") || "en";
+    const rating = body.rating;
+    if (
+      typeof rating !== "number" ||
+      !Number.isInteger(rating) ||
+      rating < 1 ||
+      rating > 5 ||
+      !["ar", "en"].includes(locale)
+    )
+      throw new Error("INVALID_INPUT");
+    const key = submissionKey(body);
+    const requestHash = createHash("sha256")
+      .update(
+        JSON.stringify({ authorName, companyName, quote, locale, rating }),
+      )
+      .digest("hex");
+    await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))::text`;
+      const prior = await tx.review.findUnique({
+        where: { submissionKey: key },
+      });
+      if (prior) {
+        if (prior.requestHash !== requestHash) throw new Error("INVALID_INPUT");
+        return;
+      }
+      await tx.review.create({
+        data: {
+          authorEn: authorName,
+          authorAr: authorName,
+          companyEn: companyName,
+          companyAr: companyName,
+          quoteEn: locale === "en" ? quote : "",
+          quoteAr: locale === "ar" ? quote : "",
+          originalLocale: locale,
+          rating,
+          isApproved: false,
+          submissionKey: key,
+          requestHash,
         },
       });
-    } catch {
-      // Non-blocking activity log
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: trans.api.reviews.success,
-      reviewId: review.id,
     });
-  } catch (error: any) {
-    console.error("Client Review Submission Error:", error);
-    const trans = getTranslations("en");
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const status =
+      message === "RATE_LIMIT" ? 429 : message === "INVALID_INPUT" ? 400 : 500;
     return NextResponse.json(
       {
-        success: false,
-        error: trans.api.reviews.serverError,
+        error:
+          status === 429
+            ? "Please wait before trying again."
+            : "Please check your review and try again.",
       },
-      { status: 500 }
+      { status },
     );
   }
 }

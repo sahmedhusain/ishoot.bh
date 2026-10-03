@@ -13,8 +13,26 @@ function mapInquiry(inq: any): Inquiry {
     target_timeline: inq.timeline || undefined,
     message: inq.message,
     status: (inq.status as any) || "new",
-    confirmation_sent: true,
-    notification_sent: true,
+    confirmation_sent: inq.confirmationStatus === "sent",
+    notification_sent: inq.notificationStatus === "sent",
+    confirmation_status: inq.confirmationStatus,
+    notification_status: inq.notificationStatus,
+    intent: inq.intent,
+    reference: inq.reference,
+    assigned_to_id: inq.assignedToId || undefined,
+    assigned_to_name: inq.assignedTo?.fullName,
+    priority: inq.priority,
+    location: inq.location || undefined,
+    project_reference: inq.projectReference || undefined,
+    customer_id: inq.customerId || undefined,
+    merge_flag: inq.mergeFlag,
+    source: inq.source,
+    notes: inq.notes?.map((note: any) => ({
+      id: note.id,
+      body: note.body,
+      author: note.author.fullName,
+      created_at: note.createdAt.toISOString(),
+    })),
     locale: inq.locale || "ar",
     created_at: inq.createdAt.toISOString(),
   };
@@ -45,10 +63,24 @@ export async function createInquiry(
   return mapInquiry(created);
 }
 
-export async function getAllInquiries(): Promise<Inquiry[]> {
+export async function getAllInquiries(
+  includeComplaints = false,
+  page = 1,
+): Promise<Inquiry[]> {
   try {
     const inquiries = await db.inquiry.findMany({
+      where: includeComplaints ? undefined : { intent: { not: "complaint" } },
+      include: {
+        assignedTo: { select: { fullName: true } },
+        notes: {
+          orderBy: { createdAt: "desc" },
+          take: 20,
+          include: { author: { select: { fullName: true } } },
+        },
+      },
       orderBy: { createdAt: "desc" },
+      take: 50,
+      skip: (Math.max(1, page) - 1) * 50,
     });
     return inquiries.map(mapInquiry);
   } catch (e) {
@@ -64,7 +96,7 @@ export async function updateInquiryStatus(
   try {
     await db.inquiry.update({
       where: { id },
-      data: { status },
+      data: { status, resolvedAt: status === "resolved" ? new Date() : null },
     });
     return true;
   } catch (e) {

@@ -42,7 +42,10 @@ export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
     });
     return cats.map(mapCategory);
   } catch (e) {
-    console.error("Error fetching portfolio categories:", e instanceof Error ? e.message : e);
+    console.error(
+      "Error fetching portfolio categories:",
+      e instanceof Error ? e.message : e,
+    );
     return [];
   }
 }
@@ -82,7 +85,10 @@ export async function updatePortfolioCategory(
     });
     return mapCategory(updated);
   } catch (e) {
-    console.error(`Error updating portfolio category ${id}:`, e instanceof Error ? e.message : e);
+    console.error(
+      `Error updating portfolio category ${id}:`,
+      e instanceof Error ? e.message : e,
+    );
     return null;
   }
 }
@@ -92,7 +98,10 @@ export async function deletePortfolioCategory(id: string): Promise<boolean> {
     await db.portfolioCategory.delete({ where: { id } });
     return true;
   } catch (e) {
-    console.error(`Error deleting portfolio category ${id}:`, e instanceof Error ? e.message : e);
+    console.error(
+      `Error deleting portfolio category ${id}:`,
+      e instanceof Error ? e.message : e,
+    );
     return false;
   }
 }
@@ -118,7 +127,10 @@ export async function getPortfolioItems(
     });
     return items.map(mapItem);
   } catch (e) {
-    console.error("Error fetching portfolio items:", e instanceof Error ? e.message : e);
+    console.error(
+      "Error fetching portfolio items:",
+      e instanceof Error ? e.message : e,
+    );
     return [];
   }
 }
@@ -133,7 +145,10 @@ export async function getPortfolioItemBySlug(
     });
     return item ? mapItem(item) : null;
   } catch (e) {
-    console.error(`Error fetching portfolio item ${slug}:`, e instanceof Error ? e.message : e);
+    console.error(
+      `Error fetching portfolio item ${slug}:`,
+      e instanceof Error ? e.message : e,
+    );
     return null;
   }
 }
@@ -186,7 +201,7 @@ export async function updatePortfolioItem(
   try {
     const updateData: any = {};
     if (data.category_id !== undefined)
-      updateData.categoryId = data.category_id;
+      updateData.categoryId = data.category_id || null;
     if (data.slug !== undefined) updateData.slug = data.slug;
     if (data.title_en !== undefined) updateData.titleEn = data.title_en;
     if (data.title_ar !== undefined) updateData.titleAr = data.title_ar;
@@ -219,7 +234,10 @@ export async function updatePortfolioItem(
     });
     return mapItem(updated);
   } catch (e) {
-    console.error(`Error updating portfolio item ${id}:`, e instanceof Error ? e.message : e);
+    console.error(
+      `Error updating portfolio item ${id}:`,
+      e instanceof Error ? e.message : e,
+    );
     return null;
   }
 }
@@ -229,7 +247,10 @@ export async function deletePortfolioItem(id: string): Promise<boolean> {
     await db.portfolioItem.delete({ where: { id } });
     return true;
   } catch (e) {
-    console.error(`Error deleting portfolio item ${id}:`, e instanceof Error ? e.message : e);
+    console.error(
+      `Error deleting portfolio item ${id}:`,
+      e instanceof Error ? e.message : e,
+    );
     return false;
   }
 }

@@ -19,17 +19,27 @@ export function CategoryTabs({
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-4">
-      {categories.map((cat) => {
+      {[
+        {
+          id: "all",
+          slug: "all",
+          name_en: "All work",
+          name_ar: "جميع الأعمال",
+          display_order: -1,
+        },
+        ...categories.filter((cat) => cat.slug !== "all"),
+      ].map((cat) => {
         const isActive = activeCategory === cat.slug;
         const name = isRTL ? cat.name_ar : cat.name_en;
 
         return (
           <button
             key={cat.id}
+            aria-pressed={isActive}
             onClick={() => onSelect(cat.slug)}
-            className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${
+            className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors duration-200 ${
               isActive
-                ? "bg-[#09937F] text-white shadow-lg shadow-[#09937F]/25 scale-105"
+                ? "bg-[#09937F] text-white"
                 : "bg-white/5 hover:bg-white/10 text-[#9EADA9] hover:text-white border border-white/10"
             }`}
           >

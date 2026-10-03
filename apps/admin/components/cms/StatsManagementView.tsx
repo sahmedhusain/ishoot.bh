@@ -5,6 +5,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { Button, Card, Modal, Input, ConfirmDestructiveModal } from "@ishoot/ui";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { createStatisticAction, updateStatisticAction, deleteStatisticAction } from "../../app/actions/cms";
+import { IconPicker } from "../shared/IconPicker";
 
 export function StatsManagementView({ initialStats }: { initialStats: any[] }) {
   const { t, isRTL } = useAdminLocale();
@@ -108,7 +109,7 @@ export function StatsManagementView({ initialStats }: { initialStats: any[] }) {
             </div>
             <div className="col-span-2 sm:col-span-1">
               <label className="text-xs font-bold block mb-1">{t.statsView.lucideIcon}</label>
-              <Input value={icon} onChange={e=>setIcon(e.target.value)} placeholder={t.statsView.iconPlaceholder} />
+              <IconPicker value={icon} onChange={setIcon} placeholder={t.statsView.iconPlaceholder} />
             </div>
             <div><label className="text-xs font-bold block mb-1">{t.statsView.labelEn}</label><Input value={labelEn} onChange={e=>setLabelEn(e.target.value)} required /></div>
             <div><label className="text-xs font-bold block mb-1">{t.statsView.labelAr}</label><Input value={labelAr} onChange={e=>setLabelAr(e.target.value)} required /></div>

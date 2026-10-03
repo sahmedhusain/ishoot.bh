@@ -9,6 +9,9 @@ import {
   Globe,
   Share2,
   Calendar,
+  Copy,
+  ExternalLink,
+  Check,
 } from "lucide-react";
 import type { Translations } from "../../../lib/translations";
 
@@ -28,6 +31,7 @@ export function GeneralInfoTab({
   isRTL,
 }: GeneralInfoTabProps) {
   const [googleConnected, setGoogleConnected] = React.useState(true);
+  const [feedCopied, setFeedCopied] = React.useState(false);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -238,46 +242,74 @@ export function GeneralInfoTab({
         </div>
       </Card>
 
-      {/* Google Workspace & Production Calendar Sync */}
+      {/* Google Workspace & Production Calendar Live Sync */}
       <Card className="p-6 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
-          <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-            <Calendar className="w-5 h-5" />
+        <div className="flex items-center justify-between pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                {t.companySettingsView.googleTitle}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {t.companySettingsView.googleSubtitle}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-              {t.companySettingsView.googleTitle}
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {t.companySettingsView.googleSubtitle}
-            </p>
-          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-[#014842] dark:text-[#7de0d1] border border-emerald-200 dark:border-emerald-800">
+            <span className="w-2 h-2 rounded-full bg-[#09937F] animate-pulse" />
+            <span>{isRTL ? "مزامنة حية نشطة" : "Live Production Sync Active"}</span>
+          </span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#282a2d] border border-[#dadce0] dark:border-[#3c4043] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#282a2d] border border-[#dadce0] dark:border-[#3c4043] space-y-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#09937F] animate-pulse" />
-              <span className="text-sm font-bold text-slate-900 dark:text-white">
-                {t.companySettingsView.googleConnected}
-              </span>
+            <div className="text-xs font-bold text-slate-900 dark:text-white">
+              {isRTL ? "رابط تقويم الإنتاج والتصوير المباشر (.ics)" : "Production & Shoot Live Feed URL (.ics)"}
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 ">
-              {settings.email || "admin"} • {t.companySettingsView.googleSyncActive}
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {isRTL 
+                ? "يتم تحديث جميع مواعيد التصوير والاجتماعات وأيام الإنتاج تلقائياً في تقويم Google وتقويم Apple."
+                : "All scheduled shoots, client meetings, and call sheets sync in real time to Google Calendar and Apple Calendar."}
             </p>
           </div>
 
-          <Button
-            type="button"
-            variant={googleConnected ? "secondary" : "primary"}
-            size="sm"
-            onClick={() => setGoogleConnected(!googleConnected)}
-            className="rounded-full text-xs"
-          >
-            {googleConnected
-              ? t.companySettingsView.disconnect
-              : t.companySettingsView.connect}
-          </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <div className="flex-1 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] px-3 py-2 rounded-xl text-xs font-mono text-slate-700 dark:text-slate-300 truncate select-all">
+              {typeof window !== "undefined" ? `${window.location.origin}/api/calendar/feed` : "/api/calendar/feed"}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const url = `${window.location.origin}/api/calendar/feed`;
+                navigator.clipboard.writeText(url);
+                setFeedCopied(true);
+                setTimeout(() => setFeedCopied(false), 2500);
+              }}
+              className="gap-1.5 text-xs rounded-xl shrink-0"
+            >
+              {feedCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{feedCopied ? (isRTL ? "تم النسخ!" : "Copied!") : (isRTL ? "نسخ الرابط" : "Copy Feed URL")}</span>
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                const feedUrl = `${window.location.origin}/api/calendar/feed`;
+                const gcalUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feedUrl)}`;
+                window.open(gcalUrl, "_blank");
+              }}
+              className="gap-1.5 text-xs rounded-xl shrink-0 bg-[#09937F] text-white"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>{isRTL ? "إضافة إلى تقويم Google" : "Add to Google Calendar"}</span>
+            </Button>
+          </div>
         </div>
       </Card>
     </div>

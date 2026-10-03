@@ -1,31 +1,27 @@
 "use client";
-
 import * as React from "react";
 import Lenis from "lenis";
-
+import { MotionConfig, useReducedMotion } from "framer-motion";
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
+  const reduced = useReducedMotion();
   React.useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      orientation: "vertical",
-      smoothWheel: true,
-      wheelMultiplier: 1.0,
-      touchMultiplier: 2.0,
-    });
-
+    if (reduced !== false || !window.matchMedia("(pointer: fine)").matches)
+      return;
+    const lenis = new Lenis({ duration: 0.8, smoothWheel: true });
+    let frame = 0;
     function raf(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      frame = requestAnimationFrame(raf);
     }
-
-    const rafId = requestAnimationFrame(raf);
-
+    frame = requestAnimationFrame(raf);
     return () => {
-      cancelAnimationFrame(rafId);
+      cancelAnimationFrame(frame);
       lenis.destroy();
     };
-  }, []);
-
-  return <>{children}</>;
+  }, [reduced]);
+  return (
+    <MotionConfig reducedMotion="user" transition={{ duration: 0.3 }}>
+      {children}
+    </MotionConfig>
+  );
 }
