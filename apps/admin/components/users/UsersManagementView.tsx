@@ -5,6 +5,7 @@ import type { Profile, UserRole } from "@ishoot/database/types";
 import {
   createUserAction,
   updateUserRoleAction,
+  updateUserAction,
   deleteUserAction,
 } from "../../app/actions/users";
 import {
@@ -23,6 +24,8 @@ import {
   Search,
   Building,
   CheckCircle2,
+  FileSignature,
+  Network,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -49,6 +52,7 @@ export function UsersManagementView({
   const [role, setRole] = React.useState<UserRole>("producer");
   const [phone, setPhone] = React.useState("");
   const [department, setDepartment] = React.useState("production");
+  const [managerId, setManagerId] = React.useState("");
   const [saving, setSaving] = React.useState(false);
   const [successMsg, setSuccessMsg] = React.useState("");
 
@@ -88,6 +92,7 @@ export function UsersManagementView({
         role,
         phone,
         department,
+        manager_id: managerId || undefined,
       });
 
       if (res.user) {
@@ -97,6 +102,7 @@ export function UsersManagementView({
         setEmail("");
         setPassword("");
         setPhone("");
+        setManagerId("");
         setShowCreateModal(false);
       }
     } catch (err) {
@@ -111,6 +117,26 @@ export function UsersManagementView({
     if (res.success) {
       setUsers(
         users.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
+      );
+    }
+  };
+
+  const handleManagerChange = async (userId: string, newManagerId: string) => {
+    const managerUser = users.find((u) => u.id === newManagerId);
+    const res = await updateUserAction(userId, {
+      manager_id: newManagerId || undefined,
+    });
+    if (res.success) {
+      setUsers(
+        users.map((u) =>
+          u.id === userId
+            ? {
+                ...u,
+                manager_id: newManagerId || undefined,
+                manager_name: managerUser?.full_name,
+              }
+            : u,
+        ),
       );
     }
   };
@@ -333,11 +359,13 @@ export function UsersManagementView({
 
           <div className="overflow-x-auto">
             <table className="w-full text-start text-xs">
-              <thead className="bg-[#070C0A] text-[#9EADA9]  uppercase text-[11px] border-b border-white/10">
+              <thead className="bg-[#070C0A] text-[#9EADA9] uppercase text-[11px] border-b border-white/10">
                 <tr>
                   <th className="p-4 text-start">{t.usersView.userHeader}</th>
                   <th className="p-4 text-start">{t.roles.department}</th>
+                  <th className="p-4 text-start">{isRTL ? "المسؤول المباشر" : "Reports To"}</th>
                   <th className="p-4 text-start">{t.usersView.roleHeader}</th>
+                  <th className="p-4 text-start">{isRTL ? "التوقيع الرقمي" : "Signature"}</th>
                   <th className="p-4 text-start">{t.usersView.statusHeader}</th>
                   <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
                 </tr>
@@ -353,14 +381,14 @@ export function UsersManagementView({
                     >
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center  font-bold text-white text-xs">
+                          <div className="w-9 h-9 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center font-bold text-white text-xs">
                             {u.full_name.charAt(0)}
                           </div>
                           <div>
                             <div className="font-bold text-white text-sm">
                               {u.full_name}
                             </div>
-                            <div className="text-[#9EADA9] text-[11px] ">
+                            <div className="text-[#9EADA9] text-[11px]">
                               {u.email}
                             </div>
                           </div>
@@ -368,7 +396,7 @@ export function UsersManagementView({
                       </td>
 
                       <td className="p-4">
-                        <div className="flex items-center gap-1.5 text-[#9EADA9] ">
+                        <div className="flex items-center gap-1.5 text-[#9EADA9]">
                           <Building className="w-3.5 h-3.5 text-[#09937F]" />
                           <span className="capitalize">
                             {(u.department &&
@@ -377,6 +405,25 @@ export function UsersManagementView({
                               t.usersView.departments.operations}
                           </span>
                         </div>
+                      </td>
+
+                      {/* Reports To Selector */}
+                      <td className="p-4">
+                        <select
+                          value={u.manager_id || ""}
+                          onChange={(e) => handleManagerChange(u.id, e.target.value)}
+                          className="bg-[#050807] border border-white/10 rounded-xl px-2.5 py-1 text-xs text-[#5EEAD4] focus:outline-none focus:border-[#09937F] cursor-pointer max-w-[160px] truncate"
+                          title={isRTL ? "تغيير المسؤول المباشر" : "Change Manager"}
+                        >
+                          <option value="">{isRTL ? "لا يوجد (مستقل)" : "None (Independent)"}</option>
+                          {users
+                            .filter((cand) => cand.id !== u.id)
+                            .map((cand) => (
+                              <option key={cand.id} value={cand.id}>
+                                {cand.full_name} ({cand.role})
+                              </option>
+                            ))}
+                        </select>
                       </td>
 
                       <td className="p-4">
@@ -395,8 +442,21 @@ export function UsersManagementView({
                         </select>
                       </td>
 
+                      {/* Digital Signature Preview */}
                       <td className="p-4">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px]  font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-20 px-2 py-0.5 rounded-lg bg-white/95 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm" title={u.full_name}>
+                            <img
+                              src={u.signature_url || "/brand/signature.svg"}
+                              alt="Signature"
+                              className="h-full w-auto object-contain"
+                            />
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="p-4">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                           {t.roles.statusActive}
                         </span>
@@ -587,6 +647,23 @@ export function UsersManagementView({
               dir="ltr"
               className="text-left"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[#9EADA9] font-medium">
+              {isRTL ? "المسؤول المباشر (Reports To)" : "Reports To (Manager)"}
+            </label>
+            <Select
+              value={managerId}
+              onChange={(e) => setManagerId(e.target.value)}
+            >
+              <option value="">{isRTL ? "لا يوجد (مستوى قيادي تنفيذي)" : "None (Executive Level)"}</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.full_name} ({u.role})
+                </option>
+              ))}
+            </Select>
           </div>
 
           <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/10">

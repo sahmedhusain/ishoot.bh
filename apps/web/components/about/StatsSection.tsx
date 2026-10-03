@@ -10,7 +10,7 @@ export function StatsSection({ stats }: { stats: Statistic[] }) {
   if (!stats || !stats.length) return null;
 
   return (
-    <section className="relative z-20 bg-[#050807] text-[#F2F6F5] py-20 select-none border-t border-white/10">
+    <section className="katana-top relative z-40 bg-[#0B1210] text-[#F2F6F5] pt-32 sm:pt-40 pb-24 select-none border-t border-white/10">
       <div className="shell space-y-12">
         <motion.div
           initial={{ opacity: 0, y: 30 }}

@@ -20,7 +20,7 @@ export function ServicesSection({
   if (!services.length) return null;
 
   return (
-    <section id="services" className="relative z-10 bg-[#050807] text-[#F2F6F5] py-24 select-none border-t border-white/10">
+    <section id="services" className="katana-top relative z-20 bg-[#0B1210] text-[#F2F6F5] pt-32 sm:pt-40 pb-24 select-none border-t border-white/10">
       {/* Background Graphic Grid */}
       <div
         aria-hidden="true"

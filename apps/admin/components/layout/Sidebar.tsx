@@ -24,6 +24,8 @@ import {
   ToggleLeft,
   Key,
   Globe,
+  FileSignature,
+  ShieldAlert,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -79,6 +81,20 @@ export function Sidebar() {
           label: t.nav.deals,
           icon: Kanban,
           resource: "deals",
+          moduleKey: "crm_deals",
+        },
+        {
+          href: "/dashboard/requests",
+          label: isRTL ? "الطلبات والشكاوى (SR/CR)" : "Requests & Complaints (SR/CR)",
+          icon: ShieldAlert,
+          resource: "requests",
+          moduleKey: "crm_deals",
+        },
+        {
+          href: "/dashboard/moms",
+          label: isRTL ? "محاضر الاجتماعات (MOM)" : "Minutes of Meetings (MOM)",
+          icon: FileSignature,
+          resource: "moms",
           moduleKey: "crm_deals",
         },
         {

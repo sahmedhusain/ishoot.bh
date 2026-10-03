@@ -16,7 +16,7 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
   return (
     <section
       id="faq"
-      className="relative z-10 bg-[#050807] text-[#F2F6F5] py-24 border-t border-white/10 select-none"
+      className="katana-top relative z-50 bg-[#0B1210] text-[#F2F6F5] pt-32 sm:pt-40 pb-24 border-t border-white/10 select-none"
     >
       <div className="shell grid lg:grid-cols-[1fr_1.6fr] gap-12 lg:gap-16">
         <motion.div

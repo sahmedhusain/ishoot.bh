@@ -36,7 +36,7 @@ export function CEOHero({ company }: CEOHeroProps) {
         className="absolute top-1/2 left-1/4 -translate-y-1/2 w-[500px] h-[500px] bg-radial from-[#09937F]/20 via-[#014842]/10 to-transparent blur-3xl pointer-events-none"
       />
 
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+      <div className="shell relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
         {/* CEO Portrait Graphic Canvas */}
         <motion.div
           initial={{ opacity: 0, x: isAr ? 40 : -40 }}

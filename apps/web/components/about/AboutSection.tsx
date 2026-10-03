@@ -18,7 +18,7 @@ export function AboutSection({ clientLogos = [], company }: AboutSectionProps) {
   const isAr = locale === "ar";
 
   return (
-    <section id="about" className="relative z-[2] bg-[#050807] text-[#F2F6F5] select-none py-24 border-t border-white/10">
+    <section id="about" className="katana-top relative z-10 bg-[#0B1210] text-[#F2F6F5] select-none pt-32 sm:pt-40 pb-24 border-t border-white/10">
       {/* Background Graphic Grid */}
       <div
         aria-hidden="true"

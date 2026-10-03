@@ -100,6 +100,7 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#050807] via-[#050807]/60 to-[#050807]/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050807]/85 via-[#050807]/30 to-transparent pointer-events-none" />
         {/* Background Graphic Grid */}
         <div
           aria-hidden="true"
@@ -116,11 +117,11 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
       </div>
 
       {/* Viewfinder Corner Framing Brackets */}
-      <div className="absolute top-24 start-6 w-5 h-5 border-t-2 border-s-2 border-[#09937F]/40 pointer-events-none hidden md:block" />
-      <div className="absolute top-24 end-6 w-5 h-5 border-t-2 border-e-2 border-[#09937F]/40 pointer-events-none hidden md:block" />
+      <div className="absolute top-24 start-8 sm:start-12 w-5 h-5 border-t-2 border-s-2 border-[#09937F]/40 pointer-events-none hidden md:block" />
+      <div className="absolute top-24 end-8 sm:end-12 w-5 h-5 border-t-2 border-e-2 border-[#09937F]/40 pointer-events-none hidden md:block" />
 
       {/* Viewfinder Telemetry HUD */}
-      <div className="absolute top-24 end-6 sm:end-12 z-20 hidden sm:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-[#09937F]/40 shadow-xl select-none">
+      <div className="absolute top-24 end-8 sm:end-12 z-20 hidden sm:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-[#09937F]/40 shadow-xl select-none">
         <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#5EEAD4]">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
           <span>REC · 8K VV · 24FPS</span>

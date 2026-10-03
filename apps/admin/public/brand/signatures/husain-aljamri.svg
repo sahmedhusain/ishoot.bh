@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 110" width="280" height="110">
+  <defs>
+    <filter id="sig-ink-husain-aljamri" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.7" />
+    </filter>
+  </defs>
+  <g filter="url(#sig-ink-husain-aljamri)">
+    <!-- Initial Loop: H -->
+    <path d="M 28,71 C 25,41 50,23 60,29 C 75,33 74,53 67,69 C 46,89 71,101 86,85 C 104,71 116,55 126,47"
+          fill="none" stroke="#014842" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <!-- Signature Flow Waves -->
+    <path d="M 122,53 C 128,41 136,45 142,55 C 148,65 154,47 162,51 C 170,57 176,71 184,61 C 192,49 202,43 210,55 C 218,67 224,59 230,51"
+          fill="none" stroke="#014842" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Terminal Flourish Loop -->
+    <path d="M 226,55 C 242,39 258,45 252,61 C 244,75 218,87 180,93 C 130,99 70,95 40,91"
+          fill="none" stroke="#014842" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Expressive Underline & Anchor Accent -->
+    <path d="M 53,97 C 100,93 180,91 225,95"
+          fill="none" stroke="#09937F" stroke-width="1.6" stroke-linecap="round" />
+    <circle cx="233" cy="95" r="2" fill="#09937F" />
+  </g>
+</svg>

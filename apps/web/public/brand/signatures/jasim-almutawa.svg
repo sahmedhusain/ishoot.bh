@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 110" width="280" height="110">
+  <defs>
+    <filter id="sig-ink-jasim-almutawa" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.7" />
+    </filter>
+  </defs>
+  <g filter="url(#sig-ink-jasim-almutawa)">
+    <!-- Initial Loop: J -->
+    <path d="M 28,69 C 27,39 52,21 58,27 C 73,31 74,51 69,67 C 46,87 73,99 86,83 C 104,69 116,53 126,45"
+          fill="none" stroke="#014842" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <!-- Signature Flow Waves -->
+    <path d="M 122,51 C 128,39 136,43 142,53 C 148,63 154,45 162,49 C 170,55 176,69 184,59 C 192,47 202,41 210,53 C 218,65 224,57 230,49"
+          fill="none" stroke="#014842" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Terminal Flourish Loop -->
+    <path d="M 226,53 C 242,37 258,43 252,59 C 244,73 218,85 180,91 C 130,97 70,93 40,89"
+          fill="none" stroke="#014842" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Expressive Underline & Anchor Accent -->
+    <path d="M 55,95 C 100,91 180,89 239,93"
+          fill="none" stroke="#09937F" stroke-width="1.6" stroke-linecap="round" />
+    <circle cx="247" cy="93" r="2" fill="#09937F" />
+  </g>
+</svg>

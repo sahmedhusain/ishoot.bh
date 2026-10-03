@@ -28,7 +28,7 @@ export function ReviewsSection({
   const [modalOpen, setModalOpen] = React.useState(false);
 
   return (
-    <section id="reviews" className="relative z-10 bg-[#050807] text-[#F2F6F5] py-24 select-none border-t border-white/10">
+    <section id="reviews" className="katana-top relative z-[45] bg-[#050807] text-[#F2F6F5] pt-32 sm:pt-40 pb-24 select-none border-t border-white/10">
       <div className="shell space-y-12">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-white/10">
           <motion.div

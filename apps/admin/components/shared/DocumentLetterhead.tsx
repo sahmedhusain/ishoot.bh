@@ -17,7 +17,7 @@ interface DocumentClientInfo {
 }
 
 export interface DocumentLetterheadProps {
-  documentType: "invoice" | "receipt" | "quote" | "proposal";
+  documentType: "invoice" | "receipt" | "quote" | "proposal" | "mom";
   documentNumber: string;
   titleEn: string;
   titleAr: string;
@@ -223,6 +223,9 @@ export function DocumentFooter({
   showSignature = false,
   signatureTitle,
   signatureTitleAr,
+  signatureUrl,
+  stampUrl,
+  signerName,
 }: {
   company: CompanySettings;
   language?: "en" | "ar";
@@ -230,6 +233,9 @@ export function DocumentFooter({
   showSignature?: boolean;
   signatureTitle?: string;
   signatureTitleAr?: string;
+  signatureUrl?: string | null;
+  stampUrl?: string | null;
+  signerName?: string | null;
 }) {
   const isAr = language === "ar";
   const t = adminTranslations[isAr ? "ar" : "en"].documentLetterhead;
@@ -239,6 +245,9 @@ export function DocumentFooter({
 
   const defaultSig = signatureTitle ? signatureTitle : t.authorizedSignatory;
   const defaultSigAr = signatureTitleAr ? signatureTitleAr : adminTranslations.ar.documentLetterhead.authorizedSignatory;
+
+  const effectiveStamp = stampUrl || company.stamp_url || "/brand/stamp.svg";
+  const effectiveSignature = signatureUrl !== undefined ? signatureUrl : company.signature_url;
 
   return (
     <div className="border-t border-gray-200 bg-white">
@@ -251,6 +260,11 @@ export function DocumentFooter({
             <div className="font-semibold text-gray-900">
               {companyName}
             </div>
+            {signerName && (
+              <div className="text-[11px] font-medium text-slate-700">
+                {isAr ? `الموقع: ${signerName}` : `Signed by: ${signerName}`}
+              </div>
+            )}
             {isAr && company.company_name_en && (
               <div className="text-[11px] text-gray-500 ">
                 {company.company_name_en}
@@ -259,10 +273,10 @@ export function DocumentFooter({
           </div>
 
           <div className="flex items-center gap-6">
-            {company.stamp_url && (
+            {effectiveStamp && (
               <div className="relative w-20 h-20 shrink-0 opacity-90 print:opacity-85">
                 <img
-                  src={company.stamp_url}
+                  src={effectiveStamp}
                   alt="Official Corporate Seal"
                   className="w-full h-full object-contain select-none"
                 />
@@ -270,9 +284,9 @@ export function DocumentFooter({
             )}
             <div className="text-center sm:text-end space-y-1.5 min-w-[180px]">
               <div className="relative h-14 flex items-end justify-center sm:justify-end pb-1">
-                {company.signature_url ? (
+                {effectiveSignature ? (
                   <img
-                    src={company.signature_url}
+                    src={effectiveSignature}
                     alt="Authorized Signature"
                     className="max-h-12 w-auto object-contain select-none"
                   />

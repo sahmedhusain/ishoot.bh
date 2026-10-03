@@ -18,6 +18,8 @@ export async function createUserAction(data: {
   role: UserRole;
   phone?: string;
   department?: string;
+  manager_id?: string;
+  signature_url?: string;
 }) {
   const actor = await requirePermission("users", "write");
   const initialPassword = data.password
@@ -37,7 +39,7 @@ export async function createUserAction(data: {
     action: "create",
     entity_type: "user",
     entity_id: user.id,
-    details: { email: user.email, role: user.role },
+    details: { email: user.email, role: user.role, manager_id: data.manager_id },
   });
 
   revalidatePath("/dashboard/users");
@@ -54,6 +56,35 @@ export async function updateUserRoleAction(id: string, role: UserRole) {
     entity_type: "user",
     entity_id: id,
     details: { newRole: role },
+  });
+
+  revalidatePath("/dashboard/users");
+  return { success: true, user };
+}
+
+export async function updateUserAction(
+  id: string,
+  data: {
+    full_name?: string;
+    email?: string;
+    role?: UserRole;
+    phone?: string;
+    department?: string;
+    manager_id?: string;
+    signature_url?: string;
+    is_active?: boolean;
+    password?: string;
+  }
+) {
+  const actor = await requirePermission("users", "write");
+  const user = await updateUser(id, data);
+
+  await createActivityLog({
+    user_id: actor.id,
+    action: "update",
+    entity_type: "user",
+    entity_id: id,
+    details: { updatedFields: Object.keys(data) },
   });
 
   revalidatePath("/dashboard/users");

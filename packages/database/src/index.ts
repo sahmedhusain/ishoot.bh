@@ -30,3 +30,4 @@ export { default as initialCompanyConfig } from "./initial-company-config.json";
 
 export * from "./queries/social-links";
 export * from "./queries/website";
+export * from "./queries/moms";

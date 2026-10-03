@@ -268,9 +268,9 @@ body::-webkit-scrollbar {
 /* The Container Shell */
 .shell {
   width: 100%;
-  max-width: 1380px;
+  max-width: 1240px;
   margin-inline: auto;
-  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+  padding-inline: clamp(1.5rem, 5vw, 3.5rem);
 }
 
 /* Diagonal Katana Razor Cut */

@@ -11,7 +11,7 @@ export function CTASection() {
   const { t, locale, isRTL: ar } = useTranslation();
 
   return (
-    <section className="relative z-10 bg-[#050807] text-[#F2F6F5] py-24 select-none border-t border-white/10 overflow-hidden">
+    <section className="katana-top relative z-[60] bg-[#050807] text-[#F2F6F5] pt-32 sm:pt-40 pb-28 select-none border-t border-white/10 overflow-hidden">
       {/* Background Graphic Grid */}
       <div
         aria-hidden="true"

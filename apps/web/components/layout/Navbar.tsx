@@ -61,8 +61,8 @@ export function Navbar({ company, pages }: NavbarProps) {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? "py-3.5 bg-[#050807]/90 backdrop-blur-2xl"
-            : "py-5 bg-transparent"
+            ? "py-3.5 bg-[#050807]/95 backdrop-blur-2xl border-b border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
+            : "py-5 bg-gradient-to-b from-[#050807]/90 via-[#050807]/45 to-transparent"
         }`}
         style={
           isScrolled
@@ -100,7 +100,7 @@ export function Navbar({ company, pages }: NavbarProps) {
             />
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-9">
+          <nav className="hidden lg:flex items-center gap-1.5 p-1.5 rounded-full bg-[#070D0B]/90 dark:bg-[#070D0B]/95 backdrop-blur-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.08)]">
             {navLinks.map((link) => {
               const isActive =
                 link.href === `/${locale}`
@@ -112,20 +112,19 @@ export function Navbar({ company, pages }: NavbarProps) {
                   key={link.href}
                   href={link.href}
                   aria-current={isActive ? "page" : undefined}
-                  className={`group relative text-sm tracking-wide font-medium transition-colors duration-300 ${
-                    isActive ? "text-white" : "text-[#9EADA9] hover:text-white"
+                  className={`relative px-4 py-1.5 text-xs sm:text-sm font-sans tracking-wide transition-all duration-300 rounded-full select-none ${
+                    isActive
+                      ? "text-white font-bold"
+                      : "text-slate-200 hover:text-white hover:bg-white/10"
                   }`}
                 >
-                  <span className="relative pb-1">
-                    {link.label}
+                  {isActive && (
                     <span
-                      className={`absolute -bottom-0.5 left-0 h-[1.5px] w-full origin-left bg-[#09937F] transition-transform duration-500 ease-out ${
-                        isActive
-                          ? "scale-x-100"
-                          : "scale-x-0 group-hover:scale-x-100"
-                      }`}
+                      aria-hidden="true"
+                      className="absolute inset-0 rounded-full bg-[#09937F] border border-[#5EEAD4]/40 shadow-[0_0_16px_rgba(9,147,127,0.55)] -z-0"
                     />
-                  </span>
+                  )}
+                  <span className="relative z-10">{link.label}</span>
                 </Link>
               );
             })}
@@ -138,7 +137,7 @@ export function Navbar({ company, pages }: NavbarProps) {
           <div className="flex items-center gap-3 lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#070D0B]/85 border border-white/20 text-white hover:bg-[#09937F]/20 transition-colors shadow-lg backdrop-blur-xl"
               aria-label="Open menu"
             >
               <Menu className="w-4 h-4" />

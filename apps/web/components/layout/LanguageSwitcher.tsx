@@ -18,10 +18,10 @@ export function LanguageSwitcher() {
   return (
     <Link
       href={targetPathname}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-[#9EADA9] hover:text-[#09937F] bg-white/5 hover:bg-white/10 border border-white/10 transition-all duration-300"
+      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white/90 hover:text-white bg-[#070D0B]/85 hover:bg-[#070D0B] border border-white/20 shadow-lg backdrop-blur-xl transition-all duration-300"
       title={t("nav.switchLang")}
     >
-      <Globe className="w-3.5 h-3.5 text-[#09937F]" />
+      <Globe className="w-3.5 h-3.5 text-[#5EEAD4]" />
       <span>{t("nav.switchLang")}</span>
     </Link>
   );

@@ -50,12 +50,12 @@ export default async function WorksPage({
         className="absolute top-20 start-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-radial from-[#09937F]/15 via-[#014842]/5 to-transparent blur-3xl pointer-events-none"
       />
 
-      <div className="relative z-10 pt-36 pb-24 max-w-7xl mx-auto px-6 sm:px-8">
+      <div className="shell relative z-10 pt-36 pb-24">
         <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold text-[#5EEAD4] px-3.5 py-1 rounded-full bg-black/60 border border-[#09937F]/40 shadow-lg mb-2">
             <span className="text-[#09937F] opacity-80">&lt;&lt;</span>
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span>ARCHIVE // SELECTED WORKS</span>
+            <span>{t.portfolio.badge}</span>
             <span className="text-[#09937F] opacity-80">&gt;&gt;</span>
           </div>
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-display">

@@ -18,6 +18,9 @@ export interface Profile {
   avatar_url?: string;
   phone?: string;
   department?: string;
+  signature_url?: string;
+  manager_id?: string;
+  manager_name?: string;
   is_active?: boolean;
   last_login_at?: string;
   permissions?: Record<string, boolean> | any;
@@ -205,6 +208,8 @@ export type InquiryStatus =
   | "resolved";
 
 export interface Inquiry {
+  type?: string;
+  subject?: string;
   intent?: "inquiry" | "quote_request" | "complaint" | "suggestion";
   reference?: string;
   assigned_to_id?: string;
@@ -227,6 +232,30 @@ export interface Inquiry {
   target_timeline?: string;
   message?: string;
   status: InquiryStatus;
+  team?: string;
+  workflow_status?:
+    | "received"
+    | "under_review"
+    | "assigned"
+    | "pending_approval"
+    | "confirmed"
+    | "returned"
+    | "in_progress"
+    | "resolved"
+    | "rejected";
+  custom_assignments?: Array<{
+    assignedToId?: string;
+    assignedByName?: string;
+    timestamp: string;
+    notes?: string;
+    action: string;
+  }>;
+  approval_notes?: string;
+  return_reason?: string;
+  resolution_notes?: string;
+  confirmed_at?: string;
+  confirmed_by_id?: string;
+  confirmed_by_name?: string;
   confirmation_sent: boolean;
   notification_sent: boolean;
   locale: string;
@@ -235,6 +264,57 @@ export interface Inquiry {
   customer?: CRMContact;
   merge_flag?: boolean;
   created_at: string;
+}
+
+export interface MomAttendee {
+  name: string;
+  role: string;
+  email?: string;
+  organization?: string;
+  attended: boolean;
+}
+
+export interface MomDiscussionPoint {
+  topic: string;
+  notes: string;
+  speaker?: string;
+}
+
+export interface MomActionItem {
+  task: string;
+  assignee: string;
+  dueDate?: string;
+  status: "pending" | "in_progress" | "completed";
+}
+
+export interface MinuteOfMeetingItem {
+  id: string;
+  mom_number: string;
+  title: string;
+  title_ar?: string;
+  meeting_date: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string;
+  deal_id?: string;
+  deal_title?: string;
+  client_id?: string;
+  client_name?: string;
+  attendees: MomAttendee[];
+  agenda: string;
+  discussion_points: MomDiscussionPoint[];
+  action_items: MomActionItem[];
+  decisions: string[];
+  notes?: string;
+  status: "draft" | "in_review" | "approved" | "shared";
+  created_by_id?: string;
+  created_by_name?: string;
+  approved_by_id?: string;
+  approved_by_name?: string;
+  signature_url?: string;
+  pdf_storage_path?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface CRMContact {

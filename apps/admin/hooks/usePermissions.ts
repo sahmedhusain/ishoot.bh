@@ -23,7 +23,9 @@ export type PermissionResource =
   | "audit_logs"
   | "reviews"
   | "faqs"
-  | "stats";
+  | "stats"
+  | "moms"
+  | "requests";
 
 export type PermissionAction =
   "read" | "write" | "delete" | "export" | "approve";

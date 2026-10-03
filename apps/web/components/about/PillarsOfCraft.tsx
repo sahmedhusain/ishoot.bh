@@ -11,7 +11,7 @@ export function PillarsOfCraft() {
   const pillarKeys = ["p1", "p2", "p3", "p4"] as const;
 
   return (
-    <section className="relative z-10 bg-[#050807] text-[#F2F6F5] py-28 select-none border-t border-white/10 overflow-hidden">
+    <section className="katana-top relative z-10 bg-[#050807] text-[#F2F6F5] pt-32 sm:pt-40 pb-28 select-none border-t border-white/10 overflow-hidden">
       {/* Background Graphic Grid */}
       <div
         aria-hidden="true"

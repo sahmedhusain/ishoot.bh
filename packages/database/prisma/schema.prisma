@@ -16,8 +16,12 @@ model User {
   role           String    @default("viewer") // "super_admin", "admin", "finance_manager", "production_manager", "producer", "editor", "accountant", "viewer"
   permissions    Json? // custom granular override
   avatarUrl      String?
+  signatureUrl   String?
   phone          String?
   department     String? // production, finance, marketing, executive
+  managerId      String?
+  manager        User?     @relation("UserHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
+  subordinates   User[]    @relation("UserHierarchy")
   isActive       Boolean   @default(true)
   lastLoginAt    DateTime?
   resetToken     String?
@@ -38,6 +42,8 @@ model User {
   contractsCreated   Contract[]
   generatedDocuments GeneratedDocument[]
   companyDocuments   CompanyDocument[]
+  momsCreated        MinuteOfMeeting[]   @relation("MomCreator")
+  momsApproved       MinuteOfMeeting[]   @relation("MomApprover")
 }
 
 model CompanySetting {
@@ -211,6 +217,14 @@ model Inquiry {
   location               String?
   assignedToId           String?
   assignedTo             User?         @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  team                   String? // "production", "post_production", "finance", "sales", "executive", "support"
+  workflowStatus         String        @default("received") // "received", "under_review", "assigned", "pending_approval", "confirmed", "returned", "in_progress", "resolved", "rejected"
+  customAssignments      Json?         @default("[]") // [{ assignedToId, assignedBy, timestamp, notes, action }]
+  approvalNotes          String?       @db.Text
+  returnReason           String?       @db.Text
+  resolutionNotes        String?       @db.Text
+  confirmedAt            DateTime?
+  confirmedById          String?
   priority               String        @default("normal")
   resolvedAt             DateTime?
   confirmationStatus     String        @default("unknown")
@@ -223,6 +237,7 @@ model Inquiry {
 
   @@index([intent, status, createdAt])
   @@index([assignedToId, status, createdAt])
+  @@index([team, workflowStatus])
   @@index([customerId])
   @@index([emailNorm])
   @@index([phoneE164])
@@ -264,27 +279,28 @@ model CrmContact {
   notes       String?
   deals       CrmDeal[]
   inquiries   Inquiry[]
-  contracts   Contract[]
-  invoices    Invoice[]
-  reviews     Review[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  contracts         Contract[]
+  invoices          Invoice[]
+  reviews           Review[]
+  minutesOfMeetings MinuteOfMeeting[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@index([emailNorm])
   @@index([phoneE164])
 }
 
 model CrmDeal {
-  id                String          @id @default(uuid())
+  id                String            @id @default(uuid())
   contactId         String?
-  contact           CrmContact?     @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  contact           CrmContact?       @relation(fields: [contactId], references: [id], onDelete: SetNull)
   title             String
-  dealStage         String          @default("lead") // "lead", "proposal_sent", "contract_signed", "production", "post_production", "delivered", "invoiced", "closed_won", "closed_lost"
-  dealValue         Decimal         @default(0.000) @db.Decimal(12, 3)
-  currency          String          @default("BHD")
-  probability       Int             @default(50)
-  expectedCloseDate DateTime?       @db.Date
-  shootDate         DateTime?       @db.Date
+  dealStage         String            @default("lead") // "lead", "proposal_sent", "contract_signed", "production", "post_production", "delivered", "invoiced", "closed_won", "closed_lost"
+  dealValue         Decimal           @default(0.000) @db.Decimal(12, 3)
+  currency          String            @default("BHD")
+  probability       Int               @default(50)
+  expectedCloseDate DateTime?         @db.Date
+  shootDate         DateTime?         @db.Date
   lostReason        String?
   assignedTo        String?
   notes             String?
@@ -292,7 +308,8 @@ model CrmDeal {
   expenses          Expense[]
   calendarEvents    CalendarEvent[]
   contracts         Contract[]
-  createdAt         DateTime        @default(now())
+  minutesOfMeetings MinuteOfMeeting[]
+  createdAt         DateTime          @default(now())
   updatedAt         DateTime        @updatedAt
 
   @@index([contactId])
@@ -557,6 +574,41 @@ model Contract {
 
   @@index([dealId])
   @@index([contactId])
+}
+
+model MinuteOfMeeting {
+  id               String      @id @default(uuid())
+  momNumber        String      @unique // e.g. "MOM-2026-001"
+  title            String
+  titleAr          String?
+  meetingDate      DateTime    @db.Date
+  startTime        String?     // e.g. "10:00 AM"
+  endTime          String?     // e.g. "11:30 AM"
+  location         String?     // e.g. "ishoot Studio", "Zoom Virtual Room", "Client HQ"
+  dealId           String?
+  deal             CrmDeal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  clientId         String?
+  client           CrmContact? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  attendees        Json        @default("[]") // [{ name, role, email, organization, attended: boolean }]
+  agenda           String      @db.Text
+  discussionPoints Json        @default("[]") // [{ topic, notes, speaker }]
+  actionItems      Json        @default("[]") // [{ task, assignee, dueDate, status: 'pending' | 'in_progress' | 'completed' }]
+  decisions        Json?       @default("[]") // string[]
+  notes            String?     @db.Text
+  status           String      @default("draft") // "draft", "in_review", "approved", "shared"
+  createdById      String?
+  createdBy        User?       @relation("MomCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  approvedById     String?
+  approvedBy       User?       @relation("MomApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  signatureUrl     String?     // User signature snapshot at signing
+  pdfStoragePath   String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([clientId])
+  @@index([dealId])
+  @@index([meetingDate])
+  @@index([status])
 }
 
 model GeneratedDocument {

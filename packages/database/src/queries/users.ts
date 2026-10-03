@@ -9,8 +9,11 @@ function mapUser(u: any): Profile {
     email: u.email,
     role: u.role as UserRole,
     avatar_url: u.avatarUrl || undefined,
+    signature_url: u.signatureUrl || undefined,
     phone: u.phone || undefined,
     department: u.department || undefined,
+    manager_id: u.managerId || undefined,
+    manager_name: u.manager?.fullName || undefined,
     is_active: u.isActive,
     last_login_at: u.lastLoginAt ? u.lastLoginAt.toISOString() : undefined,
     permissions: u.permissions || undefined,
@@ -22,6 +25,9 @@ function mapUser(u: any): Profile {
 export async function getAllUsers(): Promise<Profile[]> {
   try {
     const users = await db.user.findMany({
+      include: {
+        manager: { select: { fullName: true } },
+      },
       orderBy: { createdAt: "desc" },
     });
     return users.map(mapUser);
@@ -35,6 +41,9 @@ export async function getUserById(id: string): Promise<Profile | null> {
   try {
     const user = await db.user.findUnique({
       where: { id },
+      include: {
+        manager: { select: { fullName: true } },
+      },
     });
     return user ? mapUser(user) : null;
   } catch (e) {
@@ -50,6 +59,8 @@ export async function createUser(data: {
   role: UserRole;
   phone?: string;
   department?: string;
+  signature_url?: string;
+  manager_id?: string;
 }): Promise<Profile> {
   const passwordHash = await bcrypt.hash(data.password, 10);
   const created = await db.user.create({
@@ -60,7 +71,12 @@ export async function createUser(data: {
       role: data.role,
       phone: data.phone || null,
       department: data.department || null,
+      signatureUrl: data.signature_url || null,
+      managerId: data.manager_id || null,
       isActive: true,
+    },
+    include: {
+      manager: { select: { fullName: true } },
     },
   });
   return mapUser(created);
@@ -76,8 +92,10 @@ export async function updateUser(
     if (data.email !== undefined) updateData.email = data.email;
     if (data.role !== undefined) updateData.role = data.role;
     if (data.avatar_url !== undefined) updateData.avatarUrl = data.avatar_url;
+    if (data.signature_url !== undefined) updateData.signatureUrl = data.signature_url;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.department !== undefined) updateData.department = data.department;
+    if (data.manager_id !== undefined) updateData.managerId = data.manager_id || null;
     if (data.is_active !== undefined) updateData.isActive = data.is_active;
     if (data.permissions !== undefined)
       updateData.permissions = data.permissions;
@@ -88,6 +106,9 @@ export async function updateUser(
     const updated = await db.user.update({
       where: { id },
       data: updateData,
+      include: {
+        manager: { select: { fullName: true } },
+      },
     });
     return mapUser(updated);
   } catch (e) {

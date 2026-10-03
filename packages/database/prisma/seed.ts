@@ -38,6 +38,7 @@ async function main() {
       role: "super_admin",
       department: "executive",
       phone: superAdminPhone,
+      signatureUrl: "/brand/signatures/sayed-ahmed.svg",
     },
     {
       email: "director@ishoot.bh",
@@ -45,6 +46,7 @@ async function main() {
       role: "admin",
       department: "executive",
       phone: "+973 3900 2200",
+      signatureUrl: "/brand/signatures/mohamed-almahdi.svg",
     },
     {
       email: "finance@ishoot.bh",
@@ -52,6 +54,7 @@ async function main() {
       role: "finance_manager",
       department: "finance",
       phone: "+973 3900 3300",
+      signatureUrl: "/brand/signatures/zainab-alshami.svg",
     },
     {
       email: "production@ishoot.bh",
@@ -59,6 +62,7 @@ async function main() {
       role: "production_manager",
       department: "production",
       phone: "+973 3900 4400",
+      signatureUrl: "/brand/signatures/ali-alsamahiji.svg",
     },
     {
       email: "producer@ishoot.bh",
@@ -66,6 +70,7 @@ async function main() {
       role: "producer",
       department: "production",
       phone: "+973 3900 5500",
+      signatureUrl: "/brand/signatures/husain-aljamri.svg",
     },
     {
       email: "editor@ishoot.bh",
@@ -73,6 +78,7 @@ async function main() {
       role: "editor",
       department: "post_production",
       phone: "+973 3900 6600",
+      signatureUrl: "/brand/signatures/fatima-alkaabi.svg",
     },
     {
       email: "accountant@ishoot.bh",
@@ -80,6 +86,7 @@ async function main() {
       role: "accountant",
       department: "finance",
       phone: "+973 3900 7700",
+      signatureUrl: "/brand/signatures/jasim-almutawa.svg",
     },
     {
       email: "sales@ishoot.bh",
@@ -87,6 +94,7 @@ async function main() {
       role: "sales",
       department: "sales",
       phone: "+973 3900 8811",
+      signatureUrl: "/brand/signatures/khalid-alsaeed.svg",
     },
     {
       email: "marketing@ishoot.bh",
@@ -94,6 +102,7 @@ async function main() {
       role: "marketing",
       department: "marketing",
       phone: "+973 3900 8822",
+      signatureUrl: "/brand/signatures/maryam-alaali.svg",
     },
     {
       email: "guest@ishoot.bh",
@@ -101,6 +110,7 @@ async function main() {
       role: "viewer",
       department: "operations",
       phone: "+973 3900 8800",
+      signatureUrl: "/brand/signatures/guest.svg",
     },
   ];
 
@@ -114,6 +124,7 @@ async function main() {
         fullName: u.fullName,
         department: u.department,
         phone: u.phone,
+        signatureUrl: u.signatureUrl,
       },
       create: {
         email: u.email,
@@ -122,12 +133,37 @@ async function main() {
         role: u.role,
         department: u.department,
         phone: u.phone,
+        signatureUrl: u.signatureUrl,
         isActive: true,
       },
     });
     createdUsers[u.role] = user;
   }
-  console.log("✅ Created 10 RBAC Users (Password: Admin123!)");
+
+  // Establish Reporting To Hierarchy
+  const ceo = createdUsers["super_admin"];
+  const director = createdUsers["admin"];
+  const prodManager = createdUsers["production_manager"];
+  const finManager = createdUsers["finance_manager"];
+
+  if (ceo) {
+    if (director) await prisma.user.update({ where: { id: director.id }, data: { managerId: ceo.id } });
+    if (finManager) await prisma.user.update({ where: { id: finManager.id }, data: { managerId: ceo.id } });
+    if (prodManager) await prisma.user.update({ where: { id: prodManager.id }, data: { managerId: ceo.id } });
+    if (createdUsers["sales"]) await prisma.user.update({ where: { id: createdUsers["sales"].id }, data: { managerId: ceo.id } });
+    if (createdUsers["marketing"]) await prisma.user.update({ where: { id: createdUsers["marketing"].id }, data: { managerId: ceo.id } });
+  }
+  if (prodManager) {
+    if (createdUsers["producer"]) await prisma.user.update({ where: { id: createdUsers["producer"].id }, data: { managerId: prodManager.id } });
+    if (createdUsers["editor"]) await prisma.user.update({ where: { id: createdUsers["editor"].id }, data: { managerId: prodManager.id } });
+  }
+  if (finManager && createdUsers["accountant"]) {
+    await prisma.user.update({ where: { id: createdUsers["accountant"].id }, data: { managerId: finManager.id } });
+  }
+  if (director && createdUsers["viewer"]) {
+    await prisma.user.update({ where: { id: createdUsers["viewer"].id }, data: { managerId: director.id } });
+  }
+  console.log("✅ Created 10 RBAC Users with Signatures & Hierarchy (Password: Admin123!)");
 
   const ALL_RESOURCES = [
     "invoices",
@@ -2471,7 +2507,20 @@ async function main() {
       timeline: "November 2026",
       message: "نود تصوير فيلم وثائقي ترويجي سنوي لتقرير الاستدامة والحوكمة في نوفمبر.",
       status: "new",
+      intent: "inquiry",
+      team: "production",
+      workflowStatus: "assigned",
+      assignedToId: createdUsers.producer?.id,
       locale: "ar",
+      customAssignments: [
+        {
+          assignedToId: createdUsers.producer?.id,
+          assignedByName: createdUsers.super_admin?.fullName,
+          timestamp: new Date().toISOString(),
+          notes: "تم الإسناد إلى المنتج لمراجعة متطلبات النص والجدول الزمني",
+          action: "assign",
+        },
+      ],
     },
     {
       id: "inq-02",
@@ -2486,7 +2535,20 @@ async function main() {
       timeline: "December 2026",
       message: "Looking for a licensed cinema heavy-lift drone crew for an extreme watersports shoot in Bahrain.",
       status: "qualified",
+      intent: "quote_request",
+      team: "production",
+      workflowStatus: "in_progress",
+      assignedToId: createdUsers.production_manager?.id,
       locale: "en",
+      customAssignments: [
+        {
+          assignedToId: createdUsers.production_manager?.id,
+          assignedByName: createdUsers.super_admin?.fullName,
+          timestamp: new Date().toISOString(),
+          notes: "Assigned to production head for BCAA flight permit feasibility and crew quote",
+          action: "assign",
+        },
+      ],
     },
     {
       id: "inq-03",
@@ -2501,6 +2563,11 @@ async function main() {
       timeline: "October 2026",
       message: "طلب إنتاج سلسلة مقابلات وثائقية ملهمة لرواد الأعمال البحرينيين.",
       status: "contacted",
+      intent: "service_request",
+      team: "production",
+      workflowStatus: "pending_approval",
+      assignedToId: createdUsers.producer?.id,
+      approvalNotes: "المقترح الفني جاهز بانتظار الاعتماد المالي والتنفيذي",
       locale: "ar",
     },
     {
@@ -2516,7 +2583,63 @@ async function main() {
       timeline: "November 2026",
       message: "Supercar desert reveal film and studio lighting setup in Bahrain.",
       status: "qualified",
+      intent: "service_request",
+      team: "production",
+      workflowStatus: "confirmed",
+      assignedToId: createdUsers.production_manager?.id,
+      confirmedById: createdUsers.super_admin?.id,
+      confirmedAt: new Date(),
       locale: "en",
+    },
+    {
+      id: "inq-05",
+      name: "طارق المؤيد",
+      email: "tariq@gulfmedia.com",
+      emailNorm: "tariq@gulfmedia.com",
+      phone: "+973 3611 9922",
+      phoneE164: "+97336119922",
+      companyName: "Gulf Media Network",
+      serviceType: "Color Grading & Master Delivery",
+      budgetRange: "2,000 – 4,000 BHD",
+      timeline: "Urgent",
+      message: "ملاحظة بخصوص معايرة الألوان في الإعلان الأخير: نود تعديل درجات اللون الأخضر للعلامة التجارية ليتطابق مع الرمز اللوني المعتمد.",
+      status: "new",
+      intent: "complaint",
+      team: "post_production",
+      workflowStatus: "assigned",
+      priority: "high",
+      assignedToId: createdUsers.editor?.id,
+      customAssignments: [
+        {
+          assignedToId: createdUsers.editor?.id,
+          assignedByName: createdUsers.production_manager?.fullName,
+          timestamp: new Date().toISOString(),
+          notes: "تم التحويل لمونتير المشروع لإجراء التعديل فوراً وتصدير نسخة مراجعة",
+          action: "assign",
+        },
+      ],
+      locale: "ar",
+    },
+    {
+      id: "inq-06",
+      name: "هدى الشروقي",
+      email: "huda@bahraintourism.bh",
+      emailNorm: "huda@bahraintourism.bh",
+      phone: "+973 3999 1144",
+      phoneE164: "+97339991144",
+      companyName: "Bahrain Tourism & Exhibitions Authority",
+      serviceType: "Additional Sound Design Stems",
+      budgetRange: "1,000 BHD",
+      timeline: "This Week",
+      message: "طلب تزويدنا بالتسجيلات الصوتية المنفصلة (Stems) وموسيقى الخلفية لحملة موسم الصيف.",
+      status: "qualified",
+      intent: "service_request",
+      team: "post_production",
+      workflowStatus: "resolved",
+      assignedToId: createdUsers.editor?.id,
+      resolutionNotes: "تم تصدير الحزم الصوتية كاملة ورفعها على سحابة العميل",
+      resolvedAt: new Date(),
+      locale: "ar",
     },
   ];
 
@@ -2527,7 +2650,127 @@ async function main() {
       create: inq,
     });
   }
-  console.log("✅ Seeded 4 Production Inquiries / Inbound Leads");
+  console.log("✅ Seeded 6 Production Inquiries / Service Requests & Complaints (SR/CR)");
+
+  // ==========================================
+  // 8B. MINUTES OF MEETINGS (MOM)
+  // ==========================================
+  const momsData = [
+    {
+      id: "mom-001",
+      momNumber: "MOM-2026-001",
+      title: "BAPCO Energies Brand Film 2026 - Production Kickoff & Safety Brief",
+      titleAr: "فيلم بابكو إنرجيز المؤسسي 2026 - اجتماع إطلاق الإنتاج وإرشادات السلامة",
+      meetingDate: new Date("2026-02-15"),
+      startTime: "10:00 AM",
+      endTime: "11:45 AM",
+      location: "ishoot Studio Stage A & Virtual Boardroom",
+      dealId: "deal-02",
+      clientId: "contact-02",
+      attendees: [
+        { name: "Sayed Ahmed Husain", role: "Executive Producer", email: "sayed@ishoot.bh", organization: "iShoot", attended: true },
+        { name: "Ali Al Samahiji", role: "Production Manager", email: "production@ishoot.bh", organization: "iShoot", attended: true },
+        { name: "Fatima Al Kaabi", role: "Senior Editor & DIT", email: "editor@ishoot.bh", organization: "iShoot", attended: true },
+        { name: "Reem Al Hashimi", role: "Corporate Comms Lead", email: "reem@bapcoenergies.com", organization: "BAPCO Energies", attended: true },
+        { name: "Hassan Kanoo", role: "HSE Director", email: "hassan.k@bapcoenergies.com", organization: "BAPCO Energies", attended: true },
+      ],
+      agenda: "1. Refinery filming safety permits & PPE certification.\n2. Technical camera package review (RED V-Raptor 8K + Master Primes).\n3. Talent casting schedule & offshore helicopter unit timing.\n4. Post-production timeline and delivery cutoffs.",
+      discussionPoints: [
+        { topic: "Safety Clearances", notes: "BAPCO HSE team approved the ATEX-rated monitor housings and required on-site safety induction for all 14 crew members on day one.", speaker: "Hassan Kanoo" },
+        { topic: "Aerial Helicopter Unit", notes: "Helicopter Cineflex gimbal approved for offshore refinery sweep shots. Flight window confirmed for 06:00 to 08:30 on March 2nd.", speaker: "Ali Al Samahiji" },
+        { topic: "Sound & Voiceover", notes: "Bilingual voiceover recorded in both English (UK neutral) and Arabic (Gulf refined). Client provided updated brand manifesto script.", speaker: "Reem Al Hashimi" },
+      ],
+      actionItems: [
+        { task: "Submit full crew passport & CPR copies for refinery security badges", assignee: "Husain Al Jamri", dueDate: "2026-02-18", status: "completed" },
+        { task: "Prepare camera prep report and sensor calibration at studio", assignee: "Ali Al Samahiji", dueDate: "2026-02-22", status: "completed" },
+        { task: "Share preliminary 3D previz for offshore tank sequence", assignee: "Fatima Al Kaabi", dueDate: "2026-02-25", status: "in_progress" },
+      ],
+      decisions: [
+        "Filming dates locked for March 1-4, 2026.",
+        "Color grade LUT selected: 35mm Eastman Print Emulation with high DR curve.",
+        "Final deliverable format: 8K Master DCI + 4K ProRes 4444XQ + Social Verticals."
+      ],
+      notes: "Meeting concluded with full alignment across executive and safety teams. Formal approvals documented.",
+      status: "approved",
+      createdById: createdUsers.super_admin?.id,
+      approvedById: createdUsers.super_admin?.id,
+      signatureUrl: "/brand/signatures/sayed-ahmed.svg",
+    },
+    {
+      id: "mom-002",
+      momNumber: "MOM-2026-002",
+      title: "Batelco 5G Launch Campaign - Post-Production Review & VFX Alignment",
+      titleAr: "حملة بتلكو 5G - اجتماع مراجعة المونتاج ومؤثرات الجرافيكس",
+      meetingDate: new Date("2026-03-05"),
+      startTime: "02:00 PM",
+      endTime: "03:30 PM",
+      location: "Batelco Innovation Lab, Hamala",
+      dealId: "deal-01",
+      clientId: "contact-01",
+      attendees: [
+        { name: "Mohamed Al Mahdi", role: "Creative Director", email: "director@ishoot.bh", organization: "iShoot", attended: true },
+        { name: "Fatima Al Kaabi", role: "Post-Production Supervisor", email: "editor@ishoot.bh", organization: "iShoot", attended: true },
+        { name: "Nasser Al Khalifa", role: "Brand Marketing GM", email: "nasser@batelco.com.bh", organization: "Batelco", attended: true },
+      ],
+      agenda: "1. Review Rough Cut V2 of 60s TV Commercial.\n2. CGI holographic UI elements timing & integration.\n3. Music licensing & custom sound design soundscape.",
+      discussionPoints: [
+        { topic: "Edit Pacing", notes: "Client commended the high-energy transitions between Manama skyline and modern fiber connectivity nodes.", speaker: "Nasser Al Khalifa" },
+        { topic: "Color Tone", notes: "Enhanced cyan and emerald highlights to preserve Batelco new identity vibrance.", speaker: "Fatima Al Kaabi" },
+      ],
+      actionItems: [
+        { task: "Incorporate localized Arabic calligraphy end-frame title", assignee: "Fatima Al Kaabi", dueDate: "2026-03-08", status: "completed" },
+        { task: "Export broadcast-spec MXF files for Bahrain TV transmission", assignee: "Fatima Al Kaabi", dueDate: "2026-03-10", status: "pending" },
+      ],
+      decisions: [
+        "Approved 60s main commercial cut without further story edits.",
+        "Commissioned 15s cutdowns for TikTok, Instagram Reels, and YouTube bumper ads."
+      ],
+      status: "approved",
+      createdById: createdUsers.production_manager?.id,
+      approvedById: createdUsers.admin?.id,
+      signatureUrl: "/brand/signatures/mohamed-almahdi.svg",
+    },
+    {
+      id: "mom-003",
+      momNumber: "MOM-2026-003",
+      title: "Q2 Studio Equipment Expansion & Virtual Production Capabilities",
+      titleAr: "خطة توسعة معدات الاستوديو للربع الثاني وتقنيات الإنتاج الافتراضي",
+      meetingDate: new Date("2026-03-20"),
+      startTime: "11:00 AM",
+      endTime: "12:30 PM",
+      location: "ishoot Manama Headquarters",
+      attendees: [
+        { name: "Sayed Ahmed Husain", role: "CEO", email: "sayed@ishoot.bh", organization: "iShoot", attended: true },
+        { name: "Zainab Al Shami", role: "Finance Manager", email: "finance@ishoot.bh", organization: "iShoot", attended: true },
+        { name: "Ali Al Samahiji", role: "Production Manager", email: "production@ishoot.bh", organization: "iShoot", attended: true },
+      ],
+      agenda: "1. CapEx evaluation for LED virtual production volume backdrop.\n2. Lens fleet expansion: Cook Full Frame Plus.\n3. Q2 resource scheduling and staff certifications.",
+      discussionPoints: [
+        { topic: "Virtual Production ROI", notes: "Demand for car commercial virtual staging has increased by 40%. Stage B LED wall conversion will pay back in 9 months.", speaker: "Sayed Ahmed Husain" },
+        { topic: "Budget Allocation", notes: "Financing package secured with local bank at preferential tier.", speaker: "Zainab Al Shami" },
+      ],
+      actionItems: [
+        { task: "Finalize vendor RFQ for 2.6mm pitch LED display panels", assignee: "Ali Al Samahiji", dueDate: "2026-04-01", status: "in_progress" },
+        { task: "Prepare CapEx depreciation and tax amortisation schedule", assignee: "Zainab Al Shami", dueDate: "2026-04-05", status: "in_progress" },
+      ],
+      decisions: [
+        "Proceed with Phase 1 virtual production design.",
+        "Authorize procurement of Cooke FF Anamorphic set."
+      ],
+      status: "in_review",
+      createdById: createdUsers.super_admin?.id,
+      signatureUrl: "/brand/signatures/sayed-ahmed.svg",
+    },
+  ];
+
+  for (const mom of momsData) {
+    await prisma.minuteOfMeeting.upsert({
+      where: { momNumber: mom.momNumber },
+      update: mom,
+      create: mom,
+    });
+  }
+  console.log("✅ Seeded 3 Minutes of Meetings (MOM) with Agendas, Action Items, & Signatures");
 
   // ==========================================
   // 9. AUDIT LOGS & EXECUTIVE NOTIFICATIONS

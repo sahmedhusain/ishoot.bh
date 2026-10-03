@@ -59,7 +59,7 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
     <footer className="relative bg-[#050807] border-t border-white/10 pt-20 pb-12 overflow-hidden">
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-gradient-to-t from-[#014842]/20 via-[#09937F]/5 to-transparent blur-3xl pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
+      <div className="shell relative">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="md:col-span-2 space-y-4">
             <Link href={`/${locale}`} className="flex items-center gap-3 group focus:outline-none">

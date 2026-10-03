@@ -21,7 +21,9 @@ export type PermissionResource =
   | "audit_logs"
   | "reviews"
   | "faqs"
-  | "stats";
+  | "stats"
+  | "moms"
+  | "requests";
 
 export type PermissionAction =
   "read" | "write" | "delete" | "export" | "approve";
@@ -47,6 +49,8 @@ export const ALL_RESOURCES: PermissionResource[] = [
   "users",
   "settings",
   "audit_logs",
+  "moms",
+  "requests",
 ];
 
 export const ALL_ACTIONS: PermissionAction[] = [
@@ -91,6 +95,8 @@ export const DEFAULT_ROLE_RULES: Record<
     users: ["read", "write", "delete", "export", "approve"],
     settings: ["read", "write", "delete", "export", "approve"],
     audit_logs: ["read", "write", "delete", "export", "approve"],
+    moms: ["read", "write", "delete", "export", "approve"],
+    requests: ["read", "write", "delete", "export", "approve"],
   },
   admin: {
     support: ["read", "write", "delete"],
@@ -113,6 +119,8 @@ export const DEFAULT_ROLE_RULES: Record<
     users: ["read", "write"],
     settings: ["read", "write"],
     audit_logs: ["read"],
+    moms: ["read", "write", "delete", "export", "approve"],
+    requests: ["read", "write", "delete", "export", "approve"],
   },
   finance_manager: {
     invoices: ["read", "write", "export", "approve"],
@@ -123,6 +131,8 @@ export const DEFAULT_ROLE_RULES: Record<
     contacts: ["read"],
     contracts: ["read"],
     calendar: ["read"],
+    moms: ["read"],
+    requests: ["read", "write", "approve"],
   },
   accountant: {
     invoices: ["read", "write", "export"],
@@ -132,6 +142,8 @@ export const DEFAULT_ROLE_RULES: Record<
     deals: ["read"],
     contacts: ["read"],
     contracts: ["read"],
+    moms: ["read"],
+    requests: ["read"],
   },
   production_manager: {
     deals: ["read", "write", "export"],
@@ -139,6 +151,8 @@ export const DEFAULT_ROLE_RULES: Record<
     leads: ["read", "write"],
     contracts: ["read", "write"],
     equipment: ["read", "write"],
+    moms: ["read", "write", "export", "approve"],
+    requests: ["read", "write", "approve"],
     calendar: ["read", "write", "delete"],
     portfolio: ["read"],
     invoices: ["read"],

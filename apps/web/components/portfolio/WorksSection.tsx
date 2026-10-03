@@ -34,7 +34,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
   if (!items.length) return null;
 
   return (
-    <section id="portfolio" className="relative z-10 py-24 bg-[#050807] text-[#F2F6F5] select-none border-t border-white/10 overflow-hidden">
+    <section id="portfolio" className="katana-top relative z-30 pt-32 sm:pt-40 pb-24 bg-[#050807] text-[#F2F6F5] select-none border-t border-white/10 overflow-hidden">
       {/* Background Graphic Grid */}
       <div
         aria-hidden="true"

@@ -11,7 +11,8 @@
     "./website-config": "./src/website-config.ts"
   },
   "scripts": {
-    "db:push": "prisma db push --env-file=../../.env",
+    "db:generate": "prisma generate --schema=prisma/schema.prisma",
+    "db:push": "prisma db push --schema=prisma/schema.prisma",
     "db:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
