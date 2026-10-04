@@ -1,3 +1,4 @@
+import { getCurrencySymbol, getCurrencyDecimals } from "@ishoot/config/currency";
 
 import { Document,Page,Text,View,Image as PdfImage } from "@react-pdf/renderer";
 import type { Payment,CompanySettings } from "@ishoot/database/types";
@@ -28,8 +29,9 @@ function formatAmount(amount: number, decimals: number = 3) {
 }
 
 function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
-  const currency = payment.currency || company.default_currency;
-  const decimals = company.currency_decimals;
+  const currencyCode = payment.currency || company.default_currency;
+  const currency = getCurrencySymbol(currencyCode, false);
+  const decimals = getCurrencyDecimals(currencyCode);
   const invoice = payment.invoice;
   const isAr = invoice?.language === "ar";
   const t = adminTranslations[isAr ? "ar" : "en"].pdfReceipt;

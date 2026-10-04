@@ -1,4 +1,31 @@
 {
+  "decideApprovalAction": {
+    "kind": "object",
+    "fields": {
+      "approvalRequestId": {
+        "kind": "string",
+        "optional": false
+      },
+      "decision": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "approved"
+          },
+          {
+            "kind": "literal",
+            "value": "rejected"
+          }
+        ],
+        "optional": false
+      },
+      "reason": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
   "createAttachmentAction": {
     "kind": "object",
     "fields": {
@@ -949,6 +976,626 @@
               {
                 "kind": "literal",
                 "value": "USD"
+              },
+              {
+                "kind": "literal",
+                "value": "EUR"
+              },
+              {
+                "kind": "literal",
+                "value": "GBP"
+              },
+              {
+                "kind": "literal",
+                "value": "AFN"
+              },
+              {
+                "kind": "literal",
+                "value": "ALL"
+              },
+              {
+                "kind": "literal",
+                "value": "AMD"
+              },
+              {
+                "kind": "literal",
+                "value": "ANG"
+              },
+              {
+                "kind": "literal",
+                "value": "AOA"
+              },
+              {
+                "kind": "literal",
+                "value": "ARS"
+              },
+              {
+                "kind": "literal",
+                "value": "AUD"
+              },
+              {
+                "kind": "literal",
+                "value": "AWG"
+              },
+              {
+                "kind": "literal",
+                "value": "AZN"
+              },
+              {
+                "kind": "literal",
+                "value": "BAM"
+              },
+              {
+                "kind": "literal",
+                "value": "BBD"
+              },
+              {
+                "kind": "literal",
+                "value": "BDT"
+              },
+              {
+                "kind": "literal",
+                "value": "BGN"
+              },
+              {
+                "kind": "literal",
+                "value": "BIF"
+              },
+              {
+                "kind": "literal",
+                "value": "BMD"
+              },
+              {
+                "kind": "literal",
+                "value": "BND"
+              },
+              {
+                "kind": "literal",
+                "value": "BOB"
+              },
+              {
+                "kind": "literal",
+                "value": "BRL"
+              },
+              {
+                "kind": "literal",
+                "value": "BSD"
+              },
+              {
+                "kind": "literal",
+                "value": "BTN"
+              },
+              {
+                "kind": "literal",
+                "value": "BWP"
+              },
+              {
+                "kind": "literal",
+                "value": "BYN"
+              },
+              {
+                "kind": "literal",
+                "value": "BZD"
+              },
+              {
+                "kind": "literal",
+                "value": "CAD"
+              },
+              {
+                "kind": "literal",
+                "value": "CDF"
+              },
+              {
+                "kind": "literal",
+                "value": "CHF"
+              },
+              {
+                "kind": "literal",
+                "value": "CLP"
+              },
+              {
+                "kind": "literal",
+                "value": "CNY"
+              },
+              {
+                "kind": "literal",
+                "value": "COP"
+              },
+              {
+                "kind": "literal",
+                "value": "CRC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUP"
+              },
+              {
+                "kind": "literal",
+                "value": "CVE"
+              },
+              {
+                "kind": "literal",
+                "value": "CZK"
+              },
+              {
+                "kind": "literal",
+                "value": "DJF"
+              },
+              {
+                "kind": "literal",
+                "value": "DKK"
+              },
+              {
+                "kind": "literal",
+                "value": "DOP"
+              },
+              {
+                "kind": "literal",
+                "value": "DZD"
+              },
+              {
+                "kind": "literal",
+                "value": "EGP"
+              },
+              {
+                "kind": "literal",
+                "value": "ERN"
+              },
+              {
+                "kind": "literal",
+                "value": "ETB"
+              },
+              {
+                "kind": "literal",
+                "value": "FJD"
+              },
+              {
+                "kind": "literal",
+                "value": "FKP"
+              },
+              {
+                "kind": "literal",
+                "value": "GEL"
+              },
+              {
+                "kind": "literal",
+                "value": "GHS"
+              },
+              {
+                "kind": "literal",
+                "value": "GIP"
+              },
+              {
+                "kind": "literal",
+                "value": "GMD"
+              },
+              {
+                "kind": "literal",
+                "value": "GNF"
+              },
+              {
+                "kind": "literal",
+                "value": "GTQ"
+              },
+              {
+                "kind": "literal",
+                "value": "GYD"
+              },
+              {
+                "kind": "literal",
+                "value": "HKD"
+              },
+              {
+                "kind": "literal",
+                "value": "HNL"
+              },
+              {
+                "kind": "literal",
+                "value": "HRK"
+              },
+              {
+                "kind": "literal",
+                "value": "HTG"
+              },
+              {
+                "kind": "literal",
+                "value": "HUF"
+              },
+              {
+                "kind": "literal",
+                "value": "IDR"
+              },
+              {
+                "kind": "literal",
+                "value": "ILS"
+              },
+              {
+                "kind": "literal",
+                "value": "INR"
+              },
+              {
+                "kind": "literal",
+                "value": "IQD"
+              },
+              {
+                "kind": "literal",
+                "value": "IRR"
+              },
+              {
+                "kind": "literal",
+                "value": "ISK"
+              },
+              {
+                "kind": "literal",
+                "value": "JMD"
+              },
+              {
+                "kind": "literal",
+                "value": "JOD"
+              },
+              {
+                "kind": "literal",
+                "value": "JPY"
+              },
+              {
+                "kind": "literal",
+                "value": "KES"
+              },
+              {
+                "kind": "literal",
+                "value": "KGS"
+              },
+              {
+                "kind": "literal",
+                "value": "KHR"
+              },
+              {
+                "kind": "literal",
+                "value": "KMF"
+              },
+              {
+                "kind": "literal",
+                "value": "KPW"
+              },
+              {
+                "kind": "literal",
+                "value": "KRW"
+              },
+              {
+                "kind": "literal",
+                "value": "KYD"
+              },
+              {
+                "kind": "literal",
+                "value": "KZT"
+              },
+              {
+                "kind": "literal",
+                "value": "LAK"
+              },
+              {
+                "kind": "literal",
+                "value": "LBP"
+              },
+              {
+                "kind": "literal",
+                "value": "LKR"
+              },
+              {
+                "kind": "literal",
+                "value": "LRD"
+              },
+              {
+                "kind": "literal",
+                "value": "LSL"
+              },
+              {
+                "kind": "literal",
+                "value": "LYD"
+              },
+              {
+                "kind": "literal",
+                "value": "MAD"
+              },
+              {
+                "kind": "literal",
+                "value": "MDL"
+              },
+              {
+                "kind": "literal",
+                "value": "MGA"
+              },
+              {
+                "kind": "literal",
+                "value": "MKD"
+              },
+              {
+                "kind": "literal",
+                "value": "MMK"
+              },
+              {
+                "kind": "literal",
+                "value": "MNT"
+              },
+              {
+                "kind": "literal",
+                "value": "MOP"
+              },
+              {
+                "kind": "literal",
+                "value": "MRU"
+              },
+              {
+                "kind": "literal",
+                "value": "MUR"
+              },
+              {
+                "kind": "literal",
+                "value": "MVR"
+              },
+              {
+                "kind": "literal",
+                "value": "MWK"
+              },
+              {
+                "kind": "literal",
+                "value": "MXN"
+              },
+              {
+                "kind": "literal",
+                "value": "MYR"
+              },
+              {
+                "kind": "literal",
+                "value": "MZN"
+              },
+              {
+                "kind": "literal",
+                "value": "NAD"
+              },
+              {
+                "kind": "literal",
+                "value": "NGN"
+              },
+              {
+                "kind": "literal",
+                "value": "NIO"
+              },
+              {
+                "kind": "literal",
+                "value": "NOK"
+              },
+              {
+                "kind": "literal",
+                "value": "NPR"
+              },
+              {
+                "kind": "literal",
+                "value": "NZD"
+              },
+              {
+                "kind": "literal",
+                "value": "PAB"
+              },
+              {
+                "kind": "literal",
+                "value": "PEN"
+              },
+              {
+                "kind": "literal",
+                "value": "PGK"
+              },
+              {
+                "kind": "literal",
+                "value": "PHP"
+              },
+              {
+                "kind": "literal",
+                "value": "PKR"
+              },
+              {
+                "kind": "literal",
+                "value": "PLN"
+              },
+              {
+                "kind": "literal",
+                "value": "PYG"
+              },
+              {
+                "kind": "literal",
+                "value": "RON"
+              },
+              {
+                "kind": "literal",
+                "value": "RSD"
+              },
+              {
+                "kind": "literal",
+                "value": "RUB"
+              },
+              {
+                "kind": "literal",
+                "value": "RWF"
+              },
+              {
+                "kind": "literal",
+                "value": "SBD"
+              },
+              {
+                "kind": "literal",
+                "value": "SCR"
+              },
+              {
+                "kind": "literal",
+                "value": "SDG"
+              },
+              {
+                "kind": "literal",
+                "value": "SEK"
+              },
+              {
+                "kind": "literal",
+                "value": "SGD"
+              },
+              {
+                "kind": "literal",
+                "value": "SHP"
+              },
+              {
+                "kind": "literal",
+                "value": "SLE"
+              },
+              {
+                "kind": "literal",
+                "value": "SLL"
+              },
+              {
+                "kind": "literal",
+                "value": "SOS"
+              },
+              {
+                "kind": "literal",
+                "value": "SRD"
+              },
+              {
+                "kind": "literal",
+                "value": "SSP"
+              },
+              {
+                "kind": "literal",
+                "value": "STN"
+              },
+              {
+                "kind": "literal",
+                "value": "SVC"
+              },
+              {
+                "kind": "literal",
+                "value": "SYP"
+              },
+              {
+                "kind": "literal",
+                "value": "SZL"
+              },
+              {
+                "kind": "literal",
+                "value": "THB"
+              },
+              {
+                "kind": "literal",
+                "value": "TJS"
+              },
+              {
+                "kind": "literal",
+                "value": "TMT"
+              },
+              {
+                "kind": "literal",
+                "value": "TND"
+              },
+              {
+                "kind": "literal",
+                "value": "TOP"
+              },
+              {
+                "kind": "literal",
+                "value": "TRY"
+              },
+              {
+                "kind": "literal",
+                "value": "TTD"
+              },
+              {
+                "kind": "literal",
+                "value": "TWD"
+              },
+              {
+                "kind": "literal",
+                "value": "TZS"
+              },
+              {
+                "kind": "literal",
+                "value": "UAH"
+              },
+              {
+                "kind": "literal",
+                "value": "UGX"
+              },
+              {
+                "kind": "literal",
+                "value": "UYU"
+              },
+              {
+                "kind": "literal",
+                "value": "UZS"
+              },
+              {
+                "kind": "literal",
+                "value": "VES"
+              },
+              {
+                "kind": "literal",
+                "value": "VND"
+              },
+              {
+                "kind": "literal",
+                "value": "VUV"
+              },
+              {
+                "kind": "literal",
+                "value": "WST"
+              },
+              {
+                "kind": "literal",
+                "value": "XAF"
+              },
+              {
+                "kind": "literal",
+                "value": "XCD"
+              },
+              {
+                "kind": "literal",
+                "value": "XCG"
+              },
+              {
+                "kind": "literal",
+                "value": "XDR"
+              },
+              {
+                "kind": "literal",
+                "value": "XOF"
+              },
+              {
+                "kind": "literal",
+                "value": "XPF"
+              },
+              {
+                "kind": "literal",
+                "value": "XSU"
+              },
+              {
+                "kind": "literal",
+                "value": "YER"
+              },
+              {
+                "kind": "literal",
+                "value": "ZAR"
+              },
+              {
+                "kind": "literal",
+                "value": "ZMW"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWG"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWL"
               }
             ],
             "optional": true
@@ -1460,6 +2107,626 @@
               {
                 "kind": "literal",
                 "value": "USD"
+              },
+              {
+                "kind": "literal",
+                "value": "EUR"
+              },
+              {
+                "kind": "literal",
+                "value": "GBP"
+              },
+              {
+                "kind": "literal",
+                "value": "AFN"
+              },
+              {
+                "kind": "literal",
+                "value": "ALL"
+              },
+              {
+                "kind": "literal",
+                "value": "AMD"
+              },
+              {
+                "kind": "literal",
+                "value": "ANG"
+              },
+              {
+                "kind": "literal",
+                "value": "AOA"
+              },
+              {
+                "kind": "literal",
+                "value": "ARS"
+              },
+              {
+                "kind": "literal",
+                "value": "AUD"
+              },
+              {
+                "kind": "literal",
+                "value": "AWG"
+              },
+              {
+                "kind": "literal",
+                "value": "AZN"
+              },
+              {
+                "kind": "literal",
+                "value": "BAM"
+              },
+              {
+                "kind": "literal",
+                "value": "BBD"
+              },
+              {
+                "kind": "literal",
+                "value": "BDT"
+              },
+              {
+                "kind": "literal",
+                "value": "BGN"
+              },
+              {
+                "kind": "literal",
+                "value": "BIF"
+              },
+              {
+                "kind": "literal",
+                "value": "BMD"
+              },
+              {
+                "kind": "literal",
+                "value": "BND"
+              },
+              {
+                "kind": "literal",
+                "value": "BOB"
+              },
+              {
+                "kind": "literal",
+                "value": "BRL"
+              },
+              {
+                "kind": "literal",
+                "value": "BSD"
+              },
+              {
+                "kind": "literal",
+                "value": "BTN"
+              },
+              {
+                "kind": "literal",
+                "value": "BWP"
+              },
+              {
+                "kind": "literal",
+                "value": "BYN"
+              },
+              {
+                "kind": "literal",
+                "value": "BZD"
+              },
+              {
+                "kind": "literal",
+                "value": "CAD"
+              },
+              {
+                "kind": "literal",
+                "value": "CDF"
+              },
+              {
+                "kind": "literal",
+                "value": "CHF"
+              },
+              {
+                "kind": "literal",
+                "value": "CLP"
+              },
+              {
+                "kind": "literal",
+                "value": "CNY"
+              },
+              {
+                "kind": "literal",
+                "value": "COP"
+              },
+              {
+                "kind": "literal",
+                "value": "CRC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUP"
+              },
+              {
+                "kind": "literal",
+                "value": "CVE"
+              },
+              {
+                "kind": "literal",
+                "value": "CZK"
+              },
+              {
+                "kind": "literal",
+                "value": "DJF"
+              },
+              {
+                "kind": "literal",
+                "value": "DKK"
+              },
+              {
+                "kind": "literal",
+                "value": "DOP"
+              },
+              {
+                "kind": "literal",
+                "value": "DZD"
+              },
+              {
+                "kind": "literal",
+                "value": "EGP"
+              },
+              {
+                "kind": "literal",
+                "value": "ERN"
+              },
+              {
+                "kind": "literal",
+                "value": "ETB"
+              },
+              {
+                "kind": "literal",
+                "value": "FJD"
+              },
+              {
+                "kind": "literal",
+                "value": "FKP"
+              },
+              {
+                "kind": "literal",
+                "value": "GEL"
+              },
+              {
+                "kind": "literal",
+                "value": "GHS"
+              },
+              {
+                "kind": "literal",
+                "value": "GIP"
+              },
+              {
+                "kind": "literal",
+                "value": "GMD"
+              },
+              {
+                "kind": "literal",
+                "value": "GNF"
+              },
+              {
+                "kind": "literal",
+                "value": "GTQ"
+              },
+              {
+                "kind": "literal",
+                "value": "GYD"
+              },
+              {
+                "kind": "literal",
+                "value": "HKD"
+              },
+              {
+                "kind": "literal",
+                "value": "HNL"
+              },
+              {
+                "kind": "literal",
+                "value": "HRK"
+              },
+              {
+                "kind": "literal",
+                "value": "HTG"
+              },
+              {
+                "kind": "literal",
+                "value": "HUF"
+              },
+              {
+                "kind": "literal",
+                "value": "IDR"
+              },
+              {
+                "kind": "literal",
+                "value": "ILS"
+              },
+              {
+                "kind": "literal",
+                "value": "INR"
+              },
+              {
+                "kind": "literal",
+                "value": "IQD"
+              },
+              {
+                "kind": "literal",
+                "value": "IRR"
+              },
+              {
+                "kind": "literal",
+                "value": "ISK"
+              },
+              {
+                "kind": "literal",
+                "value": "JMD"
+              },
+              {
+                "kind": "literal",
+                "value": "JOD"
+              },
+              {
+                "kind": "literal",
+                "value": "JPY"
+              },
+              {
+                "kind": "literal",
+                "value": "KES"
+              },
+              {
+                "kind": "literal",
+                "value": "KGS"
+              },
+              {
+                "kind": "literal",
+                "value": "KHR"
+              },
+              {
+                "kind": "literal",
+                "value": "KMF"
+              },
+              {
+                "kind": "literal",
+                "value": "KPW"
+              },
+              {
+                "kind": "literal",
+                "value": "KRW"
+              },
+              {
+                "kind": "literal",
+                "value": "KYD"
+              },
+              {
+                "kind": "literal",
+                "value": "KZT"
+              },
+              {
+                "kind": "literal",
+                "value": "LAK"
+              },
+              {
+                "kind": "literal",
+                "value": "LBP"
+              },
+              {
+                "kind": "literal",
+                "value": "LKR"
+              },
+              {
+                "kind": "literal",
+                "value": "LRD"
+              },
+              {
+                "kind": "literal",
+                "value": "LSL"
+              },
+              {
+                "kind": "literal",
+                "value": "LYD"
+              },
+              {
+                "kind": "literal",
+                "value": "MAD"
+              },
+              {
+                "kind": "literal",
+                "value": "MDL"
+              },
+              {
+                "kind": "literal",
+                "value": "MGA"
+              },
+              {
+                "kind": "literal",
+                "value": "MKD"
+              },
+              {
+                "kind": "literal",
+                "value": "MMK"
+              },
+              {
+                "kind": "literal",
+                "value": "MNT"
+              },
+              {
+                "kind": "literal",
+                "value": "MOP"
+              },
+              {
+                "kind": "literal",
+                "value": "MRU"
+              },
+              {
+                "kind": "literal",
+                "value": "MUR"
+              },
+              {
+                "kind": "literal",
+                "value": "MVR"
+              },
+              {
+                "kind": "literal",
+                "value": "MWK"
+              },
+              {
+                "kind": "literal",
+                "value": "MXN"
+              },
+              {
+                "kind": "literal",
+                "value": "MYR"
+              },
+              {
+                "kind": "literal",
+                "value": "MZN"
+              },
+              {
+                "kind": "literal",
+                "value": "NAD"
+              },
+              {
+                "kind": "literal",
+                "value": "NGN"
+              },
+              {
+                "kind": "literal",
+                "value": "NIO"
+              },
+              {
+                "kind": "literal",
+                "value": "NOK"
+              },
+              {
+                "kind": "literal",
+                "value": "NPR"
+              },
+              {
+                "kind": "literal",
+                "value": "NZD"
+              },
+              {
+                "kind": "literal",
+                "value": "PAB"
+              },
+              {
+                "kind": "literal",
+                "value": "PEN"
+              },
+              {
+                "kind": "literal",
+                "value": "PGK"
+              },
+              {
+                "kind": "literal",
+                "value": "PHP"
+              },
+              {
+                "kind": "literal",
+                "value": "PKR"
+              },
+              {
+                "kind": "literal",
+                "value": "PLN"
+              },
+              {
+                "kind": "literal",
+                "value": "PYG"
+              },
+              {
+                "kind": "literal",
+                "value": "RON"
+              },
+              {
+                "kind": "literal",
+                "value": "RSD"
+              },
+              {
+                "kind": "literal",
+                "value": "RUB"
+              },
+              {
+                "kind": "literal",
+                "value": "RWF"
+              },
+              {
+                "kind": "literal",
+                "value": "SBD"
+              },
+              {
+                "kind": "literal",
+                "value": "SCR"
+              },
+              {
+                "kind": "literal",
+                "value": "SDG"
+              },
+              {
+                "kind": "literal",
+                "value": "SEK"
+              },
+              {
+                "kind": "literal",
+                "value": "SGD"
+              },
+              {
+                "kind": "literal",
+                "value": "SHP"
+              },
+              {
+                "kind": "literal",
+                "value": "SLE"
+              },
+              {
+                "kind": "literal",
+                "value": "SLL"
+              },
+              {
+                "kind": "literal",
+                "value": "SOS"
+              },
+              {
+                "kind": "literal",
+                "value": "SRD"
+              },
+              {
+                "kind": "literal",
+                "value": "SSP"
+              },
+              {
+                "kind": "literal",
+                "value": "STN"
+              },
+              {
+                "kind": "literal",
+                "value": "SVC"
+              },
+              {
+                "kind": "literal",
+                "value": "SYP"
+              },
+              {
+                "kind": "literal",
+                "value": "SZL"
+              },
+              {
+                "kind": "literal",
+                "value": "THB"
+              },
+              {
+                "kind": "literal",
+                "value": "TJS"
+              },
+              {
+                "kind": "literal",
+                "value": "TMT"
+              },
+              {
+                "kind": "literal",
+                "value": "TND"
+              },
+              {
+                "kind": "literal",
+                "value": "TOP"
+              },
+              {
+                "kind": "literal",
+                "value": "TRY"
+              },
+              {
+                "kind": "literal",
+                "value": "TTD"
+              },
+              {
+                "kind": "literal",
+                "value": "TWD"
+              },
+              {
+                "kind": "literal",
+                "value": "TZS"
+              },
+              {
+                "kind": "literal",
+                "value": "UAH"
+              },
+              {
+                "kind": "literal",
+                "value": "UGX"
+              },
+              {
+                "kind": "literal",
+                "value": "UYU"
+              },
+              {
+                "kind": "literal",
+                "value": "UZS"
+              },
+              {
+                "kind": "literal",
+                "value": "VES"
+              },
+              {
+                "kind": "literal",
+                "value": "VND"
+              },
+              {
+                "kind": "literal",
+                "value": "VUV"
+              },
+              {
+                "kind": "literal",
+                "value": "WST"
+              },
+              {
+                "kind": "literal",
+                "value": "XAF"
+              },
+              {
+                "kind": "literal",
+                "value": "XCD"
+              },
+              {
+                "kind": "literal",
+                "value": "XCG"
+              },
+              {
+                "kind": "literal",
+                "value": "XDR"
+              },
+              {
+                "kind": "literal",
+                "value": "XOF"
+              },
+              {
+                "kind": "literal",
+                "value": "XPF"
+              },
+              {
+                "kind": "literal",
+                "value": "XSU"
+              },
+              {
+                "kind": "literal",
+                "value": "YER"
+              },
+              {
+                "kind": "literal",
+                "value": "ZAR"
+              },
+              {
+                "kind": "literal",
+                "value": "ZMW"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWG"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWL"
               }
             ],
             "optional": true
@@ -1616,6 +2883,626 @@
               {
                 "kind": "literal",
                 "value": "USD"
+              },
+              {
+                "kind": "literal",
+                "value": "EUR"
+              },
+              {
+                "kind": "literal",
+                "value": "GBP"
+              },
+              {
+                "kind": "literal",
+                "value": "AFN"
+              },
+              {
+                "kind": "literal",
+                "value": "ALL"
+              },
+              {
+                "kind": "literal",
+                "value": "AMD"
+              },
+              {
+                "kind": "literal",
+                "value": "ANG"
+              },
+              {
+                "kind": "literal",
+                "value": "AOA"
+              },
+              {
+                "kind": "literal",
+                "value": "ARS"
+              },
+              {
+                "kind": "literal",
+                "value": "AUD"
+              },
+              {
+                "kind": "literal",
+                "value": "AWG"
+              },
+              {
+                "kind": "literal",
+                "value": "AZN"
+              },
+              {
+                "kind": "literal",
+                "value": "BAM"
+              },
+              {
+                "kind": "literal",
+                "value": "BBD"
+              },
+              {
+                "kind": "literal",
+                "value": "BDT"
+              },
+              {
+                "kind": "literal",
+                "value": "BGN"
+              },
+              {
+                "kind": "literal",
+                "value": "BIF"
+              },
+              {
+                "kind": "literal",
+                "value": "BMD"
+              },
+              {
+                "kind": "literal",
+                "value": "BND"
+              },
+              {
+                "kind": "literal",
+                "value": "BOB"
+              },
+              {
+                "kind": "literal",
+                "value": "BRL"
+              },
+              {
+                "kind": "literal",
+                "value": "BSD"
+              },
+              {
+                "kind": "literal",
+                "value": "BTN"
+              },
+              {
+                "kind": "literal",
+                "value": "BWP"
+              },
+              {
+                "kind": "literal",
+                "value": "BYN"
+              },
+              {
+                "kind": "literal",
+                "value": "BZD"
+              },
+              {
+                "kind": "literal",
+                "value": "CAD"
+              },
+              {
+                "kind": "literal",
+                "value": "CDF"
+              },
+              {
+                "kind": "literal",
+                "value": "CHF"
+              },
+              {
+                "kind": "literal",
+                "value": "CLP"
+              },
+              {
+                "kind": "literal",
+                "value": "CNY"
+              },
+              {
+                "kind": "literal",
+                "value": "COP"
+              },
+              {
+                "kind": "literal",
+                "value": "CRC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUP"
+              },
+              {
+                "kind": "literal",
+                "value": "CVE"
+              },
+              {
+                "kind": "literal",
+                "value": "CZK"
+              },
+              {
+                "kind": "literal",
+                "value": "DJF"
+              },
+              {
+                "kind": "literal",
+                "value": "DKK"
+              },
+              {
+                "kind": "literal",
+                "value": "DOP"
+              },
+              {
+                "kind": "literal",
+                "value": "DZD"
+              },
+              {
+                "kind": "literal",
+                "value": "EGP"
+              },
+              {
+                "kind": "literal",
+                "value": "ERN"
+              },
+              {
+                "kind": "literal",
+                "value": "ETB"
+              },
+              {
+                "kind": "literal",
+                "value": "FJD"
+              },
+              {
+                "kind": "literal",
+                "value": "FKP"
+              },
+              {
+                "kind": "literal",
+                "value": "GEL"
+              },
+              {
+                "kind": "literal",
+                "value": "GHS"
+              },
+              {
+                "kind": "literal",
+                "value": "GIP"
+              },
+              {
+                "kind": "literal",
+                "value": "GMD"
+              },
+              {
+                "kind": "literal",
+                "value": "GNF"
+              },
+              {
+                "kind": "literal",
+                "value": "GTQ"
+              },
+              {
+                "kind": "literal",
+                "value": "GYD"
+              },
+              {
+                "kind": "literal",
+                "value": "HKD"
+              },
+              {
+                "kind": "literal",
+                "value": "HNL"
+              },
+              {
+                "kind": "literal",
+                "value": "HRK"
+              },
+              {
+                "kind": "literal",
+                "value": "HTG"
+              },
+              {
+                "kind": "literal",
+                "value": "HUF"
+              },
+              {
+                "kind": "literal",
+                "value": "IDR"
+              },
+              {
+                "kind": "literal",
+                "value": "ILS"
+              },
+              {
+                "kind": "literal",
+                "value": "INR"
+              },
+              {
+                "kind": "literal",
+                "value": "IQD"
+              },
+              {
+                "kind": "literal",
+                "value": "IRR"
+              },
+              {
+                "kind": "literal",
+                "value": "ISK"
+              },
+              {
+                "kind": "literal",
+                "value": "JMD"
+              },
+              {
+                "kind": "literal",
+                "value": "JOD"
+              },
+              {
+                "kind": "literal",
+                "value": "JPY"
+              },
+              {
+                "kind": "literal",
+                "value": "KES"
+              },
+              {
+                "kind": "literal",
+                "value": "KGS"
+              },
+              {
+                "kind": "literal",
+                "value": "KHR"
+              },
+              {
+                "kind": "literal",
+                "value": "KMF"
+              },
+              {
+                "kind": "literal",
+                "value": "KPW"
+              },
+              {
+                "kind": "literal",
+                "value": "KRW"
+              },
+              {
+                "kind": "literal",
+                "value": "KYD"
+              },
+              {
+                "kind": "literal",
+                "value": "KZT"
+              },
+              {
+                "kind": "literal",
+                "value": "LAK"
+              },
+              {
+                "kind": "literal",
+                "value": "LBP"
+              },
+              {
+                "kind": "literal",
+                "value": "LKR"
+              },
+              {
+                "kind": "literal",
+                "value": "LRD"
+              },
+              {
+                "kind": "literal",
+                "value": "LSL"
+              },
+              {
+                "kind": "literal",
+                "value": "LYD"
+              },
+              {
+                "kind": "literal",
+                "value": "MAD"
+              },
+              {
+                "kind": "literal",
+                "value": "MDL"
+              },
+              {
+                "kind": "literal",
+                "value": "MGA"
+              },
+              {
+                "kind": "literal",
+                "value": "MKD"
+              },
+              {
+                "kind": "literal",
+                "value": "MMK"
+              },
+              {
+                "kind": "literal",
+                "value": "MNT"
+              },
+              {
+                "kind": "literal",
+                "value": "MOP"
+              },
+              {
+                "kind": "literal",
+                "value": "MRU"
+              },
+              {
+                "kind": "literal",
+                "value": "MUR"
+              },
+              {
+                "kind": "literal",
+                "value": "MVR"
+              },
+              {
+                "kind": "literal",
+                "value": "MWK"
+              },
+              {
+                "kind": "literal",
+                "value": "MXN"
+              },
+              {
+                "kind": "literal",
+                "value": "MYR"
+              },
+              {
+                "kind": "literal",
+                "value": "MZN"
+              },
+              {
+                "kind": "literal",
+                "value": "NAD"
+              },
+              {
+                "kind": "literal",
+                "value": "NGN"
+              },
+              {
+                "kind": "literal",
+                "value": "NIO"
+              },
+              {
+                "kind": "literal",
+                "value": "NOK"
+              },
+              {
+                "kind": "literal",
+                "value": "NPR"
+              },
+              {
+                "kind": "literal",
+                "value": "NZD"
+              },
+              {
+                "kind": "literal",
+                "value": "PAB"
+              },
+              {
+                "kind": "literal",
+                "value": "PEN"
+              },
+              {
+                "kind": "literal",
+                "value": "PGK"
+              },
+              {
+                "kind": "literal",
+                "value": "PHP"
+              },
+              {
+                "kind": "literal",
+                "value": "PKR"
+              },
+              {
+                "kind": "literal",
+                "value": "PLN"
+              },
+              {
+                "kind": "literal",
+                "value": "PYG"
+              },
+              {
+                "kind": "literal",
+                "value": "RON"
+              },
+              {
+                "kind": "literal",
+                "value": "RSD"
+              },
+              {
+                "kind": "literal",
+                "value": "RUB"
+              },
+              {
+                "kind": "literal",
+                "value": "RWF"
+              },
+              {
+                "kind": "literal",
+                "value": "SBD"
+              },
+              {
+                "kind": "literal",
+                "value": "SCR"
+              },
+              {
+                "kind": "literal",
+                "value": "SDG"
+              },
+              {
+                "kind": "literal",
+                "value": "SEK"
+              },
+              {
+                "kind": "literal",
+                "value": "SGD"
+              },
+              {
+                "kind": "literal",
+                "value": "SHP"
+              },
+              {
+                "kind": "literal",
+                "value": "SLE"
+              },
+              {
+                "kind": "literal",
+                "value": "SLL"
+              },
+              {
+                "kind": "literal",
+                "value": "SOS"
+              },
+              {
+                "kind": "literal",
+                "value": "SRD"
+              },
+              {
+                "kind": "literal",
+                "value": "SSP"
+              },
+              {
+                "kind": "literal",
+                "value": "STN"
+              },
+              {
+                "kind": "literal",
+                "value": "SVC"
+              },
+              {
+                "kind": "literal",
+                "value": "SYP"
+              },
+              {
+                "kind": "literal",
+                "value": "SZL"
+              },
+              {
+                "kind": "literal",
+                "value": "THB"
+              },
+              {
+                "kind": "literal",
+                "value": "TJS"
+              },
+              {
+                "kind": "literal",
+                "value": "TMT"
+              },
+              {
+                "kind": "literal",
+                "value": "TND"
+              },
+              {
+                "kind": "literal",
+                "value": "TOP"
+              },
+              {
+                "kind": "literal",
+                "value": "TRY"
+              },
+              {
+                "kind": "literal",
+                "value": "TTD"
+              },
+              {
+                "kind": "literal",
+                "value": "TWD"
+              },
+              {
+                "kind": "literal",
+                "value": "TZS"
+              },
+              {
+                "kind": "literal",
+                "value": "UAH"
+              },
+              {
+                "kind": "literal",
+                "value": "UGX"
+              },
+              {
+                "kind": "literal",
+                "value": "UYU"
+              },
+              {
+                "kind": "literal",
+                "value": "UZS"
+              },
+              {
+                "kind": "literal",
+                "value": "VES"
+              },
+              {
+                "kind": "literal",
+                "value": "VND"
+              },
+              {
+                "kind": "literal",
+                "value": "VUV"
+              },
+              {
+                "kind": "literal",
+                "value": "WST"
+              },
+              {
+                "kind": "literal",
+                "value": "XAF"
+              },
+              {
+                "kind": "literal",
+                "value": "XCD"
+              },
+              {
+                "kind": "literal",
+                "value": "XCG"
+              },
+              {
+                "kind": "literal",
+                "value": "XDR"
+              },
+              {
+                "kind": "literal",
+                "value": "XOF"
+              },
+              {
+                "kind": "literal",
+                "value": "XPF"
+              },
+              {
+                "kind": "literal",
+                "value": "XSU"
+              },
+              {
+                "kind": "literal",
+                "value": "YER"
+              },
+              {
+                "kind": "literal",
+                "value": "ZAR"
+              },
+              {
+                "kind": "literal",
+                "value": "ZMW"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWG"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWL"
               }
             ],
             "optional": true
@@ -1778,6 +3665,626 @@
               {
                 "kind": "literal",
                 "value": "USD"
+              },
+              {
+                "kind": "literal",
+                "value": "EUR"
+              },
+              {
+                "kind": "literal",
+                "value": "GBP"
+              },
+              {
+                "kind": "literal",
+                "value": "AFN"
+              },
+              {
+                "kind": "literal",
+                "value": "ALL"
+              },
+              {
+                "kind": "literal",
+                "value": "AMD"
+              },
+              {
+                "kind": "literal",
+                "value": "ANG"
+              },
+              {
+                "kind": "literal",
+                "value": "AOA"
+              },
+              {
+                "kind": "literal",
+                "value": "ARS"
+              },
+              {
+                "kind": "literal",
+                "value": "AUD"
+              },
+              {
+                "kind": "literal",
+                "value": "AWG"
+              },
+              {
+                "kind": "literal",
+                "value": "AZN"
+              },
+              {
+                "kind": "literal",
+                "value": "BAM"
+              },
+              {
+                "kind": "literal",
+                "value": "BBD"
+              },
+              {
+                "kind": "literal",
+                "value": "BDT"
+              },
+              {
+                "kind": "literal",
+                "value": "BGN"
+              },
+              {
+                "kind": "literal",
+                "value": "BIF"
+              },
+              {
+                "kind": "literal",
+                "value": "BMD"
+              },
+              {
+                "kind": "literal",
+                "value": "BND"
+              },
+              {
+                "kind": "literal",
+                "value": "BOB"
+              },
+              {
+                "kind": "literal",
+                "value": "BRL"
+              },
+              {
+                "kind": "literal",
+                "value": "BSD"
+              },
+              {
+                "kind": "literal",
+                "value": "BTN"
+              },
+              {
+                "kind": "literal",
+                "value": "BWP"
+              },
+              {
+                "kind": "literal",
+                "value": "BYN"
+              },
+              {
+                "kind": "literal",
+                "value": "BZD"
+              },
+              {
+                "kind": "literal",
+                "value": "CAD"
+              },
+              {
+                "kind": "literal",
+                "value": "CDF"
+              },
+              {
+                "kind": "literal",
+                "value": "CHF"
+              },
+              {
+                "kind": "literal",
+                "value": "CLP"
+              },
+              {
+                "kind": "literal",
+                "value": "CNY"
+              },
+              {
+                "kind": "literal",
+                "value": "COP"
+              },
+              {
+                "kind": "literal",
+                "value": "CRC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUP"
+              },
+              {
+                "kind": "literal",
+                "value": "CVE"
+              },
+              {
+                "kind": "literal",
+                "value": "CZK"
+              },
+              {
+                "kind": "literal",
+                "value": "DJF"
+              },
+              {
+                "kind": "literal",
+                "value": "DKK"
+              },
+              {
+                "kind": "literal",
+                "value": "DOP"
+              },
+              {
+                "kind": "literal",
+                "value": "DZD"
+              },
+              {
+                "kind": "literal",
+                "value": "EGP"
+              },
+              {
+                "kind": "literal",
+                "value": "ERN"
+              },
+              {
+                "kind": "literal",
+                "value": "ETB"
+              },
+              {
+                "kind": "literal",
+                "value": "FJD"
+              },
+              {
+                "kind": "literal",
+                "value": "FKP"
+              },
+              {
+                "kind": "literal",
+                "value": "GEL"
+              },
+              {
+                "kind": "literal",
+                "value": "GHS"
+              },
+              {
+                "kind": "literal",
+                "value": "GIP"
+              },
+              {
+                "kind": "literal",
+                "value": "GMD"
+              },
+              {
+                "kind": "literal",
+                "value": "GNF"
+              },
+              {
+                "kind": "literal",
+                "value": "GTQ"
+              },
+              {
+                "kind": "literal",
+                "value": "GYD"
+              },
+              {
+                "kind": "literal",
+                "value": "HKD"
+              },
+              {
+                "kind": "literal",
+                "value": "HNL"
+              },
+              {
+                "kind": "literal",
+                "value": "HRK"
+              },
+              {
+                "kind": "literal",
+                "value": "HTG"
+              },
+              {
+                "kind": "literal",
+                "value": "HUF"
+              },
+              {
+                "kind": "literal",
+                "value": "IDR"
+              },
+              {
+                "kind": "literal",
+                "value": "ILS"
+              },
+              {
+                "kind": "literal",
+                "value": "INR"
+              },
+              {
+                "kind": "literal",
+                "value": "IQD"
+              },
+              {
+                "kind": "literal",
+                "value": "IRR"
+              },
+              {
+                "kind": "literal",
+                "value": "ISK"
+              },
+              {
+                "kind": "literal",
+                "value": "JMD"
+              },
+              {
+                "kind": "literal",
+                "value": "JOD"
+              },
+              {
+                "kind": "literal",
+                "value": "JPY"
+              },
+              {
+                "kind": "literal",
+                "value": "KES"
+              },
+              {
+                "kind": "literal",
+                "value": "KGS"
+              },
+              {
+                "kind": "literal",
+                "value": "KHR"
+              },
+              {
+                "kind": "literal",
+                "value": "KMF"
+              },
+              {
+                "kind": "literal",
+                "value": "KPW"
+              },
+              {
+                "kind": "literal",
+                "value": "KRW"
+              },
+              {
+                "kind": "literal",
+                "value": "KYD"
+              },
+              {
+                "kind": "literal",
+                "value": "KZT"
+              },
+              {
+                "kind": "literal",
+                "value": "LAK"
+              },
+              {
+                "kind": "literal",
+                "value": "LBP"
+              },
+              {
+                "kind": "literal",
+                "value": "LKR"
+              },
+              {
+                "kind": "literal",
+                "value": "LRD"
+              },
+              {
+                "kind": "literal",
+                "value": "LSL"
+              },
+              {
+                "kind": "literal",
+                "value": "LYD"
+              },
+              {
+                "kind": "literal",
+                "value": "MAD"
+              },
+              {
+                "kind": "literal",
+                "value": "MDL"
+              },
+              {
+                "kind": "literal",
+                "value": "MGA"
+              },
+              {
+                "kind": "literal",
+                "value": "MKD"
+              },
+              {
+                "kind": "literal",
+                "value": "MMK"
+              },
+              {
+                "kind": "literal",
+                "value": "MNT"
+              },
+              {
+                "kind": "literal",
+                "value": "MOP"
+              },
+              {
+                "kind": "literal",
+                "value": "MRU"
+              },
+              {
+                "kind": "literal",
+                "value": "MUR"
+              },
+              {
+                "kind": "literal",
+                "value": "MVR"
+              },
+              {
+                "kind": "literal",
+                "value": "MWK"
+              },
+              {
+                "kind": "literal",
+                "value": "MXN"
+              },
+              {
+                "kind": "literal",
+                "value": "MYR"
+              },
+              {
+                "kind": "literal",
+                "value": "MZN"
+              },
+              {
+                "kind": "literal",
+                "value": "NAD"
+              },
+              {
+                "kind": "literal",
+                "value": "NGN"
+              },
+              {
+                "kind": "literal",
+                "value": "NIO"
+              },
+              {
+                "kind": "literal",
+                "value": "NOK"
+              },
+              {
+                "kind": "literal",
+                "value": "NPR"
+              },
+              {
+                "kind": "literal",
+                "value": "NZD"
+              },
+              {
+                "kind": "literal",
+                "value": "PAB"
+              },
+              {
+                "kind": "literal",
+                "value": "PEN"
+              },
+              {
+                "kind": "literal",
+                "value": "PGK"
+              },
+              {
+                "kind": "literal",
+                "value": "PHP"
+              },
+              {
+                "kind": "literal",
+                "value": "PKR"
+              },
+              {
+                "kind": "literal",
+                "value": "PLN"
+              },
+              {
+                "kind": "literal",
+                "value": "PYG"
+              },
+              {
+                "kind": "literal",
+                "value": "RON"
+              },
+              {
+                "kind": "literal",
+                "value": "RSD"
+              },
+              {
+                "kind": "literal",
+                "value": "RUB"
+              },
+              {
+                "kind": "literal",
+                "value": "RWF"
+              },
+              {
+                "kind": "literal",
+                "value": "SBD"
+              },
+              {
+                "kind": "literal",
+                "value": "SCR"
+              },
+              {
+                "kind": "literal",
+                "value": "SDG"
+              },
+              {
+                "kind": "literal",
+                "value": "SEK"
+              },
+              {
+                "kind": "literal",
+                "value": "SGD"
+              },
+              {
+                "kind": "literal",
+                "value": "SHP"
+              },
+              {
+                "kind": "literal",
+                "value": "SLE"
+              },
+              {
+                "kind": "literal",
+                "value": "SLL"
+              },
+              {
+                "kind": "literal",
+                "value": "SOS"
+              },
+              {
+                "kind": "literal",
+                "value": "SRD"
+              },
+              {
+                "kind": "literal",
+                "value": "SSP"
+              },
+              {
+                "kind": "literal",
+                "value": "STN"
+              },
+              {
+                "kind": "literal",
+                "value": "SVC"
+              },
+              {
+                "kind": "literal",
+                "value": "SYP"
+              },
+              {
+                "kind": "literal",
+                "value": "SZL"
+              },
+              {
+                "kind": "literal",
+                "value": "THB"
+              },
+              {
+                "kind": "literal",
+                "value": "TJS"
+              },
+              {
+                "kind": "literal",
+                "value": "TMT"
+              },
+              {
+                "kind": "literal",
+                "value": "TND"
+              },
+              {
+                "kind": "literal",
+                "value": "TOP"
+              },
+              {
+                "kind": "literal",
+                "value": "TRY"
+              },
+              {
+                "kind": "literal",
+                "value": "TTD"
+              },
+              {
+                "kind": "literal",
+                "value": "TWD"
+              },
+              {
+                "kind": "literal",
+                "value": "TZS"
+              },
+              {
+                "kind": "literal",
+                "value": "UAH"
+              },
+              {
+                "kind": "literal",
+                "value": "UGX"
+              },
+              {
+                "kind": "literal",
+                "value": "UYU"
+              },
+              {
+                "kind": "literal",
+                "value": "UZS"
+              },
+              {
+                "kind": "literal",
+                "value": "VES"
+              },
+              {
+                "kind": "literal",
+                "value": "VND"
+              },
+              {
+                "kind": "literal",
+                "value": "VUV"
+              },
+              {
+                "kind": "literal",
+                "value": "WST"
+              },
+              {
+                "kind": "literal",
+                "value": "XAF"
+              },
+              {
+                "kind": "literal",
+                "value": "XCD"
+              },
+              {
+                "kind": "literal",
+                "value": "XCG"
+              },
+              {
+                "kind": "literal",
+                "value": "XDR"
+              },
+              {
+                "kind": "literal",
+                "value": "XOF"
+              },
+              {
+                "kind": "literal",
+                "value": "XPF"
+              },
+              {
+                "kind": "literal",
+                "value": "XSU"
+              },
+              {
+                "kind": "literal",
+                "value": "YER"
+              },
+              {
+                "kind": "literal",
+                "value": "ZAR"
+              },
+              {
+                "kind": "literal",
+                "value": "ZMW"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWG"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWL"
               }
             ],
             "optional": true
@@ -1889,6 +4396,533 @@
       }
     }
   },
+  "exportFinancialReportCsvAction": {
+    "kind": "object",
+    "fields": {
+      "filters": {
+        "kind": "object",
+        "fields": {
+          "basis": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "cash"
+              },
+              {
+                "kind": "literal",
+                "value": "accrual"
+              }
+            ],
+            "optional": true
+          },
+          "dateFrom": {
+            "kind": "string",
+            "optional": true
+          },
+          "dateTo": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "createEmployeeAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "firstNameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "lastNameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "firstNameAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "lastNameAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "email": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "phone": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "cprNumber": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "jobTitleEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "jobTitleAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "departmentId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "hireDate": {
+            "kind": "string",
+            "optional": true
+          },
+          "contractType": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "full_time"
+              },
+              {
+                "kind": "literal",
+                "value": "part_time"
+              },
+              {
+                "kind": "literal",
+                "value": "contract"
+              }
+            ],
+            "optional": true
+          },
+          "basicSalary": {
+            "kind": "number",
+            "optional": true
+          },
+          "housingAllowance": {
+            "kind": "number",
+            "optional": true
+          },
+          "transportAllowance": {
+            "kind": "number",
+            "optional": true
+          },
+          "otherAllowances": {
+            "kind": "number",
+            "optional": true
+          },
+          "payrollSettings": {
+            "kind": "object",
+            "fields": {
+              "employee": {
+                "kind": "object",
+                "fields": {
+                  "mode": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "kind": "literal",
+                        "value": "percentage"
+                      },
+                      {
+                        "kind": "literal",
+                        "value": "fixed"
+                      }
+                    ],
+                    "optional": false
+                  },
+                  "value": {
+                    "kind": "number",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              },
+              "employer": {
+                "kind": "object",
+                "fields": {
+                  "mode": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "kind": "literal",
+                        "value": "percentage"
+                      },
+                      {
+                        "kind": "literal",
+                        "value": "fixed"
+                      }
+                    ],
+                    "optional": false
+                  },
+                  "value": {
+                    "kind": "number",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              },
+              "supports": {
+                "kind": "array",
+                "element": {
+                  "kind": "object",
+                  "fields": {
+                    "provider": {
+                      "kind": "string",
+                      "optional": false
+                    },
+                    "startMonth": {
+                      "kind": "string",
+                      "optional": false
+                    },
+                    "endMonth": {
+                      "kind": "string",
+                      "optional": false
+                    }
+                  }
+                },
+                "optional": false
+              }
+            },
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateEmployeeAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "firstNameEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "lastNameEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "firstNameAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "lastNameAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "email": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "phone": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "cprNumber": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "jobTitleEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "jobTitleAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "departmentId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "status": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "active"
+              },
+              {
+                "kind": "literal",
+                "value": "on_leave"
+              },
+              {
+                "kind": "literal",
+                "value": "suspended"
+              },
+              {
+                "kind": "literal",
+                "value": "terminated"
+              }
+            ],
+            "optional": true
+          },
+          "contractType": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "full_time"
+              },
+              {
+                "kind": "literal",
+                "value": "part_time"
+              },
+              {
+                "kind": "literal",
+                "value": "contract"
+              }
+            ],
+            "optional": true
+          },
+          "basicSalary": {
+            "kind": "number",
+            "optional": true
+          },
+          "housingAllowance": {
+            "kind": "number",
+            "optional": true
+          },
+          "transportAllowance": {
+            "kind": "number",
+            "optional": true
+          },
+          "otherAllowances": {
+            "kind": "number",
+            "optional": true
+          },
+          "payrollSettings": {
+            "kind": "object",
+            "fields": {
+              "employee": {
+                "kind": "object",
+                "fields": {
+                  "mode": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "kind": "literal",
+                        "value": "percentage"
+                      },
+                      {
+                        "kind": "literal",
+                        "value": "fixed"
+                      }
+                    ],
+                    "optional": false
+                  },
+                  "value": {
+                    "kind": "number",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              },
+              "employer": {
+                "kind": "object",
+                "fields": {
+                  "mode": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "kind": "literal",
+                        "value": "percentage"
+                      },
+                      {
+                        "kind": "literal",
+                        "value": "fixed"
+                      }
+                    ],
+                    "optional": false
+                  },
+                  "value": {
+                    "kind": "number",
+                    "optional": false
+                  }
+                },
+                "optional": false
+              },
+              "supports": {
+                "kind": "array",
+                "element": {
+                  "kind": "object",
+                  "fields": {
+                    "provider": {
+                      "kind": "string",
+                      "optional": false
+                    },
+                    "startMonth": {
+                      "kind": "string",
+                      "optional": false
+                    },
+                    "endMonth": {
+                      "kind": "string",
+                      "optional": false
+                    }
+                  }
+                },
+                "optional": false
+              }
+            },
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "createDepartmentAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "managerId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateDepartmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "nameEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "managerId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "saveIntegration": {
     "kind": "object",
     "fields": {
@@ -1920,6 +4954,81 @@
     "kind": "object",
     "fields": {
       "provider": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createLeaveRequestAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "employeeId": {
+            "kind": "string",
+            "optional": true
+          },
+          "leaveTypeId": {
+            "kind": "string",
+            "optional": false
+          },
+          "startDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "endDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "reason": {
+            "kind": "string",
+            "optional": false
+          },
+          "fullDay": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "hours": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "decideLeaveRequestAction": {
+    "kind": "object",
+    "fields": {
+      "requestId": {
+        "kind": "string",
+        "optional": false
+      },
+      "decision": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "approved"
+          },
+          {
+            "kind": "literal",
+            "value": "rejected"
+          }
+        ],
+        "optional": false
+      },
+      "notes": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "cancelLeaveRequestAction": {
+    "kind": "object",
+    "fields": {
+      "requestId": {
         "kind": "string",
         "optional": false
       }
@@ -2301,6 +5410,497 @@
       }
     }
   },
+  "generatePayrollRunAction": {
+    "kind": "object",
+    "fields": {
+      "month": {
+        "kind": "number",
+        "optional": false
+      },
+      "year": {
+        "kind": "number",
+        "optional": false
+      }
+    }
+  },
+  "submitPayrollRunForApprovalAction": {
+    "kind": "object",
+    "fields": {
+      "runId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "approvePayrollRunAction": {
+    "kind": "object",
+    "fields": {
+      "runId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "markPayrollRunPaidAction": {
+    "kind": "object",
+    "fields": {
+      "runId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateMyProfileAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "signature_url": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "requestIdentityChangeAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "fullName": {
+            "kind": "string",
+            "optional": true
+          },
+          "email": {
+            "kind": "string",
+            "optional": true
+          },
+          "reason": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "decideProfileChangeAction": {
+    "kind": "object",
+    "fields": {
+      "requestId": {
+        "kind": "string",
+        "optional": false
+      },
+      "decision": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "approved"
+          },
+          {
+            "kind": "literal",
+            "value": "rejected"
+          }
+        ],
+        "optional": false
+      },
+      "notes": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "createQuotationAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "clientId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "dealId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "inquiryId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "validUntilDays": {
+            "kind": "number",
+            "optional": true
+          },
+          "currency": {
+            "kind": "string",
+            "optional": true
+          },
+          "language": {
+            "kind": "string",
+            "optional": true
+          },
+          "vatEnabled": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "vatPercentage": {
+            "kind": "number",
+            "optional": true
+          },
+          "discountType": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "none"
+              },
+              {
+                "kind": "literal",
+                "value": "percentage"
+              },
+              {
+                "kind": "literal",
+                "value": "fixed"
+              }
+            ],
+            "optional": true
+          },
+          "discountValue": {
+            "kind": "number",
+            "optional": true
+          },
+          "termsEn": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "termsAr": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "lineItems": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "serviceId": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "descriptionEn": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "descriptionAr": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "quantity": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "sortOrder": {
+                  "kind": "number",
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateQuotationAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "validUntilDate": {
+            "kind": "string",
+            "optional": true
+          },
+          "currency": {
+            "kind": "string",
+            "optional": true
+          },
+          "language": {
+            "kind": "string",
+            "optional": true
+          },
+          "vatEnabled": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "vatPercentage": {
+            "kind": "number",
+            "optional": true
+          },
+          "discountType": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "none"
+              },
+              {
+                "kind": "literal",
+                "value": "percentage"
+              },
+              {
+                "kind": "literal",
+                "value": "fixed"
+              }
+            ],
+            "optional": true
+          },
+          "discountValue": {
+            "kind": "number",
+            "optional": true
+          },
+          "termsEn": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "termsAr": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "lineItems": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "serviceId": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "descriptionEn": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "descriptionAr": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "quantity": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "sortOrder": {
+                  "kind": "number",
+                  "optional": true
+                }
+              }
+            },
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "submitQuotationForApprovalAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "discountReason": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "issueQuotationAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "deliveryChannel": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "email"
+          },
+          {
+            "kind": "literal",
+            "value": "portal"
+          },
+          {
+            "kind": "literal",
+            "value": "whatsapp"
+          },
+          {
+            "kind": "literal",
+            "value": "manual"
+          }
+        ],
+        "optional": true
+      }
+    }
+  },
+  "acceptQuotationAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "evidence": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "rejectQuotationAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "reason": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "convertQuotationToInvoiceAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "assignRequestAction": {
     "kind": "object",
     "fields": {
@@ -2431,6 +6031,162 @@
       }
     }
   },
+  "createConsolidatedRequestAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "requestType": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "SR"
+              },
+              {
+                "kind": "literal",
+                "value": "CR"
+              },
+              {
+                "kind": "literal",
+                "value": "inquiry"
+              },
+              {
+                "kind": "literal",
+                "value": "quote_request"
+              }
+            ],
+            "optional": false
+          },
+          "fullName": {
+            "kind": "string",
+            "optional": false
+          },
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "company": {
+            "kind": "string",
+            "optional": true
+          },
+          "servicesRequested": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "message": {
+            "kind": "string",
+            "optional": true
+          },
+          "budgetRange": {
+            "kind": "string",
+            "optional": true
+          },
+          "targetTimeline": {
+            "kind": "string",
+            "optional": true
+          },
+          "clientId": {
+            "kind": "string",
+            "optional": true
+          },
+          "slaDueDate": {
+            "kind": "string",
+            "optional": true
+          },
+          "priority": {
+            "kind": "string",
+            "optional": true
+          },
+          "team": {
+            "kind": "string",
+            "optional": true
+          },
+          "assignedToId": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "assignRequestWithAvailabilityAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "assignment": {
+        "kind": "object",
+        "fields": {
+          "assignedToId": {
+            "kind": "string",
+            "optional": false
+          },
+          "team": {
+            "kind": "string",
+            "optional": true
+          },
+          "reason": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "addRequestCommentAction": {
+    "kind": "object",
+    "fields": {
+      "inquiryId": {
+        "kind": "string",
+        "optional": false
+      },
+      "body": {
+        "kind": "string",
+        "optional": false
+      },
+      "isClientVisible": {
+        "kind": "boolean",
+        "optional": true
+      },
+      "attachments": {
+        "kind": "unknown",
+        "optional": true
+      }
+    }
+  },
+  "addRequestEventAction": {
+    "kind": "object",
+    "fields": {
+      "inquiryId": {
+        "kind": "string",
+        "optional": false
+      },
+      "eventType": {
+        "kind": "string",
+        "optional": false
+      },
+      "details": {
+        "kind": "record",
+        "element": {
+          "kind": "unknown"
+        },
+        "optional": false
+      }
+    }
+  },
   "upsertRoleAction": {
     "kind": "object",
     "fields": {
@@ -2492,6 +6248,115 @@
     "fields": {
       "id": {
         "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "requestSalaryDocumentAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "employeeId": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "payslip"
+              },
+              {
+                "kind": "literal",
+                "value": "salary_certificate"
+              }
+            ],
+            "optional": false
+          },
+          "months": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "reviewSalaryDocumentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "decision": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "issued"
+          },
+          {
+            "kind": "literal",
+            "value": "rejected"
+          }
+        ],
+        "optional": false
+      },
+      "notes": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "emailSalaryDocumentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "locale": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "ar"
+          },
+          {
+            "kind": "literal",
+            "value": "en"
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "whatsappSalaryDocumentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "locale": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "ar"
+          },
+          {
+            "kind": "literal",
+            "value": "en"
+          }
+        ],
         "optional": false
       }
     }
@@ -2801,6 +6666,626 @@
               {
                 "kind": "literal",
                 "value": "USD"
+              },
+              {
+                "kind": "literal",
+                "value": "EUR"
+              },
+              {
+                "kind": "literal",
+                "value": "GBP"
+              },
+              {
+                "kind": "literal",
+                "value": "AFN"
+              },
+              {
+                "kind": "literal",
+                "value": "ALL"
+              },
+              {
+                "kind": "literal",
+                "value": "AMD"
+              },
+              {
+                "kind": "literal",
+                "value": "ANG"
+              },
+              {
+                "kind": "literal",
+                "value": "AOA"
+              },
+              {
+                "kind": "literal",
+                "value": "ARS"
+              },
+              {
+                "kind": "literal",
+                "value": "AUD"
+              },
+              {
+                "kind": "literal",
+                "value": "AWG"
+              },
+              {
+                "kind": "literal",
+                "value": "AZN"
+              },
+              {
+                "kind": "literal",
+                "value": "BAM"
+              },
+              {
+                "kind": "literal",
+                "value": "BBD"
+              },
+              {
+                "kind": "literal",
+                "value": "BDT"
+              },
+              {
+                "kind": "literal",
+                "value": "BGN"
+              },
+              {
+                "kind": "literal",
+                "value": "BIF"
+              },
+              {
+                "kind": "literal",
+                "value": "BMD"
+              },
+              {
+                "kind": "literal",
+                "value": "BND"
+              },
+              {
+                "kind": "literal",
+                "value": "BOB"
+              },
+              {
+                "kind": "literal",
+                "value": "BRL"
+              },
+              {
+                "kind": "literal",
+                "value": "BSD"
+              },
+              {
+                "kind": "literal",
+                "value": "BTN"
+              },
+              {
+                "kind": "literal",
+                "value": "BWP"
+              },
+              {
+                "kind": "literal",
+                "value": "BYN"
+              },
+              {
+                "kind": "literal",
+                "value": "BZD"
+              },
+              {
+                "kind": "literal",
+                "value": "CAD"
+              },
+              {
+                "kind": "literal",
+                "value": "CDF"
+              },
+              {
+                "kind": "literal",
+                "value": "CHF"
+              },
+              {
+                "kind": "literal",
+                "value": "CLP"
+              },
+              {
+                "kind": "literal",
+                "value": "CNY"
+              },
+              {
+                "kind": "literal",
+                "value": "COP"
+              },
+              {
+                "kind": "literal",
+                "value": "CRC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUC"
+              },
+              {
+                "kind": "literal",
+                "value": "CUP"
+              },
+              {
+                "kind": "literal",
+                "value": "CVE"
+              },
+              {
+                "kind": "literal",
+                "value": "CZK"
+              },
+              {
+                "kind": "literal",
+                "value": "DJF"
+              },
+              {
+                "kind": "literal",
+                "value": "DKK"
+              },
+              {
+                "kind": "literal",
+                "value": "DOP"
+              },
+              {
+                "kind": "literal",
+                "value": "DZD"
+              },
+              {
+                "kind": "literal",
+                "value": "EGP"
+              },
+              {
+                "kind": "literal",
+                "value": "ERN"
+              },
+              {
+                "kind": "literal",
+                "value": "ETB"
+              },
+              {
+                "kind": "literal",
+                "value": "FJD"
+              },
+              {
+                "kind": "literal",
+                "value": "FKP"
+              },
+              {
+                "kind": "literal",
+                "value": "GEL"
+              },
+              {
+                "kind": "literal",
+                "value": "GHS"
+              },
+              {
+                "kind": "literal",
+                "value": "GIP"
+              },
+              {
+                "kind": "literal",
+                "value": "GMD"
+              },
+              {
+                "kind": "literal",
+                "value": "GNF"
+              },
+              {
+                "kind": "literal",
+                "value": "GTQ"
+              },
+              {
+                "kind": "literal",
+                "value": "GYD"
+              },
+              {
+                "kind": "literal",
+                "value": "HKD"
+              },
+              {
+                "kind": "literal",
+                "value": "HNL"
+              },
+              {
+                "kind": "literal",
+                "value": "HRK"
+              },
+              {
+                "kind": "literal",
+                "value": "HTG"
+              },
+              {
+                "kind": "literal",
+                "value": "HUF"
+              },
+              {
+                "kind": "literal",
+                "value": "IDR"
+              },
+              {
+                "kind": "literal",
+                "value": "ILS"
+              },
+              {
+                "kind": "literal",
+                "value": "INR"
+              },
+              {
+                "kind": "literal",
+                "value": "IQD"
+              },
+              {
+                "kind": "literal",
+                "value": "IRR"
+              },
+              {
+                "kind": "literal",
+                "value": "ISK"
+              },
+              {
+                "kind": "literal",
+                "value": "JMD"
+              },
+              {
+                "kind": "literal",
+                "value": "JOD"
+              },
+              {
+                "kind": "literal",
+                "value": "JPY"
+              },
+              {
+                "kind": "literal",
+                "value": "KES"
+              },
+              {
+                "kind": "literal",
+                "value": "KGS"
+              },
+              {
+                "kind": "literal",
+                "value": "KHR"
+              },
+              {
+                "kind": "literal",
+                "value": "KMF"
+              },
+              {
+                "kind": "literal",
+                "value": "KPW"
+              },
+              {
+                "kind": "literal",
+                "value": "KRW"
+              },
+              {
+                "kind": "literal",
+                "value": "KYD"
+              },
+              {
+                "kind": "literal",
+                "value": "KZT"
+              },
+              {
+                "kind": "literal",
+                "value": "LAK"
+              },
+              {
+                "kind": "literal",
+                "value": "LBP"
+              },
+              {
+                "kind": "literal",
+                "value": "LKR"
+              },
+              {
+                "kind": "literal",
+                "value": "LRD"
+              },
+              {
+                "kind": "literal",
+                "value": "LSL"
+              },
+              {
+                "kind": "literal",
+                "value": "LYD"
+              },
+              {
+                "kind": "literal",
+                "value": "MAD"
+              },
+              {
+                "kind": "literal",
+                "value": "MDL"
+              },
+              {
+                "kind": "literal",
+                "value": "MGA"
+              },
+              {
+                "kind": "literal",
+                "value": "MKD"
+              },
+              {
+                "kind": "literal",
+                "value": "MMK"
+              },
+              {
+                "kind": "literal",
+                "value": "MNT"
+              },
+              {
+                "kind": "literal",
+                "value": "MOP"
+              },
+              {
+                "kind": "literal",
+                "value": "MRU"
+              },
+              {
+                "kind": "literal",
+                "value": "MUR"
+              },
+              {
+                "kind": "literal",
+                "value": "MVR"
+              },
+              {
+                "kind": "literal",
+                "value": "MWK"
+              },
+              {
+                "kind": "literal",
+                "value": "MXN"
+              },
+              {
+                "kind": "literal",
+                "value": "MYR"
+              },
+              {
+                "kind": "literal",
+                "value": "MZN"
+              },
+              {
+                "kind": "literal",
+                "value": "NAD"
+              },
+              {
+                "kind": "literal",
+                "value": "NGN"
+              },
+              {
+                "kind": "literal",
+                "value": "NIO"
+              },
+              {
+                "kind": "literal",
+                "value": "NOK"
+              },
+              {
+                "kind": "literal",
+                "value": "NPR"
+              },
+              {
+                "kind": "literal",
+                "value": "NZD"
+              },
+              {
+                "kind": "literal",
+                "value": "PAB"
+              },
+              {
+                "kind": "literal",
+                "value": "PEN"
+              },
+              {
+                "kind": "literal",
+                "value": "PGK"
+              },
+              {
+                "kind": "literal",
+                "value": "PHP"
+              },
+              {
+                "kind": "literal",
+                "value": "PKR"
+              },
+              {
+                "kind": "literal",
+                "value": "PLN"
+              },
+              {
+                "kind": "literal",
+                "value": "PYG"
+              },
+              {
+                "kind": "literal",
+                "value": "RON"
+              },
+              {
+                "kind": "literal",
+                "value": "RSD"
+              },
+              {
+                "kind": "literal",
+                "value": "RUB"
+              },
+              {
+                "kind": "literal",
+                "value": "RWF"
+              },
+              {
+                "kind": "literal",
+                "value": "SBD"
+              },
+              {
+                "kind": "literal",
+                "value": "SCR"
+              },
+              {
+                "kind": "literal",
+                "value": "SDG"
+              },
+              {
+                "kind": "literal",
+                "value": "SEK"
+              },
+              {
+                "kind": "literal",
+                "value": "SGD"
+              },
+              {
+                "kind": "literal",
+                "value": "SHP"
+              },
+              {
+                "kind": "literal",
+                "value": "SLE"
+              },
+              {
+                "kind": "literal",
+                "value": "SLL"
+              },
+              {
+                "kind": "literal",
+                "value": "SOS"
+              },
+              {
+                "kind": "literal",
+                "value": "SRD"
+              },
+              {
+                "kind": "literal",
+                "value": "SSP"
+              },
+              {
+                "kind": "literal",
+                "value": "STN"
+              },
+              {
+                "kind": "literal",
+                "value": "SVC"
+              },
+              {
+                "kind": "literal",
+                "value": "SYP"
+              },
+              {
+                "kind": "literal",
+                "value": "SZL"
+              },
+              {
+                "kind": "literal",
+                "value": "THB"
+              },
+              {
+                "kind": "literal",
+                "value": "TJS"
+              },
+              {
+                "kind": "literal",
+                "value": "TMT"
+              },
+              {
+                "kind": "literal",
+                "value": "TND"
+              },
+              {
+                "kind": "literal",
+                "value": "TOP"
+              },
+              {
+                "kind": "literal",
+                "value": "TRY"
+              },
+              {
+                "kind": "literal",
+                "value": "TTD"
+              },
+              {
+                "kind": "literal",
+                "value": "TWD"
+              },
+              {
+                "kind": "literal",
+                "value": "TZS"
+              },
+              {
+                "kind": "literal",
+                "value": "UAH"
+              },
+              {
+                "kind": "literal",
+                "value": "UGX"
+              },
+              {
+                "kind": "literal",
+                "value": "UYU"
+              },
+              {
+                "kind": "literal",
+                "value": "UZS"
+              },
+              {
+                "kind": "literal",
+                "value": "VES"
+              },
+              {
+                "kind": "literal",
+                "value": "VND"
+              },
+              {
+                "kind": "literal",
+                "value": "VUV"
+              },
+              {
+                "kind": "literal",
+                "value": "WST"
+              },
+              {
+                "kind": "literal",
+                "value": "XAF"
+              },
+              {
+                "kind": "literal",
+                "value": "XCD"
+              },
+              {
+                "kind": "literal",
+                "value": "XCG"
+              },
+              {
+                "kind": "literal",
+                "value": "XDR"
+              },
+              {
+                "kind": "literal",
+                "value": "XOF"
+              },
+              {
+                "kind": "literal",
+                "value": "XPF"
+              },
+              {
+                "kind": "literal",
+                "value": "XSU"
+              },
+              {
+                "kind": "literal",
+                "value": "YER"
+              },
+              {
+                "kind": "literal",
+                "value": "ZAR"
+              },
+              {
+                "kind": "literal",
+                "value": "ZMW"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWG"
+              },
+              {
+                "kind": "literal",
+                "value": "ZWL"
               }
             ],
             "optional": false
@@ -3267,6 +7752,10 @@
       "data": {
         "kind": "object",
         "fields": {
+          "employeeId": {
+            "kind": "string",
+            "optional": false
+          },
           "email": {
             "kind": "string",
             "optional": false
@@ -3364,6 +7853,37 @@
             "optional": true
           }
         },
+        "optional": false
+      }
+    }
+  },
+  "suspendUserAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "reason": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "reactivateUserAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "archiveUserAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
         "optional": false
       }
     }

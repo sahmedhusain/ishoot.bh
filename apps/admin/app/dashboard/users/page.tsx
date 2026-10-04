@@ -1,11 +1,15 @@
-import { requirePermission } from "../../../lib/auth";
-import { getAllUsers,db,ALL_RESOURCES,ALL_ACTIONS } from "@ishoot/database";
+import { requirePermission, hasPermission } from "../../../lib/auth";
+import { getAllUsers, db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
 
 export const dynamic = "force-dynamic";
 
 export default async function UsersPage() {
   await requirePermission("users", "read");
+  const [canWrite, canDelete] = await Promise.all([
+    hasPermission("users", "write"),
+    hasPermission("users", "delete"),
+  ]);
   const [users, roles, grants] = await Promise.all([
     getAllUsers(),
     db.role.findMany({
@@ -31,8 +35,22 @@ export default async function UsersPage() {
     if (rolePermissions[grant.role] && grant.role !== "super_admin")
       rolePermissions[grant.role][`${grant.resource}:${grant.action}`] =
         grant.allowed;
+  const employees = await db.employee.findMany({
+    where: { userId: null, status: { in: ["active", "on_leave"] } },
+    select: {
+      id: true,
+      employeeNumber: true,
+      firstNameEn: true,
+      lastNameEn: true,
+      email: true,
+    },
+    orderBy: { employeeNumber: "asc" },
+  });
   return (
     <UsersManagementView
+      canWrite={canWrite}
+      canDelete={canDelete}
+      employees={employees}
       initialUsers={users}
       roles={roles}
       resources={ALL_RESOURCES}

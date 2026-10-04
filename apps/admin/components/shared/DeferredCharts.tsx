@@ -17,6 +17,6 @@ export function DeferredCashflowChart({ kind, data }: { kind: "dashboard" | "fin
     <div className="flex-1 min-h-0">
     {visible ? (kind === "dashboard" ? <DashboardChart data={data} /> : <FinanceChart data={data} />) : <p role="status" className="text-xs">{isRTL ? "يتم تحميل الرسم عند عرضه" : "Chart loads when visible"}</p>}
     </div>
-    <details className="text-xs"><summary>{isRTL ? "عرض بيانات الرسم" : "View chart data"}</summary><table><thead><tr><th>{isRTL ? "الشهر" : "Month"}</th><th>{isRTL ? "الإيراد (د.ب)" : "Revenue (BHD)"}</th><th>{isRTL ? "المصروف (د.ب)" : "Expenses (BHD)"}</th></tr></thead><tbody>{data.map((row, i) => <tr key={i}><td>{row.month || row.name}</td><td>{row.revenue}</td><td>{row.expenses}</td></tr>)}</tbody></table></details>
+    <details className="text-xs"><summary>{isRTL ? "عرض بيانات الرسم" : "View chart data"}</summary><table><thead><tr><th>{isRTL ? "الشهر" : "Month"}</th><th>{isRTL ? "الإيراد (BHD)" : "Revenue (BHD)"}</th><th>{isRTL ? "المصروف (BHD)" : "Expenses (BHD)"}</th></tr></thead><tbody>{data.map((row, i) => <tr key={i}><td>{row.month || row.name}</td><td>{row.revenue}</td><td>{row.expenses}</td></tr>)}</tbody></table></details>
   </div>;
 }

@@ -1,34 +1,9 @@
 "use client";
 
 import * as React from "react";
-import type { UserRole } from "@ishoot/database/types";
+import type { UserRole, PermissionResource, PermissionAction } from "@ishoot/database";
 
-export type PermissionResource =
-  | "invoices"
-  | "payments"
-  | "expenses"
-  | "finance_analytics"
-  | "deals"
-  | "contacts"
-  | "leads"
-  | "support"
-  | "contracts"
-  | "banners"
-  | "portfolio"
-  | "clients"
-  | "equipment"
-  | "calendar"
-  | "users"
-  | "settings"
-  | "audit_logs"
-  | "reviews"
-  | "faqs"
-  | "stats"
-  | "moms"
-  | "requests";
-
-export type PermissionAction =
-  "read" | "write" | "delete" | "export" | "approve";
+export type { PermissionResource, PermissionAction };
 
 interface UserState {
   id: string;

@@ -3,10 +3,23 @@
 import * as React from "react";
 import Link from "next/link";
 import type { CRMContact } from "@ishoot/database/types";
-import { Input } from "@ishoot/ui";
-import { Search,Mail,Phone,ExternalLink,Check,Loader2,X } from "lucide-react";
-import { searchContactsAction } from "../../app/actions/crm";
+import { Input, Button } from "@ishoot/ui";
+import {
+  Search,
+  Mail,
+  Phone,
+  ExternalLink,
+  Check,
+  Loader2,
+  X,
+  UserPlus,
+  Users,
+  Building,
+  AlertCircle,
+} from "lucide-react";
+import { searchContactsAction, createContactAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { toast } from "sonner";
 
 export interface ClientAutocompleteProps {
   initialContacts?: CRMContact[];
@@ -19,6 +32,7 @@ export interface ClientAutocompleteProps {
   label?: string;
   required?: boolean;
   className?: string;
+  allowCreate?: boolean;
 }
 
 export function ClientAutocomplete({
@@ -32,11 +46,14 @@ export function ClientAutocomplete({
   label,
   required = false,
   className,
+  allowCreate = true,
 }: ClientAutocompleteProps) {
-  const { t } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
   const effectivePlaceholder = placeholder || t.crm.clientSearchPlaceholder;
   const effectiveLabel = label || t.crm.selectClientLabel;
   const effectiveInitial = contactsProp || initialContacts;
+
+  const [mode, setMode] = React.useState<"search" | "create">("search");
   const [query, setQuery] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
@@ -45,9 +62,19 @@ export function ClientAutocomplete({
     effectiveInitial.find((c) => c.id === selectedContactId) || null,
   );
 
+  // New Client Form State
+  const [newFullName, setNewFullName] = React.useState("");
+  const [newCompany, setNewCompany] = React.useState("");
+  const [newEmail, setNewEmail] = React.useState("");
+  const [newPhone, setNewPhone] = React.useState("");
+  const [newJobTitle, setNewJobTitle] = React.useState("");
+  const [newNotes, setNewNotes] = React.useState("");
+  const [creatingClient, setCreatingClient] = React.useState(false);
+  const [createError, setCreateError] = React.useState<string | null>(null);
+
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  // Sync when selectedContactId changes externally
+  // Sync external changes
   React.useEffect(() => {
     if (selectedContactId) {
       const found = contacts.find((c) => c.id === selectedContactId);
@@ -57,7 +84,7 @@ export function ClientAutocomplete({
     }
   }, [selectedContactId, contacts]);
 
-  // Click outside listener to close dropdown
+  // Click outside to close dropdown
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -70,7 +97,7 @@ export function ClientAutocomplete({
 
   // Debounced search
   React.useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || mode !== "search") return;
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -86,7 +113,7 @@ export function ClientAutocomplete({
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [query, isOpen]);
+  }, [query, isOpen, mode]);
 
   const handleSelect = (contact: CRMContact) => {
     setSelectedContact(contact);
@@ -94,6 +121,7 @@ export function ClientAutocomplete({
     if (onSelectClient) onSelectClient(contact);
     setIsOpen(false);
     setQuery("");
+    setMode("search");
   };
 
   const handleClear = () => {
@@ -102,51 +130,139 @@ export function ClientAutocomplete({
     setQuery("");
   };
 
-  return (
-    <div className={`space-y-1.5 ${className || ""}`} ref={containerRef}>
-      {effectiveLabel && (
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
-          <label>
-            {effectiveLabel} {required && <span className="text-rose-500">*</span>}
-          </label>
-          {selectedContact && (
-            <Link
-              href={`/dashboard/crm/customers/${selectedContact.id}`}
-              target="_blank"
-              className="text-[#09937F] hover:underline inline-flex items-center gap-1  text-[11px]"
-            >
-              <span>{t.crm.viewDossier}</span>
-              <ExternalLink className="w-3 h-3" />
-            </Link>
-          )}
-        </div>
-      )}
+  const handleCreateNewClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFullName.trim()) {
+      setCreateError(isRTL ? "يرجى إدخال اسم العميل" : "Customer name is required");
+      return;
+    }
 
+    setCreatingClient(true);
+    setCreateError(null);
+    try {
+      const res = await createContactAction({
+        full_name: newFullName.trim(),
+        company: newCompany.trim() || undefined,
+        email: newEmail.trim() || undefined,
+        phone: newPhone.trim() || undefined,
+        job_title: newJobTitle.trim() || undefined,
+        notes: newNotes.trim() || undefined,
+        contact_type: "client",
+      });
+
+      if (res.success && res.contact) {
+        const created = res.contact;
+        setContacts((prev) => [created, ...prev.filter((c) => c.id !== created.id)]);
+        handleSelect(created);
+        toast.success(
+          isRTL
+            ? `تمت إضافة ${created.company || created.full_name} إلى دليل العملاء واختياره بنجاح`
+            : `Added ${created.company || created.full_name} to customer directory and selected`,
+        );
+        // Reset form
+        setNewFullName("");
+        setNewCompany("");
+        setNewEmail("");
+        setNewPhone("");
+        setNewJobTitle("");
+        setNewNotes("");
+        setMode("search");
+      } else {
+        setCreateError(isRTL ? "فشل إنشاء العميل، يرجى المحاولة ثانية" : "Failed to create client");
+      }
+    } catch (err: unknown) {
+      console.error("Error creating customer:", err);
+      setCreateError(err instanceof Error ? err.message : "Error creating customer");
+    } finally {
+      setCreatingClient(false);
+    }
+  };
+
+  return (
+    <div className={`space-y-2 ${className || ""}`} ref={containerRef}>
+      {/* Header with Mode Toggle */}
+      <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+        <label className="flex items-center gap-1.5">
+          <span>{effectiveLabel}</span>
+          {required && <span className="text-rose-500">*</span>}
+        </label>
+
+        {!selectedContact && allowCreate && (
+          <div className="flex items-center bg-slate-100 dark:bg-neutral-800/80 p-0.5 rounded-lg border border-slate-200/60 dark:border-white/10 text-[11px]">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("search");
+                setCreateError(null);
+              }}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${
+                mode === "search"
+                  ? "bg-white dark:bg-[#111] text-[#014842] dark:text-[#7de0d1] shadow-xs"
+                  : "text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+              }`}
+            >
+              <Users className="w-3 h-3" />
+              <span>{isRTL ? "عميل مسجل" : "Existing Client"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("create");
+                setIsOpen(false);
+              }}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md transition-all font-medium active:scale-[0.98] ${
+                mode === "create"
+                  ? "bg-white dark:bg-[#111] text-[#014842] dark:text-[#7de0d1] shadow-xs"
+                  : "text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+              }`}
+            >
+              <UserPlus className="w-3 h-3" />
+              <span>{isRTL ? "عميل جديد" : "+ New Client"}</span>
+            </button>
+          </div>
+        )}
+
+        {selectedContact && (
+          <Link
+            href={`/dashboard/crm/customers/${selectedContact.id}`}
+            target="_blank"
+            className="text-[#09937F] hover:underline inline-flex items-center gap-1 text-[11px] font-medium"
+          >
+            <span>{t.crm.viewDossier}</span>
+            <ExternalLink className="w-3 h-3" />
+          </Link>
+        )}
+      </div>
+
+      {/* State 1: Selected Customer Card */}
       {selectedContact ? (
-        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 dark:bg-[#152320] dark:border-white/10 transition-colors">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200 dark:bg-[#152320]/60 dark:border-white/10 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-full bg-[#E6F5F2] dark:bg-[#1D3531] text-[#014842] dark:text-[#7DE0D1] flex items-center justify-center font-bold text-sm shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#E6F5F2] dark:bg-[#1D3531] text-[#014842] dark:text-[#7DE0D1] flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
               {selectedContact.company
                 ? selectedContact.company.charAt(0).toUpperCase()
                 : selectedContact.full_name?.charAt(0).toUpperCase() || "C"}
             </div>
-            <div className="min-w-0">
-              <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                {selectedContact.company
-                  ? `${selectedContact.company} (${selectedContact.full_name})`
-                  : selectedContact.full_name}
+            <div className="min-w-0 space-y-0.5">
+              <div className="text-sm font-bold text-slate-900 dark:text-white truncate flex items-center gap-2">
+                <span>{selectedContact.company || selectedContact.full_name}</span>
+                {selectedContact.company && selectedContact.full_name && (
+                  <span className="text-xs font-normal text-slate-500 dark:text-neutral-400">
+                    ({selectedContact.full_name})
+                  </span>
+                )}
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-3 mt-0.5">
+              <div className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-3">
                 {selectedContact.email && (
                   <span className="inline-flex items-center gap-1">
-                    <Mail className="w-3 h-3" />
-                    {selectedContact.email}
+                    <Mail className="w-3 h-3 text-slate-400" />
+                    <span>{selectedContact.email}</span>
                   </span>
                 )}
                 {selectedContact.phone && (
-                  <span className="inline-flex items-center gap-1 ">
-                    <Phone className="w-3 h-3" />
-                    {selectedContact.phone}
+                  <span className="inline-flex items-center gap-1">
+                    <Phone className="w-3 h-3 text-slate-400" />
+                    <span dir="ltr">{selectedContact.phone}</span>
                   </span>
                 )}
               </div>
@@ -162,7 +278,141 @@ export function ClientAutocomplete({
             <X className="w-4 h-4" />
           </button>
         </div>
+      ) : mode === "create" ? (
+        /* State 2: Inline "Create New Customer" Flow */
+        <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-white/10">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#014842] dark:text-[#7de0d1]">
+              <UserPlus className="w-4 h-4" />
+              <span>{isRTL ? "إضافة عميل جديد إلى الدليل" : "Create New Customer & Add to Directory"}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("search");
+                setCreateError(null);
+              }}
+              className="text-xs text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
+            >
+              {isRTL ? "إلغاء والعودة للبحث" : "Cancel & Search"}
+            </button>
+          </div>
+
+          {createError && (
+            <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-950/40 dark:border-rose-900/50 dark:text-rose-300 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{createError}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+                {isRTL ? "الاسم الكامل / اسم المسؤول *" : "Full Name / Contact Person *"}
+              </label>
+              <Input
+                value={newFullName}
+                onChange={(e) => setNewFullName(e.target.value)}
+                placeholder={isRTL ? "مثال: أحمد عبد الله" : "e.g. Ahmed Abdulla"}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+                {isRTL ? "اسم الشركة / الجهة" : "Company / Organization"}
+              </label>
+              <div className="relative">
+                <Input
+                  value={newCompany}
+                  onChange={(e) => setNewCompany(e.target.value)}
+                  placeholder={isRTL ? "مثال: شركة التطوير الإعلامي" : "e.g. Gulf Media Co"}
+                  className="pl-8 rtl:pl-3 rtl:pr-8"
+                />
+                <Building className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+                {isRTL ? "البريد الإلكتروني" : "Email Address"}
+              </label>
+              <div className="relative">
+                <Input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="client@company.com"
+                  className="pl-8 rtl:pl-3 rtl:pr-8"
+                />
+                <Mail className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+                {isRTL ? "رقم الهاتف / الواتساب" : "Phone / WhatsApp"}
+              </label>
+              <div className="relative">
+                <Input
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                  placeholder="+973 3900 0000"
+                  dir="ltr"
+                  className="pl-8 rtl:pl-3 rtl:pr-8 text-start"
+                />
+                <Phone className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
+                {isRTL ? "المسمى الوظيفي / ملاحظات إضافية" : "Job Title / Notes"}
+              </label>
+              <Input
+                value={newJobTitle}
+                onChange={(e) => setNewJobTitle(e.target.value)}
+                placeholder={isRTL ? "مثال: مدير التسويق" : "e.g. Marketing Director"}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/60 dark:border-white/10">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setMode("search");
+                setCreateError(null);
+              }}
+              className="text-xs"
+            >
+              {isRTL ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={creatingClient || !newFullName.trim()}
+              onClick={handleCreateNewClient}
+              className="bg-[#014842] hover:bg-[#013833] text-white text-xs font-semibold gap-1.5 shadow-xs active:scale-[0.98] transition-all"
+            >
+              {creatingClient ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>{isRTL ? "جاري الحفظ..." : "Saving..."}</span>
+                </>
+              ) : (
+                <>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{isRTL ? "حفظ واختيار العميل" : "Save & Select Client"}</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       ) : (
+        /* State 3: Search Existing Customers */
         <div className="relative">
           <div className="relative">
             <Input
@@ -185,33 +435,61 @@ export function ClientAutocomplete({
           {isOpen && (
             <div className="absolute z-50 mt-1.5 w-full bg-white dark:bg-[#121B19] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5 animate-fade-in">
               {contacts.length === 0 ? (
-                <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400">
-                  {loading ? t.crm.searchingClients : t.crm.noMatchingClients}
+                <div className="p-4 text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
+                  <p>{loading ? t.crm.searchingClients : t.crm.noMatchingClients}</p>
+                  {allowCreate && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode("create");
+                        setIsOpen(false);
+                      }}
+                      className="inline-flex items-center gap-1.5 text-xs text-[#014842] dark:text-[#7de0d1] font-semibold hover:underline"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>{isRTL ? "إضافة كعميل جديد الآن" : "+ Create as new client now"}</span>
+                    </button>
+                  )}
                 </div>
               ) : (
-                contacts.map((contact) => (
-                  <button
-                    key={contact.id}
-                    type="button"
-                    onClick={() => handleSelect(contact)}
-                    className="w-full text-start p-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-3 text-xs"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-bold text-slate-900 dark:text-white truncate">
-                        {contact.company ? `${contact.company} - ` : ""}
-                        {contact.full_name}
+                <>
+                  {allowCreate && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode("create");
+                        setIsOpen(false);
+                      }}
+                      className="w-full text-start p-3 bg-slate-50/70 dark:bg-white/[0.02] hover:bg-[#E6F5F2] dark:hover:bg-[#1D3531]/40 text-[#014842] dark:text-[#7de0d1] font-semibold text-xs flex items-center gap-2 border-b border-slate-100 dark:border-white/5 transition-colors"
+                    >
+                      <UserPlus className="w-3.5 h-3.5 shrink-0" />
+                      <span>{isRTL ? "+ إضافة عميل جديد غير مسجل" : "+ Create New Client Not in Directory"}</span>
+                    </button>
+                  )}
+                  {contacts.map((contact) => (
+                    <button
+                      key={contact.id}
+                      type="button"
+                      onClick={() => handleSelect(contact)}
+                      className="w-full text-start p-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-bold text-slate-900 dark:text-white truncate">
+                          {contact.company ? `${contact.company} - ` : ""}
+                          {contact.full_name}
+                        </div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-2">
+                          {contact.email && <span>{contact.email}</span>}
+                          {contact.email && contact.phone && <span>•</span>}
+                          {contact.phone && <span dir="ltr">{contact.phone}</span>}
+                        </div>
                       </div>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-2">
-                        {contact.email && <span>{contact.email}</span>}
-                        {contact.email && contact.phone && <span>•</span>}
-                        {contact.phone && <span className="">{contact.phone}</span>}
-                      </div>
-                    </div>
-                    {selectedContactId === contact.id && (
-                      <Check className="w-4 h-4 text-[#09937F] shrink-0" />
-                    )}
-                  </button>
-                ))
+                      {selectedContactId === contact.id && (
+                        <Check className="w-4 h-4 text-[#09937F] shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </>
               )}
             </div>
           )}

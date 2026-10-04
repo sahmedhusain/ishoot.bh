@@ -32,7 +32,10 @@
     "worker:maintenance": "node scripts/maintenance-worker.cjs",
     "audit:customer-identities": "node scripts/check-customer-identities.cjs",
     "audit:unused": "knip",
-    "test:uploads": "node scripts/check-upload-storage.cjs"
+    "test:uploads": "node scripts/check-upload-storage.cjs",
+    "test:dashboard": "node scripts/check-admin-dashboard.cjs",
+    "test:hrms": "node scripts/check-hrms.cjs && node scripts/check-hrms-pdf.cjs",
+    "test:hrms-db": "node scripts/check-hrms-db.cjs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",

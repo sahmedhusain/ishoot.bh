@@ -3,19 +3,29 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card,Button,Input,Select } from "@ishoot/ui";
-import { ArrowLeft,CheckCircle2,ShieldCheck } from "lucide-react";
+import { Card, Button, Input, Select } from "@ishoot/ui";
+import { ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
 import { createUserAction } from "../../app/actions/users";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function NewUserFormView({
   roles,
+  employees,
 }: {
+  employees: Array<{
+    id: string;
+    employeeNumber: string;
+    firstNameEn: string;
+    lastNameEn: string;
+    email: string | null;
+  }>;
   roles: Array<{ id: string; nameEn: string; nameAr: string }>;
 }) {
   const router = useRouter();
   const { t, isRTL } = useAdminLocale();
 
+  const [employeeId, setEmployeeId] = React.useState("");
+  const [error, setError] = React.useState("");
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -31,6 +41,7 @@ export function NewUserFormView({
 
     try {
       await createUserAction({
+        employeeId,
         full_name: fullName,
         email,
         password,
@@ -41,7 +52,7 @@ export function NewUserFormView({
 
       router.push("/dashboard/users");
     } catch (err) {
-      console.error("Failed to create user:", err);
+      setError(err instanceof Error ? err.message : t.hrExtensions.failed);
     } finally {
       setSaving(false);
     }
@@ -71,6 +82,39 @@ export function NewUserFormView({
 
       <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
+          <label className="block text-white">
+            {t.hrExtensions.employeeFirst}
+            <Select
+              required
+              value={employeeId}
+              onChange={(e) => {
+                setEmployeeId(e.target.value);
+                const employee = employees.find(
+                  (item) => item.id === e.target.value,
+                );
+                if (employee) {
+                  setFullName(`${employee.firstNameEn} ${employee.lastNameEn}`);
+                  setEmail(employee.email || "");
+                }
+              }}
+            >
+              <option value="">{t.hrExtensions.selectEmployee}</option>
+              {employees.map((employee) => (
+                <option key={employee.id} value={employee.id}>
+                  {employee.employeeNumber} — {employee.firstNameEn}{" "}
+                  {employee.lastNameEn}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <Link href="/dashboard/hr/employees/new" className="text-emerald-500">
+            {t.hrExtensions.createEmployee}
+          </Link>
+          {error && (
+            <p role="alert" className="text-red-500">
+              {error}
+            </p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-white mb-1.5 block">

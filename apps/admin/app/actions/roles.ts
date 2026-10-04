@@ -35,15 +35,20 @@ export async function upsertRoleAction(data: {
       !Array.isArray(data.permissions)
     )
       throw new Error("Invalid role");
-    if (data.id === "super_admin")
-      throw new Error("Super administrator permissions cannot be edited");
-    const actionFields = {
+    const actionFields: Record<string, string> = {
       read: "canRead",
       write: "canWrite",
       delete: "canDelete",
       approve: "canApprove",
       export: "canExport",
-    } as const;
+      create: "canCreate",
+      edit: "canEdit",
+      assign: "canAssign",
+      issue_send: "canIssueSend",
+      manage_permissions: "canManagePermissions",
+      reset_credentials: "canResetCredentials",
+    };
+    const coreFields = ["canRead", "canWrite", "canDelete", "canApprove", "canExport"] as const;
     const submitted = new Map<string, (typeof data.permissions)[number]>();
     for (const permission of data.permissions) {
       if (
@@ -52,8 +57,8 @@ export async function upsertRoleAction(data: {
         submitted.has(permission.module)
       )
         throw new Error("Invalid permission resource");
-      for (const field of Object.values(actionFields)) {
-        if (typeof permission[field] !== "boolean")
+      for (const field of coreFields) {
+        if (typeof (permission as any)[field] !== "boolean")
           throw new Error("Invalid permission value");
       }
       submitted.set(permission.module, permission);
@@ -74,12 +79,28 @@ export async function upsertRoleAction(data: {
       await tx.permission.deleteMany({ where: { role: role.id } });
       await tx.permission.createMany({
         data: ALL_RESOURCES.flatMap((resource) =>
-          ALL_ACTIONS.map((action) => ({
-            role: role.id,
-            resource,
-            action,
-            allowed: submitted.get(resource)?.[actionFields[action]] === true,
-          })),
+          ALL_ACTIONS.map((action) => {
+            let allowed = false;
+            if (role.id === "super_admin") {
+              allowed = true;
+            } else if ((resource === "invoices" || resource === "quotations" || resource === "payroll") && action === "approve") {
+              allowed = false;
+            } else {
+              const perm = submitted.get(resource) as any;
+              const field = actionFields[action];
+              if (perm && field && typeof perm[field] === "boolean") {
+                allowed = perm[field];
+              } else if (perm && (action === "create" || action === "edit")) {
+                allowed = perm.canWrite === true;
+              }
+            }
+            return {
+              role: role.id,
+              resource,
+              action,
+              allowed,
+            };
+          }),
         ),
       });
       await tx.activityLog.create({

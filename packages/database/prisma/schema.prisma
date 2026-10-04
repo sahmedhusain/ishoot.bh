@@ -59,6 +59,22 @@ model User {
   authChallenges AuthChallenge[]
   quotations Quotation[] @relation("QuotationCreator")
   communicationThreads CommunicationThread[]
+  archivedAt      DateTime?
+  archivedById    String?
+  suspendedAt     DateTime?
+  suspendedById   String?
+  suspensionReason String?
+
+  profileChangesRequested ProfileChangeRequest[] @relation("ProfileChangeRequester")
+  profileChangesManaged   ProfileChangeRequest[] @relation("ProfileChangeManager")
+  profileChangesForUser   ProfileChangeRequest[] @relation("UserProfileChanges")
+  approvalRequestsCreated ApprovalRequest[]      @relation("ApprovalRequester")
+  approvalDecisionsGiven  ApprovalDecision[]     @relation("ApprovalDecider")
+  requestAssignmentsReceived RequestAssignment[] @relation("RequestAssignee")
+  requestAssignmentsGiven    RequestAssignment[] @relation("RequestAssigner")
+  requestCommentsAuthored    RequestComment[]    @relation("RequestCommentAuthor")
+  requestEventsAuthored      RequestEvent[]      @relation("RequestEventActor")
+  employee                   Employee?           @relation("UserEmployee")
 }
 
 model CompanySetting {
@@ -252,6 +268,8 @@ model Inquiry {
   convertedDeal          CrmDeal?      @relation("InquiryConversion")
   notes                  InquiryNote[]
   mergeFlag              Boolean       @default(false)
+  requestType            String        @default("inquiry") // "SR", "CR", "inquiry", "quote_request"
+  slaDueDate             DateTime?
   createdAt              DateTime      @default(now())
 
   @@index([intent, status, createdAt])
@@ -262,6 +280,9 @@ model Inquiry {
   @@index([phoneE164])
   quotations Quotation[]
   communicationThreads CommunicationThread[]
+  requestEvents RequestEvent[]
+  assignments RequestAssignment[]
+  comments RequestComment[]
 }
 
 model InquiryNote {
@@ -364,6 +385,9 @@ model Invoice {
   currency        String            @default("BHD")
   language        String            @default("ar") // "ar", "en"
   status          String            @default("draft") // "draft", "sent", "partially_paid", "paid", "overdue", "void"
+  approvalStatus  String            @default("draft") // "draft", "submitted", "approved", "rejected"
+  approvalRevision Int              @default(1)
+  contentHash     String?
   pdfStoragePath  String?
   deliveryChannel String?
   deliveredAt     DateTime?         @db.Timestamptz
@@ -373,12 +397,14 @@ model Invoice {
   createdBy       User?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
   lineItems       InvoiceLineItem[]
   payments        Payment[]
+  allocations     PaymentAllocation[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
   @@index([clientId])
   @@index([dealId])
   @@index([status])
+  @@index([approvalStatus])
   @@index([issueDate])
   @@index([createdAt])
   quotation Quotation?
@@ -418,6 +444,8 @@ model Payment {
   notificationSent    Boolean  @default(false)
   createdById         String?
   createdBy           User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  allocations         PaymentAllocation[]
+  settlement          BankSettlement?
   createdAt           DateTime @default(now())
 
   @@index([invoiceId])
@@ -444,6 +472,10 @@ model Expense {
   descriptionEn      String
   descriptionAr      String?
   amount             Decimal          @db.Decimal(12, 3)
+  netAmount          Decimal          @default(0.000) @db.Decimal(12, 3)
+  inputVatAmount     Decimal          @default(0.000) @db.Decimal(12, 3)
+  isVatRecoverable   Boolean          @default(true)
+  taxInvoiceNumber   String?
   currency           String           @default("BHD")
   expenseDate        DateTime         @default(now()) @db.Date
   vendorName         String?
@@ -515,10 +547,15 @@ model Notification {
   type       String   @default("info") // "info", "warning", "success", "action"
   entityType String?
   entityId   String?
+  messageKey String?
+  messageParams Json?
+  actionUrl  String?
+  eventKey   String?
   isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
 
   @@index([userId, isRead, createdAt])
+  @@index([eventKey])
 }
 
 model Tag {
@@ -836,8 +873,8 @@ model MfaRecoveryCode {
 model EmailJob {
   id String @id @default(uuid())
   eventKey String @unique
-  momId String
-  mom MinuteOfMeeting @relation(fields: [momId], references: [id], onDelete: Restrict)
+  momId String?
+  mom MinuteOfMeeting? @relation(fields: [momId], references: [id], onDelete: Restrict)
   createdById String?
   createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
   recipient String
@@ -909,8 +946,13 @@ model Quotation {
   currency        String                @default("BHD")
   language        String                @default("ar") // "ar", "en"
   
-  status          String                @default("draft") // "draft", "review", "approved", "issued", "accepted", "declined", "expired", "cancelled"
+  status          String                @default("draft") // "draft", "submitted", "approved", "issued", "accepted", "declined", "expired", "cancelled"
   acceptanceEvidence String?
+  approvalRevision Int                  @default(1)
+  contentHash     String?
+  rawRate         Decimal?              @db.Decimal(14, 6)
+  fxMarginPercent Decimal               @default(3.00) @db.Decimal(5, 2)
+  effectiveRate   Decimal?              @db.Decimal(14, 6)
   
   pdfStoragePath  String?
   deliveryChannel String?
@@ -1030,4 +1072,378 @@ model SocialMetric {
 
   @@index([platform, metricType])
   @@index([recordedAt])
+}
+
+// ==========================================
+// WORKFLOW, APPROVALS & IDENTITY MODELS
+// ==========================================
+
+model ProfileChangeRequest {
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation("UserProfileChanges", fields: [userId], references: [id], onDelete: Cascade)
+  requestedById String
+  requestedBy   User     @relation("ProfileChangeRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  managerId     String?
+  manager       User?    @relation("ProfileChangeManager", fields: [managerId], references: [id], onDelete: SetNull)
+  status        String   @default("pending") // "pending", "approved", "rejected", "cancelled"
+  oldValues     Json
+  newValues     Json
+  reviewedAt    DateTime?
+  reviewNotes   String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([managerId, status])
+}
+
+model ApprovalRequest {
+  id             String             @id @default(uuid())
+  targetType     String             // "quotation", "invoice", "profile_change", "leave_request", "payroll_run"
+  targetId       String
+  revision       Int                @default(1)
+  contentHash    String
+  status         String             @default("pending") // "pending", "approved", "rejected", "superseded"
+  requestedById  String
+  requestedBy    User               @relation("ApprovalRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  policySnapshot Json
+  diffPayload    Json?
+  discountReason String?            @db.Text
+  decisions      ApprovalDecision[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@unique([targetType, targetId, revision])
+  @@index([status, targetType])
+  @@index([requestedById])
+}
+
+model ApprovalDecision {
+  id                String          @id @default(uuid())
+  approvalRequestId String
+  approvalRequest   ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+  decision          String          // "approved", "rejected"
+  decidedById       String
+  decidedBy         User            @relation("ApprovalDecider", fields: [decidedById], references: [id], onDelete: Restrict)
+  reason            String?         @db.Text
+  decidedAt         DateTime        @default(now())
+
+  @@index([approvalRequestId])
+  @@index([decidedById])
+}
+
+model ReferenceSequence {
+  id         String   @id // e.g. "SR_2026", "CR_2026", "QTE_2026", "INV_2026"
+  prefix     String
+  year       Int
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt
+}
+
+model RequestEvent {
+  id        String   @id @default(uuid())
+  inquiryId String
+  inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  actorId   String?
+  actor     User?    @relation("RequestEventActor", fields: [actorId], references: [id], onDelete: SetNull)
+  eventType String   // "status_change", "assignment", "comment", "priority_change", "reopen", "resolved"
+  details   Json
+  createdAt DateTime @default(now())
+
+  @@index([inquiryId, createdAt])
+}
+
+model RequestAssignment {
+  id           String   @id @default(uuid())
+  inquiryId    String
+  inquiry      Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  assignedToId String
+  assignedTo   User     @relation("RequestAssignee", fields: [assignedToId], references: [id], onDelete: Restrict)
+  assignedById String
+  assignedBy   User     @relation("RequestAssigner", fields: [assignedById], references: [id], onDelete: Restrict)
+  team         String?
+  reason       String?  @db.Text
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@index([inquiryId, active])
+  @@index([assignedToId, active])
+}
+
+model RequestComment {
+  id              String   @id @default(uuid())
+  inquiryId       String
+  inquiry         Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          User     @relation("RequestCommentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  body            String   @db.Text
+  isClientVisible Boolean  @default(false)
+  attachments     Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([inquiryId, createdAt])
+}
+
+// ==========================================
+// MULTI-CURRENCY, FX & SETTLEMENT MODELS
+// ==========================================
+
+model ExchangeRateSnapshot {
+  id             String   @id @default(uuid())
+  baseCurrency   String   // e.g. "BHD"
+  quoteCurrency  String   // e.g. "USD", "SAR"
+  rate           Decimal  @db.Decimal(14, 6)
+  effectiveDate  DateTime @db.Date
+  fetchedAt      DateTime @default(now())
+  provider       String   // e.g. "frankfurter", "cbb_manual"
+  sourceEvidence String?
+  createdAt      DateTime @default(now())
+
+  @@unique([baseCurrency, quoteCurrency, effectiveDate])
+}
+
+model DocumentFx {
+  id             String   @id @default(uuid())
+  documentType   String   // "quotation", "invoice"
+  documentId     String
+  baseAmount     Decimal  @db.Decimal(12, 3)
+  targetAmount   Decimal  @db.Decimal(12, 3)
+  rawRate        Decimal  @db.Decimal(14, 6)
+  marginPercent  Decimal  @default(3.00) @db.Decimal(5, 2)
+  effectiveRate  Decimal  @db.Decimal(14, 6)
+  rateSnapshotId String?
+  createdAt      DateTime @default(now())
+
+  @@unique([documentType, documentId])
+}
+
+model PaymentAllocation {
+  id              String   @id @default(uuid())
+  paymentId       String
+  payment         Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoiceId       String
+  invoice         Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  allocatedAmount Decimal  @db.Decimal(12, 3)
+  currency        String   @default("BHD")
+  allocatedAt     DateTime @default(now())
+
+  @@index([paymentId])
+  @@index([invoiceId])
+}
+
+model BankSettlement {
+  id               String   @id @default(uuid())
+  paymentId        String   @unique
+  payment          Payment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  settlementDate   DateTime @db.Date
+  receivedAmount   Decimal  @db.Decimal(12, 3)
+  receivedCurrency String
+  settledAmountBhd Decimal  @db.Decimal(12, 3)
+  bankFeeBhd       Decimal  @default(0.000) @db.Decimal(12, 3)
+  fxGainLossBhd    Decimal  @default(0.000) @db.Decimal(12, 3)
+  bankReference    String?
+  status           String   @default("settled") // "settled", "unreconciled"
+  createdAt        DateTime @default(now())
+}
+
+// ==========================================
+// HRMS & PAYROLL MODELS
+// ==========================================
+
+model Department {
+  id        String     @id @default(uuid())
+  code      String     @unique
+  nameEn    String
+  nameAr    String
+  managerId String?
+  employees Employee[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Employee {
+  id                 String             @id @default(uuid())
+  employeeNumber     String             @unique
+  userId             String?            @unique
+  user               User?              @relation("UserEmployee", fields: [userId], references: [id], onDelete: SetNull)
+  departmentId       String?
+  department         Department?        @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  firstNameEn        String
+  lastNameEn         String
+  firstNameAr        String
+  lastNameAr         String
+  email              String?
+  phone              String?
+  cprNumber          String?
+  jobTitleEn         String
+  jobTitleAr         String
+  hireDate           DateTime           @db.Date
+  status             String             @default("active") // "active", "on_leave", "suspended", "terminated"
+  leaveBalanceDays   Decimal            @default(30.00) @db.Decimal(5, 2)
+  salaryDocuments    SalaryDocument[]
+  employmentRecords  EmploymentRecord[]
+  leaveRequests      LeaveRequest[]
+  attendanceEntries  AttendanceEntry[]
+  payrollItems       PayrollItem[]
+  payslips           Payslip[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model EmploymentRecord {
+  id                  String    @id @default(uuid())
+  employeeId          String
+  employee            Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  contractType        String    @default("full_time") // "full_time", "part_time", "contract"
+  basicSalary         Decimal   @db.Decimal(12, 3)
+  housingAllowance    Decimal   @default(0.000) @db.Decimal(12, 3)
+  transportAllowance  Decimal   @default(0.000) @db.Decimal(12, 3)
+  otherAllowances     Decimal   @default(0.000) @db.Decimal(12, 3)
+  payrollSettings     Json?
+  effectiveFrom       DateTime  @db.Date
+  effectiveTo         DateTime? @db.Date
+  isCurrent           Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+
+  @@index([employeeId, isCurrent])
+}
+
+model LeaveType {
+  id                 String         @id @default(uuid())
+  code               String         @unique // "annual", "sick", "maternity", "emergency", "unpaid"
+  nameEn             String
+  nameAr             String
+  daysAllowedPerYear Decimal        @default(30.00) @db.Decimal(5, 2)
+  isPaid             Boolean        @default(true)
+  requests           LeaveRequest[]
+}
+
+model LeaveRequest {
+  id           String    @id @default(uuid())
+  employeeId   String
+  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveTypeId  String
+  leaveType    LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+  startDate    DateTime
+  endDate      DateTime
+  fullDay      Boolean   @default(true)
+  hours        Decimal?  @db.Decimal(4, 2)
+  status       String    @default("pending") // "pending", "approved", "rejected", "cancelled"
+  reason       String    @db.Text
+  approvedById String?
+  approvedAt   DateTime?
+  reviewNotes  String?   @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([employeeId, status])
+  @@index([startDate, endDate])
+}
+
+model AttendanceEntry {
+  id         String    @id @default(uuid())
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date       DateTime  @db.Date
+  checkIn    DateTime?
+  checkOut   DateTime?
+  status     String    @default("present") // "present", "absent", "half_day", "on_leave", "holiday"
+  notes      String?
+  createdAt  DateTime  @default(now())
+
+  @@unique([employeeId, date])
+}
+
+model BenefitPlan {
+  id                   String   @id @default(uuid())
+  code                 String   @unique
+  nameEn               String
+  nameAr               String
+  coverageDetails      String?  @db.Text
+  employerContribution Decimal  @default(0.000) @db.Decimal(12, 3)
+  employeeContribution Decimal  @default(0.000) @db.Decimal(12, 3)
+  createdAt            DateTime @default(now())
+}
+
+model PayrollRun {
+  id                 String        @id @default(uuid())
+  month              Int
+  year               Int
+  periodStart        DateTime      @db.Date
+  periodEnd          DateTime      @db.Date
+  status             String        @default("draft") // "draft", "calculated", "submitted", "approved", "paid", "closed"
+  totalGross         Decimal       @default(0.000) @db.Decimal(12, 3)
+  totalDeductions    Decimal       @default(0.000) @db.Decimal(12, 3)
+  totalNet           Decimal       @default(0.000) @db.Decimal(12, 3)
+  totalEmployerCost  Decimal       @default(0.000) @db.Decimal(12, 3)
+  approvedById       String?
+  approvedAt         DateTime?
+  paidAt             DateTime?
+  items              PayrollItem[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@unique([year, month])
+}
+
+model PayrollItem {
+  id                 String     @id @default(uuid())
+  payrollRunId       String
+  payrollRun         PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeId         String
+  employee           Employee   @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  basicSalary        Decimal    @default(0.000) @db.Decimal(12, 3)
+  housingAllowance   Decimal    @default(0.000) @db.Decimal(12, 3)
+  transportAllowance Decimal    @default(0.000) @db.Decimal(12, 3)
+  otherAllowances    Decimal    @default(0.000) @db.Decimal(12, 3)
+  grossSalary        Decimal    @default(0.000) @db.Decimal(12, 3)
+  gosiEmployee       Decimal    @default(0.000) @db.Decimal(12, 3)
+  gosiEmployer       Decimal    @default(0.000) @db.Decimal(12, 3)
+  externalSupport    Decimal    @default(0.000) @db.Decimal(12, 3)
+  calculationSnapshot Json?
+  otherDeductions    Decimal    @default(0.000) @db.Decimal(12, 3)
+  netSalary          Decimal    @default(0.000) @db.Decimal(12, 3)
+  paymentStatus      String     @default("pending") // "pending", "paid"
+  payslip            Payslip?
+  createdAt          DateTime   @default(now())
+
+  @@unique([payrollRunId, employeeId])
+}
+
+model Payslip {
+  id            String      @id @default(uuid())
+  payrollItemId String      @unique
+  payrollItem   PayrollItem @relation(fields: [payrollItemId], references: [id], onDelete: Cascade)
+  employeeId    String
+  employee      Employee    @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  month         Int
+  year          Int
+  storagePath   String?
+  issuedAt      DateTime    @default(now())
+
+  @@index([employeeId, year, month])
+}
+
+
+model SalaryDocument {
+  id String @id @default(uuid())
+  employeeId String
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  kind String // payslip, salary_certificate
+  months Json // YYYY-MM values
+  status String @default("pending")
+  requestedById String
+  reviewedById String?
+  reviewNotes String?
+  snapshot Json?
+  createdAt DateTime @default(now())
+  issuedAt DateTime?
+  updatedAt DateTime @updatedAt
+  @@index([employeeId, createdAt])
+  @@index([status])
 }

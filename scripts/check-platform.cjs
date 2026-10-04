@@ -68,6 +68,60 @@ async function main() {
     /Unauthorized/,
   );
 
+  // Super Admin must survive stale denials, user overrides and disabled module rows.
+  let storedGrant;
+  const permissionsApi = load("packages/database/src/queries/permissions.ts", {
+    "../db": { db: {
+      featureToggle: { findUnique: async () => ({ isEnabled: false }), findMany: async () => [{ moduleKey: "invoicing", isEnabled: false }] },
+      permission: { findMany: async () => [{ resource: "users", action: "write", allowed: false }], findUnique: async () => ({ allowed: false }), upsert: async (args) => { storedGrant = args; } },
+    } },
+  });
+  const overrides = Object.fromEntries(permissionsApi.ALL_RESOURCES.flatMap((resource) =>
+    permissionsApi.ALL_ACTIONS.map((action) => [resource + ":" + action, false])));
+  const effective = await permissionsApi.getEffectivePermissions("super_admin", overrides);
+  assert.equal(Object.keys(effective).length, permissionsApi.ALL_RESOURCES.length * permissionsApi.ALL_ACTIONS.length);
+  for (const resource of permissionsApi.ALL_RESOURCES) {
+    for (const action of permissionsApi.ALL_ACTIONS) {
+      assert.equal(effective[resource + ":" + action], true);
+      assert.equal(await permissionsApi.hasPermission("super_admin", resource, action, overrides), true);
+      assert.equal(permissionsApi.DEFAULT_ROLE_RULES.super_admin[resource].includes(action), true);
+    }
+  }
+  assert.equal(await permissionsApi.hasPermission("viewer", "invoices", "write"), false);
+  assert.equal((await permissionsApi.getEffectivePermissions("viewer", overrides))["users:write"], false);
+
+  assert.equal(await permissionsApi.setPermission("super_admin", "users", "write", false), true);
+  assert.equal(storedGrant.update.allowed, true);
+  assert.equal(storedGrant.create.allowed, true);
+  assert.equal(await permissionsApi.setPermission("viewer", "users", "write", false), true);
+  assert.equal(storedGrant.update.allowed, false);
+
+  let roleActor = { id: "root", role: "super_admin" };
+  let savedGrants = [];
+  let roleWrites = 0;
+  const roleActions = load("apps/admin/app/actions/roles.ts", {
+    "../../lib/auth": { requirePermission: async () => roleActor },
+    "next/cache": { revalidatePath() {} },
+    "@ishoot/database": {
+      ALL_RESOURCES: permissionsApi.ALL_RESOURCES, ALL_ACTIONS: permissionsApi.ALL_ACTIONS,
+      db: { $transaction: async (fn) => fn({
+        role: { update: async ({ where }) => { roleWrites++; return { id: where.id }; } },
+        permission: { deleteMany: async () => {}, createMany: async ({ data }) => { savedGrants = data; } },
+        activityLog: { create: async () => {} },
+      }) },
+    },
+  });
+  const rolePayload = { id: "super_admin", nameEn: "Super Administrator", nameAr: "مسؤول النظام",
+    permissions: permissionsApi.ALL_RESOURCES.map((module) => ({ module, canRead: false, canWrite: false, canDelete: false, canApprove: false, canExport: false })) };
+  await roleActions.upsertRoleAction(rolePayload);
+  assert.equal(savedGrants.length, Object.keys(effective).length);
+  assert.equal(savedGrants.every((grant) => grant.allowed), true, "submitted denials must never restrict Super Admin");
+  await roleActions.upsertRoleAction({ ...rolePayload, id: "viewer" });
+  assert.equal(savedGrants.every((grant) => !grant.allowed), true, "ordinary role denials must remain effective");
+  roleActor = { id: "admin", role: "admin" };
+  await assert.rejects(roleActions.upsertRoleAction(rolePayload), /Only super administrators/);
+  assert.equal(roleWrites, 2, "ordinary administrators cannot modify role grants");
+
   let mutation = false;
   const settings = load("apps/admin/app/actions/settings.ts", {
     "@ishoot/database": {
@@ -86,7 +140,7 @@ async function main() {
   await assert.rejects(settings.toggleFeatureAction("crm", false), /denied/);
   assert.equal(mutation, false);
 
-  const types = load("packages/database/src/types.ts", {});
+  const types = load("packages/database/src/types.ts", { "@ishoot/config/currency": require("../packages/config/src/constants/currency.cjs") });
   let deleted = false,
     usedTransaction = false;
   const invoice = {
@@ -317,7 +371,7 @@ async function main() {
   assert.equal(invoiceMetrics.outstanding, 55);
   assert.equal(invoiceMetrics.overdue, 55);
   console.log(
-    "Platform checks passed: revocation, permissions, invoice rollback/VAT, payment validation, lead conversion/idempotency.",
+    "Platform checks passed: revocation, Super Admin invariants, role-save authorization, permissions, invoice rollback/VAT, payment validation, lead conversion/idempotency.",
   );
 }
 main().catch((e) => {

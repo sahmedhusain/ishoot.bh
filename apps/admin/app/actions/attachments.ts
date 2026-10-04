@@ -39,12 +39,13 @@ export async function createAttachmentAction(data: {
             action: "create",
             entity_type: "attachment",
             entity_id: attachment.id,
-            details: { fileName: data.fileName, entityType: data.entityType },
+            details: { fileName: data.fileName, entityType: data.entityType, entityId: data.entityId },
           });
         }
 
         return attachment;
       });
+      revalidatePath("/dashboard/hr/employees");
       revalidatePath("/dashboard/archive");
       revalidatePath("/dashboard/crm/contacts");
       return { success: true, attachment };
@@ -78,9 +79,11 @@ export async function deleteAttachmentAction(id: string) {
             action: "delete",
             entity_type: "attachment",
             entity_id: id,
+            details: { before: attachment },
           });
         }
       });
+      revalidatePath("/dashboard/hr/employees");
       revalidatePath("/dashboard/archive");
       revalidatePath("/dashboard/crm/contacts");
       return { success: true };

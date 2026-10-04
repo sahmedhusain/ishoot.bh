@@ -6,6 +6,7 @@ import {
 import { requirePermission } from "./auth";
 
 const resources: Record<string, PermissionResource> = {
+  employee: "employees",
   user_signature: "users",
   expense: "expenses",
   payment: "payments",
@@ -24,12 +25,15 @@ export async function requireAttachmentAccess(
   entityId: string,
   action: PermissionAction,
 ) {
+  if (entityType === "employee" && (!entityId || entityId === "pending")) throw new Error("Create the employee before attaching documents");
   const resource = resources[entityType];
   if (!resource) throw new Error("Unsupported attachment type");
   const user = await requirePermission(resource, action);
   if (entityId && entityId !== "pending" && entityId !== "company_setting") {
     const exists =
-      entityType === "user_signature"
+      entityType === "employee"
+        ? await db.employee.findUnique({ where: { id: entityId }, select: { id: true } })
+        : entityType === "user_signature"
         ? await db.user.findUnique({
             where: { id: entityId },
             select: { id: true },

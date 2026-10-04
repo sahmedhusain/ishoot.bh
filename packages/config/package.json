@@ -7,7 +7,11 @@
   "types": "./tailwind.config.ts",
   "exports": {
     ".": "./tailwind.config.ts",
-    "./constants": "./src/constants/index.ts"
+    "./constants": "./src/constants/index.ts",
+    "./currency": {
+      "types": "./src/constants/currency.d.cts",
+      "default": "./src/constants/currency.cjs"
+    }
   },
   "dependencies": {
     "tailwindcss-animate": "^1.0.7"

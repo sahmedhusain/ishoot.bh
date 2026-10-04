@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
         return attachment;
       });
 
+      if (entityType === "employee") revalidatePath(`/dashboard/hr/employees/${entityId}`);
       revalidatePath("/dashboard/archive");
       revalidatePath("/dashboard/settings/company");
       revalidatePath("/dashboard/payments");

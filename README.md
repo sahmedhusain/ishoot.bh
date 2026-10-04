@@ -482,7 +482,7 @@ ADMIN_URL="http://localhost:3001"
    pnpm db:bootstrap
    ```
 
-   Optionally run `pnpm db:seed` on a new, empty development database for demo CMS and business records.
+   Optionally run `pnpm db:seed` on a new, empty development database for demo CMS and business records. Local demo seeding publishes an initial website snapshot; hosted development seeds leave a draft for admin review.
 
 5. **Start applications in development mode**:
    ```bash

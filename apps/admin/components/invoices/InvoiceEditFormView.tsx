@@ -15,6 +15,7 @@ ServiceItem,
 import {
 CURRENCY_CONFIGS,
 calculateInvoiceTotals,
+getCurrencyDisplayLabel,
 } from "@ishoot/database/types";
 import {
 Card,
@@ -24,26 +25,23 @@ Button,
 ConfirmDestructiveModal,
 } from "@ishoot/ui";
 import {
-Plus,
-Trash2,
-ArrowLeft,
-AlertTriangle,
-CheckCircle2,
-Search,
-Loader2,
-Building,
-User,
-Mail,
-Phone,
-ExternalLink,
-Sparkles,
+  Plus,
+  Trash2,
+  ArrowLeft,
+  AlertTriangle,
+  CheckCircle2,
+  Building,
+  User,
+  Mail,
+  Phone,
+  ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
-updateInvoiceAction,
-voidInvoiceAction,
+  updateInvoiceAction,
+  voidInvoiceAction,
 } from "../../app/actions/finance";
-import { lookupClientAction } from "../../app/actions/crm";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 import { EditConfirmModal,type FieldChange } from "../shared/EditConfirmModal";
 
@@ -67,10 +65,6 @@ export function InvoiceEditFormView({
   const [submitting, setSubmitting] = React.useState(false);
   const [voidConfirmOpen, setVoidConfirmOpen] = React.useState(false);
 
-  const [lookupTerm, setLookupTerm] = React.useState("");
-  const [lookupLoading, setLookupLoading] = React.useState(false);
-  const [lookupMessage, setLookupMessage] = React.useState<string | null>(null);
-
   const [selectedContactId, setSelectedContactId] = React.useState(
     invoice.client_id || invoice.contact_id || "",
   );
@@ -78,33 +72,6 @@ export function InvoiceEditFormView({
   const selectedContact = React.useMemo(() => {
     return contacts.find((c) => c.id === selectedContactId) || null;
   }, [contacts, selectedContactId]);
-
-  const handleLookup = async () => {
-    if (!lookupTerm.trim()) return;
-    setLookupLoading(true);
-    setLookupMessage(null);
-    try {
-      const res = await lookupClientAction(lookupTerm);
-      if (res.success && res.contact) {
-        const found = res.contact;
-        const exists = contacts.some((c) => c.id === found.id);
-        if (!exists) {
-          setContacts((prev) => [found, ...prev]);
-        }
-        setSelectedContactId(found.id);
-        setLookupMessage(
-          `Auto-fetched: ${found.company ? `${found.company} - ` : ""}${found.full_name} (${found.email || found.phone || "Client"})`,
-        );
-      } else {
-        setLookupMessage("No client found matching this email or phone number.");
-      }
-    } catch (e) {
-      console.error(e);
-      setLookupMessage("Error executing client lookup.");
-    } finally {
-      setLookupLoading(false);
-    }
-  };
 
   const [currency, setCurrency] = React.useState<SupportedCurrency>(
     (invoice.currency as SupportedCurrency) || "BHD",
@@ -380,57 +347,6 @@ export function InvoiceEditFormView({
             )}
           </div>
 
-          {/* Quick Auto-fetch Bar */}
-          {!isLocked && (
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 space-y-3">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
-                {t.invoiceEdit.quickAutoFetch}
-              </label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="relative flex-1">
-                  <Input
-                    placeholder={t.invoiceEdit.autoFetchPlaceholder}
-                    value={lookupTerm}
-                    onChange={(e) => setLookupTerm(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleLookup();
-                      }
-                    }}
-                    className="w-full text-xs"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLookup}
-                  disabled={lookupLoading || !lookupTerm.trim()}
-                  className="gap-1.5 shrink-0"
-                >
-                  {lookupLoading ? (
-                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Search className="w-3.5 h-3.5" />
-                  )}
-                  <span>{t.invoiceEdit.autoFetch}</span>
-                </Button>
-              </div>
-              {lookupMessage && (
-                <div
-                  className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 ${
-                    lookupMessage.startsWith("Auto-fetched")
-                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-                      : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800"
-                  }`}
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                  <span>{lookupMessage}</span>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Client Search / Autocomplete */}
           <div className="space-y-4">
@@ -504,7 +420,7 @@ export function InvoiceEditFormView({
               >
                 {Object.keys(CURRENCY_CONFIGS).map((code) => (
                   <option key={code} value={code}>
-                    {code} ({CURRENCY_CONFIGS[code as SupportedCurrency].symbolAr})
+                    {getCurrencyDisplayLabel(code as SupportedCurrency, isRTL ? "ar" : "en")}
                   </option>
                 ))}
               </Select>

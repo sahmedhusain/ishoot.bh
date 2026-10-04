@@ -91,7 +91,7 @@ async function main() {
   let captured = [],
     fail = false;
   const transaction = {
-    role: { update: async () => ({ id: "admin" }) },
+    role: { update: async ({ where }) => ({ id: where.id }) },
     permission: {
       deleteMany: async () => {},
       createMany: async ({ data }) => {
@@ -144,15 +144,14 @@ async function main() {
       .allowed,
     false,
   );
-  await assert.rejects(
-    roles.upsertRoleAction({
-      id: "super_admin",
-      nameEn: "Super",
-      nameAr: "مدير",
-      permissions: [],
-    }),
-    /cannot be edited/,
-  );
+  await roles.upsertRoleAction({
+    id: "super_admin",
+    nameEn: "Super",
+    nameAr: "مدير",
+    permissions: [],
+  });
+  assert.equal(captured.length, 10);
+  assert.equal(captured.every((grant) => grant.role === "super_admin" && grant.allowed), true, "Super Admin retains all grants even when the submitted matrix is empty");
   fail = true;
   await assert.rejects(
     roles.upsertRoleAction({
@@ -189,6 +188,7 @@ async function main() {
 
   await assert.rejects(
     users.createUserAction({
+      employeeId: "employee-first",
       email: "new@example.invalid",
       full_name: "New",
       role: "viewer",
@@ -197,6 +197,7 @@ async function main() {
   );
   await assert.rejects(
     users.createUserAction({
+      employeeId: "employee-first",
       email: "new@example.invalid",
       full_name: "New",
       role: "viewer",

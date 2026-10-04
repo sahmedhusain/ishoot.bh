@@ -1,5 +1,5 @@
 import { requirePermission } from "../../../../lib/auth";
-import { db } from "@ishoot/database";
+import { db, ALL_RESOURCES } from "@ishoot/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";
 
 export default async function RolesSettingsPage() {
@@ -66,7 +66,9 @@ export default async function RolesSettingsPage() {
     _count: {
       users: countMap.get(role.id) ?? 0,
     },
-    permissions: Object.values(rolePermMap.get(role.id) || {}),
+    permissions: role.id === "super_admin"
+      ? ALL_RESOURCES.map((module) => ({ module, canRead: true, canWrite: true, canDelete: true, canApprove: true, canExport: true }))
+      : Object.values(rolePermMap.get(role.id) || {}),
   }));
 
   return <RolesManagementView initialRoles={enrichedRoles as any} />;

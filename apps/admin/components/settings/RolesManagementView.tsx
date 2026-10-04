@@ -48,6 +48,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [editingRole, setEditingRole] = React.useState<any | null>(null);
+  const isSuperAdmin = editingRole?.id === "super_admin";
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
 
   // Form State
@@ -68,14 +69,21 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
     setNameEn(role.nameEn);
     setNameAr(role.nameAr);
     const perms: Record<string, any> = {};
-    (role.permissions || []).forEach((p: any) => {
-      perms[p.module] = p;
-    });
+    if (role.id === "super_admin") {
+      for (const resource of MODULES) {
+        perms[resource] = { module: resource, canRead: true, canWrite: true, canDelete: true, canApprove: true, canExport: true };
+      }
+    } else {
+      (role.permissions || []).forEach((p: any) => {
+        perms[p.module] = p;
+      });
+    }
     setPermissions(perms);
     setIsModalOpen(true);
   };
 
   const togglePermission = (module: string, action: string) => {
+    if (isSuperAdmin) return;
     setPermissions((prev) => {
       const current = prev[module] || {
         module,
@@ -223,6 +231,12 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
             </div>
           </div>
 
+          {isSuperAdmin && (
+            <p className="text-sm text-slate-500" role="note">
+              {t.rolesView.superAdminPermissionsNotice}
+            </p>
+          )}
+
           <div className="border rounded-lg overflow-hidden dark:border-white/10">
             <table className="w-full text-sm text-left">
               <thead className="bg-slate-50 dark:bg-[#050807] text-xs uppercase font-bold text-slate-500">
@@ -241,7 +255,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
                     {t.rolesView.thApprove}
                   </th>
                   <th className="px-4 py-3 text-center">
-                    {isRTL ? "تصدير" : "Export"}
+                    {t.rolesView.thExport}
                   </th>
                 </tr>
               </thead>
@@ -252,35 +266,40 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
                     <td className="px-4 py-3 text-center">
                       <input
                         type="checkbox"
-                        checked={permissions[mod]?.canRead || false}
+                        checked={isSuperAdmin || permissions[mod]?.canRead || false}
+                        disabled={isSuperAdmin}
                         onChange={() => togglePermission(mod, "canRead")}
                       />
                     </td>
                     <td className="px-4 py-3 text-center">
                       <input
                         type="checkbox"
-                        checked={permissions[mod]?.canWrite || false}
+                        checked={isSuperAdmin || permissions[mod]?.canWrite || false}
+                        disabled={isSuperAdmin}
                         onChange={() => togglePermission(mod, "canWrite")}
                       />
                     </td>
                     <td className="px-4 py-3 text-center">
                       <input
                         type="checkbox"
-                        checked={permissions[mod]?.canDelete || false}
+                        checked={isSuperAdmin || permissions[mod]?.canDelete || false}
+                        disabled={isSuperAdmin}
                         onChange={() => togglePermission(mod, "canDelete")}
                       />
                     </td>
                     <td className="px-4 py-3 text-center">
                       <input
                         type="checkbox"
-                        checked={permissions[mod]?.canApprove || false}
+                        checked={isSuperAdmin || permissions[mod]?.canApprove || false}
+                        disabled={isSuperAdmin}
                         onChange={() => togglePermission(mod, "canApprove")}
                       />
                     </td>
                     <td className="px-4 py-3 text-center">
                       <input
                         type="checkbox"
-                        checked={permissions[mod]?.canExport || false}
+                        checked={isSuperAdmin || permissions[mod]?.canExport || false}
+                        disabled={isSuperAdmin}
                         onChange={() => togglePermission(mod, "canExport")}
                       />
                     </td>
@@ -291,7 +310,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: any[] }) {
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
+            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>
               {t.rolesView.cancel}
             </Button>
             <Button type="submit" className="bg-[#09937F] text-white">

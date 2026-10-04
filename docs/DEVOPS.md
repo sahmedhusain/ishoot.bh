@@ -30,6 +30,8 @@ The app uses PostgreSQL at port 54322 and Supabase API/storage at port 54321. A 
 pnpm db:seed
 ```
 
+On a local database, the demo seed also creates and publishes the initial website snapshot so the public site can render immediately. On a hosted development database it creates only a draft for review and publication in the admin app.
+
 The demo seed now refuses existing business records. It contains demonstration invoices, payments, attachments and contacts, not just an administrator and CMS content. It is disabled in production. The seed uses its own CommonJS TypeScript configuration while application packages retain their bundler/ES module configuration.
 
 `pnpm --filter @ishoot/database db:push` remains available for disposable development databases, but migration deploy preserves the checked-in migration history and is the preferred initialization command. Review drift before applying migrations to a database previously created with schema push.

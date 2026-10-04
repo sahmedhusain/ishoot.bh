@@ -13,5 +13,6 @@ export default async function NewUserPage() {
     select: { id: true, nameEn: true, nameAr: true },
     orderBy: { createdAt: "asc" },
   });
-  return <NewUserFormView roles={roles} />;
+  const employees = await db.employee.findMany({ where: { userId: null, status: { in: ["active", "on_leave"] } }, select: { id: true, employeeNumber: true, firstNameEn: true, lastNameEn: true, email: true }, orderBy: { employeeNumber: "asc" } });
+  return <NewUserFormView roles={roles} employees={employees} />;
 }

@@ -49,205 +49,265 @@ export function Sidebar() {
   const pathname = usePathname();
   const { can, loading } = usePermissions();
   const { isMobileOpen, setIsMobileOpen } = useSidebar();
-  const { t, isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
   const { isFeatureEnabled } = useFeatureToggles();
 
-  const sections = React.useMemo<NavSection[]>(() => [
-    {
-      title: t.nav.overview,
-      items: [
-        { href: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard },
-        {
-          href: "/dashboard/calendar",
-          label: t.nav.calendar,
-          icon: Calendar,
-          resource: "calendar",
-          moduleKey: "calendar",
-        },
-      ],
-    },
-    {
-      title: t.nav.crm,
-      items: [
-        {
-          href: "/dashboard/crm/contacts",
-          label: t.nav.contacts,
-          icon: Users,
-          resource: "contacts",
-          moduleKey: "crm_deals",
-        },
-        {
-          href: "/dashboard/crm/deals",
-          label: t.nav.deals,
-          icon: Kanban,
-          resource: "deals",
-          moduleKey: "crm_deals",
-        },
-        {
-          href: "/dashboard/requests",
-          label: isRTL ? "الطلبات والشكاوى (SR/CR)" : "Requests & Complaints (SR/CR)",
-          icon: ShieldAlert,
-          resource: "requests",
-          moduleKey: "crm_deals",
-        },
-        {
-          href: "/dashboard/moms",
-          label: isRTL ? "محاضر الاجتماعات (MOM)" : "Minutes of Meetings (MOM)",
-          icon: FileSignature,
-          resource: "moms",
-          moduleKey: "crm_deals",
-        },
-        {
-          href: "/dashboard/crm/leads",
-          label: isRTL ? "الطلبات والملاحظات" : "Requests & feedback",
-          icon: Inbox,
-          resource: "leads",
-          moduleKey: "crm_deals",
-        },
-      ],
-    },
-    {
-      title: t.nav.finance,
-      items: [
-        {
-          href: "/dashboard/invoices",
-          label: t.nav.invoices,
-          icon: FileText,
-          resource: "invoices",
-          moduleKey: "invoicing",
-        },
-        {
-          href: "/dashboard/payments",
-          label: t.nav.payments,
-          icon: CreditCard,
-          resource: "payments",
-          moduleKey: "invoicing",
-        },
-        {
-          href: "/dashboard/expenses",
-          label: t.nav.expenses,
-          icon: Receipt,
-          resource: "expenses",
-          moduleKey: "invoicing",
-        },
-        {
-          href: "/dashboard/services",
-          label: t.nav.services,
-          icon: Sparkles,
-          resource: "invoices",
-        },
-        {
-          href: "/dashboard/finance",
-          label: t.nav.analytics,
-          icon: PieChart,
-          resource: "finance_analytics",
-          moduleKey: "invoicing",
-        },
-      ],
-    },
-    {
-      title: t.nav.cms,
-      items: [
-        {
-          href: "/dashboard/cms/website",
-          label: isRTL ? "تحرير ونشر الموقع" : "Website publishing",
-          icon: Globe,
-          resource: "settings",
-          moduleKey: "cms",
-        },
-        {
-          href: "/dashboard/cms/banners",
-          label: t.nav.banners,
-          icon: Film,
-          resource: "banners",
-          moduleKey: "cms",
-        },
-        {
-          href: "/dashboard/cms/portfolio",
-          label: t.nav.portfolio,
-          icon: FolderOpen,
-          resource: "portfolio",
-          moduleKey: "cms",
-        },
-        {
-          href: "/dashboard/cms/clients",
-          label: t.nav.clients,
-          icon: Users,
-          resource: "clients",
-          moduleKey: "cms",
-        },
-        {
-          href: "/dashboard/cms/equipment",
-          label: t.nav.equipment,
-          icon: Building2,
-          resource: "equipment",
-          moduleKey: "equipment",
-        },
-        {
-          href: "/dashboard/cms/reviews",
-          label: t.nav.reviews,
-          icon: MessageSquareQuote,
-          resource: "reviews",
-          moduleKey: "reviews",
-        },
-        {
-          href: "/dashboard/cms/faqs",
-          label: t.nav.faqs,
-          icon: HelpCircle,
-          resource: "faqs",
-          moduleKey: "cms",
-        },
-        {
-          href: "/dashboard/cms/stats",
-          label: t.nav.stats,
-          icon: BarChart,
-          resource: "stats",
-          moduleKey: "cms",
-        },
-      ],
-    },
-    {
-      title: t.nav.system,
-      items: [
-        {
-          href: "/dashboard/settings/web",
-          label: t.nav.webSettings,
-          icon: Globe,
-          resource: "settings",
-        },
-        {
-          href: "/dashboard/settings/company",
-          label: t.nav.companySettings,
-          icon: Building2,
-          resource: "settings",
-        },
-        {
-          href: "/dashboard/settings/modules",
-          label: t.nav.modules,
-          icon: ToggleLeft,
-          resource: "settings",
-        },
-        {
-          href: "/dashboard/settings/roles",
-          label: t.nav.roles,
-          icon: Key,
-          resource: "users",
-        },
-        {
-          href: "/dashboard/users",
-          label: t.nav.users,
-          icon: ShieldCheck,
-          resource: "users",
-        },
-        {
-          href: "/dashboard/settings/audit",
-          label: t.nav.auditLogs,
-          icon: FileText,
-          resource: "audit_logs",
-        },
-      ],
-    },
-  ],[t,isRTL]);
+  const sections = React.useMemo<NavSection[]>(
+    () => [
+      {
+        title: t.nav.overview,
+        items: [
+          { href: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard },
+          {
+            href: "/dashboard/calendar",
+            label: t.nav.calendar,
+            icon: Calendar,
+            resource: "calendar",
+            moduleKey: "calendar",
+          },
+        ],
+      },
+      {
+        title: t.nav.crm,
+        items: [
+          {
+            href: "/dashboard/crm/contacts",
+            label: t.nav.contacts,
+            icon: Users,
+            resource: "contacts",
+            moduleKey: "crm_deals",
+          },
+          {
+            href: "/dashboard/crm/deals",
+            label: t.nav.deals,
+            icon: Kanban,
+            resource: "deals",
+            moduleKey: "crm_deals",
+          },
+          {
+            href: "/dashboard/requests",
+            label: t.hrText.text271,
+            icon: ShieldAlert,
+            resource: "requests",
+            moduleKey: "crm_deals",
+          },
+          {
+            href: "/dashboard/moms",
+            label: t.hrText.text272,
+            icon: FileSignature,
+            resource: "moms",
+            moduleKey: "crm_deals",
+          },
+          {
+            href: "/dashboard/crm/leads",
+            label: t.hrText.text273,
+            icon: Inbox,
+            resource: "leads",
+            moduleKey: "crm_deals",
+          },
+        ],
+      },
+      {
+        title: t.nav.finance,
+        items: [
+          {
+            href: "/dashboard/quotations",
+            label: t.hrText.text274,
+            icon: FileSignature,
+            resource: "quotations",
+            moduleKey: "invoicing",
+          },
+          {
+            href: "/dashboard/invoices",
+            label: t.nav.invoices,
+            icon: FileText,
+            resource: "invoices",
+            moduleKey: "invoicing",
+          },
+          {
+            href: "/dashboard/payments",
+            label: t.nav.payments,
+            icon: CreditCard,
+            resource: "payments",
+            moduleKey: "invoicing",
+          },
+          {
+            href: "/dashboard/expenses",
+            label: t.nav.expenses,
+            icon: Receipt,
+            resource: "expenses",
+            moduleKey: "invoicing",
+          },
+          {
+            href: "/dashboard/services",
+            label: t.nav.services,
+            icon: Sparkles,
+            resource: "invoices",
+          },
+          {
+            href: "/dashboard/finance/reports",
+            label: t.hrText.text275,
+            icon: BarChart,
+            resource: "reports",
+            moduleKey: "invoicing",
+          },
+          {
+            href: "/dashboard/finance",
+            label: t.nav.analytics,
+            icon: PieChart,
+            resource: "finance_analytics",
+            moduleKey: "invoicing",
+          },
+        ],
+      },
+      {
+        title: t.hrText.text276,
+        items: [
+          {
+            href: "/dashboard/hr/employees",
+            label: t.hrText.text277,
+            icon: Users,
+            resource: "employees",
+          },
+          {
+            href: "/dashboard/hr/leave",
+            label: t.hrText.text278,
+            icon: Calendar,
+            resource: "employees",
+          },
+          {
+            href: "/dashboard/hr/documents",
+            label: t.hrExtensions.salaryDocuments,
+            icon: FileText,
+          },
+          {
+            href: "/dashboard/hr/payroll",
+            label: t.hrText.text279,
+            icon: CreditCard,
+            resource: "payroll",
+          },
+        ],
+      },
+      {
+        title: t.hrText.text280,
+        items: [
+          {
+            href: "/dashboard/approvals",
+            label: t.hrText.text281,
+            icon: ShieldAlert,
+          },
+          {
+            href: "/dashboard/profile",
+            label: t.hrText.text282,
+            icon: Users,
+          },
+        ],
+      },
+      {
+        title: t.nav.cms,
+        items: [
+          {
+            href: "/dashboard/cms/website",
+            label: t.hrText.text283,
+            icon: Globe,
+            resource: "settings",
+            moduleKey: "cms",
+          },
+          {
+            href: "/dashboard/cms/banners",
+            label: t.nav.banners,
+            icon: Film,
+            resource: "banners",
+            moduleKey: "cms",
+          },
+          {
+            href: "/dashboard/cms/portfolio",
+            label: t.nav.portfolio,
+            icon: FolderOpen,
+            resource: "portfolio",
+            moduleKey: "cms",
+          },
+          {
+            href: "/dashboard/cms/clients",
+            label: t.nav.clients,
+            icon: Users,
+            resource: "clients",
+            moduleKey: "cms",
+          },
+          {
+            href: "/dashboard/cms/equipment",
+            label: t.nav.equipment,
+            icon: Building2,
+            resource: "equipment",
+            moduleKey: "equipment",
+          },
+          {
+            href: "/dashboard/cms/reviews",
+            label: t.nav.reviews,
+            icon: MessageSquareQuote,
+            resource: "reviews",
+            moduleKey: "reviews",
+          },
+          {
+            href: "/dashboard/cms/faqs",
+            label: t.nav.faqs,
+            icon: HelpCircle,
+            resource: "faqs",
+            moduleKey: "cms",
+          },
+          {
+            href: "/dashboard/cms/stats",
+            label: t.nav.stats,
+            icon: BarChart,
+            resource: "stats",
+            moduleKey: "cms",
+          },
+        ],
+      },
+      {
+        title: t.nav.system,
+        items: [
+          {
+            href: "/dashboard/settings/web",
+            label: t.nav.webSettings,
+            icon: Globe,
+            resource: "settings",
+          },
+          {
+            href: "/dashboard/settings/company",
+            label: t.nav.companySettings,
+            icon: Building2,
+            resource: "settings",
+          },
+          {
+            href: "/dashboard/settings/modules",
+            label: t.nav.modules,
+            icon: ToggleLeft,
+            resource: "settings",
+          },
+          {
+            href: "/dashboard/settings/roles",
+            label: t.nav.roles,
+            icon: Key,
+            resource: "users",
+          },
+          {
+            href: "/dashboard/users",
+            label: t.nav.users,
+            icon: ShieldCheck,
+            resource: "users",
+          },
+          {
+            href: "/dashboard/settings/audit",
+            label: t.nav.auditLogs,
+            icon: FileText,
+            resource: "audit_logs",
+          },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const visibleSections = React.useMemo(() => {
     if (loading) return sections;

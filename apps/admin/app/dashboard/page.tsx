@@ -35,7 +35,7 @@ export default async function DashboardPage() {
           }),
       canFinance ? getMonthlyCashflow(6) : Promise.resolve([]),
       canDeals
-        ? getCRMDealOverview()
+        ? getCRMDealOverview(canFinance)
         : Promise.resolve({
             recent: [],
             stageStats: {},
@@ -58,6 +58,7 @@ export default async function DashboardPage() {
 
   return (
     <ExecutiveDashboardView
+      capabilities={{ finance: canFinance, deals: canDeals, leads: canLeads, calendar: canCalendar, createInvoice: grants["invoices:write"] === true && grants["contacts:read"] === true, settings: grants["settings:read"] === true }}
       finance={finance}
       monthlyCashflow={monthlyCashflow}
       dealOverview={deals}

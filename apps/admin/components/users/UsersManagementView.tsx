@@ -1,32 +1,46 @@
 "use client";
+import Link from "next/link";
 import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
-import type { Profile,UserRole } from "@ishoot/database/types";
+import type { Profile, UserRole } from "@ishoot/database/types";
 import {
-createUserAction,
-updateUserRoleAction,
-updateUserAction,
-deleteUserAction,
+  createUserAction,
+  updateUserRoleAction,
+  updateUserAction,
+  deleteUserAction,
+  suspendUserAction,
+  reactivateUserAction,
+  archiveUserAction,
 } from "../../app/actions/users";
 import {
-Card,
-Button,
-Modal,
-Input,
-Select,ConfirmDestructiveModal
+  Card,
+  Button,
+  Modal,
+  Input,
+  Select,
+  ConfirmDestructiveModal,
 } from "@ishoot/ui";
 import {
-UserPlus,
-Shield,
-Trash2,
-Search,
-Building,
-CheckCircle2
+  UserPlus,
+  Shield,
+  Trash2,
+  Search,
+  Building,
+  CheckCircle2,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface UsersManagementViewProps {
+  canWrite: boolean;
+  canDelete: boolean;
+  employees: Array<{
+    id: string;
+    employeeNumber: string;
+    firstNameEn: string;
+    lastNameEn: string;
+    email: string | null;
+  }>;
   initialUsers: Profile[];
   roles: Array<{ id: string; nameEn: string; nameAr: string }>;
   resources: string[];
@@ -35,6 +49,9 @@ interface UsersManagementViewProps {
 
 export function UsersManagementView({
   initialUsers,
+  canWrite,
+  canDelete,
+  employees,
   roles,
   resources,
   rolePermissions,
@@ -49,6 +66,9 @@ export function UsersManagementView({
     null,
   );
 
+  const [employeeId, setEmployeeId] = React.useState("");
+  const [statusReason, setStatusReason] = React.useState("");
+  const [error, setError] = React.useState("");
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -73,6 +93,17 @@ export function UsersManagementView({
         u.department.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
+  const handleAccountStatus = async (id: string, status: string) => {
+    setError("");
+    try {
+      if (status === "active") await reactivateUserAction(id);
+      else if (status === "archived") await archiveUserAction(id);
+      else await suspendUserAction(id, statusReason);
+      window.location.reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t.hrExtensions.failed);
+    }
+  };
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !fullName || !password) return;
@@ -80,6 +111,7 @@ export function UsersManagementView({
 
     try {
       const res = await createUserAction({
+        employeeId,
         full_name: fullName,
         email,
         password,
@@ -100,7 +132,7 @@ export function UsersManagementView({
         setShowCreateModal(false);
       }
     } catch (err) {
-      console.error(err);
+      setError(err instanceof Error ? err.message : t.hrExtensions.failed);
     } finally {
       setSaving(false);
     }
@@ -140,12 +172,24 @@ export function UsersManagementView({
       await deleteUserAction(userId);
       setUsers(users.filter((u) => u.id !== userId));
     } catch (err) {
-      console.error(err);
+      setError(err instanceof Error ? err.message : t.hrExtensions.failed);
     }
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
+      {error && (
+        <p role="alert" className="text-red-500">
+          {error}
+        </p>
+      )}
+      <label className="block text-sm">
+        {t.hrExtensions.reviewNotes}
+        <Input
+          value={statusReason}
+          onChange={(e) => setStatusReason(e.target.value)}
+        />
+      </label>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white font-display flex items-center gap-2">
@@ -182,6 +226,7 @@ export function UsersManagementView({
           <Button
             variant="primary"
             size="sm"
+            disabled={!canWrite}
             onClick={() => setShowCreateModal(true)}
             className="gap-2 shadow-lg shadow-[#09937F]/20"
           >
@@ -222,20 +267,15 @@ export function UsersManagementView({
                 <tr>
                   <th className="p-4 text-start">{t.usersView.userHeader}</th>
                   <th className="p-4 text-start">{t.roles.department}</th>
-                  <th className="p-4 text-start">
-                    {isRTL ? "المسؤول المباشر" : "Reports To"}
-                  </th>
+                  <th className="p-4 text-start">{t.hrText.text284}</th>
                   <th className="p-4 text-start">{t.usersView.roleHeader}</th>
-                  <th className="p-4 text-start">
-                    {isRTL ? "التوقيع الرقمي" : "Signature"}
-                  </th>
+                  <th className="p-4 text-start">{t.hrText.text285}</th>
                   <th className="p-4 text-start">{t.usersView.statusHeader}</th>
                   <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-white">
                 {filteredUsers.map((u) => {
-
                   return (
                     <tr
                       key={u.id}
@@ -272,18 +312,15 @@ export function UsersManagementView({
                       {/* Reports To Selector */}
                       <td className="p-4">
                         <select
+                          disabled={!canWrite}
                           value={u.manager_id || ""}
                           onChange={(e) =>
                             handleManagerChange(u.id, e.target.value)
                           }
                           className="bg-[#050807] border border-white/10 rounded-xl px-2.5 py-1 text-xs text-[#5EEAD4] focus:outline-none focus:border-[#09937F] cursor-pointer max-w-[160px] truncate"
-                          title={
-                            isRTL ? "تغيير المسؤول المباشر" : "Change Manager"
-                          }
+                          title={t.hrText.text286}
                         >
-                          <option value="">
-                            {isRTL ? "لا يوجد (مستقل)" : "None (Independent)"}
-                          </option>
+                          <option value="">{t.hrText.text287}</option>
                           {users
                             .filter((cand) => cand.id !== u.id)
                             .map((cand) => (
@@ -296,6 +333,7 @@ export function UsersManagementView({
 
                       <td className="p-4">
                         <select
+                          disabled={!canWrite}
                           value={u.role}
                           onChange={(e) =>
                             handleRoleChange(u.id, e.target.value as UserRole)
@@ -329,12 +367,50 @@ export function UsersManagementView({
                       <td className="p-4">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
-                          {t.roles.statusActive}
+                          {u.archived_at
+                            ? t.hrExtensions.archived
+                            : u.suspended_at
+                              ? t.hrExtensions.suspended
+                              : u.employee_status === "on_leave"
+                                ? t.hrExtensions.on_leave
+                                : u.is_active
+                                  ? t.hrExtensions.active
+                                  : t.hrExtensions.inactive}
                         </span>
                       </td>
 
                       <td className="p-4 text-end">
-                        {u.role !== "super_admin" && (
+                        <select
+                          disabled={!canWrite}
+                          aria-label={t.hrExtensions.accountStatus}
+                          value={
+                            u.archived_at
+                              ? "archived"
+                              : u.suspended_at
+                                ? "suspended"
+                                : u.is_active
+                                  ? "active"
+                                  : "inactive"
+                          }
+                          onChange={(e) =>
+                            void handleAccountStatus(u.id, e.target.value)
+                          }
+                          className="bg-transparent border rounded p-1"
+                        >
+                          <option value="active">
+                            {t.hrExtensions.active}
+                          </option>
+                          <option value="suspended">
+                            {t.hrExtensions.suspended}
+                          </option>
+                          <option value="inactive" disabled>
+                            {t.hrExtensions.inactive}
+                          </option>
+                          <option value="archived">
+                            {t.hrExtensions.archived}
+                          </option>
+                        </select>
+                        {canDelete && u.role !== "super_admin" && (
                           <button
                             onClick={() => setDeleteTargetId(u.id)}
                             className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all"
@@ -411,6 +487,39 @@ export function UsersManagementView({
         title={t.actions.addUser}
       >
         <form onSubmit={handleCreateUser} className="space-y-4 text-xs">
+          <label>
+            {t.hrExtensions.employeeFirst}
+            <Select
+              required
+              value={employeeId}
+              onChange={(e) => {
+                setEmployeeId(e.target.value);
+                const employee = employees.find(
+                  (item) => item.id === e.target.value,
+                );
+                if (employee) {
+                  setFullName(`${employee.firstNameEn} ${employee.lastNameEn}`);
+                  setEmail(employee.email || "");
+                }
+              }}
+            >
+              <option value="">{t.hrExtensions.selectEmployee}</option>
+              {employees
+                .filter(
+                  (item) => !users.some((user) => user.employee_id === item.id),
+                )
+                .map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.employeeNumber} — {employee.firstNameEn}{" "}
+                    {employee.lastNameEn}
+                  </option>
+                ))}
+            </Select>
+          </label>
+          <Link href="/dashboard/hr/employees/new">
+            {t.hrExtensions.createEmployee}
+          </Link>
+          {error && <p role="alert">{error}</p>}
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
               {t.usersView.fullName}
@@ -508,17 +617,13 @@ export function UsersManagementView({
 
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {isRTL ? "المسؤول المباشر (Reports To)" : "Reports To (Manager)"}
+              {t.hrText.text288}
             </label>
             <Select
               value={managerId}
               onChange={(e) => setManagerId(e.target.value)}
             >
-              <option value="">
-                {isRTL
-                  ? "لا يوجد (مستوى قيادي تنفيذي)"
-                  : "None (Executive Level)"}
-              </option>
+              <option value="">{t.hrText.text289}</option>
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.full_name} ({u.role})

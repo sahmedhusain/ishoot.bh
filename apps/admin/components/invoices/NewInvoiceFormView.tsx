@@ -4,41 +4,45 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type {
-CRMContact,
-CompanySettings,
-InvoiceLineItem,
-SupportedCurrency,
-DiscountType,
-ServiceItem,
+  CRMContact,
+  CompanySettings,
+  InvoiceLineItem,
+  SupportedCurrency,
+  DiscountType,
+  ServiceItem,
 } from "@ishoot/database/types";
 import {
-Card,
-Button,
-Input,
-Select,
+  Card,
+  Button,
+  Input,
+  Select,
 } from "@ishoot/ui";
 import {
-ArrowLeft,
-ArrowRight,
-Plus,
-Trash2,
-Calculator,
-CheckCircle2,
-Search,
-Loader2,ExternalLink,
-Sparkles
+  ArrowLeft,
+  ArrowRight,
+  Plus,
+  Trash2,
+  Calculator,
+  CheckCircle2,
+  FileCheck,
+  Receipt,
+  Layers,
+  ExternalLink,
 } from "lucide-react";
 import { createInvoiceAction } from "../../app/actions/finance";
-import { lookupClientAction } from "../../app/actions/crm";
+import { convertQuotationToInvoiceAction } from "../../app/actions/quotations";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { CURRENCY_CONFIGS,calculateInvoiceTotals } from "@ishoot/database/types";
+import { CURRENCY_CONFIGS, calculateInvoiceTotals, getCurrencyDisplayLabel } from "@ishoot/database/types";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
+import { toast } from "sonner";
 
 interface NewInvoiceFormViewProps {
   initialContacts: CRMContact[];
   company: CompanySettings | null;
   services?: ServiceItem[];
   preselectedClientId?: string;
+  acceptedQuotations?: any[];
+  preselectedQuotation?: any;
 }
 
 export function NewInvoiceFormView({
@@ -46,50 +50,27 @@ export function NewInvoiceFormView({
   company,
   services = [],
   preselectedClientId,
+  acceptedQuotations = [],
+  preselectedQuotation,
 }: NewInvoiceFormViewProps) {
   const router = useRouter();
   const { t, locale, isRTL } = useAdminLocale();
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
-  const [lookupTerm, setLookupTerm] = React.useState("");
-  const [lookupLoading, setLookupLoading] = React.useState(false);
-  const [lookupMessage, setLookupMessage] = React.useState<string | null>(null);
+  const [convertingQuoteId, setConvertingQuoteId] = React.useState<string | null>(null);
 
   const [selectedContactId, setSelectedContactId] = React.useState(
     preselectedClientId || (initialContacts.length > 0 ? initialContacts[0].id : ""),
   );
 
+  const [selectedQuotationId, setSelectedQuotationId] = React.useState<string>(
+    preselectedQuotation?.id || "",
+  );
+
   const selectedContact = React.useMemo(() => {
     return contacts.find((c) => c.id === selectedContactId) || null;
   }, [contacts, selectedContactId]);
-
-  const handleLookup = async () => {
-    if (!lookupTerm.trim()) return;
-    setLookupLoading(true);
-    setLookupMessage(null);
-    try {
-      const res = await lookupClientAction(lookupTerm);
-      if (res.success && res.contact) {
-        const found = res.contact;
-        const exists = contacts.some((c) => c.id === found.id);
-        if (!exists) {
-          setContacts((prev) => [found, ...prev]);
-        }
-        setSelectedContactId(found.id);
-        setLookupMessage(
-          `${t.invoiceForm.autoFetchedPrefix}${found.company ? `${found.company} - ` : ""}${found.full_name} (${found.email || found.phone || ""})`,
-        );
-      } else {
-        setLookupMessage(t.invoiceForm.clientNotFound);
-      }
-    } catch (e) {
-      console.error(e);
-      setLookupMessage(t.invoiceForm.lookupError);
-    } finally {
-      setLookupLoading(false);
-    }
-  };
 
   const [currency, setCurrency] = React.useState<SupportedCurrency>(
     (company?.default_currency as SupportedCurrency) || "BHD",
@@ -130,6 +111,94 @@ export function NewInvoiceFormView({
       line_total: 0,
     },
   ]);
+
+  // Apply quotation items to the invoice form
+  const applyQuotation = React.useCallback(
+    (q: any) => {
+      if (!q) return;
+      setSelectedQuotationId(q.id);
+
+      if (q.clientId) {
+        setSelectedContactId(q.clientId);
+        if (q.client && !contacts.some((c) => c.id === q.clientId)) {
+          setContacts((prev) => [q.client, ...prev]);
+        }
+      }
+
+      if (q.currency) {
+        setCurrency(q.currency as SupportedCurrency);
+      }
+      if (q.language) {
+        setLanguage(q.language === "ar" ? "ar" : "en");
+      }
+      if (q.vatEnabled !== undefined) {
+        setVatEnabled(Boolean(q.vatEnabled));
+      }
+      if (q.discountType) {
+        setDiscountType(q.discountType as DiscountType);
+      }
+      if (q.discountValue !== undefined) {
+        setDiscountValue(Number(q.discountValue));
+      }
+
+      if (q.lineItems && q.lineItems.length > 0) {
+        setLineItems(
+          q.lineItems.map((li: any) => ({
+            service_id: li.serviceId || undefined,
+            description_en: li.descriptionEn || "Service",
+            description_ar: li.descriptionAr || "",
+            quantity: Number(li.quantity) || 1,
+            unit_price: Number(li.unitPrice) || 0,
+            line_total:
+              Number(li.lineTotal) ||
+              (Number(li.quantity) || 1) * (Number(li.unitPrice) || 0),
+          })),
+        );
+      }
+
+      toast.success(
+        isRTL
+          ? `تم استيراد بيانات عرض السعر ${q.quotationNumber}`
+          : `Imported scope and client from Quotation ${q.quotationNumber}`,
+      );
+    },
+    [contacts, isRTL],
+  );
+
+  // Initialize from preselected quotation if given
+  React.useEffect(() => {
+    if (preselectedQuotation) {
+      applyQuotation(preselectedQuotation);
+    }
+  }, [preselectedQuotation, applyQuotation]);
+
+  const handle1ClickConvert = async (quoteId: string) => {
+    setConvertingQuoteId(quoteId);
+    const toastId = toast.loading(
+      isRTL ? "جاري تحويل عرض السعر إلى فاتورة ضريبية..." : "Converting quotation to tax invoice...",
+    );
+    try {
+      const res = await convertQuotationToInvoiceAction(quoteId);
+      if (res.success && res.invoice) {
+        toast.success(
+          isRTL
+            ? `تم إنشاء الفاتورة ${res.invoice.invoiceNumber} بنجاح`
+            : `Invoice ${res.invoice.invoiceNumber} created successfully!`,
+          { id: toastId },
+        );
+        router.push(`/dashboard/invoices/${res.invoice.invoiceId}`);
+      } else {
+        toast.error(isRTL ? "فشل تحويل عرض السعر" : "Failed to convert quotation", { id: toastId });
+      }
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error ? err.message : isRTL ? "خطأ أثناء التحويل" : "Conversion failed",
+        { id: toastId },
+      );
+    } finally {
+      setConvertingQuoteId(null);
+    }
+  };
 
   const addLineItem = () => {
     setLineItems((prev) => [
@@ -178,8 +247,12 @@ export function NewInvoiceFormView({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedContactId || lineItems.length === 0) return;
+    if (!selectedContactId || lineItems.length === 0) {
+      toast.error(isRTL ? "يرجى اختيار العميل وإضافة بند واحد على الأقل" : "Please select a client and add at least one line item");
+      return;
+    }
     setSubmitting(true);
+    const toastId = toast.loading(isRTL ? "جاري إنشاء مسودة الفاتورة..." : "Creating invoice draft...");
 
     try {
       const res = await createInvoiceAction({
@@ -204,10 +277,14 @@ export function NewInvoiceFormView({
       });
 
       if (res.invoice?.id) {
+        toast.success(isRTL ? "تم إنشاء الفاتورة بنجاح" : "Invoice created successfully", { id: toastId });
         router.push(`/dashboard/invoices/${res.invoice.id}`);
+      } else {
+        toast.error(isRTL ? "فشل إنشاء الفاتورة" : "Failed to create invoice", { id: toastId });
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error creating invoice:", err);
+      toast.error(err instanceof Error ? err.message : isRTL ? "خطأ في إنشاء الفاتورة" : "Error creating invoice", { id: toastId });
     } finally {
       setSubmitting(false);
     }
@@ -220,7 +297,7 @@ export function NewInvoiceFormView({
       <div>
         <Link
           href="/dashboard/invoices"
-          className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#09937F] dark:text-slate-400 dark:hover:text-[#09937F] transition-colors font-medium"
+          className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#09937F] dark:text-slate-400 dark:hover:text-[#09937F] transition-colors font-medium active:scale-[0.98]"
         >
           <BackIcon className="w-4 h-4" />
           <span>{t.actions.backToInvoices}</span>
@@ -234,18 +311,77 @@ export function NewInvoiceFormView({
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{t.invoiceForm.subtitle}</p>
       </div>
 
+      {/* Option: Import from Accepted Quotations */}
+      {acceptedQuotations.length > 0 && (
+        <Card className="p-5 bg-gradient-to-r from-teal-50/60 to-emerald-50/60 dark:from-teal-950/20 dark:to-emerald-950/20 border border-teal-200/80 dark:border-teal-900/40 rounded-2xl space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-[#014842] text-white">
+                <FileCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>{t.invoicesList.acceptedQuotesBanner || (isRTL ? "عروض أسعار مقبولة جاهزة للفوترة" : "Accepted Quotations Ready for Invoicing")}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-[#014842] dark:text-[#7de0d1]">
+                    {acceptedQuotations.length}
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  {t.invoicesList.acceptedQuotesSubtitle || (isRTL
+                    ? "يمكنك استيراد بنود العرض والعميل مباشرةً، أو تحويل العرض بنقرة واحدة."
+                    : "Select an accepted quotation to automatically populate client and line items.")}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <select
+                value={selectedQuotationId}
+                onChange={(e) => {
+                  const q = acceptedQuotations.find((item) => item.id === e.target.value);
+                  if (q) applyQuotation(q);
+                  else setSelectedQuotationId("");
+                }}
+                className="text-xs font-medium rounded-lg border border-teal-300 dark:border-teal-800 bg-white dark:bg-[#121B19] px-3 py-1.5 text-slate-900 dark:text-white"
+              >
+                <option value="">{isRTL ? "-- اختر عرض سعر مقبول --" : "-- Select Accepted Quote --"}</option>
+                {acceptedQuotations.map((q) => (
+                  <option key={q.id} value={q.id}>
+                    {q.quotationNumber} - {q.client?.companyName || q.client?.firstName || "Client"} ({Number(q.totalAmount).toFixed(3)} {q.currency})
+                  </option>
+                ))}
+              </select>
+
+              {selectedQuotationId && (
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={convertingQuoteId === selectedQuotationId}
+                  onClick={() => handle1ClickConvert(selectedQuotationId)}
+                  className="bg-[#014842] hover:bg-[#013833] text-white text-xs gap-1.5 active:scale-[0.98] transition-all shrink-0"
+                >
+                  <Receipt className="w-3.5 h-3.5" />
+                  <span>{t.invoicesList.oneClickConvert || (isRTL ? "تحويل فوري" : "1-Click Convert")}</span>
+                </Button>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Client Selection Card with Auto-Fetch */}
+        {/* Unified Client Selection Card (Dual Flow: Search Existing or Create New Inline) */}
         <Card className="p-6 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              {t.invoiceForm.particulars}
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[#09937F]" />
+              <span>{t.invoiceForm.particulars}</span>
             </h2>
             {selectedContact && (
               <Link
                 href={`/dashboard/crm/customers/${selectedContact.id}`}
                 target="_blank"
-                className="text-xs  text-[#09937F] hover:underline flex items-center gap-1"
+                className="text-xs text-[#09937F] hover:underline flex items-center gap-1 font-semibold"
               >
                 <span>{t.invoiceForm.clientProfile}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -253,292 +389,243 @@ export function NewInvoiceFormView({
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
-            {/* Quick Auto-Fetch Input */}
-            <div className="space-y-2 sm:col-span-2 bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10">
-              <label className="text-xs font-semibold text-slate-900 dark:text-white flex items-center justify-between">
-                <span>{t.finance.client} {t.invoiceForm.clientLookup}</span>
-                <span className="text-[10px] text-[#09937F]  font-bold bg-[#E6F5F2] dark:bg-[#09937F]/20 px-2 py-0.5 rounded-full">{t.invoiceForm.autoFetch}</span>
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder={t.invoiceForm.enterEmailOrPhone}
-                  value={lookupTerm}
-                  onChange={(e) => setLookupTerm(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleLookup();
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleLookup}
-                  disabled={lookupLoading}
-                  className="gap-1.5 shrink-0"
+          <div className="space-y-4">
+            {/* Unified Client Autocomplete & Inline Creator */}
+            <ClientAutocomplete
+              initialContacts={contacts}
+              selectedContactId={selectedContactId}
+              onSelect={(c) => {
+                setSelectedContactId(c ? c.id : "");
+                if (c) setContacts((prev) => [c, ...prev.filter((item) => item.id !== c.id)]);
+              }}
+              label={`${t.finance.client}`}
+              required
+              allowCreate
+            />
+
+            {/* Document Attributes */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {t.invoiceForm.currencyLabel}
+                </label>
+                <Select
+                  value={currency}
+                  onChange={(e) =>
+                    setCurrency(e.target.value as SupportedCurrency)
+                  }
                 >
-                  {lookupLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-[#09937F]" />
-                  ) : (
-                    <Search className="w-4 h-4 text-[#09937F]" />
-                  )}
-                  <span>{t.invoiceForm.fetchBtn}</span>
-                </Button>
-              </div>
-              {lookupMessage && (
-                <p className={`text-[11px] font-medium ${lookupMessage.startsWith(t.invoiceForm.autoFetchedPrefix) ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
-                  {lookupMessage}
-                </p>
-              )}
-            </div>
-
-            {/* Client Autocomplete Selector */}
-            <div className="sm:col-span-2">
-              <ClientAutocomplete
-                initialContacts={contacts}
-                selectedContactId={selectedContactId}
-                onSelect={(c) => {
-                  setSelectedContactId(c ? c.id : "");
-                  if(c) setContacts(prev=>[c,...prev.filter(item=>item.id!==c.id)]);
-                }}
-                label={`${t.finance.client}`}
-                required
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                {t.invoiceForm.currencyLabel}
-              </label>
-              <Select
-                value={currency}
-                onChange={(e) =>
-                  setCurrency(e.target.value as SupportedCurrency)
-                }
-              >
-                {Object.keys(CURRENCY_CONFIGS).map((code) => {
-                  const cfg = CURRENCY_CONFIGS[code as SupportedCurrency];
-                  return (
+                  {Object.keys(CURRENCY_CONFIGS).map((code) => (
                     <option key={code} value={code}>
-                      {code} ({locale === "ar" ? cfg.symbolAr : cfg.symbolEn})
+                      {getCurrencyDisplayLabel(code as SupportedCurrency, locale === "ar" ? "ar" : "en")}
                     </option>
-                  );
-                })}
-              </Select>
-            </div>
+                  ))}
+                </Select>
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                {t.invoiceForm.docLangLabel}
-              </label>
-              <Select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value as "en" | "ar")}
-              >
-                <option value="ar">{t.invoiceForm.arabic}</option>
-                <option value="en">{t.invoiceForm.english}</option>
-              </Select>
-            </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {t.invoiceForm.docLangLabel}
+                </label>
+                <Select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value as "en" | "ar")}
+                >
+                  <option value="ar">{t.invoiceForm.arabic}</option>
+                  <option value="en">{t.invoiceForm.english}</option>
+                </Select>
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                {t.finance.issueDate}
-              </label>
-              <Input
-                type="date"
-                value={issueDate}
-                onChange={(e) => setIssueDate(e.target.value)}
-                className=" text-xs"
-                required
-              />
-            </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {t.finance.issueDate}
+                </label>
+                <Input
+                  type="date"
+                  value={issueDate}
+                  onChange={(e) => setIssueDate(e.target.value)}
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                {t.finance.dueDate}
-              </label>
-              <Input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className=" text-xs"
-                required
-              />
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                  {t.finance.dueDate}
+                </label>
+                <Input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </Card>
 
-        {/* Deliverables / Line Items Card */}
-        <Card className="p-6 space-y-4">
+        {/* Line Items Card */}
+        <Card className="p-6 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              {t.invoiceForm.deliverables}
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+              <Calculator className="w-4 h-4 text-[#09937F]" />
+              <span>{t.invoiceForm.deliverables}</span>
             </h2>
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={addLineItem}
-              className="gap-1.5 text-xs text-[#09937F] border-[#09937F]/40"
+              className="gap-1.5 active:scale-[0.98] transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{t.invoiceForm.addItem}</span>
             </Button>
           </div>
 
-          <div className="space-y-4 pt-2">
-            {lineItems.map((item, idx) => (
+          <div className="space-y-4">
+            {lineItems.map((item, index) => (
               <div
-                key={idx}
-                className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
+                key={index}
+                className="grid grid-cols-1 sm:grid-cols-12 gap-3 p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 items-end"
               >
-                {/* Standard Service Quick Selector */}
-                <div className="md:col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 mb-1 border-b border-slate-200/60 dark:border-white/10">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
-                    <span>Item #{idx + 1}</span>
-                    {item.service_id && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-[#09937F] border border-teal-200 dark:border-teal-800 ">
-                        Catalog Linked
-                      </span>
-                    )}
+                {services.length > 0 && (
+                  <div className="sm:col-span-12 md:col-span-3 space-y-1">
+                    <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                      {t.invoiceForm.presetService}
+                    </label>
+                    <Select
+                      value={item.service_id || ""}
+                      onChange={(e) => {
+                        const sId = e.target.value;
+                        const s = services.find((srv) => srv.id === sId);
+                        if (s) {
+                          const next = [...lineItems];
+                          next[index] = {
+                            ...next[index],
+                            service_id: s.id,
+                            description_en: s.name_en,
+                            description_ar: s.name_ar,
+                            unit_price: Number(s.default_rate) || 0,
+                            line_total:
+                              (Number(next[index].quantity) || 1) *
+                              (Number(s.default_rate) || 0),
+                          };
+                          setLineItems(next);
+                        } else {
+                          updateLineItem(index, "service_id", undefined);
+                        }
+                      }}
+                    >
+                      <option value="">{t.invoiceForm.customItemNone}</option>
+                      {services.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.code || s.name_en} - {s.name_en}
+                        </option>
+                      ))}
+                    </Select>
                   </div>
-                  {services && services.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                        {t.invoiceForm.presetService}
-                      </span>
-                      <select
-                        value={item.service_id || ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (!val) {
-                            updateLineItem(idx, "service_id" as any, undefined);
-                            return;
-                          }
-                          const s = services.find((srv) => srv.id === val);
-                          if (s) {
-                            setLineItems((prev) => {
-                              const next = [...prev];
-                              const qty = Number(next[idx].quantity) || 1;
-                              next[idx] = {
-                                ...next[idx],
-                                service_id: s.id,
-                                description_en: s.name_en,
-                                description_ar: s.name_ar || undefined,
-                                unit_price: s.default_rate,
-                                line_total: qty * s.default_rate,
-                              };
-                              return next;
-                            });
-                          }
-                        }}
-                        className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
-                      >
-                        <option value="">{t.invoiceForm.customItemNone}</option>
-                        {services.map((srv) => (
-                          <option key={srv.id} value={srv.id}>
-                            {locale === "ar" && srv.name_ar ? srv.name_ar : srv.name_en} ({srv.default_rate.toFixed(3)} {t.financials.currency} / {srv.unit})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
+                )}
 
-                <div className="md:col-span-5 space-y-1">
-                  <label className="text-[11px] text-slate-500 dark:text-slate-400">
+                <div
+                  className={`space-y-1 ${
+                    services.length > 0
+                      ? "sm:col-span-12 md:col-span-4"
+                      : "sm:col-span-12 md:col-span-6"
+                  }`}
+                >
+                  <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.descEnLabel}
                   </label>
                   <Input
-                    required
                     placeholder={t.invoiceForm.placeholderEn}
                     value={item.description_en}
                     onChange={(e) =>
-                      updateLineItem(idx, "description_en", e.target.value)
+                      updateLineItem(index, "description_en", e.target.value)
                     }
+                    required
                   />
                 </div>
 
-                <div className="md:col-span-3 space-y-1">
-                  <label className="text-[11px] text-slate-500 dark:text-slate-400">
+                <div
+                  className={`space-y-1 ${
+                    services.length > 0
+                      ? "sm:col-span-12 md:col-span-3"
+                      : "sm:col-span-12 md:col-span-4"
+                  }`}
+                >
+                  <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.descArLabel}
                   </label>
                   <Input
+                    dir="rtl"
                     placeholder={t.invoiceForm.placeholderAr}
                     value={item.description_ar || ""}
                     onChange={(e) =>
-                      updateLineItem(idx, "description_ar", e.target.value)
+                      updateLineItem(index, "description_ar", e.target.value)
                     }
-                    className="text-end font-arabic"
                   />
                 </div>
 
-                <div className="md:col-span-1 space-y-1">
-                  <label className="text-[11px] text-slate-500 dark:text-slate-400">
+                <div className="sm:col-span-4 md:col-span-2 space-y-1">
+                  <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                     {t.invoiceForm.qty}
                   </label>
                   <Input
                     type="number"
                     min="1"
-                    step="0.5"
-                    required
+                    step="any"
                     value={item.quantity}
                     onChange={(e) =>
-                      updateLineItem(
-                        idx,
-                        "quantity",
-                        parseFloat(e.target.value) || 0,
-                      )
+                      updateLineItem(index, "quantity", e.target.value)
                     }
-                    className=" text-center"
+                    required
                   />
                 </div>
 
-                <div className="md:col-span-2 space-y-1">
-                  <label className="text-[11px] text-slate-500 dark:text-slate-400">
-                    {t.invoiceForm.rate} ({currency})
+                <div className="sm:col-span-4 md:col-span-2 space-y-1">
+                  <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                    {t.invoiceForm.rate}
                   </label>
                   <Input
                     type="number"
                     min="0"
-                    step="0.001"
-                    required
+                    step="any"
                     value={item.unit_price}
                     onChange={(e) =>
-                      updateLineItem(
-                        idx,
-                        "unit_price",
-                        parseFloat(e.target.value) || 0,
-                      )
+                      updateLineItem(index, "unit_price", e.target.value)
                     }
-                    className=""
+                    required
                   />
                 </div>
 
-                <div className="md:col-span-1 flex items-center justify-end pb-2">
-                  {lineItems.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeLineItem(idx)}
-                      className="p-2 text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors"
-                      title={t.invoiceForm.removeItem}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
+                <div className="sm:col-span-4 md:col-span-2 space-y-1">
+                  <label className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                    {t.finance.totalAmount}
+                  </label>
+                  <div className="h-10 px-3 py-2 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-mono font-bold flex items-center justify-end">
+                    {item.line_total.toFixed(3)} {currency}
+                  </div>
+                </div>
+
+                <div className="sm:col-span-12 md:col-span-1 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeLineItem(index)}
+                    disabled={lineItems.length === 1}
+                    className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 active:scale-[0.98] transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Deductions & Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          <Card className="md:col-span-6 p-6 space-y-4">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
+        {/* Adjustments & Totals */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="p-6 space-y-4">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.invoiceForm.deductionsTitle}
             </h2>
 
@@ -555,9 +642,7 @@ export function NewInvoiceFormView({
                     }
                   >
                     <option value="none">{t.invoiceForm.noDiscount}</option>
-                    <option value="percentage">
-                      {t.invoiceForm.pctDiscount}
-                    </option>
+                    <option value="percentage">{t.invoiceForm.pctDiscount}</option>
                     <option value="fixed">{t.invoiceForm.fixedDiscount}</option>
                   </Select>
                 </div>
@@ -565,108 +650,93 @@ export function NewInvoiceFormView({
                 {discountType !== "none" && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                      {discountType === "percentage"
-                        ? t.invoiceForm.discountPctLabel
-                        : `${t.invoiceForm.discountAmtLabel} (${currency})`}
+                      {t.invoiceForm.discountAmtLabel}
                     </label>
                     <Input
                       type="number"
                       min="0"
-                      step={discountType === "percentage" ? "1" : "0.001"}
+                      step="any"
                       value={discountValue}
                       onChange={(e) =>
                         setDiscountValue(parseFloat(e.target.value) || 0)
                       }
-                      className=""
                     />
                   </div>
                 )}
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-between">
+              <div className="pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">
-                    {vatEnabled
-                      ? t.invoiceForm.vatEnabledTitle
-                      : t.invoiceForm.vatDisabledTitle}
+                  <div className="text-sm font-medium text-slate-900 dark:text-white">
+                    {t.invoiceForm.vatEnabledTitle}
                   </div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                    {vatEnabled
-                      ? t.invoiceForm.vatEnabledDesc
-                      : t.invoiceForm.vatDisabledDesc}
+                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                    {t.invoiceForm.vatEnabledDesc} ({vatPercentage}%)
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setVatEnabled(!vatEnabled)}
-                  className={`text-xs px-3 py-1 rounded-lg border  transition-colors ${
-                    vatEnabled
-                      ? "bg-[#09937F]/20 text-[#09937F] border-[#09937F]"
-                      : "bg-slate-200/50 text-slate-500 border-slate-300 dark:bg-white/5 dark:text-slate-400 dark:border-white/10"
-                  }`}
-                >
-                  {vatEnabled ? t.invoiceForm.active : t.invoiceForm.disabled}
-                </button>
+                <input
+                  type="checkbox"
+                  checked={vatEnabled}
+                  onChange={(e) => setVatEnabled(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-[#09937F] focus:ring-[#09937F]"
+                />
               </div>
             </div>
           </Card>
 
-          <Card className="md:col-span-6 p-6 space-y-4 flex flex-col justify-between">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3 flex items-center gap-2">
-              <Calculator className="w-4 h-4 text-[#09937F]" />
-              <span>{t.invoiceForm.summaryTitle}</span>
-            </h2>
+          <Card className="p-6 bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/10 flex flex-col justify-between">
+            <div className="space-y-3">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-200 dark:border-white/10 pb-2">
+                {t.invoiceForm.summaryTitle}
+              </h2>
 
-            <div className="space-y-2.5 text-xs">
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                <span>{t.finance.subtotal}:</span>
-                <span className=" text-slate-900 dark:text-white text-sm font-semibold">
-                  {totals.subtotal.toFixed(3)} {currency}
-                </span>
-              </div>
-
-              {totals.discountAmount > 0 && (
-                <div className="flex items-center justify-between text-[#09937F]">
-                  <span>{t.finance.discount}:</span>
-                  <span className="">
-                    -{totals.discountAmount.toFixed(3)} {currency}
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                  <span>{t.finance.subtotal}</span>
+                  <span className="font-mono font-medium">
+                    {totals.subtotal.toFixed(3)} {currency}
                   </span>
                 </div>
-              )}
 
-              {vatEnabled && (
-                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
-                  <span>
-                    {t.finance.vat} ({vatPercentage}%):
-                  </span>
-                  <span className=" font-medium">
-                    {totals.vatAmount.toFixed(3)} {currency}
+                {totals.discountAmount > 0 && (
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
+                    <span>
+                      {t.finance.discount} ({discountType === "percentage" ? `${discountValue}%` : "Fixed"})
+                    </span>
+                    <span className="font-mono font-medium">
+                      -{totals.discountAmount.toFixed(3)} {currency}
+                    </span>
+                  </div>
+                )}
+
+                {vatEnabled && (
+                  <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                    <span>{t.finance.vat} ({vatPercentage}%)</span>
+                    <span className="font-mono font-medium">
+                      {totals.vatAmount.toFixed(3)} {currency}
+                    </span>
+                  </div>
+                )}
+
+                <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex justify-between text-base font-bold text-slate-900 dark:text-white">
+                  <span>{t.finance.totalAmount}</span>
+                  <span className="font-mono text-[#014842] dark:text-[#7de0d1]">
+                    {totals.totalAmount.toFixed(3)} {currency}
                   </span>
                 </div>
-              )}
-
-              <div className="pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-900 dark:text-white">
-                  {t.finance.totalAmount}:
-                </span>
-                <span className="text-xl font-bold  text-[#09937F]">
-                  {totals.totalAmount.toFixed(3)} {currency}
-                </span>
               </div>
             </div>
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              disabled={submitting}
-              className="w-full mt-4 gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>
-                {submitting ? t.invoiceForm.submitting : t.actions.newInvoice}
-              </span>
-            </Button>
+            <div className="pt-6">
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full gap-2 bg-[#014842] hover:bg-[#013833] text-white py-2.5 rounded-xl font-semibold shadow-xs active:scale-[0.98] transition-all"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{submitting ? t.actions.saving : t.actions.save}</span>
+              </Button>
+            </div>
           </Card>
         </div>
       </form>

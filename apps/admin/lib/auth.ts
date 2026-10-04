@@ -75,3 +75,14 @@ export async function requirePermission(
 
   return user;
 }
+
+export async function hasPermission(
+  resource: PermissionResource,
+  action: PermissionAction,
+): Promise<boolean> {
+  const user = await getCurrentUser();
+  if (!user) return false;
+  if (user.role === "super_admin") return true;
+  const permissions = await getCurrentPermissions();
+  return permissions[`${resource}:${action}`] === true;
+}

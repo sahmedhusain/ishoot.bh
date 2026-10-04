@@ -176,3 +176,111 @@ export async function resolveRequestAction(
     return { success: true, request: updated };
   });
 }
+
+export async function createConsolidatedRequestAction(data: {
+  requestType: "SR" | "CR" | "inquiry" | "quote_request";
+  fullName: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  servicesRequested?: string[];
+  message?: string;
+  budgetRange?: string;
+  targetTimeline?: string;
+  clientId?: string;
+  slaDueDate?: string;
+  priority?: string;
+  team?: string;
+  assignedToId?: string;
+}): Promise<{ success: boolean; request?: any; error?: string }> {
+  return measureOperation("action:createConsolidatedRequestAction", async () => {
+    const actor = await requirePermission("requests", "write");
+    validateActionArguments("createConsolidatedRequestAction", { data });
+
+    const { createConsolidatedRequest } = await import("@ishoot/database");
+    const created = await createConsolidatedRequest(
+      {
+        requestType: data.requestType,
+        name: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        companyName: data.company,
+        serviceType: data.servicesRequested?.join(", "),
+        message: data.message || "",
+        budgetRange: data.budgetRange,
+        timeline: data.targetTimeline,
+        customerId: data.clientId,
+        slaDueDate: data.slaDueDate ? new Date(data.slaDueDate) : undefined,
+        priority: data.priority,
+        team: data.team,
+        assignedToId: data.assignedToId,
+      },
+      actor.id,
+    );
+
+    revalidatePath("/dashboard/requests");
+    return { success: true, request: created };
+  });
+}
+
+export async function assignRequestWithAvailabilityAction(
+  id: string,
+  assignment: {
+    assignedToId: string;
+    team?: string;
+    reason?: string;
+  },
+): Promise<{ success: boolean; request?: any; error?: string }> {
+  return measureOperation("action:assignRequestWithAvailabilityAction", async () => {
+    const actor = await requirePermission("requests", "assign");
+    validateActionArguments("assignRequestWithAvailabilityAction", { id, assignment });
+
+    const { assignConsolidatedRequest } = await import("@ishoot/database");
+    const updated = await assignConsolidatedRequest(
+      id,
+      assignment.assignedToId,
+      actor.id,
+      assignment.team,
+      assignment.reason,
+    );
+
+    revalidatePath("/dashboard/requests");
+    revalidatePath(`/dashboard/requests/${id}`);
+    return { success: true, request: updated };
+  });
+}
+
+export async function addRequestCommentAction(
+  inquiryId: string,
+  body: string,
+  isClientVisible: boolean = false,
+  attachments?: unknown,
+): Promise<{ success: boolean; comment?: any; error?: string }> {
+  return measureOperation("action:addRequestCommentAction", async () => {
+    const actor = await requirePermission("requests", "write");
+    validateActionArguments("addRequestCommentAction", { inquiryId, body, isClientVisible, attachments });
+
+    const { addRequestComment } = await import("@ishoot/database");
+    const comment = await addRequestComment(inquiryId, actor.id, body, isClientVisible, attachments);
+
+    revalidatePath(`/dashboard/requests/${inquiryId}`);
+    return { success: true, comment };
+  });
+}
+
+export async function addRequestEventAction(
+  inquiryId: string,
+  eventType: string,
+  details: Record<string, unknown>,
+): Promise<{ success: boolean; event?: any; error?: string }> {
+  return measureOperation("action:addRequestEventAction", async () => {
+    const actor = await requirePermission("requests", "write");
+    validateActionArguments("addRequestEventAction", { inquiryId, eventType, details });
+
+    const { addRequestEvent } = await import("@ishoot/database");
+    const event = await addRequestEvent(inquiryId, eventType, details, actor.id);
+
+    revalidatePath(`/dashboard/requests/${inquiryId}`);
+    return { success: true, event };
+  });
+}

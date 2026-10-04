@@ -9,7 +9,7 @@ deleteExpense,
 createPayment,
 createInvoice,
 updateInvoice,
-updateInvoiceStatus,createActivityLog,
+updateInvoiceStatus,createActivityLog,getInvoiceByIdOrNumber,
 PaymentMethod,
 SupportedCurrency
 } from "@ishoot/database";
@@ -204,6 +204,7 @@ export async function updateInvoiceAction(
     await requireFeatureEnabled("invoicing"); const user = await requirePermission("invoices", "write");
     validateActionArguments("updateInvoiceAction", { id, data });
     const { invoice } = await runAtomicMutation(async () => {
+      const before = await getInvoiceByIdOrNumber(id);
       const invoice = await updateInvoice(id, data as any);
       if (!invoice) throw new Error("Invoice update failed");
       await createActivityLog({
@@ -212,6 +213,7 @@ export async function updateInvoiceAction(
         entity_type: "invoice",
         entity_id: id,
         details: {
+          before, after: invoice,
           invoiceNumber: invoice?.invoice_number,
           totalAmount: invoice?.total_amount,
         },
@@ -250,3 +252,25 @@ export async function voidInvoiceAction(id: string) {
     return { success: true };
   });
 }
+
+export async function exportFinancialReportCsvAction(filters: {
+  basis?: "cash" | "accrual";
+  dateFrom?: string;
+  dateTo?: string;
+}) {
+  return measureOperation("action:exportFinancialReportCsvAction", async () => {
+    await requirePermission("reports", "read");
+    validateActionArguments("exportFinancialReportCsvAction", { filters });
+
+    const { getFinancialSummaryReport, generateFinancialSummaryCsv } = await import("@ishoot/database");
+    const report = await getFinancialSummaryReport({
+      basis: filters.basis,
+      dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
+      dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
+    });
+
+    const csvContent = generateFinancialSummaryCsv(report);
+    return { success: true, csvContent, filename: `ishoot_financial_report_${report.basis}_${Date.now()}.csv` };
+  });
+}
+

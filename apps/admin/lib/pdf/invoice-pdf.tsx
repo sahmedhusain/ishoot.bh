@@ -1,3 +1,4 @@
+import { getCurrencySymbol, getCurrencyDecimals } from "@ishoot/config/currency";
 
 import { Document,Page,Text,View,Image as PdfImage } from "@react-pdf/renderer";
 import type { Invoice,CompanySettings } from "@ishoot/database/types";
@@ -32,8 +33,9 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
   const isVatActive = Boolean(
     invoice.vat_enabled && Number(invoice.vat_amount) > 0,
   );
-  const currency = invoice.currency || company.default_currency;
-  const decimals = company.currency_decimals;
+  const currencyCode = invoice.currency || company.default_currency;
+  const currency = getCurrencySymbol(currencyCode, false);
+  const decimals = getCurrencyDecimals(currencyCode);
   const lineItems = invoice.line_items || [];
   const isAr = invoice.language === "ar";
   const t = adminTranslations[isAr ? "ar" : "en"].pdfInvoice;

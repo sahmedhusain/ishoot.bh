@@ -1,0 +1,81 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const ts = require('typescript');
+function load(file, mocks = {}) {
+  const module = { exports: {} };
+  const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
+  vm.runInNewContext(code, { module, exports: module.exports, require(id) { if (!(id in mocks)) throw new Error('Unmocked dependency ' + id); return mocks[id]; }, Date, Intl, Set, Array, JSON, Number, Math, Blob, FormData, AbortSignal });
+  return module.exports;
+}
+async function main() {
+  const { parsePayrollSettings, calculateContributions } = load('packages/database/src/payroll-calculation.ts');
+  const settings = { employee: { mode: 'percentage', value: 8 }, employer: { mode: 'fixed', value: 120 }, supports: [{ provider: 'Tamkeen', mode: 'percentage', value: 50, startMonth: '2026-03', endMonth: '2026-05' }] };
+  assert.equal(parsePayrollSettings(null), null);
+  const result = calculateContributions(1000, settings, '2026-03');
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { employee: 80, employer: 120, support: 500, net: 920, employerCost: 620 });
+  assert.equal(calculateContributions(1000, settings, '2026-05').support, 500);
+  assert.equal(calculateContributions(1000, settings, '2026-06').support, 0);
+  assert.equal(calculateContributions(1000, settings, '2026-02').support, 0);
+  assert.equal(calculateContributions(1000, { ...settings, employee: { mode: 'fixed', value: 75 } }, '2026-04').net, 925);
+  assert.equal(calculateContributions(1000, { ...settings, supports: [{ ...settings.supports[0], mode: 'fixed', value: 9999 }] }, '2026-04').employerCost, 0);
+  assert.throws(() => calculateContributions(1000, null, '2026-04'), /Configure/);
+  assert.throws(() => parsePayrollSettings({ ...settings, employee: { mode: 'percentage', value: 101 } }), /Invalid contribution/);
+  assert.throws(() => parsePayrollSettings({ ...settings, supports: [{ ...settings.supports[0], endMonth: '2026-01' }] }), /valid inclusive month/);
+  assert.throws(() => calculateContributions(1000, { ...settings, employee: { mode: 'fixed', value: 1001 } }, '2026-04'), /exceed/);
+  const currencies = require("../packages/config/src/constants/currency.cjs");
+  assert.equal(currencies.getCurrencySymbol("OMR", false), "RO");
+  assert.equal(currencies.getCurrencySymbol("MVR"), "\u20c2");
+  const { formatCurrencyValue } = load('packages/ui/src/currency-display.tsx', { 'react/jsx-runtime': {}, react: {}, '@ishoot/config/currency': currencies });
+  for (const ar of [false, true]) {
+    assert.equal(formatCurrencyValue(12, 'BHD', ar), '12.000 BHD');
+    assert.equal(formatCurrencyValue(12, 'KWD', ar), '12.000 KD');
+    assert.equal(formatCurrencyValue(12, 'OMR', ar), '12.000 \u20c4');
+    assert.equal(formatCurrencyValue(12, 'SAR', ar), '12.00 \u20c1');
+    assert.equal(formatCurrencyValue(12, 'AED', ar), '12.00 \u20c3');
+    assert.equal(formatCurrencyValue(12, 'JPY', ar), '12 ¥');
+    assert.equal(formatCurrencyValue(12, 'INR', ar), '12.00 ₹');
+    assert.equal(formatCurrencyValue(12, 'jod', ar), '12.000 JOD');
+  }
+  const en = require('../packages/locales/src/en.json').admin;
+  const ar = require('../packages/locales/src/ar.json').admin;
+  assert.deepEqual(Object.keys(en.hrText).sort(), Object.keys(ar.hrText).sort());
+  assert.deepEqual(Object.keys(en.hrExtensions).sort(), Object.keys(ar.hrExtensions).sort());
+  let actor = { id: 'employee-user', role: 'producer' }, manager = false, creates = [], audit = [];
+  const actions = load('apps/admin/app/actions/salary-documents.ts', {
+    '@ishoot/locales': { getTranslations: () => ({ admin: en }) },
+    '@ishoot/database': { db: { employee: { findUniqueOrThrow: async () => ({ id: 'employee', userId: 'employee-user' }) }, salaryDocument: { create: async ({ data }) => { creates.push(data); return { id: 'doc-1', ...data }; } } }, runAtomicMutation: async fn => fn(), createActivityLog: async log => audit.push(log) },
+    '../../lib/auth': { requireAuth: async () => actor }, '../../lib/action-input': { validateActionArguments: () => {} },
+    '../../lib/salary-documents': { canManageSalaryDocuments: async () => manager, salaryDocumentSnapshot: async () => ({ frozen: true }) },
+    'next/cache': { revalidatePath: () => {} }, '../../lib/pdf/salary-document-pdf': {},
+  });
+  await actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-02','2026-01','2026-02'] });
+  assert.equal(creates[0].status, 'pending');
+  assert.equal(JSON.stringify(creates[0].months), '["2026-01","2026-02"]');
+  assert.equal(creates[0].snapshot, undefined);
+  actor = { id: 'other-user', role: 'producer' };
+  await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'salary_certificate', months: [] }), /only request your own/);
+  actor = { id: 'employee-user', role: 'producer' };
+  await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-13'] }), /valid months/);
+  actor = { id: 'super-user', role: 'super_admin' }; manager = true;
+  await actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'salary_certificate', months: [] });
+  assert.equal(creates[1].status, 'issued'); assert.equal(creates[1].snapshot.frozen, true);
+  assert.equal(audit[1].details.autoApproved, true);
+  const { sendWhatsAppDocument } = load('apps/admin/lib/whatsapp-document.ts');
+  const calls = [];
+  const transport = async (url, options) => {
+    calls.push({ url, options });
+    return { ok: true, json: async () => calls.length === 1 ? { id: 'private-media-id' } : { messages: [{ id: 'accepted-message-id' }] } };
+  };
+  const sent = await sendWhatsAppDocument({ phoneId: '123', token: 'test-token', recipient: '97339000000', filename: 'Salary.pdf', pdf: Buffer.from('pdf') }, transport);
+  assert.equal(sent.messageId, 'accepted-message-id');
+  assert.equal(calls.length, 2);
+  assert.ok(calls[0].url.endsWith('/media'));
+  assert.equal(calls[0].options.body.get('type'), 'application/pdf');
+  const payload = JSON.parse(calls[1].options.body);
+  assert.equal(payload.document.id, 'private-media-id');
+  assert.equal(payload.document.link, undefined, 'Do not expose private salary URLs to Meta');
+  await assert.rejects(sendWhatsAppDocument({ phoneId: '123', token: 'test', recipient: 'invalid', filename: 'Salary.pdf', pdf: Buffer.from('pdf') }, transport), /Invalid/);
+  console.log('HRMS checks passed: contribution arithmetic, support periods, payroll guards, Unicode currencies, localization parity, multi-month requests, ownership and Super Admin issuance.');
+}
+main().catch(error => { console.error(error); process.exitCode = 1; });

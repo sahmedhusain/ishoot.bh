@@ -2,26 +2,32 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { Inquiry } from "@ishoot/database";
-import { Button,StatusBadge } from "@ishoot/ui";
+import { Button, StatusBadge } from "@ishoot/ui";
 import {
-MessageSquare,
-AlertTriangle,
-FileQuestion,
-HelpCircle,
-Clock,
-CheckCircle2,
-RotateCcw,
-ArrowRightLeft,
-UserCheck,Filter,
-Search,
-Eye,
-Building,
-User,
-Phone,
-Mail,Layers,
-History,
-Check,ShieldAlert
+  MessageSquare,
+  AlertTriangle,
+  FileQuestion,
+  HelpCircle,
+  Clock,
+  CheckCircle2,
+  RotateCcw,
+  ArrowRightLeft,
+  UserCheck,
+  Filter,
+  Search,
+  Eye,
+  Building,
+  User,
+  Phone,
+  Mail,
+  Layers,
+  History,
+  Check,
+  ShieldAlert,
+  Plus,
+  FileText,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
@@ -368,6 +374,19 @@ export function RequestsManagementView({
               : "Unified hub for handling inquiries, complaints, team assignments, custom routing, and approval workflows"}
           </p>
         </div>
+
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/requests/new">
+            <Button
+              variant="primary"
+              size="sm"
+              className="bg-[#09937F] hover:bg-[#077a68] text-white gap-2 text-xs font-semibold shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{isRTL ? "تسجيل طلب / شكوى جديدة" : "New Request / Ticket"}</span>
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* KPI Stats Grid */}
@@ -677,13 +696,22 @@ export function RequestsManagementView({
                     {/* Action Controls */}
                     <td className="py-4 px-4 align-top text-end">
                       <div className="flex flex-wrap items-center justify-end gap-1.5">
+                        <Link
+                          href={`/dashboard/requests/${req.id}`}
+                          className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-[#09937F]/40 text-[#09937F] hover:bg-[#09937F]/10 transition-colors inline-flex items-center gap-1"
+                          title="Open Full Dossier"
+                        >
+                          <FileText className="w-3 h-3" />
+                          <span>{isRTL ? "الملف الكامل" : "Dossier"}</span>
+                        </Link>
+
                         <button
                           onClick={() => setSelectedRequest(req)}
                           className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 transition-colors inline-flex items-center gap-1"
-                          title="View Details & Audit Trail"
+                          title="Quick Preview"
                         >
                           <Eye className="w-3 h-3" />
-                          <span>{isRTL ? "التفاصيل" : "Details"}</span>
+                          <span>{isRTL ? "معاينة" : "Preview"}</span>
                         </button>
 
                         <button

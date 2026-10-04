@@ -1,3 +1,4 @@
+import { getCurrencySymbol, getCurrencyDecimals } from "@ishoot/config/currency";
 export type UserRole =
   | "super_admin"
   | "admin"
@@ -11,6 +12,10 @@ export type UserRole =
   | "viewer";
 
 export interface Profile {
+  employee_id?: string;
+  employee_status?: string;
+  suspended_at?: string;
+  archived_at?: string;
   id: string;
   full_name: string;
   email: string;
@@ -29,24 +34,192 @@ export interface Profile {
 }
 
 export type SupportedCurrency =
-  "BHD" | "SAR" | "AED" | "KWD" | "OMR" | "QAR" | "USD";
+  | "BHD"
+  | "SAR"
+  | "AED"
+  | "KWD"
+  | "OMR"
+  | "QAR"
+  | "USD"
+  | "EUR"
+  | "GBP"
+  | "AFN"
+  | "ALL"
+  | "AMD"
+  | "ANG"
+  | "AOA"
+  | "ARS"
+  | "AUD"
+  | "AWG"
+  | "AZN"
+  | "BAM"
+  | "BBD"
+  | "BDT"
+  | "BGN"
+  | "BIF"
+  | "BMD"
+  | "BND"
+  | "BOB"
+  | "BRL"
+  | "BSD"
+  | "BTN"
+  | "BWP"
+  | "BYN"
+  | "BZD"
+  | "CAD"
+  | "CDF"
+  | "CHF"
+  | "CLP"
+  | "CNY"
+  | "COP"
+  | "CRC"
+  | "CUC"
+  | "CUP"
+  | "CVE"
+  | "CZK"
+  | "DJF"
+  | "DKK"
+  | "DOP"
+  | "DZD"
+  | "EGP"
+  | "ERN"
+  | "ETB"
+  | "FJD"
+  | "FKP"
+  | "GEL"
+  | "GHS"
+  | "GIP"
+  | "GMD"
+  | "GNF"
+  | "GTQ"
+  | "GYD"
+  | "HKD"
+  | "HNL"
+  | "HRK"
+  | "HTG"
+  | "HUF"
+  | "IDR"
+  | "ILS"
+  | "INR"
+  | "IQD"
+  | "IRR"
+  | "ISK"
+  | "JMD"
+  | "JOD"
+  | "JPY"
+  | "KES"
+  | "KGS"
+  | "KHR"
+  | "KMF"
+  | "KPW"
+  | "KRW"
+  | "KYD"
+  | "KZT"
+  | "LAK"
+  | "LBP"
+  | "LKR"
+  | "LRD"
+  | "LSL"
+  | "LYD"
+  | "MAD"
+  | "MDL"
+  | "MGA"
+  | "MKD"
+  | "MMK"
+  | "MNT"
+  | "MOP"
+  | "MRU"
+  | "MUR"
+  | "MVR"
+  | "MWK"
+  | "MXN"
+  | "MYR"
+  | "MZN"
+  | "NAD"
+  | "NGN"
+  | "NIO"
+  | "NOK"
+  | "NPR"
+  | "NZD"
+  | "PAB"
+  | "PEN"
+  | "PGK"
+  | "PHP"
+  | "PKR"
+  | "PLN"
+  | "PYG"
+  | "RON"
+  | "RSD"
+  | "RUB"
+  | "RWF"
+  | "SBD"
+  | "SCR"
+  | "SDG"
+  | "SEK"
+  | "SGD"
+  | "SHP"
+  | "SLE"
+  | "SLL"
+  | "SOS"
+  | "SRD"
+  | "SSP"
+  | "STN"
+  | "SVC"
+  | "SYP"
+  | "SZL"
+  | "THB"
+  | "TJS"
+  | "TMT"
+  | "TND"
+  | "TOP"
+  | "TRY"
+  | "TTD"
+  | "TWD"
+  | "TZS"
+  | "UAH"
+  | "UGX"
+  | "UYU"
+  | "UZS"
+  | "VES"
+  | "VND"
+  | "VUV"
+  | "WST"
+  | "XAF"
+  | "XCD"
+  | "XCG"
+  | "XDR"
+  | "XOF"
+  | "XPF"
+  | "XSU"
+  | "YER"
+  | "ZAR"
+  | "ZMW"
+  | "ZWG"
+  | "ZWL";
 
 export interface CurrencyConfig {
-  code: SupportedCurrency;
-  symbolEn: string;
-  symbolAr: string;
-  decimals: number;
+  code: SupportedCurrency; symbolEn: string; symbolAr: string; standardCode: string; unicodePoint?: string; decimals: number;
 }
 
-export const CURRENCY_CONFIGS: Record<SupportedCurrency, CurrencyConfig> = {
-  BHD: { code: "BHD", symbolEn: "BHD", symbolAr: "د.ب", decimals: 3 },
-  SAR: { code: "SAR", symbolEn: "SAR", symbolAr: "ر.س", decimals: 2 },
-  AED: { code: "AED", symbolEn: "AED", symbolAr: "د.إ", decimals: 2 },
-  KWD: { code: "KWD", symbolEn: "KWD", symbolAr: "د.ك", decimals: 3 },
-  OMR: { code: "OMR", symbolEn: "OMR", symbolAr: "ر.ع", decimals: 3 },
-  QAR: { code: "QAR", symbolEn: "QAR", symbolAr: "ر.ق", decimals: 2 },
-  USD: { code: "USD", symbolEn: "USD", symbolAr: "$", decimals: 2 },
-};
+const SUPPORTED_CURRENCY_CODES: SupportedCurrency[] = ["BHD","SAR","AED","KWD","OMR","QAR","USD","EUR","GBP","AFN","ALL","AMD","ANG","AOA","ARS","AUD","AWG","AZN","BAM","BBD","BDT","BGN","BIF","BMD","BND","BOB","BRL","BSD","BTN","BWP","BYN","BZD","CAD","CDF","CHF","CLP","CNY","COP","CRC","CUC","CUP","CVE","CZK","DJF","DKK","DOP","DZD","EGP","ERN","ETB","FJD","FKP","GEL","GHS","GIP","GMD","GNF","GTQ","GYD","HKD","HNL","HRK","HTG","HUF","IDR","ILS","INR","IQD","IRR","ISK","JMD","JOD","JPY","KES","KGS","KHR","KMF","KPW","KRW","KYD","KZT","LAK","LBP","LKR","LRD","LSL","LYD","MAD","MDL","MGA","MKD","MMK","MNT","MOP","MRU","MUR","MVR","MWK","MXN","MYR","MZN","NAD","NGN","NIO","NOK","NPR","NZD","PAB","PEN","PGK","PHP","PKR","PLN","PYG","RON","RSD","RUB","RWF","SBD","SCR","SDG","SEK","SGD","SHP","SLE","SLL","SOS","SRD","SSP","STN","SVC","SYP","SZL","THB","TJS","TMT","TND","TOP","TRY","TTD","TWD","TZS","UAH","UGX","UYU","UZS","VES","VND","VUV","WST","XAF","XCD","XCG","XDR","XOF","XPF","XSU","YER","ZAR","ZMW","ZWG","ZWL"];
+export const CURRENCY_CONFIGS = Object.fromEntries(SUPPORTED_CURRENCY_CODES.map(code => {
+  const symbol = getCurrencySymbol(code);
+  return [code, { code, symbolEn: symbol, symbolAr: symbol, standardCode: getCurrencySymbol(code, false), decimals: getCurrencyDecimals(code), unicodePoint: Array.from(symbol).length === 1 && symbol !== code ? "U+" + symbol.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0") : undefined }];
+})) as Record<SupportedCurrency, CurrencyConfig>;
+
+export function getCurrencyDisplayLabel(
+  code: SupportedCurrency,
+  locale: "en" | "ar" = "en",
+): string {
+  const cfg = CURRENCY_CONFIGS[code];
+  if (!cfg) return code;
+  if (cfg.symbolEn === code && cfg.symbolAr === code) return code;
+  const symbol = locale === "ar" ? cfg.symbolAr : cfg.symbolEn;
+  if (cfg.standardCode && cfg.standardCode !== code && cfg.standardCode !== symbol) {
+    return `${code} (${symbol} / ${cfg.standardCode})`;
+  }
+  return `${code} (${symbol})`;
+}
 
 export interface CompanySettings {
   id: string;
@@ -875,8 +1048,8 @@ export interface Quotation {
   clientId?: string | null;
   inquiryId?: string | null;
   invoiceId?: string | null;
-  issueDate: Date;
-  validUntilDate: Date;
+  issueDate: Date | string;
+  validUntilDate: Date | string;
   subtotal: any;
   vatEnabled: boolean;
   vatPercentage: any;
@@ -891,13 +1064,21 @@ export interface Quotation {
   acceptanceEvidence?: string | null;
   pdfStoragePath?: string | null;
   deliveryChannel?: string | null;
-  deliveredAt?: Date | null;
+  deliveredAt?: Date | string | null;
   termsEn?: string | null;
   termsAr?: string | null;
   createdById?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   lineItems?: QuotationLineItem[];
+  rawRate?: number | null;
+  fxMarginPercent?: number;
+  effectiveRate?: number | null;
+  approvalRevision?: number;
+  contentHash?: string | null;
+  client?: any;
+  createdBy?: any;
+  invoice?: any;
 }
 
 export type MessageDirection = "inbound" | "outbound";
@@ -943,4 +1124,305 @@ export interface SocialMetric {
   isStale: boolean;
   errorStatus?: string | null;
   createdAt: Date;
+}
+
+export type ApprovalTargetType = "quotation" | "invoice" | "profile_change" | "leave_request" | "payroll_run";
+export type ApprovalStatus = "pending" | "approved" | "rejected" | "superseded";
+
+export interface ApprovalRequest {
+  id: string;
+  targetType: ApprovalTargetType | string;
+  targetId: string;
+  revision: number;
+  contentHash: string;
+  status: ApprovalStatus | string;
+  requestedById: string;
+  requestedBy?: { id: string; fullName: string; email: string };
+  policySnapshot: any;
+  diffPayload?: any | null;
+  discountReason?: string | null;
+  decisions?: ApprovalDecision[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface ApprovalDecision {
+  id: string;
+  approvalRequestId: string;
+  decision: "approved" | "rejected" | string;
+  decidedById: string;
+  decidedBy?: { id: string; fullName: string; email: string };
+  reason?: string | null;
+  decidedAt: Date | string;
+}
+
+export interface ProfileChangeRequest {
+  id: string;
+  userId: string;
+  requestedById: string;
+  managerId?: string | null;
+  status: "pending" | "approved" | "rejected" | "cancelled" | string;
+  oldValues: { fullName?: string; email?: string; [key: string]: any };
+  newValues: { fullName?: string; email?: string; [key: string]: any };
+  reviewedAt?: Date | string | null;
+  reviewNotes?: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface ReferenceSequence {
+  id: string;
+  prefix: string;
+  year: number;
+  lastNumber: number;
+  updatedAt: Date | string;
+}
+
+export type RequestType = "SR" | "CR" | "inquiry" | "quote_request";
+
+export interface RequestEvent {
+  id: string;
+  inquiryId: string;
+  actorId?: string | null;
+  actor?: { id: string; fullName: string; email: string };
+  eventType: string;
+  details: any;
+  createdAt: Date | string;
+}
+
+export interface RequestAssignment {
+  id: string;
+  inquiryId: string;
+  assignedToId: string;
+  assignedTo?: { id: string; fullName: string; email: string };
+  assignedById: string;
+  assignedBy?: { id: string; fullName: string; email: string };
+  team?: string | null;
+  reason?: string | null;
+  active: boolean;
+  createdAt: Date | string;
+}
+
+export interface RequestComment {
+  id: string;
+  inquiryId: string;
+  authorId: string;
+  author?: { id: string; fullName: string; email: string };
+  body: string;
+  isClientVisible: boolean;
+  attachments?: any | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface ExchangeRateSnapshot {
+  id: string;
+  baseCurrency: string;
+  quoteCurrency: string;
+  rate: number;
+  effectiveDate: Date | string;
+  fetchedAt: Date | string;
+  provider: string;
+  sourceEvidence?: string | null;
+  createdAt: Date | string;
+}
+
+export interface DocumentFx {
+  id: string;
+  documentType: "quotation" | "invoice" | string;
+  documentId: string;
+  baseAmount: number;
+  targetAmount: number;
+  rawRate: number;
+  marginPercent: number;
+  effectiveRate: number;
+  rateSnapshotId?: string | null;
+  createdAt: Date | string;
+}
+
+export interface PaymentAllocation {
+  id: string;
+  paymentId: string;
+  invoiceId: string;
+  allocatedAmount: number;
+  currency: string;
+  allocatedAt: Date | string;
+}
+
+export interface BankSettlement {
+  id: string;
+  paymentId: string;
+  settlementDate: Date | string;
+  receivedAmount: number;
+  receivedCurrency: string;
+  settledAmountBhd: number;
+  bankFeeBhd: number;
+  fxGainLossBhd: number;
+  bankReference?: string | null;
+  status: "settled" | "unreconciled" | string;
+  createdAt: Date | string;
+}
+
+export interface Department {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  managerId?: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface Employee {
+  id: string;
+  employeeNumber: string;
+  userId?: string | null;
+  user?: { id: string; fullName: string; email: string; role: string; isActive: boolean } | null;
+  departmentId?: string | null;
+  department?: Department | null;
+  firstNameEn: string;
+  lastNameEn: string;
+  firstNameAr: string;
+  lastNameAr: string;
+  email?: string | null;
+  phone?: string | null;
+  cprNumber?: string | null;
+  jobTitleEn: string;
+  jobTitleAr: string;
+  hireDate: Date | string;
+  status: "active" | "on_leave" | "suspended" | "terminated" | string;
+  leaveBalanceDays: number;
+  employmentRecords?: EmploymentRecord[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface EmploymentRecord {
+  id: string;
+  employeeId: string;
+  contractType: "full_time" | "part_time" | "contract" | string;
+  basicSalary: number;
+  housingAllowance: number;
+  transportAllowance: number;
+  otherAllowances: number;
+  payrollSettings?: EmployeePayrollSettings | null;
+  effectiveFrom: Date | string;
+  effectiveTo?: Date | string | null;
+  isCurrent: boolean;
+  createdAt: Date | string;
+}
+
+export interface LeaveType {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  daysAllowedPerYear: number | any;
+  isPaid: boolean;
+  createdAt?: Date | string;
+}
+
+export interface LeaveRequest {
+  id: string;
+  employeeId: string;
+  employee?: Employee | { id: string; employeeNumber: string; firstNameEn: string; lastNameEn: string; [key: string]: any };
+  leaveTypeId: string;
+  leaveType?: LeaveType;
+  startDate: Date | string;
+  endDate: Date | string;
+  fullDay: boolean;
+  hours?: number | null;
+  status: "pending" | "approved" | "rejected" | "cancelled" | string;
+  reason: string;
+  approvedById?: string | null;
+  approvedAt?: Date | string | null;
+  reviewNotes?: string | null;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface AttendanceEntry {
+  id: string;
+  employeeId: string;
+  date: Date | string;
+  checkIn?: Date | string | null;
+  checkOut?: Date | string | null;
+  status: "present" | "absent" | "half_day" | "on_leave" | "holiday" | string;
+  notes?: string | null;
+  createdAt: Date | string;
+}
+
+export interface BenefitPlan {
+  id: string;
+  code: string;
+  nameEn: string;
+  nameAr: string;
+  coverageDetails?: string | null;
+  employerContribution: number;
+  employeeContribution: number;
+  createdAt: Date | string;
+}
+
+export interface PayrollRun {
+  id: string;
+  month: number;
+  year: number;
+  periodStart: Date | string;
+  periodEnd: Date | string;
+  status: "draft" | "calculated" | "submitted" | "approved" | "paid" | "closed" | string;
+  totalGross: number;
+  totalDeductions: number;
+  totalNet: number;
+  totalEmployerCost: number;
+  approvedById?: string | null;
+  approvedAt?: Date | string | null;
+  paidAt?: Date | string | null;
+  items?: PayrollItem[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export interface PayrollItem {
+  id: string;
+  payrollRunId: string;
+  employeeId: string;
+  employee?: Employee | { id: string; employeeNumber: string; firstNameEn: string; lastNameEn: string; [key: string]: any };
+  basicSalary: number;
+  housingAllowance: number;
+  transportAllowance: number;
+  otherAllowances: number;
+  grossSalary: number;
+  gosiEmployee: number;
+  gosiEmployer: number;
+  externalSupport?: number;
+  otherDeductions: number;
+  netSalary: number;
+  paymentStatus: "pending" | "paid" | string;
+  payslip?: Payslip;
+  createdAt: Date | string;
+}
+
+export interface Payslip {
+  id: string;
+  payrollItemId: string;
+  employeeId: string;
+  month: number;
+  year: number;
+  storagePath?: string | null;
+  issuedAt: Date | string;
+}
+
+export interface ContributionSetting {
+  mode: "percentage" | "fixed";
+  value: number;
+}
+export interface EmployeeSupport extends ContributionSetting {
+  provider: string;
+  startMonth: string;
+  endMonth: string;
+}
+export interface EmployeePayrollSettings {
+  employee: ContributionSetting;
+  employer: ContributionSetting;
+  supports: EmployeeSupport[];
 }

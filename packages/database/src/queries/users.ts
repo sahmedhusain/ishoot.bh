@@ -15,6 +15,10 @@ function mapUser(u: any): Profile {
     manager_id: u.managerId || undefined,
     manager_name: u.manager?.fullName || undefined,
     is_active: u.isActive,
+    employee_id: u.employee?.id,
+    employee_status: u.employee?.status,
+    suspended_at: u.suspendedAt?.toISOString(),
+    archived_at: u.archivedAt?.toISOString(),
     last_login_at: u.lastLoginAt ? u.lastLoginAt.toISOString() : undefined,
     permissions: u.permissions || undefined,
     created_at: u.createdAt.toISOString(),
@@ -27,6 +31,7 @@ export async function getAllUsers(): Promise<Profile[]> {
     const users = await db.user.findMany({
       include: {
         manager: { select: { fullName: true } },
+        employee: { select: { id: true, status: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -43,6 +48,7 @@ export async function getUserById(id: string): Promise<Profile | null> {
       where: { id },
       include: {
         manager: { select: { fullName: true } },
+        employee: { select: { id: true, status: true } },
       },
     });
     return user ? mapUser(user) : null;
@@ -117,6 +123,7 @@ export async function updateUser(
       data: updateData,
       include: {
         manager: { select: { fullName: true } },
+        employee: { select: { id: true, status: true } },
       },
     });
     return mapUser(updated);

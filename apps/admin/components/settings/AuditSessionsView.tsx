@@ -24,6 +24,25 @@ interface AuditSessionsViewProps {
 
 export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
   const { t, locale } = useAdminLocale();
+  const actionLabel = (value: string) =>
+    (t.auditDetails.actions as Record<string, string>)[value] ||
+    value.replaceAll("_", " ");
+  const entityLabel = (value: string) =>
+    (t.auditDetails.entities as Record<string, string>)[value] ||
+    value.replaceAll("_", " ");
+  const fieldLabel = (value: string) =>
+    (t.auditDetails.fields as Record<string, string>)[value] ||
+    value.replaceAll("_", " ");
+  const showValue = (value: unknown) =>
+    value == null
+      ? "—"
+      : typeof value === "object"
+        ? JSON.stringify(value, null, 2)
+        : typeof value === "boolean"
+          ? value
+            ? t.hrExtensions.active
+            : t.hrExtensions.inactive
+          : String(value);
   const [logs] = React.useState<ActivityLog[]>(initialLogs);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedAction, setSelectedAction] = React.useState<string>("all");
@@ -106,7 +125,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
           </Badge>
         );
       default:
-        return <Badge variant="outline">{action}</Badge>;
+        return <Badge variant="outline">{actionLabel(action)}</Badge>;
     }
   };
 
@@ -155,9 +174,11 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-lg  font-bold text-white">8</div>
+            <div className="text-lg  font-bold text-white">
+              {new Set(logs.map((log) => log.user_id).filter(Boolean)).size}
+            </div>
             <div className="text-xs text-[#9EADA9]">
-              {t.audit.authorizedUsers}
+              {t.hrExtensions.actors}
             </div>
           </div>
         </Card>
@@ -167,9 +188,9 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             <Laptop className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-lg  font-bold text-white">1</div>
+            <div className="text-lg  font-bold text-white">{logs.length}</div>
             <div className="text-xs text-[#9EADA9]">
-              {t.audit.activeSession}
+              {t.hrExtensions.events}
             </div>
           </div>
         </Card>
@@ -179,8 +200,10 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             <Shield className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-lg  font-bold text-white">100%</div>
-            <div className="text-xs text-[#9EADA9]">{t.audit.enforcement}</div>
+            <div className="text-lg  font-bold text-white">
+              {t.hrExtensions.scope}
+            </div>
+            <div className="text-xs text-[#9EADA9]">{t.audit.eventsLogged}</div>
           </div>
         </Card>
       </div>
@@ -204,11 +227,13 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             className="px-3 py-2 rounded-xl bg-[#050807] border border-white/10 text-xs text-white focus:outline-none focus:border-[#09937F]"
           >
             <option value="all">{t.audit.allActions}</option>
-            <option value="login">{t.audit.loginAction}</option>
-            <option value="create">{t.audit.createAction}</option>
-            <option value="update">{t.audit.updateAction}</option>
-            <option value="delete">{t.audit.deleteAction}</option>
-            <option value="stage_change">{t.audit.stageChangeAction}</option>
+            {Array.from(new Set(logs.map((log) => log.action)))
+              .sort()
+              .map((action) => (
+                <option key={action} value={action}>
+                  {actionLabel(action)}
+                </option>
+              ))}
           </select>
 
           <select
@@ -217,11 +242,13 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
             className="px-3 py-2 rounded-xl bg-[#050807] border border-white/10 text-xs text-white focus:outline-none focus:border-[#09937F]"
           >
             <option value="all">{t.audit.allEntities}</option>
-            <option value="invoice">{t.audit.invoicesEntity}</option>
-            <option value="payment">{t.audit.paymentsEntity}</option>
-            <option value="deal">{t.audit.dealsEntity}</option>
-            <option value="company_settings">{t.audit.settingsEntity}</option>
-            <option value="auth">{t.audit.authEntity}</option>
+            {Array.from(new Set(logs.map((log) => log.entity_type)))
+              .sort()
+              .map((entity) => (
+                <option key={entity} value={entity}>
+                  {entityLabel(entity)}
+                </option>
+              ))}
           </select>
         </div>
       </Card>
@@ -260,10 +287,10 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                         </div>
                         <div>
                           <div className="font-bold text-white">
-                            {log.user?.full_name || "System / Admin"}
+                            {log.user?.full_name || t.hrExtensions.unknown}
                           </div>
                           <div className="text-[10px] text-[#9EADA9] ">
-                            {log.user?.email || "system@ishoot.bh"}
+                            {log.user?.email || "—"}
                           </div>
                         </div>
                       </div>
@@ -274,7 +301,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
                     <td className="p-4">
                       <div className="flex items-center gap-1.5  text-white capitalize">
                         {getEntityIcon(log.entity_type)}
-                        <span>{log.entity_type.replace("_", " ")}</span>
+                        <span>{entityLabel(log.entity_type)}</span>
                       </div>
                       {log.entity_id && (
                         <div className="text-[10px] text-[#9EADA9]  mt-0.5">
@@ -285,14 +312,106 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
 
                     <td className="p-4 max-w-xs">
                       {log.details ? (
-                        <div
-                          className=" text-[11px] text-[#9EADA9] truncate"
-                          title={JSON.stringify(log.details)}
-                        >
-                          {Object.entries(log.details)
-                            .map(([k, v]) => `${k}: ${v}`)
-                            .join(" | ")}
-                        </div>
+                        <details>
+                          <summary className="cursor-pointer text-emerald-500">
+                            {t.hrExtensions.details}
+                          </summary>
+                          {log.details.before &&
+                          log.details.after &&
+                          typeof log.details.before === "object" &&
+                          typeof log.details.after === "object" ? (
+                            <table className="mt-3 text-xs w-full table-fixed">
+                              <thead>
+                                <tr>
+                                  <th className="text-start">
+                                    {t.auditDetails.field}
+                                  </th>
+                                  <th className="text-start">
+                                    {t.auditDetails.before}
+                                  </th>
+                                  <th className="text-start">
+                                    {t.auditDetails.after}
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {Array.from(
+                                  new Set([
+                                    ...Object.keys(log.details.before),
+                                    ...Object.keys(log.details.after),
+                                  ]),
+                                )
+                                  .filter(
+                                    (key) =>
+                                      !["updatedAt", "updated_at"].includes(
+                                        key,
+                                      ) &&
+                                      JSON.stringify(
+                                        (
+                                          log.details!.before as Record<
+                                            string,
+                                            unknown
+                                          >
+                                        )[key],
+                                      ) !==
+                                        JSON.stringify(
+                                          (
+                                            log.details!.after as Record<
+                                              string,
+                                              unknown
+                                            >
+                                          )[key],
+                                        ),
+                                  )
+                                  .map((key) => (
+                                    <tr
+                                      key={key}
+                                      className="align-top border-t border-white/10"
+                                    >
+                                      <td className="py-2">
+                                        {fieldLabel(key)}
+                                      </td>
+                                      <td className="p-2 text-rose-400 whitespace-pre-wrap break-words">
+                                        {showValue(
+                                          (
+                                            log.details!.before as Record<
+                                              string,
+                                              unknown
+                                            >
+                                          )[key],
+                                        )}
+                                      </td>
+                                      <td className="p-2 text-emerald-400 whitespace-pre-wrap break-words">
+                                        {showValue(
+                                          (
+                                            log.details!.after as Record<
+                                              string,
+                                              unknown
+                                            >
+                                          )[key],
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <dl className="space-y-2 mt-2">
+                              {Object.entries(log.details).map(
+                                ([key, value]) => (
+                                  <div key={key}>
+                                    <dt className="font-semibold">
+                                      {fieldLabel(key)}
+                                    </dt>
+                                    <dd className="break-words whitespace-pre-wrap">
+                                      {showValue(value)}
+                                    </dd>
+                                  </div>
+                                ),
+                              )}
+                            </dl>
+                          )}
+                        </details>
                       ) : (
                         <span className="text-[#9EADA9]/50">—</span>
                       )}
@@ -300,7 +419,7 @@ export function AuditSessionsView({ initialLogs }: AuditSessionsViewProps) {
 
                     <td className="p-4  text-[#9EADA9]">
                       <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[11px]">
-                        {log.ip_address || "127.0.0.1"}
+                        {log.ip_address || "—"}
                       </span>
                     </td>
 

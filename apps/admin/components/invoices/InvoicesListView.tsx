@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import type { FinancialSummary } from "@ishoot/database/types";
 import { Button,StatusBadge,CurrencyDisplay } from "@ishoot/ui";
-import { Plus,Eye,ExternalLink } from "lucide-react";
+import { Plus, Eye, ExternalLink, FileCheck, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import type { InvoiceListRow } from "@ishoot/database";
@@ -12,15 +12,18 @@ import type { InvoiceListRow } from "@ishoot/database";
 interface InvoicesListViewProps {
   initialInvoices: InvoiceListRow[];
   finance: Pick<FinancialSummary, "outstanding" | "overdue" | "discountsGiven">;
+  acceptedQuotations?: any[];
 }
 
 export function InvoicesListView({
   initialInvoices,
   finance,
+  acceptedQuotations = [],
 }: InvoicesListViewProps) {
-  const { t } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
   const [invoices] = React.useState<InvoiceListRow[]>(initialInvoices);
   const filteredInvoices = invoices;
+  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
@@ -43,6 +46,73 @@ export function InvoicesListView({
           </Button>
         </Link>
       </div>
+
+      {/* Accepted Quotations Banner (Ready for Invoicing) */}
+      {acceptedQuotations.length > 0 && (
+        <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200/80 dark:bg-teal-950/20 dark:border-teal-900/40 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-[#014842] text-white">
+                <FileCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>{t.invoicesList.acceptedQuotesBanner || (isRTL ? "عروض أسعار مقبولة جاهزة للفوترة" : "Accepted Quotations Ready for Invoicing")}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-[#014842] dark:text-[#7de0d1]">
+                    {acceptedQuotations.length}
+                  </span>
+                </h3>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                  {t.invoicesList.acceptedQuotesSubtitle || (isRTL
+                    ? "تم قبول هذه العروض من العملاء ويمكنك إصدار الفواتير الضريبية لها بضغطة زر."
+                    : "Clients accepted these quotes. You can create tax invoices directly from them.")}
+                </p>
+              </div>
+            </div>
+            <Link href="/dashboard/quotations?status=accepted">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-[#014842] dark:text-[#7de0d1] hover:underline"
+              >
+                <span>{isRTL ? "عرض الكل" : "View All"}</span>
+                <ArrowIcon className="w-3.5 h-3.5 ml-1 rtl:mr-1" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+            {acceptedQuotations.slice(0, 3).map((q) => (
+              <div
+                key={q.id}
+                className="p-3 bg-white dark:bg-[#121B19] rounded-xl border border-teal-100 dark:border-teal-900/30 flex items-center justify-between gap-3 shadow-xs hover:border-teal-300 dark:hover:border-teal-700 transition-colors"
+              >
+                <div className="min-w-0">
+                  <div className="font-mono font-bold text-xs text-slate-900 dark:text-white">
+                    {q.quotationNumber}
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                    {q.client?.companyName || q.client?.firstName || "Direct Client"}
+                  </div>
+                  <div className="text-xs font-mono font-semibold text-[#014842] dark:text-[#7de0d1] mt-1">
+                    {Number(q.totalAmount).toFixed(3)} {q.currency}
+                  </div>
+                </div>
+
+                <Link href={`/dashboard/invoices/new?quotationId=${q.id}`}>
+                  <Button
+                    size="sm"
+                    className="bg-[#014842] hover:bg-[#013833] text-white text-[11px] font-semibold gap-1 px-3 py-1.5 rounded-lg active:scale-[0.98] transition-all shrink-0"
+                  >
+                    <span>{t.invoicesList.createInvoiceFromQuote || (isRTL ? "إصدار فاتورة" : "Create Invoice")}</span>
+                    <ArrowIcon className="w-3 h-3" />
+                  </Button>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* KPI Chips */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

@@ -797,13 +797,13 @@ export async function globalAdminSearch(
   return results;
 }
 
-export async function getCRMDealOverview() {
+export async function getCRMDealOverview(includeAnalytics = true) {
   const [groups, recent] = await Promise.all([
-    db.crmDeal.groupBy({
+    includeAnalytics ? db.crmDeal.groupBy({
       by: ["dealStage", "currency"],
       _count: { _all: true },
       _sum: { dealValue: true },
-    }),
+    }) : Promise.resolve([]),
     db.crmDeal.findMany({
       take: 5,
       include: { contact: true },
