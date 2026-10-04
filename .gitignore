@@ -34,3 +34,14 @@ apps/*/.next-verify/
 
 # Isolated verification builds
 .next-audit/
+
+# Vercel Deployment Cache
+.vercel/
+
+# IDE & Editor Settings
+.idea/
+.vscode/
+
+# Raw Design Assets
+ishoot/
+*.ai
