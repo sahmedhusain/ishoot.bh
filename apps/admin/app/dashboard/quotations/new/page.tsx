@@ -1,5 +1,6 @@
 import { requirePermission } from "../../../../lib/auth";
-import { getCRMContactById, getCompanySettings, getAllServices } from "@ishoot/database";
+import { getCRMContactById, getAllServices } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewQuotationFormView } from "../../../../components/quotations/NewQuotationFormView";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export default async function NewQuotationPage({
     params?.clientId
       ? getCRMContactById(params.clientId).then((c) => (c ? [c] : []))
       : Promise.resolve([]),
-    getCompanySettings(),
+    getCachedCompanySettings(),
     getAllServices({ isActive: true }),
   ]);
 

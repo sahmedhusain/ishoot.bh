@@ -28,6 +28,7 @@ function loadTs(file, mocks) {
     module: mod,
     exports: mod.exports,
     require: (id) => {
+      id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
       if (id in mocks) return mocks[id];
       if (id.startsWith("node:")) return require(id);
       throw new Error(`Unmocked dependency in ${file}: ${id}`);

@@ -1,12 +1,6 @@
 import { getCurrentPermissions,requireAuth } from "../../lib/auth";
-import {
-getFinancialSummary,
-getMonthlyCashflow,
-getCRMDealOverview,
-db,
-getCompanySettings,
-getCalendarEvents,
-} from "@ishoot/database";
+import { getFinancialSummary, getMonthlyCashflow, getCRMDealOverview, db, getCalendarEvents } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../lib/cached-queries";
 import { ExecutiveDashboardView } from "../../components/dashboard/ExecutiveDashboardView";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +44,7 @@ export default async function DashboardPage() {
             },
           })
         : Promise.resolve(0),
-      getCompanySettings(),
+      getCachedCompanySettings(),
       canCalendar
         ? getCalendarEvents(new Date(), undefined, 3)
         : Promise.resolve([]),

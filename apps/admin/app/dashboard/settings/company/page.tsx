@@ -1,5 +1,6 @@
 import { requirePermission } from "../../../../lib/auth";
-import { getCompanySettings,getCompanyAssets } from "@ishoot/database";
+import { getCompanyAssets } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { CompanySettingsView } from "../../../../components/settings/CompanySettingsView";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function CompanySettingsPage() {
   await requirePermission("settings", "read");
   const [settings, assets] = await Promise.all([
-    getCompanySettings(),
+    getCachedCompanySettings(),
     getCompanyAssets(),
   ]);
 

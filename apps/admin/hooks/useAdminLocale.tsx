@@ -1,10 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { AdminLocale, adminTranslations, AdminTranslations } from "../lib/translations";
+import {
+  type AdminLocale,
+  type AdminTranslations,
+  DEFAULT_ADMIN_LOCALE,
+  defaultAdminTranslations,
+  loadAdminTranslations,
+} from "../lib/translations";
 
 const STORAGE_KEY = "ishoot_admin_locale";
-const DEFAULT_LOCALE: AdminLocale = "ar";
 
 interface AdminLocaleContextType {
   locale: AdminLocale;
@@ -22,29 +27,30 @@ export function AdminLocaleProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [locale, setLocaleState] = React.useState<AdminLocale>(DEFAULT_LOCALE);
+  const [state, setState] = React.useState<{ locale: AdminLocale; t: AdminTranslations }>({
+    locale: DEFAULT_ADMIN_LOCALE,
+    t: defaultAdminTranslations,
+  });
 
-  React.useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as AdminLocale;
-    if (saved === "en" || saved === "ar") {
-      setLocaleState(saved);
-      document.documentElement.dir = saved === "ar" ? "rtl" : "ltr";
-      document.documentElement.lang = saved;
-    } else {
-      document.documentElement.dir = "rtl";
-      document.documentElement.lang = "ar";
-    }
+  const applyLocale = React.useCallback(async (next: AdminLocale) => {
+    const dictionary = await loadAdminTranslations(next);
+    setState({ locale: next, t: dictionary });
+    document.documentElement.dir = next === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = next;
   }, []);
 
+  React.useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    void applyLocale(saved === "en" || saved === "ar" ? saved : DEFAULT_ADMIN_LOCALE);
+  }, [applyLocale]);
+
   const setLocale = (newLocale: AdminLocale) => {
-    setLocaleState(newLocale);
     localStorage.setItem(STORAGE_KEY, newLocale);
-    document.documentElement.dir = newLocale === "ar" ? "rtl" : "ltr";
-    document.documentElement.lang = newLocale;
+    void applyLocale(newLocale);
   };
 
+  const { locale, t } = state;
   const isRTL = locale === "ar";
-  const t = adminTranslations[locale];
 
   return (
     <AdminLocaleContext.Provider value={{ locale, isRTL, setLocale, t }}>
@@ -57,10 +63,10 @@ export function useAdminLocale() {
   const context = React.useContext(AdminLocaleContext);
   if (!context) {
     return {
-      locale: "ar" as AdminLocale,
-      isRTL: true,
+      locale: DEFAULT_ADMIN_LOCALE,
+      isRTL: DEFAULT_ADMIN_LOCALE === "ar",
       setLocale: () => { },
-      t: adminTranslations.ar,
+      t: defaultAdminTranslations,
     };
   }
   return context;

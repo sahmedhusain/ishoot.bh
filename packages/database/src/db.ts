@@ -10,7 +10,7 @@ if (!databaseUrl) {
   }
 }
 
-import { PrismaClient, type Prisma } from "../prisma/generated/client";
+import { PrismaClient, type Prisma } from "@prisma/client";
 
 const prismaClientSingleton = () => {
   const client = new PrismaClient({

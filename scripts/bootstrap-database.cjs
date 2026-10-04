@@ -41,7 +41,7 @@ async function main() {
   if (process.env.COMPANY_CONFIG_FILE) initialCompany = JSON.parse(require("node:fs").readFileSync(process.env.COMPANY_CONFIG_FILE,"utf8"));
   else if (process.env.NODE_ENV === "production") throw new Error("Production bootstrap requires COMPANY_CONFIG_FILE with approved business identity");
   if (!initialCompany.companyNameEn?.trim() || !initialCompany.companyNameAr?.trim()) throw new Error("Company names are required");
-  const hash = await bcrypt.hash(password, 12);
+  const hash = await bcrypt.hash(password, 10);
   await db.$transaction(
     async (tx) => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(19041004)::text`;

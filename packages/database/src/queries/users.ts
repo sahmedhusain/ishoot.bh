@@ -2,6 +2,8 @@ import { db } from "../db";
 import { Profile, UserRole } from "../types";
 import bcrypt from "bcryptjs";
 
+export const PASSWORD_HASH_ROUNDS = 10;
+
 function mapUser(u: any): Profile {
   return {
     id: u.id,
@@ -70,7 +72,7 @@ export async function createUser(data: {
 }): Promise<Profile> {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) throw new Error("Invalid user email");
   if (data.manager_id) await validateManager(data.manager_id);
-  const passwordHash = await bcrypt.hash(data.password, 10);
+  const passwordHash = await bcrypt.hash(data.password, PASSWORD_HASH_ROUNDS);
   const created = await db.user.create({
     data: {
       fullName: data.full_name,
@@ -115,7 +117,7 @@ export async function updateUser(
     if (data.permissions !== undefined)
       updateData.permissions = data.permissions;
     if (data.password) {
-      updateData.passwordHash = await bcrypt.hash(data.password, 10);
+      updateData.passwordHash = await bcrypt.hash(data.password, PASSWORD_HASH_ROUNDS);
     }
 
     const updated = await db.user.update({
@@ -182,9 +184,14 @@ export async function verifyUserCredentials(
       return null;
     }
 
+    // Rehash legacy hashes created with a different cost so every login pays the same bcrypt price.
+    const needsRehash = bcrypt.getRounds(user.passwordHash) !== PASSWORD_HASH_ROUNDS;
     await db.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
+      data: {
+        lastLoginAt: new Date(),
+        ...(needsRehash ? { passwordHash: await bcrypt.hash(plainTextPassword, PASSWORD_HASH_ROUNDS) } : {}),
+      },
     });
 
     return mapUser(user);

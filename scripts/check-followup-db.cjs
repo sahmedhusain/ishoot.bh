@@ -367,7 +367,7 @@ main()
     if (savedWebsite) {
       const {
         Prisma,
-      } = require("../packages/database/prisma/generated/client");
+      } = require("../packages/database/node_modules/@prisma/client");
       await db.websiteContent.update({
         where: { id: "main" },
         data: {

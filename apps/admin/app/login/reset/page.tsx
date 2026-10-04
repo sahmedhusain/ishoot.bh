@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Metadata } from "next";
 import { getCompanySettings } from "@ishoot/database";
-import { adminTranslations } from "../../../lib/translations";
+import { adminTranslations } from "../../../lib/translations-bilingual";
 import { ResetPasswordForm } from "../../../components/auth/ResetPasswordForm";
 
 export const metadata: Metadata = {

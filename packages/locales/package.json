@@ -9,5 +9,10 @@
   },
   "scripts": {
     "type-check": "tsc --noEmit"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./admin/en": "./src/admin/en.json",
+    "./admin/ar": "./src/admin/ar.json"
   }
 }

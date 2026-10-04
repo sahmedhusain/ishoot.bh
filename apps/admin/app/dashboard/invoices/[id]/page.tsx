@@ -1,10 +1,7 @@
 import { requirePermission } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
-import {
-getInvoiceById,
-getCompanySettings,
-getAllPayments,
-} from "@ishoot/database";
+import { getInvoiceById, getAllPayments } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { InvoiceDetailView } from "../../../../components/invoices/InvoiceDetailView";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +19,7 @@ export default async function InvoiceDetailPage({
 
   const [invoice, company, allPayments] = await Promise.all([
     getInvoiceById(id),
-    getCompanySettings(),
+    getCachedCompanySettings(),
     getAllPayments({invoiceId:id}),
   ]);
 

@@ -50,8 +50,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
         return;
       }
 
-      router.push(callbackUrl);
-      router.refresh();
+      router.replace(callbackUrl);
     } catch {
       setErrorMessage(t.loginView.errorGeneric);
       setLoading(false);

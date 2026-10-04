@@ -8,7 +8,11 @@
     ".": "./src/index.ts",
     "./types": "./src/types.ts",
     "./config": "./src/initial-company-config.json",
-    "./website-config": "./src/website-config.ts"
+    "./website-config": "./src/website-config.ts",
+    "./db": "./src/db.ts",
+    "./observability": "./src/observability.ts",
+    "./queries/*": "./src/queries/*.ts",
+    "./services/*": "./src/services/*.ts"
   },
   "scripts": {
     "db:generate": "prisma generate --schema=prisma/schema.prisma",

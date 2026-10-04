@@ -10,6 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const nextConfig = {
   reactStrictMode: true,
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  serverExternalPackages: ['@supabase/supabase-js', 'libphonenumber-js'],
   transpilePackages: ['@ishoot/ui', '@ishoot/database', '@ishoot/locales', '@ishoot/email', '@ishoot/config'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@ishoot/ui'],

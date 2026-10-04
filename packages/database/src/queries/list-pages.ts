@@ -1,4 +1,4 @@
-import type { Prisma } from "../../prisma/generated/client";
+import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
 import { mapContact, mapDeal } from "./crm";
 import type { Invoice, Payment } from "../types";
@@ -515,7 +515,7 @@ export async function getAttachmentsPage(
   batch?: ExportBatch,
 ) {
   const f = listParameters(input);
-  const { Prisma } = await import("../../prisma/generated/client");
+  const { Prisma } = await import("@prisma/client");
   const { getAllAttachments } = await import("./attachments");
   const { runAtomicMutation } = await import("../db");
   const pattern = `%${f.q.replace(/[\\%_]/g, "\\$&")}%`;

@@ -2,7 +2,7 @@
 
 import type { Payment,CompanySettings } from "@ishoot/database/types";
 import { formatCurrencyValue } from "@ishoot/ui";
-import { adminTranslations } from "../../lib/translations";
+import { adminTranslations } from "../../lib/translations-bilingual";
 import {
 DocumentLetterhead,
 DocumentFooter,

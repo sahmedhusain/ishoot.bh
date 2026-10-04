@@ -1,6 +1,6 @@
 require("dotenv").config({ quiet: true });
 const crypto = require("crypto");
-const { PrismaClient } = require("../packages/database/prisma/generated/client");
+const { PrismaClient } = require("../packages/database/node_modules/@prisma/client");
 const prisma = new PrismaClient();
 
 async function main() {

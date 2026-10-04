@@ -21,7 +21,9 @@
   },
   "ignoreDependencies": [
     "eslint-config-next",
-    "@prisma/client"
+    "@prisma/client",
+    "@supabase/supabase-js",
+    "libphonenumber-js"
   ],
   "ignoreIssues": {
     "apps/admin/app/actions/mom.ts": [

@@ -15,7 +15,7 @@ ArrowRight
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createMomAction } from "../../app/actions/mom";
-import { MomAttendee,MomDiscussionPoint,MomActionItem } from "@ishoot/database";
+import type { MomAttendee, MomDiscussionPoint, MomActionItem } from "@ishoot/database";
 
 interface NewMomFormViewProps {
   clients: Array<{ id: string; name: string; company?: string | null }>;

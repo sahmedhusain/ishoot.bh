@@ -5383,15 +5383,6 @@
       }
     }
   },
-  "getNotificationsAction": {
-    "kind": "object",
-    "fields": {
-      "userId": {
-        "kind": "string",
-        "optional": true
-      }
-    }
-  },
   "markNotificationReadAction": {
     "kind": "object",
     "fields": {

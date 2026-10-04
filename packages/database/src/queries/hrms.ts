@@ -1,5 +1,5 @@
 import { parsePayrollSettings } from "../payroll-calculation";
-import type { Prisma } from "../../prisma/generated/client";
+import type { Prisma } from "@prisma/client";
 import { db } from "../db";
 import { Employee, Department, EmployeePayrollSettings } from "../types";
 import { getNextSequenceNumber } from "./sequence";

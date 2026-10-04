@@ -7,7 +7,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 import fs from "fs";
 import crypto from "crypto";
-import { PrismaClient } from "./generated/client";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { defaultWebsiteConfig } from "../src/website-config";
 import { collectWebsiteDraft } from "../src/queries/website";

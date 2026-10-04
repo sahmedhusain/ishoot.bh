@@ -1,6 +1,8 @@
 import { db } from "../db";
 import { ActivityLog } from "../types";
 
+const ACTIVITY_USER_SELECT = { id: true, fullName: true, email: true, role: true, avatarUrl: true, createdAt: true, updatedAt: true } as const;
+
 function mapActivity(a: any): ActivityLog {
   return {
     id: a.id,
@@ -64,7 +66,7 @@ export async function createActivityLog(data: {
       ipAddress: data.ip_address || null,
       userAgent: data.user_agent || null,
     },
-    include: { user: true },
+    include: { user: { select: ACTIVITY_USER_SELECT } },
   });
   return mapActivity(created);
 }

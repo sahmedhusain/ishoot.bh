@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Metadata } from "next";
 import { AdminLoginFormView } from "../../components/auth/AdminLoginFormView";
-import {getCompanySettings} from "@ishoot/database";
-import { adminTranslations } from "../../lib/translations";
+import { getCachedCompanySettings } from "../../lib/cached-queries";
+import { adminTranslations } from "../../lib/translations-bilingual";
 
 export const metadata: Metadata = {
   title: `${adminTranslations.en.loginView.title} | ${adminTranslations.en.brandName}`,
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 export default async function LoginPage() {
-  const company = await getCompanySettings();
+  const company = await getCachedCompanySettings();
   return (
     <React.Suspense
       fallback={

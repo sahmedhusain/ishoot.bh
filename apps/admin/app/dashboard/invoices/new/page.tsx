@@ -1,11 +1,6 @@
 import { requirePermission } from "../../../../lib/auth";
-import {
-  getCRMContactById,
-  getCompanySettings,
-  getAllServices,
-  getAcceptedQuotationsUninvoiced,
-  getQuotationById,
-} from "@ishoot/database";
+import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewInvoiceFormView } from "../../../../components/invoices/NewInvoiceFormView";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +16,7 @@ export default async function NewInvoicePage({
 
   const [acceptedQuotations, company, services] = await Promise.all([
     getAcceptedQuotationsUninvoiced(),
-    getCompanySettings(),
+    getCachedCompanySettings(),
     getAllServices({ isActive: true }),
   ]);
 

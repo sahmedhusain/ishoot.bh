@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { getCompanySettings } from "@ishoot/database";
-import { adminTranslations } from "../../../lib/translations";
+import { adminTranslations } from "../../../lib/translations-bilingual";
 import { ForgotPasswordForm } from "../../../components/auth/ForgotPasswordForm";
 
 export const metadata: Metadata = {

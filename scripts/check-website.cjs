@@ -147,7 +147,7 @@ async function main() {
   );
   await db.websiteContent.update({
     where: { id: "main" },
-    data: { draft: content.draft, published: content.published ?? require("../packages/database/prisma/generated/client").Prisma.DbNull, publishedAt:content.publishedAt },
+    data: { draft: content.draft, published: content.published ?? require("../packages/database/node_modules/@prisma/client").Prisma.DbNull, publishedAt:content.publishedAt },
   });
   await db.review.delete({ where: { id: review.id } });
   await db.inquiry.deleteMany({

@@ -970,7 +970,7 @@ export type {
   Review,
   FeatureToggle,
   Role,
-} from "../prisma/generated/client";
+} from "@prisma/client";
 
 export interface SocialLink {
   id: string;

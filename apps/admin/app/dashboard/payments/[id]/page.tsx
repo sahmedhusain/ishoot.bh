@@ -1,6 +1,7 @@
 import { requirePermission } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { getPaymentById,getCompanySettings } from "@ishoot/database";
+import { getPaymentById } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { PaymentDetailView } from "../../../../components/payments/PaymentDetailView";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +18,7 @@ export default async function PaymentDetailPage({
 
   const [payment, company] = await Promise.all([
     getPaymentById(id),
-    getCompanySettings(),
+    getCachedCompanySettings(),
   ]);
 
   if (!payment || !company) {

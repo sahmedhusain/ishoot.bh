@@ -1,6 +1,6 @@
 import { verifyStoredUpload } from "./storage";
 import path from "node:path";
-import type { Prisma } from "../../prisma/generated/client";
+import type { Prisma } from "@prisma/client";
 export function uploadRoot() {
   const configured = process.env.UPLOAD_ROOT;
   if (process.env.NODE_ENV === "production" && (!configured || !path.isAbsolute(configured)))

@@ -1,11 +1,7 @@
 import { requirePermission } from "../../../../../lib/auth";
 import { notFound } from "next/navigation";
-import {
-getInvoiceById,
-getCRMContactById,
-getCompanySettings,
-getAllServices,
-} from "@ishoot/database";
+import { getInvoiceById, getCRMContactById, getAllServices } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { InvoiceEditFormView } from "../../../../../components/invoices/InvoiceEditFormView";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +21,7 @@ export default async function InvoiceEditPage({
   const [invoice, contacts, company, services] = await Promise.all([
     invoicePromise,
     invoicePromise.then(inv=>inv?.contact_id ? getCRMContactById(inv.contact_id).then(c=>c?[c]:[]) : []),
-    getCompanySettings(),
+    getCachedCompanySettings(),
     getAllServices({ isActive: true }),
   ]);
 

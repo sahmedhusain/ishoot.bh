@@ -1,5 +1,5 @@
 import { db } from "../db";
-import type { Prisma } from "../../prisma/generated/client";
+import type { Prisma } from "@prisma/client";
 import { Inquiry } from "../types";
 
 function mapInquiry(inq: any): Inquiry {

@@ -25,6 +25,7 @@ function load(file, mocks) {
       require: (id) => {
         if (id === "node:crypto") return require(id);
         if (id === "../../lib/pdf/mom-pdf") return {};
+        id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
         if (!(id in mocks)) throw Error(`Missing mock ${id}`);
         return mocks[id];
       },

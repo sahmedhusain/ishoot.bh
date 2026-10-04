@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { MinuteOfMeetingItem } from "@ishoot/database";
+import type { MinuteOfMeetingItem } from "@ishoot/database";
 import { Card,Button,ConfirmDestructiveModal } from "@ishoot/ui";
 import {
 FileSignature,

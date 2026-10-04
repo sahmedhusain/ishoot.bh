@@ -5,7 +5,7 @@ const ts = require('typescript');
 function load(file, mocks = {}) {
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-  vm.runInNewContext(code, { module, exports: module.exports, require(id) { if (!(id in mocks)) throw new Error('Unmocked dependency ' + id); return mocks[id]; }, Date, Intl, Set, Array, JSON, Number, Math, Blob, FormData, AbortSignal });
+  vm.runInNewContext(code, { module, exports: module.exports, require(id) { id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks); if (!(id in mocks)) throw new Error('Unmocked dependency ' + id); return mocks[id]; }, Date, Intl, Set, Array, JSON, Number, Math, Blob, FormData, AbortSignal });
   return module.exports;
 }
 async function main() {
@@ -37,8 +37,8 @@ async function main() {
     assert.equal(formatCurrencyValue(12, 'INR', ar), '12.00 ₹');
     assert.equal(formatCurrencyValue(12, 'jod', ar), '12.000 JOD');
   }
-  const en = require('../packages/locales/src/en.json').admin;
-  const ar = require('../packages/locales/src/ar.json').admin;
+  const en = require('../packages/locales/src/admin/en.json');
+  const ar = require('../packages/locales/src/admin/ar.json');
   assert.deepEqual(Object.keys(en.hrText).sort(), Object.keys(ar.hrText).sort());
   assert.deepEqual(Object.keys(en.hrExtensions).sort(), Object.keys(ar.hrExtensions).sort());
   let actor = { id: 'employee-user', role: 'producer' }, manager = false, creates = [], audit = [];

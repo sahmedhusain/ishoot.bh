@@ -1,6 +1,6 @@
 require('ts-node').register({transpileOnly:true,skipProject:true,compilerOptions:{module:'CommonJS',target:'ES2022',moduleResolution:'Node',esModuleInterop:true}});
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
-function load(file,mocks){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:id=>{if(!(id in mocks))throw Error('Missing mock '+id);return mocks[id];},process,Buffer,Date,console});return module.exports;}
+function load(file,mocks){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:id=>{id=((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id,mocks);if(!(id in mocks))throw Error('Missing mock '+id);return mocks[id];},process,Buffer,Date,console});return module.exports;}
 async function main(){
   let metadata={size:123,contentType:'application/pdf'},downloads=0,creates=0,claims=0,access=0;
   const storage=load('packages/database/src/services/storage.ts',{'@supabase/supabase-js':{createClient:()=>({storage:{from:bucket=>({info:async path=>({data:metadata,error:null}),download:async()=>{downloads++;}})}})}});

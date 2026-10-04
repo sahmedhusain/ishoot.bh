@@ -16,23 +16,24 @@ ExternalLink,
 import type { Notification } from "@ishoot/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
-getNotificationsAction,
 markNotificationReadAction,
 markAllNotificationsReadAction,
 } from "../../app/actions/notifications";
 import { formatDate } from "@ishoot/ui";
 
+const NOTIFICATION_POLL_MS = 30_000;
+
 export function NotificationCenter() {
   const { t, locale } = useAdminLocale();
   const [isOpen, setIsOpen] = React.useState(false);
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
-  React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const fetchNotifications = React.useCallback(async () => {
     try {
-      const items = await getNotificationsAction();
-      setNotifications(items);
+      const res = await fetch("/api/notifications", { cache: "no-store" });
+      if (!res.ok) return;
+      setNotifications(await res.json());
     } catch (err) {
       console.error("Failed to load notifications:", err);
     }
@@ -40,7 +41,9 @@ export function NotificationCenter() {
 
   React.useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") fetchNotifications();
+    }, NOTIFICATION_POLL_MS);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 

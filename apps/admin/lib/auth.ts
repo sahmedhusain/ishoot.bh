@@ -6,14 +6,14 @@ verifySessionToken,
 SessionJwtPayload,
 SESSION_COOKIE_NAME,
 } from "./jwt";
+import { getSessionByToken } from "@ishoot/database/queries/sessions";
 import {
-getSessionByToken,
-getEffectivePermissions,
-memoizeOperation,
-Profile,
-PermissionResource,
-PermissionAction,
-} from "@ishoot/database";
+  getEffectivePermissions,
+  type PermissionResource,
+  type PermissionAction,
+} from "@ishoot/database/queries/permissions";
+import { memoizeOperation } from "@ishoot/database/observability";
+import type { Profile } from "@ishoot/database/types";
 export { SESSION_COOKIE_NAME } from "./jwt";
 
 export const SESSION_COOKIE_OPTIONS = {

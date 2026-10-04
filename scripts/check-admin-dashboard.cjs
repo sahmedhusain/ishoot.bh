@@ -14,6 +14,7 @@ function load(file, mocks, jsx = false) {
   }).outputText;
   vm.runInNewContext(code, { module, exports: module.exports, require(id) {
     if (jsx && id === 'react/jsx-runtime') return appRequire(id);
+    id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
     if (!(id in mocks)) throw Error('Unmocked dependency: ' + id);
     return mocks[id];
   }, console, Date, Intl, Set, Map });
@@ -21,7 +22,7 @@ function load(file, mocks, jsx = false) {
 }
 async function main() {
   for (const locale of ['en', 'ar']) {
-    const t = require('../packages/locales/src/' + locale + '.json').admin;
+    const t = require('../packages/locales/src/admin/' + locale + '.json');
     const node = (tag) => ({ children }) => React.createElement(tag, null, children);
     const { ExecutiveDashboardView } = load('apps/admin/components/dashboard/ExecutiveDashboardView.tsx', {
       'next/link': ({ href, children }) => React.createElement('a', { href }, children),

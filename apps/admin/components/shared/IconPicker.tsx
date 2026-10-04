@@ -1,9 +1,8 @@
 "use client";
 
 import * as React from "react";
-import * as LucideIcons from "lucide-react";
 import { Search,ChevronDown,Sparkles } from "lucide-react";
-import { motion,AnimatePresence } from "framer-motion";
+import { ICON_PAGE_SIZE, PICKABLE_ICONS, POPULAR_ICON_NAMES } from "../../constants/icons";
 
 interface IconPickerProps {
   value: string;
@@ -12,33 +11,8 @@ interface IconPickerProps {
   initialOpen?:boolean;
 }
 
-// Popular social & media icons curated for quick access
-const POPULAR_ICONS = [
-  "Instagram",
-  "Linkedin",
-  "Youtube",
-  "Facebook",
-  "Twitter",
-  "Video",
-  "Camera",
-  "Film",
-  "Globe",
-  "Share2",
-  "Phone",
-  "Mail",
-  "Send",
-  "MessageCircle",
-  "Music",
-  "Sparkles",
-  "Tv",
-  "Radio",
-  "Link",
-  "Compass",
-];
-
-const ALL_ICON_NAMES = Object.keys(LucideIcons).filter(
-  (name) => name !== "createLucideIcon" && (typeof (LucideIcons as any)[name] === "function" || !!(LucideIcons as any)[name]?.$$typeof)
-);
+const ALL_ICON_NAMES = Object.keys(PICKABLE_ICONS);
+const POPULAR_ICONS: readonly string[] = POPULAR_ICON_NAMES;
 
 export function IconPicker({ value, onChange, placeholder = "Select icon", initialOpen=false }: IconPickerProps) {
   const [isOpen, setIsOpen] = React.useState(initialOpen);
@@ -59,10 +33,10 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
   }, []);
 
   const matches = React.useMemo(()=>search.trim() ? ALL_ICON_NAMES.filter(name=>name.toLowerCase().includes(search.toLowerCase().trim())) : tab === "popular" ? POPULAR_ICONS : ALL_ICON_NAMES,[search,tab]);
-  const displayedIcons=matches.slice(page*50,(page+1)*50);
+  const displayedIcons=matches.slice(page*ICON_PAGE_SIZE,(page+1)*ICON_PAGE_SIZE);
   React.useEffect(()=>setPage(0),[search,tab]);
 
-  const SelectedIcon = value && (LucideIcons as any)[value] ? (LucideIcons as any)[value] : null;
+  const SelectedIcon = value ? PICKABLE_ICONS[value] ?? null : null;
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -89,13 +63,8 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
         <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#09937F]" : ""}`} />
       </button>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div id={menuId} role="dialog" aria-label="Select icon" onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();setIsOpen(false);}}}
-            initial={{ opacity: 0, scale: 0.95, y: 6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 6 }}
-            transition={{ duration: 0.15, ease: "easeOut" }}
+      {isOpen && (
+          <div id={menuId} role="dialog" aria-label="Select icon" onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();setIsOpen(false);}}}
             className="absolute z-50 top-full left-0 right-0 mt-2 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] max-w-[90vw]"
           >
             {/* Search Header */}
@@ -105,7 +74,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                 <input
                   type="text"
                   aria-label="Search icons"
-                  placeholder="Search 1,000+ icons..."
+                  placeholder="Search icons..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   autoFocus
@@ -141,11 +110,11 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
               )}
             </div>
 
-            <nav aria-label="Icon result pages" className="flex gap-3 px-3 py-2 text-xs"><span>{matches.length} icons · {page+1}/{Math.max(1,Math.ceil(matches.length/50))}</span>{page>0?<button type="button" onClick={()=>setPage(page-1)}>Previous</button>:null}{(page+1)*50<matches.length?<button type="button" onClick={()=>setPage(page+1)}>Next</button>:null}</nav>
+            <nav aria-label="Icon result pages" className="flex gap-3 px-3 py-2 text-xs"><span>{matches.length} icons · {page+1}/{Math.max(1,Math.ceil(matches.length/ICON_PAGE_SIZE))}</span>{page>0?<button type="button" onClick={()=>setPage(page-1)}>Previous</button>:null}{(page+1)*ICON_PAGE_SIZE<matches.length?<button type="button" onClick={()=>setPage(page+1)}>Next</button>:null}</nav>
             {/* Icon Grid */}
             <div className="p-3 max-h-[220px] overflow-y-auto grid grid-cols-5 gap-1.5 custom-scrollbar">
               {displayedIcons.map((iconName) => {
-                const IconComp = (LucideIcons as any)[iconName];
+                const IconComp = PICKABLE_ICONS[iconName];
                 if (!IconComp) return null;
 
                 const isSelected = value === iconName;
@@ -177,9 +146,8 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
     </div>
   );
 }

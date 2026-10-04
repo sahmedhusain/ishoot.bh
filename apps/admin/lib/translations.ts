@@ -1,12 +1,17 @@
-import { ar, en } from "@ishoot/locales";
+import ar from "@ishoot/locales/admin/ar";
+import type { AdminTranslationKeys } from "@ishoot/locales";
 
 export type AdminLocale = "ar" | "en";
-
-export const adminTranslations = {
-  ar: ar.admin,
-  en: en.admin,
-};
-
-export type AdminTranslations = typeof en.admin;
+export type AdminTranslations = AdminTranslationKeys;
 export type Translations = AdminTranslations;
 
+export const DEFAULT_ADMIN_LOCALE: AdminLocale = "ar";
+
+/** Default dictionary, bundled with the client. */
+export const defaultAdminTranslations: AdminTranslations = ar;
+
+/** Loads a dictionary on demand so the client only ships the languages actually used. */
+export async function loadAdminTranslations(locale: AdminLocale): Promise<AdminTranslations> {
+  if (locale === "ar") return ar;
+  return (await import("@ishoot/locales/admin/en")).default;
+}

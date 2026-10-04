@@ -24,6 +24,7 @@ function load(file, mocks) {
     module,
     exports: module.exports,
     require: (id) => {
+      id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
       if (!(id in mocks)) throw new Error(`Unmocked dependency: ${id}`);
       return mocks[id];
     },

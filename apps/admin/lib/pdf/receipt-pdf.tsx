@@ -4,7 +4,7 @@ import { Document,Page,Text,View,Image as PdfImage } from "@react-pdf/renderer";
 import type { Payment,CompanySettings } from "@ishoot/database/types";
 import { pdfStyles } from "./shared-styles";
 import { PdfBrandLogo } from "./brand-logo-pdf";
-import { adminTranslations } from "../translations";
+import { adminTranslations } from "../translations-bilingual";
 
 interface ReceiptPDFProps {
   payment: Payment;

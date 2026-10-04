@@ -2,10 +2,7 @@ import * as React from "react";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { Topbar } from "../../components/layout/Topbar";
 import { SidebarProvider } from "../../components/layout/SidebarContext";
-import {
-getCompanySettings,
-getFeatureToggles
-} from "@ishoot/database";
+import { getCachedCompanySettings, getCachedFeatureToggles } from "../../lib/cached-queries";
 import { getCurrentPermissions,requireAuth } from "../../lib/auth";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
@@ -19,8 +16,8 @@ export default async function DashboardLayout({
 }) {
   const user = await requireAuth();
   const [company, toggles, permissions] = await Promise.all([
-    getCompanySettings(),
-    getFeatureToggles(),
+    getCachedCompanySettings(),
+    getCachedFeatureToggles(),
     getCurrentPermissions(),
   ]);
 

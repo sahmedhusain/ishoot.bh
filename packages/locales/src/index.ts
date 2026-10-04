@@ -1,8 +1,16 @@
-import en from "./en.json";
-import ar from "./ar.json";
+import enBase from "./en.json";
+import arBase from "./ar.json";
+import adminEn from "./admin/en.json";
+import adminAr from "./admin/ar.json";
 
 export type Locale = "en" | "ar";
+
+// The admin dictionary lives in its own files so the admin client can load it without the website copy.
+const en = { ...enBase, admin: adminEn };
+const ar: typeof en = { ...arBase, admin: adminAr };
+
 export type TranslationKeys = typeof en;
+export type AdminTranslationKeys = typeof adminEn;
 
 const translations: Record<Locale, TranslationKeys> = { en, ar };
 

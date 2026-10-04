@@ -5,11 +5,10 @@ import { SalaryDocumentsView } from "../../../../components/hr/SalaryDocumentsVi
 export const dynamic = "force-dynamic";
 export default async function SalaryDocumentsPage() {
   const user = await requireAuth();
-  const canManage = await canManageSalaryDocuments(user);
-  const employee = await db.employee.findUnique({
-    where: { userId: user.id },
-    select: { id: true },
-  });
+  const [canManage, employee] = await Promise.all([
+    canManageSalaryDocuments(user),
+    db.employee.findUnique({ where: { userId: user.id }, select: { id: true } }),
+  ]);
   const documents = await db.salaryDocument.findMany({
     where: canManage ? {} : { employee: { userId: user.id } },
     include: { employee: { select: { firstNameEn: true, lastNameEn: true } } },

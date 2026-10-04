@@ -1,6 +1,7 @@
 import { requirePermission,getCurrentUser } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { getMinuteOfMeetingById,getCompanySettings } from "@ishoot/database";
+import { getMinuteOfMeetingById } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { MomDetailView } from "../../../../components/moms/MomDetailView";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export default async function MomDetailPage({ params }: MomDetailPageProps) {
 
   const [mom, company, currentUser] = await Promise.all([
     getMinuteOfMeetingById(id),
-    getCompanySettings(),
+    getCachedCompanySettings(),
     getCurrentUser(),
   ]);
 

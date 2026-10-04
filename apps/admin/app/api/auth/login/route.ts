@@ -1,15 +1,11 @@
-import { measureOperation } from "@ishoot/database";
-import { NextRequest, NextResponse } from "next/server";
-import {
-  verifyUserCredentials,
-  db,
-  verifyMfa,
-  createSession,
-  createActivityLog,
-  consumeAbuseLimit,
-  trustedClientIp,
-  runAtomicMutation,
-} from "@ishoot/database";
+import { NextRequest, NextResponse, after } from "next/server";
+import { db, runAtomicMutation } from "@ishoot/database/db";
+import { measureOperation } from "@ishoot/database/observability";
+import { verifyUserCredentials } from "@ishoot/database/queries/users";
+import { createSession } from "@ishoot/database/queries/sessions";
+import { createActivityLog } from "@ishoot/database/queries/activity";
+import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database/services/abuse-limits";
+import { verifyMfa } from "@ishoot/database/services/mfa";
 import { readLoginInput } from "../../../../lib/login-input";
 import { getTranslations } from "@ishoot/locales";
 import { signSessionToken } from "../../../../lib/jwt";
@@ -49,9 +45,8 @@ export async function POST(req: NextRequest) {
     }
 
     return await runAtomicMutation(async () => {
-      await db.$queryRaw`SELECT id FROM "User" WHERE id=${user.id} FOR UPDATE`;
-    const security = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { mfaEnabled: true, isActive: true } });
-    if (!security.isActive) return NextResponse.json({error: trans.api.auth.invalidCredentials}, {status:401});
+    const [security] = await db.$queryRaw<Array<{ mfaEnabled: boolean; isActive: boolean }>>`SELECT "mfaEnabled", "isActive" FROM "User" WHERE id=${user.id} FOR UPDATE`;
+    if (!security?.isActive) return NextResponse.json({error: trans.api.auth.invalidCredentials}, {status:401});
     if (security.mfaEnabled && (typeof body.otp !== "string" || !(await verifyMfa(user.id, body.otp)))) {
       return NextResponse.json({ error: "Enter an authentication or recovery code", mfaRequired: true }, { status: 401, headers: { "Cache-Control": "no-store" } });
     }
@@ -67,7 +62,6 @@ export async function POST(req: NextRequest) {
     const ipAddress = trustedClientIp(req.headers);
     const userAgent = req.headers.get("user-agent") || undefined;
 
-    await runAtomicMutation(async () => {
     await createSession({
       userId: user.id,
       token,
@@ -76,7 +70,8 @@ export async function POST(req: NextRequest) {
       userAgent,
     });
 
-    await createActivityLog({
+    // Audit write is not needed to answer the login; run it after the response is sent.
+    after(() => createActivityLog({
       user_id: user.id,
       action: "login",
       entity_type: "auth",
@@ -84,9 +79,7 @@ export async function POST(req: NextRequest) {
       details: { role: user.role, department: user.department },
       ip_address: ipAddress,
       user_agent: userAgent,
-    });
-
-    });
+    }).catch((error) => console.error("Login activity log failed:", error)));
 
     const response = NextResponse.json({
       success: true,

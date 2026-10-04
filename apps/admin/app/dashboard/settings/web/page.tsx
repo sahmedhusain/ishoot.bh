@@ -1,15 +1,6 @@
 import { requirePermission } from "../../../../lib/auth";
-import {
-getCompanySettings,
-getAllBanners,
-getPortfolioItems,
-getAllClientLogos,
-getStudioEquipment,
-getReviews,
-getFaqs,
-getStatistics,
-getSocialLinks,
-} from "@ishoot/database";
+import { getCmsCounts, getSocialLinks } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { WebSettingsView } from "../../../../components/settings/WebSettingsView";
 
 export const dynamic = "force-dynamic";
@@ -17,44 +8,11 @@ export const dynamic = "force-dynamic";
 export default async function WebSettingsPage() {
   await requirePermission("settings", "read");
 
-  const [
-    company,
-    banners,
-    portfolio,
-    clients,
-    equipment,
-    reviews,
-    faqs,
-    stats,
-    socialLinks,
-  ] = await Promise.all([
-    getCompanySettings(),
-    getAllBanners(),
-    getPortfolioItems(),
-    getAllClientLogos(),
-    getStudioEquipment(),
-    getReviews(true),
-    getFaqs(true),
-    getStatistics(),
+  const [company, cmsCounts, socialLinks] = await Promise.all([
+    getCachedCompanySettings(),
+    getCmsCounts(),
     getSocialLinks(false),
   ]);
 
-  const pendingReviews = reviews.filter((r: any) => !r.isApproved).length;
-
-  return (
-    <WebSettingsView
-      initialSettings={company}
-      socialLinks={socialLinks}
-      cmsCounts={{
-        banners: banners.length,
-        portfolio: portfolio.length,
-        clients: clients.length,
-        equipment: equipment.length,
-        reviews: reviews.length,
-        pendingReviews,
-        faqs: faqs.length,
-        stats: stats.length,
-      }}
-    />
-  );
+  return <WebSettingsView initialSettings={company} socialLinks={socialLinks} cmsCounts={cmsCounts} />;
 }
