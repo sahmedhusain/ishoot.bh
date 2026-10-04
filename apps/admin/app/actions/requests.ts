@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
@@ -36,7 +37,7 @@ export async function assignRequestAction(
       return { success: false, error: "Failed to assign request" };
     }
 
-    revalidatePath("/dashboard/requests");
+    revalidatePath(ROUTES.requests.list);
     return { success: true, request: updated };
   });
 }
@@ -59,7 +60,7 @@ export async function reassignRequestAction(
       return { success: false, error: "Failed to re-assign request" };
     }
 
-    revalidatePath("/dashboard/requests");
+    revalidatePath(ROUTES.requests.list);
     return { success: true, request: updated };
   });
 }
@@ -88,7 +89,7 @@ export async function returnRequestAction(
       return { success: false, error: "Failed to return request" };
     }
 
-    revalidatePath("/dashboard/requests");
+    revalidatePath(ROUTES.requests.list);
     return { success: true, request: updated };
   });
 }
@@ -110,9 +111,9 @@ export async function approveRequestAction(
       return decideApprovalRequest(pending.id, actor.id, "approved", details.notes);
     });
 
-    revalidatePath("/dashboard/requests");
-    revalidatePath(`/dashboard/requests/${id}`);
-    revalidatePath("/dashboard/approvals");
+    revalidatePath(ROUTES.requests.list);
+    revalidatePath(ROUTES.requests.detail(id));
+    revalidatePath(ROUTES.approvals());
     return { success: true, status: outcome.status };
   });
 }
@@ -138,9 +139,9 @@ export async function submitRequestForApprovalAction(
       });
     });
 
-    revalidatePath("/dashboard/requests");
-    revalidatePath(`/dashboard/requests/${id}`);
-    revalidatePath("/dashboard/approvals");
+    revalidatePath(ROUTES.requests.list);
+    revalidatePath(ROUTES.requests.detail(id));
+    revalidatePath(ROUTES.approvals());
     return { success: true, status: outcome.status };
   });
 }
@@ -166,7 +167,7 @@ export async function confirmRequestAction(
       return { success: false, error: "Failed to confirm request" };
     }
 
-    revalidatePath("/dashboard/requests");
+    revalidatePath(ROUTES.requests.list);
     return { success: true, request: updated };
   });
 }
@@ -192,7 +193,7 @@ export async function resolveRequestAction(
       return { success: false, error: "Failed to resolve request" };
     }
 
-    revalidatePath("/dashboard/requests");
+    revalidatePath(ROUTES.requests.list);
     return { success: true, request: updated };
   });
 }
@@ -238,7 +239,7 @@ export async function createConsolidatedRequestAction(data: {
       actor.id,
     );
 
-    revalidatePath("/dashboard/requests");
+    revalidatePath(ROUTES.requests.list);
     return { success: true, request: created };
   });
 }
@@ -263,8 +264,8 @@ export async function assignRequestWithAvailabilityAction(
       assignment.reason,
     );
 
-    revalidatePath("/dashboard/requests");
-    revalidatePath(`/dashboard/requests/${id}`);
+    revalidatePath(ROUTES.requests.list);
+    revalidatePath(ROUTES.requests.detail(id));
     return { success: true, request: updated };
   });
 }
@@ -282,7 +283,7 @@ export async function addRequestCommentAction(
     const { addRequestComment } = await import("@ishoot/database");
     const comment = await addRequestComment(inquiryId, actor.id, body, isClientVisible, attachments);
 
-    revalidatePath(`/dashboard/requests/${inquiryId}`);
+    revalidatePath(ROUTES.requests.detail(inquiryId));
     return { success: true, comment };
   });
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Sliders, Building2, History, Share2, Globe, ShieldCheck } from "lucide-react";
@@ -13,32 +14,32 @@ export function SettingsNavTabs() {
 
   const tabs = [
     {
-      href: "/dashboard/settings/preferences",
+      href: ROUTES.settings.preferences,
       label: t.settingsTabs.preferences,
       icon: Sliders,
     },
     {
-      href: "/dashboard/settings/company",
+      href: ROUTES.settings.company,
       label: t.settingsTabs.company,
       icon: Building2,
     },
     {
-      href: "/dashboard/settings/web",
+      href: ROUTES.settings.web,
       label: t.settingsTabs.web,
       icon: Globe,
     },
     {
-      href: "/dashboard/settings/audit",
+      href: ROUTES.settings.audit,
       label: t.settingsTabs.audit,
       icon: History,
     },
     {
-      href: "/dashboard/settings/integrations",
+      href: ROUTES.settings.integrations,
       label: t.settingsTabs.integrations,
       icon: Share2,
     },
     ...(role === "super_admin"
-      ? [{ href: "/dashboard/settings/approvals", label: t.settingsTabs.approvals, icon: ShieldCheck }]
+      ? [{ href: ROUTES.settings.approvals, label: t.settingsTabs.approvals, icon: ShieldCheck }]
       : []),
   ];
 

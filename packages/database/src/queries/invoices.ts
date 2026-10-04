@@ -10,6 +10,7 @@ import {
 import { amountDue as computeAmountDue, lineTotal, sumMoney } from "../finance/money";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { INVOICE_STATUS_TRANSITIONS } from "../constants/finance";
+import { advanceDealForEvent } from "./crm";
 
 export { calculateInvoiceTotals };
 
@@ -481,6 +482,7 @@ export async function updateInvoiceStatus(
         where: { id },
         data: { status, ...(status === "sent" && !invoice.deliveredAt ? { deliveredAt: new Date() } : {}) },
       });
+      if (status === "sent") await advanceDealForEvent(tx, invoice.dealId, "invoice_issued");
     });
     return true;
   } catch (e) {

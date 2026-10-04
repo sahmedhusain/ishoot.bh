@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import type { FinancialSummary } from "@ishoot/database/types";
@@ -35,7 +36,7 @@ export function InvoicesListView({
           </h1>
         </div>
 
-        <Link href="/dashboard/invoices/new">
+        <Link href={ROUTES.invoices.create()}>
           <Button
             variant="primary"
             size="sm"
@@ -69,7 +70,7 @@ export function InvoicesListView({
                 </p>
               </div>
             </div>
-            <Link href="/dashboard/quotations?status=accepted">
+            <Link href={`${ROUTES.quotations.list}?status=accepted`}>
               <Button
                 variant="ghost"
                 size="sm"
@@ -99,7 +100,7 @@ export function InvoicesListView({
                   </div>
                 </div>
 
-                <Link href={`/dashboard/invoices/new?quotationId=${q.id}`}>
+                <Link href={ROUTES.invoices.create({ quotationId: q.id })}>
                   <Button
                     size="sm"
                     className="bg-[#014842] hover:bg-[#013833] text-white text-[11px] font-semibold gap-1 px-3 py-1.5 rounded-lg active:scale-[0.98] transition-all shrink-0"
@@ -173,7 +174,7 @@ export function InvoicesListView({
                 >
                   <td className="p-3.5  font-bold text-slate-900 dark:text-white">
                     <Link
-                      href={`/dashboard/invoices/${inv.id}`}
+                      href={ROUTES.invoices.detail(inv.id)}
                       className="hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors"
                     >
                       {inv.invoice_number}
@@ -182,7 +183,7 @@ export function InvoicesListView({
                   <td className="p-3.5">
                     {inv.contact_id ? (
                       <Link
-                        href={`/dashboard/crm/customers/${inv.contact_id}`}
+                        href={ROUTES.crm.customer(inv.contact_id)}
                         className="font-medium text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline transition-colors inline-flex items-center gap-1"
                       >
                         <span>
@@ -234,7 +235,7 @@ export function InvoicesListView({
                   </td>
                   <td className="p-3.5 text-end">
                     <div className="flex items-center justify-end gap-1">
-                      <Link href={`/dashboard/invoices/${inv.id}`}>
+                      <Link href={ROUTES.invoices.detail(inv.id)}>
                         <Button
                           variant="ghost"
                           size="sm"

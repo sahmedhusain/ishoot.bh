@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -42,7 +43,7 @@ export async function createCompanyDocumentAction(data: {
       return { doc };
     });
 
-    revalidatePath("/dashboard/company/documents");
+    revalidatePath(ROUTES.company.documents);
     return { success: true, doc };
   });
 }
@@ -62,7 +63,7 @@ export async function deleteCompanyDocumentAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/company/documents");
+    revalidatePath(ROUTES.company.documents);
     return { success: true };
   });
 }

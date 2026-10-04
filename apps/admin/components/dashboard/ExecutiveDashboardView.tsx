@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
 
 import Link from "next/link";
@@ -86,7 +87,7 @@ export function ExecutiveDashboardView({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {capabilities.createInvoice && (<Link href="/dashboard/invoices/new">
+          {capabilities.createInvoice && (<Link href={ROUTES.invoices.create()}>
             <Button
               variant="primary"
               size="sm"
@@ -96,7 +97,7 @@ export function ExecutiveDashboardView({
               <span>{t.actions.newInvoice}</span>
             </Button>
           </Link>)}
-          {capabilities.calendar && (<Link href="/dashboard/calendar">
+          {capabilities.calendar && (<Link href={ROUTES.calendar}>
             <Button
               variant="secondary"
               size="sm"
@@ -106,7 +107,7 @@ export function ExecutiveDashboardView({
               <span>{t.nav.calendar}</span>
             </Button>
           </Link>)}
-          {capabilities.deals && (<Link href="/dashboard/crm/deals">
+          {capabilities.deals && (<Link href={ROUTES.crm.deals}>
             <Button
               variant="secondary"
               size="sm"
@@ -262,7 +263,7 @@ export function ExecutiveDashboardView({
               {t.charts.pipelineByStage}
             </h2>
             <Link
-              href="/dashboard/crm/deals"
+              href={ROUTES.crm.deals}
               className="text-xs text-[#014842] dark:text-[#7de0d1] hover:underline font-semibold"
             >
               {t.actions.view}
@@ -318,7 +319,7 @@ export function ExecutiveDashboardView({
               {t.dashboardView.recentDeals}
             </h2>
             <Link
-              href="/dashboard/crm/deals"
+              href={ROUTES.crm.deals}
               className="text-xs text-[#014842] dark:text-[#09937F] hover:underline flex items-center gap-1 transition-colors font-semibold"
             >
               <span>{t.dashboardView.viewKanban}</span>
@@ -334,7 +335,7 @@ export function ExecutiveDashboardView({
               >
                 <div className="space-y-0.5">
                   <Link
-                    href={`/dashboard/crm/deals/${deal.id}`}
+                    href={ROUTES.crm.deal(deal.id)}
                     className="text-xs font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors"
                   >
                     {deal.title}
@@ -342,7 +343,7 @@ export function ExecutiveDashboardView({
                   <div className="text-[11px] text-slate-500 dark:text-neutral-400 flex items-center gap-2">
                     {deal.contact ? (
                       <Link
-                        href={`/dashboard/crm/customers/${deal.contact.id}`}
+                        href={ROUTES.crm.customer(deal.contact.id)}
                         className="hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline font-medium inline-flex items-center gap-1"
                         title="View Customer Dossier"
                       >
@@ -384,7 +385,7 @@ export function ExecutiveDashboardView({
                 <span>{t.calendar.title}</span>
               </h2>
               <Link
-                href="/dashboard/calendar"
+                href={ROUTES.calendar}
                 className="text-xs text-[#014842] dark:text-[#7de0d1] hover:underline font-semibold"
               >
                 {t.actions.all}
@@ -488,7 +489,7 @@ export function ExecutiveDashboardView({
               </div>
             </div>
 
-            <Link href="/dashboard/settings/company" className="block pt-1">
+            <Link href={ROUTES.settings.company} className="block pt-1">
               <Button
                 variant="outline"
                 size="sm"

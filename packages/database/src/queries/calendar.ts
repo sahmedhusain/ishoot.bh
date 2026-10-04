@@ -122,18 +122,19 @@ export async function updateCalendarEvent(
   try {
     const updateData: any = {};
     if (data.title !== undefined) updateData.title = data.title;
-    if (data.title_ar !== undefined) updateData.titleAr = data.title_ar;
+    // Empty optional fields are cleared, not stored as empty strings.
+    if (data.title_ar !== undefined) updateData.titleAr = data.title_ar || null;
     if (data.description !== undefined)
-      updateData.description = data.description;
+      updateData.description = data.description || null;
     if (data.start_date !== undefined)
       updateData.startDate = new Date(data.start_date);
     if (data.end_date !== undefined)
       updateData.endDate = new Date(data.end_date);
     if (data.all_day !== undefined) updateData.allDay = data.all_day;
-    if (data.location !== undefined) updateData.location = data.location;
+    if (data.location !== undefined) updateData.location = data.location || null;
     if (data.color !== undefined) updateData.color = data.color;
     if (data.event_type !== undefined) updateData.eventType = data.event_type;
-    if (data.deal_id !== undefined) updateData.dealId = data.deal_id;
+    if (data.deal_id !== undefined) updateData.dealId = data.deal_id || null;
     if (data.google_event_id !== undefined)
       updateData.googleEventId = data.google_event_id;
     if (data.google_calendar_id !== undefined)

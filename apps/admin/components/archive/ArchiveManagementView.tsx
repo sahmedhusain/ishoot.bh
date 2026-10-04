@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 
 import * as React from "react";
@@ -110,26 +111,26 @@ export function ArchiveManagementView({
         entityLabel = p
           ? `Receipt ${p.receipt_number} (${p.amount} BHD)`
           : "Payment Proof";
-        entityLink = resolvedEntityId ? `/dashboard/payments/${resolvedEntityId}` : undefined;
+        entityLink = resolvedEntityId ? ROUTES.payments.detail(resolvedEntityId) : undefined;
       } else if (entityType === "company_setting") {
         resolvedEntityId = "company_setting";
         entityLabel = "NBR VAT Registration Certificate";
-        entityLink = "/dashboard/settings/company";
+        entityLink = ROUTES.settings.company;
       } else if (entityType === "contact" || entityType === "customer_vault") {
 
         const c = contacts.find((item) => item.id === resolvedEntityId);
         entityLabel = c ? c.company || c.full_name : "Client Document";
-        entityLink = resolvedEntityId ? `/dashboard/crm/customers/${resolvedEntityId}` : undefined;
+        entityLink = resolvedEntityId ? ROUTES.crm.customer(resolvedEntityId) : undefined;
       } else if (entityType === "deal") {
 
         const d = deals.find((item) => item.id === resolvedEntityId);
         entityLabel = d ? d.title : "Deal Document";
-        entityLink = resolvedEntityId ? `/dashboard/crm/deals/${resolvedEntityId}` : undefined;
+        entityLink = resolvedEntityId ? ROUTES.crm.deal(resolvedEntityId) : undefined;
       } else if (entityType === "invoice") {
 
         const i = invoices.find((item) => item.id === resolvedEntityId);
         entityLabel = i ? i.invoice_number : "Invoice Document";
-        entityLink = resolvedEntityId ? `/dashboard/invoices/${resolvedEntityId}` : undefined;
+        entityLink = resolvedEntityId ? ROUTES.invoices.detail(resolvedEntityId) : undefined;
       } else {
         resolvedEntityId = "general-vault";
       }

@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -68,7 +69,7 @@ export async function createEmployeeAction(data: {
       return { employee };
     });
 
-    revalidatePath("/dashboard/hr/employees");
+    revalidatePath(ROUTES.hr.employees);
     return { success: true, employee };
   });
 }
@@ -114,8 +115,8 @@ export async function updateEmployeeAction(
       return { employee };
     });
 
-    revalidatePath("/dashboard/hr/employees");
-    revalidatePath(`/dashboard/hr/employees/${id}`);
+    revalidatePath(ROUTES.hr.employees);
+    revalidatePath(ROUTES.hr.employee(id));
     return { success: true, employee };
   });
 }
@@ -140,7 +141,7 @@ export async function createDepartmentAction(data: {
       details: { code: data.code, name: data.nameEn },
     });
 
-    revalidatePath("/dashboard/hr/employees");
+    revalidatePath(ROUTES.hr.employees);
     return { success: true, department };
   });
 }
@@ -167,7 +168,7 @@ export async function updateDepartmentAction(
       details: data,
     });
 
-    revalidatePath("/dashboard/hr/employees");
+    revalidatePath(ROUTES.hr.employees);
     return { success: true, department };
   });
 }

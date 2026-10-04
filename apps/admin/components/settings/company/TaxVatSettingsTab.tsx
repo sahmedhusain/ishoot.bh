@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../../constants/routes";
 import { uploadFileDirectly } from "../../../lib/upload-client";
 
 import * as React from "react";
@@ -329,7 +330,7 @@ export function TaxVatSettingsTab({
                   {t.companySettingsTabs.certificateRequirement}
                 </span>
                 <a
-                  href="/dashboard/archive"
+                  href={ROUTES.archive}
                   target="_blank"
                   className="inline-flex items-center gap-1 text-[#014842] dark:text-[#7de0d1] hover:underline font-semibold"
                 >

@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -203,7 +204,7 @@ export function MomDetailView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div>
           <Link
-            href="/dashboard/moms"
+            href={ROUTES.moms.list}
             className="inline-flex items-center gap-2 text-xs text-[#9EADA9] hover:text-[#09937F] transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
@@ -220,7 +221,7 @@ export function MomDetailView({
             <StatusBadge status={mom.status} />
             {mom.client_id && (
               <Link
-                href={`/dashboard/crm/customers/${mom.client_id}`}
+                href={ROUTES.crm.customer(mom.client_id)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-[#014842] dark:bg-[#152B27] dark:text-[#7DE0D1] border border-[#09937F]/30 hover:underline transition-colors"
                 title="View Client 360"
               >

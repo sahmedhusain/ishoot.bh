@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import {
@@ -110,12 +111,12 @@ export function NotificationCenter() {
 
   const getEntityLink = (entityType?: string, entityId?: string) => {
     if (!entityType) return null;
-    if (entityType === "payment") return "/dashboard/payments";
-    if (entityType === "calendar") return "/dashboard/calendar";
-    if (entityType === "lead") return "/dashboard/crm/leads";
+    if (entityType === "payment") return ROUTES.payments.list;
+    if (entityType === "calendar") return ROUTES.calendar;
+    if (entityType === "lead") return ROUTES.crm.leads;
     if (entityType === "invoice")
-      return `/dashboard/invoices/${entityId || ""}`;
-    if (entityType === "deal") return `/dashboard/crm/deals/${entityId || ""}`;
+      return ROUTES.invoices.detail(entityId || "");
+    if (entityType === "deal") return ROUTES.crm.deal(entityId || "");
     return null;
   };
 
@@ -229,7 +230,7 @@ export function NotificationCenter() {
 
           <div className="p-2.5 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-center">
             <Link
-              href="/dashboard/settings/audit"
+              href={ROUTES.settings.audit}
               onClick={() => setIsOpen(false)}
               className="text-[11px] text-slate-500 dark:text-[#9EADA9] hover:text-[#09937F] transition-colors font-medium inline-block"
             >

@@ -291,6 +291,7 @@ async function runTests() {
     "./fx-settlement": {
       getLatestExchangeRate: async () => ({ rate: 1.0, isFallback: false, provider: "parity", effectiveDate: new Date() }),
     },
+    "./crm": { advanceDealForEvent: async () => false },
   });
 
   // First conversion

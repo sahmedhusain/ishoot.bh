@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES, entityRoute } from "../../constants/routes";
 import { runAtomicMutation, measureOperation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
@@ -10,6 +11,13 @@ import {
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requireAttachmentAccess } from "../../lib/attachment-access";
+
+/** Refreshes the archive and the page of the record the file belongs to. */
+function revalidateAttachmentOwner(entityType: string, entityId: string) {
+  revalidatePath(ROUTES.archive);
+  const owner = entityRoute(entityType, entityId);
+  if (owner) revalidatePath(owner.split("?")[0]);
+}
 
 export async function createAttachmentAction(data: {
   fileName: string;
@@ -45,9 +53,7 @@ export async function createAttachmentAction(data: {
 
         return attachment;
       });
-      revalidatePath("/dashboard/hr/employees");
-      revalidatePath("/dashboard/archive");
-      revalidatePath("/dashboard/crm/contacts");
+      revalidateAttachmentOwner(data.entityType, data.entityId);
       return { success: true, attachment };
     } catch (error: any) {
       console.error("Failed to create attachment:", error);
@@ -83,9 +89,7 @@ export async function deleteAttachmentAction(id: string) {
           });
         }
       });
-      revalidatePath("/dashboard/hr/employees");
-      revalidatePath("/dashboard/archive");
-      revalidatePath("/dashboard/crm/contacts");
+      revalidateAttachmentOwner(attachment.entityType, attachment.entityId);
       return { success: true };
     } catch (error: any) {
       console.error("Failed to delete attachment:", error);

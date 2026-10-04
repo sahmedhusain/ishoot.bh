@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -43,8 +44,8 @@ export async function updateDealStageAction(id: string, stage: DealStage) {
       return { deal };
     });
 
-    revalidatePath("/dashboard/crm/deals");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.crm.deals);
+    revalidatePath(ROUTES.home);
     return { success: true, deal };
   });
 }
@@ -61,7 +62,7 @@ export async function createCRMDealAction(data: {
   return measureOperation("action:createCRMDealAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
     validateActionArguments("createCRMDealAction", { data });
-    if (data.contact_id) await requireFeatureEnabled("crm_deals"); await requirePermission("contacts", "read");
+    if (data.contact_id) await requirePermission("contacts", "read");
     const { deal } = await runAtomicMutation(async () => {
       const deal = await createCRMDeal(data);
       await createActivityLog({
@@ -74,8 +75,8 @@ export async function createCRMDealAction(data: {
       return { deal };
     });
 
-    revalidatePath("/dashboard/crm/deals");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.crm.deals);
+    revalidatePath(ROUTES.home);
     return { success: true, deal };
   });
 }
@@ -99,7 +100,7 @@ export async function updateDealAction(
   return measureOperation("action:updateDealAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
     validateActionArguments("updateDealAction", { id, data });
-    if (data.contact_id) await requireFeatureEnabled("crm_deals"); await requirePermission("contacts", "read");
+    if (data.contact_id) await requirePermission("contacts", "read");
     if (data.assigned_to) await requirePermission("users", "read");
     const { deal } = await runAtomicMutation(async () => {
       const deal = await updateCRMDeal(id, data);
@@ -114,9 +115,9 @@ export async function updateDealAction(
       return { deal };
     });
 
-    revalidatePath("/dashboard/crm/deals");
-    revalidatePath(`/dashboard/crm/deals/${id}`);
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.crm.deals);
+    revalidatePath(ROUTES.crm.deal(id));
+    revalidatePath(ROUTES.home);
     return { success: true, deal };
   });
 }
@@ -146,7 +147,7 @@ export async function createContactAction(data: {
       return { contact };
     });
 
-    revalidatePath("/dashboard/crm/contacts");
+    revalidatePath(ROUTES.crm.contacts);
     return { success: true, contact };
   });
 }
@@ -171,8 +172,8 @@ export async function updateContactAction(
       return { contact };
     });
 
-    revalidatePath("/dashboard/crm/contacts");
-    revalidatePath(`/dashboard/crm/customers/${id}`);
+    revalidatePath(ROUTES.crm.contacts);
+    revalidatePath(ROUTES.crm.customer(id));
     return { success: true, contact };
   });
 }
@@ -193,7 +194,7 @@ export async function deleteContactAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/crm/contacts");
+    revalidatePath(ROUTES.crm.contacts);
     return { success: true };
   });
 }
@@ -284,8 +285,8 @@ export async function updateInquiryStatusAction(
       return { inquiry };
     });
 
-    revalidatePath("/dashboard/crm/leads");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.crm.leads);
+    revalidatePath(ROUTES.home);
     return { success: true, inquiry };
   });
 }
@@ -435,10 +436,10 @@ export async function convertInquiryToClientAction(inquiryId: string) {
       };
     });
 
-    revalidatePath("/dashboard/crm/leads");
-    revalidatePath("/dashboard/crm/contacts");
-    revalidatePath("/dashboard/crm/deals");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.crm.leads);
+    revalidatePath(ROUTES.crm.contacts);
+    revalidatePath(ROUTES.crm.deals);
+    revalidatePath(ROUTES.home);
 
     return {
       success: true,
@@ -494,7 +495,7 @@ export async function manageInquiryAction(
         },
       });
     });
-    revalidatePath("/dashboard/crm/leads");
+    revalidatePath(ROUTES.crm.leads);
     return { success: true };
   });
 }
@@ -544,7 +545,7 @@ export async function linkInquiryCustomerAction(
         },
       });
     });
-    revalidatePath("/dashboard/crm/leads");
+    revalidatePath(ROUTES.crm.leads);
     return { success: true };
   });
 }

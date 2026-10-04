@@ -16,6 +16,8 @@ export const PAYABLE_INVOICE_STATUSES = ["sent", "partially_paid", "overdue"] as
 
 export const QUOTATION_STATUSES = ["draft", "submitted", "approved", "issued", "accepted", "rejected", "converted", "expired", "cancelled"] as const;
 export type QuotationStatus = (typeof QUOTATION_STATUSES)[number];
+/** Quotations still in play: not yet invoiced, declined, lapsed or withdrawn. */
+export const OPEN_QUOTATION_STATUSES = ["draft", "submitted", "approved", "issued", "accepted"] as const satisfies readonly QuotationStatus[];
 
 /** Functional (reporting) currency. */
 export const FUNCTIONAL_CURRENCY = "BHD";

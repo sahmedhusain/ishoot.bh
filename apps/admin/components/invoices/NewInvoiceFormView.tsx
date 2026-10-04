@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -188,7 +189,7 @@ export function NewInvoiceFormView({
             : `Invoice ${res.invoice.invoiceNumber} created successfully!`,
           { id: toastId },
         );
-        router.push(`/dashboard/invoices/${res.invoice.invoiceId}`);
+        router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
       } else {
         toast.error(isRTL ? "فشل تحويل عرض السعر" : "Failed to convert quotation", { id: toastId });
       }
@@ -283,7 +284,7 @@ export function NewInvoiceFormView({
 
       if (res.invoice?.id) {
         toast.success(isRTL ? "تم إنشاء الفاتورة بنجاح" : "Invoice created successfully", { id: toastId });
-        router.push(`/dashboard/invoices/${res.invoice.id}`);
+        router.push(ROUTES.invoices.detail(res.invoice.id));
       } else {
         toast.error(isRTL ? "فشل إنشاء الفاتورة" : "Failed to create invoice", { id: toastId });
       }
@@ -301,7 +302,7 @@ export function NewInvoiceFormView({
     <div className="space-y-8 max-w-5xl mx-auto pb-16">
       <div>
         <Link
-          href="/dashboard/invoices"
+          href={ROUTES.invoices.list}
           className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#09937F] dark:text-slate-400 dark:hover:text-[#09937F] transition-colors font-medium active:scale-[0.98]"
         >
           <BackIcon className="w-4 h-4" />
@@ -384,7 +385,7 @@ export function NewInvoiceFormView({
             </h2>
             {selectedContact && (
               <Link
-                href={`/dashboard/crm/customers/${selectedContact.id}`}
+                href={ROUTES.crm.customer(selectedContact.id)}
                 target="_blank"
                 className="text-xs text-[#09937F] hover:underline flex items-center gap-1 font-semibold"
               >

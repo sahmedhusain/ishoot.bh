@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -22,6 +23,7 @@ import { Button } from "@ishoot/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createConsolidatedRequestAction } from "../../app/actions/requests";
 import type { CRMContact, ServiceItem } from "@ishoot/database";
+import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 
 interface UserOption {
   id: string;
@@ -32,13 +34,13 @@ interface UserOption {
 
 interface NewRequestFormViewProps {
   users: UserOption[];
-  contacts: CRMContact[];
+  canPickContact: boolean;
   services: ServiceItem[];
 }
 
 export function NewRequestFormView({
   users,
-  contacts,
+  canPickContact,
   services,
 }: NewRequestFormViewProps) {
   const router = useRouter();
@@ -72,10 +74,8 @@ export function NewRequestFormView({
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
   // Sync contact details when selecting an existing contact
-  const handleSelectContact = (contactId: string) => {
-    setSelectedContactId(contactId);
-    if (!contactId) return;
-    const contact = contacts.find((c) => c.id === contactId);
+  const handleSelectContact = (contact: CRMContact | null) => {
+    setSelectedContactId(contact?.id ?? "");
     if (contact) {
       setFullName(
         contact.full_name ||
@@ -146,7 +146,7 @@ export function NewRequestFormView({
             : `Request created successfully (${res.request.reference})`,
           { id: toastId },
         );
-        router.push(`/dashboard/requests/${res.request.id}`);
+        router.push(ROUTES.requests.detail(res.request.id));
       } else {
         toast.error(res.error || "Failed to create request", { id: toastId });
       }
@@ -164,7 +164,7 @@ export function NewRequestFormView({
       {/* Top Navigation */}
       <div className="flex items-center justify-between">
         <Link
-          href="/dashboard/requests"
+          href={ROUTES.requests.list}
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
@@ -330,7 +330,7 @@ export function NewRequestFormView({
                   : "2. Client & Requester Details"}
               </h2>
             </div>
-            {contacts.length > 0 && (
+            {canPickContact && (
               <span className="text-[11px] text-slate-400">
                 {isRTL
                   ? "ربط بملف عميل مسجل أو إدخال عميل جديد"
@@ -339,32 +339,18 @@ export function NewRequestFormView({
             )}
           </div>
 
-          {/* Quick Contact Picker */}
-          {contacts.length > 0 && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                {isRTL
+          {/* Quick Contact Picker — server-side search, never the whole directory */}
+          {canPickContact && (
+            <ClientAutocomplete
+              label={
+                isRTL
                   ? "اختر من قاعدة العملاء المسجلين (اختياري)"
-                  : "Select from Existing CRM Contacts (Optional)"}
-              </label>
-              <select
-                value={selectedContactId}
-                onChange={(e) => handleSelectContact(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
-              >
-                <option value="">
-                  {isRTL
-                    ? "-- إدخال عميل جديد يدوياً --"
-                    : "-- Enter new client manually --"}
-                </option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.full_name || `${c.first_name} ${c.last_name || ""}`}
-                    {c.company ? ` (${c.company})` : ""} - {c.email || c.phone}
-                  </option>
-                ))}
-              </select>
-            </div>
+                  : "Select from Existing CRM Contacts (Optional)"
+              }
+              selectedContactId={selectedContactId}
+              onSelect={handleSelectContact}
+              allowCreate={false}
+            />
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -607,7 +593,7 @@ export function NewRequestFormView({
 
         {/* Submit Actions */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200/80 dark:border-white/10">
-          <Link href="/dashboard/requests">
+          <Link href={ROUTES.requests.list}>
             <Button variant="outline" type="button" disabled={isSubmitting}>
               {isRTL ? "إلغاء التراجع" : "Cancel"}
             </Button>

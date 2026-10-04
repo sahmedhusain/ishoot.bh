@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import {ContentImage} from "./ContentImage";
 
 import * as React from "react";
@@ -153,7 +154,7 @@ export function DocumentLetterhead({
           <div className="text-base font-bold text-gray-900 flex items-center gap-1.5">
             {client.id ? (
               <Link
-                href={`/dashboard/crm/customers/${client.id}`}
+                href={ROUTES.crm.customer(client.id)}
                 className="hover:text-[#014842] hover:underline inline-flex items-center gap-1 print:no-underline print:text-black group"
                 title="View Client Dossier in CRM"
               >

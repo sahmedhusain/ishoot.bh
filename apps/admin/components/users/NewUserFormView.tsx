@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -50,7 +51,7 @@ export function NewUserFormView({
         phone: phone || undefined,
       });
 
-      router.push("/dashboard/users");
+      router.push(ROUTES.users.list);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.hrExtensions.failed);
     } finally {
@@ -61,7 +62,7 @@ export function NewUserFormView({
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/users">
+        <Link href={ROUTES.users.list}>
           <Button
             variant="outline"
             size="sm"
@@ -107,7 +108,7 @@ export function NewUserFormView({
               ))}
             </Select>
           </label>
-          <Link href="/dashboard/hr/employees/new" className="text-emerald-500">
+          <Link href={ROUTES.hr.newEmployee()} className="text-emerald-500">
             {t.hrExtensions.createEmployee}
           </Link>
           {error && (
@@ -178,7 +179,7 @@ export function NewUserFormView({
           </div>
 
           <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
-            <Link href="/dashboard/users">
+            <Link href={ROUTES.users.list}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}
               </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -62,7 +63,7 @@ export function ApprovalsCenterView({
     if (merged.status !== "all" && merged.scope !== "awaiting") params.set("status", merged.status);
     if (merged.type !== "all") params.set("type", merged.type);
     if (merged.page > 1) params.set("page", String(merged.page));
-    router.push(`/dashboard/approvals${params.size ? `?${params}` : ""}`);
+    router.push(`${ROUTES.approvals()}${params.size ? `?${params}` : ""}`);
   };
 
   const decide = async (item: ApprovalListItem, decision: "approved" | "rejected", note?: string) => {

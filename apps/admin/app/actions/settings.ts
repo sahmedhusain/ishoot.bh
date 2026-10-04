@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -32,10 +33,10 @@ export async function updateCompanySettingsAction(settings: CompanySettings) {
       return { updated };
     });
 
-    revalidatePath("/dashboard/settings/company");
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/invoices");
-    revalidatePath("/dashboard/payments");
+    revalidatePath(ROUTES.settings.company);
+    revalidatePath(ROUTES.home);
+    revalidatePath(ROUTES.invoices.list);
+    revalidatePath(ROUTES.payments.list);
     return { success: true, settings: updated };
   });
 }
@@ -118,8 +119,8 @@ export async function saveCompanyAssetAction(
       return { asset, syncMap };
     });
 
-    revalidatePath("/dashboard/settings/company");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.settings.company);
+    revalidatePath(ROUTES.home);
     return { success: true, asset };
   });
 }
@@ -152,8 +153,8 @@ export async function deleteCompanyAssetAction(assetKey: string) {
       return { deleted, syncMap };
     });
 
-    revalidatePath("/dashboard/settings/company");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.settings.company);
+    revalidatePath(ROUTES.home);
     return { success: deleted };
   });
 }
@@ -176,7 +177,7 @@ export async function toggleFeatureAction(
       });
       return feature;
     });
-    revalidatePath("/dashboard", "layout");
+    revalidatePath(ROUTES.home, "layout");
     return { success: true, feature };
   });
 }
@@ -198,9 +199,9 @@ export async function updateWebSettingsAction(settings: WebSettingsInput) {
       return { updated };
     });
 
-    revalidatePath("/dashboard/settings/web");
-    revalidatePath("/dashboard/settings/company");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.settings.web);
+    revalidatePath(ROUTES.settings.company);
+    revalidatePath(ROUTES.home);
     await revalidatePublicSite(
       [
         "banners",
@@ -263,7 +264,7 @@ export async function createSocialLinkAction(data: {
       });
       return link;
     });
-    revalidatePath("/dashboard/settings/web");
+    revalidatePath(ROUTES.settings.web);
     await revalidatePublicSite(
       ["socialLinks"],
       ["/", "/en", "/ar", "/about", "/works", "/contact"],
@@ -297,7 +298,7 @@ export async function updateSocialLinkAction(
       });
       return link;
     });
-    revalidatePath("/dashboard/settings/web");
+    revalidatePath(ROUTES.settings.web);
     await revalidatePublicSite(
       ["socialLinks"],
       ["/", "/en", "/ar", "/about", "/works", "/contact"],
@@ -322,7 +323,7 @@ export async function deleteSocialLinkAction(id: string) {
       });
       return deleted;
     });
-    revalidatePath("/dashboard/settings/web");
+    revalidatePath(ROUTES.settings.web);
     await revalidatePublicSite(
       ["socialLinks"],
       ["/", "/en", "/ar", "/about", "/works", "/contact"],

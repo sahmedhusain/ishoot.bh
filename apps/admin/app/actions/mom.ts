@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -59,7 +60,7 @@ export async function createMomAction(data: {
       return { mom };
     });
 
-    revalidatePath("/dashboard/moms");
+    revalidatePath(ROUTES.moms.list);
     return { success: true, mom };
   });
 }
@@ -120,8 +121,8 @@ export async function updateMomAction(
       return { mom };
     });
 
-    revalidatePath("/dashboard/moms");
-    revalidatePath(`/dashboard/moms/${id}`);
+    revalidatePath(ROUTES.moms.list);
+    revalidatePath(ROUTES.moms.detail(id));
     return { success: true, mom };
   });
 }
@@ -143,7 +144,7 @@ export async function deleteMomAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/moms");
+    revalidatePath(ROUTES.moms.list);
     return { success: true };
   });
 }
@@ -168,8 +169,8 @@ export async function approveAndSignMomAction(id: string) {
       return { mom };
     });
 
-    revalidatePath("/dashboard/moms");
-    revalidatePath(`/dashboard/moms/${id}`);
+    revalidatePath(ROUTES.moms.list);
+    revalidatePath(ROUTES.moms.detail(id));
     return { success: true, mom };
   });
 }
@@ -257,7 +258,7 @@ export async function shareMomViaEmailAction(
       });
       return created;
     });
-    revalidatePath(`/dashboard/moms/${id}`);
+    revalidatePath(ROUTES.moms.detail(id));
     return {
       success: true,
       status: job.status,

@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
@@ -161,7 +162,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       });
 
       if (res.mom) {
-        router.push(`/dashboard/moms/${res.mom.id}`);
+        router.push(ROUTES.moms.detail(res.mom.id));
       }
     } catch (err: any) {
       console.error(err);
@@ -178,7 +179,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
         <div>
           <button
             type="button"
-            onClick={() => router.push("/dashboard/moms")}
+            onClick={() => router.push(ROUTES.moms.list)}
             className="flex items-center gap-2 text-[#9EADA9] hover:text-white mb-2 transition-colors"
           >
             {isRTL ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
@@ -194,7 +195,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/dashboard/moms")}
+            onClick={() => router.push(ROUTES.moms.list)}
             className="border-white/10 text-[#9EADA9] hover:text-white"
           >
             {isRTL ? "إلغاء" : "Cancel"}
@@ -576,7 +577,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/dashboard/moms")}
+          onClick={() => router.push(ROUTES.moms.list)}
           className="border-white/10 text-[#9EADA9] hover:text-white"
         >
           {isRTL ? "إلغاء" : "Cancel"}

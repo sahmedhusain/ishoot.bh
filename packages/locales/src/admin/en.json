@@ -36,7 +36,8 @@
     "stats": "Studio Statistics",
     "roles": "Roles & Permissions",
     "modules": "System Modules",
-    "webSettings": "Website Settings"
+    "webSettings": "Website Settings",
+    "socialAnalytics": "Social Analytics"
   },
   "actions": {
     "newInvoice": "New Invoice",
@@ -945,7 +946,9 @@
     "saving": "Saving...",
     "deleteConfirm": "Are you sure you want to delete this event?",
     "eventTitleEnLabel": "Event Title (English) *",
-    "eventTitleArLabel": "Event Title (Arabic)"
+    "eventTitleArLabel": "Event Title (Arabic)",
+    "editEvent": "Edit Event",
+    "saveFailed": "Could not save the event"
   },
   "usersView": {
     "subtitle": "Enterprise role-based access control, departmental assignments, and credential management.",
@@ -1068,9 +1071,9 @@
     "title": "Create New Production Deal",
     "subtitle": "Launch a new cinema production opportunity in the sales pipeline",
     "dealTitleLabel": "Deal Title / Project Name *",
-    "contactLabel": "Associated Client / Contact *",
+    "contactLabel": "Associated Client / Contact",
     "selectContact": "-- Select Client Account --",
-    "valueLabel": "Estimated Deal Value (BHD) *",
+    "valueLabel": "Estimated Deal Value *",
     "stageLabel": "Pipeline Stage *",
     "targetDateLabel": "Target Close / Shoot Date",
     "descriptionLabel": "Scope of Work & Notes",
@@ -1078,7 +1081,8 @@
     "submit": "Create Commercial Deal",
     "titlePlaceholder": "e.g. Commercial TVC Shoot Q4",
     "valuePlaceholder": "0.000",
-    "notesPlaceholder": "Commercial deliverables, locations, specs..."
+    "notesPlaceholder": "Commercial deliverables, locations, specs...",
+    "createFailed": "Could not create the deal"
   },
   "companyDocumentsNew": {
     "title": "Upload Company Legal Asset",
@@ -1331,7 +1335,8 @@
     "status": "Status",
     "totalAmount": "Total Amount",
     "amountPaid": "Amount Paid",
-    "balanceDue": "Balance Due"
+    "balanceDue": "Balance Due",
+    "createQuotation": "Create Quotation"
   },
   "dealDossier": {
     "back": "Back to Deals",
@@ -1362,7 +1367,8 @@
     "issueDate": "Issue Date",
     "totalAmount": "Total Amount",
     "balanceDue": "Balance Due",
-    "status": "Status"
+    "status": "Status",
+    "createQuotation": "Create Quotation"
   },
   "customerEdit": {
     "title": "Edit Customer Dossier",
@@ -2507,5 +2513,41 @@
     "declineReasonPrompt": "Why did the client decline? (optional)",
     "declined": "Quotation marked as declined",
     "failed": "Action failed"
+  },
+  "websitePublication": {
+    "pending": "These changes are not live yet. The public website updates when the website is published.",
+    "neverPublished": "The website has not been published yet. Nothing here is public until the first publication.",
+    "openPublisher": "Review & publish",
+    "changedSections": "Unpublished changes in:",
+    "sections": {
+      "config": "Page layout & copy",
+      "banners": "Banners",
+      "portfolio": "Portfolio",
+      "clients": "Client logos",
+      "faqs": "FAQs",
+      "stats": "Statistics",
+      "services": "Services"
+    }
+  },
+  "socialAnalytics": {
+    "title": "Social Analytics",
+    "subtitle": "Latest reading of each social channel metric.",
+    "empty": "No analytics data available yet.",
+    "stale": "Stale data",
+    "fresh": "Fresh",
+    "updated": "Updated",
+    "platforms": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "youtube": "YouTube",
+      "whatsapp": "WhatsApp"
+    },
+    "metrics": {
+      "followers": "Followers",
+      "views": "Views",
+      "engagement": "Engagement",
+      "messages_sent": "Messages sent",
+      "messages_read": "Messages read"
+    }
   }
 }

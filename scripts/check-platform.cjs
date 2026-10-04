@@ -195,6 +195,7 @@ async function main() {
     "../finance/numbering": numbering,
     "../initial-company-config.json": { company: {} },
     "../types": types,
+    "./crm": { advanceDealForEvent: async () => false },
   });
   await assert.rejects(invoices.updateInvoice("i", { line_items: [{ quantity: 1, unit_price: 100, description_en: "Shoot" }] }), /simulated update failure/);
   assert.equal(usedTransaction, true);
@@ -220,6 +221,7 @@ async function main() {
     "../types": types,
     "../initial-company-config.json": { company: {} },
     "../finance/numbering": numbering,
+    "./crm": { advanceDealForEvent: async () => false },
   });
   await assert.rejects(
     payments.createPayment({ invoice_id: "i", amount: -1 }),

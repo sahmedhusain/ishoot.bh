@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { ContentImage } from "../shared/ContentImage";
 
 import Link from "next/link";
@@ -53,7 +54,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
         </button>
 
         <Link
-          href="/dashboard"
+          href={ROUTES.home}
           className="flex items-center gap-2.5 group focus:outline-none ps-1 sm:ps-2"
           title={`${companyTitle} Admin Console`}
         >
@@ -92,7 +93,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
       <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
         {/* Calendar Shortcut */}
         <Link
-          href="/dashboard/calendar"
+          href={ROUTES.calendar}
           className="w-9 h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
           title={t.nav.calendar}
           aria-label={t.nav.calendar}

@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import * as React from "react";
@@ -42,7 +43,7 @@ export function EmployeesListView({
       params.set("departmentId", currentDepartment);
     if (currentStatus !== "all") params.set("status", currentStatus);
     params.set("page", "1");
-    router.push(`/dashboard/hr/employees?${params.toString()}`);
+    router.push(`${ROUTES.hr.employees}?${params.toString()}`);
   };
 
   const updateFilter = (deptId?: string, st?: string) => {
@@ -51,7 +52,7 @@ export function EmployeesListView({
     if (deptId && deptId !== "all") params.set("departmentId", deptId);
     if (st && st !== "all") params.set("status", st);
     params.set("page", "1");
-    router.push(`/dashboard/hr/employees?${params.toString()}`);
+    router.push(`${ROUTES.hr.employees}?${params.toString()}`);
   };
 
   const statusColors: Record<string, string> = {
@@ -85,7 +86,7 @@ export function EmployeesListView({
 
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/hr/employees/new"
+            href={ROUTES.hr.newEmployee()}
             className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <UserPlus className="w-4 h-4" />
@@ -300,7 +301,7 @@ export function EmployeesListView({
 
                       <td className="py-3.5 px-4 text-right">
                         <Link
-                          href={`/dashboard/hr/employees/${emp.id}`}
+                          href={ROUTES.hr.employee(emp.id)}
                           className="inline-flex items-center gap-1 text-xs text-[#09937F] hover:text-[#014842] dark:hover:text-[#7de0d1] font-medium"
                         >
                           <span>{t.hrText.text68}</span>

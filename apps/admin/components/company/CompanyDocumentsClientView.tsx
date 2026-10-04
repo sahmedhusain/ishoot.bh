@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import {
@@ -92,7 +93,7 @@ export function CompanyDocumentsClientView({
           </p>
         </div>
 
-        <Link href="/dashboard/company/documents/new">
+        <Link href={ROUTES.company.newDocument}>
           <Button
             variant="primary"
             size="sm"
@@ -129,7 +130,7 @@ export function CompanyDocumentsClientView({
           <p className="text-xs text-[#9EADA9]">
             {t.companyDocumentsView.noAssetsHint}
           </p>
-          <Link href="/dashboard/company/documents/new">
+          <Link href={ROUTES.company.newDocument}>
             <Button variant="outline" size="sm" className="mt-2">
               {t.companyDocumentsView.uploadFirstAsset}
             </Button>

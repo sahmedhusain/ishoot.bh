@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { getTranslations } from "@ishoot/locales";
 import {
   db,
@@ -73,10 +74,10 @@ export async function requestSalaryDocumentAction(data: {
       });
       return { id: document.id, approvalStatus: approval.status };
     });
-    revalidatePath("/dashboard/hr/documents");
-    revalidatePath("/dashboard/profile");
-    revalidatePath("/dashboard/approvals");
-    revalidatePath(`/dashboard/hr/employees/${employee.id}`);
+    revalidatePath(ROUTES.hr.documents());
+    revalidatePath(ROUTES.profile());
+    revalidatePath(ROUTES.approvals());
+    revalidatePath(ROUTES.hr.employee(employee.id));
     return { success: true, id, approvalStatus };
   });
 }
@@ -107,10 +108,10 @@ export async function reviewSalaryDocumentAction(
         details: { notes, approvalStatus: outcome.status },
       });
     });
-    revalidatePath("/dashboard/hr/documents");
-    revalidatePath("/dashboard/profile");
-    revalidatePath("/dashboard/approvals");
-    revalidatePath("/dashboard/hr/employees");
+    revalidatePath(ROUTES.hr.documents());
+    revalidatePath(ROUTES.profile());
+    revalidatePath(ROUTES.approvals());
+    revalidatePath(ROUTES.hr.employees);
     return { success: true };
   });
 }

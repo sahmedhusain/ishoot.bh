@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -146,7 +147,7 @@ export function RequestsManagementView({
       }))
         if (value && value !== "all") query.set(key, value);
       query.set("page", String(nextPage));
-      return `/dashboard/requests?${query}`;
+      return `${ROUTES.requests.list}?${query}`;
     },
     [typeFilter, teamFilter, statusFilter, searchQuery],
   );
@@ -377,7 +378,7 @@ export function RequestsManagementView({
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/requests/new">
+          <Link href={ROUTES.requests.create}>
             <Button
               variant="primary"
               size="sm"
@@ -698,7 +699,7 @@ export function RequestsManagementView({
                     <td className="py-4 px-4 align-top text-end">
                       <div className="flex flex-wrap items-center justify-end gap-1.5">
                         <Link
-                          href={`/dashboard/requests/${req.id}`}
+                          href={ROUTES.requests.detail(req.id)}
                           className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-[#09937F]/40 text-[#09937F] hover:bg-[#09937F]/10 transition-colors inline-flex items-center gap-1"
                           title="Open Full Dossier"
                         >

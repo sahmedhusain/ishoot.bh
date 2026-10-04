@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -268,7 +269,7 @@ export function InvoiceEditFormView({
         })),
       });
 
-      router.push(`/dashboard/invoices/${invoice.id}`);
+      router.push(ROUTES.invoices.detail(invoice.id));
     } catch (err) {
       console.error("Failed to update invoice:", err);
     } finally {
@@ -280,7 +281,7 @@ export function InvoiceEditFormView({
   const handleVoid = async () => {
     try {
       await voidInvoiceAction(invoice.id);
-      router.push(`/dashboard/invoices/${invoice.id}`);
+      router.push(ROUTES.invoices.detail(invoice.id));
     } catch (err) {
       console.error("Failed to void invoice:", err);
     }
@@ -291,7 +292,7 @@ export function InvoiceEditFormView({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link href={`/dashboard/invoices/${invoice.id}`}>
+          <Link href={ROUTES.invoices.detail(invoice.id)}>
             <Button
               variant="outline"
               size="sm"
@@ -338,7 +339,7 @@ export function InvoiceEditFormView({
             </div>
             {selectedContact && (
               <Link
-                href={`/dashboard/crm/customers/${selectedContact.id}`}
+                href={ROUTES.crm.customer(selectedContact.id)}
                 className="text-xs text-[#09937F] hover:underline inline-flex items-center gap-1 font-semibold"
               >
                 <span>{t.invoiceEdit.viewDossier}</span>
@@ -378,7 +379,7 @@ export function InvoiceEditFormView({
                     </span>
                   </div>
                   <Link
-                    href={`/dashboard/crm/customers/${selectedContact.id}`}
+                    href={ROUTES.crm.customer(selectedContact.id)}
                     className="text-xs text-[#014842] dark:text-[#09937F] hover:underline inline-flex items-center gap-1"
                   >
                     <span>{t.invoiceEdit.viewDossier}</span>
@@ -770,7 +771,7 @@ export function InvoiceEditFormView({
 
         {/* Actions Toolbar */}
         <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-end gap-4">
-          <Link href={`/dashboard/invoices/${invoice.id}`}>
+          <Link href={ROUTES.invoices.detail(invoice.id)}>
             <Button type="button" variant="outline" size="sm">
               {t.actions.cancel}
             </Button>

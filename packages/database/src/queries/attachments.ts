@@ -1,3 +1,4 @@
+import { ROUTES } from "../constants/routes";
 import { claimUpload } from "../services/uploads";
 import { db } from "../db";
 import type { Attachment } from "../types";
@@ -104,20 +105,20 @@ export async function getAllAttachments(options?: { ids?: string[] }): Promise<E
 
     if (r.entityType === "contact" || r.entityType === "customer_vault") {
       entityLabel = contactMap.get(r.entityId) || "Client Document";
-      entityLink = `/dashboard/crm/customers/${r.entityId}`;
+      entityLink = ROUTES.crm.customer(r.entityId);
     } else if (r.entityType === "invoice") {
       entityLabel = invoiceMap.get(r.entityId) || "Invoice Document";
-      entityLink = `/dashboard/invoices/${r.entityId}`;
+      entityLink = ROUTES.invoices.detail(r.entityId);
     } else if (r.entityType === "deal") {
       entityLabel = dealMap.get(r.entityId) || "Deal Document";
-      entityLink = `/dashboard/crm/deals/${r.entityId}`;
+      entityLink = ROUTES.crm.deal(r.entityId);
     } else if (r.entityType === "payment") {
       entityLabel =
         paymentMap.get(r.entityId) || `Payment Receipt (${r.entityId.slice(0, 8)})`;
-      entityLink = `/dashboard/payments/${r.entityId}`;
+      entityLink = ROUTES.payments.detail(r.entityId);
     } else if (r.entityType === "company_setting") {
       entityLabel = "NBR VAT Registration Certificate";
-      entityLink = `/dashboard/settings/company`;
+      entityLink = ROUTES.settings.company;
     }
 
     return {

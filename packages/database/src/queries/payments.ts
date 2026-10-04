@@ -2,6 +2,7 @@ import { claimUpload } from "../services/uploads";
 import { paymentStatusFor, roundMoney, sumMoney, toMinorUnits } from "../finance/money";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { PAYABLE_INVOICE_STATUSES } from "../constants/finance";
+import { advanceDealForEvent } from "./crm";
 import { db } from "../db";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
@@ -321,7 +322,7 @@ export async function deletePayment(id: string): Promise<boolean> {
  * fully paid → paid, some paid → partially_paid, nothing paid → overdue/sent by due date. Drafts and voids are left alone.
  */
 async function reconcileInvoicePaymentStatus(
-  tx: Pick<typeof db, "invoice">,
+  tx: Pick<typeof db, "invoice" | "crmDeal">,
   invoiceId: string,
 ): Promise<void> {
   const invoice = await tx.invoice.findUnique({ where: { id: invoiceId }, include: { payments: true } });
@@ -331,4 +332,5 @@ async function reconcileInvoicePaymentStatus(
     paymentStatusFor(Number(invoice.totalAmount), paid, invoice.currency) ??
     (invoice.dueDate < new Date() ? "overdue" : "sent");
   if (next !== invoice.status) await tx.invoice.update({ where: { id: invoiceId }, data: { status: next } });
+  if (next === "paid") await advanceDealForEvent(tx, invoice.dealId, "invoice_paid");
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 import * as React from "react";
 import { businessDateString } from "../../lib/dates";
@@ -52,7 +53,7 @@ export function NewExpenseFormView() {
         expense_date: expenseDate || undefined,
       });
 
-      router.push("/dashboard/expenses");
+      router.push(ROUTES.expenses.list());
     } catch (err) {
       setError(err instanceof Error ? err.message : t.expensesNew.saveError);
     } finally {
@@ -63,7 +64,7 @@ export function NewExpenseFormView() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/expenses">
+        <Link href={ROUTES.expenses.list()}>
           <Button
             variant="outline"
             size="sm"
@@ -169,7 +170,7 @@ export function NewExpenseFormView() {
           />
 
           <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
-            <Link href="/dashboard/expenses">
+            <Link href={ROUTES.expenses.list()}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}
               </Button>

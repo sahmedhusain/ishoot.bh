@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 
 import * as React from "react";
@@ -92,7 +93,7 @@ export function PaymentDetailView({
       >
         <div>
           <Link
-            href="/dashboard/payments"
+            href={ROUTES.payments.list}
             className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#09937F] dark:text-slate-400 dark:hover:text-[#09937F] transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
@@ -109,7 +110,7 @@ export function PaymentDetailView({
 
             {invoice && (
               <Link
-                href={`/dashboard/invoices/${invoice.id}`}
+                href={ROUTES.invoices.detail(invoice.id)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-[#09937F] border border-slate-200 dark:border-slate-700 transition-colors"
                 title="View Linked Invoice"
               >
@@ -123,7 +124,7 @@ export function PaymentDetailView({
 
             {invoice?.contact_id && (
               <Link
-                href={`/dashboard/crm/customers/${invoice.contact_id}`}
+                href={ROUTES.crm.customer(invoice.contact_id)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-[#014842] dark:bg-[#152B27] dark:text-[#7DE0D1] border border-[#09937F]/30 hover:underline transition-colors"
                 title="View Client Dossier in CRM"
               >
@@ -183,7 +184,7 @@ export function PaymentDetailView({
 
           <div className="flex items-center gap-2">
             <Link
-              href={`/dashboard/archive?search=${payment.receipt_number}`}
+              href={`${ROUTES.archive}?search=${encodeURIComponent(payment.receipt_number)}`}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#014842] dark:text-[#7de0d1] bg-[#e6f5f2] dark:bg-[#004d40]/40 border border-[#014842]/30 dark:border-[#004d40] hover:underline transition-colors"
             >
               <FolderArchive className="w-3.5 h-3.5" />

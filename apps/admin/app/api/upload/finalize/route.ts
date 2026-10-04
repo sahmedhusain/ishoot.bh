@@ -1,3 +1,4 @@
+import { ROUTES } from "../../../../constants/routes";
 import { verifyStoredUpload } from "@ishoot/database";
 import { measureOperation,db } from "@ishoot/database";
 import { NextRequest,NextResponse } from "next/server";
@@ -62,10 +63,10 @@ export async function POST(req: NextRequest) {
         return attachment;
       });
 
-      if (entityType === "employee") revalidatePath(`/dashboard/hr/employees/${entityId}`);
-      revalidatePath("/dashboard/archive");
-      revalidatePath("/dashboard/settings/company");
-      revalidatePath("/dashboard/payments");
+      if (entityType === "employee") revalidatePath(ROUTES.hr.employee(entityId));
+      revalidatePath(ROUTES.archive);
+      revalidatePath(ROUTES.settings.company);
+      revalidatePath(ROUTES.payments.list);
 
       return NextResponse.json({
         success: true,

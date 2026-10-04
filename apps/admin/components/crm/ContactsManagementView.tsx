@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import type { CRMContact } from "@ishoot/database/types";
 import { Button,ConfirmDestructiveModal } from "@ishoot/ui";
@@ -52,7 +53,7 @@ export function ContactsManagementView({
           </h1>
         </div>
 
-        <Link href="/dashboard/crm/customers/new">
+        <Link href={ROUTES.crm.newCustomer}>
           <Button
             variant="primary"
             size="sm"
@@ -79,7 +80,7 @@ export function ContactsManagementView({
                   </div>
                   <div className="min-w-0">
                     <Link
-                      href={`/dashboard/crm/customers/${c.id}`}
+                      href={ROUTES.crm.customer(c.id)}
                       className="text-xs font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline flex items-center gap-1 truncate"
                     >
                       <span className="truncate">{c.full_name}</span>
@@ -132,7 +133,7 @@ export function ContactsManagementView({
             </div>
 
             <div className="pt-2 border-t border-slate-100 dark:border-neutral-800">
-              <Link href={`/dashboard/crm/customers/${c.id}`} className="block">
+              <Link href={ROUTES.crm.customer(c.id)} className="block">
                 <button
                   type="button"
                   className="w-full h-7 px-3 rounded-lg border border-[#dadce0] dark:border-[#3c4043] hover:bg-slate-50 dark:hover:bg-neutral-800 text-[11px] font-semibold text-[#014842] dark:text-[#7de0d1] flex items-center justify-center gap-1.5 transition-colors"

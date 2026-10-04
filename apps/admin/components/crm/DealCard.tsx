@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import { useDraggable } from "@dnd-kit/core";
 import type { CRMDeal } from "@ishoot/database/types";
 import { Card,CurrencyDisplay } from "@ishoot/ui";
@@ -37,7 +38,7 @@ export function DealCard({ deal }: DealCardProps) {
     >
       <Card className="p-4 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 hover:border-[#09937F]/50 transition-all rounded-xl shadow-sm space-y-3">
         <Link
-          href={`/dashboard/crm/deals/${deal.id}`}
+          href={ROUTES.crm.deal(deal.id)}
           className="text-sm font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#09937F] leading-snug line-clamp-2 block transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
@@ -49,7 +50,7 @@ export function DealCard({ deal }: DealCardProps) {
             <User className="w-3.5 h-3.5 text-[#09937F] shrink-0" />
             {deal.contact ? (
               <Link
-                href={`/dashboard/crm/customers/${deal.contact.id}`}
+                href={ROUTES.crm.customer(deal.contact.id)}
                 className="hover:text-[#014842] dark:hover:text-[#09937F] hover:underline truncate font-medium"
                 onClick={(e) => e.stopPropagation()}
                 title="View Client Dossier"

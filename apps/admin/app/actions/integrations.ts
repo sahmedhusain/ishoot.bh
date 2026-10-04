@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import type { Prisma } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
@@ -37,7 +38,7 @@ export async function saveIntegration(provider: string, isActive: boolean, crede
       }
     });
 
-    revalidatePath("/dashboard/settings");
+    revalidatePath(ROUTES.settings.root);
     return { success: true };
   });
 }
@@ -58,7 +59,7 @@ export async function unlinkIntegration(provider: string) {
       }
     });
 
-    revalidatePath("/dashboard/settings");
+    revalidatePath(ROUTES.settings.root);
     return { success: true };
   });
 }

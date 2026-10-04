@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation, updateApprovalPolicy, createActivityLog, type ApprovalTargetType, type ApproverMode } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { validateActionArguments } from "../../lib/action-input";
@@ -30,7 +31,7 @@ export async function updateApprovalPolicyAction(
       entity_id: targetType,
       details: { policy },
     });
-    revalidatePath("/dashboard/settings/approvals");
+    revalidatePath(ROUTES.settings.approvals);
     return { success: true };
   });
 }

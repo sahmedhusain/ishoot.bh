@@ -1,3 +1,4 @@
+import { ROUTES } from "../../../constants/routes";
 import { requirePermission } from "../../../lib/auth";
 import {
   getInvoicesPage,
@@ -25,7 +26,7 @@ export default async function InvoicesPage({
   return (
     <>
       <ListControls
-        path="/dashboard/invoices"
+        path={ROUTES.invoices.list}
         {...result}
         statuses={["draft", "sent", "partially_paid", "paid", "overdue", "void"]}
         exportDomain="invoices"

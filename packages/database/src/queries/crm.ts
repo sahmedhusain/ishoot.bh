@@ -1,3 +1,5 @@
+import { ROUTES } from "../constants/routes";
+import { DEAL_STAGE_ON_EVENT, DEAL_STAGE_PROBABILITY, dealStagesBefore, isActiveDealStage, type DealProgressEvent } from "../constants/crm";
 import { getCompanySettings } from "./company-settings";
 import { db } from "../db";
 import { normalizeToE164 } from "../services/lead-resolver";
@@ -249,9 +251,11 @@ activities: {total: counts[6], page: Math.min(Math.max(1, Math.min(1000000, Numb
     }
     const { totalLtv=0,totalPaid=0,totalOutstanding=0 }=balancesByCurrency.BHD||{};
     const stages = access?.deals === false ? [] : await db.crmDeal.groupBy({by:["dealStage","currency"],where:{contactId:id},_sum:{dealValue:true},_count:true});
-    const allDealsCount=stages.reduce((n,s)=>n+s._count,0);
-    const activeDealsCount=stages.filter(s=>!["delivered","closed_won","closed_lost"].includes(s.dealStage)).reduce((n,s)=>n+s._count,0);
-    const winRate=allDealsCount?Math.round(stages.filter(s=>s.dealStage==="closed_won").reduce((n,s)=>n+s._count,0)/allDealsCount*100):0;
+    const activeDealsCount=stages.filter(s=>isActiveDealStage(s.dealStage)).reduce((n,s)=>n+s._count,0);
+    // Win rate is measured over decided deals only; open deals have not been won or lost yet.
+    const wonCount=stages.filter(s=>s.dealStage==="closed_won").reduce((n,s)=>n+s._count,0);
+    const decidedCount=stages.filter(s=>!isActiveDealStage(s.dealStage)).reduce((n,s)=>n+s._count,0);
+    const winRate=decidedCount?Math.round(wonCount/decidedCount*100):0;
     const bhd=stages.filter(s=>s.currency==="BHD"),bhdCount=bhd.reduce((n,s)=>n+s._count,0);
     const avgDealSize=bhdCount?bhd.reduce((n,s)=>n+Number(s._sum.dealValue),0)/bhdCount:0;
     const [invoiceCount,paymentCount] = await Promise.all([access?.invoices===false?0:db.invoice.count({where:{OR:[{clientId:id},{deal:{contactId:id}}]}}),access?.payments===false?0:db.payment.count({where:{invoice:{OR:[{clientId:id},{deal:{contactId:id}}]}}})]);
@@ -612,6 +616,24 @@ export async function updateDealStage(
   return updateCRMDeal(id, { stage });
 }
 
+/**
+ * Moves a linked deal forward when a quotation or invoice reaches a milestone. Never moves a deal
+ * backwards and never reopens a closed one; a single conditional update keeps it race-free.
+ */
+export async function advanceDealForEvent(
+  client: Pick<typeof db, "crmDeal">,
+  dealId: string | null | undefined,
+  event: DealProgressEvent,
+): Promise<boolean> {
+  if (!dealId) return false;
+  const target = DEAL_STAGE_ON_EVENT[event];
+  const { count } = await client.crmDeal.updateMany({
+    where: { id: dealId, dealStage: { in: dealStagesBefore(target) } },
+    data: { dealStage: target, probability: DEAL_STAGE_PROBABILITY[target] },
+  });
+  return count > 0;
+}
+
 export async function deleteCRMDeal(id: string): Promise<boolean> {
   try {
     await db.crmDeal.delete({ where: { id } });
@@ -721,7 +743,7 @@ export async function globalAdminSearch(
         subtitle: c.companyName
           ? `${c.companyName} • ${c.email || c.phone || ""}`
           : c.email || c.phone || "Client",
-        url: `/dashboard/crm/customers/${c.id}`,
+        url: ROUTES.crm.customer(c.id),
         badge: c.contactType || "client",
       });
     }
@@ -761,7 +783,7 @@ export async function globalAdminSearch(
         id: inv.id,
         title: inv.invoiceNumber,
         subtitle: `${Number(inv.totalAmount).toFixed(3)} ${inv.currency} • ${inv.client?.companyName || inv.client?.firstName || "Client"}`,
-        url: `/dashboard/invoices/${inv.id}`,
+        url: ROUTES.invoices.detail(inv.id),
         badge: inv.status,
       });
     }
@@ -797,7 +819,7 @@ export async function globalAdminSearch(
         id: d.id,
         title: d.title,
         subtitle: `${Number(d.dealValue).toFixed(3)} ${d.currency} • ${d.contact?.companyName || d.contact?.firstName || ""}`,
-        url: `/dashboard/crm/deals/${d.id}`,
+        url: ROUTES.crm.deal(d.id),
         badge: d.dealStage,
       });
     }
@@ -829,7 +851,7 @@ export async function getCRMDealOverview(includeAnalytics = true) {
     entry.count += group._count._all;
     if (group.currency === "BHD")
       entry.value += Number(group._sum.dealValue || 0);
-    if (!["closed_won", "closed_lost"].includes(group.dealStage)) {
+    if (isActiveDealStage(group.dealStage)) {
       activeCount += group._count._all;
       if (group.currency === "BHD")
         activePipelineValue += Number(group._sum.dealValue || 0);

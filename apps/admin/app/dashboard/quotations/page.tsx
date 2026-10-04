@@ -1,8 +1,11 @@
 import { requirePermission } from "../../../lib/auth";
-import { listQuotations } from "@ishoot/database";
-import { QuotationsListView } from "../../../components/quotations/QuotationsListView";
+import { getQuotationListSummary, listQuotations } from "@ishoot/database";
+import { QUOTATION_STATUSES } from "@ishoot/database/constants/finance";
+import { QuotationsListView, type QuotationListItem } from "../../../components/quotations/QuotationsListView";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 50;
 
 export default async function QuotationsPage({
   searchParams,
@@ -11,21 +14,26 @@ export default async function QuotationsPage({
 }) {
   await requirePermission("quotations", "read");
   const query = await searchParams;
-  const statusFilter = typeof query.status === "string" ? query.status : undefined;
-  const search = typeof query.search === "string" ? query.search : undefined;
+  const rawStatus = typeof query.status === "string" ? query.status : "all";
+  const status = (QUOTATION_STATUSES as readonly string[]).includes(rawStatus) ? rawStatus : "all";
+  const search = (typeof query.q === "string" ? query.q : typeof query.search === "string" ? query.search : "").trim();
   const page = Math.max(1, Number(query.page) || 1);
 
-  const { items: quotations, total } = await listQuotations({
-    status: statusFilter,
-    search,
-    page,
-    pageSize: 50,
-  });
+  const [{ items, total }, summary] = await Promise.all([
+    listQuotations({
+      status: status === "all" ? undefined : status,
+      search: search || undefined,
+      page,
+      pageSize: PAGE_SIZE,
+    }),
+    getQuotationListSummary(),
+  ]);
 
   return (
     <QuotationsListView
-      initialQuotations={quotations as any}
-      total={total}
+      quotations={items as QuotationListItem[]}
+      summary={summary}
+      pagination={{ page, total, filters: { q: search, status } }}
     />
   );
 }

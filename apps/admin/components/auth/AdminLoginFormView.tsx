@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
@@ -10,8 +11,8 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyName?: string;logoUrl?:string;iconUrl?:string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const requestedCallback = searchParams.get("callbackUrl") || "/dashboard";
-  const callbackUrl = requestedCallback.startsWith("/") && !requestedCallback.startsWith("//") && !requestedCallback.includes("\\") ? requestedCallback : "/dashboard";
+  const requestedCallback = searchParams.get("callbackUrl") || ROUTES.home;
+  const callbackUrl = requestedCallback.startsWith("/") && !requestedCallback.startsWith("//") && !requestedCallback.includes("\\") ? requestedCallback : ROUTES.home;
   const { t, locale, setLocale, isRTL } = useAdminLocale();
 
   const [email, setEmail] = React.useState("");

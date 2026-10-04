@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
@@ -93,7 +94,7 @@ export async function upsertRoleAction(data: {
         },
       });
     });
-    revalidatePath("/dashboard", "layout");
+    revalidatePath(ROUTES.home, "layout");
     return { success: true };
   });
 }
@@ -122,7 +123,7 @@ export async function deleteRoleAction(id: string) {
         },
       });
     });
-    revalidatePath("/dashboard", "layout");
+    revalidatePath(ROUTES.home, "layout");
     return { success: true };
   });
 }

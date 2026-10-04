@@ -233,6 +233,88 @@
       }
     }
   },
+  "updateCalendarEventAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "description": {
+            "kind": "string",
+            "optional": true
+          },
+          "start_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "end_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "all_day": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "location": {
+            "kind": "string",
+            "optional": true
+          },
+          "color": {
+            "kind": "string",
+            "optional": true
+          },
+          "event_type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "meeting"
+              },
+              {
+                "kind": "literal",
+                "value": "shoot"
+              },
+              {
+                "kind": "literal",
+                "value": "deadline"
+              },
+              {
+                "kind": "literal",
+                "value": "reminder"
+              }
+            ],
+            "optional": true
+          },
+          "deal_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "deleteCalendarEventAction": {
     "kind": "object",
     "fields": {
@@ -7820,10 +7902,6 @@
         "optional": false
       }
     }
-  },
-  "fetchSocialMetrics": {
-    "kind": "object",
-    "fields": {}
   },
   "createUserAction": {
     "kind": "object",

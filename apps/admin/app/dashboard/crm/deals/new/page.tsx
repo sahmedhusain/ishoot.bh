@@ -1,14 +1,33 @@
-import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
-import { requirePermission } from "../../../../../lib/auth";
 import { Metadata } from "next";
+import { getCRMContactById } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
+import { hasPermission, requirePermission } from "../../../../../lib/auth";
 import { NewDealFormView } from "../../../../../components/crm/NewDealFormView";
+import type { NewDealQuery } from "../../../../../constants/routes";
 
 export const metadata: Metadata = {
   title: "New Deal | CRM",
 };
 
-export default async function NewDealPage() {
+export default async function NewDealPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [K in keyof NewDealQuery]?: string }>;
+}) {
   await requirePermission("deals", "write");
-  const settings = await getCachedCompanySettings();
-  return <NewDealFormView defaultCurrency={settings.default_currency} />;
+  const [{ clientId }, canPickContact, canCreateContact, settings] = await Promise.all([
+    searchParams,
+    hasPermission("contacts", "read"),
+    hasPermission("contacts", "write"),
+    getCachedCompanySettings(),
+  ]);
+  const preselected = canPickContact && clientId ? await getCRMContactById(clientId) : null;
+  return (
+    <NewDealFormView
+      defaultCurrency={settings.default_currency}
+      canPickContact={canPickContact}
+      canCreateContact={canCreateContact}
+      initialContact={preselected}
+    />
+  );
 }

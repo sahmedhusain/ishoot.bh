@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -65,7 +66,7 @@ export async function updateMyProfileAction(data: {
       return { updatedUser: updated };
     });
 
-    revalidatePath("/dashboard/profile");
+    revalidatePath(ROUTES.profile());
     return { success: true, user: updatedUser };
   });
 }
@@ -116,8 +117,8 @@ export async function requestIdentityChangeAction(data: {
       return { changeRequest, approval };
     });
 
-    revalidatePath("/dashboard/profile");
-    revalidatePath("/dashboard/approvals");
+    revalidatePath(ROUTES.profile());
+    revalidatePath(ROUTES.approvals());
     return { success: true, changeRequest, approvalStatus: approval.status };
   });
 }
@@ -147,9 +148,9 @@ export async function decideProfileChangeAction(
       return { outcome };
     });
 
-    revalidatePath("/dashboard/approvals");
-    revalidatePath("/dashboard/profile");
-    revalidatePath("/dashboard/users");
+    revalidatePath(ROUTES.approvals());
+    revalidatePath(ROUTES.profile());
+    revalidatePath(ROUTES.users.list);
     return { success: true, approvalStatus: outcome.status };
   });
 }

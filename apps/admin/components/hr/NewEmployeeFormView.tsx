@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import {
   PayrollSettingsFields,
   emptyPayrollSettings,
@@ -100,7 +101,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
           `Employee ${res.employee.employeeNumber} created successfully`,
           { id: toastId },
         );
-        router.push(`/dashboard/hr/employees/${res.employee.id}`);
+        router.push(ROUTES.hr.employee(res.employee.id));
       } else {
         toast.error(t.hrText.text115, { id: toastId });
       }
@@ -119,7 +120,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAEAEA] dark:border-white/10 pb-5">
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/hr/employees"
+            href={ROUTES.hr.employees}
             className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             {isRTL ? (
@@ -140,7 +141,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
 
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/hr/employees"
+            href={ROUTES.hr.employees}
             className="px-4 py-2 text-xs font-medium rounded-md border border-[#EAEAEA] dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
           >
             {t.hrText.text23}

@@ -5,8 +5,10 @@ import * as React from "react";
 import type { CalendarEvent, CRMDeal } from "@ishoot/database/types";
 import {
   createCalendarEventAction,
+  updateCalendarEventAction,
   deleteCalendarEventAction,
 } from "../../app/actions/calendar";
+import { toast } from "sonner";
 import {
   Card,
   Button,
@@ -24,8 +26,22 @@ import {
   MapPin,
   ExternalLink,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+
+const EVENT_TYPE_COLORS: Record<CalendarEvent["event_type"], string> = {
+  shoot: "#09937F",
+  meeting: "#3B82F6",
+  deadline: "#E11D48",
+  reminder: "#F59E0B",
+};
+
+/** `datetime-local` inputs take local wall-clock time, not UTC. */
+const toLocalInput = (value: string | number | Date) => {
+  const date = new Date(value);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
 
 interface OdooCalendarViewProps {
   initialEvents: CalendarEvent[];
@@ -44,6 +60,7 @@ export function OdooCalendarView({
     "month",
   );
   const [createModalOpen, setCreateModalOpen] = React.useState(false);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] =
     React.useState<CalendarEvent | null>(null);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
@@ -53,12 +70,8 @@ export function OdooCalendarView({
   const [title, setTitle] = React.useState("");
   const [titleAr, setTitleAr] = React.useState("");
   const [description, setDescription] = React.useState("");
-  const [startDate, setStartDate] = React.useState(
-    new Date().toISOString().slice(0, 16),
-  );
-  const [endDate, setEndDate] = React.useState(
-    new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 16),
-  );
+  const [startDate, setStartDate] = React.useState(() => toLocalInput(Date.now()));
+  const [endDate, setEndDate] = React.useState(() => toLocalInput(Date.now() + 2 * 3600000));
   const [location, setLocation] = React.useState("");
   const [eventType, setEventType] = React.useState<
     "shoot" | "meeting" | "deadline" | "reminder"
@@ -87,42 +100,70 @@ export function OdooCalendarView({
     setCurrentDate(new Date());
   };
 
-  const handleCreateEvent = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setEditingId(null);
+    setTitle("");
+    setTitleAr("");
+    setDescription("");
+    setLocation("");
+    setDealId("");
+    setEventType("shoot");
+    setStartDate(toLocalInput(Date.now()));
+    setEndDate(toLocalInput(Date.now() + 2 * 3600000));
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setCreateModalOpen(true);
+  };
+
+  const openEdit = (ev: CalendarEvent) => {
+    setEditingId(ev.id);
+    setTitle(ev.title);
+    setTitleAr(ev.title_ar || "");
+    setDescription(ev.description || "");
+    setLocation(ev.location || "");
+    setDealId(ev.deal_id || "");
+    setEventType(ev.event_type);
+    setStartDate(toLocalInput(ev.start_date));
+    setEndDate(toLocalInput(ev.end_date));
+    setSelectedEvent(null);
+    setCreateModalOpen(true);
+  };
+
+  const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !startDate || !endDate) return;
     setSaving(true);
 
     try {
-      const typeColors: Record<string, string> = {
-        shoot: "#09937F",
-        meeting: "#3B82F6",
-        deadline: "#E11D48",
-        reminder: "#F59E0B",
-      };
-
-      const res = await createCalendarEventAction({
+      const payload = {
         title,
-        title_ar: titleAr || undefined,
-        description: description || undefined,
+        title_ar: titleAr,
+        description,
         start_date: new Date(startDate).toISOString(),
         end_date: new Date(endDate).toISOString(),
-        location: location || undefined,
-        color: typeColors[eventType],
+        location,
+        color: EVENT_TYPE_COLORS[eventType],
         event_type: eventType,
-        deal_id: dealId || undefined,
-      });
-
-      if (res.event) {
-        setEvents((prev) => [...prev, res.event as CalendarEvent]);
-        setCreateModalOpen(false);
-        setTitle("");
-        setTitleAr("");
-        setDescription("");
-        setLocation("");
-        setDealId("");
+      };
+      if (editingId) {
+        const res = await updateCalendarEventAction(editingId, { ...payload, deal_id: dealId || null });
+        setEvents((prev) => prev.map((ev) => (ev.id === editingId ? res.event : ev)));
+      } else {
+        const res = await createCalendarEventAction({
+          ...payload,
+          title_ar: titleAr || undefined,
+          description: description || undefined,
+          location: location || undefined,
+          deal_id: dealId || undefined,
+        });
+        setEvents((prev) => [...prev, res.event]);
       }
+      setCreateModalOpen(false);
+      resetForm();
     } catch (err) {
-      console.error(err);
+      toast.error(err instanceof Error && err.message ? err.message : t.calendarView.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -213,7 +254,7 @@ export function OdooCalendarView({
           <Button
             variant="primary"
             size="sm"
-            onClick={() => setCreateModalOpen(true)}
+            onClick={openCreate}
             className="gap-1.5 shadow-lg shadow-[#09937F]/20"
           >
             <Plus className="w-4 h-4" />
@@ -248,17 +289,16 @@ export function OdooCalendarView({
                 new Date().getMonth() === month &&
                 new Date().getDate() === dayNum;
 
-              const dayEvents = events.filter((ev) => {
-                const evStart = new Date(ev.start_date)
-                  .toISOString()
-                  .split("T")[0];
-                return evStart === dateStr;
-              });
+              // Bucket by the local calendar day, not the UTC one.
+              const dayEvents = events.filter(
+                (ev) => toLocalInput(ev.start_date).slice(0, 10) === dateStr,
+              );
 
               return (
                 <div
                   key={dayNum}
                   onClick={() => {
+                    resetForm();
                     setStartDate(`${dateStr}T09:00`);
                     setEndDate(`${dateStr}T12:00`);
                     setCreateModalOpen(true);
@@ -460,6 +500,15 @@ export function OdooCalendarView({
 
               <div className="flex items-center gap-2">
                 <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEdit(selectedEvent)}
+                  className="gap-1.5"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  <span>{t.actions.edit}</span>
+                </Button>
+                <Button
                   variant="danger"
                   size="sm"
                   onClick={() => setDeleteTargetId(selectedEvent.id)}
@@ -482,9 +531,9 @@ export function OdooCalendarView({
       <Modal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        title={t.actions.newEvent}
+        title={editingId ? t.calendarView.editEvent : t.actions.newEvent}
       >
-        <form onSubmit={handleCreateEvent} className="space-y-4 text-xs">
+        <form onSubmit={handleSaveEvent} className="space-y-4 text-xs">
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
               {t.calendarView.eventTitleEnLabel}
@@ -544,7 +593,7 @@ export function OdooCalendarView({
               </label>
               <Select
                 value={eventType}
-                onChange={(e) => setEventType(e.target.value as any)}
+                onChange={(e) => setEventType(e.target.value as CalendarEvent["event_type"])}
               >
                 <option value="shoot">{t.calendarView.shoot}</option>
                 <option value="meeting">{t.calendarView.meeting}</option>

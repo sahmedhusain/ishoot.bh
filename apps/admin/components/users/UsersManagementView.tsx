@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import Link from "next/link";
 import { ContentImage } from "../shared/ContentImage";
 
@@ -300,7 +301,7 @@ export function UsersManagementView({
                               <div className="mt-1 flex items-center gap-2 text-[11px]">
                                 <span className="text-amber-400">{t.hrSelfService.employeeNotLinked}</span>
                                 {canCreateEmployees && (
-                                  <Link href={`/dashboard/hr/employees/new?userId=${u.id}`} className="text-[#5EEAD4] underline">
+                                  <Link href={ROUTES.hr.newEmployee({ userId: u.id })} className="text-[#5EEAD4] underline">
                                     {t.hrSelfService.createEmployeeProfile}
                                   </Link>
                                 )}
@@ -529,7 +530,7 @@ export function UsersManagementView({
                 ))}
             </Select>
           </label>
-          <Link href="/dashboard/hr/employees/new">
+          <Link href={ROUTES.hr.newEmployee()}>
             {t.hrExtensions.createEmployee}
           </Link>
           {error && <p role="alert">{error}</p>}

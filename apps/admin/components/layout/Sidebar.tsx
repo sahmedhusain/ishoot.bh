@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,6 +27,7 @@ import {
   Globe,
   FileSignature,
   ShieldAlert,
+  TrendingUp,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -57,9 +59,9 @@ export function Sidebar() {
       {
         title: t.nav.overview,
         items: [
-          { href: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard },
+          { href: ROUTES.home, label: t.nav.dashboard, icon: LayoutDashboard },
           {
-            href: "/dashboard/calendar",
+            href: ROUTES.calendar,
             label: t.nav.calendar,
             icon: Calendar,
             resource: "calendar",
@@ -71,35 +73,35 @@ export function Sidebar() {
         title: t.nav.crm,
         items: [
           {
-            href: "/dashboard/crm/contacts",
+            href: ROUTES.crm.contacts,
             label: t.nav.contacts,
             icon: Users,
             resource: "contacts",
             moduleKey: "crm_deals",
           },
           {
-            href: "/dashboard/crm/deals",
+            href: ROUTES.crm.deals,
             label: t.nav.deals,
             icon: Kanban,
             resource: "deals",
             moduleKey: "crm_deals",
           },
           {
-            href: "/dashboard/requests",
+            href: ROUTES.requests.list,
             label: t.hrText.text271,
             icon: ShieldAlert,
             resource: "requests",
             moduleKey: "crm_deals",
           },
           {
-            href: "/dashboard/moms",
+            href: ROUTES.moms.list,
             label: t.hrText.text272,
             icon: FileSignature,
             resource: "moms",
             moduleKey: "crm_deals",
           },
           {
-            href: "/dashboard/crm/leads",
+            href: ROUTES.crm.leads,
             label: t.hrText.text273,
             icon: Inbox,
             resource: "leads",
@@ -111,48 +113,48 @@ export function Sidebar() {
         title: t.nav.finance,
         items: [
           {
-            href: "/dashboard/quotations",
+            href: ROUTES.quotations.list,
             label: t.hrText.text274,
             icon: FileSignature,
             resource: "quotations",
             moduleKey: "invoicing",
           },
           {
-            href: "/dashboard/invoices",
+            href: ROUTES.invoices.list,
             label: t.nav.invoices,
             icon: FileText,
             resource: "invoices",
             moduleKey: "invoicing",
           },
           {
-            href: "/dashboard/payments",
+            href: ROUTES.payments.list,
             label: t.nav.payments,
             icon: CreditCard,
             resource: "payments",
             moduleKey: "invoicing",
           },
           {
-            href: "/dashboard/expenses",
+            href: ROUTES.expenses.list(),
             label: t.nav.expenses,
             icon: Receipt,
             resource: "expenses",
             moduleKey: "invoicing",
           },
           {
-            href: "/dashboard/services",
+            href: ROUTES.services,
             label: t.nav.services,
             icon: Sparkles,
             resource: "invoices",
           },
           {
-            href: "/dashboard/finance/reports",
+            href: ROUTES.finance.reports,
             label: t.hrText.text275,
             icon: BarChart,
             resource: "reports",
             moduleKey: "invoicing",
           },
           {
-            href: "/dashboard/finance",
+            href: ROUTES.finance.overview,
             label: t.nav.analytics,
             icon: PieChart,
             resource: "finance_analytics",
@@ -164,7 +166,7 @@ export function Sidebar() {
         title: t.hrText.text276,
         items: [
           {
-            href: "/dashboard/hr/employees",
+            href: ROUTES.hr.employees,
             label: t.hrText.text277,
             icon: Users,
             resource: "employees",
@@ -172,21 +174,21 @@ export function Sidebar() {
           },
           // Leave and salary documents are self-service: every staff member files their own.
           {
-            href: "/dashboard/hr/leave",
+            href: ROUTES.hr.leave(),
             label: t.hrText.text278,
             icon: Calendar,
             resource: "self_service",
             moduleKey: "hrms",
           },
           {
-            href: "/dashboard/hr/documents",
+            href: ROUTES.hr.documents(),
             label: t.hrExtensions.salaryDocuments,
             icon: FileText,
             resource: "self_service",
             moduleKey: "hrms",
           },
           {
-            href: "/dashboard/hr/payroll",
+            href: ROUTES.hr.payroll(),
             label: t.hrText.text279,
             icon: CreditCard,
             resource: "payroll",
@@ -198,12 +200,12 @@ export function Sidebar() {
         title: t.hrText.text280,
         items: [
           {
-            href: "/dashboard/approvals",
+            href: ROUTES.approvals(),
             label: t.hrText.text281,
             icon: ShieldAlert,
           },
           {
-            href: "/dashboard/profile",
+            href: ROUTES.profile(),
             label: t.hrText.text282,
             icon: Users,
           },
@@ -213,60 +215,66 @@ export function Sidebar() {
         title: t.nav.cms,
         items: [
           {
-            href: "/dashboard/cms/website",
+            href: ROUTES.cms.website,
             label: t.hrText.text283,
             icon: Globe,
             resource: "settings",
             moduleKey: "cms",
           },
           {
-            href: "/dashboard/cms/banners",
+            href: ROUTES.cms.banners,
             label: t.nav.banners,
             icon: Film,
             resource: "banners",
             moduleKey: "cms",
           },
           {
-            href: "/dashboard/cms/portfolio",
+            href: ROUTES.cms.portfolio,
             label: t.nav.portfolio,
             icon: FolderOpen,
             resource: "portfolio",
             moduleKey: "cms",
           },
           {
-            href: "/dashboard/cms/clients",
+            href: ROUTES.cms.clients,
             label: t.nav.clients,
             icon: Users,
             resource: "clients",
             moduleKey: "cms",
           },
           {
-            href: "/dashboard/cms/equipment",
+            href: ROUTES.cms.equipment,
             label: t.nav.equipment,
             icon: Building2,
             resource: "equipment",
             moduleKey: "equipment",
           },
           {
-            href: "/dashboard/cms/reviews",
+            href: ROUTES.cms.reviews,
             label: t.nav.reviews,
             icon: MessageSquareQuote,
             resource: "reviews",
             moduleKey: "reviews",
           },
           {
-            href: "/dashboard/cms/faqs",
+            href: ROUTES.cms.faqs,
             label: t.nav.faqs,
             icon: HelpCircle,
             resource: "faqs",
             moduleKey: "cms",
           },
           {
-            href: "/dashboard/cms/stats",
+            href: ROUTES.cms.stats,
             label: t.nav.stats,
             icon: BarChart,
             resource: "stats",
             moduleKey: "cms",
+          },
+          {
+            href: ROUTES.analytics,
+            label: t.nav.socialAnalytics,
+            icon: TrendingUp,
+            resource: "reports",
           },
         ],
       },
@@ -274,37 +282,37 @@ export function Sidebar() {
         title: t.nav.system,
         items: [
           {
-            href: "/dashboard/settings/web",
+            href: ROUTES.settings.web,
             label: t.nav.webSettings,
             icon: Globe,
             resource: "settings",
           },
           {
-            href: "/dashboard/settings/company",
+            href: ROUTES.settings.company,
             label: t.nav.companySettings,
             icon: Building2,
             resource: "settings",
           },
           {
-            href: "/dashboard/settings/modules",
+            href: ROUTES.settings.modules,
             label: t.nav.modules,
             icon: ToggleLeft,
             resource: "settings",
           },
           {
-            href: "/dashboard/settings/roles",
+            href: ROUTES.settings.roles,
             label: t.nav.roles,
             icon: Key,
             resource: "users",
           },
           {
-            href: "/dashboard/users",
+            href: ROUTES.users.list,
             label: t.nav.users,
             icon: ShieldCheck,
             resource: "users",
           },
           {
-            href: "/dashboard/settings/audit",
+            href: ROUTES.settings.audit,
             label: t.nav.auditLogs,
             icon: FileText,
             resource: "audit_logs",
@@ -349,7 +357,7 @@ export function Sidebar() {
               const Icon = item.icon;
               const isActive =
                 pathname === item.href ||
-                (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                (item.href !== ROUTES.home && pathname.startsWith(item.href));
 
               return (
                 <Link

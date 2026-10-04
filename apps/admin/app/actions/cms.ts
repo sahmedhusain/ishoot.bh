@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -19,9 +20,12 @@ PortfolioItem
 } from "@ishoot/database";
 import { safeWebsiteUrl } from "@ishoot/database/website-config";
 import { revalidatePath } from "next/cache";
+// The public site only caches the *published* website snapshot (tags "website"/"company"), and its
+// pages render dynamically. Collection edits here change the draft, so they refresh the admin
+// Website page (which reports unpublished changes) and reach the public site on the next publish.
+// Reviews and equipment are read live by the public pages and need no invalidation.
 import { requirePermission } from "../../lib/auth";
 import { requireFeatureEnabled } from "@ishoot/database";
-import { revalidatePublicSite } from "../../lib/revalidate-web";
 
 export async function toggleBannerStatusAction(id: string, isActive: boolean) {
   return measureOperation("action:toggleBannerStatusAction", async () => {
@@ -40,8 +44,8 @@ export async function toggleBannerStatusAction(id: string, isActive: boolean) {
       return {};
     });
 
-    revalidatePath("/dashboard/cms/banners");
-    await revalidatePublicSite(["banners"], ["/"]);
+    revalidatePath(ROUTES.cms.banners);
+    revalidatePath(ROUTES.cms.website);
     return { success: true };
   });
 }
@@ -61,8 +65,8 @@ export async function deleteBannerAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/cms/banners");
-    await revalidatePublicSite(["banners"], ["/"]);
+    revalidatePath(ROUTES.cms.banners);
+    revalidatePath(ROUTES.cms.website);
     return { success: true };
   });
 }
@@ -100,8 +104,8 @@ export async function createBannerAction(data: {
       return { banner };
     });
 
-    revalidatePath("/dashboard/cms/banners");
-    await revalidatePublicSite(["banners"], ["/"]);
+    revalidatePath(ROUTES.cms.banners);
+    revalidatePath(ROUTES.cms.website);
     return { success: true, banner };
   });
 }
@@ -121,8 +125,8 @@ export async function deleteClientLogoAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/cms/clients");
-    await revalidatePublicSite(["clients"], ["/"]);
+    revalidatePath(ROUTES.cms.clients);
+    revalidatePath(ROUTES.cms.website);
     return { success: true };
   });
 }
@@ -151,8 +155,8 @@ export async function createClientLogoAction(data: {
       return { logo };
     });
 
-    revalidatePath("/dashboard/cms/clients");
-    await revalidatePublicSite(["clients"], ["/"]);
+    revalidatePath(ROUTES.cms.clients);
+    revalidatePath(ROUTES.cms.website);
     return { success: true, logo };
   });
 }
@@ -172,8 +176,7 @@ export async function deleteEquipmentAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/cms/equipment");
-    await revalidatePublicSite(["equipment"], ["/equipment", "/"]);
+    revalidatePath(ROUTES.cms.equipment);
     return { success: true };
   });
 }
@@ -202,8 +205,7 @@ export async function createEquipmentAction(data: {
       return { item };
     });
 
-    revalidatePath("/dashboard/cms/equipment");
-    await revalidatePublicSite(["equipment"], ["/equipment", "/"]);
+    revalidatePath(ROUTES.cms.equipment);
     return { success: true, item };
   });
 }
@@ -231,8 +233,8 @@ export async function togglePortfolioFeaturedAction(
       return {};
     });
 
-    revalidatePath("/dashboard/cms/portfolio");
-    await revalidatePublicSite(["portfolio"], ["/works", "/"]);
+    revalidatePath(ROUTES.cms.portfolio);
+    revalidatePath(ROUTES.cms.website);
     return { success: true };
   });
 }
@@ -253,8 +255,8 @@ export async function deletePortfolioItemAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/cms/portfolio");
-    await revalidatePublicSite(["portfolio"], ["/works", "/"]);
+    revalidatePath(ROUTES.cms.portfolio);
+    revalidatePath(ROUTES.cms.website);
     return { success: true };
   });
 }
@@ -295,8 +297,8 @@ export async function createPortfolioItemAction(data: {
       return { project };
     });
 
-    revalidatePath("/dashboard/cms/portfolio");
-    await revalidatePublicSite(["portfolio"], ["/works", "/"]);
+    revalidatePath(ROUTES.cms.portfolio);
+    revalidatePath(ROUTES.cms.website);
     return { success: true, project };
   });
 }
@@ -329,8 +331,7 @@ export async function toggleReviewApprovalAction(
       });
       return review;
     });
-    await revalidatePublicSite(["reviews"], ["/"]);
-    revalidatePath("/dashboard/cms/reviews");
+    revalidatePath(ROUTES.cms.reviews);
     return { success: true, review };
   });
 }
@@ -348,8 +349,7 @@ export async function deleteReviewAction(id: string) {
         entity_id: id,
       });
     });
-    await revalidatePublicSite(["reviews"], ["/"]);
-    revalidatePath("/dashboard/cms/reviews");
+    revalidatePath(ROUTES.cms.reviews);
     return { success: true };
   });
 }
@@ -368,8 +368,8 @@ export async function createFaqAction(data: Parameters<typeof createFaq>[0]) {
       });
       return faq;
     });
-    revalidatePublicSite(["faqs"]);
-    revalidatePath("/dashboard/cms/faqs");
+    revalidatePath(ROUTES.cms.website);
+    revalidatePath(ROUTES.cms.faqs);
     return { success: true, faq };
   });
 }
@@ -391,8 +391,8 @@ export async function updateFaqAction(
       });
       return faq;
     });
-    revalidatePublicSite(["faqs"]);
-    revalidatePath("/dashboard/cms/faqs");
+    revalidatePath(ROUTES.cms.website);
+    revalidatePath(ROUTES.cms.faqs);
     return { success: true, faq };
   });
 }
@@ -410,8 +410,8 @@ export async function deleteFaqAction(id: string) {
         entity_id: id,
       });
     });
-    revalidatePublicSite(["faqs"]);
-    revalidatePath("/dashboard/cms/faqs");
+    revalidatePath(ROUTES.cms.website);
+    revalidatePath(ROUTES.cms.faqs);
     return { success: true };
   });
 }
@@ -432,8 +432,8 @@ export async function createStatisticAction(
       });
       return stat;
     });
-    revalidatePublicSite(["stats"]);
-    revalidatePath("/dashboard/cms/stats");
+    revalidatePath(ROUTES.cms.website);
+    revalidatePath(ROUTES.cms.stats);
     return { success: true, stat };
   });
 }
@@ -455,8 +455,8 @@ export async function updateStatisticAction(
       });
       return stat;
     });
-    revalidatePublicSite(["stats"]);
-    revalidatePath("/dashboard/cms/stats");
+    revalidatePath(ROUTES.cms.website);
+    revalidatePath(ROUTES.cms.stats);
     return { success: true, stat };
   });
 }
@@ -474,8 +474,8 @@ export async function deleteStatisticAction(id: string) {
         entity_id: id,
       });
     });
-    revalidatePublicSite(["stats"]);
-    revalidatePath("/dashboard/cms/stats");
+    revalidatePath(ROUTES.cms.website);
+    revalidatePath(ROUTES.cms.stats);
     return { success: true };
   });
 }
@@ -550,7 +550,8 @@ export async function updateBannerContentAction(
       });
       return { banner };
     });
-    revalidatePath("/dashboard/cms/banners");
+    revalidatePath(ROUTES.cms.banners);
+    revalidatePath(ROUTES.cms.website);
     return { success: true, banner };
   });
 }
@@ -576,7 +577,8 @@ export async function updatePortfolioContentAction(
       });
       return { project };
     });
-    revalidatePath("/dashboard/cms/portfolio");
+    revalidatePath(ROUTES.cms.portfolio);
+    revalidatePath(ROUTES.cms.website);
     return { success: true, project };
   });
 }

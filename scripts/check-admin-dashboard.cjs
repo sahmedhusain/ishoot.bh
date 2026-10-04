@@ -60,6 +60,29 @@ async function main() {
   assert.equal(aggregations, 1);
   assert.equal(full.activePipelineValue, 300);
   assert.equal(listReads, 2);
-  console.log('Dashboard checks passed: localized capability gates, permitted actions, bounded recent deals and omitted unauthorized analytics query.');
+
+  // Linked deals only ever move forward, and never out of a closed stage.
+  const advances = [];
+  const { advanceDealForEvent } = load('packages/database/src/queries/crm.ts', {
+    './company-settings': {}, '../services/lead-resolver': {}, '../db': { db: {} },
+  });
+  const tx = { crmDeal: { updateMany: async (args) => { advances.push(args); return { count: 1 }; } } };
+  assert.equal(await advanceDealForEvent(tx, null, 'invoice_paid'), false, 'Unlinked documents never touch deals');
+  await advanceDealForEvent(tx, 'd1', 'quotation_issued');
+  await advanceDealForEvent(tx, 'd1', 'invoice_paid');
+  assert.equal(JSON.stringify(advances[0].where), JSON.stringify({ id: 'd1', dealStage: { in: ['lead'] } }));
+  assert.equal(advances[0].data.dealStage, 'proposal_sent');
+  assert.equal(advances[1].data.dealStage, 'closed_won');
+  assert.ok(!advances[1].where.dealStage.in.includes('closed_lost'), 'A lost deal is never reopened');
+  assert.ok(advances[1].where.dealStage.in.includes('invoiced'));
+
+  // Links can only carry the parameters their target page reads.
+  const { ROUTES, entityRoute } = realConstants('apps/admin/x.ts', '@ishoot/database/constants/routes');
+  assert.equal(ROUTES.quotations.create({ clientId: 'c 1', dealId: 'd', inquiryId: null }), '/dashboard/quotations/new?clientId=c+1&dealId=d');
+  assert.equal(ROUTES.crm.newDeal(), '/dashboard/crm/deals/new');
+  assert.equal(ROUTES.crm.customer('a/b'), '/dashboard/crm/customers/a%2Fb');
+  assert.equal(entityRoute('customer_vault', 'c'), '/dashboard/crm/customers/c');
+  assert.equal(entityRoute('unknown', 'x'), undefined);
+  console.log('Dashboard checks passed: localized capability gates, permitted actions, bounded recent deals, omitted unauthorized analytics query, forward-only deal progression and typed route builders.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

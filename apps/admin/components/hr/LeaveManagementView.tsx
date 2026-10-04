@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { NoEmployeeProfile } from "./NoEmployeeProfile";
 
@@ -184,7 +185,7 @@ export function LeaveManagementView({
   const updateStatusFilter = (st: string) => {
     const params = new URLSearchParams();
     if (st !== "all") params.set("status", st);
-    router.push(`/dashboard/hr/leave?${params.toString()}`);
+    router.push(`${ROUTES.hr.leave()}?${params.toString()}`);
   };
 
   return (

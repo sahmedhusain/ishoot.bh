@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,8 @@ import {
   updateWebsiteServiceAction,
 } from "../../app/actions/website";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import type { WebsiteSnapshotSection } from "@ishoot/database";
+import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
 export function WebsiteEditor({
   config,
   revision,
@@ -21,9 +24,11 @@ export function WebsiteEditor({
   canRestore,
   services,
   deliveryStatus,
+  publication,
 }: {
   config: WebsiteConfig;
   deliveryStatus?: string;
+  publication: { isPublished: boolean; changedSections: WebsiteSnapshotSection[] };
   revision: number;
   publishedAt?: string;
   canRestore: boolean;
@@ -109,7 +114,7 @@ export function WebsiteEditor({
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-16">
       <header>
-        <Link className="text-sm underline" href="/dashboard/settings/web">
+        <Link className="text-sm underline" href={ROUTES.settings.web}>
           {ar ? "إعدادات الموقع" : "Website settings"}
         </Link>
         <h1 className="text-2xl font-bold mt-3">
@@ -120,13 +125,14 @@ export function WebsiteEditor({
             ? "رتّب الأقسام، حرّر صفحة التواصل، واختر الخدمات العامة. انشر بعد مراجعة المعاينة."
             : "Arrange sections, edit contact content and choose public services. Preview before publishing."}
         </p>
-        <p className="text-xs text-slate-500 mt-2">
-          {publishedAt
-            ? `${ar ? "آخر نشر:" : "Last published:"} ${new Date(publishedAt).toLocaleString()}`
-            : ar
-              ? "لم يتم إنشاء نسخة منشورة بعد. المحتوى الحالي ظاهر مباشرة."
-              : "No published snapshot yet. Existing content is currently live."}
-        </p>
+        {publishedAt && (
+          <p className="text-xs text-slate-500 mt-2">
+            {`${ar ? "آخر نشر:" : "Last published:"} ${new Date(publishedAt).toLocaleString()}`}
+          </p>
+        )}
+        <div className="mt-3">
+          <UnpublishedChangesNotice status={publication} canPublish />
+        </div>
         {deliveryStatus && (
           <p className="text-xs text-slate-500 mt-2">
             {ar ? "تحديث النسخة العامة:" : "Public refresh:"}{" "}
@@ -392,7 +398,7 @@ export function WebsiteEditor({
           {ar
             ? "الأسماء والأوصاف تُدار من دليل الخدمات. لا تظهر الأسعار الداخلية في الموقع."
             : "Names and descriptions come from the service catalogue. Internal rates are never shown publicly."}{" "}
-          <Link href="/dashboard/services" className="underline">
+          <Link href={ROUTES.services} className="underline">
             {ar ? "دليل الخدمات" : "Service catalogue"}
           </Link>
         </p>
@@ -445,12 +451,12 @@ export function WebsiteEditor({
             : "After the first publication, banner, portfolio, logo, FAQ and statistic edits wait for publication here. Review approval and company profile changes remain immediate."}
         </p>
         <div className="flex flex-wrap gap-4">
-          {["banners", "portfolio", "clients", "faqs", "stats", "reviews"].map(
+          {(["banners", "portfolio", "clients", "faqs", "stats", "reviews"] as const).map(
             (path) => (
               <Link
                 className="underline text-sm"
                 key={path}
-                href={`/dashboard/cms/${path}`}
+                href={ROUTES.cms[path]}
               >
                 {path}
               </Link>

@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import type { CompanySettings,SocialLink } from "@ishoot/database/types";
@@ -144,7 +145,7 @@ export function WebSettingsView({
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-fade-in select-none">
       <Link
-        href="/dashboard/cms/website"
+        href={ROUTES.cms.website}
         className="block rounded-xl bg-emerald-900 text-white p-5 font-semibold"
       >
         {isRTL
@@ -293,7 +294,7 @@ export function WebSettingsView({
                 </div>
 
                 <Link
-                  href="/dashboard/cms/banners"
+                  href={ROUTES.cms.banners}
                   className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-neutral-300 inline-flex items-center gap-1.5 transition-colors"
                 >
                   <span>
@@ -349,7 +350,7 @@ export function WebSettingsView({
                   </div>
                 </div>
                 <Link
-                  href="/dashboard/settings/company"
+                  href={ROUTES.settings.company}
                   className="text-xs font-bold text-[#09937F] hover:underline flex items-center gap-1"
                 >
                   <span>{t.webSettingsView.brandPortal}</span>
@@ -857,7 +858,7 @@ export function WebSettingsView({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Link
-                  href="/dashboard/cms/banners"
+                  href={ROUTES.cms.banners}
                   className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
@@ -880,7 +881,7 @@ export function WebSettingsView({
                 </Link>
 
                 <Link
-                  href="/dashboard/cms/portfolio"
+                  href={ROUTES.cms.portfolio}
                   className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
@@ -903,7 +904,7 @@ export function WebSettingsView({
                 </Link>
 
                 <Link
-                  href="/dashboard/cms/clients"
+                  href={ROUTES.cms.clients}
                   className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
@@ -926,7 +927,7 @@ export function WebSettingsView({
                 </Link>
 
                 <Link
-                  href="/dashboard/cms/equipment"
+                  href={ROUTES.cms.equipment}
                   className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
@@ -949,7 +950,7 @@ export function WebSettingsView({
                 </Link>
 
                 <Link
-                  href="/dashboard/cms/reviews"
+                  href={ROUTES.cms.reviews}
                   className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
@@ -980,7 +981,7 @@ export function WebSettingsView({
                 </Link>
 
                 <Link
-                  href="/dashboard/cms/faqs"
+                  href={ROUTES.cms.faqs}
                   className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">

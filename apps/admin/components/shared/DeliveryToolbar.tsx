@@ -100,7 +100,7 @@ export function DeliveryToolbar({
 
   const handleDownloadPdf = () => {
     if (!canExport) return;
-    const downloadUrl = `/api/documents/${encodeURIComponent(documentNumber)}/pdf?type=${documentType}&download=true`;
+    const downloadUrl = `/api/documents/${encodeURIComponent(documentNumber)}/pdf?type=${documentType}&download=true&locale=${locale}`;
     const link = document.createElement("a");
     link.href = downloadUrl;
     link.download = `${documentType}-${documentNumber}.pdf`;

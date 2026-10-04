@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import type { FinancialSummaryReport } from "@ishoot/database";
@@ -39,7 +40,7 @@ export function FinancialReportsView({
     params.set("basis", newBasis);
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
-    router.push(`/dashboard/finance/reports?${params.toString()}`);
+    router.push(`${ROUTES.finance.reports}?${params.toString()}`);
   };
 
   const handleApplyDateFilter = (e: React.FormEvent) => {
@@ -48,7 +49,7 @@ export function FinancialReportsView({
     params.set("basis", currentBasis);
     if (filterDateFrom) params.set("dateFrom", filterDateFrom);
     if (filterDateTo) params.set("dateTo", filterDateTo);
-    router.push(`/dashboard/finance/reports?${params.toString()}`);
+    router.push(`${ROUTES.finance.reports}?${params.toString()}`);
   };
 
   const handleExportCsv = async () => {
@@ -168,7 +169,7 @@ export function FinancialReportsView({
               onClick={() => {
                 setFilterDateFrom("");
                 setFilterDateTo("");
-                router.push(`/dashboard/finance/reports?basis=${currentBasis}`);
+                router.push(`${ROUTES.finance.reports}?basis=${currentBasis}`);
               }}
               className="text-xs text-slate-400 hover:text-red-500"
             >

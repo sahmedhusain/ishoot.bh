@@ -1,12 +1,12 @@
 import { requirePermission } from "../../../../lib/auth";
-import { requireFeatureEnabled, db, getWebsiteEditor } from "@ishoot/database";
+import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus } from "@ishoot/database";
 import { validateWebsiteConfig } from "@ishoot/database/website-config";
 import { WebsiteEditor } from "../../../../components/cms/WebsiteEditor";
 export const dynamic = "force-dynamic";
 export default async function WebsitePage() {
   await requirePermission("settings", "read");
   await requireFeatureEnabled("cms");
-  const [content, services, delivery] = await Promise.all([
+  const [content, services, delivery, publication] = await Promise.all([
     getWebsiteEditor(),
     db.service.findMany({
       where: { isActive: true },
@@ -24,10 +24,12 @@ export default async function WebsitePage() {
       orderBy: { createdAt: "desc" },
       select: { status: true },
     }),
+    getWebsitePublicationStatus(),
   ]);
   return (
     <WebsiteEditor
       deliveryStatus={delivery?.status}
+      publication={publication}
       config={validateWebsiteConfig(content.draft)}
       revision={content.revision}
       publishedAt={content.publishedAt?.toISOString()}

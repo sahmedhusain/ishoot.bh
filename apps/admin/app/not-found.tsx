@@ -1,3 +1,4 @@
+import { ROUTES } from "../constants/routes";
 import Link from "next/link";
 
 export default function AdminNotFound() {
@@ -19,7 +20,7 @@ export default function AdminNotFound() {
 
         <div className="flex items-center justify-center gap-3 pt-2">
           <Link
-            href="/dashboard"
+            href={ROUTES.home}
             className="px-5 py-2.5 rounded-xl bg-[#09937F] hover:bg-[#077a68] text-white text-xs font-semibold transition-colors shadow-lg shadow-[#09937F]/20"
           >
             Back to Dashboard

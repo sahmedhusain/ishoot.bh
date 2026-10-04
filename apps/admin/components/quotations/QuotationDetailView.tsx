@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -253,7 +254,7 @@ export function QuotationDetailView({
             : `Invoice ${res.invoice.invoiceNumber} generated!`,
           { id: toastId },
         );
-        router.push(`/dashboard/invoices/${res.invoice.invoiceId}`);
+        router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
       } else {
         toast.error("Failed to convert quotation", { id: toastId });
       }
@@ -270,7 +271,7 @@ export function QuotationDetailView({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EAEAEA] dark:border-white/10 pb-6">
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/quotations"
+            href={ROUTES.quotations.list}
             className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             {isRTL ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
@@ -390,7 +391,7 @@ export function QuotationDetailView({
           {/* Linked Invoice if Converted */}
           {(quotation.status === "converted" || Boolean(quotation.invoiceId)) && quotation.invoiceId && (
             <Link
-              href={`/dashboard/invoices/${quotation.invoiceId}`}
+              href={ROUTES.invoices.detail(quotation.invoiceId)}
               className="inline-flex items-center gap-2 bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800 px-3.5 py-2 rounded-md text-xs font-mono font-medium hover:bg-purple-100 transition-colors"
             >
               <Receipt className="w-4 h-4" />

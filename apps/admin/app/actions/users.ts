@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -146,7 +147,7 @@ export async function createUserAction(data: {
       return { user };
     });
 
-    revalidatePath("/dashboard/users");
+    revalidatePath(ROUTES.users.list);
     return { success: true, user };
   });
 }
@@ -172,7 +173,7 @@ export async function updateUserRoleAction(id: string, role: UserRole) {
       return { user };
     });
 
-    revalidatePath("/dashboard/users");
+    revalidatePath(ROUTES.users.list);
     return { success: true, user };
   });
 }
@@ -247,7 +248,7 @@ export async function updateUserAction(
       return { user };
     });
 
-    revalidatePath("/dashboard/users");
+    revalidatePath(ROUTES.users.list);
     return { success: true, user };
   });
 }
@@ -313,7 +314,7 @@ export async function suspendUserAction(id: string, reason: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/users");
+    revalidatePath(ROUTES.users.list);
     return { success: true };
   });
 }
@@ -360,7 +361,7 @@ export async function reactivateUserAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/users");
+    revalidatePath(ROUTES.users.list);
     return { success: true };
   });
 }
@@ -418,7 +419,7 @@ export async function archiveUserAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/users");
+    revalidatePath(ROUTES.users.list);
     return { success: true };
   });
 }
@@ -487,7 +488,7 @@ export async function deleteUserAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/users");
+    revalidatePath(ROUTES.users.list);
     return { success: true };
   });
 }

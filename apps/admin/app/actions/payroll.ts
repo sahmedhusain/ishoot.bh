@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -31,7 +32,7 @@ export async function generatePayrollRunAction(month: number, year: number) {
       return { payrollRun };
     });
 
-    revalidatePath("/dashboard/hr/payroll");
+    revalidatePath(ROUTES.hr.payroll());
     return { success: true, payrollRun };
   });
 }
@@ -55,8 +56,8 @@ export async function submitPayrollRunForApprovalAction(runId: string) {
       return { approvalRequest };
     });
 
-    revalidatePath("/dashboard/hr/payroll");
-    revalidatePath("/dashboard/approvals");
+    revalidatePath(ROUTES.hr.payroll());
+    revalidatePath(ROUTES.approvals());
     return { success: true, approvalRequest };
   });
 }
@@ -81,8 +82,8 @@ export async function approvePayrollRunAction(runId: string) {
       return result;
     });
 
-    revalidatePath("/dashboard/hr/payroll");
-    revalidatePath("/dashboard/approvals");
+    revalidatePath(ROUTES.hr.payroll());
+    revalidatePath(ROUTES.approvals());
     return { success: true, status: outcome.status };
   });
 }
@@ -106,7 +107,7 @@ export async function markPayrollRunPaidAction(runId: string) {
       return { payrollRun };
     });
 
-    revalidatePath("/dashboard/hr/payroll");
+    revalidatePath(ROUTES.hr.payroll());
     return { success: true, payrollRun };
   });
 }

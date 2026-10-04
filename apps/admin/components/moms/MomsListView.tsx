@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import type { MinuteOfMeetingItem } from "@ishoot/database";
@@ -95,7 +96,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
           </p>
         </div>
 
-        <Link href="/dashboard/moms/new">
+        <Link href={ROUTES.moms.create}>
           <Button className="bg-[#09937F] hover:bg-[#077464] text-white flex items-center gap-2 text-xs">
             <Plus className="w-4 h-4" />
             <span>{isRTL ? "إنشاء محضر جديد" : "New Meeting Minutes"}</span>
@@ -168,7 +169,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                   <tr key={mom.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="p-4 font-mono font-bold text-[#5EEAD4]">
                       <Link
-                        href={`/dashboard/moms/${mom.id}`}
+                        href={ROUTES.moms.detail(mom.id)}
                         className="hover:underline flex items-center gap-1.5"
                       >
                         <span>{mom.mom_number}</span>
@@ -219,7 +220,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                     <td className="p-4 text-end">
                       <div className="flex items-center justify-end gap-2">
                         <Link
-                          href={`/dashboard/moms/${mom.id}`}
+                          href={ROUTES.moms.detail(mom.id)}
                           className="p-1.5 rounded-lg bg-white/5 hover:bg-[#09937F]/20 text-[#5EEAD4] border border-white/10 hover:border-[#09937F]/40 transition-all"
                           title={isRTL ? "عرض المستند الرسمي" : "View Official Document"}
                         >

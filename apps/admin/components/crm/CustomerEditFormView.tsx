@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -105,7 +106,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
         notes: notes || undefined,
       });
 
-      router.push(`/dashboard/crm/customers/${contact.id}`);
+      router.push(ROUTES.crm.customer(contact.id));
     } catch (err) {
       console.error("Failed to update customer:", err);
     } finally {
@@ -117,7 +118,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
-        <Link href={`/dashboard/crm/customers/${contact.id}`}>
+        <Link href={ROUTES.crm.customer(contact.id)}>
           <Button
             variant="outline"
             size="sm"
@@ -239,7 +240,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
           </div>
 
           <div className="pt-6 border-t border-slate-100 dark:border-white/10 flex items-center justify-end gap-4">
-            <Link href={`/dashboard/crm/customers/${contact.id}`}>
+            <Link href={ROUTES.crm.customer(contact.id)}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}
               </Button>

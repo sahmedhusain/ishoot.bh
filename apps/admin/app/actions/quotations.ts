@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -74,8 +75,8 @@ export async function createQuotationAction(data: {
       return { quotation };
     });
 
-    revalidatePath("/dashboard/quotations");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.quotations.list);
+    revalidatePath(ROUTES.home);
     return { success: true, quotation };
   });
 }
@@ -128,8 +129,8 @@ export async function updateQuotationAction(
       return { quotation };
     });
 
-    revalidatePath("/dashboard/quotations");
-    revalidatePath(`/dashboard/quotations/${id}`);
+    revalidatePath(ROUTES.quotations.list);
+    revalidatePath(ROUTES.quotations.detail(id));
     return { success: true, quotation };
   });
 }
@@ -153,9 +154,9 @@ export async function submitQuotationForApprovalAction(id: string, discountReaso
       return { approvalRequest };
     });
 
-    revalidatePath("/dashboard/quotations");
-    revalidatePath(`/dashboard/quotations/${id}`);
-    revalidatePath("/dashboard/approvals");
+    revalidatePath(ROUTES.quotations.list);
+    revalidatePath(ROUTES.quotations.detail(id));
+    revalidatePath(ROUTES.approvals());
     return { success: true, approvalRequest };
   });
 }
@@ -182,8 +183,9 @@ export async function issueQuotationAction(
       return { quotation };
     });
 
-    revalidatePath("/dashboard/quotations");
-    revalidatePath(`/dashboard/quotations/${id}`);
+    revalidatePath(ROUTES.crm.deals, "layout");
+    revalidatePath(ROUTES.quotations.list);
+    revalidatePath(ROUTES.quotations.detail(id));
     return { success: true, quotation };
   });
 }
@@ -207,8 +209,9 @@ export async function acceptQuotationAction(id: string, evidence?: string) {
       return { quotation };
     });
 
-    revalidatePath("/dashboard/quotations");
-    revalidatePath(`/dashboard/quotations/${id}`);
+    revalidatePath(ROUTES.crm.deals, "layout");
+    revalidatePath(ROUTES.quotations.list);
+    revalidatePath(ROUTES.quotations.detail(id));
     return { success: true, quotation };
   });
 }
@@ -232,8 +235,8 @@ export async function rejectQuotationAction(id: string, reason?: string) {
       return { quotation };
     });
 
-    revalidatePath("/dashboard/quotations");
-    revalidatePath(`/dashboard/quotations/${id}`);
+    revalidatePath(ROUTES.quotations.list);
+    revalidatePath(ROUTES.quotations.detail(id));
     return { success: true, quotation };
   });
 }
@@ -257,9 +260,9 @@ export async function convertQuotationToInvoiceAction(id: string) {
       return { invoice };
     });
 
-    revalidatePath("/dashboard/quotations");
-    revalidatePath(`/dashboard/quotations/${id}`);
-    revalidatePath("/dashboard/invoices");
+    revalidatePath(ROUTES.quotations.list);
+    revalidatePath(ROUTES.quotations.detail(id));
+    revalidatePath(ROUTES.invoices.list);
     return { success: true, invoice };
   });
 }

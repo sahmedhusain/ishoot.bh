@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -31,16 +32,16 @@ export async function decideApprovalAction(
       return { decisionResult: res };
     });
 
-    revalidatePath("/dashboard/approvals");
-    revalidatePath("/dashboard/quotations");
-    revalidatePath("/dashboard/invoices");
-    revalidatePath("/dashboard/hr/payroll");
-    revalidatePath("/dashboard/users");
-    revalidatePath("/dashboard");
-    revalidatePath("/dashboard/hr/leave");
-    revalidatePath("/dashboard/hr/documents");
-    revalidatePath("/dashboard/profile");
-    revalidatePath("/dashboard/requests");
+    revalidatePath(ROUTES.approvals());
+    revalidatePath(ROUTES.quotations.list);
+    revalidatePath(ROUTES.invoices.list);
+    revalidatePath(ROUTES.hr.payroll());
+    revalidatePath(ROUTES.users.list);
+    revalidatePath(ROUTES.home);
+    revalidatePath(ROUTES.hr.leave());
+    revalidatePath(ROUTES.hr.documents());
+    revalidatePath(ROUTES.profile());
+    revalidatePath(ROUTES.requests.list);
     return { success: true, status: decisionResult.status };
   });
 }

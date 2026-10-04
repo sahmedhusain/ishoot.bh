@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 import { EntityLookup } from "../shared/EntityLookup";
 
@@ -174,7 +175,7 @@ export function NewPaymentFormView({
           attachmentsToSave.length > 0 ? attachmentsToSave : undefined,
       });
 
-      router.push("/dashboard/payments");
+      router.push(ROUTES.payments.list);
     } catch (err: any) {
       console.error("Failed to record payment:", err);
       setFormError(err.message || "Failed to record payment");
@@ -188,7 +189,7 @@ export function NewPaymentFormView({
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/payments">
+        <Link href={ROUTES.payments.list}>
           <Button
             variant="outline"
             size="sm"
@@ -253,7 +254,7 @@ export function NewPaymentFormView({
               <div>
                 <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.invoiceNumber}</span>
                 <Link
-                  href={`/dashboard/invoices/${selectedInvoice.id}`}
+                  href={ROUTES.invoices.detail(selectedInvoice.id)}
                   target="_blank"
                   className=" font-bold text-[#09937F] hover:underline flex items-center gap-1"
                 >
@@ -623,7 +624,7 @@ export function NewPaymentFormView({
           )}
 
           <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-white/10">
-            <Link href="/dashboard/payments">
+            <Link href={ROUTES.payments.list}>
               <Button type="button" variant="outline">
                 {t.actions.cancel}
               </Button>

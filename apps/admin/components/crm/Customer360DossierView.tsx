@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { RelatedListControls } from "../shared/RelatedListControls";
 
 import * as React from "react";
@@ -20,17 +21,21 @@ ExternalLink,
 Download,DollarSign,
 TrendingUp,ShieldCheck,
 CheckCircle2,
-Plus,AlertCircle
+Plus,AlertCircle,
+  FileSignature,
 } from "lucide-react";
 import type { CustomerDossier } from "@ishoot/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import type { DossierActions } from "../../types/crm";
 
 interface Customer360DossierViewProps {
   dossier: CustomerDossier;
+  actions: DossierActions;
 }
 
 export function Customer360DossierView({
   dossier,
+  actions,
 }: Customer360DossierViewProps) {
   const { t, locale, isRTL } = useAdminLocale();
   const [activeTab, setActiveTab] = React.useState<
@@ -64,7 +69,7 @@ export function Customer360DossierView({
       {/* Top Header & Navigation */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/crm/contacts">
+          <Link href={ROUTES.crm.contacts}>
             <Button variant="outline" size="sm" className="gap-1.5">
               <ArrowLeft className="w-4 h-4" />
               <span>{t.actions.back}</span>
@@ -106,33 +111,50 @@ export function Customer360DossierView({
 
         {/* Quick Action Toolbar */}
         <div className="flex flex-wrap items-center gap-2">
-          <Link href={`/dashboard/invoices/new?clientId=${contact.id}`}>
-            <Button variant="primary" size="sm" className="gap-1.5">
-              <Plus className="w-3.5 h-3.5" />
-              <span>{t.customer360.issueInvoice}</span>
-            </Button>
-          </Link>
+          {actions.createQuotation && (
+            <Link href={ROUTES.quotations.create({ clientId: contact.id })}>
+              <Button variant="primary" size="sm" className="gap-1.5">
+                <FileSignature className="w-3.5 h-3.5" />
+                <span>{t.customer360.createQuotation}</span>
+              </Button>
+            </Link>
+          )}
 
-          <Link href={`/dashboard/payments/new?clientId=${contact.id}`}>
-            <Button variant="secondary" size="sm" className="gap-1.5">
-              <CreditCard className="w-3.5 h-3.5" />
-              <span>{t.customer360.recordPayment}</span>
-            </Button>
-          </Link>
+          {actions.createInvoice && (
+            <Link href={ROUTES.invoices.create({ clientId: contact.id })}>
+              <Button variant="primary" size="sm" className="gap-1.5">
+                <Plus className="w-3.5 h-3.5" />
+                <span>{t.customer360.issueInvoice}</span>
+              </Button>
+            </Link>
+          )}
 
-          <Link href={`/dashboard/crm/deals/new?clientId=${contact.id}`}>
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Briefcase className="w-3.5 h-3.5" />
-              <span>{t.customer360.newDeal}</span>
-            </Button>
-          </Link>
+          {actions.recordPayment && (
+            <Link href={ROUTES.payments.create({ clientId: contact.id })}>
+              <Button variant="secondary" size="sm" className="gap-1.5">
+                <CreditCard className="w-3.5 h-3.5" />
+                <span>{t.customer360.recordPayment}</span>
+              </Button>
+            </Link>
+          )}
 
-          <Link href={`/dashboard/crm/customers/${contact.id}/edit`}>
-            <Button variant="ghost" size="sm" className="gap-1.5">
-              <Edit className="w-3.5 h-3.5" />
-              <span>{t.customer360.edit}</span>
-            </Button>
-          </Link>
+          {actions.createDeal && (
+            <Link href={ROUTES.crm.newDeal({ clientId: contact.id })}>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Briefcase className="w-3.5 h-3.5" />
+                <span>{t.customer360.newDeal}</span>
+              </Button>
+            </Link>
+          )}
+
+          {actions.editRecord && (
+            <Link href={ROUTES.crm.customerEdit(contact.id)}>
+              <Button variant="ghost" size="sm" className="gap-1.5">
+                <Edit className="w-3.5 h-3.5" />
+                <span>{t.customer360.edit}</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -443,11 +465,13 @@ export function Customer360DossierView({
               <Briefcase className="w-4 h-4 text-[#09937F]" />
               <span>{t.customer360.commercialDeals}</span>
             </h3>
-            <Link href={`/dashboard/crm/deals/new?clientId=${contact.id}`}>
-              <Button variant="primary" size="sm" className="gap-1">
-                <span>+ {t.customer360.createDeal}</span>
-              </Button>
-            </Link>
+            {actions.createDeal && (
+              <Link href={ROUTES.crm.newDeal({ clientId: contact.id })}>
+                <Button variant="primary" size="sm" className="gap-1">
+                  <span>+ {t.customer360.createDeal}</span>
+                </Button>
+              </Link>
+            )}
           </div>
 
           {deals.length === 0 ? (
@@ -463,7 +487,7 @@ export function Customer360DossierView({
                 >
                   <div>
                     <Link
-                      href={`/dashboard/crm/deals/${deal.id}`}
+                      href={ROUTES.crm.deal(deal.id)}
                       className="font-bold text-[#09937F] hover:underline"
                     >
                       {deal.title}
@@ -494,16 +518,20 @@ export function Customer360DossierView({
               <span>{t.customer360.financialLedger}</span>
             </h3>
             <div className="flex items-center gap-2">
-              <Link href={`/dashboard/payments/new?clientId=${contact.id}`}>
-                <Button variant="outline" size="sm" className="gap-1">
-                  <span>+ {t.customer360.recordPayment}</span>
-                </Button>
-              </Link>
-              <Link href={`/dashboard/invoices/new?clientId=${contact.id}`}>
-                <Button variant="primary" size="sm" className="gap-1">
-                  <span>+ {t.customer360.newInvoice}</span>
-                </Button>
-              </Link>
+              {actions.recordPayment && (
+                <Link href={ROUTES.payments.create({ clientId: contact.id })}>
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <span>+ {t.customer360.recordPayment}</span>
+                  </Button>
+                </Link>
+              )}
+              {actions.createInvoice && (
+                <Link href={ROUTES.invoices.create({ clientId: contact.id })}>
+                  <Button variant="primary" size="sm" className="gap-1">
+                    <span>+ {t.customer360.newInvoice}</span>
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
 
@@ -527,7 +555,7 @@ export function Customer360DossierView({
                   >
                     <td className="p-3  font-bold text-[#09937F]">
                       <Link
-                        href={`/dashboard/invoices/${inv.id}`}
+                        href={ROUTES.invoices.detail(inv.id)}
                         className="hover:underline flex items-center gap-1"
                       >
                         <span>{inv.invoice_number}</span>

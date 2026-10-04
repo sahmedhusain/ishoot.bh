@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -408,7 +409,7 @@ export function RequestDetailView({
       {/* Top Breadcrumb & Reference */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
-          href="/dashboard/requests"
+          href={ROUTES.requests.list}
           className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
@@ -557,7 +558,7 @@ export function RequestDetailView({
             )}
 
             <Link
-              href={`/dashboard/quotations/new?customerId=${request.customerId || ""}&requestId=${request.id}`}
+              href={ROUTES.quotations.create({ clientId: request.customerId, dealId: request.convertedDeal?.id, inquiryId: request.id })}
             >
               <Button
                 variant="outline"
@@ -723,7 +724,7 @@ export function RequestDetailView({
                 </h3>
                 {request.customerId && (
                   <Link
-                    href={`/dashboard/crm/contacts/${request.customerId}`}
+                    href={ROUTES.crm.customer(request.customerId)}
                     className="text-[11px] text-[#09937F] hover:underline"
                   >
                     {isRTL ? "عرض الملف" : "View Profile"}
@@ -1021,7 +1022,7 @@ export function RequestDetailView({
                 </span>
               </h3>
               <Link
-                href={`/dashboard/quotations/new?customerId=${request.customerId || ""}&requestId=${request.id}`}
+                href={ROUTES.quotations.create({ clientId: request.customerId, dealId: request.convertedDeal?.id, inquiryId: request.id })}
               >
                 <Button variant="outline" size="sm" className="gap-1 text-xs">
                   <Plus className="w-3 h-3" />
@@ -1039,7 +1040,7 @@ export function RequestDetailView({
                   >
                     <div className="space-y-0.5">
                       <Link
-                        href={`/dashboard/quotations/${q.id}`}
+                        href={ROUTES.quotations.detail(q.id)}
                         className="font-mono font-bold text-slate-900 dark:text-white hover:text-[#09937F] transition-colors"
                       >
                         {q.quotationNumber}
@@ -1050,7 +1051,7 @@ export function RequestDetailView({
                     </div>
                     <div className="flex items-center gap-3">
                       <StatusBadge status={q.status} />
-                      <Link href={`/dashboard/quotations/${q.id}`}>
+                      <Link href={ROUTES.quotations.detail(q.id)}>
                         <Button variant="outline" size="sm" className="text-xs">
                           {isRTL ? "عرض" : "View"}
                         </Button>
@@ -1083,7 +1084,7 @@ export function RequestDetailView({
                     {request.convertedDeal.dealStage}
                   </span>
                 </div>
-                <Link href={`/dashboard/crm/deals/${request.convertedDeal.id}`}>
+                <Link href={ROUTES.crm.deal(request.convertedDeal.id)}>
                   <Button variant="outline" size="sm" className="text-xs">
                     {isRTL ? "عرض الصفقة" : "View Deal"}
                   </Button>

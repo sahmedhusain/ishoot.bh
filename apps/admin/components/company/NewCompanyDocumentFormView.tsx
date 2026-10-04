@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 import * as React from "react";
 import Link from "next/link";
@@ -52,7 +53,7 @@ export function NewCompanyDocumentFormView() {
         notes: notes || undefined,
       });
 
-      router.push("/dashboard/company/documents");
+      router.push(ROUTES.company.documents);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save document");
     } finally {
@@ -63,7 +64,7 @@ export function NewCompanyDocumentFormView() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/company/documents">
+        <Link href={ROUTES.company.documents}>
           <Button
             variant="outline"
             size="sm"
@@ -204,7 +205,7 @@ export function NewCompanyDocumentFormView() {
           </div>
 
           <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
-            <Link href="/dashboard/company/documents">
+            <Link href={ROUTES.company.documents}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}
               </Button>

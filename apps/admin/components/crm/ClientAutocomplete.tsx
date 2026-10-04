@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import type { CRMContact } from "@ishoot/database/types";
@@ -224,7 +225,7 @@ export function ClientAutocomplete({
 
         {selectedContact && (
           <Link
-            href={`/dashboard/crm/customers/${selectedContact.id}`}
+            href={ROUTES.crm.customer(selectedContact.id)}
             target="_blank"
             className="text-[#09937F] hover:underline inline-flex items-center gap-1 text-[11px] font-medium"
           >

@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -114,7 +115,7 @@ export function AdminProfileDropdown() {
 
           <div className="p-2 space-y-0.5 text-xs">
             <Link
-              href="/dashboard/users"
+              href={ROUTES.users.list}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-[#9EADA9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
             >
@@ -122,9 +123,9 @@ export function AdminProfileDropdown() {
               <span>{t.profileDropdown.userProfile}</span>
             </Link>
 
-            <Link href="/dashboard/settings/security" onClick={() => setIsOpen(false)} className="block px-4 py-2 text-xs">{isRTL ? "أمان الحساب" : "Account security"}</Link>
+            <Link href={ROUTES.settings.security} onClick={() => setIsOpen(false)} className="block px-4 py-2 text-xs">{isRTL ? "أمان الحساب" : "Account security"}</Link>
             <Link
-              href="/dashboard/settings/company"
+              href={ROUTES.settings.company}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-[#9EADA9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
             >
@@ -133,7 +134,7 @@ export function AdminProfileDropdown() {
             </Link>
 
             <Link
-              href="/dashboard/settings/web"
+              href={ROUTES.settings.web}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-[#9EADA9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
             >
@@ -142,7 +143,7 @@ export function AdminProfileDropdown() {
             </Link>
 
             <Link
-              href="/dashboard/settings/preferences"
+              href={ROUTES.settings.preferences}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-[#9EADA9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
             >
@@ -158,7 +159,7 @@ export function AdminProfileDropdown() {
             </Link>
 
             <Link
-              href="/dashboard/settings/audit"
+              href={ROUTES.settings.audit}
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-[#9EADA9] hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
             >

@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import {EntityLookup} from "../shared/EntityLookup";
 
 import * as React from "react";
@@ -111,7 +112,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
         lost_reason: lostReason.trim() || null,
       });
 
-      router.push(`/dashboard/crm/deals/${deal.id}`);
+      router.push(ROUTES.crm.deal(deal.id));
     } catch (err) {
       setError(isRTL ? "تعذّر حفظ الصفقة. تحقق من الحقول وحاول مرة أخرى." : "Could not save the deal. Check the fields and try again.");
       console.error("Failed to update deal:", err);
@@ -144,7 +145,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
-        <Link href={`/dashboard/crm/deals/${deal.id}`}>
+        <Link href={ROUTES.crm.deal(deal.id)}>
           <Button
             variant="outline"
             size="sm"
@@ -201,7 +202,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
                 </label>
                 {selectedContact && (
                   <Link
-                    href={`/dashboard/crm/customers/${selectedContact.id}`}
+                    href={ROUTES.crm.customer(selectedContact.id)}
                     className="text-[11px] text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
                     target="_blank"
                   >
@@ -297,7 +298,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
         </Card>
 
         <div className="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-end gap-4">
-          <Link href={`/dashboard/crm/deals/${deal.id}`}>
+          <Link href={ROUTES.crm.deal(deal.id)}>
             <Button type="button" variant="outline" size="sm">
               {t.actions.cancel}
             </Button>

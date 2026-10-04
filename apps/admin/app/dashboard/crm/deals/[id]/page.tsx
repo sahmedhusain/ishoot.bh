@@ -48,6 +48,13 @@ export default async function DealDetailPage({
       contact={contact}
       invoices={invoices?.items || []}
       invoicePage={invoices || undefined}
+      actions={{
+        createQuotation: canContacts && grants["quotations:create"] === true,
+        createInvoice: canContacts && grants["invoices:write"] === true,
+        recordPayment: false,
+        createDeal: false,
+        editRecord: grants["deals:write"] === true,
+      }}
     />
   );
 }

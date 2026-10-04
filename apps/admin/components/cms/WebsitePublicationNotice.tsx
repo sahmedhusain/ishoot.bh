@@ -1,0 +1,12 @@
+import { getWebsitePublicationStatus, type WebsiteSnapshotSection } from "@ishoot/database";
+import { hasPermission } from "../../lib/auth";
+import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
+
+/** Server wrapper: loads the publication status for a CMS collection page. */
+export async function WebsitePublicationNotice({ section }: { section: WebsiteSnapshotSection }) {
+  const [status, canPublish] = await Promise.all([
+    getWebsitePublicationStatus(),
+    hasPermission("settings", "write"),
+  ]);
+  return <UnpublishedChangesNotice section={section} status={status} canPublish={canPublish} />;
+}

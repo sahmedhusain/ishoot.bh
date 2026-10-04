@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -64,7 +65,7 @@ export function InvoiceDetailView({
       >
         <div>
           <Link
-            href="/dashboard/invoices"
+            href={ROUTES.invoices.list}
             className="inline-flex items-center gap-2 text-xs text-[#9EADA9] hover:text-[#09937F] transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
@@ -77,7 +78,7 @@ export function InvoiceDetailView({
             <StatusBadge status={invoice.status} />
             {invoice.contact_id && (
               <Link
-                href={`/dashboard/crm/customers/${invoice.contact_id}`}
+                href={ROUTES.crm.customer(invoice.contact_id)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-[#014842] dark:bg-[#152B27] dark:text-[#7DE0D1] border border-[#09937F]/30 hover:underline transition-colors"
                 title="View Client 360 Dossier"
               >
@@ -97,7 +98,7 @@ export function InvoiceDetailView({
           )}
           {/* Invoices with payments are locked; corrections go through a credit adjustment. */}
           {invoice.status !== "void" && invoice.amount_paid === 0 && canWrite && (
-            <Link href={`/dashboard/invoices/${invoice.id}/edit`}>
+            <Link href={ROUTES.invoices.edit(invoice.id)}>
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Pencil className="w-3.5 h-3.5" />
                 <span>{t.actions.edit}</span>
@@ -149,7 +150,7 @@ export function InvoiceDetailView({
               >
                 <div>
                   <Link
-                    href={`/dashboard/payments/${p.id}`}
+                    href={ROUTES.payments.detail(p.id)}
                     className=" font-bold text-[#09937F] hover:underline inline-flex items-center gap-1 group"
                     title="View Official Receipt"
                   >

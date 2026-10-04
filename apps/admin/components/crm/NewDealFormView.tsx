@@ -1,22 +1,36 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card,Button,Input,Select } from "@ishoot/ui";
 import { ArrowLeft,CheckCircle2,Kanban } from "lucide-react";
 import { DEAL_STAGES } from "@ishoot/config/constants";
+import type { CRMContact, DealStage } from "@ishoot/database/types";
+import { toast } from "sonner";
 import { createCRMDealAction } from "../../app/actions/crm";
+import { ClientAutocomplete } from "./ClientAutocomplete";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-export function NewDealFormView({ defaultCurrency }: { defaultCurrency: string }) {
+export function NewDealFormView({
+  defaultCurrency,
+  canPickContact,
+  canCreateContact,
+  initialContact,
+}: {
+  defaultCurrency: string;
+  canPickContact: boolean;
+  canCreateContact: boolean;
+  initialContact: CRMContact | null;
+}) {
   const router = useRouter();
   const { t } = useAdminLocale();
 
   const [title, setTitle] = React.useState("");
   const [value, setValue] = React.useState<number>(0);
-  const [stage, setStage] = React.useState<any>("lead");
-  const [contactId] = React.useState("");
+  const [stage, setStage] = React.useState<DealStage>("lead");
+  const [contactId, setContactId] = React.useState(initialContact?.id ?? "");
   const [shootDate, setShootDate] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [saving, setSaving] = React.useState(false);
@@ -27,7 +41,7 @@ export function NewDealFormView({ defaultCurrency }: { defaultCurrency: string }
     setSaving(true);
 
     try {
-      await createCRMDealAction({
+      const res = await createCRMDealAction({
         title,
         value: Number(value),
         stage,
@@ -36,9 +50,9 @@ export function NewDealFormView({ defaultCurrency }: { defaultCurrency: string }
         notes: notes || undefined,
       });
 
-      router.push("/dashboard/crm/deals");
+      router.push(ROUTES.crm.deal(res.deal.id));
     } catch (err) {
-      console.error("Failed to create deal:", err);
+      toast.error(err instanceof Error && err.message ? err.message : t.dealsNew.createFailed);
     } finally {
       setSaving(false);
     }
@@ -47,7 +61,7 @@ export function NewDealFormView({ defaultCurrency }: { defaultCurrency: string }
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/crm/deals">
+        <Link href={ROUTES.crm.deals}>
           <Button
             variant="outline"
             size="sm"
@@ -96,6 +110,16 @@ export function NewDealFormView({ defaultCurrency }: { defaultCurrency: string }
             </div>
           </div>
 
+          {canPickContact && (
+            <ClientAutocomplete
+              label={t.dealsNew.contactLabel}
+              contacts={initialContact ? [initialContact] : []}
+              selectedContactId={contactId}
+              onSelect={(contact) => setContactId(contact?.id ?? "")}
+              allowCreate={canCreateContact}
+            />
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-white mb-1.5 block">
@@ -103,7 +127,7 @@ export function NewDealFormView({ defaultCurrency }: { defaultCurrency: string }
               </label>
               <Select
                 value={stage}
-                onChange={(e) => setStage(e.target.value as any)}
+                onChange={(e) => setStage(e.target.value as DealStage)}
               >
                 {DEAL_STAGES.map((s) => (
                   <option
@@ -143,7 +167,7 @@ export function NewDealFormView({ defaultCurrency }: { defaultCurrency: string }
           </div>
 
           <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
-            <Link href="/dashboard/crm/deals">
+            <Link href={ROUTES.crm.deals}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}
               </Button>

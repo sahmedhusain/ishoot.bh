@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -43,9 +44,9 @@ export function NewCustomerFormView() {
       });
 
       if (res.contact) {
-        router.push(`/dashboard/crm/customers/${res.contact.id}`);
+        router.push(ROUTES.crm.customer(res.contact.id));
       } else {
-        router.push("/dashboard/crm/contacts");
+        router.push(ROUTES.crm.contacts);
       }
     } catch (err) {
       console.error("Failed to create customer:", err);
@@ -57,7 +58,7 @@ export function NewCustomerFormView() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
-        <Link href="/dashboard/crm/contacts">
+        <Link href={ROUTES.crm.contacts}>
           <Button
             variant="outline"
             size="sm"
@@ -184,7 +185,7 @@ export function NewCustomerFormView() {
           </div>
 
           <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
-            <Link href="/dashboard/crm/contacts">
+            <Link href={ROUTES.crm.contacts}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}
               </Button>

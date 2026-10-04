@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -224,7 +225,7 @@ export function NewQuotationFormView({
             : `Quotation ${res.quotation.quotationNumber} created successfully`,
           { id: toastId },
         );
-        router.push(`/dashboard/quotations/${res.quotation.id}`);
+        router.push(ROUTES.quotations.detail(res.quotation.id));
       } else {
         toast.error("Failed to create quotation", { id: toastId });
       }
@@ -242,7 +243,7 @@ export function NewQuotationFormView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAEAEA] dark:border-white/10 pb-5">
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/quotations"
+            href={ROUTES.quotations.list}
             className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             {isRTL ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
@@ -259,7 +260,7 @@ export function NewQuotationFormView({
 
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/quotations"
+            href={ROUTES.quotations.list}
             className="px-4 py-2 text-sm font-medium rounded-md border border-[#EAEAEA] dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
           >
             {qfT.cancel}

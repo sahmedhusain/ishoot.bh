@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import { ListControls } from "../shared/ListControls";
 import type { InvoiceListRow } from "@ishoot/database";
 
@@ -24,10 +25,13 @@ Mail,
 Phone,
 FileText,ExternalLink,
 ArrowLeft,
-Edit
+Edit,
+  FileSignature,
 } from "lucide-react";
 import type { CRMDeal,CRMContact } from "@ishoot/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { isActiveDealStage } from "@ishoot/database/constants/crm";
+import type { DossierActions } from "../../types/crm";
 
 interface DealDossierViewProps {
   deal: CRMDeal;
@@ -38,6 +42,7 @@ interface DealDossierViewProps {
     total: number;
     filters: { q: string; status: string; dealId?: string };
   };
+  actions: DossierActions;
 }
 
 export function DealDossierView({
@@ -45,6 +50,7 @@ export function DealDossierView({
   contact,
   invoices = [],
   invoicePage,
+  actions,
 }: DealDossierViewProps) {
   const { t, locale } = useAdminLocale();
   const [activeTab, setActiveTab] = React.useState<
@@ -58,7 +64,7 @@ export function DealDossierView({
   );
 
   const clientName = contact?.company || contact?.full_name || "Direct Client";
-  const isWon = deal.stage === "closed_won" || deal.stage === "delivered";
+  const isWon = ["delivered", "invoiced", "closed_won"].includes(deal.stage);
   const projectedValue =
     deal.value && Number(deal.value) > 0
       ? (Number(deal.value) * (deal.probability || 50)) / 100
@@ -69,7 +75,7 @@ export function DealDossierView({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/crm/deals">
+          <Link href={ROUTES.crm.deals}>
             <Button
               variant="outline"
               size="sm"
@@ -97,19 +103,33 @@ export function DealDossierView({
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href={`/dashboard/crm/deals/${deal.id}/edit`}>
-            <Button
-              variant="primary"
-              size="sm"
-              className="gap-1.5 bg-[#014842] hover:bg-[#014842]/90 text-white"
-            >
-              <Edit className="w-3.5 h-3.5" />
-              <span>{t.dealDossier.editDeal}</span>
-            </Button>
-          </Link>
-          {isWon && (
+          {actions.editRecord && (
+            <Link href={ROUTES.crm.dealEdit(deal.id)}>
+              <Button
+                variant="primary"
+                size="sm"
+                className="gap-1.5 bg-[#014842] hover:bg-[#014842]/90 text-white"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                <span>{t.dealDossier.editDeal}</span>
+              </Button>
+            </Link>
+          )}
+          {actions.createQuotation && isActiveDealStage(deal.stage) && (
+            <Link href={ROUTES.quotations.create({ clientId: contact?.id, dealId: deal.id })}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 border-[#09937F]/50 text-[#014842] dark:text-[#09937F]"
+              >
+                <FileSignature className="w-3.5 h-3.5" />
+                <span>{t.dealDossier.createQuotation}</span>
+              </Button>
+            </Link>
+          )}
+          {actions.createInvoice && isWon && (
             <Link
-              href={`/dashboard/invoices/new${contact ? `?clientId=${contact.id}` : ""}`}
+              href={ROUTES.invoices.create({ clientId: contact?.id, dealId: deal.id })}
             >
               <Button
                 variant="outline"
@@ -247,7 +267,7 @@ export function DealDossierView({
                 </span>
                 {contact ? (
                   <Link
-                    href={`/dashboard/crm/customers/${contact.id}`}
+                    href={ROUTES.crm.customer(contact.id)}
                     className="text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
                     title="View Customer Dossier"
                   >
@@ -296,7 +316,7 @@ export function DealDossierView({
               </h2>
               {contact && (
                 <Link
-                  href={`/dashboard/crm/customers/${contact.id}`}
+                  href={ROUTES.crm.customer(contact.id)}
                   className="text-xs text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
                 >
                   <span>360 Dossier</span>
@@ -313,7 +333,7 @@ export function DealDossierView({
                       Primary Contact
                     </div>
                     <Link
-                      href={`/dashboard/crm/customers/${contact.id}`}
+                      href={ROUTES.crm.customer(contact.id)}
                       className="font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#09937F] hover:underline inline-flex items-center gap-1.5"
                     >
                       <span>{contact.full_name}</span>
@@ -486,7 +506,7 @@ export function DealDossierView({
 
           {invoicePage ? (
             <ListControls
-              path={`/dashboard/crm/deals/${deal.id}`}
+              path={ROUTES.crm.deal(deal.id)}
               {...invoicePage}
               exportDomain="invoices"
               statuses={[
@@ -505,14 +525,16 @@ export function DealDossierView({
               <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-3">
                 {t.dealDossier.noInvoices}
               </p>
-              <Link
-                href={`/dashboard/invoices/new${contact ? `?clientId=${contact.id}` : ""}`}
-              >
-                <Button variant="outline" size="sm" className="text-xs gap-1.5">
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>{t.dealDossier.issueInvoice}</span>
-                </Button>
-              </Link>
+              {actions.createInvoice && (
+                <Link
+                  href={ROUTES.invoices.create({ clientId: contact?.id, dealId: deal.id })}
+                >
+                  <Button variant="outline" size="sm" className="text-xs gap-1.5">
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>{t.dealDossier.issueInvoice}</span>
+                  </Button>
+                </Link>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -540,7 +562,7 @@ export function DealDossierView({
                     >
                       <td className="p-3">
                         <Link
-                          href={`/dashboard/invoices/${inv.id}`}
+                          href={ROUTES.invoices.detail(inv.id)}
                           className=" font-bold text-[#09937F] hover:underline"
                         >
                           {inv.invoice_number}

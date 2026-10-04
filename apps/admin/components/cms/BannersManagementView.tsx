@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import {ContentImage} from "../shared/ContentImage";
 import Link from "next/link";
 
@@ -149,7 +150,7 @@ export function BannersManagementView({
         </p>
       )}
       <Link
-        href="/dashboard/cms/website"
+        href={ROUTES.cms.website}
         className="block text-sm text-[#5eead4] underline"
       >
         {isRTL

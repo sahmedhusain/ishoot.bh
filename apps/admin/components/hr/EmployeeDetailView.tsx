@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import {
   PayrollSettingsFields,
   emptyPayrollSettings,
@@ -112,7 +113,7 @@ export function EmployeeDetailView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAEAEA] dark:border-white/10 pb-5">
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/hr/employees"
+            href={ROUTES.hr.employees}
             className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             {isRTL ? (

@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -40,8 +41,8 @@ export async function createServiceAction(data: {
       return { service };
     });
 
-    revalidatePath("/dashboard/services");
-    revalidatePath("/dashboard/invoices");
+    revalidatePath(ROUTES.services);
+    revalidatePath(ROUTES.invoices.list);
     return { success: true, service };
   });
 }
@@ -76,8 +77,8 @@ export async function updateServiceAction(
       return { service };
     });
 
-    revalidatePath("/dashboard/services");
-    revalidatePath("/dashboard/invoices");
+    revalidatePath(ROUTES.services);
+    revalidatePath(ROUTES.invoices.list);
     return { success: true, service };
   });
 }
@@ -97,8 +98,8 @@ export async function deleteServiceAction(id: string) {
       });
     }
 
-    revalidatePath("/dashboard/services");
-    revalidatePath("/dashboard/invoices");
+    revalidatePath(ROUTES.services);
+    revalidatePath(ROUTES.invoices.list);
     return { success };
   });
 }

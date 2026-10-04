@@ -1,4 +1,5 @@
 "use client";
+import { ROUTES } from "../../constants/routes";
 import {EntityLookup} from "../shared/EntityLookup";
 import * as React from "react";
 import Link from "next/link";
@@ -94,7 +95,7 @@ export function LeadsManagementView({
         </div>
         <Link
           className="text-emerald-700 dark:text-emerald-400 underline"
-          href="/dashboard/cms/reviews"
+          href={ROUTES.cms.reviews}
         >
           {ar ? "تقييمات بانتظار المراجعة" : "Review moderation"}
         </Link>

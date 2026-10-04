@@ -39,6 +39,9 @@ export function ListControls({
           placeholder={isRTL ? "بحث في جميع السجلات" : "Search all records"}
           className="rounded-lg border p-2 text-xs text-slate-900"
         />
+        {!statuses.length && filters.status && filters.status !== "all" ? (
+          <input type="hidden" name="status" value={filters.status} />
+        ) : null}
         {statuses.length ? (
           <select
             aria-label={isRTL ? "الحالة" : "Status"}

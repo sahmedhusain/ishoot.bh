@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 import { createHmac } from "node:crypto";
@@ -45,7 +46,7 @@ export async function saveWebsiteDraftAction(value: unknown, revision: number) {
         },
       });
     });
-    revalidatePath("/dashboard/cms/website");
+    revalidatePath(ROUTES.cms.website);
     return { revision: revision + 1 };
   });
 }
@@ -91,7 +92,7 @@ export async function publishWebsiteAction(revision: number) {
         },
       });
     });
-    revalidatePath("/dashboard/cms/website");
+    revalidatePath(ROUTES.cms.website);
     if (await revalidatePublicSite([], ["/", "/about", "/contact", "/works"])) {
       try {
         await db.revalidationJob.updateMany({
@@ -155,7 +156,7 @@ export async function restoreWebsiteAction(revision: number) {
         },
       });
     });
-    revalidatePath("/dashboard/cms/website");
+    revalidatePath(ROUTES.cms.website);
     if (await revalidatePublicSite([], ["/", "/about", "/contact", "/works"])) {
       try {
         await db.revalidationJob.updateMany({
@@ -230,6 +231,6 @@ export async function updateWebsiteServiceAction(
         },
       });
     });
-    revalidatePath("/dashboard/cms/website");
+    revalidatePath(ROUTES.cms.website);
   });
 }

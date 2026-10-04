@@ -1,6 +1,7 @@
 import { getCurrentPermissions,requirePermission } from "../../../../../lib/auth";
 import { getCustomerDossier } from "@ishoot/database";
 import { notFound } from "next/navigation";
+import type { DossierActions } from "../../../../../types/crm";
 import { Customer360DossierView } from "../../../../../components/crm/Customer360DossierView";
 
 interface CustomerDossierPageProps {
@@ -57,5 +58,12 @@ export default async function CustomerDossierPage({
   if (!audit) dossier.activities = [];
   if (!invoices || !payments || !audit)
     dossier.metrics.lastActivityDate = dossier.contact.updated_at;
-  return <Customer360DossierView dossier={dossier} />;
+  const actions: DossierActions = {
+    createQuotation: grants["quotations:create"] === true,
+    createInvoice: grants["invoices:write"] === true,
+    recordPayment: grants["payments:write"] === true && invoices,
+    createDeal: grants["deals:write"] === true,
+    editRecord: grants["contacts:write"] === true,
+  };
+  return <Customer360DossierView dossier={dossier} actions={actions} />;
 }

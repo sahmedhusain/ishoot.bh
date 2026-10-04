@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -72,8 +73,8 @@ export async function createLeaveRequestAction(data: {
       return { leaveRequest, approval };
     });
 
-    revalidatePath("/dashboard/hr/leave");
-    revalidatePath("/dashboard/approvals");
+    revalidatePath(ROUTES.hr.leave());
+    revalidatePath(ROUTES.approvals());
     return { success: true, leaveRequest, approvalStatus: approval.status };
   });
 }
@@ -111,9 +112,9 @@ export async function decideLeaveRequestAction(
       return { approvalStatus: outcome.status, conflicts };
     });
 
-    revalidatePath("/dashboard/hr/leave");
-    revalidatePath("/dashboard/approvals");
-    revalidatePath("/dashboard/requests");
+    revalidatePath(ROUTES.hr.leave());
+    revalidatePath(ROUTES.approvals());
+    revalidatePath(ROUTES.requests.list);
     return { success: true, ...result };
   });
 }
@@ -151,7 +152,7 @@ export async function cancelLeaveRequestAction(requestId: string) {
       details: {},
     });
 
-    revalidatePath("/dashboard/hr/leave");
+    revalidatePath(ROUTES.hr.leave());
     return { success: true };
   });
 }

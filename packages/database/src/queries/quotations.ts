@@ -2,10 +2,12 @@ import { db, runAtomicMutation } from "../db";
 import { Quotation, calculateInvoiceTotals } from "../types";
 import { getNextSequenceNumber } from "./sequence";
 import { allocateDocumentNumber } from "../finance/numbering";
-import { lineTotal } from "../finance/money";
+import { lineTotal, roundMoney } from "../finance/money";
+import { OPEN_QUOTATION_STATUSES } from "../constants/finance";
 import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
 import { getLatestExchangeRate } from "./fx-settlement";
+import { advanceDealForEvent } from "./crm";
 
 export async function createQuotation(
   data: {
@@ -323,18 +325,22 @@ export async function issueQuotation(
     throw new Error("Quotation delivery blocked: Super Admin approval is strictly required before issuing to the customer");
   }
 
-  const updated = await db.quotation.update({
-    where: { id },
-    data: {
-      status: "issued",
-      deliveryChannel: deliveryChannel || null,
-      deliveredAt: new Date(),
-    },
-    include: {
-      lineItems: { orderBy: { orderIndex: "asc" } },
-      client: true,
-      createdBy: { select: { id: true, fullName: true, email: true } },
-    },
+  const updated = await db.$transaction(async (tx) => {
+    const issued = await tx.quotation.update({
+      where: { id },
+      data: {
+        status: "issued",
+        deliveryChannel: deliveryChannel || null,
+        deliveredAt: new Date(),
+      },
+      include: {
+        lineItems: { orderBy: { orderIndex: "asc" } },
+        client: true,
+        createdBy: { select: { id: true, fullName: true, email: true } },
+      },
+    });
+    await advanceDealForEvent(tx, issued.dealId, "quotation_issued");
+    return issued;
   });
 
   return {
@@ -378,17 +384,21 @@ export async function acceptQuotation(
     throw new Error("This quotation has expired. Issue a new revision to the client.");
   }
 
-  const updated = await db.quotation.update({
-    where: { id },
-    data: {
-      status: "accepted",
-      acceptanceEvidence: evidence || null,
-    },
-    include: {
-      lineItems: { orderBy: { orderIndex: "asc" } },
-      client: true,
-      createdBy: { select: { id: true, fullName: true, email: true } },
-    },
+  const updated = await db.$transaction(async (tx) => {
+    const accepted = await tx.quotation.update({
+      where: { id },
+      data: {
+        status: "accepted",
+        acceptanceEvidence: evidence || null,
+      },
+      include: {
+        lineItems: { orderBy: { orderIndex: "asc" } },
+        client: true,
+        createdBy: { select: { id: true, fullName: true, email: true } },
+      },
+    });
+    await advanceDealForEvent(tx, accepted.dealId, "quotation_accepted");
+    return accepted;
   });
 
   return {
@@ -558,6 +568,36 @@ export async function getQuotationById(id: string): Promise<Quotation | null> {
       lineTotal: Number(li.lineTotal),
     })),
   };
+}
+
+export interface QuotationListSummary {
+  total: number;
+  pendingApproval: number;
+  acceptedOrConverted: number;
+  /** Open pipeline value per currency; amounts in different currencies are never added together. */
+  openValueByCurrency: Record<string, number>;
+}
+
+/** Headline figures for the quotations list, across every quotation (not just the current page). */
+export async function getQuotationListSummary(): Promise<QuotationListSummary> {
+  const groups = await db.quotation.groupBy({
+    by: ["status", "currency"],
+    _count: { _all: true },
+    _sum: { totalAmount: true },
+  });
+  const summary: QuotationListSummary = { total: 0, pendingApproval: 0, acceptedOrConverted: 0, openValueByCurrency: {} };
+  for (const group of groups) {
+    const count = group._count._all;
+    summary.total += count;
+    if (group.status === "submitted") summary.pendingApproval += count;
+    if (group.status === "accepted" || group.status === "converted") summary.acceptedOrConverted += count;
+    if ((OPEN_QUOTATION_STATUSES as readonly string[]).includes(group.status))
+      summary.openValueByCurrency[group.currency] = roundMoney(
+        (summary.openValueByCurrency[group.currency] ?? 0) + Number(group._sum.totalAmount ?? 0),
+        group.currency,
+      );
+  }
+  return summary;
 }
 
 export async function listQuotations(filters: {

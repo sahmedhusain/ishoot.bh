@@ -1,4 +1,5 @@
 "use server";
+import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation, submitForApproval } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -53,9 +54,9 @@ export async function createExpenseAction(data: {
       return { expense };
     });
 
-    revalidatePath("/dashboard/expenses");
-    revalidatePath("/dashboard/finance");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.expenses.list());
+    revalidatePath(ROUTES.finance.overview);
+    revalidatePath(ROUTES.home);
     return { success: true, expense };
   });
 }
@@ -76,9 +77,9 @@ export async function deleteExpenseAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/expenses");
-    revalidatePath("/dashboard/finance");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.expenses.list());
+    revalidatePath(ROUTES.finance.overview);
+    revalidatePath(ROUTES.home);
     return { success: true };
   });
 }
@@ -120,11 +121,12 @@ export async function createPaymentAction(data: {
       return { payment };
     });
 
-    revalidatePath("/dashboard/payments");
-    revalidatePath("/dashboard/invoices");
-    revalidatePath("/dashboard/finance");
-    revalidatePath("/dashboard/archive");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.crm.deals, "layout");
+    revalidatePath(ROUTES.payments.list);
+    revalidatePath(ROUTES.invoices.list);
+    revalidatePath(ROUTES.finance.overview);
+    revalidatePath(ROUTES.archive);
+    revalidatePath(ROUTES.home);
     return { success: true, payment };
   });
 }
@@ -176,9 +178,10 @@ export async function createInvoiceAction(data: {
       return { invoice };
     });
 
-    revalidatePath("/dashboard/invoices");
-    revalidatePath("/dashboard/finance");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.crm.deals, "layout");
+    revalidatePath(ROUTES.invoices.list);
+    revalidatePath(ROUTES.finance.overview);
+    revalidatePath(ROUTES.home);
     return { success: true, invoice };
   });
 }
@@ -231,10 +234,10 @@ export async function updateInvoiceAction(
       return { invoice };
     });
 
-    revalidatePath("/dashboard/invoices");
-    revalidatePath(`/dashboard/invoices/${id}`);
-    revalidatePath("/dashboard/finance");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.invoices.list);
+    revalidatePath(ROUTES.invoices.detail(id));
+    revalidatePath(ROUTES.finance.overview);
+    revalidatePath(ROUTES.home);
     return { success: true, invoice };
   });
 }
@@ -248,10 +251,11 @@ export async function markInvoiceSentAction(id: string) {
       await updateInvoiceStatus(id, "sent");
       await createActivityLog({ user_id: user.id, action: "send", entity_type: "invoice", entity_id: id });
     });
-    revalidatePath("/dashboard/invoices");
-    revalidatePath(`/dashboard/invoices/${id}`);
-    revalidatePath("/dashboard/finance");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.crm.deals, "layout");
+    revalidatePath(ROUTES.invoices.list);
+    revalidatePath(ROUTES.invoices.detail(id));
+    revalidatePath(ROUTES.finance.overview);
+    revalidatePath(ROUTES.home);
     return { success: true };
   });
 }
@@ -272,10 +276,10 @@ export async function voidInvoiceAction(id: string) {
       return {};
     });
 
-    revalidatePath("/dashboard/invoices");
-    revalidatePath(`/dashboard/invoices/${id}`);
-    revalidatePath("/dashboard/finance");
-    revalidatePath("/dashboard");
+    revalidatePath(ROUTES.invoices.list);
+    revalidatePath(ROUTES.invoices.detail(id));
+    revalidatePath(ROUTES.finance.overview);
+    revalidatePath(ROUTES.home);
     return { success: true };
   });
 }

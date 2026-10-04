@@ -1,5 +1,6 @@
 "use client";
 
+import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
@@ -67,7 +68,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
           </h1>
         </div>
 
-        <Link href="/dashboard/crm/deals/new">
+        <Link href={ROUTES.crm.newDeal()}>
           <Button
             variant="primary"
             size="sm"
