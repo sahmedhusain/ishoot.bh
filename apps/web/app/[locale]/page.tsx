@@ -9,7 +9,6 @@ import { WorksSection } from "../../components/portfolio/WorksSection";
 import { StatsSection } from "../../components/about/StatsSection";
 import { ReviewsSection } from "../../components/about/ReviewsSection";
 import { FAQSection } from "../../components/about/FAQSection";
-import { CTASection } from "../../components/about/CTASection";
 import type { WebsiteSection } from "@ishoot/database/website-config";
 export default async function HomePage() {
   const [website, reviews, company] = await Promise.all([
@@ -25,16 +24,31 @@ export default async function HomePage() {
     stats: <StatsSection stats={website.stats} />,
     reviews: <ReviewsSection reviews={reviews} />,
     faq: <FAQSection faqs={website.faqs} />,
-    cta: <CTASection />,
+    cta: null, // The shared footer provides the closing project enquiry.
   };
+  let lightBand = 0;
+  const sections = website.config.sections
+    .filter((section) => section.visible && section.id !== "cta")
+    .map((section) => {
+      if (
+        section.id === "about" ||
+        section.id === "portfolio" ||
+        section.id === "reviews"
+      )
+        lightBand += 1;
+      return {
+        ...section,
+        slope: lightBand % 2 === 0 && lightBand > 0 ? "right" : "left",
+      };
+    });
   return (
-    <div className="flex flex-col w-full">
+    <div className="home-page flex flex-col w-full">
       <CinemaHero banners={website.banners} />
-      {website.config.sections
-        .filter((section) => section.visible)
-        .map((section) => (
-          <div key={section.id}>{components[section.id]}</div>
-        ))}
+      {sections.map((section) => (
+        <div key={section.id} data-slope={section.slope}>
+          {components[section.id]}
+        </div>
+      ))}
     </div>
   );
 }

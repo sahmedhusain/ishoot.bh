@@ -2,10 +2,12 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight } from "lucide-react";
 import type { CompanySettings, SocialLink } from "@ishoot/database/types";
 import { SocialIcon } from "./SocialIcon";
+import { Reveal } from "../shared/Reveal";
 import { LegalModal } from "../shared/LegalModal";
 
 interface FooterProps {
@@ -16,7 +18,13 @@ interface FooterProps {
 
 export function Footer({ company, socialLinks = [], pages }: FooterProps) {
   const { t, locale, isRTL } = useTranslation();
-  const [modalType, setModalType] = React.useState<"terms" | "rules" | null>(null);
+  const pathname = usePathname();
+  const showInvitation =
+    !pathname.endsWith("/contact") &&
+    pages?.find((page) => page.id === "contact")?.visible !== false;
+  const [modalType, setModalType] = React.useState<"terms" | "rules" | null>(
+    null,
+  );
 
   const pageMap = React.useMemo(() => {
     const map = new Map<string, boolean>();
@@ -31,7 +39,18 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
     { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
   ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
 
-  const activeLinks = socialLinks.filter(link => link.is_active).sort((a, b) => a.display_order - b.display_order);
+  const activeLinks = React.useMemo(() => {
+    const seen = new Set<string>();
+    return [...socialLinks]
+      .filter((link) => link.is_active)
+      .sort((a, b) => a.display_order - b.display_order)
+      .filter((link) => {
+        const destination = link.url.trim().replace(/\/+$/, "");
+        if (seen.has(destination)) return false;
+        seen.add(destination);
+        return true;
+      });
+  }, [socialLinks]);
 
   const renderModalContent = () => {
     if (modalType === "terms") {
@@ -56,20 +75,60 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
   };
 
   return (
-    <footer className="relative bg-[#050807] border-t border-white/10 pt-20 pb-12 overflow-hidden">
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-gradient-to-t from-[#014842]/20 via-[#09937F]/5 to-transparent blur-3xl pointer-events-none" />
-
+    <footer className="site-footer relative bg-[var(--ishoot-bg-surface)] border-t border-white/10 pt-16 sm:pt-24 pb-6">
       <div className="shell relative">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-          <div className="md:col-span-2 space-y-4">
-            <Link href={`/${locale}`} className="flex items-center gap-3 group focus:outline-none">
+        {showInvitation && (
+          <Reveal className="footer-invitation sloped-rule-bottom">
+            <p className="web-eyebrow text-[#9EADA9]">
+              {t("footer.invitationLabel")}
+            </p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mt-4">
+              <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl leading-[1.12] max-w-2xl">
+                {t("footer.invitationTitle")}
+              </h2>
+              <Link
+                href={`/${locale}/contact?intent=quote_request`}
+                className="web-button self-start md:self-end shrink-0"
+              >
+                {t("footer.invitationAction")}
+                <ArrowUpRight
+                  aria-hidden="true"
+                  className="w-4 h-4 rtl:-scale-x-100"
+                />
+              </Link>
+            </div>
+            {company.email && (
+              <a
+                href={`mailto:${company.email}`}
+                className="footer-email"
+                dir="ltr"
+              >
+                {company.email}
+              </a>
+            )}
+          </Reveal>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1.2fr] gap-10 lg:gap-16 py-12 sm:py-16">
+          <div className="space-y-5">
+            <Link
+              href={`/${locale}`}
+              className="flex items-center gap-3 group w-fit"
+            >
               <img
-                src={company.dark_icon_url || company.icon_url || "/brand/icon-dark.svg"}
+                src={
+                  company.dark_icon_url ||
+                  company.icon_url ||
+                  "/brand/icon-dark.svg"
+                }
                 alt={t("common.brandIconAlt")}
                 className="h-9 w-9 object-contain"
               />
               <img
-                src={company.dark_logo_url || company.logo_url || "/brand/logo-text-light.svg"}
+                src={
+                  company.dark_logo_url ||
+                  company.logo_url ||
+                  "/brand/logo-text-light.svg"
+                }
                 alt={t("common.brandLogoAlt")}
                 className="h-7 w-auto object-contain"
               />
@@ -77,22 +136,20 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
             <p className="text-sm text-[#9EADA9] max-w-md leading-relaxed font-sans">
               {t("footer.tagline")}
             </p>
-            <div className="text-xs text-[#9EADA9]/70 pt-2 font-sans">
-              {t("footer.cr")}
+            <div className="text-xs text-[#9EADA9] pt-2 font-sans">
+              {company.cr_number &&
+                `${t("footer.registrationLabel")}: ${company.cr_number}`}
             </div>
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
+            <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
               {t("footer.navigation")}
-            </h4>
+            </h3>
             <ul className="space-y-2.5 text-sm text-[#9EADA9] font-sans">
               {navLinks.map((link) => (
                 <li key={link.id}>
-                  <Link
-                    href={link.href}
-                    className="hover:text-[#09937F] transition-colors"
-                  >
+                  <Link href={link.href} className="footer-link">
                     {link.label}
                   </Link>
                 </li>
@@ -101,49 +158,54 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
+            <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
               {t("footer.social")}
-            </h4>
-            <div className="flex flex-wrap items-center gap-3">
-              {activeLinks.map(link => (
+            </h3>
+            <div className="flex flex-col items-start gap-1">
+              {activeLinks.map((link) => (
                 <a
                   key={link.id}
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#9EADA9] hover:text-[#09937F] hover:border-[#09937F]/40 transition-all"
+                  className="footer-link group inline-flex items-center gap-3"
                   aria-label={link.platform}
                   title={link.platform}
                 >
-                  <SocialIcon name={link.icon || link.platform} className="w-4 h-4" />
+                  <SocialIcon
+                    name={link.icon || link.platform}
+                    className="w-4 h-4"
+                  />
+                  <span>{link.platform}</span>
+                  <ArrowUpRight
+                    aria-hidden="true"
+                    className="w-3.5 h-3.5 rtl:-scale-x-100"
+                  />
                 </a>
               ))}
-            </div>
-            <div className="pt-2 text-xs text-[#9EADA9] font-sans">
-              <a
-                href={`mailto:${company.email}`}
-                className="hover:text-[#09937F] transition-colors"
-              >
-                {company.email}
-              </a>
             </div>
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#9EADA9]/60 font-sans">
+        <div className="pt-6 border-t border-white/10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 text-xs text-[#9EADA9] font-sans">
           <div>
-            © {new Date().getFullYear()} {t("footer.companyName")}. {t("footer.allRights")}
+            © {new Date().getFullYear()}{" "}
+            {isRTL
+              ? company.company_name_ar || company.company_name_en
+              : company.company_name_en}
+            {" · "}
+            {t("footer.allRights")}
           </div>
           <div className="flex items-center gap-6">
             <button
               onClick={() => setModalType("rules")}
-              className="hover:text-[#09937F] transition-colors bg-transparent border-none cursor-pointer"
+              className="footer-link bg-transparent border-none cursor-pointer"
             >
               {t("footer.rules")}
             </button>
             <button
               onClick={() => setModalType("terms")}
-              className="hover:text-[#09937F] transition-colors bg-transparent border-none cursor-pointer"
+              className="footer-link bg-transparent border-none cursor-pointer"
             >
               {t("footer.terms")}
             </button>

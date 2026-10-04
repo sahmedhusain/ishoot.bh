@@ -29,7 +29,17 @@
     "notFoundDesc": "Could not find requested resource.",
     "brandName": "ishoot Cinema Production",
     "brandLogoAlt": "ishoot Brand Logo",
-    "brandIconAlt": "ishoot Icon"
+    "brandIconAlt": "ishoot Icon",
+    "skipContent": "Skip to content",
+    "preview": "Draft preview",
+    "exitPreview": "Exit preview",
+    "navigation": "Main navigation",
+    "openMenu": "Open menu",
+    "menu": "Navigation menu",
+    "closeMenu": "Close menu",
+    "close": "Close",
+    "website": "Website",
+    "returnHome": "Return home"
   },
   "nav": {
     "home": "Home",
@@ -52,7 +62,16 @@
     "audioOff": "Sound Off",
     "scroll": "Scroll to Discover",
     "cameraTag": "RED V-Raptor 8K",
-    "lensTag": "ARRI Master Primes"
+    "lensTag": "ARRI Master Primes",
+    "fallbackTitle": "Stories in motion.\nAn impression that stays.",
+    "fallbackSubtitle": "Visual production from the first idea to the final frame. Based in Bahrain.",
+    "eyebrow": "iShoot / Cinematic Production / Bahrain",
+    "ideaAction": "Tell us your idea",
+    "explore": "Explore our work",
+    "caption": "From an idea to the screen",
+    "slideLabel": "Slide",
+    "pause": "Pause motion",
+    "resume": "Resume motion"
   },
   "showreel": {
     "badge": "2026 Showreel",
@@ -134,9 +153,9 @@
     "watchTrailer": "Watch Trailer",
     "credits": "Production Credits",
     "director": "Director",
-    "dop": "Director of Photography",
+    "dop": "Cinematography",
     "colorist": "Colorist",
-    "editor": "Lead Editor",
+    "editor": "Editor",
     "sound": "Sound Design",
     "client": "Client",
     "year": "Year",
@@ -153,14 +172,19 @@
       "commercials": "Commercials",
       "aerial": "Aerial & FPV",
       "documentaries": "Documentaries"
-    }
+    },
+    "allWork": "All work"
   },
   "clients": {
     "badge": "Trust & Pedigree",
     "title": "TRUSTED BY VISIONARY BRANDS",
     "subtitle": "Collaborating with market leaders, government entities, and global enterprises across the GCC.",
     "marqueeBadge": "TRUSTED BY VISIONARY BRANDS",
-    "regionTag": "BAHRAIN · GCC"
+    "regionTag": "BAHRAIN · GCC",
+    "label": "Our clients",
+    "pause": "Pause logo movement",
+    "resume": "Resume logo movement",
+    "region": "Client logos; movement pauses on focus"
   },
   "about": {
     "badge": "About ishoot",
@@ -238,7 +262,7 @@
       }
     },
     "stats": {
-      "badge": "Studio Telemetry & Track Record",
+      "badge": "Studio in numbers",
       "verified": "Verified Production Data",
       "tvcs": "High-End TVCs",
       "leadership": "Cinema Leadership",
@@ -247,7 +271,9 @@
     },
     "gear": {
       "calibrated": "Calibrated"
-    }
+    },
+    "studioImageAlt": "Cinema camera and lens",
+    "studioImageCaption": "Inside the studio"
   },
   "contact": {
     "badge": "Initiate Collaboration",
@@ -262,9 +288,9 @@
     "timeline": "Target Timeline",
     "projectDetails": "Project Brief & Objectives",
     "submit": "Submit Production Inquiry",
-    "submitting": "Transmitting...",
+    "submitting": "Sending…",
     "successTitle": "Inquiry Received",
-    "successMessage": "Thank you for reaching out. We have received your brief and dispatched a confirmation to your email. Our production director will contact you shortly.",
+    "successMessage": "Thank you for your message. Our team will follow up using the contact details you provided.",
     "errorTitle": "Submission Notice",
     "errorMessage": "Unable to transmit inquiry. Please contact us directly at hello@ishoot.bh or via WhatsApp.",
     "timelinePlaceholder": "e.g. November 2026",
@@ -272,7 +298,7 @@
     "studioInfo": "Studio Information",
     "studioAddress": "Seef District, Manama, Kingdom of Bahrain",
     "workingHours": "Sun – Thu: 9:00 AM – 6:00 PM",
-    "immediateResponse": "Immediate Response",
+    "immediateResponse": "What happens next",
     "whatsappConcierge": "Direct WhatsApp Concierge",
     "whatsappDesc": "Connect directly with one of our producers on WhatsApp for quick inquiries.",
     "openWhatsapp": "Open WhatsApp Chat →",
@@ -309,9 +335,9 @@
       "review": "Rate & review",
       "reviewDesc": "Share your experience. Reviews are checked before they appear publicly."
     },
-    "directStudioLine": "TRANSMISSION // DIRECT STUDIO LINE",
+    "directStudioLine": "Contact the studio",
     "directLineToTeam": "A direct line to our team",
-    "makeYourselfHeard": "Make yourself heard.",
+    "makeYourselfHeard": "Talk to our team",
     "displayName": "Display name",
     "companyOptional": "Company (optional)",
     "servicesInterested": "Services you are interested in (optional)",
@@ -351,7 +377,9 @@
     "submitReview": "Submit Review",
     "hours": "Business Hours",
     "responseTime": "Response Time",
-    "chatWhatsapp": "Chat on WhatsApp"
+    "chatWhatsapp": "Chat on WhatsApp",
+    "formNote": "Use an email address or phone number we can reply to.",
+    "ratingOption": "{value} out of 5 stars"
   },
   "footer": {
     "tagline": "Cinema Production House based in Manama, Kingdom of Bahrain.",
@@ -360,15 +388,19 @@
     "contact": "Contact",
     "navigation": "Navigation",
     "social": "Follow Us",
-    "privacy": "Privacy Policy",
-    "terms": "Terms of Production",
+    "privacy": "Privacy & Security",
+    "terms": "Terms & Conditions",
     "companyName": "ishoot Cinema Production",
     "termsModalTitle": "Terms & Conditions",
-    "rulesModalTitle": "Rules of Production",
-    "termsUnavailable": "Terms and Conditions are not available.",
-    "rulesUnavailable": "Rules of Production are not available.",
+    "rulesModalTitle": "Privacy & Security",
+    "termsUnavailable": "Terms of Conditions are not currently available.",
+    "rulesUnavailable": "Privacy & Security policy is not currently available.",
     "close": "Close",
-    "rules": "Rules of Production"
+    "rules": "Privacy & Security",
+    "invitationLabel": "Let’s talk",
+    "invitationTitle": "Your next story. Made together.",
+    "invitationAction": "Discuss your project",
+    "registrationLabel": "Commercial Registration"
   },
   "financials": {
     "currency": "BHD",
@@ -2231,7 +2263,8 @@
       "cancel": "Cancel",
       "submit": "Submit Review",
       "submitting": "Submitting..."
-    }
+    },
+    "empty": "Worked with us? We'd love to hear your feedback."
   },
   "faq": {
     "sectionIndex": "(06)",
@@ -2354,5 +2387,10 @@
       "success": "Thank you for sharing your feedback! Your review has been submitted and will appear on the website once approved by our team.",
       "serverError": "Failed to submit review. Please try again later."
     }
+  },
+  "seo": {
+    "title": "ishoot — Cinema Production House",
+    "description": "Commercial cinematography, aerial filming, photography, and studio productions based in Bahrain.",
+    "imageAlt": "ishoot Cinema Production"
   }
 }

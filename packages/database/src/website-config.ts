@@ -1,3 +1,5 @@
+import websiteDefaultCopy from "./website-default-copy.json";
+
 export const websiteSections = [
   "about",
   "clients",
@@ -33,18 +35,7 @@ export const defaultWebsitePages: { id: WebsitePage; visible: boolean }[] = [
 export const defaultWebsiteConfig: WebsiteConfig = {
   sections: websiteSections.map((id) => ({ id, visible: true })),
   pages: defaultWebsitePages,
-  contactTitleEn: "Every conversation starts something.",
-  contactTitleAr: "كل حوار بداية لشيء جديد.",
-  contactIntroEn:
-    "Tell us what you have in mind. Plan a production, ask a question, or share your experience with our team.",
-  contactIntroAr:
-    "شاركنا ما يدور في ذهنك. خطّط لإنتاجك القادم، اطرح سؤالك، أو أخبرنا عن تجربتك مع فريقنا.",
-  hoursEn: "",
-  hoursAr: "",
-  responseEn:
-    "Our team will review your message and contact you using the details you provide.",
-  responseAr:
-    "سيراجع فريقنا رسالتك ويتواصل معك عبر بيانات الاتصال التي تقدمها.",
+  ...websiteDefaultCopy,
 };
 export function validateWebsiteConfig(value: unknown): WebsiteConfig {
   if (!value || typeof value !== "object")
@@ -70,9 +61,9 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
   let pages = defaultPages;
   if (Array.isArray(data.pages)) {
     pages = defaultPages.map((dp) => {
-      const found = (data.pages as Array<{ id?: unknown; visible?: unknown }>).find(
-        (p) => p && p.id === dp.id,
-      );
+      const found = (
+        data.pages as Array<{ id?: unknown; visible?: unknown }>
+      ).find((p) => p && p.id === dp.id);
       return {
         id: dp.id,
         visible: typeof found?.visible === "boolean" ? found.visible : true,

@@ -1,11 +1,10 @@
+import { Reveal } from "../../../../components/shared/Reveal";
 import { getWebsite } from "../../../../lib/website";
 import * as React from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getPortfolioItemBySlug, getPortfolioItems } from "@ishoot/database";
 import { getTranslations, Locale } from "@ishoot/locales";
-import { ArrowLeft, ArrowRight, Play } from "lucide-react";
-import { Button } from "@ishoot/ui";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 export default async function ProjectDetailPage({
   params,
@@ -30,7 +29,7 @@ export default async function ProjectDetailPage({
   const ArrowBackIcon = isRTL ? ArrowRight : ArrowLeft;
 
   return (
-    <article className="pt-36 pb-16 max-w-6xl mx-auto px-6 sm:px-8 space-y-12">
+    <article className="shell page-heading space-y-10 sm:space-y-14">
       <div>
         <Link
           href={`/${locale}/works`}
@@ -41,8 +40,8 @@ export default async function ProjectDetailPage({
         </Link>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center gap-4 text-xs  text-[#09937F] uppercase tracking-widest">
+      <Reveal className="space-y-4">
+        <div className="flex items-center gap-4 text-xs  text-[#5EEAD4] uppercase tracking-widest">
           <span>{item.client_name}</span>
           <span>•</span>
           <span>{item.year}</span>
@@ -50,9 +49,9 @@ export default async function ProjectDetailPage({
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-display">
           {title}
         </h1>
-      </div>
+      </Reveal>
 
-      <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-black border border-white/10 shadow-2xl">
+      <Reveal className="relative w-full aspect-video rounded-md overflow-hidden bg-black">
         {videoUrl ? (
           <video
             src={videoUrl}
@@ -62,19 +61,20 @@ export default async function ProjectDetailPage({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div
-            className="w-full h-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${item.thumbnail_url})` }}
+          <img
+            src={item.thumbnail_url}
+            alt={title}
+            className="w-full h-full object-cover"
           />
         )}
-      </div>
+      </Reveal>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-8 border-t border-white/10">
         <div className="md:col-span-2 space-y-4">
           <h2 className="text-xl font-bold text-white uppercase tracking-wide">
             {t.portfolio.productionOverview}
           </h2>
-          <p className="text-base text-[#9EADA9] leading-relaxed">
+          <p className="text-base text-[#9EADA9] leading-relaxed whitespace-pre-line">
             {description}
           </p>
         </div>
@@ -86,7 +86,7 @@ export default async function ProjectDetailPage({
             </h3>
             <div className="space-y-3 text-xs">
               {item.credits.director && (
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-4">
                   <span className="text-[#9EADA9]">
                     {t.portfolio.director}:
                   </span>
@@ -96,7 +96,7 @@ export default async function ProjectDetailPage({
                 </div>
               )}
               {item.credits.dop && (
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-4">
                   <span className="text-[#9EADA9]">{t.portfolio.dop}:</span>
                   <span className="text-white font-medium">
                     {item.credits.dop}
@@ -104,7 +104,7 @@ export default async function ProjectDetailPage({
                 </div>
               )}
               {item.credits.colorist && (
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-4">
                   <span className="text-[#9EADA9]">
                     {t.portfolio.colorist}:
                   </span>
@@ -114,7 +114,7 @@ export default async function ProjectDetailPage({
                 </div>
               )}
               {item.credits.editor && (
-                <div className="flex justify-between">
+                <div className="flex justify-between gap-4">
                   <span className="text-[#9EADA9]">{t.portfolio.editor}:</span>
                   <span className="text-white font-medium">
                     {item.credits.editor}

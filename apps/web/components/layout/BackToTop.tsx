@@ -55,7 +55,7 @@ export function BackToTop() {
       aria-hidden={!isVisible}
       tabIndex={isVisible ? 0 : -1}
       title={label}
-      className={`fixed bottom-6 sm:bottom-8 z-40 flex items-center justify-center w-12 h-12 rounded-full transition-[opacity,transform,background-color,border-color] duration-200 ease-out group ${
+      className={`fixed bottom-6 sm:bottom-8 z-[70] flex items-center justify-center w-12 h-12 rounded-full transition-[opacity,transform,background-color,border-color] duration-200 ease-out group ${
         isRTL ? "left-6 sm:left-8" : "right-6 sm:right-8"
       } ${
         isVisible

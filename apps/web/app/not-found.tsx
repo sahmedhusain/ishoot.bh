@@ -20,7 +20,10 @@ export default function NotFound() {
             <p className="text-sm text-[#9EADA9] leading-relaxed">
               {tEn.common.notFoundDesc}
             </p>
-            <p className="text-xs text-[#9EADA9]/80 font-arabic leading-relaxed" dir="rtl">
+            <p
+              className="text-xs text-[#9EADA9]/80 font-arabic leading-relaxed"
+              dir="rtl"
+            >
               {tAr.common.notFoundDesc}
             </p>
           </div>
@@ -28,15 +31,15 @@ export default function NotFound() {
           <div className="flex items-center justify-center gap-3 pt-2">
             <Link
               href="/en"
-              className="px-4 py-2 rounded-xl bg-[#014842] hover:bg-[#014842]/90 text-white text-xs font-semibold transition-colors border border-[#09937F]/40"
+              className="min-h-11 inline-flex items-center justify-center px-4 py-2 rounded-xl bg-[#014842] hover:bg-[#014842]/90 text-white text-xs font-semibold transition-colors border border-[#09937F]/40"
             >
-              Return Home (EN)
+              {tEn.common.returnHome} (EN)
             </Link>
             <Link
               href="/ar"
-              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold transition-colors border border-white/10 font-arabic"
+              className="min-h-11 inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white text-xs font-semibold transition-colors border border-white/10 font-arabic"
             >
-              الرئيسية (العربية)
+              {tAr.common.returnHome}
             </Link>
           </div>
         </div>

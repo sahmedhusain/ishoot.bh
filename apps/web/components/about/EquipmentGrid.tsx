@@ -4,14 +4,22 @@ import * as React from "react";
 import { StudioEquipment } from "@ishoot/database";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
-import { Camera, Aperture, Sun, Sliders, Warehouse, ShieldCheck } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  Camera,
+  Aperture,
+  Sun,
+  Sliders,
+  Warehouse,
+  ShieldCheck,
+} from "lucide-react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 interface EquipmentGridProps {
   equipment: StudioEquipment[];
 }
 
 export function EquipmentGrid({ equipment }: EquipmentGridProps) {
+  const reduced = useReducedMotion();
   const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = React.useState<string>("all");
 
@@ -50,16 +58,18 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
       : equipment.filter((eq) => eq.category === selectedCategory);
 
   return (
-    <section className="katana-top relative z-30 bg-[#F8FAFC] text-[#0F172A] py-28 select-none border-t border-slate-200">
+    <section className="relative z-30 bg-[#F8FAFC] text-[#0F172A] py-20 sm:py-28 border-t border-slate-200">
       <div className="shell space-y-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={reduced ? false : { opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: reduced ? 0 : 0.45 }}
           className="space-y-3"
         >
-          <SectionBadge>{t("about.gearTitle")}</SectionBadge>
+          <SectionBadge className="!text-[#075e4c]">
+            {t("about.gearTitle")}
+          </SectionBadge>
           <h3 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-950 font-display">
             {t("about.gearSubtitle")}
           </h3>
@@ -67,45 +77,57 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
 
         {/* Category Buttons */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={reduced ? false : { opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          transition={{
+            duration: reduced ? 0 : 0.4,
+            delay: reduced ? 0 : 0.08,
+          }}
           className="flex flex-wrap gap-3 font-sans"
         >
           {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              aria-pressed={selectedCategory === cat.id}
+              className={`min-h-11 px-4 py-2 rounded-md text-xs font-bold transition-colors duration-150 cursor-pointer ${
                 selectedCategory === cat.id
-                  ? "bg-[#014842] text-white border border-[#09937F] shadow-lg"
+                  ? "bg-[#014842] text-white border border-[#09937F]"
                   : "bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-2xs"
               }`}
             >
-              <span>&lt;&lt; {cat.label} &gt;&gt;</span>
+              <span>{cat.label}</span>
             </button>
           ))}
         </motion.div>
 
         {/* Equipment Cards Grid */}
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div
+          layout={!reduced}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
           <AnimatePresence>
             {filteredEquipment.map((gear, idx) => (
               <motion.div
                 key={gear.id}
-                layout
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                layout={!reduced}
+                initial={reduced ? false : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                whileHover={{ y: -4, transition: { type: "spring", stiffness: 300, damping: 20 } }}
-                transition={{ duration: 0.4, delay: idx * 0.05 }}
-                className="group relative rounded-3xl bg-white border border-slate-200 hover:border-[#09937F] transition-all p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-xl cursor-pointer overflow-hidden"
+                exit={{ opacity: 0 }}
+                transition={{
+                  duration: reduced ? 0 : 0.25,
+                  delay: reduced ? 0 : Math.min(idx * 0.04, 0.16),
+                }}
+                className="group relative rounded-lg bg-white border border-slate-200 hover:border-[#09937F] transition-colors duration-150 p-6 sm:p-8 flex flex-col justify-between space-y-6 overflow-hidden"
               >
                 <div className="space-y-3 relative z-10">
                   <div className="flex items-center justify-between font-sans">
                     <span className="text-[10px] uppercase font-bold tracking-widest text-[#014842] bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200">
-                      &lt;&lt; {categories.find((c) => c.id === gear.category)?.label || gear.category.replace("_", " ")} &gt;&gt;
+                      &lt;&lt;{" "}
+                      {categories.find((c) => c.id === gear.category)?.label ||
+                        gear.category.replace("_", " ")}{" "}
+                      &gt;&gt;
                     </span>
                     <span className="text-[10px] font-bold text-[#014842]">
                       &lt;&lt; {t("about.gear.calibrated")} &gt;&gt;
@@ -124,9 +146,12 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
 
                 {gear.daily_rate_bhd && (
                   <div className="relative z-10 pt-4 border-t border-slate-100 flex items-center justify-between font-sans">
-                    <span className="text-xs text-slate-500">{t("about.dailyRental")}</span>
+                    <span className="text-xs text-slate-500">
+                      {t("about.dailyRental")}
+                    </span>
                     <div className="text-sm font-bold text-[#014842]">
-                      {gear.daily_rate_bhd.toFixed(3)} {t("financials.currency")}
+                      {gear.daily_rate_bhd.toFixed(3)}{" "}
+                      {t("financials.currency")}
                     </div>
                   </div>
                 )}

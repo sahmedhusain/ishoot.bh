@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "../../hooks/useTranslation";
 
 interface LegalModalProps {
@@ -12,70 +12,112 @@ interface LegalModalProps {
   content: string;
 }
 
-export function LegalModal({ isOpen, onClose, title, content }: LegalModalProps) {
+export function LegalModal({
+  isOpen,
+  onClose,
+  title,
+  content,
+}: LegalModalProps) {
   const { isRTL, t } = useTranslation();
+  const reduced = useReducedMotion();
+  const dialog = React.useRef<HTMLDialogElement>(null);
+  const titleId = React.useId();
 
   React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    if (!isOpen) return;
+    const element = dialog.current;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    element?.showModal();
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = "auto";
+      element?.close();
+      document.body.style.overflow = overflow;
+      previous?.focus();
     };
   }, [isOpen]);
 
+  if (!isOpen) return null;
+  const isHtml = /<\/?[a-z][\s\S]*>/i.test(content);
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          />
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full max-w-4xl max-h-[85vh] flex flex-col bg-[#0B1210] border border-white/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden"
+    <dialog
+      ref={dialog}
+      aria-labelledby={titleId}
+      dir={isRTL ? "rtl" : "ltr"}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      className="legal-dialog m-auto w-[calc(100%-2rem)] max-w-3xl max-h-[88dvh] p-0 rounded-2xl bg-[#F8FAFC] text-slate-800 border border-slate-200 shadow-2xl backdrop:bg-black/75"
+      data-lenis-prevent
+    >
+      <motion.div
+        initial={reduced ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: reduced ? 0 : 0.2, ease: [0.2, 0, 0, 1] }}
+        className="flex flex-col max-h-[88dvh]"
+      >
+        <div className="flex items-start justify-between gap-5 p-6 sm:px-8 bg-[#0B1210] text-white">
+          <h2
+            id={titleId}
+            className="text-2xl sm:text-3xl font-bold font-display leading-tight"
           >
-            <div className="flex items-center justify-between p-6 border-b border-white/10 bg-black/20">
-              <h2 className="text-xl sm:text-2xl font-bold font-display text-white">
-                {title}
-              </h2>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-full hover:bg-white/10 transition-colors text-[#9EADA9] hover:text-white"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6 sm:p-8 custom-scrollbar">
-              <div
-                className={`prose prose-invert max-w-none font-serif text-[#9EADA9] leading-relaxed prose-headings:text-white prose-headings:font-display prose-a:text-[#09937F] hover:prose-a:text-[#5EEAD4] ${isRTL ? "text-right" : "text-left"}`}
-                dangerouslySetInnerHTML={{ __html: content }}
-              />
-            </div>
-
-            <div className="p-6 border-t border-white/10 bg-black/20 flex justify-end">
-              <button
-                onClick={onClose}
-                className="px-6 py-2.5 rounded-full bg-[#014842] text-white text-sm font-bold hover:bg-[#09937F] transition-colors"
-              >
-                {t("footer.close")}
-              </button>
-            </div>
-          </motion.div>
+            {title}
+          </h2>
+          <button
+            autoFocus
+            onClick={onClose}
+            className="min-w-11 min-h-11 -mt-1 shrink-0 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+            aria-label={t("footer.close")}
+          >
+            <X aria-hidden="true" className="w-5 h-5" />
+          </button>
         </div>
-      )}
-    </AnimatePresence>
+        <div
+          className="min-h-0 overflow-y-auto overscroll-contain px-6 py-8 sm:px-10"
+          data-lenis-prevent
+        >
+          {isHtml ? (
+            <div
+              className="legal-document"
+              dangerouslySetInnerHTML={{ __html: content }}
+            />
+          ) : (
+            <div className="legal-document space-y-7">
+              {content
+                .split(/\n\s*\n/)
+                .filter(Boolean)
+                .map((paragraph, index) => {
+                  const clause = paragraph.match(
+                    /^([\d\u0660-\u0669\u06f0-\u06f9]+[.)]\s*[^:\n]+):\s*([\s\S]*)$/,
+                  );
+                  return clause ? (
+                    <div key={index}>
+                      <h3>{clause[1]}</h3>
+                      <p>{clause[2]}</p>
+                    </div>
+                  ) : (
+                    <p key={index} className="whitespace-pre-line">
+                      {paragraph}
+                    </p>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+        <div className="px-6 py-4 sm:px-8 bg-slate-100 flex justify-end shrink-0">
+          <button
+            onClick={onClose}
+            className="min-h-11 px-6 rounded-lg bg-[#014842] text-white text-sm font-semibold hover:bg-[#086556] transition-colors"
+          >
+            {t("footer.close")}
+          </button>
+        </div>
+      </motion.div>
+    </dialog>
   );
 }

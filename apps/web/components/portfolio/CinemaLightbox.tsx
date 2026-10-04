@@ -12,7 +12,7 @@ export function CinemaLightbox({
   isOpen?: boolean;
   onClose: () => void;
 }) {
-  const { isRTL: ar } = useTranslation();
+  const { t, isRTL: ar } = useTranslation();
   const dialog = React.useRef<HTMLDialogElement>(null);
   const open = !!item && isOpen !== false;
   React.useEffect(() => {
@@ -59,8 +59,8 @@ export function CinemaLightbox({
           </div>
           <button
             autoFocus
-            aria-label={ar ? "إغلاق" : "Close"}
-            className="p-2 rounded-full bg-white/10"
+            aria-label={t("common.close")}
+            className="min-w-11 min-h-11 flex items-center justify-center rounded-full bg-white/10"
             onClick={onClose}
           >
             <X className="w-5 h-5" />
@@ -90,10 +90,10 @@ export function CinemaLightbox({
           <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 px-5 pb-5 text-sm">
             {(
               [
-                ["director", ar ? "الإخراج" : "Director"],
-                ["dop", ar ? "التصوير" : "Cinematography"],
-                ["colorist", ar ? "تصحيح الألوان" : "Colorist"],
-                ["editor", ar ? "المونتاج" : "Editor"],
+                ["director", t("portfolio.director")],
+                ["dop", t("portfolio.dop")],
+                ["colorist", t("portfolio.colorist")],
+                ["editor", t("portfolio.editor")],
               ] as const
             ).map(([key, label]) =>
               item.credits?.[key] ? (

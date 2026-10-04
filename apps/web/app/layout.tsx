@@ -1,20 +1,21 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
+import { getTranslations } from "@ishoot/locales";
+
+const { seo } = getTranslations("en");
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.WEB_URL || "https://ishoot.bh"),
-  title: "ishoot — Cinema Production House",
-  description:
-    "High-end commercial cinematography, aerial drone capture, DaVinci Resolve color grading, and creative studio productions based in Bahrain.",
+  title: seo.title,
+  description: seo.description,
   icons: {
     icon: "/brand/icon-dark.svg",
     shortcut: "/brand/icon-dark.svg",
     apple: "/brand/icon-dark.svg",
   },
   openGraph: {
-    title: "ishoot — Cinema Production House",
-    description:
-      "Cinema in every frame. High-end commercial cinematography & studio productions in Bahrain.",
+    title: seo.title,
+    description: seo.description,
     url: "https://ishoot.bh",
     siteName: "ishoot.bh",
     images: [
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
         url: "/images/logo-full.png",
         width: 1200,
         height: 630,
-        alt: "ishoot Cinema Production",
+        alt: seo.imageAlt,
       },
     ],
     locale: "en_US",

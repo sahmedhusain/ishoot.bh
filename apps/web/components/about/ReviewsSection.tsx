@@ -1,12 +1,11 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { Star, ArrowUpRight, MessageSquarePlus, Quote } from "lucide-react";
+import { Star, MessageSquarePlus, Quote } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type { Review } from "@ishoot/database/types";
 
 export function ReviewsSection({
@@ -24,42 +23,51 @@ export function ReviewsSection({
     | "companyEn"
   >[];
 }) {
-  const { t, locale, isRTL: ar } = useTranslation();
+  const reduced = useReducedMotion();
+  const { t, isRTL: ar } = useTranslation();
   const [modalOpen, setModalOpen] = React.useState(false);
 
   return (
-    <section id="reviews" className="katana-top relative z-[45] bg-[#050807] text-[#F2F6F5] pt-32 sm:pt-40 pb-24 select-none border-t border-white/10">
+    <section
+      id="reviews"
+      className="relative bg-[#F8FAFC] text-[#0F172A] py-20 sm:py-28 border-t border-slate-200"
+    >
       <div className="shell space-y-12">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-white/10">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-slate-200">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={reduced ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: reduced ? 0 : 0.45, ease: [0.2, 0, 0, 1] }}
             className="space-y-3"
           >
-            <SectionBadge>{t("reviews.sectionLabel") || (ar ? "آراء العملاء" : "Client Testimonials")}</SectionBadge>
-            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-white leading-tight">
-              {t("reviews.headline") || (ar ? "ثقة رواد الصناعة والشركات." : "Trusted by Industry Leaders.")}
+            <SectionBadge className="!text-[#075e4c]">
+              {t("reviews.sectionLabel")}
+            </SectionBadge>
+            <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-slate-950 leading-tight">
+              {t("reviews.headline")}
             </h2>
-            <p className="text-sm sm:text-base text-[#9EADA9] font-sans max-w-xl leading-relaxed">
-              {t("reviews.subtitle") || (ar ? "تجارب حقيقية تعكس التزامنا بالدقة البصرية والإنتاج الاستثنائي." : "Real experiences reflecting our commitment to optical precision and cinema craft.")}
+            <p className="text-sm sm:text-base text-slate-600 font-sans max-w-xl leading-relaxed">
+              {t("reviews.subtitle")}
             </p>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={reduced ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{
+              duration: reduced ? 0 : 0.45,
+              delay: reduced ? 0 : 0.08,
+            }}
           >
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#09937F]/15 hover:bg-[#09937F]/25 text-[#5EEAD4] border border-[#09937F]/40 font-semibold text-xs sm:text-sm transition-all cursor-pointer shadow-sm"
+              className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-md bg-white hover:bg-slate-100 text-[#075e4c] border border-slate-300 font-semibold text-sm transition-colors duration-150 cursor-pointer"
             >
               <MessageSquarePlus className="w-4 h-4" />
-              <span>{t("reviews.writeReviewBtn") || (ar ? "شارك تجربتك" : "Rate & Review Us")}</span>
+              <span>{t("reviews.writeReviewBtn")}</span>
             </button>
           </motion.div>
         </div>
@@ -69,18 +77,20 @@ export function ReviewsSection({
             {reviews.slice(0, 6).map((review, idx) => (
               <motion.figure
                 key={review.id}
-                initial={{ opacity: 0, y: 25 }}
+                initial={reduced ? false : { opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -4 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="group relative p-6 sm:p-8 rounded-3xl bg-[#0B1210] border border-white/10 hover:border-[#09937F]/50 transition-all flex flex-col justify-between space-y-6 shadow-xl"
+                transition={{
+                  duration: reduced ? 0 : 0.45,
+                  delay: reduced ? 0 : Math.min(idx * 0.06, 0.18),
+                }}
+                className="relative p-6 sm:p-8 rounded-lg bg-white border border-slate-200 flex flex-col justify-between space-y-6"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div
                       aria-label={`${review.rating} / 5`}
-                      className="flex gap-1 text-amber-400"
+                      className="flex gap-1 text-[#075e4c]"
                     >
                       {Array.from(
                         { length: Math.max(0, Math.min(5, review.rating)) },
@@ -88,25 +98,31 @@ export function ReviewsSection({
                           <Star
                             key={i}
                             aria-hidden
-                            className="w-4 h-4 fill-amber-400"
+                            className="w-4 h-4 fill-current"
                           />
                         ),
                       )}
                     </div>
-                    <Quote className="w-5 h-5 text-white/10 group-hover:text-[#09937F]/40 transition-colors" />
+                    <Quote className="w-5 h-5 text-slate-300" />
                   </div>
 
-                  <blockquote className="text-sm sm:text-base leading-relaxed text-[#F2F6F5] font-sans italic">
-                    "{ar ? review.quoteAr || review.quoteEn : review.quoteEn || review.quoteAr}"
+                  <blockquote className="text-sm sm:text-base leading-relaxed text-slate-800 font-sans italic">
+                    "
+                    {ar
+                      ? review.quoteAr || review.quoteEn
+                      : review.quoteEn || review.quoteAr}
+                    "
                   </blockquote>
                 </div>
 
-                <figcaption className="pt-4 border-t border-white/5 flex flex-col font-sans">
-                  <strong className="text-sm font-bold text-white group-hover:text-[#5EEAD4] transition-colors">
-                    {ar ? review.authorAr || review.authorEn : review.authorEn || review.authorAr}
+                <figcaption className="pt-4 border-t border-slate-200 flex flex-col font-sans">
+                  <strong className="text-sm font-bold text-slate-950">
+                    {ar
+                      ? review.authorAr || review.authorEn
+                      : review.authorEn || review.authorAr}
                   </strong>
                   {(review.companyAr || review.companyEn) && (
-                    <span className="text-xs text-[#9EADA9] mt-0.5">
+                    <span className="text-xs text-slate-600 mt-0.5">
                       {ar ? review.companyAr : review.companyEn}
                     </span>
                   )}
@@ -115,10 +131,8 @@ export function ReviewsSection({
             ))}
           </div>
         ) : (
-          <div className="p-8 text-center rounded-2xl bg-white/[0.02] border border-white/5 text-[#9EADA9] text-sm">
-            {ar
-              ? "عملت معنا؟ يسعدنا أن نسمع تجربتك وننشر تقييمك."
-              : "Worked with us? We'd love to hear your feedback."}
+          <div className="p-8 text-center rounded-2xl bg-white border border-slate-200 text-slate-600 text-sm">
+            {t("reviews.empty")}
           </div>
         )}
       </div>
@@ -130,4 +144,3 @@ export function ReviewsSection({
     </section>
   );
 }
-

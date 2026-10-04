@@ -49,7 +49,8 @@ export function MobileMenu({
   return (
     <dialog
       ref={dialog}
-      aria-label={isRTL ? "القائمة" : "Navigation menu"}
+      id="mobile-navigation"
+      aria-label={t("common.menu")}
       onCancel={(e) => {
         e.preventDefault();
         onClose();
@@ -61,7 +62,7 @@ export function MobileMenu({
         <Link
           href={`/${locale}`}
           onClick={onClose}
-          className="flex items-center gap-2.5 focus:outline-none"
+          className="flex items-center gap-2.5"
         >
           <img
             src={
@@ -84,9 +85,9 @@ export function MobileMenu({
         </Link>
         <div className="flex items-center gap-4">
           <button
-            aria-label={isRTL ? "إغلاق القائمة" : "Close menu"}
+            aria-label={t("common.closeMenu")}
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:text-[#09937F] transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:text-[#09937F] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -94,17 +95,15 @@ export function MobileMenu({
       </div>
 
       <nav className="flex flex-col gap-6 my-auto py-8">
-        {navLinks.map((link, idx) => (
+        {navLinks.map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            aria-label={isRTL ? "إغلاق القائمة" : "Close menu"}
             onClick={onClose}
             className="group flex items-center justify-between text-3xl sm:text-4xl font-bold text-[#F2F6F5] hover:text-[#09937F] transition-colors py-2 border-b border-white/5"
-            style={{ animationDelay: `${idx * 80}ms` }}
           >
             <span>{link.label}</span>
-            <ArrowIcon className="w-6 h-6 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all text-[#09937F]" />
+            <ArrowIcon className="w-6 h-6 opacity-60 group-hover:opacity-100 transition-opacity duration-150 text-[#09937F]" />
           </Link>
         ))}
       </nav>

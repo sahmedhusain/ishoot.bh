@@ -12,6 +12,9 @@ const nextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   serverExternalPackages: ['@react-pdf/renderer'],
   transpilePackages: ['@ishoot/ui', '@ishoot/database', '@ishoot/locales', '@ishoot/email', '@ishoot/config'],
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@ishoot/ui', 'recharts'],
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },

@@ -31,6 +31,24 @@ export function ReviewSubmissionModal({
   const [submitted, setSubmitted] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  const dialog = React.useRef<HTMLDialogElement>(null);
+  const titleId = React.useId();
+  const nameId = React.useId();
+  const companyId = React.useId();
+  const quoteId = React.useId();
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const element = dialog.current;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    element?.showModal();
+    document.body.style.overflow = "hidden";
+    return () => {
+      element?.close();
+      document.body.style.overflow = overflow;
+      previous?.focus();
+    };
+  }, [isOpen]);
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,14 +78,16 @@ export function ReviewSubmissionModal({
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to submit review");
+        throw new Error(
+          res.status === 429
+            ? t("contact.rateLimit")
+            : t("contact.submissionFailed"),
+        );
       }
 
       setSubmitted(true);
     } catch (err: any) {
-      setError(
-        err.message || "An unexpected error occurred. Please try again.",
-      );
+      setError(err.message || t("contact.connectionFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -85,26 +105,33 @@ export function ReviewSubmissionModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-fade-in"
+    <dialog
+      ref={dialog}
+      aria-labelledby={titleId}
+      onCancel={(event) => {
+        event.preventDefault();
+        handleReset();
+      }}
+      data-lenis-prevent
+      className="m-auto p-0 w-[calc(100%-2rem)] max-w-lg max-h-[90dvh] overflow-y-auto bg-[#0B1210] rounded-2xl text-white border border-white/15 backdrop:bg-black/80"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleReset();
       }}
     >
       <div
         dir={isRTL ? "rtl" : "ltr"}
-        className="relative w-full max-w-lg rounded-3xl bg-[#0B1210] border border-[#09937F]/40 shadow-2xl p-6 sm:p-8 text-white space-y-6 overflow-hidden animate-in zoom-in-95 duration-200"
+        className="relative p-6 sm:p-8 text-white space-y-6"
       >
-        {/* Glow ambient background */}
-        <div className="absolute top-0 right-0 w-72 h-72 bg-[#09937F]/10 rounded-full blur-3xl pointer-events-none" />
-
         <div className="flex items-center justify-between pb-4 border-b border-white/10 relative z-10">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-[#09937F]/20 text-[#09937F]">
               <MessageSquarePlus className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white font-display">
+              <h3
+                id={titleId}
+                className="text-lg font-bold text-white font-display"
+              >
                 {t("reviews.modal.title")}
               </h3>
               <p className="text-xs text-[#9EADA9]">
@@ -116,7 +143,9 @@ export function ReviewSubmissionModal({
           <button
             type="button"
             onClick={handleReset}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#9EADA9] hover:text-white hover:bg-white/10 transition-colors"
+            aria-label={t("common.close")}
+            autoFocus
+            className="w-11 h-11 rounded-full flex items-center justify-center text-[#9EADA9] hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -146,7 +175,10 @@ export function ReviewSubmissionModal({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
             {error && (
-              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs">
+              <div
+                role="alert"
+                className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs"
+              >
                 {error}
               </div>
             )}
@@ -163,10 +195,15 @@ export function ReviewSubmissionModal({
                     <button
                       key={star}
                       type="button"
+                      aria-label={t("contact.ratingOption").replace(
+                        "{value}",
+                        String(star),
+                      )}
+                      aria-pressed={rating === star}
                       onClick={() => setRating(star)}
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(0)}
-                      className="p-1 focus:outline-none transition-transform hover:scale-110"
+                      className="min-w-11 min-h-11 flex items-center justify-center transition-transform motion-safe:hover:scale-110"
                     >
                       <Star
                         className={`w-7 h-7 transition-colors ${
@@ -183,10 +220,14 @@ export function ReviewSubmissionModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-medium text-[#9EADA9]">
+                <label
+                  htmlFor={nameId}
+                  className="text-xs font-medium text-[#9EADA9]"
+                >
                   {t("reviews.modal.fullName")}
                 </label>
                 <input
+                  id={nameId}
                   type="text"
                   required
                   value={authorName}
@@ -197,10 +238,14 @@ export function ReviewSubmissionModal({
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-medium text-[#9EADA9]">
+                <label
+                  htmlFor={companyId}
+                  className="text-xs font-medium text-[#9EADA9]"
+                >
                   {t("reviews.modal.company")}
                 </label>
                 <input
+                  id={companyId}
                   type="text"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
@@ -211,10 +256,14 @@ export function ReviewSubmissionModal({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[#9EADA9]">
+              <label
+                htmlFor={quoteId}
+                className="text-xs font-medium text-[#9EADA9]"
+              >
                 {t("reviews.modal.quote")}
               </label>
               <textarea
+                id={quoteId}
                 required
                 rows={4}
                 value={quote}
@@ -250,6 +299,6 @@ export function ReviewSubmissionModal({
           </form>
         )}
       </div>
-    </div>
+    </dialog>
   );
 }

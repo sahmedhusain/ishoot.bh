@@ -7,7 +7,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight, Pause, Play } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
-  const { locale, isRTL: ar } = useTranslation();
+  const { t, locale, isRTL: ar } = useTranslation();
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
@@ -49,16 +49,12 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
     ? ar
       ? banner.title_ar
       : banner.title_en
-    : ar
-      ? "قصص تُرى.\nوأثر يبقى."
-      : "Stories in motion.\nAn impression that stays.";
+    : t("hero.fallbackTitle");
   const subtitle = banner
     ? ar
       ? banner.subtitle_ar
       : banner.subtitle_en
-    : ar
-      ? "إنتاج مرئي من الفكرة الأولى إلى المشهد الأخير، من البحرين."
-      : "Visual production from the first idea to the final frame. Based in Bahrain.";
+    : t("hero.fallbackSubtitle");
   let href = safeWebsiteUrl(
     banner?.cta_link || "",
     `/${locale}/contact?intent=quote_request`,
@@ -101,39 +97,6 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#050807] via-[#050807]/60 to-[#050807]/30" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#050807]/85 via-[#050807]/30 to-transparent pointer-events-none" />
-        {/* Background Graphic Grid */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none opacity-20"
-          style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
-            backgroundSize: "32px 32px",
-          }}
-        />
-        <div
-          aria-hidden="true"
-          className="absolute -top-40 start-1/4 w-[600px] h-[600px] bg-radial from-[#09937F]/20 via-[#014842]/10 to-transparent blur-3xl pointer-events-none"
-        />
-      </div>
-
-      {/* Viewfinder Corner Framing Brackets */}
-      <div className="absolute top-24 start-8 sm:start-12 w-5 h-5 border-t-2 border-s-2 border-[#09937F]/40 pointer-events-none hidden md:block" />
-      <div className="absolute top-24 end-8 sm:end-12 w-5 h-5 border-t-2 border-e-2 border-[#09937F]/40 pointer-events-none hidden md:block" />
-
-      {/* Viewfinder Telemetry HUD */}
-      <div className="absolute top-24 end-8 sm:end-12 z-20 hidden sm:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-[#09937F]/40 shadow-xl select-none">
-        <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#5EEAD4]">
-          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <span>REC · 8K VV · 24FPS</span>
-        </div>
-        <span className="text-white/20">|</span>
-        <span className="text-[10px] font-mono text-[#9EADA9] font-medium tracking-widest">
-          SHUTTER 180°
-        </span>
-        <span className="text-white/20">|</span>
-        <span className="text-[10px] font-mono text-[#09937F] font-bold">
-          ISO 800
-        </span>
       </div>
 
       <div className="shell relative pt-40 pb-16 md:pb-24">
@@ -141,18 +104,10 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
           key={banner?.id || "fallback"}
           initial={reduced ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
+          transition={{ duration: reduced ? 0 : 0.45, ease: [0.2, 0, 0, 1] }}
           className="max-w-5xl"
         >
-          <p className="web-eyebrow text-[#5EEAD4] mb-6 flex items-center gap-2">
-            <span className="text-[#09937F] font-mono opacity-80">&lt;&lt;</span>
-            <span>
-              {ar
-                ? "آي شوت / إنتاج مرئي سينمائي / البحرين"
-                : "iShoot / Cinematic Production / Bahrain"}
-            </span>
-            <span className="text-[#09937F] font-mono opacity-80">&gt;&gt;</span>
-          </p>
+          <p className="web-eyebrow text-[#5EEAD4] mb-6">{t("hero.eyebrow")}</p>
           <h1 className="font-display text-5xl sm:text-6xl lg:text-8xl leading-[1.04] tracking-tight font-bold whitespace-pre-line text-white">
             {title}
           </h1>
@@ -162,28 +117,28 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
             </p>
           )}
           <div className="mt-9 flex flex-wrap items-center gap-5">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <div>
               <Link href={href} className="web-button">
                 {(ar ? banner?.cta_label_ar : banner?.cta_label_en) ||
-                  (ar ? "ناقش مشروعك" : "Tell us your idea")}
+                  t("hero.ideaAction")}
                 <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
               </Link>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Link
-                href={`/${locale}/works`}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-full border border-[#09937F]/40 bg-white/5 hover:bg-[#09937F]/15 hover:border-[#09937F] text-white text-sm font-medium transition-all duration-300"
-              >
-                <span>{ar ? "استكشف أعمالنا" : "Explore our work"}</span>
-                <span className="text-[#09937F] font-mono">&gt;</span>
-              </Link>
-            </motion.div>
+            </div>
+            {href.replace(/[?#].*$/, "") !== `/${locale}/works` && (
+              <div>
+                <Link href={`/${locale}/works`} className="web-hero-secondary">
+                  <span>{t("hero.explore")}</span>
+                  <ArrowUpRight
+                    aria-hidden="true"
+                    className="w-4 h-4 rtl:-scale-x-100"
+                  />
+                </Link>
+              </div>
+            )}
           </div>
         </motion.div>
         <div className="mt-12 flex items-center justify-between gap-4 border-t border-white/20 pt-5">
-          <span className="text-xs text-[#bdcec4]">
-            {ar ? "من الفكرة إلى الشاشة" : "From an idea to the screen"}
-          </span>
+          <span className="text-xs text-[#bdcec4]">{t("hero.caption")}</span>
           <div className="flex items-center gap-3">
             {banners.length > 1 &&
               banners.map((item, i) => (
@@ -193,9 +148,9 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
                     setIndex(i);
                     setPaused(true);
                   }}
-                  aria-label={`${ar ? "الشريحة" : "Slide"} ${i + 1}`}
+                  aria-label={`${t("hero.slideLabel")} ${i + 1}`}
                   aria-pressed={i === index % banners.length}
-                  className={`w-8 h-8 rounded-full border text-xs ${i === index % banners.length ? "bg-white text-[#162a24] border-white" : "border-white/30 text-white"}`}
+                  className={`w-11 h-11 rounded-full border text-xs transition-colors duration-150 ${i === index % banners.length ? "bg-white text-[#162a24] border-white" : "border-white/30 text-white"}`}
                 >
                   {i + 1}
                 </button>
@@ -203,17 +158,9 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
             {(banners.length > 1 || banner?.media_type === "video") && (
               <button
                 onClick={() => setPaused((p) => !p)}
-                aria-label={
-                  paused
-                    ? ar
-                      ? "تشغيل الحركة"
-                      : "Resume motion"
-                    : ar
-                      ? "إيقاف الحركة"
-                      : "Pause motion"
-                }
+                aria-label={paused ? t("hero.resume") : t("hero.pause")}
                 aria-pressed={paused}
-                className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center"
+                className="w-11 h-11 rounded-full border border-white/30 hover:bg-white/10 transition-colors duration-150 flex items-center justify-center"
               >
                 {paused ? (
                   <Play className="w-4 h-4" />

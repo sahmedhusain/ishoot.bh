@@ -6,7 +6,7 @@ import type { PublicService } from "@ishoot/database/website-config";
 import { safeWebsiteUrl } from "@ishoot/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 
 export function ServicesSection({
@@ -20,24 +20,17 @@ export function ServicesSection({
   if (!services.length) return null;
 
   return (
-    <section id="services" className="katana-top relative z-20 bg-[#0B1210] text-[#F2F6F5] pt-32 sm:pt-40 pb-24 select-none border-t border-white/10">
-      {/* Background Graphic Grid */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 z-0 pointer-events-none opacity-15"
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)`,
-          backgroundSize: "32px 32px",
-        }}
-      />
-
+    <section
+      id="services"
+      className="relative z-20 bg-[#0B1210] text-[#F2F6F5] py-20 sm:py-28 border-t border-white/10"
+    >
       <div className="shell relative z-10 space-y-12">
         <div className="grid md:grid-cols-2 gap-8 items-end pb-8 border-b border-white/10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={reduced ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: reduced ? 0 : 0.45, ease: [0.2, 0, 0, 1] }}
             className="space-y-3"
           >
             <SectionBadge>{t("services.badge")}</SectionBadge>
@@ -47,10 +40,14 @@ export function ServicesSection({
           </motion.div>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={reduced ? false : { opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{
+              duration: reduced ? 0 : 0.45,
+              ease: [0.2, 0, 0, 1],
+              delay: 0,
+            }}
             className="text-sm sm:text-base text-[#9EADA9] font-sans leading-relaxed max-w-lg"
           >
             {t("services.subtitle")}
@@ -64,11 +61,15 @@ export function ServicesSection({
               initial={reduced ? false : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.08 }}
+              transition={{
+                duration: reduced ? 0 : 0.4,
+                ease: [0.2, 0, 0, 1],
+                delay: reduced ? 0 : Math.min(index * 0.08, 0.2),
+              }}
               className="group grid md:grid-cols-[4rem_1fr_1.4fr_auto] items-start gap-6 py-8 sm:py-10 hover:bg-white/[0.02] px-4 -mx-4 rounded-2xl transition-colors"
             >
               <div className="font-sans font-bold text-xs text-[#09937F] pt-1">
-                &lt;&lt; {String(index + 1).padStart(2, "0")} &gt;&gt;
+                {String(index + 1).padStart(2, "0")}
               </div>
 
               <div>
@@ -81,7 +82,7 @@ export function ServicesSection({
                       loading="lazy"
                       src={safeWebsiteUrl(service.imageUrl)}
                       alt={ar ? service.nameAr : service.nameEn}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.025]"
                     />
                   </div>
                 )}
@@ -94,9 +95,9 @@ export function ServicesSection({
               <div className="pt-1">
                 <Link
                   href={`/${locale}/contact?intent=quote_request&service=${encodeURIComponent(service.id)}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#09937F]/15 hover:bg-[#09937F]/25 text-[#5EEAD4] border border-[#09937F]/40 text-xs font-semibold transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 min-h-11 px-4 py-2 rounded-md bg-[#09937F]/15 hover:bg-[#09937F]/25 text-[#5EEAD4] border border-[#09937F]/40 text-xs font-semibold transition-colors shadow-sm"
                 >
-                  <span>{t("cta.requestTreatment") || (ar ? "اطلب عرضاً" : "Request Quote")}</span>
+                  <span>{t("cta.requestTreatment")}</span>
                   <ArrowUpRight className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 </Link>
               </div>
@@ -107,4 +108,3 @@ export function ServicesSection({
     </section>
   );
 }
-

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { PortfolioItem, PortfolioCategory } from "@ishoot/database";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { CategoryTabs } from "./CategoryTabs";
 import { PortfolioCard } from "./PortfolioCard";
 import { CinemaLightbox } from "./CinemaLightbox";
@@ -12,6 +13,7 @@ interface PortfolioGridProps {
 }
 
 export function PortfolioGrid({ items, categories }: PortfolioGridProps) {
+  const reduced = useReducedMotion();
   const [activeCategory, setActiveCategory] = React.useState("all");
   const [selectedItem, setSelectedItem] = React.useState<PortfolioItem | null>(
     null,
@@ -32,15 +34,28 @@ export function PortfolioGrid({ items, categories }: PortfolioGridProps) {
         onSelect={(slug) => setActiveCategory(slug)}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {filteredItems.map((item) => (
-          <PortfolioCard
-            key={item.id}
-            item={item}
-            onClick={(selected) => setSelectedItem(selected)}
-          />
-        ))}
-      </div>
+      <motion.div
+        layout={!reduced}
+        className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12"
+      >
+        <AnimatePresence mode="popLayout" initial={false}>
+          {filteredItems.map((item) => (
+            <motion.div
+              key={item.id}
+              layout={!reduced}
+              initial={reduced ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: reduced ? 0 : 0.25,
+                ease: [0.2, 0, 0, 1],
+              }}
+            >
+              <PortfolioCard item={item} onClick={setSelectedItem} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
       <CinemaLightbox
         item={selectedItem}

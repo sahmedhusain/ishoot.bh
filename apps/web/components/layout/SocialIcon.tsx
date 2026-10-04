@@ -1,12 +1,42 @@
 import * as React from "react";
-import * as LucideIcons from "lucide-react";
+import {
+  Instagram,
+  Youtube,
+  Twitter,
+  Facebook,
+  Linkedin,
+  Github,
+  Globe,
+  Mail,
+  Phone,
+  MessageCircle,
+  Send,
+  Link as LinkIcon,
+  type LucideIcon,
+} from "lucide-react";
+
+const SOCIAL_ICON_MAP: Record<string, LucideIcon> = {
+  instagram: Instagram,
+  youtube: Youtube,
+  twitter: Twitter,
+  x: Twitter,
+  facebook: Facebook,
+  linkedin: Linkedin,
+  github: Github,
+  globe: Globe,
+  website: Globe,
+  mail: Mail,
+  email: Mail,
+  phone: Phone,
+  whatsapp: MessageCircle,
+  telegram: Send,
+};
 
 export function SocialIcon({ name, className }: { name?: string; className?: string }) {
-  if (!name) return <LucideIcons.Link className={className} />;
+  if (!name) return <LinkIcon className={className} />;
 
-  // Try to find the exact icon, otherwise fallback to Link
-  const formattedName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-  const IconComponent = (LucideIcons as any)[formattedName] || (LucideIcons as any)[name] || LucideIcons.Link;
+  const key = name.toLowerCase().trim();
+  const IconComponent = SOCIAL_ICON_MAP[key] || LinkIcon;
 
   return <IconComponent className={className} />;
 }

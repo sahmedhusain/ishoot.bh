@@ -249,7 +249,7 @@ export function WebSettingsView({
           }`}
         >
           <Shield className="w-4 h-4 text-[#09937F]" />
-          <span>Legal & Rules</span>
+          <span>Terms & Privacy</span>
         </button>
 
         <button
@@ -555,10 +555,10 @@ export function WebSettingsView({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Terms & Rules
+                    Terms of Conditions & Privacy & Security
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-neutral-400">
-                    Manage the terms and conditions and rules of production
+                    Manage the terms of conditions and privacy & security policies
                     displayed on the website.
                   </p>
                 </div>
@@ -567,7 +567,7 @@ export function WebSettingsView({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
-                    Terms & Conditions (English)
+                    Terms of Conditions (English)
                   </label>
                   <Textarea
                     rows={6}
@@ -580,7 +580,7 @@ export function WebSettingsView({
 
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
-                    Terms & Conditions (Arabic)
+                    Terms of Conditions (Arabic)
                   </label>
                   <Textarea
                     rows={6}
@@ -594,7 +594,7 @@ export function WebSettingsView({
 
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
-                    Rules of Production (English)
+                    Privacy & Security Policy (English)
                   </label>
                   <Textarea
                     rows={6}
@@ -607,7 +607,7 @@ export function WebSettingsView({
 
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
-                    Rules of Production (Arabic)
+                    Privacy & Security Policy (Arabic)
                   </label>
                   <Textarea
                     rows={6}

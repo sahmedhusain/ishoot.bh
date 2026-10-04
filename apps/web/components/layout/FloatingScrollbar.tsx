@@ -88,7 +88,9 @@ export function FloatingScrollbar() {
       window.removeEventListener("pointercancel", handlePointerUp);
     };
 
-    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointermove", handlePointerMove, {
+      passive: false,
+    });
     window.addEventListener("pointerup", handlePointerUp);
     window.addEventListener("pointercancel", handlePointerUp);
   };
@@ -102,7 +104,12 @@ export function FloatingScrollbar() {
       1,
       Math.max(0, (clickY - thumbHeight / 2) / (clientHeight - thumbHeight)),
     );
-    window.scrollTo({ top: targetProgress * totalScroll, behavior: "smooth" });
+    window.scrollTo({
+      top: targetProgress * totalScroll,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+    });
   };
 
   if (!mounted) return null;
@@ -119,7 +126,7 @@ export function FloatingScrollbar() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       aria-hidden="true"
-      className="fixed top-0 bottom-0 end-1 z-[9999] w-4 flex justify-center pointer-events-auto select-none touch-none"
+      className="fixed top-0 bottom-0 end-1 z-[90] w-4 flex justify-center pointer-events-auto select-none touch-none"
       style={{
         background: "transparent",
       }}

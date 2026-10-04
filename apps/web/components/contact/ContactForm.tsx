@@ -60,7 +60,7 @@ export function ContactForm({
 
   const sales = intent === "inquiry" || intent === "quote_request";
   const field =
-    "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-[#09937F] focus:ring-1 focus:ring-[#09937F] transition-all font-sans";
+    "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-[#09937F] focus:ring-1 focus:ring-[#09937F] transition-colors duration-150 font-sans";
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -134,15 +134,11 @@ export function ContactForm({
         throw new Error(
           res.status === 429
             ? t("contact.rateLimit")
-            : data.error || t("contact.submissionFailed"),
+            : t("contact.submissionFailed"),
         );
       setSuccess(data);
     } catch (e) {
-      setError(
-        e instanceof Error
-          ? e.message
-          : t("contact.connectionFailed"),
-      );
+      setError(e instanceof Error ? e.message : t("contact.connectionFailed"));
     } finally {
       setBusy(false);
     }
@@ -173,8 +169,13 @@ export function ContactForm({
         </p>
         {success.reference && (
           <div className="p-4 rounded-xl bg-white/5 border border-white/10 max-w-xs mx-auto text-xs font-sans">
-            <span className="text-[#9EADA9] block mb-1">{t("contact.referenceNumber")}</span>
-            <strong className="select-all font-mono text-sm text-[#5EEAD4]" dir="ltr">
+            <span className="text-[#9EADA9] block mb-1">
+              {t("contact.referenceNumber")}
+            </span>
+            <strong
+              className="select-all font-mono text-sm text-[#5EEAD4]"
+              dir="ltr"
+            >
               {success.reference}
             </strong>
           </div>
@@ -186,7 +187,7 @@ export function ContactForm({
         )}
         <button
           type="button"
-          className="px-6 py-3 rounded-xl bg-[#09937F] hover:bg-[#09937F]/90 text-white font-semibold text-xs transition-all shadow-lg shadow-[#09937F]/20 cursor-pointer"
+          className="px-6 py-3 rounded-xl bg-[var(--web-accent)] hover:bg-[#034b3c] text-white font-semibold text-xs transition-colors duration-150 shadow-lg shadow-[#09937F]/20 cursor-pointer"
           onClick={() => {
             setSuccess(null);
             submission.current = { payload: "", key: "" };
@@ -203,12 +204,12 @@ export function ContactForm({
     <form
       ref={formRef}
       onSubmit={submit}
-      className="space-y-8 select-none"
+      className="space-y-8"
       aria-busy={busy}
     >
       <fieldset disabled={busy} className="space-y-4">
-        <legend className="text-xs uppercase tracking-widest font-bold text-[#5EEAD4] font-mono mb-4 block">
-          &lt;&lt; {t("contact.intents.title")} &gt;&gt;
+        <legend className="text-xl font-bold text-white font-display mb-4 block">
+          {t("contact.intents.title")}
         </legend>
         <div className="flex flex-wrap gap-2.5">
           {intents.map((value, index) => {
@@ -216,9 +217,9 @@ export function ContactForm({
             return (
               <label
                 key={value}
-                className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? "bg-[#09937F] text-white shadow-lg shadow-[#09937F]/25 border border-[#09937F]"
+                    ? "bg-[#09937F] text-white border border-[#09937F]"
                     : "bg-[#050807] text-[#9EADA9] hover:text-white border border-white/10 hover:border-white/20"
                 }`}
               >
@@ -243,10 +244,11 @@ export function ContactForm({
         </p>
       </fieldset>
 
-      <fieldset disabled={busy} className="space-y-6 pt-4 border-t border-white/10">
-        <legend className="sr-only">
-          {t("contact.messageDetails")}
-        </legend>
+      <fieldset
+        disabled={busy}
+        className="space-y-6 pt-4 border-t border-white/10"
+      >
+        <legend className="sr-only">{t("contact.messageDetails")}</legend>
 
         <div className="grid sm:grid-cols-2 gap-5">
           <label className="block space-y-2">
@@ -325,7 +327,7 @@ export function ContactForm({
                 return (
                   <label
                     key={service.id}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                    className={`min-h-11 px-3.5 py-2 rounded-xl text-xs font-medium transition-colors duration-150 cursor-pointer flex items-center gap-1.5 ${
                       isChecked
                         ? "bg-[#09937F]/25 text-[#5EEAD4] border border-[#09937F]"
                         : "bg-white/5 text-[#9EADA9] hover:text-white border border-white/10"
@@ -437,12 +439,19 @@ export function ContactForm({
             </legend>
             <div className="flex gap-2 p-3 rounded-2xl bg-white/5 border border-white/10 w-fit">
               {[1, 2, 3, 4, 5].map((value) => (
-                <label key={value} className="cursor-pointer p-1 transition-transform hover:scale-110">
+                <label
+                  key={value}
+                  className="cursor-pointer min-w-11 min-h-11 flex items-center justify-center transition-transform motion-safe:hover:scale-110"
+                >
                   <input
                     className="sr-only"
                     type="radio"
                     name="rating"
                     value={value}
+                    aria-label={t("contact.ratingOption").replace(
+                      "{value}",
+                      String(value),
+                    )}
                     checked={rating === value}
                     onChange={() => setRating(value)}
                     required
@@ -480,7 +489,7 @@ export function ContactForm({
 
         <div className="hidden" aria-hidden="true">
           <label>
-            Website
+            {t("common.website")}
             <input name="website" tabIndex={-1} autoComplete="off" />
           </label>
         </div>
@@ -499,12 +508,12 @@ export function ContactForm({
           <p className="text-xs leading-relaxed text-[#9EADA9] font-sans max-w-sm">
             {intent === "review"
               ? t("contact.reviewSubmittedNotice")
-              : t("contact.subtitle")}
+              : response || t("contact.formNote")}
           </p>
 
           <button
             disabled={busy}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#09937F] hover:bg-[#09937F]/90 text-white font-bold text-xs sm:text-sm transition-all shadow-lg shadow-[#09937F]/25 disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[var(--web-accent)] hover:bg-[#034b3c] text-white font-bold text-xs sm:text-sm transition-colors duration-150 disabled:opacity-50 cursor-pointer"
             type="submit"
           >
             <span>
