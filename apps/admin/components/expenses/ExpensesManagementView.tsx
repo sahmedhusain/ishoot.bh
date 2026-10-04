@@ -12,6 +12,7 @@ import {
   DateDisplay,
   Badge,
   ConfirmDestructiveModal,
+  StatusBadge,
 } from "@ishoot/ui";
 import {
   Plus,
@@ -200,6 +201,11 @@ export function ExpensesManagementView({
                       ? expense.description_ar || expense.description_en
                       : expense.description_en}
                   </div>
+                  {expense.status !== "approved" && (
+                    <div className="mt-1">
+                      <StatusBadge status={expense.status} label={t.approvals.status[expense.status as "pending" | "rejected"] ?? expense.status} />
+                    </div>
+                  )}
                 </td>
                 <td className="p-4">
                   <Badge variant="outline">

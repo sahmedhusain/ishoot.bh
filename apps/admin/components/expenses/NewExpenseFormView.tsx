@@ -2,6 +2,7 @@
 
 import { uploadFileDirectly } from "../../lib/upload-client";
 import * as React from "react";
+import { businessDateString } from "../../lib/dates";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -21,10 +22,10 @@ export function NewExpenseFormView() {
 
   const [descriptionEn, setDescriptionEn] = React.useState("");
   const [amount, setAmount] = React.useState<number>(0);
+  const [inputVat, setInputVat] = React.useState<number>(0);
+  const [vatRecoverable, setVatRecoverable] = React.useState(true);
   const [vendorName, setVendorName] = React.useState("");
-  const [expenseDate, setExpenseDate] = React.useState(
-    new Date().toISOString().split("T")[0],
-  );
+  const [expenseDate, setExpenseDate] = React.useState(() => businessDateString());
   const [proofFiles, setProofFiles] = React.useState<ProofFile[]>([]);
   const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
@@ -45,13 +46,15 @@ export function NewExpenseFormView() {
         receipt_url,
         description_en: descriptionEn,
         amount: Number(amount),
+        input_vat_amount: Number(inputVat) || 0,
+        is_vat_recoverable: vatRecoverable,
         vendor_name: vendorName || undefined,
         expense_date: expenseDate || undefined,
       });
 
       router.push("/dashboard/expenses");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save expense");
+      setError(err instanceof Error ? err.message : t.expensesNew.saveError);
     } finally {
       setSaving(false);
     }
@@ -110,6 +113,26 @@ export function NewExpenseFormView() {
                 className=""
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div>
+              <label className="text-xs font-semibold text-white mb-1.5 block">
+                {t.expensesNew.inputVatLabel}
+              </label>
+              <Input
+                type="number"
+                min={0}
+                step="0.001"
+                value={inputVat || ""}
+                onChange={(e) => setInputVat(parseFloat(e.target.value) || 0)}
+              />
+              <p className="text-[11px] text-slate-400 mt-1">{t.expensesNew.inputVatHint}</p>
+            </div>
+            <label className="flex items-center gap-2 text-xs text-white self-center">
+              <input type="checkbox" className="accent-[#09937F]" checked={vatRecoverable} onChange={(e) => setVatRecoverable(e.target.checked)} />
+              {t.expensesNew.vatRecoverable}
+            </label>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

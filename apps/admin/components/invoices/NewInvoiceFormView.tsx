@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { addDays, businessDateString } from "../../lib/dates";
 import type {
   CRMContact,
   CompanySettings,
@@ -43,6 +44,8 @@ interface NewInvoiceFormViewProps {
   preselectedClientId?: string;
   acceptedQuotations?: any[];
   preselectedQuotation?: any;
+  /** Deal this invoice bills (from a deal page link). */
+  dealId?: string;
 }
 
 export function NewInvoiceFormView({
@@ -52,6 +55,7 @@ export function NewInvoiceFormView({
   preselectedClientId,
   acceptedQuotations = [],
   preselectedQuotation,
+  dealId,
 }: NewInvoiceFormViewProps) {
   const router = useRouter();
   const { t, locale, isRTL } = useAdminLocale();
@@ -78,14 +82,11 @@ export function NewInvoiceFormView({
   const [language, setLanguage] = React.useState<"en" | "ar">(
     locale === "ar" ? "ar" : "en",
   );
-  const [issueDate, setIssueDate] = React.useState(
-    new Date().toISOString().split("T")[0],
+  const [issueDate, setIssueDate] = React.useState(() => businessDateString());
+  const [dueDate, setDueDate] = React.useState(() =>
+    businessDateString(addDays(new Date(), company?.payment_terms_days ?? 30)),
   );
-  const [dueDate, setDueDate] = React.useState(
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0],
-  );
+  const [selectedDealId, setSelectedDealId] = React.useState<string | undefined>(dealId);
   const [notesEn] = React.useState(
     company?.default_invoice_notes_en || "",
   );
@@ -117,6 +118,7 @@ export function NewInvoiceFormView({
     (q: any) => {
       if (!q) return;
       setSelectedQuotationId(q.id);
+      if (q.dealId) setSelectedDealId(q.dealId);
 
       if (q.clientId) {
         setSelectedContactId(q.clientId);
@@ -257,6 +259,9 @@ export function NewInvoiceFormView({
     try {
       const res = await createInvoiceAction({
         contact_id: selectedContactId,
+        deal_id: selectedDealId,
+        // Links the source quotation so it is marked converted and cannot be invoiced again.
+        quotation_id: selectedQuotationId || undefined,
         issue_date: issueDate,
         due_date: dueDate,
         currency,

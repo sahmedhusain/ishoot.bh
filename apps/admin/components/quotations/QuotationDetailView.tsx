@@ -30,6 +30,7 @@ import {
   submitQuotationForApprovalAction,
   issueQuotationAction,
   acceptQuotationAction,
+  rejectQuotationAction,
   convertQuotationToInvoiceAction,
 } from "../../app/actions/quotations";
 import { decideApprovalAction } from "../../app/actions/approvals";
@@ -226,6 +227,20 @@ export function QuotationDetailView({
     }
   };
 
+  const handleClientDeclined = async () => {
+    const reason = window.prompt(t.quotationLifecycle.declineReasonPrompt) ?? undefined;
+    setLoadingAction("decline");
+    try {
+      await rejectQuotationAction(quotation.id, reason?.trim() || undefined);
+      toast.success(t.quotationLifecycle.declined);
+      router.refresh();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t.quotationLifecycle.failed);
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
   const handleConvertToInvoice = async () => {
     setLoadingAction("convert");
     const toastId = toast.loading("Converting quotation to tax invoice...");
@@ -348,6 +363,14 @@ export function QuotationDetailView({
               >
                 <Check className="w-4 h-4" />
                 <span>{qdT.recordAcceptance}</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleClientDeclined}
+                disabled={loadingAction === "decline"}
+                className="text-xs"
+              >
+                {t.quotationLifecycle.clientDeclined}
               </Button>
             </div>
           )}

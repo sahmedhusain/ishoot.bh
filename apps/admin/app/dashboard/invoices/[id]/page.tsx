@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePermission, hasPermission } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
 import { getInvoiceById, getAllPayments } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
@@ -14,13 +14,14 @@ export default async function InvoiceDetailPage({
   params,
 }: InvoiceDetailPageProps) {
   await requirePermission("invoices", "read");
-  await requirePermission("payments", "read");
+  const canReadPayments = await hasPermission("payments", "read");
   const { id } = await params;
 
+  // Invoice access alone opens the page; the payment history needs payments access.
   const [invoice, company, allPayments] = await Promise.all([
     getInvoiceById(id),
     getCachedCompanySettings(),
-    getAllPayments({invoiceId:id}),
+    canReadPayments ? getAllPayments({ invoiceId: id }) : Promise.resolve([]),
   ]);
 
   if (!invoice || !company) {

@@ -15,6 +15,7 @@ export function NewCustomerFormView() {
 
   const [fullName, setFullName] = React.useState("");
   const [company, setCompany] = React.useState("");
+  const [vatNumber, setVatNumber] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [jobTitle, setJobTitle] = React.useState("");
@@ -35,6 +36,7 @@ export function NewCustomerFormView() {
         email: email || undefined,
         phone: phone || undefined,
         company: company || undefined,
+        vat_number: vatNumber.trim() || undefined,
         job_title: jobTitle || undefined,
         contact_type: contactType,
         notes: notes || undefined,
@@ -98,6 +100,16 @@ export function NewCustomerFormView() {
                 placeholder={t.customersNew.companyPlaceholder}
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-white mb-1.5 block">
+                {t.contactFields.vatNumber}
+              </label>
+              <Input
+                placeholder={t.contactFields.vatNumberPlaceholder}
+                value={vatNumber}
+                onChange={(e) => setVatNumber(e.target.value)}
               />
             </div>
           </div>

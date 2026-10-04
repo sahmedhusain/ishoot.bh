@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDocumentNumber } from "@ishoot/database/constants/finance";
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
 import { Card, Input } from "@ishoot/ui";
@@ -85,9 +86,7 @@ export function InvoiceReceiptSequencesTab({
                 {t.companySettingsTabs.nextInvoicePreview}
               </span>
               <span className=" font-bold text-[#014842] dark:text-[#7de0d1]">
-                {settings.invoice_prefix || "INV"}-
-                {new Date().getFullYear()}-
-                {String(settings.invoice_next_number || 1).padStart(3, "0")}
+                {formatDocumentNumber(settings.invoice_prefix || "INV", new Date().getFullYear(), settings.invoice_next_number || 1)}
               </span>
             </div>
           </div>
@@ -138,9 +137,7 @@ export function InvoiceReceiptSequencesTab({
                 {t.companySettingsTabs.nextReceiptPreview}
               </span>
               <span className=" font-bold text-[#09937F]">
-                {settings.receipt_prefix || "RCT"}-
-                {new Date().getFullYear()}-
-                {String(settings.receipt_next_number || 1).padStart(3, "0")}
+                {formatDocumentNumber(settings.receipt_prefix || "RCT", new Date().getFullYear(), settings.receipt_next_number || 1)}
               </span>
             </div>
           </div>

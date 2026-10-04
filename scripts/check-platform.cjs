@@ -189,8 +189,10 @@ async function main() {
       }
     },
   };
+  const numbering = { allocateDocumentNumber: async (kind) => (kind === "invoice" ? "INV-2026-0001" : "RCT-2026-0001") };
   const invoices = load("packages/database/src/queries/invoices.ts", {
     "../db": { db },
+    "../finance/numbering": numbering,
     "../initial-company-config.json": { company: {} },
     "../types": types,
   });
@@ -217,11 +219,15 @@ async function main() {
     },
     "../types": types,
     "../initial-company-config.json": { company: {} },
+    "../finance/numbering": numbering,
   });
   await assert.rejects(
     payments.createPayment({ invoice_id: "i", amount: -1 }),
     /positive/,
   );
+  current.status = "draft";
+  await assert.rejects(payments.createPayment({ invoice_id: "i", amount: 1 }), /Mark the invoice as sent/, "drafts are not receivables");
+  current.status = "void";
   await assert.rejects(
     payments.createPayment({ invoice_id: "i", amount: 1 }),
     /not payable/,
@@ -235,6 +241,15 @@ async function main() {
     payments.createPayment({ invoice_id: "i", amount: 101 }),
     /balance/,
   );
+
+  // Money is settled in minor units: 0.7 + 0.1 pays an invoice of 0.8 in full.
+  const money = require("./lib/real-constants.cjs").realConstants("packages/database/src/queries/x.ts", "../finance/money");
+  assert.equal(money.isFullyPaid(0.8, 0.7 + 0.1, "BHD"), true);
+  assert.equal(money.amountDue(0.8, 0.7 + 0.1, "BHD"), 0);
+  assert.equal(money.paymentStatusFor(10, 3.3335, "BHD"), "partially_paid");
+  assert.equal(money.lineTotal(3, 0.3333, "BHD"), 1);
+  assert.equal(money.roundMoney(1.0005, "KWD"), 1.001);
+  assert.equal(money.roundMoney(1.005, "JPY"), 1);
 
   let dealCount = 0,
     conversion = null,
@@ -349,6 +364,12 @@ async function main() {
     /line items/,
   );
   const financial = load("packages/database/src/queries/finance.ts", {
+    // Dashboard profit uses the financial report's definition (net of VAT, payroll and fees included).
+    "./finance-reports": {
+      getFinancialSummaryReport: async () => ({
+        cashNetReceipts: 50, expensesNet: 15, inputVatNonRecoverable: 1, payrollCostsTotal: 3, bankFeesTotal: 1, operatingProfit: 30,
+      }),
+    },
     "../db": {
       db: {
         $queryRaw: async () => [
@@ -365,8 +386,9 @@ async function main() {
     },
   });
   const totals = await financial.getFinancialSummary();
-  assert.equal(totals.revenue, 55);
-  assert.equal(totals.expenses, 20);
+  assert.equal(totals.revenue, 50, "revenue is net of VAT");
+  assert.equal(totals.expenses, 20, "operating costs include payroll and fees");
+  assert.equal(totals.netProfit, 30, "dashboard profit equals the report's operating profit");
   assert.equal(totals.overdue, 55);
   assert.equal(totals.vatCollected, 5);
   await assert.rejects(financial.getMonthlyCashflow(0), /Month count/);

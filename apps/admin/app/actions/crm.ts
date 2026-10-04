@@ -126,6 +126,7 @@ export async function createContactAction(data: {
   email?: string;
   phone?: string;
   company?: string;
+  vat_number?: string;
   job_title?: string;
   contact_type?: "client" | "agency" | "vendor" | "freelancer";
   notes?: string;

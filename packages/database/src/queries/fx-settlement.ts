@@ -5,6 +5,9 @@ import { BankSettlement, PaymentAllocation } from "../types";
  * Standard CBB/market baseline rates if provider is offline or on weekends.
  * BHD is pegged to USD at 1 USD = 0.376 BHD (approx 2.65957 USD/BHD).
  */
+/** Currencies with a baseline BHD rate; quotations can be issued in these. */
+export const QUOTABLE_CURRENCIES = ["BHD", "USD", "SAR", "AED", "KWD", "OMR", "QAR", "EUR", "GBP"] as const;
+
 const DEFAULT_RATES: Record<string, number> = {
   "BHD:USD": 2.65957,
   "USD:BHD": 0.37600,
@@ -54,9 +57,10 @@ export async function getLatestExchangeRate(
     };
   }
 
-  // Fallback to pegged / baseline rate
+  // Fallback to pegged / baseline rate. Never invent a 1:1 rate for an unknown pair.
   const pairKey = `${baseCurrency}:${quoteCurrency}`;
-  const fallbackRate = DEFAULT_RATES[pairKey] || 1.0;
+  const fallbackRate = DEFAULT_RATES[pairKey];
+  if (!fallbackRate) throw new Error(`No exchange rate is available for ${baseCurrency} → ${quoteCurrency}`);
 
   // Persist fallback snapshot so calculations remain stable
   await db.exchangeRateSnapshot.upsert({

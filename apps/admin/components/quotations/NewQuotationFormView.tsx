@@ -7,7 +7,6 @@ import {
   CRMContact,
   CompanySettings,
   SupportedCurrency,
-  CURRENCY_CONFIGS,
   getCurrencyDisplayLabel,
   DiscountType,
   ServiceItem,
@@ -43,6 +42,8 @@ interface NewQuotationFormViewProps {
   preselectedClientId?: string;
   dealId?: string;
   inquiryId?: string;
+  /** Units of each quotable currency per 1 BHD, from the server's rate source. */
+  fxRates: Record<string, number>;
 }
 
 export function NewQuotationFormView({
@@ -52,6 +53,7 @@ export function NewQuotationFormView({
   preselectedClientId,
   dealId,
   inquiryId,
+  fxRates,
 }: NewQuotationFormViewProps) {
   const router = useRouter();
   const { isRTL, t } = useAdminLocale();
@@ -75,18 +77,7 @@ export function NewQuotationFormView({
 
   // FX Buffer State (3% default company policy for non-BHD)
   const isNonBhd = currency !== "BHD";
-  const rawExchangeRates: Record<string, number> = {
-    BHD: 1.0,
-    USD: 2.6596,
-    SAR: 9.9735,
-    AED: 9.7680,
-    KWD: 0.8163,
-    OMR: 1.0246,
-    QAR: 9.6820,
-    EUR: 2.4510,
-    GBP: 2.0800,
-  };
-  const currentRawRate = rawExchangeRates[currency] || 1.0;
+  const currentRawRate = fxRates[currency] ?? 1;
   const fxMarginPercent = 3.0;
   const effectiveRate = isNonBhd
     ? Math.round(currentRawRate * (1 + fxMarginPercent / 100) * 1000000) / 1000000
@@ -94,7 +85,7 @@ export function NewQuotationFormView({
 
   // VAT & Discount
   const [vatEnabled, setVatEnabled] = React.useState<boolean>(company?.vat_enabled ?? true);
-  const [vatPercentage] = React.useState<number>(10);
+  const vatPercentage = company?.vat_percentage ?? 10;
   const [discountType, setDiscountType] = React.useState<DiscountType>("none");
   const [discountValue, setDiscountValue] = React.useState<number>(0);
 
@@ -503,7 +494,7 @@ export function NewQuotationFormView({
                   onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
                   className="w-full text-sm font-medium rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-2 text-slate-900 dark:text-white"
                 >
-                  {Object.keys(CURRENCY_CONFIGS).map((code) => (
+                  {["BHD", ...Object.keys(fxRates)].map((code) => (
                     <option key={code} value={code}>
                       {getCurrencyDisplayLabel(code as SupportedCurrency, isRTL ? "ar" : "en")}
                     </option>
@@ -552,7 +543,7 @@ export function NewQuotationFormView({
                     <span>{qfT.fxNoticeTitle}</span>
                   </div>
                   <span className="font-mono text-[11px]">
-                    {currentRawRate.toFixed(4)} → {effectiveRate.toFixed(4)} {currency}/BHD
+                    1 BHD = {currentRawRate.toFixed(4)} → {effectiveRate.toFixed(4)} {currency}
                   </span>
                 </div>
                 <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400">

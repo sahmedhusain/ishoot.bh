@@ -8,7 +8,10 @@ import { InvoiceTemplate } from "./InvoiceTemplate";
 import { DeliveryToolbar } from "../shared/DeliveryToolbar";
 import { PaymentRecorder } from "../payments/PaymentRecorder";
 import { Button, Card, StatusBadge, CurrencyDisplay } from "@ishoot/ui";
-import { ArrowLeft, ArrowRight, CreditCard, Receipt } from "lucide-react";
+import { ArrowLeft, ArrowRight, CreditCard, Pencil, Receipt, Send } from "lucide-react";
+import { toast } from "sonner";
+import { usePermissions } from "../../hooks/usePermissions";
+import { markInvoiceSentAction } from "../../app/actions/finance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface InvoiceDetailViewProps {
@@ -24,6 +27,23 @@ export function InvoiceDetailView({
 }: InvoiceDetailViewProps) {
   const router = useRouter();
   const { t, isRTL } = useAdminLocale();
+  const { can } = usePermissions();
+  const canWrite = can("invoices", "write");
+  const canRecordPayment = can("payments", "create");
+  const [busy, setBusy] = React.useState(false);
+
+  const handleMarkSent = async () => {
+    setBusy(true);
+    try {
+      await markInvoiceSentAction(invoice.id);
+      toast.success(t.invoiceLifecycle.marked);
+      router.refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t.invoiceLifecycle.failed);
+    } finally {
+      setBusy(false);
+    }
+  };
   const [recordModalOpen, setRecordModalOpen] = React.useState(false);
 
   const clientName =
@@ -69,27 +89,22 @@ export function InvoiceDetailView({
         </div>
 
         <div className="flex items-center gap-3">
-          {invoice.status !== "paid" && invoice.status !== "void" && (
+          {invoice.status === "draft" && canWrite && (
+            <Button variant="primary" size="sm" onClick={handleMarkSent} disabled={busy} title={t.invoiceLifecycle.markSentHint} className="gap-1.5">
+              <Send className="w-3.5 h-3.5" />
+              <span>{t.invoiceLifecycle.markSent}</span>
+            </Button>
+          )}
+          {/* Invoices with payments are locked; corrections go through a credit adjustment. */}
+          {invoice.status !== "void" && invoice.amount_paid === 0 && canWrite && (
             <Link href={`/dashboard/invoices/${invoice.id}/edit`}>
               <Button variant="outline" size="sm" className="gap-1.5">
-                <svg
-                  className="w-3.5 h-3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-                <span>{t.actions.edit || "Edit"}</span>
+                <Pencil className="w-3.5 h-3.5" />
+                <span>{t.actions.edit}</span>
               </Button>
             </Link>
           )}
-          {invoice.amount_due > 0 && (
+          {invoice.amount_due > 0 && invoice.status !== "draft" && invoice.status !== "void" && canRecordPayment && (
             <Button
               variant="primary"
               size="md"

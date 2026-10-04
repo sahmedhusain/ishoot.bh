@@ -1,4 +1,7 @@
 import { claimUpload } from "../services/uploads";
+import { paymentStatusFor, roundMoney, sumMoney, toMinorUnits } from "../finance/money";
+import { allocateDocumentNumber } from "../finance/numbering";
+import { PAYABLE_INVOICE_STATUSES } from "../constants/finance";
 import { db } from "../db";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
@@ -228,43 +231,28 @@ export async function createPayment(paymentData: {
     )
   )
     throw new Error("Invalid payment method");
-  const year = new Date().getFullYear();
   const createdId = await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${paymentData.invoice_id} FOR UPDATE`;
     const payable = await tx.invoice.findUnique({
       where: { id: paymentData.invoice_id },
       include: { payments: true },
     });
-    if (!payable || payable.status === "void")
-      throw new Error("Invoice is not payable");
+    if (!payable || !(PAYABLE_INVOICE_STATUSES as readonly string[]).includes(payable.status))
+      throw new Error(payable?.status === "draft" ? "Mark the invoice as sent before recording payments" : "Invoice is not payable");
     if (paymentData.currency && paymentData.currency !== payable.currency)
       throw new Error("Payment currency must match invoice");
-    const paid = payable.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-    if (
-      Math.round((paid + paymentData.amount) * 1000) >
-      Math.round(Number(payable.totalAmount) * 1000)
-    )
+    const paid = sumMoney(payable.payments.map((p) => p.amount), payable.currency);
+    if (toMinorUnits(paid + paymentData.amount, payable.currency) > toMinorUnits(Number(payable.totalAmount), payable.currency))
       throw new Error("Payment exceeds outstanding balance");
-    let company = await tx.companySetting.findFirst();
-    if (!company)
-      throw new Error(
-        "Configure company settings before creating financial records",
-      );
-    const prefix = company.receiptPrefix;
-    const counter = await tx.companySetting.update({
-      where: { id: company.id },
-      data: { receiptNextNumber: { increment: 1 } },
-    });
-    const receiptNumber = `${prefix}-${year}-${String(counter.receiptNextNumber - 1).padStart(4, "0")}`;
+    const paymentDate = paymentData.payment_date ? new Date(paymentData.payment_date) : new Date();
+    const receiptNumber = await allocateDocumentNumber("receipt", paymentDate, tx);
 
     const payment = await tx.payment.create({
       data: {
         invoiceId: paymentData.invoice_id,
         receiptNumber,
-        paymentDate: paymentData.payment_date
-          ? new Date(paymentData.payment_date)
-          : new Date(),
-        amount: paymentData.amount,
+        paymentDate,
+        amount: roundMoney(paymentData.amount, payable.currency),
         currency: payable.currency,
         paymentMethod: paymentData.payment_method || "bank_transfer",
         referenceNumber: paymentData.reference_number || null,
@@ -295,33 +283,7 @@ export async function createPayment(paymentData: {
       }
     }
 
-    // Auto-reconcile invoice status inside same transaction
-    const invoice = await tx.invoice.findUnique({
-      where: { id: paymentData.invoice_id },
-      include: { payments: true },
-    });
-    if (invoice) {
-      const allPayments = invoice.payments;
-      const totalPaid = allPayments.reduce(
-        (acc, p) => acc + Number(p.amount),
-        0,
-      );
-      const totalInvoice = Number(invoice.totalAmount);
-      let newStatus = invoice.status;
-
-      if (totalPaid >= totalInvoice && totalInvoice > 0) {
-        newStatus = "paid";
-      } else if (totalPaid > 0) {
-        newStatus = "partially_paid";
-      }
-
-      if (newStatus !== invoice.status) {
-        await tx.invoice.update({
-          where: { id: invoice.id },
-          data: { status: newStatus },
-        });
-      }
-    }
+    await reconcileInvoicePaymentStatus(tx, paymentData.invoice_id);
 
     return payment.id;
   });
@@ -345,39 +307,28 @@ export async function deletePayment(id: string): Promise<boolean> {
       await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${payment.invoiceId} FOR UPDATE`;
       await tx.payment.delete({ where: { id } });
 
-      if (payment?.invoiceId) {
-        const invoice = await tx.invoice.findUnique({
-          where: { id: payment.invoiceId },
-          include: { payments: true },
-        });
-        if (invoice && invoice.status !== "void") {
-          const totalPaid = invoice.payments.reduce(
-            (acc, p) => acc + Number(p.amount),
-            0,
-          );
-          const totalInvoice = Number(invoice.totalAmount);
-          let newStatus = invoice.status;
-
-          if (totalPaid >= totalInvoice && totalInvoice > 0) {
-            newStatus = "paid";
-          } else if (totalPaid > 0) {
-            newStatus = "partially_paid";
-          } else {
-            newStatus = "sent";
-          }
-
-          if (newStatus !== invoice.status) {
-            await tx.invoice.update({
-              where: { id: invoice.id },
-              data: { status: newStatus },
-            });
-          }
-        }
-      }
+      await reconcileInvoicePaymentStatus(tx, payment.invoiceId);
     });
     return true;
   } catch (e) {
     console.error(`Error deleting payment ${id}:`, e);
     throw e;
   }
+}
+
+/**
+ * Derives an invoice's payment status from its payments, in minor units:
+ * fully paid → paid, some paid → partially_paid, nothing paid → overdue/sent by due date. Drafts and voids are left alone.
+ */
+async function reconcileInvoicePaymentStatus(
+  tx: Pick<typeof db, "invoice">,
+  invoiceId: string,
+): Promise<void> {
+  const invoice = await tx.invoice.findUnique({ where: { id: invoiceId }, include: { payments: true } });
+  if (!invoice || invoice.status === "void" || invoice.status === "draft") return;
+  const paid = sumMoney(invoice.payments.map((p) => p.amount), invoice.currency);
+  const next =
+    paymentStatusFor(Number(invoice.totalAmount), paid, invoice.currency) ??
+    (invoice.dueDate < new Date() ? "overdue" : "sent");
+  if (next !== invoice.status) await tx.invoice.update({ where: { id: invoiceId }, data: { status: next } });
 }

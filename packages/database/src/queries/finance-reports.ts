@@ -1,4 +1,5 @@
 import { db } from "../db";
+import { FUNCTIONAL_CURRENCY } from "../constants/finance";
 
 export interface FinancialSummaryReport {
   basis: "cash" | "accrual";
@@ -28,6 +29,9 @@ export interface FinancialSummaryReport {
   bankFeesTotal: number;
   realizedFxGainLoss: number;
 
+  /** Documents in other currencies are excluded until converted; this counts them. */
+  excludedForeignCurrencyDocuments: number;
+
   // Operating Profit
   operatingProfit: number; // For cash: cashNet - (expensesNet + inputVatNonRecoverable + payroll + bankFees) + FX
   netMarginPercentage: number;
@@ -44,8 +48,10 @@ export async function getFinancialSummaryReport(filters: {
   if (filters.dateTo) dateFilter.lte = filters.dateTo;
 
   // 1. Invoices (Accrual basis)
+  // Only the functional currency is summed; mixing currencies under a BHD label is wrong.
   const invoiceWhere: any = {
     status: { notIn: ["void", "draft"] },
+    currency: FUNCTIONAL_CURRENCY,
   };
   if (filters.dateFrom || filters.dateTo) {
     invoiceWhere.issueDate = dateFilter;
@@ -56,6 +62,7 @@ export async function getFinancialSummaryReport(filters: {
     select: {
       totalAmount: true,
       subtotal: true,
+      discountAmount: true,
       vatAmount: true,
       vatEnabled: true,
       currency: true,
@@ -68,15 +75,16 @@ export async function getFinancialSummaryReport(filters: {
 
   for (const inv of invoices) {
     const total = Number(inv.totalAmount);
-    const sub = Number(inv.subtotal);
+    // Net sales are after discount and before VAT.
+    const net = Number(inv.subtotal) - Number(inv.discountAmount);
     const vat = Number(inv.vatAmount);
     invoicedGross += total;
-    invoicedNet += sub;
+    invoicedNet += net;
     invoicedOutputVat += vat;
   }
 
   // 2. Payments (Cash basis)
-  const paymentWhere: any = {};
+  const paymentWhere: any = { currency: FUNCTIONAL_CURRENCY, invoice: { status: { not: "void" } } };
   if (filters.dateFrom || filters.dateTo) {
     paymentWhere.paymentDate = dateFilter;
   }
@@ -116,7 +124,7 @@ export async function getFinancialSummaryReport(filters: {
   }
 
   // 3. Expenses & VAT Recoverability
-  const expenseWhere: any = {};
+  const expenseWhere: any = { currency: FUNCTIONAL_CURRENCY, status: "approved" };
   if (filters.dateFrom || filters.dateTo) {
     expenseWhere.expenseDate = dateFilter;
   }
@@ -140,7 +148,9 @@ export async function getFinancialSummaryReport(filters: {
   for (const exp of expenses) {
     const amt = Number(exp.amount);
     const inputVat = Number(exp.inputVatAmount);
-    const net = exp.netAmount ? Number(exp.netAmount) : amt - inputVat;
+    // Prisma Decimals are always truthy, and older rows stored 0 here, so derive net when it was never set.
+    const storedNet = Number(exp.netAmount);
+    const net = storedNet > 0 ? storedNet : amt - inputVat;
 
     totalExpensesGross += amt;
     expensesNet += net;
@@ -191,6 +201,11 @@ export async function getFinancialSummaryReport(filters: {
     realizedFxGainLoss += Number(s.fxGainLossBhd);
   }
 
+  const [foreignInvoices, foreignExpenses] = await Promise.all([
+    db.invoice.count({ where: { ...invoiceWhere, currency: { not: FUNCTIONAL_CURRENCY } } }),
+    db.expense.count({ where: { ...expenseWhere, currency: { not: FUNCTIONAL_CURRENCY } } }),
+  ]);
+
   // 6. Operating Profit
   // P0 finding: profit must NOT be calculated from VAT-inclusive payments and expenses!
   // Operating costs = expensesNet + inputVatNonRecoverable + payrollCostsTotal + bankFeesTotal
@@ -207,6 +222,7 @@ export async function getFinancialSummaryReport(filters: {
   return {
     basis,
     reportingCurrency: "BHD",
+    excludedForeignCurrencyDocuments: foreignInvoices + foreignExpenses,
     periodStart: filters.dateFrom?.toISOString(),
     periodEnd: filters.dateTo?.toISOString(),
     invoicedGross: Math.round(invoicedGross * 1000) / 1000,

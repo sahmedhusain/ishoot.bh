@@ -1,6 +1,8 @@
-import { db } from "../db";
-import { Quotation } from "../types";
+import { db, runAtomicMutation } from "../db";
+import { Quotation, calculateInvoiceTotals } from "../types";
 import { getNextSequenceNumber } from "./sequence";
+import { allocateDocumentNumber } from "../finance/numbering";
+import { lineTotal } from "../finance/money";
 import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
 import { getLatestExchangeRate } from "./fx-settlement";
@@ -35,50 +37,34 @@ export async function createQuotation(
   const currency = data.currency || "BHD";
   const quotationNumber = await getNextSequenceNumber("QTE");
 
-  // Calculate pricing with exact decimals
-  let subtotal = 0;
-  const itemsWithTotals = data.lineItems.map((item, idx) => {
-    const qty = Number(item.quantity) || 1;
-    const price = Number(item.unitPrice) || 0;
-    const lineTotal = Math.round(qty * price * 1000) / 1000;
-    subtotal += lineTotal;
-    return {
-      descriptionEn: item.descriptionEn,
-      descriptionAr: item.descriptionAr || null,
-      quantity: qty,
-      unitPrice: price,
-      lineTotal,
-      orderIndex: idx,
-    };
-  });
-
-  // Calculate discount
-  let discountAmount = 0;
-  if (data.discountType === "percentage" && data.discountValue) {
-    discountAmount = Math.round(subtotal * (data.discountValue / 100) * 1000) / 1000;
-  } else if (data.discountType === "fixed" && data.discountValue) {
-    discountAmount = Math.min(subtotal, Math.round(data.discountValue * 1000) / 1000);
-  }
-
-  const taxableAmount = Math.max(0, subtotal - discountAmount);
-
-  // VAT
-  let vatAmount = 0;
+  // Same totals rules as invoices (validation, per-currency rounding).
   const vatPercentage = data.vatEnabled ? (data.vatPercentage ?? 10) : 0;
-  if (data.vatEnabled && vatPercentage > 0) {
-    vatAmount = Math.round(taxableAmount * (vatPercentage / 100) * 1000) / 1000;
-  }
+  const itemsWithTotals = data.lineItems.map((item, idx) => ({
+    descriptionEn: item.descriptionEn,
+    descriptionAr: item.descriptionAr || null,
+    quantity: Number(item.quantity),
+    unitPrice: Number(item.unitPrice),
+    lineTotal: lineTotal(Number(item.quantity), Number(item.unitPrice), currency),
+    orderIndex: idx,
+  }));
+  const { subtotal, discountAmount, vatAmount, totalAmount } = calculateInvoiceTotals(
+    itemsWithTotals.map((item) => ({ quantity: item.quantity, unit_price: item.unitPrice, line_total: item.lineTotal, description_en: item.descriptionEn })) as never,
+    data.discountType || "none",
+    data.discountValue || 0,
+    data.vatEnabled || false,
+    vatPercentage,
+    currency as never,
+  );
 
   // 3% FX margin: built into customer quote total if non-BHD and rawRate is provided
-  let rawRate = data.rawRate ? Number(data.rawRate) : 1;
+  // Rates are quoted as units of the quotation currency per 1 BHD, so the margin raises what the client pays.
+  let rawRate = currency === "BHD" ? 1 : data.rawRate ? Number(data.rawRate) : (await getLatestExchangeRate("BHD", currency)).rate;
   const fxMarginPercent = 3.0; // 3% margin
   let effectiveRate = rawRate;
 
-  if (currency !== "BHD" && data.rawRate) {
+  if (currency !== "BHD") {
     effectiveRate = Math.round(rawRate * (1 + fxMarginPercent / 100) * 1000000) / 1000000;
   }
-
-  const totalAmount = Math.round((taxableAmount + vatAmount) * 1000) / 1000;
 
   const quotation = await db.$transaction(async (tx) => {
     const q = await tx.quotation.create({
@@ -185,7 +171,7 @@ export async function updateQuotation(
   let effectiveRate = existing.effectiveRate ? Number(existing.effectiveRate) : null;
 
   if (currency !== "BHD" && data.currency && data.currency !== existing.currency) {
-    const fxInfo = await getLatestExchangeRate(currency, "BHD");
+    const fxInfo = await getLatestExchangeRate("BHD", currency);
     rawRate = fxInfo.rate;
     fxMarginPercent = 3.0;
     effectiveRate = Math.round(rawRate * (1 + fxMarginPercent / 100) * 1000000) / 1000000;
@@ -205,17 +191,14 @@ export async function updateQuotation(
     sortOrder: l.orderIndex,
   }));
 
-  const subtotal = lines.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
-  let discountAmount = 0;
-  if (discountType === "percentage") {
-    discountAmount = (subtotal * discountValue) / 100;
-  } else if (discountType === "fixed") {
-    discountAmount = Math.min(discountValue, subtotal);
-  }
-
-  const taxableAmount = Math.max(0, subtotal - discountAmount);
-  const vatAmount = vatEnabled ? (taxableAmount * vatPercentage) / 100 : 0;
-  const totalAmount = taxableAmount + vatAmount;
+  const { subtotal, discountAmount, vatAmount, totalAmount } = calculateInvoiceTotals(
+    lines.map((item) => ({ quantity: item.quantity, unit_price: item.unitPrice, line_total: lineTotal(item.quantity, item.unitPrice, currency), description_en: item.descriptionEn })) as never,
+    discountType as "none" | "percentage" | "fixed",
+    discountValue,
+    vatEnabled,
+    vatPercentage,
+    currency as never,
+  );
 
   await db.$transaction(async (tx) => {
     if (data.lineItems) {
@@ -223,12 +206,11 @@ export async function updateQuotation(
       await tx.quotationLineItem.createMany({
         data: data.lineItems.map((item, idx) => ({
           quotationId: id,
-          serviceId: item.serviceId || null,
           descriptionEn: item.descriptionEn,
           descriptionAr: item.descriptionAr || null,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
-          lineTotal: item.quantity * item.unitPrice,
+          lineTotal: lineTotal(item.quantity, item.unitPrice, currency),
           orderIndex: item.sortOrder ?? idx,
         })),
       });
@@ -391,6 +373,10 @@ export async function acceptQuotation(
   if (quotation.status !== "issued") {
     throw new Error(`Quotation cannot be accepted: current status is ${quotation.status}`);
   }
+  if (isQuotationExpired(quotation.validUntilDate)) {
+    await db.quotation.update({ where: { id }, data: { status: "expired" } });
+    throw new Error("This quotation has expired. Issue a new revision to the client.");
+  }
 
   const updated = await db.quotation.update({
     where: { id },
@@ -438,11 +424,14 @@ export async function rejectQuotation(
 
   const quotation = await db.quotation.findUnique({ where: { id } });
   if (!quotation) throw new Error("Quotation not found");
+  if (!["issued", "accepted"].includes(quotation.status))
+    throw new Error(`Only issued or accepted quotations can be rejected (current status: ${quotation.status})`);
 
   await db.quotation.update({
     where: { id },
     data: {
       status: "rejected",
+      ...(reason ? { acceptanceEvidence: `Rejected: ${reason}` } : {}),
     },
   });
 
@@ -461,43 +450,39 @@ export async function convertQuotationToInvoice(
 ): Promise<{ invoiceId: string; invoiceNumber: string; isExisting: boolean }> {
   await assertActorNotOnLeave(actorId);
 
-  const quotation = await db.quotation.findUnique({
-    where: { id: quotationId },
-    include: { lineItems: { orderBy: { orderIndex: "asc" } } },
-  });
-
-  if (!quotation) throw new Error("Quotation not found");
-
-  // Idempotency: if already linked to an invoice, return it
-  if (quotation.invoiceId) {
-    const existingInv = await db.invoice.findUnique({
-      where: { id: quotation.invoiceId },
-      select: { id: true, invoiceNumber: true },
+  return runAtomicMutation(async () => {
+    // Lock first so two simultaneous clicks cannot both create an invoice.
+    await db.$queryRaw`SELECT id FROM "Quotation" WHERE id = ${quotationId} FOR UPDATE`;
+    const quotation = await db.quotation.findUnique({
+      where: { id: quotationId },
+      include: { lineItems: { orderBy: { orderIndex: "asc" } } },
     });
-    if (existingInv) {
-      return {
-        invoiceId: existingInv.id,
-        invoiceNumber: existingInv.invoiceNumber,
-        isExisting: true,
-      };
+    if (!quotation) throw new Error("Quotation not found");
+
+    // Idempotency: an already linked quotation returns its invoice.
+    if (quotation.invoiceId) {
+      const existingInv = await db.invoice.findUnique({
+        where: { id: quotation.invoiceId },
+        select: { id: true, invoiceNumber: true },
+      });
+      if (existingInv) return { invoiceId: existingInv.id, invoiceNumber: existingInv.invoiceNumber, isExisting: true };
     }
-  }
+    if (quotation.status !== "accepted") {
+      throw new Error(`Only accepted quotations can be converted to invoices (current status: ${quotation.status})`);
+    }
 
-  if (quotation.status !== "accepted") {
-    throw new Error(`Only accepted quotations can be converted to invoices (current status: ${quotation.status})`);
-  }
+    const company = await db.companySetting.findFirst({ select: { paymentTermsDays: true } });
+    const issueDate = new Date();
+    const dueDate = new Date(issueDate);
+    dueDate.setDate(dueDate.getDate() + (company?.paymentTermsDays ?? 30));
+    const invoiceNumber = await allocateDocumentNumber("invoice", issueDate);
 
-  const invoiceNumber = await getNextSequenceNumber("INV");
-  const dueDate = new Date();
-  dueDate.setDate(dueDate.getDate() + 30);
-
-  const invoice = await db.$transaction(async (tx) => {
-    const inv = await tx.invoice.create({
+    const inv = await db.invoice.create({
       data: {
         invoiceNumber,
         clientId: quotation.clientId,
         dealId: quotation.dealId,
-        issueDate: new Date(),
+        issueDate,
         dueDate,
         subtotal: quotation.subtotal,
         discountType: quotation.discountType,
@@ -509,6 +494,8 @@ export async function convertQuotationToInvoice(
         totalAmount: quotation.totalAmount,
         currency: quotation.currency,
         language: quotation.language,
+        notesEn: quotation.termsEn,
+        notesAr: quotation.termsAr,
         status: "draft",
         approvalStatus: "draft",
         createdById: actorId,
@@ -518,26 +505,22 @@ export async function convertQuotationToInvoice(
             descriptionAr: li.descriptionAr,
             quantity: li.quantity,
             unitPrice: li.unitPrice,
-            lineTotal: li.lineTotal,
-            displayOrder: idx,
+            lineTotal: lineTotal(Number(li.quantity), Number(li.unitPrice), quotation.currency),
+            displayOrder: idx + 1,
           })),
         },
       },
     });
-
-    await tx.quotation.update({
-      where: { id: quotationId },
-      data: { invoiceId: inv.id, status: "converted" },
-    });
-
-    return inv;
+    await db.quotation.update({ where: { id: quotationId }, data: { invoiceId: inv.id, status: "converted" } });
+    return { invoiceId: inv.id, invoiceNumber: inv.invoiceNumber, isExisting: false };
   });
+}
 
-  return {
-    invoiceId: invoice.id,
-    invoiceNumber: invoice.invoiceNumber,
-    isExisting: false,
-  };
+/** A quotation is valid through the end of its valid-until date. */
+export function isQuotationExpired(validUntil: Date, now: Date = new Date()): boolean {
+  const endOfDay = new Date(validUntil);
+  endOfDay.setUTCHours(23, 59, 59, 999);
+  return endOfDay < now;
 }
 
 export async function getQuotationById(id: string): Promise<Quotation | null> {

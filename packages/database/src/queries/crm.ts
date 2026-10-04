@@ -15,6 +15,7 @@ export function mapContact(c: any): CRMContact {
     email: c.email || "",
     phone: c.phone || undefined,
     company: c.companyName || undefined,
+    vat_number: c.vatNumber || undefined,
     job_title: c.jobTitle || undefined,
     contact_type: c.contactType as any,
     notes: c.notes || undefined,
@@ -407,6 +408,7 @@ export async function createCRMContact(data: {
   email?: string;
   phone?: string;
   company?: string;
+  vat_number?: string;
   job_title?: string;
   contact_type?: "client" | "vendor" | "freelancer" | "agency";
   notes?: string;
@@ -428,6 +430,7 @@ export async function createCRMContact(data: {
       phone: data.phone || null,
       phoneE164: data.phone ? normalizeToE164(data.phone) : null,
       companyName: data.company || null,
+      vatNumber: data.vat_number?.trim() || null,
       jobTitle: data.job_title || null,
       contactType: data.contact_type || "client",
       notes: data.notes || null,
@@ -453,6 +456,7 @@ export async function updateCRMContact(
       updateData.phoneE164 = data.phone ? normalizeToE164(data.phone) : null;
     }
     if (data.company !== undefined) updateData.companyName = data.company;
+    if (data.vat_number !== undefined) updateData.vatNumber = data.vat_number?.trim() || null;
     if (data.job_title !== undefined) updateData.jobTitle = data.job_title;
     if (data.contact_type !== undefined)
       updateData.contactType = data.contact_type;
@@ -471,6 +475,13 @@ export async function updateCRMContact(
 
 export async function deleteCRMContact(id: string): Promise<boolean> {
   try {
+    // Issued financial documents must keep their customer; deleting would blank it on tax invoices.
+    const [invoices, quotations] = await Promise.all([
+      db.invoice.count({ where: { clientId: id } }),
+      db.quotation.count({ where: { clientId: id } }),
+    ]);
+    if (invoices || quotations)
+      throw new Error("This contact has invoices or quotations and cannot be deleted");
     await db.crmContact.delete({ where: { id } });
     return true;
   } catch (e) {

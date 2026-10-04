@@ -1114,7 +1114,11 @@
     "submit": "Log Expense Record",
     "descriptionPlaceholder": "e.g. Cinema prime lenses rental",
     "amountPlaceholder": "0.000",
-    "vendorPlaceholder": "e.g. Media Rental Corp"
+    "vendorPlaceholder": "e.g. Media Rental Corp",
+    "inputVatLabel": "VAT included in the amount",
+    "inputVatHint": "Leave 0 if the supplier charged no VAT.",
+    "vatRecoverable": "VAT is recoverable (claimable on the VAT return)",
+    "saveError": "Could not save expense"
   },
   "paymentsNew": {
     "title": "Record Payment Receipt",
@@ -2482,5 +2486,26 @@
     "save": "Save policy",
     "saved": "Policy saved",
     "saveError": "Could not save the policy"
+  },
+  "invoiceLifecycle": {
+    "markSent": "Mark as sent",
+    "markSentHint": "Issues the invoice: it becomes a receivable and can accept payments.",
+    "marked": "Invoice marked as sent",
+    "failed": "Could not update the invoice",
+    "draftNoPayments": "Mark the invoice as sent before recording payments.",
+    "fromQuotation": "From quotation",
+    "forDeal": "Deal",
+    "voidInvoice": "Void invoice",
+    "voided": "Invoice voided"
+  },
+  "contactFields": {
+    "vatNumber": "VAT registration number",
+    "vatNumberPlaceholder": "Required on tax invoices for VAT-registered clients"
+  },
+  "quotationLifecycle": {
+    "clientDeclined": "Client declined",
+    "declineReasonPrompt": "Why did the client decline? (optional)",
+    "declined": "Quotation marked as declined",
+    "failed": "Action failed"
   }
 }

@@ -31,6 +31,9 @@ export function mapExpense(e: any): Expense {
     is_recurring: e.isRecurring,
     recurrence_interval: (e.recurrenceInterval as any) || undefined,
     notes: e.notes || undefined,
+    status: e.status,
+    review_notes: e.reviewNotes || undefined,
+    input_vat_amount: Number(e.inputVatAmount ?? 0),
     created_at: e.createdAt.toISOString(),
   };
 }
@@ -95,9 +98,15 @@ export async function createExpense(expense: {
   recurrence_interval?: string;
   notes?: string;
   is_billable?: boolean;
+  /** VAT included in `amount` (the gross paid). */
+  input_vat_amount?: number;
+  is_vat_recoverable?: boolean;
 }, ownerId?: string): Promise<Expense> {
   if (!Number.isFinite(expense.amount) || expense.amount <= 0)
     throw new Error("Expense amount must be positive");
+  const inputVat = expense.input_vat_amount ?? 0;
+  if (!Number.isFinite(inputVat) || inputVat < 0 || inputVat >= expense.amount)
+    throw new Error("Input VAT must be less than the expense amount");
   return runAtomicMutation(async () => {
   const upload = expense.receipt_url ? await claimUpload(db, expense.receipt_url, ownerId) : null;
   const created = await db.expense.create({
@@ -107,6 +116,9 @@ export async function createExpense(expense: {
       descriptionEn: expense.description_en,
       descriptionAr: expense.description_ar || null,
       amount: expense.amount,
+      inputVatAmount: inputVat,
+      netAmount: Math.round((expense.amount - inputVat) * 1000) / 1000,
+      isVatRecoverable: expense.is_vat_recoverable ?? true,
       currency: expense.currency || (await getCompanySettings()).default_currency,
       createdById: ownerId || null,
       expenseDate: expense.expense_date
@@ -118,6 +130,8 @@ export async function createExpense(expense: {
       isRecurring: expense.is_recurring || false,
       recurrenceInterval: expense.recurrence_interval || null,
       notes: expense.notes || null,
+      // Becomes approved/rejected through the expense approval policy (or immediately if the policy is off).
+      status: "pending",
     },
     include: { category: true, deal: true },
   });

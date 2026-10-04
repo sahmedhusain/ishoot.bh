@@ -1815,6 +1815,10 @@
             "kind": "string",
             "optional": true
           },
+          "vat_number": {
+            "kind": "string",
+            "optional": true
+          },
           "job_title": {
             "kind": "string",
             "optional": true
@@ -1873,6 +1877,10 @@
             "optional": true
           },
           "company": {
+            "kind": "string",
+            "optional": true
+          },
+          "vat_number": {
             "kind": "string",
             "optional": true
           },
@@ -2816,6 +2824,14 @@
           "receipt_url": {
             "kind": "string",
             "optional": true
+          },
+          "input_vat_amount": {
+            "kind": "number",
+            "optional": true
+          },
+          "is_vat_recoverable": {
+            "kind": "boolean",
+            "optional": true
           }
         },
         "optional": false
@@ -2924,6 +2940,10 @@
             "optional": true
           },
           "deal_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "quotation_id": {
             "kind": "string",
             "optional": true
           },
@@ -4465,6 +4485,15 @@
             "optional": true
           }
         },
+        "optional": false
+      }
+    }
+  },
+  "markInvoiceSentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
         "optional": false
       }
     }

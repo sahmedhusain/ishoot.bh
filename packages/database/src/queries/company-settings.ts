@@ -76,6 +76,13 @@ export async function updateCompanySettings(
   if (updates.company_name_en !== undefined && !updates.company_name_en.trim()) throw new Error("Company English name is required");
   if (updates.company_name_ar !== undefined && !updates.company_name_ar.trim()) throw new Error("Company Arabic name is required");
   const current = await getCompanySettings();
+  // Moving a counter backwards would reissue numbers that already exist.
+  for (const field of ["invoice_next_number", "receipt_next_number"] as const) {
+    const next = updates[field];
+    if (next === undefined) continue;
+    if (!Number.isInteger(next) || next < 1) throw new Error("Sequence numbers must be positive whole numbers");
+    if (next < current[field]) throw new Error("A sequence can only move forward");
+  }
   // Private uploads may become company artwork only through the owned asset workflow.
   for(const field of ["logo_url","dark_logo_url","icon_url","dark_icon_url","stamp_url","signature_url"] as const){
     const value=updates[field];
@@ -120,8 +127,9 @@ export async function updateCompanySettings(
       signatureUrl: updates.signature_url,
       paymentTermsDays: updates.payment_terms_days,
       invoicePrefix: updates.invoice_prefix,
-
+      invoiceNextNumber: updates.invoice_next_number,
       receiptPrefix: updates.receipt_prefix,
+      receiptNextNumber: updates.receipt_next_number,
 
       ceoNameEn: updates.ceo_name_en,
       ceoNameAr: updates.ceo_name_ar,

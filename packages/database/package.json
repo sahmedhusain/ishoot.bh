@@ -13,7 +13,8 @@
     "./observability": "./src/observability.ts",
     "./queries/*": "./src/queries/*.ts",
     "./services/*": "./src/services/*.ts",
-    "./constants/*": "./src/constants/*.ts"
+    "./constants/*": "./src/constants/*.ts",
+    "./finance/*": "./src/finance/*.ts"
   },
   "scripts": {
     "db:generate": "prisma generate --schema=prisma/schema.prisma",

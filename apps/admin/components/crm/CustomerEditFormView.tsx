@@ -20,6 +20,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
 
   const [fullName, setFullName] = React.useState(contact.full_name || "");
   const [company, setCompany] = React.useState(contact.company || "");
+  const [vatNumber, setVatNumber] = React.useState(contact.vat_number || "");
   const [email, setEmail] = React.useState(contact.email || "");
   const [phone, setPhone] = React.useState(contact.phone || "");
   const [jobTitle, setJobTitle] = React.useState(contact.job_title || "");
@@ -45,6 +46,12 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
       label: isRTL ? "الشركة" : "Company",
       oldValue: contact.company || "",
       newValue: company,
+    },
+    {
+      field: "vat_number",
+      label: t.contactFields.vatNumber,
+      oldValue: contact.vat_number || "",
+      newValue: vatNumber,
     },
     {
       field: "email",
@@ -76,7 +83,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
       oldValue: contact.notes || "",
       newValue: notes,
     },
-  ], [contact, fullName, company, email, phone, jobTitle, contactType, notes, isRTL]);
+  ], [t, contact, fullName, company, vatNumber, email, phone, jobTitle, contactType, notes, isRTL]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +99,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
         email: email || undefined,
         phone: phone || undefined,
         company: company || undefined,
+        vat_number: vatNumber.trim(),
         job_title: jobTitle || undefined,
         contact_type: contactType,
         notes: notes || undefined,
@@ -152,6 +160,16 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
                 placeholder={t.customerEdit.companyPlaceholder}
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
+                {t.contactFields.vatNumber}
+              </label>
+              <Input
+                placeholder={t.contactFields.vatNumberPlaceholder}
+                value={vatNumber}
+                onChange={(e) => setVatNumber(e.target.value)}
               />
             </div>
           </div>

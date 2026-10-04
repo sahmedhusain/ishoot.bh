@@ -1,5 +1,4 @@
 import { db, hasPermission, canDecideApproval } from "@ishoot/database";
-export { salaryDocumentSnapshot } from "@ishoot/database";
 import type { Profile } from "@ishoot/database";
 
 export async function canManageSalaryDocuments(user: Profile) {

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function NewInvoicePage({
   searchParams,
 }: {
-  searchParams: Promise<{ clientId?: string; quotationId?: string }>;
+  searchParams: Promise<{ clientId?: string; quotationId?: string; dealId?: string }>;
 }) {
   await requirePermission("invoices", "write");
   await requirePermission("contacts", "read");
@@ -42,6 +42,7 @@ export default async function NewInvoicePage({
       preselectedClientId={effectiveClientId}
       acceptedQuotations={acceptedQuotations}
       preselectedQuotation={preselectedQuotation}
+      dealId={params?.dealId}
     />
   );
 }

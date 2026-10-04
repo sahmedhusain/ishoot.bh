@@ -71,6 +71,12 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
     // A rejected SR/CR goes back to the team with the approver's reason.
     reject: async (id, decider, reason) => void (await returnRequest(id, { returnedById: decider, reason: reason || "Rejected" })),
   },
+  expense: {
+    approve: async (id, _decider, reason) =>
+      void (await db.expense.update({ where: { id }, data: { status: "approved", reviewNotes: reason || null } })),
+    reject: async (id, _decider, reason) =>
+      void (await db.expense.update({ where: { id }, data: { status: "rejected", reviewNotes: reason || null } })),
+  },
   quotation: {
     approve: async (id) => void (await db.quotation.update({ where: { id }, data: { status: "approved" } })),
     reject: async (id) => void (await db.quotation.update({ where: { id }, data: { status: "draft" } })),

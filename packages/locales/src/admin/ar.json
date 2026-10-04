@@ -1114,7 +1114,11 @@
     "submit": "تسجيل قيد المصروف",
     "descriptionPlaceholder": "مثال: إيجار عدسات سينمائية برايم",
     "amountPlaceholder": "0.000",
-    "vendorPlaceholder": "مثال: شركة تأجير المعدات"
+    "vendorPlaceholder": "مثال: شركة تأجير المعدات",
+    "inputVatLabel": "ضريبة القيمة المضافة المضمّنة في المبلغ",
+    "inputVatHint": "اتركها 0 إذا لم يفرض المورد ضريبة.",
+    "vatRecoverable": "الضريبة قابلة للاسترداد (تُطالب في الإقرار الضريبي)",
+    "saveError": "تعذر حفظ المصروف"
   },
   "paymentsNew": {
     "title": "تسجيل سند استلام دفعة",
@@ -2482,5 +2486,26 @@
     "save": "حفظ السياسة",
     "saved": "تم حفظ السياسة",
     "saveError": "تعذر حفظ السياسة"
+  },
+  "invoiceLifecycle": {
+    "markSent": "تعليم كمرسلة",
+    "markSentHint": "إصدار الفاتورة: تصبح مستحقة ويمكن تسجيل المدفوعات عليها.",
+    "marked": "تم تعليم الفاتورة كمرسلة",
+    "failed": "تعذر تحديث الفاتورة",
+    "draftNoPayments": "علّم الفاتورة كمرسلة قبل تسجيل المدفوعات.",
+    "fromQuotation": "من عرض السعر",
+    "forDeal": "الصفقة",
+    "voidInvoice": "إلغاء الفاتورة",
+    "voided": "تم إلغاء الفاتورة"
+  },
+  "contactFields": {
+    "vatNumber": "رقم التسجيل الضريبي",
+    "vatNumberPlaceholder": "مطلوب في الفواتير الضريبية للعملاء المسجلين"
+  },
+  "quotationLifecycle": {
+    "clientDeclined": "رفضه العميل",
+    "declineReasonPrompt": "لماذا رفض العميل؟ (اختياري)",
+    "declined": "تم تعليم عرض السعر كمرفوض",
+    "failed": "تعذر تنفيذ الإجراء"
   }
 }

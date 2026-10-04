@@ -776,6 +776,9 @@ export interface Expense {
   is_recurring: boolean;
   recurrence_interval?: "monthly" | "quarterly" | "yearly";
   notes?: string;
+  status: "pending" | "approved" | "rejected" | string;
+  review_notes?: string;
+  input_vat_amount?: number;
   created_by?: string;
   created_at: string;
   category?: ExpenseCategory;
@@ -1031,7 +1034,8 @@ export type WebSettingsInput = Partial<Pick<CompanySettings,
   "company_name_en" | "company_name_ar" | "address_en" | "address_ar" | "phone" | "whatsapp_phone" | "email" | "website" | "instagram_url" | "linkedin_url" | "youtube_url" | "ceo_name_en" | "ceo_name_ar" | "ceo_title_en" | "ceo_title_ar" | "ceo_quote_en" | "ceo_quote_ar" | "mission_en" | "mission_ar" | "vision_en" | "vision_ar" | "about_text_en" | "about_text_ar" | "terms_en" | "terms_ar" | "rules_en" | "rules_ar"
 >>;
 
-export type QuotationStatus = "draft" | "review" | "approved" | "issued" | "accepted" | "declined" | "expired" | "cancelled";
+export type { QuotationStatus } from "./constants/finance";
+import type { QuotationStatus } from "./constants/finance";
 
 export interface QuotationLineItem {
   id: string;

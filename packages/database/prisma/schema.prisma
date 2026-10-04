@@ -315,6 +315,7 @@ model CrmContact {
   phone       String?
   phoneE164   String? // E.164 normalized phone
   companyName String?
+  vatNumber   String? // buyer VAT registration, printed on tax invoices
   jobTitle    String?
   contactType String     @default("client") // "client", "vendor", "freelancer", "agency"
   notes       String?
@@ -483,6 +484,8 @@ model Expense {
   isRecurring        Boolean          @default(false)
   recurrenceInterval String? // "monthly", "quarterly", "yearly"
   notes              String?
+  status             String           @default("approved") // "pending" | "approved" | "rejected"; set by the expense approval policy
+  reviewNotes        String?
   createdById        String?
   createdBy          User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
   createdAt          DateTime         @default(now())
@@ -490,6 +493,7 @@ model Expense {
   @@index([dealId])
   @@index([categoryId])
   @@index([currency, expenseDate])
+  @@index([status])
 }
 
 model CalendarEvent {

@@ -1,6 +1,6 @@
 "use server";
 import { measureOperation } from "@ishoot/database";
-import { runAtomicMutation } from "@ishoot/database";
+import { runAtomicMutation, submitForApproval } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -28,12 +28,21 @@ export async function createExpenseAction(data: {
   is_billable?: boolean;
   currency?: SupportedCurrency;
   receipt_url?: string;
+  input_vat_amount?: number;
+  is_vat_recoverable?: boolean;
 }) {
   return measureOperation("action:createExpenseAction", async () => {
     await requireFeatureEnabled("invoicing"); const user = await requirePermission("expenses", "write");
     validateActionArguments("createExpenseAction", { data });
     const { expense } = await runAtomicMutation(async () => {
       const expense = await createExpense(data, user.id);
+      // Applies immediately when the expense policy is off or the creator's role auto-approves.
+      await submitForApproval({
+        targetType: "expense",
+        targetId: expense.id,
+        requesterId: user.id,
+        policySnapshot: { amount: data.amount, currency: expense.currency, vendor: data.vendor_name ?? null },
+      });
       await createActivityLog({
         user_id: user.id,
         action: "create",
@@ -123,6 +132,7 @@ export async function createPaymentAction(data: {
 export async function createInvoiceAction(data: {
   contact_id?: string;
   deal_id?: string;
+  quotation_id?: string;
   issue_date: string;
   due_date: string;
   currency?: import("@ishoot/database/types").SupportedCurrency;
@@ -226,6 +236,23 @@ export async function updateInvoiceAction(
     revalidatePath("/dashboard/finance");
     revalidatePath("/dashboard");
     return { success: true, invoice };
+  });
+}
+
+/** Issues a draft invoice: it becomes a receivable and can accept payments. */
+export async function markInvoiceSentAction(id: string) {
+  return measureOperation("action:markInvoiceSentAction", async () => {
+    await requireFeatureEnabled("invoicing"); const user = await requirePermission("invoices", "write");
+    validateActionArguments("markInvoiceSentAction", { id });
+    await runAtomicMutation(async () => {
+      await updateInvoiceStatus(id, "sent");
+      await createActivityLog({ user_id: user.id, action: "send", entity_type: "invoice", entity_id: id });
+    });
+    revalidatePath("/dashboard/invoices");
+    revalidatePath(`/dashboard/invoices/${id}`);
+    revalidatePath("/dashboard/finance");
+    revalidatePath("/dashboard");
+    return { success: true };
   });
 }
 

@@ -1,5 +1,6 @@
 import { db } from "../db";
 import { FinancialSummary } from "../types";
+import { getFinancialSummaryReport } from "./finance-reports";
 
 // SQL numeric arithmetic keeps balances exact until the public number DTO boundary.
 // One statement gives a consistent snapshot without fetching contacts or line items.
@@ -24,16 +25,18 @@ export async function getFinancialSummary(): Promise<FinancialSummary> {
     )
     SELECT
       (SELECT COALESCE(SUM(p.amount), 0) FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId" WHERE p.currency = 'BHD' AND i.status <> 'void') AS revenue,
-      (SELECT COALESCE(SUM(amount), 0) FROM "Expense" WHERE currency = 'BHD') AS expenses,
+      (SELECT COALESCE(SUM(amount), 0) FROM "Expense" WHERE currency = 'BHD' AND status = 'approved') AS expenses,
       COALESCE(SUM(due) FILTER (WHERE status IN ('sent', 'partially_paid', 'overdue')), 0) AS outstanding,
       COALESCE(SUM(due) FILTER (WHERE status <> 'draft' AND "dueDate" < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bahrain')::date), 0) AS overdue,
       COALESCE(SUM("discountAmount"), 0) AS "discountsGiven",
       COALESCE(SUM(CASE WHEN "vatEnabled" AND status <> 'draft' AND "totalAmount" > 0 THEN "vatAmount" * LEAST(1, paid / "totalAmount") ELSE 0 END), 0) AS "vatCollected"
     FROM invoices
   `;
-  const revenue = Number(row.revenue);
-  const expenses = Number(row.expenses);
-  const netProfit = revenue - expenses;
+  // Profit uses the same definition as the financial report (net of VAT, incl. payroll and bank fees).
+  const report = await getFinancialSummaryReport({ basis: "cash" });
+  const revenue = report.cashNetReceipts;
+  const expenses = Math.round((report.expensesNet + report.inputVatNonRecoverable + report.payrollCostsTotal + report.bankFeesTotal) * 1000) / 1000;
+  const netProfit = report.operatingProfit;
   return {
     revenue,
     expenses,
@@ -74,7 +77,7 @@ export async function getMonthlyCashflow(
       GROUP BY 1
     ), expenses AS (
       SELECT date_trunc('month', "expenseDate") AS month, SUM(amount) AS amount FROM "Expense"
-      WHERE currency = 'BHD' AND "expenseDate" >= (SELECT MIN(month) FROM months)
+      WHERE currency = 'BHD' AND status = 'approved' AND "expenseDate" >= (SELECT MIN(month) FROM months)
         AND "expenseDate" < (SELECT MAX(month) + INTERVAL '1 month' FROM months)
       GROUP BY 1
     )
@@ -94,7 +97,7 @@ export async function getExpenseCategoryTotals(): Promise<
   const rows = await db.$queryRaw<Array<{ slug: string; amount: unknown }>>`
     SELECT COALESCE(c.slug, 'other') AS slug, SUM(e.amount) AS amount
     FROM "Expense" e LEFT JOIN "ExpenseCategory" c ON c.id = e."categoryId"
-    WHERE e.currency = 'BHD' GROUP BY COALESCE(c.slug, 'other')
+    WHERE e.currency = 'BHD' AND e.status = 'approved' GROUP BY COALESCE(c.slug, 'other')
   `;
   return Object.fromEntries(rows.map((row) => [row.slug, Number(row.amount)]));
 }

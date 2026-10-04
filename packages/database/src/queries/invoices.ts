@@ -7,6 +7,10 @@ import {
   calculateInvoiceTotals,
 } from "../types";
 
+import { amountDue as computeAmountDue, lineTotal, sumMoney } from "../finance/money";
+import { allocateDocumentNumber } from "../finance/numbering";
+import { INVOICE_STATUS_TRANSITIONS } from "../constants/finance";
+
 export { calculateInvoiceTotals };
 
 function mapPrismaInvoiceToInvoice(inv: any): Invoice {
@@ -16,11 +20,9 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
   const vatAmount = Number(inv.vatAmount);
   const totalAmount = Number(inv.totalAmount);
 
-  const amountPaid =
-    inv.payments && inv.payments.length > 0
-      ? inv.payments.reduce((acc: number, p: any) => acc + Number(p.amount), 0)
-      : 0;
-  const amountDue = Math.max(0, totalAmount - amountPaid);
+  const currencyCode = inv.currency || "BHD";
+  const amountPaid = sumMoney((inv.payments || []).map((p: any) => p.amount), currencyCode);
+  const amountDue = computeAmountDue(totalAmount, amountPaid, currencyCode);
   const contactObj = inv.client || inv.deal?.contact;
 
   return {
@@ -226,6 +228,8 @@ export async function getInvoiceByIdOrNumber(
 export async function createInvoice(data: {
   contact_id?: string;
   deal_id?: string;
+  /** Accepted quotation this invoice bills; it is marked converted in the same transaction. */
+  quotation_id?: string;
   issue_date: string;
   due_date: string;
   currency?: SupportedCurrency;
@@ -246,10 +250,14 @@ export async function createInvoice(data: {
   created_by?: string;
 }): Promise<Invoice> {
   const currency = data.currency || "BHD";
+  const issueDate = new Date(data.issue_date);
+  const dueDate = new Date(data.due_date);
+  if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) throw new Error("Invalid invoice dates");
+  if (dueDate < issueDate) throw new Error("The due date cannot be before the issue date");
   const totals = calculateInvoiceTotals(
     data.line_items.map((li) => ({
       ...li,
-      line_total: li.quantity * li.unit_price,
+      line_total: lineTotal(li.quantity, li.unit_price, currency),
     })),
     data.discount_type || "none",
     data.discount_value || 0,
@@ -258,27 +266,30 @@ export async function createInvoice(data: {
     currency,
   );
 
-  const year = new Date().getFullYear();
   const created = await db.$transaction(async (tx) => {
-    let company = await tx.companySetting.findFirst();
-    if (!company)
-      throw new Error(
-        "Configure company settings before creating financial records",
-      );
-    const prefix = company.invoicePrefix;
-    const counter = await tx.companySetting.update({
-      where: { id: company.id },
-      data: { invoiceNextNumber: { increment: 1 } },
-    });
-    const invoiceNumber = `${prefix}-${year}-${String(counter.invoiceNextNumber - 1).padStart(4, "0")}`;
+    let dealId = data.deal_id || null;
+    if (data.quotation_id) {
+      await tx.$queryRaw`SELECT id FROM "Quotation" WHERE id = ${data.quotation_id} FOR UPDATE`;
+      const quotation = await tx.quotation.findUnique({
+        where: { id: data.quotation_id },
+        select: { status: true, invoiceId: true, dealId: true, clientId: true, currency: true },
+      });
+      if (!quotation) throw new Error("Quotation not found");
+      if (quotation.invoiceId || quotation.status === "converted")
+        throw new Error("This quotation has already been invoiced");
+      if (quotation.status !== "accepted") throw new Error("Only accepted quotations can be invoiced");
+      if (quotation.currency !== currency) throw new Error("Invoice currency must match the quotation");
+      dealId = dealId || quotation.dealId;
+    }
+    const invoiceNumber = await allocateDocumentNumber("invoice", issueDate, tx);
 
-    return await tx.invoice.create({
+    const invoice = await tx.invoice.create({
       data: {
         invoiceNumber,
         clientId: data.contact_id || null,
-        dealId: data.deal_id || null,
-        issueDate: new Date(data.issue_date),
-        dueDate: new Date(data.due_date),
+        dealId,
+        issueDate,
+        dueDate,
         subtotal: totals.subtotal,
         discountType: data.discount_type || "none",
         discountValue: data.discount_value || 0,
@@ -300,7 +311,7 @@ export async function createInvoice(data: {
             descriptionAr: li.description_ar || null,
             quantity: li.quantity,
             unitPrice: li.unit_price,
-            lineTotal: li.quantity * li.unit_price,
+            lineTotal: lineTotal(li.quantity, li.unit_price, currency),
             displayOrder: idx + 1,
           })),
         },
@@ -312,6 +323,9 @@ export async function createInvoice(data: {
         deal: { include: { contact: true } },
       },
     });
+    if (data.quotation_id)
+      await tx.quotation.update({ where: { id: data.quotation_id }, data: { invoiceId: invoice.id, status: "converted" } });
+    return invoice;
   });
 
   return mapPrismaInvoiceToInvoice(created);
@@ -354,6 +368,9 @@ export async function updateInvoice(
 
       const currency =
         data.currency || (existing.currency as SupportedCurrency) || "BHD";
+      const nextIssue = data.issue_date ? new Date(data.issue_date) : existing.issueDate;
+      const nextDue = data.due_date ? new Date(data.due_date) : existing.dueDate;
+      if (nextDue < nextIssue) throw new Error("The due date cannot be before the issue date");
       const lineItemsToCalc =
         data.line_items ||
         existing.lineItems.map((li) => ({
@@ -367,7 +384,7 @@ export async function updateInvoice(
       const totals = calculateInvoiceTotals(
         lineItemsToCalc.map((li) => ({
           ...li,
-          line_total: li.quantity * li.unit_price,
+          line_total: lineTotal(li.quantity, li.unit_price, currency),
         })),
         data.discount_type || (existing.discountType as DiscountType) || "none",
         data.discount_value ?? Number(existing.discountValue || 0),
@@ -419,7 +436,7 @@ export async function updateInvoice(
                     descriptionAr: li.description_ar || null,
                     quantity: li.quantity,
                     unitPrice: li.unit_price,
-                    lineTotal: li.quantity * li.unit_price,
+                    lineTotal: lineTotal(li.quantity, li.unit_price, currency),
                     displayOrder: idx + 1,
                   })),
                 },
@@ -458,7 +475,12 @@ export async function updateInvoiceStatus(
         throw new Error(
           "Paid invoices require a credit adjustment before voiding",
         );
-      await tx.invoice.update({ where: { id }, data: { status } });
+      if (!(INVOICE_STATUS_TRANSITIONS[invoice.status] ?? []).includes(status))
+        throw new Error(`An invoice cannot move from ${invoice.status} to ${status}`);
+      await tx.invoice.update({
+        where: { id },
+        data: { status, ...(status === "sent" && !invoice.deliveredAt ? { deliveredAt: new Date() } : {}) },
+      });
     });
     return true;
   } catch (e) {
@@ -475,4 +497,14 @@ export async function deleteInvoice(id: string): Promise<boolean> {
     console.error(`Error deleting invoice ${id}:`, e);
     throw e;
   }
+}
+
+/** Marks issued invoices past their due date as overdue. Run daily by the maintenance worker. */
+export async function markOverdueInvoices(asOf: Date = new Date()): Promise<number> {
+  const startOfDay = new Date(Date.UTC(asOf.getUTCFullYear(), asOf.getUTCMonth(), asOf.getUTCDate()));
+  const result = await db.invoice.updateMany({
+    where: { status: { in: ["sent", "partially_paid"] }, dueDate: { lt: startOfDay } },
+    data: { status: "overdue" },
+  });
+  return result.count;
 }

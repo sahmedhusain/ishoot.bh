@@ -173,7 +173,7 @@ async function runTests() {
   console.log("\nTest 4: Financial Report Purity and Formula-Safe CSV...");
 
   const mockInvoices = [
-    { totalAmount: 1100, subtotal: 1000, vatAmount: 100, vatEnabled: true, currency: "BHD" },
+    { totalAmount: 1100, subtotal: 1000, discountAmount: 0, vatAmount: 100, vatEnabled: true, currency: "BHD" },
   ];
   const mockPayments = [
     { amount: 550, invoice: { totalAmount: 1100, subtotal: 1000, vatAmount: 100 } },
@@ -188,9 +188,9 @@ async function runTests() {
   const reportQueries = loadTs("packages/database/src/queries/finance-reports.ts", {
     "../db": {
       db: {
-        invoice: { findMany: async () => mockInvoices },
+        invoice: { findMany: async () => mockInvoices, count: async () => 0 },
         payment: { findMany: async () => mockPayments },
-        expense: { findMany: async () => mockExpenses },
+        expense: { findMany: async () => mockExpenses, count: async () => 0 },
         payrollRun: { findMany: async () => [{ totalEmployerCost: 300 }] },
         bankSettlement: { findMany: async () => mockSettlements },
       },
@@ -251,9 +251,13 @@ async function runTests() {
 
   let createdInvoice = null;
 
+  let locks = 0;
   const quotationConversionQueries = loadTs("packages/database/src/queries/quotations.ts", {
     "../db": {
+      runAtomicMutation: async (fn) => fn(),
       db: {
+        $queryRaw: async () => { locks++; return []; },
+        companySetting: { findFirst: async () => ({ paymentTermsDays: 14 }) },
         quotation: {
           findUnique: async () => quotationDb,
           update: async ({ data }) => {
@@ -266,29 +270,15 @@ async function runTests() {
             if (createdInvoice && createdInvoice.id === where.id) return createdInvoice;
             return null;
           },
-        },
-        $transaction: async (fn) => {
-          return fn({
-            invoice: {
-              create: async ({ data }) => {
-                createdInvoice = {
-                  id: "inv-created-99",
-                  invoiceNumber: "INV-2026-000001",
-                  ...data,
-                };
-                return createdInvoice;
-              },
-            },
-            quotation: {
-              update: async ({ data }) => {
-                quotationDb = { ...quotationDb, ...data };
-                return quotationDb;
-              },
-            },
-          });
+          create: async ({ data }) => {
+            createdInvoice = { id: "inv-created-99", ...data };
+            return createdInvoice;
+          },
         },
       },
     },
+    "../types": { calculateInvoiceTotals: () => ({}) },
+    "../finance/numbering": { allocateDocumentNumber: async () => "INV-2026-0001" },
     "./leave": {
       assertActorNotOnLeave: async () => {},
     },
@@ -313,7 +303,10 @@ async function runTests() {
   const secondConvert = await quotationConversionQueries.convertQuotationToInvoice("q-accepted-1", "admin-actor");
   assert.equal(secondConvert.isExisting, true);
   assert.equal(secondConvert.invoiceId, "inv-created-99");
-  assert.equal(secondConvert.invoiceNumber, "INV-2026-000001");
+  assert.equal(secondConvert.invoiceNumber, "INV-2026-0001", "conversions use the same invoice counter as manual invoices");
+  assert.equal(locks, 2, "each conversion locks the quotation row");
+  const due = (createdInvoice.dueDate - createdInvoice.issueDate) / 86400000;
+  assert.equal(Math.round(due), 14, "due date follows company payment terms");
   console.log("  ✓ Quotation to invoice conversion is strictly idempotent");
 
   // =========================================================================
