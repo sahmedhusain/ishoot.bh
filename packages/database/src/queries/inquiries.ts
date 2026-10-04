@@ -1,4 +1,11 @@
 import { db } from "../db";
+import {
+  REQUEST_CLOSED_STATUSES,
+  REQUEST_TEAMS,
+  REQUEST_TRANSITION_TARGET,
+  canTransitionRequest,
+  type RequestTransition,
+} from "../constants/requests";
 import type { Prisma } from "@prisma/client";
 import { Inquiry } from "../types";
 
@@ -188,41 +195,9 @@ export async function updateInquiryStatus(
   }
 }
 
-type Transition =
-  "assign" | "reassign" | "return" | "approve" | "confirm" | "resolve";
-const allowedStates: Record<Transition, string[]> = {
-  assign: ["received", "under_review", "returned", "assigned", "in_progress"],
-  reassign: [
-    "assigned",
-    "in_progress",
-    "pending_approval",
-    "approved",
-    "returned",
-  ],
-  return: [
-    "received",
-    "under_review",
-    "assigned",
-    "in_progress",
-    "pending_approval",
-    "approved",
-    "confirmed",
-  ],
-  approve: ["assigned", "in_progress", "pending_approval"],
-  confirm: ["approved"],
-  resolve: [
-    "received",
-    "under_review",
-    "assigned",
-    "in_progress",
-    "approved",
-    "confirmed",
-    "returned",
-  ],
-};
 async function transitionRequest(
   id: string,
-  action: Transition,
+  action: RequestTransition,
   input: {
     actorId: string;
     actorName?: string;
@@ -249,25 +224,15 @@ async function transitionRequest(
     !input.notes?.trim()
   )
     throw new Error("Notes are required");
-  if (
-    input.team !== undefined &&
-    ![
-      "production",
-      "post_production",
-      "finance",
-      "sales",
-      "executive",
-      "support",
-    ].includes(input.team)
-  )
+  if (input.team !== undefined && !(REQUEST_TEAMS as readonly string[]).includes(input.team))
     throw new Error("Invalid team");
   return db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT "id" FROM "Inquiry" WHERE "id" = ${id} FOR UPDATE`;
     const existing = await tx.inquiry.findUnique({ where: { id } });
     if (!existing) throw new Error("Request not found");
     if (
-      !allowedStates[action].includes(existing.workflowStatus) ||
-      ["resolved", "archived", "rejected"].includes(existing.status)
+      !canTransitionRequest(existing.workflowStatus, action) ||
+      (REQUEST_CLOSED_STATUSES as readonly string[]).includes(existing.status)
     )
       throw new Error(
         "Request state changed or transition is unavailable. Refresh the request.",
@@ -296,16 +261,7 @@ async function transitionRequest(
       action,
     });
     const data = {
-      workflowStatus:
-        action === "assign" || action === "reassign"
-          ? "assigned"
-          : action === "return"
-            ? "returned"
-            : action === "approve"
-              ? "approved"
-              : action === "confirm"
-                ? "confirmed"
-                : "resolved",
+      workflowStatus: REQUEST_TRANSITION_TARGET[action],
       customAssignments: history,
       ...(action === "assign" || action === "reassign"
         ? {
@@ -408,6 +364,18 @@ export async function returnRequest(
     notes: input.reason,
   });
 }
+/** Moves finished work to pending_approval; the caller then submits it to the approval engine. */
+export async function submitRequestForApproval(
+  id: string,
+  input: { submittedById: string; submittedByName?: string; notes?: string },
+) {
+  return transitionRequest(id, "submit", {
+    actorId: input.submittedById,
+    actorName: input.submittedByName,
+    notes: input.notes,
+  });
+}
+/** Applied by the approval engine when the service request policy's approvers sign off. */
 export async function approveRequest(
   id: string,
   input: { approvedById: string; approvedByName?: string; notes?: string },

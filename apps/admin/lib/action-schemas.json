@@ -1,4 +1,86 @@
 {
+  "updateApprovalPolicyAction": {
+    "kind": "object",
+    "fields": {
+      "targetType": {
+        "kind": "string",
+        "optional": false
+      },
+      "policy": {
+        "kind": "object",
+        "fields": {
+          "enabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "allowSelfApproval": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "autoApproveRoles": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "steps": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "approverMode": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "roleKey": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "userId": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "permission": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "decideApprovalAction": {
     "kind": "object",
     "fields": {
@@ -4623,6 +4705,10 @@
               }
             },
             "optional": true
+          },
+          "userId": {
+            "kind": "string",
+            "optional": true
           }
         },
         "optional": false
@@ -5984,6 +6070,25 @@
       }
     }
   },
+  "submitRequestForApprovalAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "details": {
+        "kind": "object",
+        "fields": {
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "confirmRequestAction": {
     "kind": "object",
     "fields": {
@@ -6158,26 +6263,6 @@
       }
     }
   },
-  "addRequestEventAction": {
-    "kind": "object",
-    "fields": {
-      "inquiryId": {
-        "kind": "string",
-        "optional": false
-      },
-      "eventType": {
-        "kind": "string",
-        "optional": false
-      },
-      "details": {
-        "kind": "record",
-        "element": {
-          "kind": "unknown"
-        },
-        "optional": false
-      }
-    }
-  },
   "upsertRoleAction": {
     "kind": "object",
     "fields": {
@@ -6196,36 +6281,10 @@
             "kind": "string",
             "optional": false
           },
-          "permissions": {
-            "kind": "array",
+          "grants": {
+            "kind": "record",
             "element": {
-              "kind": "object",
-              "fields": {
-                "module": {
-                  "kind": "string",
-                  "optional": false
-                },
-                "canRead": {
-                  "kind": "boolean",
-                  "optional": false
-                },
-                "canWrite": {
-                  "kind": "boolean",
-                  "optional": false
-                },
-                "canDelete": {
-                  "kind": "boolean",
-                  "optional": false
-                },
-                "canApprove": {
-                  "kind": "boolean",
-                  "optional": false
-                },
-                "canExport": {
-                  "kind": "boolean",
-                  "optional": true
-                }
-              }
+              "kind": "boolean"
             },
             "optional": false
           }

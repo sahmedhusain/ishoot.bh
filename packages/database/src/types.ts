@@ -839,6 +839,10 @@ export interface Notification {
   type: "info" | "warning" | "success" | "action";
   entity_type?: string;
   entity_id?: string;
+  /** Locale key (under admin.*) for title/message; `title`/`message` hold the English fallback. */
+  message_key?: string;
+  message_params?: Record<string, string>;
+  action_url?: string;
   is_read: boolean;
   created_at: string;
 }
@@ -1126,8 +1130,8 @@ export interface SocialMetric {
   createdAt: Date;
 }
 
-export type ApprovalTargetType = "quotation" | "invoice" | "profile_change" | "leave_request" | "payroll_run";
-export type ApprovalStatus = "pending" | "approved" | "rejected" | "superseded";
+export type { ApprovalTargetType, ApprovalStatus } from "./constants/approvals";
+import type { ApprovalTargetType, ApprovalStatus } from "./constants/approvals";
 
 export interface ApprovalRequest {
   id: string;
@@ -1142,6 +1146,9 @@ export interface ApprovalRequest {
   diffPayload?: any | null;
   discountReason?: string | null;
   decisions?: ApprovalDecision[];
+  currentStep: number;
+  approverIds: string[];
+  selfApproved: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -1153,6 +1160,7 @@ export interface ApprovalDecision {
   decidedById: string;
   decidedBy?: { id: string; fullName: string; email: string };
   reason?: string | null;
+  step?: number;
   decidedAt: Date | string;
 }
 

@@ -3,8 +3,10 @@ import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
   requestProfileChange,
-  approveProfileChange,
-  rejectProfileChange,
+  submitForApproval,
+  findPendingApproval,
+  decideApprovalRequest,
+  cancelPendingApprovals,
   db,
   createActivityLog,
   claimUpload,
@@ -81,7 +83,13 @@ export async function requestIdentityChangeAction(data: {
       throw new Error("Must provide either a new name or a new email");
     }
 
-    const { changeRequest } = await runAtomicMutation(async () => {
+    const { changeRequest, approval } = await runAtomicMutation(async () => {
+      // A new request supersedes earlier pending ones, so withdraw their approvals too.
+      const superseded = await db.profileChangeRequest.findMany({
+        where: { userId: user.id, status: "pending" },
+        select: { id: true },
+      });
+      for (const { id } of superseded) await cancelPendingApprovals("profile_change", id);
       const changeRequest = await requestProfileChange(
         user.id,
         {
@@ -98,13 +106,19 @@ export async function requestIdentityChangeAction(data: {
         entity_id: changeRequest.id,
         details: { newValues: changeRequest.newValues },
       });
+      const approval = await submitForApproval({
+        targetType: "profile_change",
+        targetId: changeRequest.id,
+        requesterId: user.id,
+        diffPayload: { before: changeRequest.oldValues, after: changeRequest.newValues },
+      });
 
-      return { changeRequest };
+      return { changeRequest, approval };
     });
 
     revalidatePath("/dashboard/profile");
     revalidatePath("/dashboard/approvals");
-    return { success: true, changeRequest };
+    return { success: true, changeRequest, approvalStatus: approval.status };
   });
 }
 
@@ -117,26 +131,25 @@ export async function decideProfileChangeAction(
     const actor = await requireAuth();
     validateActionArguments("decideProfileChangeAction", { requestId, decision, notes });
 
-    const { changeRequest } = await runAtomicMutation(async () => {
-      const changeRequest =
-        decision === "approved"
-          ? (await approveProfileChange(requestId, actor.id, actor.role, notes)).request
-          : await rejectProfileChange(requestId, actor.id, notes || "Rejected");
+    const { outcome } = await runAtomicMutation(async () => {
+      const pending = await findPendingApproval("profile_change", requestId);
+      if (!pending) throw new Error("This profile change has no pending approval");
+      const outcome = await decideApprovalRequest(pending.id, actor.id, decision, notes);
 
       await createActivityLog({
         user_id: actor.id,
         action: `profile_change_${decision}`,
         entity_type: "profile_change_request",
         entity_id: requestId,
-        details: { decision, notes },
+        details: { decision, notes, approvalStatus: outcome.status },
       });
 
-      return { changeRequest };
+      return { outcome };
     });
 
     revalidatePath("/dashboard/approvals");
     revalidatePath("/dashboard/profile");
     revalidatePath("/dashboard/users");
-    return { success: true, changeRequest };
+    return { success: true, approvalStatus: outcome.status };
   });
 }

@@ -6,7 +6,8 @@ const { transactionContext } = require('../packages/database/src/transaction-con
 const { createEmployee, updateEmployee, getEmployeeById } = require('../packages/database/src/queries/hrms.ts');
 const { createPayrollRun, submitPayrollRunForApproval } = require('../packages/database/src/queries/payroll.ts');
 const { createLeaveRequest, approveLeaveRequest } = require('../packages/database/src/queries/leave.ts');
-const { salaryDocumentSnapshot } = require('../apps/admin/lib/salary-documents.ts');
+const { salaryDocumentSnapshot } = require('../packages/database/src/queries/salary-documents.ts');
+const { decideApprovalRequest } = require('../packages/database/src/services/approval-engine.ts');
 const rollback = new Error('ROLLBACK_HRMS_TEST');
 async function main() {
   const url = new URL(process.env.DATABASE_URL);
@@ -36,7 +37,15 @@ async function main() {
       assert.equal(run.totalEmployerCost, 682.5);
       assert.equal(Number((await tx.payrollItem.findFirstOrThrow({ where: { payrollRunId: run.id } })).externalSupport), 562.5);
       const approval = await submitPayrollRunForApproval(run.id, actor.id);
-      assert.equal((await tx.approvalRequest.findUniqueOrThrow({ where: { id: approval.approvalRequestId } })).status, 'approved');
+      const pending = await tx.approvalRequest.findUniqueOrThrow({ where: { id: approval.approvalRequestId } });
+      if (pending.status === 'pending') {
+        // The submitter never approves their own payroll; someone the policy names does.
+        await assert.rejects(decideApprovalRequest(pending.id, actor.id, 'approved'), /your own request/);
+        await decideApprovalRequest(pending.id, pending.approverIds[0], 'approved');
+      } else {
+        assert.equal(pending.selfApproved, true, 'only a sole administrator may self-approve, and it is recorded');
+      }
+      assert.equal((await tx.approvalRequest.findUniqueOrThrow({ where: { id: pending.id } })).status, 'approved');
       assert.equal((await tx.payrollRun.findUniqueOrThrow({ where: { id: run.id } })).status, 'approved');
       const snapshot = await salaryDocumentSnapshot(employee.id, 'payslip', ['2199-01']);
       assert.equal(snapshot.items.length, 1);
@@ -49,6 +58,6 @@ async function main() {
       throw rollback;
     }), { timeout: 20000 });
   } catch (error) { if (error !== rollback) throw error; }
-  console.log('HRMS database checks passed and rolled back: employee-first creation, compensation history, support snapshots, on-leave payroll, automatic Super Admin approval, salary month validation and leave balance.');
+  console.log('HRMS database checks passed and rolled back: employee-first creation, compensation history, support snapshots, on-leave payroll, policy-routed payroll approval (no self-approval), salary month validation and leave balance.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => db.$disconnect());

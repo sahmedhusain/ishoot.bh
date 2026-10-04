@@ -8,6 +8,7 @@
  * 5. Idempotent quotation to invoice conversion
  * 6. User lifecycle protection (session revocation on suspension, last super admin invariant)
  */
+const { realConstants } = require("./lib/real-constants.cjs");
 
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -31,6 +32,8 @@ function loadTs(file, mocks) {
       id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
       if (id in mocks) return mocks[id];
       if (id.startsWith("node:")) return require(id);
+      const real = realConstants(file, id);
+      if (real) return real;
       throw new Error(`Unmocked dependency in ${file}: ${id}`);
     },
     console,
@@ -53,164 +56,7 @@ function loadTs(file, mocks) {
 async function runTests() {
   console.log("Starting Admin Dashboard Plan Verification...\n");
 
-  // =========================================================================
-  // Test 1: Super Admin Maker-Checker and Financial Gating
-  // =========================================================================
-  console.log("Test 1: Super Admin Maker-Checker and Financial Gating...");
-
-  let approvalRequestsDb = [
-    {
-      id: "apr-quote-1",
-      targetType: "quotation",
-      targetId: "q-101",
-      requestedById: "creator-admin-1",
-      status: "pending",
-    },
-    {
-      id: "apr-invoice-1",
-      targetType: "invoice",
-      targetId: "inv-201",
-      requestedById: "accountant-1",
-      status: "pending",
-    },
-    {
-      id: "apr-payroll-1",
-      targetType: "payroll_run",
-      targetId: "pr-301",
-      requestedById: "hr-admin-1",
-      status: "pending",
-    },
-  ];
-
-  let targetDocuments = {
-    "q-101": { id: "q-101", status: "submitted" },
-    "inv-201": { id: "inv-201", approvalStatus: "pending_approval" },
-    "pr-301": { id: "pr-301", status: "submitted" },
-  };
-
-  const approvalsQuery = loadTs("packages/database/src/queries/approvals.ts", {
-    "./permissions": { hasPermission: async role => role === "super_admin" },
-    "../db": {
-      db: {
-        user: { findUnique: async ({ where }) => ({ id: where.id, role: "super_admin", permissions: null }) },
-        approvalRequest: {
-          findUnique: async ({ where }) => {
-            return approvalRequestsDb.find((r) => r.id === where.id) || null;
-          },
-          update: async ({ where, data }) => {
-            const req = approvalRequestsDb.find((r) => r.id === where.id);
-            if (req) Object.assign(req, data);
-            return req;
-          },
-        },
-        $transaction: async (fn) => {
-          return fn({
-            approvalDecision: {
-              create: async ({ data }) => ({
-                id: "dec-1",
-                ...data,
-                decidedAt: new Date(),
-                decidedBy: { id: data.decidedById, fullName: "Decider", email: "d@test.com" },
-              }),
-            },
-            approvalRequest: {
-              update: async ({ where, data }) => {
-                const req = approvalRequestsDb.find((r) => r.id === where.id);
-                if (req) Object.assign(req, data);
-                return req;
-              },
-            },
-            quotation: {
-              update: async ({ where, data }) => {
-                if (targetDocuments[where.id]) Object.assign(targetDocuments[where.id], data);
-                return targetDocuments[where.id];
-              },
-            },
-            invoice: {
-              update: async ({ where, data }) => {
-                if (targetDocuments[where.id]) Object.assign(targetDocuments[where.id], data);
-                return targetDocuments[where.id];
-              },
-            },
-            payrollRun: {
-              update: async ({ where, data }) => {
-                if (targetDocuments[where.id]) Object.assign(targetDocuments[where.id], data);
-                return targetDocuments[where.id];
-              },
-            },
-            profileChangeRequest: {
-              update: async () => {},
-            },
-            leaveRequest: {
-              update: async () => {},
-            },
-            user: {
-              update: async () => {},
-            },
-          });
-        },
-      },
-    },
-  });
-
-  // 1.1 Non-Super Admin cannot approve financial documents (quotations, invoices, payroll)
-  await assert.rejects(
-    approvalsQuery.decideApproval("apr-quote-1", "approved", {
-      id: "finance-mgr-1",
-      role: "finance_manager",
-    }),
-    /Super Admin approval is strictly required/i,
-    "Finance manager must not be able to approve quotations without super_admin role",
-  );
-
-  await assert.rejects(
-    approvalsQuery.decideApproval("apr-invoice-1", "approved", {
-      id: "admin-1",
-      role: "admin",
-    }),
-    /Super Admin approval is strictly required/i,
-    "Admin role must not be able to approve invoices without super_admin role",
-  );
-
-  await assert.rejects(
-    approvalsQuery.decideApproval("apr-payroll-1", "approved", {
-      id: "hr-mgr-1",
-      role: "admin",
-    }),
-    /Super Admin approval is strictly required/i,
-    "Non-super-admin must not approve payroll runs",
-  );
-
-  // 1.2 Ordinary creators cannot self-approve; Super Admin is exempt.
-  await assert.rejects(
-    approvalsQuery.decideApproval("apr-quote-1", "approved", {
-      id: "creator-admin-1",
-      role: "admin",
-    }),
-    /Maker-checker violation: creators cannot self-approve/i,
-    "Ordinary creators cannot self-approve financial documents",
-  );
-
-  // 1.3 Super Admin creators can approve their own requests
-  const quoteApprovalRes = await approvalsQuery.decideApproval(
-    "apr-quote-1",
-    "approved",
-    { id: "creator-admin-1", role: "super_admin" },
-    "Super Admin creator approval",
-  );
-  assert.equal(quoteApprovalRes.success, true);
-  assert.equal(targetDocuments["q-101"].status, "approved");
-
-  const invApprovalRes = await approvalsQuery.decideApproval(
-    "apr-invoice-1",
-    "approved",
-    { id: "second-super-admin-2", role: "super_admin" },
-    "Invoice approved",
-  );
-  assert.equal(invApprovalRes.success, true);
-  assert.equal(targetDocuments["inv-201"].approvalStatus, "approved");
-
-  console.log("  ✓ Super Admin financial gating and maker-checker strictly enforced for quotes, invoices & payroll");
+  // Approval routing (maker-checker, policies, self-approval) is covered by scripts/check-approvals.cjs.
 
   // =========================================================================
   // Test 2: Approved Leave Availability Constraints
@@ -449,8 +295,8 @@ async function runTests() {
     "./sequence": {
       getNextSequenceNumber: async () => "INV-2026-000001",
     },
-    "./approvals": {
-      createApprovalRequest: async () => ({ id: "apr-1" }),
+    "../services/approval-engine": {
+      submitForApproval: async () => ({ approvalRequestId: "apr-1", status: "pending", finalized: false, approverIds: [] }),
     },
     "./fx-settlement": {
       getLatestExchangeRate: async () => ({ rate: 1.0, isFallback: false, provider: "parity", effectiveDate: new Date() }),
@@ -556,7 +402,7 @@ async function runTests() {
   console.log("  ✓ User lifecycle verified: Last Super Admin protected against deactivation, demotion and deletion");
 
   console.log("\n============================================================");
-  console.log("ALL 6 ADMIN DASHBOARD PLAN SUITES PASSED CLEANLY (100%)");
+  console.log("ALL 5 ADMIN DASHBOARD PLAN SUITES PASSED CLEANLY (100%)");
   console.log("============================================================");
 }
 

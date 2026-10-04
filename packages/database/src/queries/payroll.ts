@@ -4,7 +4,7 @@ import {
 } from "../payroll-calculation";
 import { db } from "../db";
 import { PayrollRun } from "../types";
-import { createApprovalRequest } from "./approvals";
+import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
 
 export async function createPayrollRun(
@@ -222,11 +222,11 @@ export async function submitPayrollRunForApproval(
     throw new Error(`Payroll run cannot be submitted: status is ${run.status}`);
   }
 
-  const approvalReq = await createApprovalRequest({
+  await db.payrollRun.update({ where: { id }, data: { status: "submitted" } });
+  const approvalReq = await submitForApproval({
     targetType: "payroll_run",
     targetId: run.id,
-    revision: 1,
-    requestedById: actorId,
+    requesterId: actorId,
     policySnapshot: {
       month: run.month,
       year: run.year,
@@ -244,81 +244,7 @@ export async function submitPayrollRunForApproval(
     },
   });
 
-  await db.payrollRun.update({
-    where: { id },
-    data: {
-      status: approvalReq.status === "approved" ? "approved" : "submitted",
-    },
-  });
-
-  return { success: true, approvalRequestId: approvalReq.id };
-}
-
-export async function approvePayrollRun(
-  runId: string,
-  actorId: string,
-): Promise<PayrollRun> {
-  await assertActorNotOnLeave(actorId);
-
-  const actor = await db.user.findUnique({
-    where: { id: actorId },
-    select: { role: true },
-  });
-  if (actor?.role !== "super_admin")
-    throw new Error("Super Admin approval required");
-  const run = await db.payrollRun.findUniqueOrThrow({ where: { id: runId } });
-  if (!["calculated", "submitted"].includes(run.status))
-    throw new Error("Payroll must be calculated or submitted before approval");
-  const updated = await db.payrollRun.update({
-    where: { id: runId },
-    data: {
-      status: "approved",
-      approvedById: actorId,
-      approvedAt: new Date(),
-    },
-    include: {
-      items: {
-        include: {
-          employee: {
-            select: {
-              id: true,
-              firstNameEn: true,
-              lastNameEn: true,
-              employeeNumber: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  return {
-    ...updated,
-    totalGross: Number(updated.totalGross),
-    totalDeductions: Number(updated.totalDeductions),
-    totalNet: Number(updated.totalNet),
-    totalEmployerCost: Number(updated.totalEmployerCost),
-    periodStart: updated.periodStart.toISOString(),
-    periodEnd: updated.periodEnd.toISOString(),
-    createdAt: updated.createdAt.toISOString(),
-    updatedAt: updated.updatedAt.toISOString(),
-    approvedAt: updated.approvedAt?.toISOString() || null,
-    paidAt: updated.paidAt?.toISOString() || null,
-    items: updated.items.map((it) => ({
-      ...it,
-      basicSalary: Number(it.basicSalary),
-      housingAllowance: Number(it.housingAllowance),
-      transportAllowance: Number(it.transportAllowance),
-      otherAllowances: Number(it.otherAllowances),
-      grossSalary: Number(it.grossSalary),
-      gosiEmployee: Number(it.gosiEmployee),
-      gosiEmployer: Number(it.gosiEmployer),
-      externalSupport: Number(it.externalSupport),
-      otherDeductions: Number(it.otherDeductions),
-      netSalary: Number(it.netSalary),
-      createdAt: it.createdAt.toISOString(),
-    })),
-  };
+  return { success: true, approvalRequestId: approvalReq.approvalRequestId };
 }
 
 export async function markPayrollAsPaid(

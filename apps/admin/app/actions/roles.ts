@@ -6,18 +6,15 @@ import { requirePermission } from "../../lib/auth";
 import { db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 
+/**
+ * Saves a role and the permission cells that changed. Cells that are not submitted keep their stored value,
+ * so the Roles screen can never silently revoke permissions it does not display.
+ */
 export async function upsertRoleAction(data: {
   id?: string;
   nameEn: string;
   nameAr: string;
-  permissions: {
-    module: string;
-    canRead: boolean;
-    canWrite: boolean;
-    canDelete: boolean;
-    canApprove: boolean;
-    canExport?: boolean;
-  }[];
+  grants: Record<string, boolean>;
 }) {
   return measureOperation("action:upsertRoleAction", async () => {
     const actor = await requirePermission("users", "write");
@@ -32,36 +29,17 @@ export async function upsertRoleAction(data: {
       typeof data.nameAr !== "string" ||
       !data.nameAr.trim() ||
       data.nameAr.length > 100 ||
-      !Array.isArray(data.permissions)
+      !data.grants ||
+      typeof data.grants !== "object" ||
+      Array.isArray(data.grants)
     )
       throw new Error("Invalid role");
-    const actionFields: Record<string, string> = {
-      read: "canRead",
-      write: "canWrite",
-      delete: "canDelete",
-      approve: "canApprove",
-      export: "canExport",
-      create: "canCreate",
-      edit: "canEdit",
-      assign: "canAssign",
-      issue_send: "canIssueSend",
-      manage_permissions: "canManagePermissions",
-      reset_credentials: "canResetCredentials",
-    };
-    const coreFields = ["canRead", "canWrite", "canDelete", "canApprove", "canExport"] as const;
-    const submitted = new Map<string, (typeof data.permissions)[number]>();
-    for (const permission of data.permissions) {
-      if (
-        !permission ||
-        !ALL_RESOURCES.includes(permission.module as any) ||
-        submitted.has(permission.module)
-      )
-        throw new Error("Invalid permission resource");
-      for (const field of coreFields) {
-        if (typeof (permission as any)[field] !== "boolean")
-          throw new Error("Invalid permission value");
-      }
-      submitted.set(permission.module, permission);
+    const validKeys = new Set(
+      ALL_RESOURCES.flatMap((resource) => ALL_ACTIONS.map((action) => `${resource}:${action}`)),
+    );
+    for (const [key, allowed] of Object.entries(data.grants)) {
+      if (!validKeys.has(key) || key.endsWith(":write")) throw new Error("Invalid permission resource");
+      if (typeof allowed !== "boolean") throw new Error("Invalid permission value");
     }
     await db.$transaction(async (tx) => {
       const role = data.id
@@ -76,39 +54,42 @@ export async function upsertRoleAction(data: {
               isSystem: false,
             },
           });
-      await tx.permission.deleteMany({ where: { role: role.id } });
-      await tx.permission.createMany({
-        data: ALL_RESOURCES.flatMap((resource) =>
-          ALL_ACTIONS.map((action) => {
-            let allowed = false;
-            if (role.id === "super_admin") {
-              allowed = true;
-            } else if ((resource === "invoices" || resource === "quotations" || resource === "payroll") && action === "approve") {
-              allowed = false;
-            } else {
-              const perm = submitted.get(resource) as any;
-              const field = actionFields[action];
-              if (perm && field && typeof perm[field] === "boolean") {
-                allowed = perm[field];
-              } else if (perm && (action === "create" || action === "edit")) {
-                allowed = perm.canWrite === true;
-              }
-            }
-            return {
-              role: role.id,
-              resource,
-              action,
-              allowed,
-            };
-          }),
-        ),
-      });
+      const isSuperAdmin = role.id === "super_admin";
+      const stored = new Map<string, boolean>(
+        (await tx.permission.findMany({
+          where: { role: role.id },
+          select: { resource: true, action: true, allowed: true },
+        })).map((p) => [`${p.resource}:${p.action}`, p.allowed]),
+      );
+      const desired = new Map<string, boolean>();
+      for (const [key, allowed] of Object.entries(data.grants)) desired.set(key, isSuperAdmin || allowed);
+      // Legacy "write" grant mirrors create/edit so older checks stay consistent.
+      for (const resource of ALL_RESOURCES) {
+        const create = desired.get(`${resource}:create`) ?? stored.get(`${resource}:create`);
+        const edit = desired.get(`${resource}:edit`) ?? stored.get(`${resource}:edit`);
+        if (desired.has(`${resource}:create`) || desired.has(`${resource}:edit`))
+          desired.set(`${resource}:write`, isSuperAdmin || create === true || edit === true);
+      }
+      if (isSuperAdmin) validKeys.forEach((key) => desired.set(key, true));
+      const changes: Array<{ key: string; from: boolean | null; to: boolean }> = [];
+      for (const [key, allowed] of Array.from(desired)) {
+        const before = stored.get(key);
+        if (before === allowed) continue;
+        const [resource, action] = key.split(":");
+        await tx.permission.upsert({
+          where: { role_resource_action: { role: role.id, resource, action } },
+          update: { allowed },
+          create: { role: role.id, resource, action, allowed },
+        });
+        changes.push({ key, from: before ?? null, to: allowed });
+      }
       await tx.activityLog.create({
         data: {
           userId: actor.id,
           action: "update",
           entityType: "role",
           entityId: role.id,
+          diffPayload: { changes },
         },
       });
     });

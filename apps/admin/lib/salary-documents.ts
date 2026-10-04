@@ -1,10 +1,10 @@
-import { db, hasPermission } from "@ishoot/database";
+import { db, hasPermission, canDecideApproval } from "@ishoot/database";
+export { salaryDocumentSnapshot } from "@ishoot/database";
 import type { Profile } from "@ishoot/database";
 
 export async function canManageSalaryDocuments(user: Profile) {
   return (
-    (await hasPermission(user.role, "employees", "edit", user.permissions)) &&
-    (await hasPermission(user.role, "payroll", "read", user.permissions))
+    await hasPermission(user.role, "payroll", "issue_send", user.permissions)
   );
 }
 export interface SalaryDocumentRecord {
@@ -44,49 +44,25 @@ export async function getAccessibleSalaryDocument(
     throw new Error("Salary document access denied");
   return document;
 }
-export async function salaryDocumentSnapshot(
-  employeeId: string,
-  kind: string,
-  months: string[],
-) {
-  const employee = await db.employee.findUniqueOrThrow({
-    where: { id: employeeId },
-    include: { employmentRecords: { where: { isCurrent: true }, take: 1 } },
-  });
-  const identity = {
-    employeeNumber: employee.employeeNumber,
-    firstNameEn: employee.firstNameEn,
-    lastNameEn: employee.lastNameEn,
-    firstNameAr: employee.firstNameAr,
-    lastNameAr: employee.lastNameAr,
-    jobTitleEn: employee.jobTitleEn,
-    jobTitleAr: employee.jobTitleAr,
-    hireDate: employee.hireDate.toISOString(),
-  };
-  if (kind === "salary_certificate") {
-    const record = employee.employmentRecords[0];
-    if (!record) throw new Error("Employee compensation is missing");
-    return JSON.parse(
-      JSON.stringify({ employee: identity, compensation: record }),
-    );
-  }
+
+/** Months (YYYY-MM) with approved, paid or closed payroll for this employee — the only ones a payslip can cover. */
+export async function availablePayslipMonths(employeeId: string): Promise<string[]> {
   const items = await db.payrollItem.findMany({
-    where: {
-      employeeId,
-      payrollRun: {
-        status: { in: ["approved", "paid", "closed"] },
-        OR: months.map((value) => ({
-          year: Number(value.slice(0, 4)),
-          month: Number(value.slice(5)),
-        })),
-      },
-    },
-    include: {
-      payrollRun: { select: { month: true, year: true, status: true } },
-    },
-    orderBy: { payrollRun: { periodStart: "asc" } },
+    where: { employeeId, payrollRun: { status: { in: ["approved", "paid", "closed"] } } },
+    select: { payrollRun: { select: { year: true, month: true } } },
   });
-  if (items.length !== months.length)
-    throw new Error("Approved payroll is required for every selected month");
-  return JSON.parse(JSON.stringify({ employee: identity, items }));
+  return items
+    .map(({ payrollRun }) => `${payrollRun.year}-${String(payrollRun.month).padStart(2, "0")}`)
+    .sort()
+    .reverse();
+}
+
+/** Salary document ids (from `ids`) the user may issue or reject now, per the approval policy. */
+export async function decidableSalaryDocumentIds(user: Profile, ids: string[]): Promise<string[]> {
+  if (!ids.length) return [];
+  const pending = await db.approvalRequest.findMany({
+    where: { targetType: "salary_document", targetId: { in: ids }, status: "pending" },
+    select: { targetId: true, status: true, requestedById: true, approverIds: true },
+  });
+  return pending.filter((request) => canDecideApproval(request, user)).map((request) => request.targetId);
 }

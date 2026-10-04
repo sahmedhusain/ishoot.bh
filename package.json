@@ -35,7 +35,9 @@
     "test:uploads": "node scripts/check-upload-storage.cjs",
     "test:dashboard": "node scripts/check-admin-dashboard.cjs",
     "test:hrms": "node scripts/check-hrms.cjs && node scripts/check-hrms-pdf.cjs",
-    "test:hrms-db": "node scripts/check-hrms-db.cjs"
+    "test:hrms-db": "node scripts/check-hrms-db.cjs",
+    "test:approvals": "node scripts/check-approvals.cjs",
+    "test:approvals-db": "node scripts/check-approvals-db.cjs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",

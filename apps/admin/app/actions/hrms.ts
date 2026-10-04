@@ -9,6 +9,7 @@ import {
   createDepartment,
   updateDepartment,
   createActivityLog,
+  db,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
@@ -31,12 +32,19 @@ export async function createEmployeeAction(data: {
   transportAllowance?: number;
   otherAllowances?: number;
   payrollSettings?: EmployeePayrollSettings;
+  /** Links the new record to an existing user account that has no employee record yet. */
+  userId?: string;
 }) {
   return measureOperation("action:createEmployeeAction", async () => {
     const actor = await requirePermission("employees", "create");
     validateActionArguments("createEmployeeAction", { data });
 
     const { employee } = await runAtomicMutation(async () => {
+      if (data.userId) {
+        const user = await db.user.findUnique({ where: { id: data.userId }, select: { isActive: true, employee: { select: { id: true } } } });
+        if (!user || !user.isActive) throw new Error("User account not found");
+        if (user.employee) throw new Error("This user already has an employee record");
+      }
       const employee = await createEmployee(
         {
           ...data,

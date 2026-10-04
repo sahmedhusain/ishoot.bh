@@ -1,8 +1,23 @@
 import { requireAuth, hasPermission } from "../../../lib/auth";
-import { listApprovalRequests } from "@ishoot/database";
+import { listApprovalRequests, canDecideApproval, approvalTargetUrl, APPROVAL_TARGET_TYPES } from "@ishoot/database";
 import { ApprovalsCenterView } from "../../../components/approvals/ApprovalsCenterView";
+import type { ApprovalListItem, ApprovalScope } from "../../../types/approvals";
 
 export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 30;
+
+/** Target types whose records a reader may see in the "All" tab. */
+const READ_ACCESS: Array<[string, Parameters<typeof hasPermission>]> = [
+  ["quotation", ["quotations", "read"]],
+  ["invoice", ["invoices", "read"]],
+  ["expense", ["expenses", "read"]],
+  ["payroll_run", ["payroll", "read"]],
+  ["salary_document", ["payroll", "issue_send"]],
+  ["leave_request", ["employees", "read"]],
+  ["profile_change", ["profile_changes", "read"]],
+  ["service_request", ["requests", "read"]],
+];
 
 export default async function ApprovalsPage({
   searchParams,
@@ -11,38 +26,50 @@ export default async function ApprovalsPage({
 }) {
   const user = await requireAuth();
   const query = await searchParams;
-  const status = typeof query.status === "string" ? query.status : "pending";
-  const targetType = typeof query.type === "string" ? query.type : undefined;
+  const readable = (
+    await Promise.all(READ_ACCESS.map(async ([type, [resource, action]]) => ((await hasPermission(resource, action)) ? type : null)))
+  ).filter((type): type is string => type !== null);
+
+  const requestedScope = typeof query.scope === "string" ? query.scope : "awaiting";
+  const scope: ApprovalScope =
+    requestedScope === "mine" ? "mine" : requestedScope === "all" && readable.length ? "all" : "awaiting";
+  const status = scope === "awaiting" ? "pending" : typeof query.status === "string" ? query.status : "all";
+  const rawType = typeof query.type === "string" ? query.type : "all";
+  const targetType = (APPROVAL_TARGET_TYPES as readonly string[]).includes(rawType) ? rawType : undefined;
   const page = Math.max(1, Number(query.page) || 1);
 
-  const access = await Promise.all([
-    hasPermission("quotations", "read"), hasPermission("invoices", "read"), hasPermission("payroll", "read"), hasPermission("employees", "read"), hasPermission("profile_changes", "read"), hasPermission("employees", "approve"), hasPermission("profile_changes", "approve"),
+  const [{ items, total }, awaitingCount, mineOpenCount] = await Promise.all([
+    listApprovalRequests({
+      ...(scope === "awaiting" ? { awaitingUserId: user.id } : {}),
+      ...(scope === "mine" ? { requestedById: user.id } : {}),
+      ...(scope === "all" ? { visibleToUserId: user.id, readableTargetTypes: readable } : {}),
+      status: status === "all" ? undefined : status,
+      targetType,
+      page,
+      pageSize: PAGE_SIZE,
+    }),
+    listApprovalRequests({ awaitingUserId: user.id, status: "pending", pageSize: 1 }).then((r) => r.total),
+    listApprovalRequests({ requestedById: user.id, status: "pending", pageSize: 1 }).then((r) => r.total),
   ]);
-  const readableTargetTypes = ["quotation", "invoice", "payroll_run", "leave_request", "profile_change"].filter((_, index) => access[index]);
-  const { items: requests, total } = await listApprovalRequests({
-    visibleToUserId: user.id,
-    readableTargetTypes,
-    status: status === "all" ? undefined : status,
-    targetType: targetType === "all" ? undefined : targetType,
-    page,
-    pageSize: 30,
-  });
 
-  // Calculate categorized metrics
-  const isSuperAdmin = user.role === "super_admin";
+  const requests: ApprovalListItem[] = items.map((item) => ({
+    ...item,
+    canDecide: canDecideApproval(item, user),
+    href: approvalTargetUrl(item.targetType, item.targetId),
+  }));
 
   return (
     <ApprovalsCenterView
-      initialRequests={requests}
+      requests={requests}
       total={total}
-      currentStatus={status}
-      currentType={targetType || "all"}
-      currentUserId={user.id}
-      currentUserRole={user.role}
-      canApproveLeave={access[5]}
-      canApproveProfile={access[6]}
-      isSuperAdmin={isSuperAdmin}
+      pageSize={PAGE_SIZE}
       page={page}
+      scope={scope}
+      status={status}
+      targetType={targetType ?? "all"}
+      canViewAll={readable.length > 0}
+      currentUserId={user.id}
+      counts={{ awaiting: awaitingCount, mine: mineOpenCount }}
     />
   );
 }

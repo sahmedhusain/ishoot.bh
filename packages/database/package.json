@@ -12,7 +12,8 @@
     "./db": "./src/db.ts",
     "./observability": "./src/observability.ts",
     "./queries/*": "./src/queries/*.ts",
-    "./services/*": "./src/services/*.ts"
+    "./services/*": "./src/services/*.ts",
+    "./constants/*": "./src/constants/*.ts"
   },
   "scripts": {
     "db:generate": "prisma generate --schema=prisma/schema.prisma",

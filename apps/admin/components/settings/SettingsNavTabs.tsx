@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sliders,Building2,History,Share2,Globe } from "lucide-react";
+import { Sliders, Building2, History, Share2, Globe, ShieldCheck } from "lucide-react";
+import { usePermissions } from "../../hooks/usePermissions";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function SettingsNavTabs() {
   const pathname = usePathname();
   const { t } = useAdminLocale();
+  const { role } = usePermissions();
 
   const tabs = [
     {
@@ -35,6 +37,9 @@ export function SettingsNavTabs() {
       label: t.settingsTabs.integrations,
       icon: Share2,
     },
+    ...(role === "super_admin"
+      ? [{ href: "/dashboard/settings/approvals", label: t.settingsTabs.approvals, icon: ShieldCheck }]
+      : []),
   ];
 
   return (

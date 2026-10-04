@@ -1,6 +1,7 @@
 import { requirePermission } from "../../../../lib/auth";
-import { db, ALL_RESOURCES } from "@ishoot/database";
+import { db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";
+import type { RoleWithGrants } from "../../../../types/roles";
 
 export default async function RolesSettingsPage() {
   const actor = await requirePermission("users", "read");
@@ -8,68 +9,35 @@ export default async function RolesSettingsPage() {
     throw new Error("Only super administrators can manage roles");
 
   const [roles, userCounts, permissions] = await Promise.all([
-    db.role.findMany({
-      orderBy: { createdAt: "asc" },
-    }),
-    db.user.groupBy({
-      by: ["role"],
-      _count: { id: true },
-    }),
-    db.permission.findMany(),
+    db.role.findMany({ orderBy: { createdAt: "asc" } }),
+    db.user.groupBy({ by: ["role"], _count: { id: true } }),
+    db.permission.findMany({ select: { role: true, resource: true, action: true, allowed: true } }),
   ]);
 
   const countMap = new Map(userCounts.map((u) => [u.role, u._count.id]));
+  const stored = new Map(permissions.map((p) => [`${p.role}|${p.resource}:${p.action}`, p.allowed]));
 
-  const rolePermMap = new Map<
-    string,
-    Record<
-      string,
-      {
-        module: string;
-        canRead: boolean;
-        canWrite: boolean;
-        canDelete: boolean;
-        canApprove: boolean;
-        canExport: boolean;
+  const enrichedRoles: RoleWithGrants[] = roles.map((role) => {
+    const grants: Record<string, boolean> = {};
+    for (const resource of ALL_RESOURCES) {
+      for (const action of ALL_ACTIONS) {
+        const key = `${resource}:${action}`;
+        const value = stored.get(`${role.id}|${key}`);
+        // Mirrors getEffectivePermissions: unstored create/edit fall back to the legacy write grant.
+        const fallback =
+          (action === "create" || action === "edit") ? stored.get(`${role.id}|${resource}:write`) : undefined;
+        grants[key] = role.id === "super_admin" || (value ?? fallback ?? false);
       }
-    >
-  >();
-
-  for (const p of permissions) {
-    if (!rolePermMap.has(p.role)) {
-      rolePermMap.set(p.role, {});
     }
-    const roleRecord = rolePermMap.get(p.role)!;
-    if (!roleRecord[p.resource]) {
-      roleRecord[p.resource] = {
-        module: p.resource,
-        canRead: false,
-        canWrite: false,
-        canDelete: false,
-        canApprove: false,
-        canExport: false,
-      };
-    }
-    if (p.action === "read" && p.allowed) roleRecord[p.resource].canRead = true;
-    if (p.action === "write" && p.allowed)
-      roleRecord[p.resource].canWrite = true;
-    if (p.action === "delete" && p.allowed)
-      roleRecord[p.resource].canDelete = true;
-    if (p.action === "export" && p.allowed)
-      roleRecord[p.resource].canExport = true;
-    if (p.action === "approve" && p.allowed)
-      roleRecord[p.resource].canApprove = true;
-  }
+    return {
+      id: role.id,
+      nameEn: role.nameEn,
+      nameAr: role.nameAr,
+      isSystem: role.isSystem,
+      userCount: countMap.get(role.id) ?? 0,
+      grants,
+    };
+  });
 
-  const enrichedRoles = roles.map((role) => ({
-    ...role,
-    _count: {
-      users: countMap.get(role.id) ?? 0,
-    },
-    permissions: role.id === "super_admin"
-      ? ALL_RESOURCES.map((module) => ({ module, canRead: true, canWrite: true, canDelete: true, canApprove: true, canExport: true }))
-      : Object.values(rolePermMap.get(role.id) || {}),
-  }));
-
-  return <RolesManagementView initialRoles={enrichedRoles as any} />;
+  return <RolesManagementView initialRoles={enrichedRoles} />;
 }

@@ -10,6 +10,9 @@ function mapNotification(n: any): Notification {
     type: n.type as any,
     entity_type: n.entityType || undefined,
     entity_id: n.entityId || undefined,
+    message_key: n.messageKey || undefined,
+    message_params: (n.messageParams as Record<string, string> | null) || undefined,
+    action_url: n.actionUrl || undefined,
     is_read: n.isRead,
     created_at: n.createdAt.toISOString(),
   };

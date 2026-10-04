@@ -3,15 +3,20 @@ import { measureOperation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
-  assignRequest,
-  reassignRequest,
+  assignConsolidatedRequest,
   returnRequest,
-  approveRequest,
   confirmRequest,
   resolveRequest,
+  submitRequestForApproval,
+  submitForApproval,
+  findPendingApproval,
+  decideApprovalRequest,
+  cancelPendingApprovals,
+  runAtomicMutation,
+  db,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
-import { requirePermission, getCurrentUser } from "../../lib/auth";
+import { requireAuth, requirePermission, getCurrentUser } from "../../lib/auth";
 
 export async function assignRequestAction(
   id: string,
@@ -22,17 +27,10 @@ export async function assignRequestAction(
   },
 ) {
   return measureOperation("action:assignRequestAction", async () => {
-    const actor = await requirePermission("requests", "write");
+    const actor = await requirePermission("requests", "assign");
     validateActionArguments("assignRequestAction", { id, assignment });
-    const user = await getCurrentUser();
 
-    const updated = await assignRequest(id, {
-      assignedToId: assignment.assignedToId,
-      team: assignment.team,
-      assignedById: actor.id,
-      assignedByName: user?.full_name || actor.full_name,
-      notes: assignment.notes,
-    });
+    const updated = await assignConsolidatedRequest(id, assignment.assignedToId, actor.id, assignment.team, assignment.notes);
 
     if (!updated) {
       return { success: false, error: "Failed to assign request" };
@@ -52,17 +50,10 @@ export async function reassignRequestAction(
   },
 ) {
   return measureOperation("action:reassignRequestAction", async () => {
-    const actor = await requirePermission("requests", "write");
+    const actor = await requirePermission("requests", "assign");
     validateActionArguments("reassignRequestAction", { id, assignment });
-    const user = await getCurrentUser();
 
-    const updated = await reassignRequest(id, {
-      newAssignedToId: assignment.newAssignedToId,
-      newTeam: assignment.newTeam,
-      reassignedById: actor.id,
-      reassignedByName: user?.full_name || actor.full_name,
-      notes: assignment.notes,
-    });
+    const updated = await assignConsolidatedRequest(id, assignment.newAssignedToId, actor.id, assignment.newTeam, assignment.notes);
 
     if (!updated) {
       return { success: false, error: "Failed to re-assign request" };
@@ -84,10 +75,13 @@ export async function returnRequestAction(
     validateActionArguments("returnRequestAction", { id, details });
     const user = await getCurrentUser();
 
-    const updated = await returnRequest(id, {
-      returnedById: actor.id,
-      returnedByName: user?.full_name || actor.full_name,
-      reason: details.reason,
+    const updated = await runAtomicMutation(async () => {
+      await cancelPendingApprovals("service_request", id);
+      return returnRequest(id, {
+        returnedById: actor.id,
+        returnedByName: user?.full_name || actor.full_name,
+        reason: details.reason,
+      });
     });
 
     if (!updated) {
@@ -106,22 +100,48 @@ export async function approveRequestAction(
   },
 ) {
   return measureOperation("action:approveRequestAction", async () => {
-    const actor = await requirePermission("requests", "approve");
+    // Who may approve is defined by the service request approval policy and enforced by the engine.
+    const actor = await requireAuth();
     validateActionArguments("approveRequestAction", { id, details });
-    const user = await getCurrentUser();
 
-    const updated = await approveRequest(id, {
-      approvedById: actor.id,
-      approvedByName: user?.full_name || actor.full_name,
-      notes: details.notes,
+    const outcome = await runAtomicMutation(async () => {
+      const pending = await findPendingApproval("service_request", id);
+      if (!pending) throw new Error("Submit the request for approval first");
+      return decideApprovalRequest(pending.id, actor.id, "approved", details.notes);
     });
 
-    if (!updated) {
-      return { success: false, error: "Failed to approve request" };
-    }
+    revalidatePath("/dashboard/requests");
+    revalidatePath(`/dashboard/requests/${id}`);
+    revalidatePath("/dashboard/approvals");
+    return { success: true, status: outcome.status };
+  });
+}
+
+export async function submitRequestForApprovalAction(
+  id: string,
+  details: {
+    notes?: string;
+  },
+) {
+  return measureOperation("action:submitRequestForApprovalAction", async () => {
+    const actor = await requirePermission("requests", "write");
+    validateActionArguments("submitRequestForApprovalAction", { id, details });
+
+    const outcome = await runAtomicMutation(async () => {
+      await submitRequestForApproval(id, { submittedById: actor.id, submittedByName: actor.full_name, notes: details.notes });
+      const request = await db.inquiry.findUniqueOrThrow({ where: { id }, select: { reference: true, requestType: true } });
+      return submitForApproval({
+        targetType: "service_request",
+        targetId: id,
+        requesterId: actor.id,
+        policySnapshot: { reference: request.reference, requestType: request.requestType },
+      });
+    });
 
     revalidatePath("/dashboard/requests");
-    return { success: true, request: updated };
+    revalidatePath(`/dashboard/requests/${id}`);
+    revalidatePath("/dashboard/approvals");
+    return { success: true, status: outcome.status };
   });
 }
 
@@ -235,7 +255,6 @@ export async function assignRequestWithAvailabilityAction(
     const actor = await requirePermission("requests", "assign");
     validateActionArguments("assignRequestWithAvailabilityAction", { id, assignment });
 
-    const { assignConsolidatedRequest } = await import("@ishoot/database");
     const updated = await assignConsolidatedRequest(
       id,
       assignment.assignedToId,
@@ -265,22 +284,5 @@ export async function addRequestCommentAction(
 
     revalidatePath(`/dashboard/requests/${inquiryId}`);
     return { success: true, comment };
-  });
-}
-
-export async function addRequestEventAction(
-  inquiryId: string,
-  eventType: string,
-  details: Record<string, unknown>,
-): Promise<{ success: boolean; event?: any; error?: string }> {
-  return measureOperation("action:addRequestEventAction", async () => {
-    const actor = await requirePermission("requests", "write");
-    validateActionArguments("addRequestEventAction", { inquiryId, eventType, details });
-
-    const { addRequestEvent } = await import("@ishoot/database");
-    const event = await addRequestEvent(inquiryId, eventType, details, actor.id);
-
-    revalidatePath(`/dashboard/requests/${inquiryId}`);
-    return { success: true, event };
   });
 }

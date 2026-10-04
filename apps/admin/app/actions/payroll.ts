@@ -4,7 +4,8 @@ import { validateActionArguments } from "../../lib/action-input";
 import {
   createPayrollRun,
   submitPayrollRunForApproval,
-  approvePayrollRun,
+  findPendingApproval,
+  decideApprovalRequest,
   markPayrollAsPaid,
   createActivityLog,
 } from "@ishoot/database";
@@ -62,26 +63,27 @@ export async function submitPayrollRunForApprovalAction(runId: string) {
 
 export async function approvePayrollRunAction(runId: string) {
   return measureOperation("action:approvePayrollRunAction", async () => {
-    const actor = await requirePermission("payroll", "approve");
+    // Eligibility comes from the payroll approval policy, enforced by the engine.
+    const actor = await requirePermission("payroll", "read");
     validateActionArguments("approvePayrollRunAction", { runId });
 
-    const { payrollRun } = await runAtomicMutation(async () => {
-      const payrollRun = await approvePayrollRun(runId, actor.id);
-
+    const outcome = await runAtomicMutation(async () => {
+      const pending = await findPendingApproval("payroll_run", runId);
+      if (!pending) throw new Error("This payroll run has no pending approval");
+      const result = await decideApprovalRequest(pending.id, actor.id, "approved");
       await createActivityLog({
         user_id: actor.id,
         action: "approve",
         entity_type: "payroll_run",
         entity_id: runId,
-        details: { totalNet: payrollRun.totalNet },
+        details: { approvalRequestId: pending.id, status: result.status },
       });
-
-      return { payrollRun };
+      return result;
     });
 
     revalidatePath("/dashboard/hr/payroll");
     revalidatePath("/dashboard/approvals");
-    return { success: true, payrollRun };
+    return { success: true, status: outcome.status };
   });
 }
 

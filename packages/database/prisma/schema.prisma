@@ -1110,6 +1110,11 @@ model ApprovalRequest {
   diffPayload    Json?
   discountReason String?            @db.Text
   decisions      ApprovalDecision[]
+  policyId       String?
+  policy         ApprovalPolicy?    @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  currentStep    Int                @default(1)
+  approverIds    String[]           @default([]) // eligible deciders for currentStep, resolved at submit/advance time
+  selfApproved   Boolean            @default(false) // decided by the requester because no other approver existed
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
 
@@ -1126,10 +1131,37 @@ model ApprovalDecision {
   decidedById       String
   decidedBy         User            @relation("ApprovalDecider", fields: [decidedById], references: [id], onDelete: Restrict)
   reason            String?         @db.Text
+  step              Int             @default(1)
   decidedAt         DateTime        @default(now())
 
   @@index([approvalRequestId])
   @@index([decidedById])
+}
+
+/// Who must approve each kind of request. One policy per target type, editable in Settings → Approvals.
+model ApprovalPolicy {
+  id                String               @id @default(uuid())
+  targetType        String               @unique // see APPROVAL_TARGET_TYPES in src/constants/approvals.ts
+  enabled           Boolean              @default(true) // disabled = requests are approved on submit
+  allowSelfApproval Boolean              @default(false)
+  autoApproveRoles  String[]             @default([])
+  steps             ApprovalPolicyStep[]
+  requests          ApprovalRequest[]
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+}
+
+model ApprovalPolicyStep {
+  id           String         @id @default(uuid())
+  policyId     String
+  policy       ApprovalPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  order        Int
+  approverMode String // "manager" | "department_manager" | "role" | "user" | "permission"
+  roleKey      String?
+  userId       String?
+  permission   String? // "resource:action"
+
+  @@unique([policyId, order])
 }
 
 model ReferenceSequence {

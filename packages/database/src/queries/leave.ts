@@ -1,4 +1,5 @@
 import { db } from "../db";
+import { leaveDaysRequested } from "../constants/hr";
 import { LeaveRequest, LeaveType } from "../types";
 
 /**
@@ -181,6 +182,16 @@ export async function createLeaveRequest(data: {
     throw new Error(`Conflicting leave request already exists for this period (status: ${existingOverlap.status})`);
   }
 
+  const [leaveType, employee] = await Promise.all([
+    db.leaveType.findUniqueOrThrow({ where: { id: data.leaveTypeId }, select: { isPaid: true } }),
+    db.employee.findUniqueOrThrow({ where: { id: data.employeeId }, select: { leaveBalanceDays: true } }),
+  ]);
+  const requestedDays = leaveDaysRequested(data.startDate, data.endDate, data.fullDay !== false, data.hours);
+  if (requestedDays <= 0) throw new Error("The selected period has no working days");
+  if (leaveType.isPaid && requestedDays > Number(employee.leaveBalanceDays)) {
+    throw new Error(`Insufficient leave balance: ${requestedDays} day(s) requested, ${Number(employee.leaveBalanceDays)} available`);
+  }
+
   const created = await db.leaveRequest.create({
     data: {
       employeeId: data.employeeId,
@@ -216,33 +227,18 @@ export async function createLeaveRequest(data: {
   };
 }
 
-export async function approveLeaveRequest(
-  requestId: string,
-  approverId: string,
-  reviewNotes?: string,
-): Promise<{
-  request: LeaveRequest;
-  conflicts: {
-    assignedInquiriesCount: number;
-    assignedDealsCount: number;
-    calendarEventsCount: number;
-  };
-}> {
-  const leave = await db.leaveRequest.findUnique({
-    where: { id: requestId },
-    include: { employee: true },
-  });
+export interface LeaveConflicts {
+  assignedInquiriesCount: number;
+  assignedDealsCount: number;
+  calendarEventsCount: number;
+}
 
-  if (!leave) throw new Error("Leave request not found");
-  if (leave.status !== "pending") throw new Error(`Cannot approve leave with status: ${leave.status}`);
-
-  // Prevent self-approval
-  const approver = await db.user.findUnique({ where: { id: approverId }, select: { role: true } });
-  if (leave.employee.userId === approverId && approver?.role !== "super_admin") {
-    throw new Error("Self-approval is forbidden: managers or administrators must approve employee leave");
-  }
-
-  // Identify work conflicts during the leave period
+/** Open work assigned to the employee during the leave period, shown to approvers. */
+export async function getLeaveConflicts(leave: {
+  startDate: Date;
+  endDate: Date;
+  employee: { userId: string | null };
+}): Promise<LeaveConflicts> {
   const userId = leave.employee.userId;
   let assignedInquiriesCount = 0;
   let assignedDealsCount = 0;
@@ -272,6 +268,32 @@ export async function approveLeaveRequest(
     ]);
   }
 
+  return { assignedInquiriesCount, assignedDealsCount, calendarEventsCount };
+}
+
+/** Applies an approval decided by the approval engine (which enforces who may decide). */
+export async function approveLeaveRequest(
+  requestId: string,
+  approverId: string,
+  reviewNotes?: string,
+): Promise<{
+  request: LeaveRequest;
+  conflicts: {
+    assignedInquiriesCount: number;
+    assignedDealsCount: number;
+    calendarEventsCount: number;
+  };
+}> {
+  const leave = await db.leaveRequest.findUnique({
+    where: { id: requestId },
+    include: { employee: true },
+  });
+
+  if (!leave) throw new Error("Leave request not found");
+  if (leave.status !== "pending") throw new Error(`Cannot approve leave with status: ${leave.status}`);
+
+  const conflicts = await getLeaveConflicts(leave);
+
   const updated = await db.$transaction(async (tx) => {
     const res = await tx.leaveRequest.update({
       where: { id: requestId },
@@ -289,7 +311,9 @@ export async function approveLeaveRequest(
 
     // Deduct leave balance if it's paid leave
     if (res.leaveType.isPaid) {
-      const days = Math.ceil((leave.endDate.getTime() - leave.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const days = leaveDaysRequested(leave.startDate, leave.endDate, leave.fullDay, leave.hours ? Number(leave.hours) : null);
+      if (days > Number(res.employee.leaveBalanceDays))
+        throw new Error("Insufficient leave balance to approve this request");
       await tx.employee.update({
         where: { id: leave.employeeId },
         data: {
@@ -315,14 +339,11 @@ export async function approveLeaveRequest(
       updatedAt: updated.updatedAt.toISOString(),
       approvedAt: updated.approvedAt?.toISOString() || null,
     },
-    conflicts: {
-      assignedInquiriesCount,
-      assignedDealsCount,
-      calendarEventsCount,
-    },
+    conflicts,
   };
 }
 
+/** Applies a rejection decided by the approval engine. */
 export async function rejectLeaveRequest(
   requestId: string,
   approverId: string,
@@ -335,10 +356,6 @@ export async function rejectLeaveRequest(
 
   if (!leave) throw new Error("Leave request not found");
   if (leave.status !== "pending") throw new Error(`Cannot reject leave with status: ${leave.status}`);
-
-  if (leave.employee.userId === approverId) {
-    throw new Error("Self-review forbidden");
-  }
 
   const updated = await db.leaveRequest.update({
     where: { id: requestId },
@@ -368,6 +385,8 @@ export async function rejectLeaveRequest(
 
 export async function listLeaveRequests(filters: {
   employeeId?: string;
+  /** Extra requests to include regardless of employeeId, e.g. ones awaiting the viewer's approval. */
+  includeIds?: string[];
   status?: string;
   startDate?: Date;
   endDate?: Date;
@@ -378,7 +397,9 @@ export async function listLeaveRequests(filters: {
   const pageSize = Math.min(100, Math.max(1, filters.pageSize || 25));
   const where: any = {};
 
-  if (filters.employeeId) where.employeeId = filters.employeeId;
+  if (filters.employeeId && filters.includeIds?.length)
+    where.OR = [{ employeeId: filters.employeeId }, { id: { in: filters.includeIds } }];
+  else if (filters.employeeId) where.employeeId = filters.employeeId;
   if (filters.status) where.status = filters.status;
   if (filters.startDate && filters.endDate) {
     where.startDate = { lte: filters.endDate };

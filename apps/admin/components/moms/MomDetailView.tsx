@@ -32,6 +32,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { usePermissions } from "../../hooks/usePermissions";
 import {
   approveAndSignMomAction,
   shareMomViaEmailAction,
@@ -56,6 +57,7 @@ export function MomDetailView({
 }: MomDetailViewProps) {
   const router = useRouter();
   const { isRTL } = useAdminLocale();
+  const { can } = usePermissions();
   const [isApproving, setIsApproving] = React.useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
   const [recipientEmail, setRecipientEmail] = React.useState("");
@@ -193,12 +195,7 @@ export function MomDetailView({
     }
   };
 
-  const canSign =
-    mom.status !== "approved" &&
-    currentUser &&
-    ["super_admin", "admin", "production_manager", "finance_manager"].includes(
-      currentUser.role,
-    );
+  const canSign = mom.status !== "approved" && !!currentUser && can("moms", "approve");
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24">

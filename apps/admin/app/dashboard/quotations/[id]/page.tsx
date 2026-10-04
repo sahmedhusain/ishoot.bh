@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { requirePermission, getCurrentUser, hasPermission } from "../../../../lib/auth";
-import { getQuotationById, getApprovalRequest } from "@ishoot/database";
+import { requirePermission, hasPermission } from "../../../../lib/auth";
+import { getQuotationById, getApprovalRequest, canDecideApproval } from "@ishoot/database";
 import { QuotationDetailView } from "../../../../components/quotations/QuotationDetailView";
 
 export const dynamic = "force-dynamic";
@@ -10,9 +10,8 @@ export default async function QuotationDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requirePermission("quotations", "read");
+  const currentUser = await requirePermission("quotations", "read");
   const { id } = await params;
-  const currentUser = await getCurrentUser();
 
   const quotation = await getQuotationById(id);
   if (!quotation) {
@@ -20,21 +19,20 @@ export default async function QuotationDetailPage({
   }
 
   const [approvalRequest, canIssue, canEdit] = await Promise.all([
-    getApprovalRequest("quotation", id, quotation.revision),
+    // Latest approval round; rounds are numbered independently of the quotation revision.
+    getApprovalRequest("quotation", id),
     hasPermission("quotations", "issue_send"),
     hasPermission("quotations", "edit"),
   ]);
-
-  const isSuperAdmin = currentUser?.role === "super_admin";
 
   return (
     <QuotationDetailView
       quotation={quotation}
       approvalRequest={approvalRequest}
-      currentUserId={currentUser?.id || ""}
-      currentUserRole={currentUser?.role || "viewer"}
-      canApprove={isSuperAdmin}
-      canIssue={canIssue || isSuperAdmin}
+      currentUserId={currentUser.id}
+      currentUserRole={currentUser.role}
+      canApprove={!!approvalRequest && canDecideApproval(approvalRequest, currentUser)}
+      canIssue={canIssue}
       canEdit={canEdit}
     />
   );

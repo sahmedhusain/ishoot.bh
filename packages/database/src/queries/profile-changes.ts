@@ -53,9 +53,6 @@ export async function requestProfileChange(
     },
   });
 
-  const actor = await db.user.findUnique({ where: { id: requestedById }, select: { role: true } });
-  if (actor?.role === "super_admin") return (await approveProfileChange(request.id, requestedById, actor.role)).request;
-
   return {
     ...request,
     oldValues: request.oldValues as any,
@@ -66,10 +63,10 @@ export async function requestProfileChange(
   };
 }
 
+/** Applies an approval decided by the approval engine (which enforces who may decide). */
 export async function approveProfileChange(
   requestId: string,
   deciderId: string,
-  deciderRole: string,
   notes?: string,
 ): Promise<{ success: boolean; request: ProfileChangeRequest }> {
   await assertActorNotOnLeave(deciderId);
@@ -84,19 +81,6 @@ export async function approveProfileChange(
   if (!req) throw new Error("Profile change request not found");
   if (req.status !== "pending") {
     throw new Error(`Profile change request cannot be approved (current status: ${req.status})`);
-  }
-
-  // Super administrators may approve their own requests.
-  if (req.userId === deciderId && deciderRole !== "super_admin") {
-    throw new Error("Self-approval is forbidden: reporting managers must approve identity changes");
-  }
-
-  // Decider must be reporting manager or Super Admin
-  const isManager = req.user.managerId === deciderId;
-  const isSuperAdmin = deciderRole === "super_admin";
-
-  if (!isManager && !isSuperAdmin) {
-    throw new Error("Unauthorized: only the assigned reporting manager or a Super Administrator can approve profile identity changes");
   }
 
   const newVals = req.newValues as { fullName?: string; email?: string };
@@ -154,6 +138,7 @@ export async function approveProfileChange(
   };
 }
 
+/** Applies a rejection decided by the approval engine. */
 export async function rejectProfileChange(
   requestId: string,
   deciderId: string,
@@ -167,11 +152,6 @@ export async function rejectProfileChange(
 
   if (!req) throw new Error("Profile change request not found");
   if (req.status !== "pending") throw new Error("Request is not pending");
-
-  const actor = await db.user.findUnique({ where: { id: deciderId }, select: { role: true } });
-  const owner = await db.user.findUnique({ where: { id: req.userId }, select: { managerId: true } });
-  if (actor?.role !== "super_admin" && owner?.managerId !== deciderId) throw new Error("Only the reporting manager or Super Admin may review this request");
-  if (req.userId === deciderId && actor?.role !== "super_admin") throw new Error("Self-review forbidden");
 
   const updated = await db.profileChangeRequest.update({
     where: { id: requestId },

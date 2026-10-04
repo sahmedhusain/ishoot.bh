@@ -32,9 +32,12 @@ import {
 } from "lucide-react";
 import { Button, StatusBadge } from "@ishoot/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { usePermissions } from "../../hooks/usePermissions";
+import { canTransitionRequest } from "@ishoot/database/constants/requests";
 import {
   assignRequestWithAvailabilityAction,
   approveRequestAction,
+  submitRequestForApprovalAction,
   confirmRequestAction,
   returnRequestAction,
   resolveRequestAction,
@@ -52,7 +55,8 @@ interface RequestDetailViewProps {
   request: any;
   users: UserOption[];
   currentUserId: string;
-  currentUserRole: string;
+  /** Server-computed: the viewer is an approver for this request's pending approval. */
+  canDecideApproval: boolean;
 }
 
 const TEAMS = [
@@ -79,10 +83,10 @@ export function RequestDetailView({
   request,
   users,
   currentUserId,
-  currentUserRole,
+  canDecideApproval,
 }: RequestDetailViewProps) {
   const router = useRouter();
-  const { isRTL } = useAdminLocale();
+  const { isRTL, t } = useAdminLocale();
 
   const [activeTab, setActiveTab] = React.useState<
     "overview" | "comments" | "timeline" | "related"
@@ -108,18 +112,10 @@ export function RequestDetailView({
   const [isPostingComment, setIsPostingComment] =
     React.useState<boolean>(false);
 
-  const canAssign = [
-    "super_admin",
-    "admin",
-    "production_manager",
-    "sales",
-  ].includes(currentUserRole);
-  const canApprove = [
-    "super_admin",
-    "admin",
-    "production_manager",
-    "finance_manager",
-  ].includes(currentUserRole);
+  const { can } = usePermissions();
+  const canAssign = can("requests", "assign");
+  const canApprove = can("requests", "approve");
+  const canWrite = can("requests", "write");
 
   const getTypeBadge = (type?: string) => {
     switch (type) {
@@ -243,24 +239,24 @@ export function RequestDetailView({
   };
 
   const handleApprove = async () => {
-    const toastId = toast.loading(
-      isRTL ? "جارٍ اعتماد الطلب..." : "Approving request...",
-    );
+    const toastId = toast.loading(t.requestWorkflow.approving);
     try {
-      const res = await approveRequestAction(request.id, {
-        notes: "Approved via dossier detail view",
-      });
-      if (res.success) {
-        toast.success(
-          isRTL ? "تم اعتماد الطلب بنجاح" : "Request approved successfully",
-          { id: toastId },
-        );
-        router.refresh();
-      } else {
-        toast.error(res.error || "Approval failed", { id: toastId });
-      }
-    } catch (e: any) {
-      toast.error(e.message || "An error occurred", { id: toastId });
+      await approveRequestAction(request.id, {});
+      toast.success(t.requestWorkflow.approved, { id: toastId });
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t.requestWorkflow.failed, { id: toastId });
+    }
+  };
+
+  const handleSubmitForApproval = async () => {
+    const toastId = toast.loading(t.requestWorkflow.submitting);
+    try {
+      await submitRequestForApprovalAction(request.id, {});
+      toast.success(t.requestWorkflow.submitted, { id: toastId });
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t.requestWorkflow.failed, { id: toastId });
     }
   };
 
@@ -496,10 +492,20 @@ export function RequestDetailView({
               </Button>
             )}
 
-            {canApprove &&
-              ["assigned", "pending_approval"].includes(
-                request.workflowStatus || "",
-              ) && (
+            {canWrite && canTransitionRequest(request.workflowStatus, "submit") && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSubmitForApproval}
+                className="gap-1.5 text-xs bg-[#014842] hover:bg-[#013833] text-white"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{t.requestWorkflow.submitForApproval}</span>
+              </Button>
+            )}
+
+            {request.workflowStatus === "pending_approval" &&
+              (canDecideApproval ? (
                 <Button
                   variant="primary"
                   size="sm"
@@ -507,9 +513,11 @@ export function RequestDetailView({
                   className="gap-1.5 text-xs bg-[#09937F] hover:bg-[#077a68] text-white"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>{isRTL ? "اعتماد الطلب" : "Approve"}</span>
+                  <span>{t.requestWorkflow.approve}</span>
                 </Button>
-              )}
+              ) : (
+                <span className="text-xs text-slate-500">{t.requestWorkflow.awaitingApproval}</span>
+              ))}
 
             {canApprove && request.workflowStatus === "approved" && (
               <Button

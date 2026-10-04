@@ -297,7 +297,8 @@
     "integrations": "ربط منصات ميتا",
     "web": "إعدادات الموقع والمحتوى",
     "roles": "الصلاحيات والأدوار",
-    "modules": "وحدات النظام"
+    "modules": "وحدات النظام",
+    "approvals": "الاعتمادات"
   },
   "preferences": {
     "title": "تفضيلات الواجهة والمظهر",
@@ -1658,7 +1659,11 @@
     "deleteConfirmTitle": "حذف الدور",
     "deleteConfirmDesc": "هل أنت متأكد من رغبتك في حذف هذا الدور؟ قد يفقد المستخدمون المعينون له صلاحيات الوصول.",
     "superAdminPermissionsNotice": "يتمتع المسؤول الأعلى بجميع الصلاحيات دائماً، ولا يمكن تعطيلها. يمكنك تعديل اسم الدور.",
-    "thExport": "تصدير"
+    "thExport": "تصدير",
+    "unsavedChanges": "{count} تغييرات غير محفوظة",
+    "saveSuccess": "تم حفظ الدور",
+    "saveError": "تعذر حفظ الدور",
+    "resetDefaults": "استعادة الافتراضي"
   },
   "modulesView": {
     "title": "إدارة وحدات النظام (Feature Toggles)",
@@ -2300,5 +2305,182 @@
       "reason": "السبب",
       "notes": "الملاحظات"
     }
+  },
+  "permissionLabels": {
+    "groups": {
+      "finance": "المالية",
+      "crm": "إدارة العملاء والعمليات",
+      "hr": "الموارد البشرية",
+      "cms": "محتوى الموقع",
+      "operations": "الجدولة",
+      "administration": "الإدارة"
+    },
+    "actions": {
+      "read": "عرض",
+      "create": "إنشاء",
+      "edit": "تعديل",
+      "delete": "حذف",
+      "approve": "اعتماد",
+      "export": "تصدير",
+      "assign": "إسناد",
+      "issue_send": "إصدار / إرسال",
+      "manage_permissions": "إدارة الصلاحيات",
+      "reset_credentials": "إعادة تعيين بيانات الدخول"
+    },
+    "resources": {
+      "invoices": "الفواتير",
+      "payments": "المدفوعات",
+      "expenses": "المصروفات",
+      "finance_analytics": "التحليلات المالية",
+      "deals": "الصفقات",
+      "contacts": "جهات الاتصال",
+      "leads": "العملاء المحتملون",
+      "support": "الدعم",
+      "reviews": "التقييمات",
+      "faqs": "الأسئلة الشائعة",
+      "stats": "الإحصائيات",
+      "contracts": "العقود",
+      "banners": "البانرات",
+      "portfolio": "معرض الأعمال",
+      "clients": "شعارات العملاء",
+      "equipment": "المعدات",
+      "calendar": "التقويم",
+      "users": "المستخدمون",
+      "settings": "الإعدادات",
+      "audit_logs": "سجل التدقيق",
+      "moms": "محاضر الاجتماعات",
+      "requests": "طلبات الخدمة والتغيير",
+      "quotations": "عروض الأسعار",
+      "employees": "الموظفون",
+      "payroll": "الرواتب",
+      "benefits": "المزايا",
+      "reports": "التقارير",
+      "profile_changes": "تعديلات الملف الشخصي",
+      "self_service": "خدماتي (الخدمة الذاتية)"
+    }
+  },
+  "approvals": {
+    "title": "الاعتمادات",
+    "subtitle": "كل ما ينتظر قرارًا، موجّه حسب سياسات الاعتماد لديك.",
+    "tabs": {
+      "awaiting": "بانتظاري",
+      "mine": "طلباتي",
+      "all": "كل الطلبات"
+    },
+    "status": {
+      "all": "كل الحالات",
+      "pending": "قيد الانتظار",
+      "approved": "معتمد",
+      "rejected": "مرفوض",
+      "superseded": "مستبدل",
+      "cancelled": "ملغى"
+    },
+    "types": {
+      "all": "كل الأنواع",
+      "leave_request": "طلب إجازة",
+      "salary_document": "مستند راتب",
+      "profile_change": "تعديل الملف الشخصي",
+      "service_request": "طلب خدمة / تغيير",
+      "quotation": "عرض سعر",
+      "payroll_run": "مسير رواتب",
+      "expense": "مصروف",
+      "invoice": "فاتورة"
+    },
+    "kpis": {
+      "awaiting": "بانتظار قرارك",
+      "mine": "طلباتك المفتوحة",
+      "total": "الطلبات المطابقة"
+    },
+    "requestedBy": "مقدم الطلب: {name}",
+    "step": "المرحلة {step}",
+    "waitingFor": "بانتظار {count} من المعتمدين",
+    "selfApproved": "اعتمده مقدم الطلب — لم يتوفر معتمد آخر",
+    "openRecord": "فتح السجل",
+    "approve": "اعتماد",
+    "reject": "رفض",
+    "rejectTitle": "رفض الطلب",
+    "rejectReasonLabel": "السبب (يظهر لمقدم الطلب)",
+    "rejectReasonPlaceholder": "وضّح سبب رفض هذا الطلب",
+    "cancel": "إلغاء",
+    "confirmReject": "رفض الطلب",
+    "ownRequest": "طلبك — بانتظار معتمد",
+    "notEligible": "هذه المرحلة مسندة إلى معتمد آخر",
+    "decision": {
+      "approved": "اعتمده {name} بتاريخ {date}",
+      "rejected": "رفضه {name} بتاريخ {date}"
+    },
+    "details": "التفاصيل",
+    "previous": "السابق",
+    "next": "التالي",
+    "pageOf": "صفحة {page} من {pages}",
+    "empty": {
+      "awaiting": "لا يوجد ما ينتظرك.",
+      "mine": "لا توجد لديك طلبات هنا.",
+      "all": "لا توجد طلبات مطابقة لهذه المرشحات."
+    },
+    "toast": {
+      "approved": "تم اعتماد الطلب",
+      "rejected": "تم رفض الطلب",
+      "error": "تعذر تسجيل القرار"
+    },
+    "notifications": {
+      "awaitingYou": {
+        "title": "مطلوب اعتماد",
+        "message": "يوجد {type} بانتظار اعتمادك."
+      },
+      "approved": {
+        "title": "تم اعتماد الطلب",
+        "message": "تم اعتماد {type} الخاص بك."
+      },
+      "rejected": {
+        "title": "تم رفض الطلب",
+        "message": "تم رفض {type} الخاص بك."
+      }
+    }
+  },
+  "hrSelfService": {
+    "noProfileTitle": "ملفك في الموارد البشرية غير مُعدّ بعد",
+    "noProfileBody": "تتطلب الإجازات وقسائم الرواتب وشهادات الراتب سجل موظف مرتبطًا بحسابك. اطلب من الموارد البشرية أو المسؤول إنشاءه.",
+    "noAvailableMonths": "لا توجد أشهر رواتب معتمدة متاحة بعد.",
+    "createEmployeeProfile": "إنشاء ملف موظف",
+    "employeeLinked": "سجل الموظف مرتبط",
+    "employeeNotLinked": "لا يوجد سجل موظف"
+  },
+  "requestWorkflow": {
+    "submitForApproval": "إرسال للاعتماد",
+    "submitting": "جارٍ الإرسال للاعتماد…",
+    "submitted": "تم الإرسال إلى المعتمدين",
+    "approve": "اعتماد",
+    "approving": "جارٍ الاعتماد…",
+    "approved": "تم اعتماد الطلب",
+    "awaitingApproval": "بانتظار الاعتماد",
+    "failed": "تعذر تنفيذ الإجراء"
+  },
+  "approvalPolicies": {
+    "tab": "الاعتمادات",
+    "title": "سياسات الاعتماد",
+    "subtitle": "حدد من يعتمد كل نوع من الطلبات. لا يعتمد أحد طلبه الخاص إلا إذا سمحت بذلك.",
+    "enabled": "يتطلب اعتمادًا",
+    "enabledHint": "عند الإيقاف تُعتمد طلبات هذا النوع فور تقديمها.",
+    "allowSelf": "السماح بالاعتماد الذاتي",
+    "autoApproveRoles": "اعتماد تلقائي عند تقديمها من",
+    "steps": "مراحل الاعتماد",
+    "stepN": "المرحلة {n}",
+    "addStep": "إضافة مرحلة",
+    "removeStep": "حذف المرحلة",
+    "modes": {
+      "manager": "مدير مقدم الطلب",
+      "department_manager": "مدير القسم",
+      "role": "كل من لديه دور",
+      "user": "شخص محدد",
+      "permission": "كل من لديه صلاحية"
+    },
+    "chooseRole": "اختر الدور",
+    "chooseUser": "اختر الشخص",
+    "choosePermission": "اختر الصلاحية",
+    "fallbackNote": "إذا لم تجد مرحلة معتمدًا غير مقدم الطلب يتم تخطيها. وإذا لم تجد أي مرحلة معتمدًا يُحال الطلب إلى المسؤولين.",
+    "save": "حفظ السياسة",
+    "saved": "تم حفظ السياسة",
+    "saveError": "تعذر حفظ السياسة"
   }
 }

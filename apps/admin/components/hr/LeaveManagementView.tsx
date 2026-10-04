@@ -1,5 +1,6 @@
 "use client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { NoEmployeeProfile } from "./NoEmployeeProfile";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -19,7 +20,10 @@ interface LeaveManagementViewProps {
   allEmployees: Employee[];
   myEmployee: any | null;
   currentUserId: string;
-  isManagerOrAdmin: boolean;
+  /** May file leave on behalf of other employees. */
+  canFileForOthers: boolean;
+  /** Leave request ids the viewer may approve or reject (from the approval policy). */
+  decidableIds: string[];
   currentStatus: string;
   total: number;
   page: number;
@@ -30,7 +34,8 @@ export function LeaveManagementView({
   leaveTypes,
   allEmployees,
   myEmployee,
-  isManagerOrAdmin,
+  canFileForOthers,
+  decidableIds,
   currentStatus,
 }: LeaveManagementViewProps) {
   const { t } = useAdminLocale();
@@ -42,7 +47,7 @@ export function LeaveManagementView({
   const [showApplyModal, setShowApplyModal] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [targetEmployeeId, setTargetEmployeeId] = React.useState(
-    myEmployee?.id || allEmployees[0]?.id || "",
+    myEmployee?.id || "",
   );
   const [leaveTypeId, setLeaveTypeId] = React.useState(leaveTypes[0]?.id || "");
   const [startDate, setStartDate] = React.useState(
@@ -201,6 +206,7 @@ export function LeaveManagementView({
         </div>
 
         <div className="flex items-center gap-3">
+          {(myEmployee || canFileForOthers) && (
           <Button
             onClick={() => setShowApplyModal(true)}
             className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
@@ -208,8 +214,11 @@ export function LeaveManagementView({
             <Plus className="w-3.5 h-3.5" />
             <span>{t.hrText.text83}</span>
           </Button>
+          )}
         </div>
       </div>
+
+      {!myEmployee && <NoEmployeeProfile />}
 
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -300,8 +309,7 @@ export function LeaveManagementView({
               ) : (
                 requests.map((req) => {
                   const isOwn = req.employee?.id === myEmployee?.id;
-                  const canDecide =
-                    isManagerOrAdmin && !isOwn && req.status === "pending";
+                  const canDecide = req.status === "pending" && decidableIds.includes(req.id);
 
                   const start = new Date(req.startDate).toLocaleDateString();
                   const end = new Date(req.endDate).toLocaleDateString();
@@ -425,7 +433,7 @@ export function LeaveManagementView({
             </p>
 
             <div className="space-y-3">
-              {isManagerOrAdmin && (
+              {canFileForOthers && (
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
                     {t.hrText.text58}
@@ -435,6 +443,7 @@ export function LeaveManagementView({
                     onChange={(e) => setTargetEmployeeId(e.target.value)}
                     className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                   >
+                    {!targetEmployeeId && <option value="" disabled>—</option>}
                     {allEmployees.map((e) => (
                       <option key={e.id} value={e.id}>
                         {e.firstNameEn} {e.lastNameEn} ({e.employeeNumber})

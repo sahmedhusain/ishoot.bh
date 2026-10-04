@@ -93,6 +93,21 @@ export function NotificationCenter() {
     return <Info className="w-4 h-4 text-[#09937F]" />;
   };
 
+  /** Localized title/message for notifications that carry a message key (e.g. approval events). */
+  const localize = (n: Notification) => {
+    const entry = n.message_key
+      ?.split(".")
+      .reduce<unknown>((node, part) => (node && typeof node === "object" ? (node as Record<string, unknown>)[part] : undefined), t);
+    if (!entry || typeof entry !== "object") return { title: n.title, message: n.message };
+    const { title, message } = entry as { title?: string; message?: string };
+    const targetType = n.message_params?.targetType;
+    const typeLabel = targetType ? (t.approvals.types[targetType as keyof typeof t.approvals.types] ?? targetType) : "";
+    return {
+      title: title ?? n.title,
+      message: (message ?? n.message).replace("{type}", typeLabel),
+    };
+  };
+
   const getEntityLink = (entityType?: string, entityId?: string) => {
     if (!entityType) return null;
     if (entityType === "payment") return "/dashboard/payments";
@@ -162,7 +177,8 @@ export function NotificationCenter() {
               </div>
             ) : (
               notifications.map((n) => {
-                const link = getEntityLink(n.entity_type, n.entity_id);
+                const link = n.action_url ?? getEntityLink(n.entity_type, n.entity_id);
+                const text = localize(n);
                 return (
                   <div
                     key={n.id}
@@ -179,14 +195,14 @@ export function NotificationCenter() {
                         <span
                           className={`text-xs font-bold truncate ${!n.is_read ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-[#9EADA9]"}`}
                         >
-                          {n.title}
+                          {text.title}
                         </span>
                         {!n.is_read && (
                           <span className="w-2 h-2 rounded-full bg-[#09937F] shrink-0" />
                         )}
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-[#9EADA9] mt-0.5 line-clamp-2 leading-relaxed">
-                        {n.message}
+                        {text.message}
                       </p>
                       <div className="flex items-center justify-between mt-2 pt-1 text-[10px]  text-slate-400 dark:text-[#9EADA9]/70">
                         <span>{formatDate(n.created_at, locale, "time")}</span>

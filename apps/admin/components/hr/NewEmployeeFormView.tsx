@@ -23,9 +23,11 @@ import { toast } from "sonner";
 
 interface NewEmployeeFormViewProps {
   departments: Department[];
+  /** Existing user account the new employee record will be linked to. */
+  linkUser?: { id: string; fullName: string; email: string } | null;
 }
 
-export function NewEmployeeFormView({ departments }: NewEmployeeFormViewProps) {
+export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormViewProps) {
   const router = useRouter();
   const { isRTL, t } = useAdminLocale();
 
@@ -34,11 +36,11 @@ export function NewEmployeeFormView({ departments }: NewEmployeeFormViewProps) {
   // Form State
   const [payrollSettings, setPayrollSettings] =
     React.useState(emptyPayrollSettings);
-  const [firstNameEn, setFirstNameEn] = React.useState("");
-  const [lastNameEn, setLastNameEn] = React.useState("");
+  const [firstNameEn, setFirstNameEn] = React.useState(linkUser?.fullName.split(" ")[0] ?? "");
+  const [lastNameEn, setLastNameEn] = React.useState(linkUser?.fullName.split(" ").slice(1).join(" ") ?? "");
   const [firstNameAr, setFirstNameAr] = React.useState("");
   const [lastNameAr, setLastNameAr] = React.useState("");
-  const [email, setEmail] = React.useState("");
+  const [email, setEmail] = React.useState(linkUser?.email ?? "");
   const [phone, setPhone] = React.useState("");
   const [cprNumber, setCprNumber] = React.useState("");
   const [jobTitleEn, setJobTitleEn] = React.useState("");
@@ -90,6 +92,7 @@ export function NewEmployeeFormView({ departments }: NewEmployeeFormViewProps) {
         transportAllowance,
         otherAllowances,
         payrollSettings,
+        userId: linkUser?.id,
       });
 
       if (res.success && res.employee) {

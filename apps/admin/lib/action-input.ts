@@ -29,7 +29,7 @@ function valid(
   if (schema.kind === "record") {
     if (!value || typeof value !== "object" || Array.isArray(value)) return false;
     const entries = Object.entries(value);
-    return entries.length <= 200 && entries.every(([field, entry]) =>
+    return entries.length <= 500 && entries.every(([field, entry]) =>
       !["__proto__", "constructor", "prototype"].includes(field) && valid(entry, schema.element!, field, depth + 1));
   }
   if (schema.kind === "object") {

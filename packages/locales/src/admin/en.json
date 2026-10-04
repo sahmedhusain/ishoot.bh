@@ -297,7 +297,8 @@
     "integrations": "Meta & Integrations",
     "web": "Website & CMS Settings",
     "roles": "Roles & Permissions",
-    "modules": "System Modules"
+    "modules": "System Modules",
+    "approvals": "Approvals"
   },
   "preferences": {
     "title": "Interface & Appearance",
@@ -1658,7 +1659,11 @@
     "deleteConfirmTitle": "Delete Role",
     "deleteConfirmDesc": "Are you sure you want to delete this role? Users with this role may lose access.",
     "superAdminPermissionsNotice": "Super Admin always has every permission. Permissions cannot be disabled; you can edit the role name.",
-    "thExport": "Export"
+    "thExport": "Export",
+    "unsavedChanges": "{count} unsaved changes",
+    "saveSuccess": "Role saved",
+    "saveError": "Could not save the role",
+    "resetDefaults": "Reset to defaults"
   },
   "modulesView": {
     "title": "System Modules & Feature Toggles",
@@ -2300,5 +2305,182 @@
       "reason": "Reason",
       "notes": "Notes"
     }
+  },
+  "permissionLabels": {
+    "groups": {
+      "finance": "Finance",
+      "crm": "CRM & Operations",
+      "hr": "Human Resources",
+      "cms": "Website Content",
+      "operations": "Scheduling",
+      "administration": "Administration"
+    },
+    "actions": {
+      "read": "View",
+      "create": "Create",
+      "edit": "Edit",
+      "delete": "Delete",
+      "approve": "Approve",
+      "export": "Export",
+      "assign": "Assign",
+      "issue_send": "Issue / Send",
+      "manage_permissions": "Manage permissions",
+      "reset_credentials": "Reset credentials"
+    },
+    "resources": {
+      "invoices": "Invoices",
+      "payments": "Payments",
+      "expenses": "Expenses",
+      "finance_analytics": "Finance analytics",
+      "deals": "Deals",
+      "contacts": "Contacts",
+      "leads": "Leads",
+      "support": "Support",
+      "reviews": "Reviews",
+      "faqs": "FAQs",
+      "stats": "Statistics",
+      "contracts": "Contracts",
+      "banners": "Banners",
+      "portfolio": "Portfolio",
+      "clients": "Client logos",
+      "equipment": "Equipment",
+      "calendar": "Calendar",
+      "users": "Users",
+      "settings": "Settings",
+      "audit_logs": "Audit logs",
+      "moms": "Meeting minutes",
+      "requests": "Service & change requests",
+      "quotations": "Quotations",
+      "employees": "Employees",
+      "payroll": "Payroll",
+      "benefits": "Benefits",
+      "reports": "Reports",
+      "profile_changes": "Profile changes",
+      "self_service": "My HR (self-service)"
+    }
+  },
+  "approvals": {
+    "title": "Approvals",
+    "subtitle": "Everything waiting for a decision, routed by your approval policies.",
+    "tabs": {
+      "awaiting": "Awaiting me",
+      "mine": "My requests",
+      "all": "All requests"
+    },
+    "status": {
+      "all": "All statuses",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "superseded": "Superseded",
+      "cancelled": "Cancelled"
+    },
+    "types": {
+      "all": "All types",
+      "leave_request": "Leave request",
+      "salary_document": "Salary document",
+      "profile_change": "Profile change",
+      "service_request": "Service / change request",
+      "quotation": "Quotation",
+      "payroll_run": "Payroll run",
+      "expense": "Expense",
+      "invoice": "Invoice"
+    },
+    "kpis": {
+      "awaiting": "Awaiting your decision",
+      "mine": "Your open requests",
+      "total": "Matching requests"
+    },
+    "requestedBy": "Requested by {name}",
+    "step": "Step {step}",
+    "waitingFor": "Waiting for {count} approver(s)",
+    "selfApproved": "Approved by the requester — no other approver was available",
+    "openRecord": "Open record",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejectTitle": "Reject request",
+    "rejectReasonLabel": "Reason (shared with the requester)",
+    "rejectReasonPlaceholder": "Explain why this request is rejected",
+    "cancel": "Cancel",
+    "confirmReject": "Reject request",
+    "ownRequest": "Your request — waiting for an approver",
+    "notEligible": "Another approver is assigned to this step",
+    "decision": {
+      "approved": "Approved by {name} on {date}",
+      "rejected": "Rejected by {name} on {date}"
+    },
+    "details": "Details",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {page} of {pages}",
+    "empty": {
+      "awaiting": "Nothing is waiting for you.",
+      "mine": "You have no requests here.",
+      "all": "No requests match these filters."
+    },
+    "toast": {
+      "approved": "Request approved",
+      "rejected": "Request rejected",
+      "error": "Could not record the decision"
+    },
+    "notifications": {
+      "awaitingYou": {
+        "title": "Approval required",
+        "message": "A {type} is waiting for your approval."
+      },
+      "approved": {
+        "title": "Request approved",
+        "message": "Your {type} was approved."
+      },
+      "rejected": {
+        "title": "Request rejected",
+        "message": "Your {type} was rejected."
+      }
+    }
+  },
+  "hrSelfService": {
+    "noProfileTitle": "Your HR profile isn't set up yet",
+    "noProfileBody": "Leave, payslips and salary certificates need an employee record linked to your account. Ask HR or an administrator to create it.",
+    "noAvailableMonths": "No approved payroll months are available yet.",
+    "createEmployeeProfile": "Create employee profile",
+    "employeeLinked": "Employee record linked",
+    "employeeNotLinked": "No employee record"
+  },
+  "requestWorkflow": {
+    "submitForApproval": "Submit for approval",
+    "submitting": "Submitting for approval…",
+    "submitted": "Sent to the approvers",
+    "approve": "Approve",
+    "approving": "Approving…",
+    "approved": "Request approved",
+    "awaitingApproval": "Waiting for approval",
+    "failed": "Action failed"
+  },
+  "approvalPolicies": {
+    "tab": "Approvals",
+    "title": "Approval policies",
+    "subtitle": "Choose who approves each kind of request. Nobody approves their own request unless you allow it.",
+    "enabled": "Require approval",
+    "enabledHint": "When off, requests of this type are approved as soon as they are submitted.",
+    "allowSelf": "Allow self-approval",
+    "autoApproveRoles": "Approve automatically when requested by",
+    "steps": "Approval steps",
+    "stepN": "Step {n}",
+    "addStep": "Add step",
+    "removeStep": "Remove step",
+    "modes": {
+      "manager": "Requester's manager",
+      "department_manager": "Department manager",
+      "role": "Everyone with a role",
+      "user": "A specific person",
+      "permission": "Anyone with a permission"
+    },
+    "chooseRole": "Choose role",
+    "chooseUser": "Choose person",
+    "choosePermission": "Choose permission",
+    "fallbackNote": "If a step finds no approver other than the requester, it is skipped. If no step finds one, the request goes to administrators.",
+    "save": "Save policy",
+    "saved": "Policy saved",
+    "saveError": "Could not save the policy"
   }
 }

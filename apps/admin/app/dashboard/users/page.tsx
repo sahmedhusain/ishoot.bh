@@ -6,9 +6,10 @@ export const dynamic = "force-dynamic";
 
 export default async function UsersPage() {
   await requirePermission("users", "read");
-  const [canWrite, canDelete] = await Promise.all([
+  const [canWrite, canDelete, canCreateEmployees] = await Promise.all([
     hasPermission("users", "write"),
     hasPermission("users", "delete"),
+    hasPermission("employees", "create"),
   ]);
   const [users, roles, grants] = await Promise.all([
     getAllUsers(),
@@ -50,10 +51,11 @@ export default async function UsersPage() {
     <UsersManagementView
       canWrite={canWrite}
       canDelete={canDelete}
+      canCreateEmployees={canCreateEmployees}
       employees={employees}
       initialUsers={users}
       roles={roles}
-      resources={ALL_RESOURCES}
+      resources={[...ALL_RESOURCES]}
       rolePermissions={rolePermissions}
     />
   );

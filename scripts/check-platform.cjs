@@ -1,4 +1,5 @@
 require("ts-node").register({transpileOnly:true,skipProject:true,compilerOptions:{module:"CommonJS",target:"ES2022",moduleResolution:"Node",esModuleInterop:true,resolveJsonModule:true}});
+const { realConstants } = require("./lib/real-constants.cjs");
 // Run: node scripts/check-platform.cjs
 // Exercise source modules with boundary mocks; no production database writes.
 const assert = require("node:assert/strict");
@@ -25,7 +26,7 @@ function load(file, mocks) {
     exports: module.exports,
     require: (id) => {
       id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
-      if (!(id in mocks)) throw new Error(`Unmocked dependency: ${id}`);
+      if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error(`Unmocked dependency: ${id}`); }
       return mocks[id];
     },
     console: { error() {}, warn() {} },
@@ -107,18 +108,20 @@ async function main() {
       ALL_RESOURCES: permissionsApi.ALL_RESOURCES, ALL_ACTIONS: permissionsApi.ALL_ACTIONS,
       db: { $transaction: async (fn) => fn({
         role: { update: async ({ where }) => { roleWrites++; return { id: where.id }; } },
-        permission: { deleteMany: async () => {}, createMany: async ({ data }) => { savedGrants = data; } },
+        permission: { findMany: async () => [], upsert: async (args) => { savedGrants.push({ ...args.create }); } },
         activityLog: { create: async () => {} },
       }) },
     },
   });
-  const rolePayload = { id: "super_admin", nameEn: "Super Administrator", nameAr: "مسؤول النظام",
-    permissions: permissionsApi.ALL_RESOURCES.map((module) => ({ module, canRead: false, canWrite: false, canDelete: false, canApprove: false, canExport: false })) };
+  const denyAll = Object.fromEntries(permissionsApi.ALL_RESOURCES.flatMap((resource) =>
+    permissionsApi.ALL_ACTIONS.filter((action) => action !== "write").map((action) => [resource + ":" + action, false])));
+  const rolePayload = { id: "super_admin", nameEn: "Super Administrator", nameAr: "مسؤول النظام", grants: denyAll };
   await roleActions.upsertRoleAction(rolePayload);
   assert.equal(savedGrants.length, Object.keys(effective).length);
   assert.equal(savedGrants.every((grant) => grant.allowed), true, "submitted denials must never restrict Super Admin");
+  savedGrants = [];
   await roleActions.upsertRoleAction({ ...rolePayload, id: "viewer" });
-  assert.equal(savedGrants.every((grant) => !grant.allowed), true, "ordinary role denials must remain effective");
+  assert.equal(savedGrants.length > 0 && savedGrants.every((grant) => !grant.allowed), true, "ordinary role denials must remain effective");
   roleActor = { id: "admin", role: "admin" };
   await assert.rejects(roleActions.upsertRoleAction(rolePayload), /Only super administrators/);
   assert.equal(roleWrites, 2, "ordinary administrators cannot modify role grants");

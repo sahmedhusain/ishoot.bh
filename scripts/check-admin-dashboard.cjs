@@ -1,4 +1,5 @@
 // Render the real dashboard with boundary components, and exercise query selection.
+const { realConstants } = require("./lib/real-constants.cjs");
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
@@ -15,7 +16,7 @@ function load(file, mocks, jsx = false) {
   vm.runInNewContext(code, { module, exports: module.exports, require(id) {
     if (jsx && id === 'react/jsx-runtime') return appRequire(id);
     id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
-    if (!(id in mocks)) throw Error('Unmocked dependency: ' + id);
+    if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error('Unmocked dependency: ' + id); }
     return mocks[id];
   }, console, Date, Intl, Set, Map });
   return module.exports;

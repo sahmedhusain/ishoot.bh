@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { NoEmployeeProfile } from "./NoEmployeeProfile";
 import {
   requestSalaryDocumentAction,
   reviewSalaryDocumentAction,
@@ -21,17 +22,27 @@ export interface SalaryDocumentItem {
 export function SalaryDocumentsView({
   employeeId,
   documents,
-  canManage = false,
+  availableMonths = [],
+  decidableIds = [],
+  showNoProfile = false,
 }: {
   employeeId?: string;
   documents: SalaryDocumentItem[];
-  canManage?: boolean;
+  /** YYYY-MM months with approved payroll for this employee; the only months a payslip can cover. */
+  availableMonths?: string[];
+  /** Document ids the viewer may issue or reject under the salary document approval policy. */
+  decidableIds?: string[];
+  /** Show the "HR profile not set up" notice when there is no employee to request for. */
+  showNoProfile?: boolean;
 }) {
   const { t, locale } = useAdminLocale();
   const h = t.hrExtensions;
   const router = useRouter();
   const [kind, setKind] = useState<"payslip" | "salary_certificate">("payslip");
-  const [months, setMonths] = useState<string[]>([""]);
+  const [months, setMonths] = useState<string[]>([]);
+  const canReview = decidableIds.length > 0;
+  const toggleMonth = (month: string) =>
+    setMonths((current) => (current.includes(month) ? current.filter((m) => m !== month) : [...current, month].slice(0, 24)));
   const [busy, setBusy] = useState(false);
   const [notes, setNotes] = useState("");
   async function run(work: () => Promise<unknown>) {
@@ -68,6 +79,7 @@ export function SalaryDocumentsView({
   return (
     <section className="space-y-4 rounded-lg border border-slate-200 dark:border-white/10 p-5">
       <h2 className="text-lg font-semibold">{h.salaryDocuments}</h2>
+      {showNoProfile && !employeeId && <NoEmployeeProfile />}
       {employeeId && (
         <form
           className="space-y-3"
@@ -93,55 +105,34 @@ export function SalaryDocumentsView({
           </select>
           {kind === "payslip" && (
             <fieldset>
-              <legend>{h.months}</legend>
-              <div className="flex flex-wrap gap-2">
-                {months.map((month, index) => (
-                  <label key={index}>
-                    <input
-                      aria-label={h.period}
-                      required
-                      type="month"
-                      className="rounded border bg-transparent p-2"
-                      value={month}
-                      onChange={(e) =>
-                        setMonths(
-                          months.map((value, i) =>
-                            i === index ? e.target.value : value,
-                          ),
-                        )
-                      }
-                    />
-                    {months.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setMonths(months.filter((_, i) => i !== index))
-                        }
-                      >
-                        {h.remove}
-                      </button>
-                    )}
-                  </label>
-                ))}
-              </div>
-              <button
-                type="button"
-                disabled={months.length >= 24}
-                onClick={() => setMonths([...months, ""])}
-              >
-                {h.addMonth}
-              </button>
+              <legend className="text-sm mb-2">{h.months}</legend>
+              {availableMonths.length === 0 ? (
+                <p className="text-xs text-slate-500">{t.hrSelfService.noAvailableMonths}</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {availableMonths.map((month) => (
+                    <label
+                      key={month}
+                      dir="ltr"
+                      className={`cursor-pointer rounded-lg border px-3 py-1.5 text-xs ${months.includes(month) ? "border-emerald-700 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200" : "border-slate-200 dark:border-white/10"}`}
+                    >
+                      <input type="checkbox" className="sr-only" checked={months.includes(month)} onChange={() => toggleMonth(month)} />
+                      {month}
+                    </label>
+                  ))}
+                </div>
+              )}
             </fieldset>
           )}
           <button
-            disabled={busy}
-            className="rounded bg-emerald-800 px-4 py-2 text-white"
+            disabled={busy || (kind === "payslip" && months.length === 0)}
+            className="rounded bg-emerald-800 px-4 py-2 text-white disabled:opacity-50"
           >
             {busy ? h.working : h.request}
           </button>
         </form>
       )}
-      {canManage && (
+      {canReview && (
         <label className="block">
           {h.reviewNotes}
           <input
@@ -170,7 +161,7 @@ export function SalaryDocumentsView({
           </p>
           {item.reviewNotes && <p>{item.reviewNotes}</p>}
           <div className="flex flex-wrap gap-4 text-sm">
-            {item.status === "pending" && canManage && (
+            {item.status === "pending" && decidableIds.includes(item.id) && (
               <>
                 <button
                   disabled={busy}

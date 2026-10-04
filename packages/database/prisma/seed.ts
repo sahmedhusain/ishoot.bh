@@ -10,6 +10,7 @@ import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { defaultWebsiteConfig } from "../src/website-config";
+import { ALL_ACTIONS, ALL_RESOURCES, ALL_ROLES, isDefaultAllowed } from "../src/constants/permissions";
 import { collectWebsiteDraft } from "../src/queries/website";
 import { db as websiteDb } from "../src/db";
 
@@ -208,142 +209,14 @@ async function main() {
   }
   console.log("✅ Created 10 RBAC Users with Signatures & Hierarchy (Password: Admin123!)");
 
-  const ALL_RESOURCES = [
-    "invoices",
-    "payments",
-    "expenses",
-    "finance_analytics",
-    "deals",
-    "contacts",
-    "leads",
-    "contracts",
-    "banners",
-    "portfolio",
-    "clients",
-    "equipment",
-    "calendar",
-    "users",
-    "settings",
-    "audit_logs",
-  ];
-  const ALL_ACTIONS = ["read", "write", "delete", "export", "approve"];
-  const ROLE_RULES: Record<string, Partial<Record<string, string[]>>> = {
-    super_admin: {},
-    admin: {
-      invoices: ["read", "write", "export", "approve"],
-      payments: ["read", "write", "export"],
-      expenses: ["read", "write", "export"],
-      finance_analytics: ["read", "export"],
-      deals: ["read", "write", "delete", "export"],
-      contacts: ["read", "write", "delete", "export"],
-      leads: ["read", "write", "delete", "export"],
-      contracts: ["read", "write", "export"],
-      banners: ["read", "write", "delete"],
-      portfolio: ["read", "write", "delete"],
-      clients: ["read", "write", "delete"],
-      equipment: ["read", "write", "delete"],
-      calendar: ["read", "write", "delete"],
-      users: ["read", "write"],
-      settings: ["read", "write"],
-      audit_logs: ["read"],
-    },
-    finance_manager: {
-      invoices: ["read", "write", "export", "approve"],
-      payments: ["read", "write", "export", "approve"],
-      expenses: ["read", "write", "export", "approve"],
-      finance_analytics: ["read", "export"],
-      deals: ["read"],
-      contacts: ["read"],
-      contracts: ["read"],
-      calendar: ["read"],
-    },
-    accountant: {
-      invoices: ["read", "write", "export"],
-      payments: ["read", "write", "export"],
-      expenses: ["read", "write", "export"],
-      finance_analytics: ["read"],
-      deals: ["read"],
-      contacts: ["read"],
-      contracts: ["read"],
-    },
-    production_manager: {
-      deals: ["read", "write", "export"],
-      contacts: ["read", "write"],
-      leads: ["read", "write"],
-      contracts: ["read", "write"],
-      equipment: ["read", "write"],
-      calendar: ["read", "write", "delete"],
-      portfolio: ["read"],
-      invoices: ["read"],
-    },
-    producer: {
-      deals: ["read", "write"],
-      contacts: ["read", "write"],
-      leads: ["read", "write"],
-      contracts: ["read"],
-      equipment: ["read", "write"],
-      calendar: ["read", "write"],
-      portfolio: ["read"],
-    },
-    sales: {
-      deals: ["read", "write", "delete", "export"],
-      contacts: ["read", "write", "delete", "export"],
-      leads: ["read", "write", "delete", "export"],
-      contracts: ["read", "write"],
-      calendar: ["read", "write"],
-      invoices: ["read"],
-    },
-    marketing: {
-      banners: ["read", "write", "delete"],
-      portfolio: ["read", "write", "delete"],
-      clients: ["read", "write", "delete"],
-      leads: ["read", "write"],
-      calendar: ["read", "write"],
-      equipment: ["read"],
-    },
-    editor: {
-      portfolio: ["read", "write"],
-      banners: ["read"],
-      equipment: ["read"],
-      calendar: ["read"],
-    },
-    viewer: {
-      deals: ["read"],
-      contacts: ["read"],
-      leads: ["read"],
-      portfolio: ["read"],
-      clients: ["read"],
-      equipment: ["read"],
-      calendar: ["read"],
-    },
-  };
-
-  const rbacRoles = Object.keys(ROLE_RULES);
-  for (const role of rbacRoles) {
-    const roleRules = ROLE_RULES[role] || {};
-    for (const resource of ALL_RESOURCES) {
-      const allowedActions = roleRules[resource] || [];
-      for (const action of ALL_ACTIONS) {
-        const allowed =
-          role === "super_admin" ? true : allowedActions.includes(action);
-        await prisma.permission.upsert({
-          where: {
-            role_resource_action: {
-              role,
-              resource,
-              action,
-            },
-          },
-          update: { allowed },
-          create: {
-            role,
-            resource,
-            action,
-            allowed,
-          },
-        });
-      }
-    }
+  // Seed resets every system role to the shared defaults (packages/database/src/constants/permissions.ts).
+  for (const role of ALL_ROLES) {
+    await prisma.permission.deleteMany({ where: { role } });
+    await prisma.permission.createMany({
+      data: ALL_RESOURCES.flatMap((resource) =>
+        ALL_ACTIONS.map((action) => ({ role, resource, action, allowed: isDefaultAllowed(role, resource, action) })),
+      ),
+    });
   }
   console.log("✅ Seeded Granular RBAC Permissions Matrix");
 
@@ -3337,6 +3210,67 @@ async function main() {
       leaveBalanceDays: 27.0,
       basicSalary: 1600.0,
       housingAllowance: 250.0,
+      transportAllowance: 100.0,
+    },
+    // Every seeded staff role gets an employee record so self-service HR (leave, payslips) works for all of them.
+    {
+      employeeNumber: "EMP-007",
+      userId: createdUsers.accountant?.id,
+      departmentId: deptMap["FIN"],
+      firstNameEn: "Noor",
+      lastNameEn: "Al-Hashimi",
+      firstNameAr: "نور",
+      lastNameAr: "الهاشمي",
+      email: createdUsers.accountant?.email ?? null,
+      phone: "+973 3900 8812",
+      cprNumber: "960778901",
+      jobTitleEn: "Accountant",
+      jobTitleAr: "محاسبة",
+      hireDate: new Date("2023-06-01"),
+      status: "active",
+      leaveBalanceDays: 30.0,
+      basicSalary: 1400.0,
+      housingAllowance: 200.0,
+      transportAllowance: 100.0,
+    },
+    {
+      employeeNumber: "EMP-008",
+      userId: createdUsers.producer?.id,
+      departmentId: deptMap["PROD"],
+      firstNameEn: "Hassan",
+      lastNameEn: "Al-Mahroos",
+      firstNameAr: "حسن",
+      lastNameAr: "المحروس",
+      email: createdUsers.producer?.email ?? null,
+      phone: "+973 3900 8813",
+      cprNumber: "930889012",
+      jobTitleEn: "Producer",
+      jobTitleAr: "منتج",
+      hireDate: new Date("2023-09-01"),
+      status: "active",
+      leaveBalanceDays: 30.0,
+      basicSalary: 1500.0,
+      housingAllowance: 250.0,
+      transportAllowance: 100.0,
+    },
+    {
+      employeeNumber: "EMP-009",
+      userId: createdUsers.marketing?.id,
+      departmentId: deptMap["COMM"],
+      firstNameEn: "Layla",
+      lastNameEn: "Al-Khalifa",
+      firstNameAr: "ليلى",
+      lastNameAr: "الخليفة",
+      email: createdUsers.marketing?.email ?? null,
+      phone: "+973 3900 8814",
+      cprNumber: "970990123",
+      jobTitleEn: "Marketing Specialist",
+      jobTitleAr: "أخصائية تسويق",
+      hireDate: new Date("2024-01-15"),
+      status: "active",
+      leaveBalanceDays: 30.0,
+      basicSalary: 1300.0,
+      housingAllowance: 200.0,
       transportAllowance: 100.0,
     },
   ];

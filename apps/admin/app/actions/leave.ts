@@ -3,9 +3,12 @@ import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
   createLeaveRequest,
-  approveLeaveRequest,
-  rejectLeaveRequest,
   createActivityLog,
+  submitForApproval,
+  findPendingApproval,
+  decideApprovalRequest,
+  cancelPendingApprovals,
+  getLeaveConflicts,
   db,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
@@ -31,15 +34,16 @@ export async function createLeaveRequestAction(data: {
         where: { userId: actor.id },
         select: { id: true },
       });
-      if (!emp) throw new Error("No employee profile found for your account");
+      if (!emp) throw new Error("Your HR profile is not set up yet. Ask HR to create your employee record.");
       targetEmployeeId = emp.id;
     }
 
     const target = await db.employee.findUnique({ where: { id: targetEmployeeId }, select: { userId: true } });
     if (!target) throw new Error("Employee not found");
-    if (target.userId !== actor.id) await requirePermission("employees", "create");
-    const { leaveRequest } = await runAtomicMutation(async () => {
-      let leaveRequest = await createLeaveRequest({
+    if (target.userId === actor.id) await requirePermission("self_service", "create");
+    else await requirePermission("employees", "create");
+    const { leaveRequest, approval } = await runAtomicMutation(async () => {
+      const leaveRequest = await createLeaveRequest({
         employeeId: targetEmployeeId,
         leaveTypeId: data.leaveTypeId,
         startDate: new Date(data.startDate),
@@ -49,23 +53,28 @@ export async function createLeaveRequestAction(data: {
         hours: data.hours,
       });
 
-      if (actor.role === "super_admin") {
-        leaveRequest = (await approveLeaveRequest(leaveRequest.id, actor.id)).request;
-      }
+      // The employee is the requester even when HR files on their behalf, so they can't self-approve.
+      const requesterId = target.userId ?? actor.id;
+      const approval = await submitForApproval({
+        targetType: "leave_request",
+        targetId: leaveRequest.id,
+        requesterId,
+        policySnapshot: { startDate: data.startDate, endDate: data.endDate, leaveTypeId: data.leaveTypeId },
+      });
       await createActivityLog({
         user_id: actor.id,
-        action: actor.role === "super_admin" ? "auto_approve" : "create",
+        action: "create",
         entity_type: "leave_request",
         entity_id: leaveRequest.id,
-        details: { startDate: data.startDate, endDate: data.endDate, reason: data.reason },
+        details: { startDate: data.startDate, endDate: data.endDate, reason: data.reason, approvalStatus: approval.status },
       });
 
-      return { leaveRequest };
+      return { leaveRequest, approval };
     });
 
     revalidatePath("/dashboard/hr/leave");
     revalidatePath("/dashboard/approvals");
-    return { success: true, leaveRequest };
+    return { success: true, leaveRequest, approvalStatus: approval.status };
   });
 }
 
@@ -75,31 +84,31 @@ export async function decideLeaveRequestAction(
   notes?: string,
 ) {
   return measureOperation("action:decideLeaveRequestAction", async () => {
-    const actor = await requirePermission("employees", "approve");
+    // Who may decide is defined by the leave approval policy and enforced by the engine.
+    const actor = await requireAuth();
     validateActionArguments("decideLeaveRequestAction", { requestId, decision, notes });
 
     const result = await runAtomicMutation(async () => {
-      if (decision === "approved") {
-        const { request, conflicts } = await approveLeaveRequest(requestId, actor.id, notes);
-        await createActivityLog({
-          user_id: actor.id,
-          action: "approve",
-          entity_type: "leave_request",
-          entity_id: requestId,
-          details: { conflicts },
-        });
-        return { request, conflicts };
-      } else {
-        const request = await rejectLeaveRequest(requestId, actor.id, notes || "Rejected");
-        await createActivityLog({
-          user_id: actor.id,
-          action: "reject",
-          entity_type: "leave_request",
-          entity_id: requestId,
-          details: { notes },
-        });
-        return { request, conflicts: null };
-      }
+      const pending = await findPendingApproval("leave_request", requestId);
+      if (!pending) throw new Error("This leave request has no pending approval");
+      const outcome = await decideApprovalRequest(pending.id, actor.id, decision, notes);
+      const conflicts =
+        decision === "approved"
+          ? await getLeaveConflicts(
+              await db.leaveRequest.findUniqueOrThrow({
+                where: { id: requestId },
+                select: { startDate: true, endDate: true, employee: { select: { userId: true } } },
+              }),
+            )
+          : null;
+      await createActivityLog({
+        user_id: actor.id,
+        action: decision === "approved" ? "approve" : "reject",
+        entity_type: "leave_request",
+        entity_id: requestId,
+        details: { notes, approvalStatus: outcome.status, conflicts },
+      });
+      return { approvalStatus: outcome.status, conflicts };
     });
 
     revalidatePath("/dashboard/hr/leave");
@@ -126,9 +135,12 @@ export async function cancelLeaveRequestAction(requestId: string) {
       throw new Error("You can only cancel your own pending leave requests");
     }
 
-    await db.leaveRequest.update({
-      where: { id: requestId },
-      data: { status: "cancelled" },
+    await runAtomicMutation(async () => {
+      await db.leaveRequest.update({
+        where: { id: requestId },
+        data: { status: "cancelled" },
+      });
+      await cancelPendingApprovals("leave_request", requestId);
     });
 
     await createActivityLog({

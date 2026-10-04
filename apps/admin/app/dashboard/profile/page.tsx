@@ -1,4 +1,5 @@
 import { SalaryDocumentsView } from "../../../components/hr/SalaryDocumentsView";
+import { availablePayslipMonths } from "../../../lib/salary-documents";
 import { requireAuth } from "../../../lib/auth";
 import {
   db,
@@ -34,14 +35,16 @@ export default async function ProfilePage() {
         })
         .catch(() => null),
       getProfileChangeRequestsForUser(user.id).catch(() => []),
-      ["super_admin", "admin", "production_manager", "finance_manager"].includes(
-        user.role,
-      )
-        ? getPendingProfileChangesForManager(user.id).catch(() => [])
-        : Promise.resolve([]),
+      // Returns only changes filed by this user's direct reports; empty for non-managers.
+      getPendingProfileChangesForManager(user.id).catch(() => []),
     ]);
 
-  const salaryDocuments = employeeRecord ? await db.salaryDocument.findMany({ where: { employeeId: employeeRecord.id }, orderBy: { createdAt: "desc" } }) : [];
+  const [salaryDocuments, availableMonths] = employeeRecord
+    ? await Promise.all([
+        db.salaryDocument.findMany({ where: { employeeId: employeeRecord.id }, orderBy: { createdAt: "desc" } }),
+        availablePayslipMonths(employeeRecord.id),
+      ])
+    : [[], []];
   return (
     <div className="space-y-6">
     <UserProfileView
@@ -51,7 +54,7 @@ export default async function ProfilePage() {
       myRequests={myRequests}
       pendingTeamRequests={pendingTeamRequests}
     />
-    {employeeRecord && <SalaryDocumentsView employeeId={employeeRecord.id} documents={salaryDocuments.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes }))} />}
+    <SalaryDocumentsView showNoProfile employeeId={employeeRecord?.id} availableMonths={availableMonths} documents={salaryDocuments.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes }))} />
     </div>
   );
 }

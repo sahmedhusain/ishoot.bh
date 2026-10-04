@@ -1,5 +1,5 @@
 import { requireAuth, hasPermission } from "../../../../lib/auth";
-import { listLeaveRequests, listLeaveTypes, listEmployees, db } from "@ishoot/database";
+import { listLeaveRequests, listLeaveTypes, listEmployees, db, canDecideApproval } from "@ishoot/database";
 import { LeaveManagementView } from "../../../../components/hr/LeaveManagementView";
 
 export const dynamic = "force-dynamic";
@@ -15,31 +15,37 @@ export default async function LeaveManagementPage({
   const employeeId = typeof query.employeeId === "string" ? query.employeeId : undefined;
   const page = Math.max(1, Number(query.page) || 1);
 
-  const canReadTeam = await hasPermission("employees", "read");
-  const canCreateTeam = await hasPermission("employees", "create");
-  const canApprove = await hasPermission("employees", "approve");
-  const ownEmployee = await db.employee.findUnique({ where: { userId: user.id }, select: { id: true } });
-  const [
-    { items: requests, total },
-    leaveTypes,
-    myEmployee,
-    allEmployeesResult,
-  ] = await Promise.all([
+  const [canReadTeam, canFileForOthers, myEmployee, awaitingMe] = await Promise.all([
+    hasPermission("employees", "read"),
+    hasPermission("employees", "create"),
+    db.employee.findFirst({ where: { userId: user.id }, include: { department: true } }),
+    // Line managers see their reports' requests even without team-wide HR access.
+    db.approvalRequest.findMany({
+      where: { targetType: "leave_request", status: "pending", approverIds: { has: user.id } },
+      select: { targetId: true },
+    }),
+  ]);
+
+  const [{ items: requests, total }, leaveTypes, allEmployeesResult] = await Promise.all([
     listLeaveRequests({
       status: status === "all" ? undefined : status,
-      employeeId: canReadTeam ? employeeId : ownEmployee?.id || "no-employee",
+      employeeId: canReadTeam ? employeeId : myEmployee?.id || "no-employee",
+      includeIds: canReadTeam ? undefined : awaitingMe.map((a) => a.targetId),
       page,
       pageSize: 30,
     }),
     listLeaveTypes(),
-    db.employee.findFirst({
-      where: { userId: user.id },
-      include: { department: true },
-    }),
-    canCreateTeam ? listEmployees({ pageSize: 100 }) : Promise.resolve({ items: [], total: 0 }),
+    canFileForOthers ? listEmployees({ pageSize: 100 }) : Promise.resolve({ items: [], total: 0 }),
   ]);
 
-  const isManagerOrAdmin = canApprove;
+  const pendingIds = requests.filter((r) => r.status === "pending").map((r) => r.id);
+  const pendingApprovals = pendingIds.length
+    ? await db.approvalRequest.findMany({
+        where: { targetType: "leave_request", targetId: { in: pendingIds }, status: "pending" },
+        select: { targetId: true, status: true, requestedById: true, approverIds: true },
+      })
+    : [];
+  const decidableIds = pendingApprovals.filter((a) => canDecideApproval(a, user)).map((a) => a.targetId);
 
   return (
     <LeaveManagementView
@@ -58,7 +64,8 @@ export default async function LeaveManagementPage({
           : null
       }
       currentUserId={user.id}
-      isManagerOrAdmin={isManagerOrAdmin}
+      canFileForOthers={canFileForOthers}
+      decidableIds={decidableIds}
       currentStatus={status}
       total={total}
       page={page}

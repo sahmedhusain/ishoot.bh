@@ -1,7 +1,7 @@
 import { db } from "../db";
 import { Quotation } from "../types";
 import { getNextSequenceNumber } from "./sequence";
-import { createApprovalRequest } from "./approvals";
+import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
 import { getLatestExchangeRate } from "./fx-settlement";
 
@@ -289,11 +289,11 @@ export async function submitQuotationForApproval(
     ? `Quotation #${quotation.quotationNumber} includes a ${quotation.discountType} discount of ${quotation.discountValue} (${quotation.discountAmount} ${quotation.currency}).`
     : null);
 
-  const approvalReq = await createApprovalRequest({
+  await db.quotation.update({ where: { id }, data: { status: "submitted" } });
+  const approvalReq = await submitForApproval({
     targetType: "quotation",
     targetId: quotation.id,
-    revision: quotation.revision,
-    requestedById: actorId,
+    requesterId: actorId,
     policySnapshot: {
       totalAmount: Number(quotation.totalAmount),
       subtotal: Number(quotation.subtotal),
@@ -319,12 +319,7 @@ export async function submitQuotationForApproval(
     },
   });
 
-  await db.quotation.update({
-    where: { id },
-    data: { status: approvalReq.status === "approved" ? "approved" : "submitted" },
-  });
-
-  return { success: true, approvalRequestId: approvalReq.id };
+  return { success: true, approvalRequestId: approvalReq.approvalRequestId };
 }
 
 export async function issueQuotation(

@@ -26,12 +26,13 @@ import { toast } from "sonner";
 interface PayrollManagementViewProps {
   runs: PayrollRun[];
   currentUserId: string;
-  isSuperAdmin: boolean;
+  /** Runs the current user may approve under the payroll approval policy. */
+  decidableRunIds: string[];
 }
 
 export function PayrollManagementView({
   runs,
-  isSuperAdmin,
+  decidableRunIds,
 }: PayrollManagementViewProps) {
   const { t, locale } = useAdminLocale();
   const router = useRouter();
@@ -333,7 +334,7 @@ export function PayrollManagementView({
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-white/10">
-                      {run.status === "draft" && (
+                      {(run.status === "draft" || run.status === "calculated") && (
                         <Button
                           onClick={() => handleSubmitForApproval(run.id)}
                           disabled={loadingId === run.id}
@@ -344,7 +345,7 @@ export function PayrollManagementView({
                         </Button>
                       )}
 
-                      {run.status === "submitted" && isSuperAdmin && (
+                      {run.status === "submitted" && decidableRunIds.includes(run.id) && (
                         <Button
                           onClick={() => handleApprove(run.id)}
                           disabled={loadingId === run.id}

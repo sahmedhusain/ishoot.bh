@@ -5,13 +5,17 @@ import {
   runAtomicMutation,
   createActivityLog,
   getCompanySettings,
+  submitForApproval,
+  findPendingApproval,
+  decideApprovalRequest,
+  measureOperation,
 } from "@ishoot/database";
-import { requireAuth } from "../../lib/auth";
+import { requireAuth, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 import {
+  availablePayslipMonths,
   canManageSalaryDocuments,
   getAccessibleSalaryDocument,
-  salaryDocumentSnapshot,
 } from "../../lib/salary-documents";
 import { revalidatePath } from "next/cache";
 import { generateSalaryDocumentPdf } from "../../lib/pdf/salary-document-pdf";
@@ -21,56 +25,60 @@ export async function requestSalaryDocumentAction(data: {
   kind: "payslip" | "salary_certificate";
   months: string[];
 }) {
-  const actor = await requireAuth();
-  validateActionArguments("requestSalaryDocumentAction", { data });
-  const employee = await db.employee.findUniqueOrThrow({
-    where: { id: data.employeeId },
-  });
-  const manager = await canManageSalaryDocuments(actor);
-  if (employee.userId !== actor.id && !manager)
-    throw new Error("You can only request your own documents");
-  const months = Array.from(new Set(data.months)).sort();
-  if (
-    data.kind === "payslip" &&
-    (!months.length ||
-      months.length > 24 ||
-      months.some((value) => !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)))
-  )
-    throw new Error("Select between one and 24 valid months");
-  const issued = manager || actor.role === "super_admin";
-  const id = await runAtomicMutation(async () => {
-    const document = await db.salaryDocument.create({
-      data: {
-        employeeId: employee.id,
-        kind: data.kind,
-        months: data.kind === "payslip" ? months : [],
-        requestedById: actor.id,
-        status: issued ? "issued" : "pending",
-        reviewedById: issued ? actor.id : null,
-        issuedAt: issued ? new Date() : null,
-        snapshot: issued
-          ? await salaryDocumentSnapshot(employee.id, data.kind, months)
-          : undefined,
-      },
+  return measureOperation("action:requestSalaryDocumentAction", async () => {
+    const actor = await requireAuth();
+    validateActionArguments("requestSalaryDocumentAction", { data });
+    const employee = await db.employee.findUniqueOrThrow({
+      where: { id: data.employeeId },
     });
-    await createActivityLog({
-      user_id: actor.id,
-      action: issued ? "issue" : "request",
-      entity_type: "salary_document",
-      entity_id: document.id,
-      details: {
-        kind: data.kind,
-        months,
-        employeeId: employee.id,
-        autoApproved: actor.role === "super_admin",
-      },
+    if (employee.userId === actor.id) await requirePermission("self_service", "create");
+    else if (!(await canManageSalaryDocuments(actor)))
+      throw new Error("You can only request your own documents");
+    const months = Array.from(new Set(data.months)).sort();
+    if (
+      data.kind === "payslip" &&
+      (!months.length ||
+        months.length > 24 ||
+        months.some((value) => !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)))
+    )
+      throw new Error("Select between one and 24 valid months");
+    if (data.kind === "payslip") {
+      const available = await availablePayslipMonths(employee.id);
+      const missing = months.filter((month) => !available.includes(month));
+      if (missing.length) throw new Error(`Payroll is not approved yet for: ${missing.join(", ")}`);
+    }
+    const { id, approvalStatus } = await runAtomicMutation(async () => {
+      const document = await db.salaryDocument.create({
+        data: {
+          employeeId: employee.id,
+          kind: data.kind,
+          months: data.kind === "payslip" ? months : [],
+          requestedById: actor.id,
+          status: "pending",
+        },
+      });
+      // The employee is the requester even when HR files on their behalf.
+      const approval = await submitForApproval({
+        targetType: "salary_document",
+        targetId: document.id,
+        requesterId: employee.userId ?? actor.id,
+        policySnapshot: { kind: data.kind, months },
+      });
+      await createActivityLog({
+        user_id: actor.id,
+        action: "request",
+        entity_type: "salary_document",
+        entity_id: document.id,
+        details: { kind: data.kind, months, employeeId: employee.id, approvalStatus: approval.status },
+      });
+      return { id: document.id, approvalStatus: approval.status };
     });
-    return document.id;
+    revalidatePath("/dashboard/hr/documents");
+    revalidatePath("/dashboard/profile");
+    revalidatePath("/dashboard/approvals");
+    revalidatePath(`/dashboard/hr/employees/${employee.id}`);
+    return { success: true, id, approvalStatus };
   });
-  revalidatePath("/dashboard/hr/documents");
-  revalidatePath("/dashboard/profile");
-  revalidatePath(`/dashboard/hr/employees/${employee.id}`);
-  return { success: true, id };
 }
 
 export async function reviewSalaryDocumentAction(
@@ -78,51 +86,33 @@ export async function reviewSalaryDocumentAction(
   decision: "issued" | "rejected",
   notes?: string,
 ) {
-  const actor = await requireAuth();
-  validateActionArguments("reviewSalaryDocumentAction", {
-    id,
-    decision,
-    notes,
+  return measureOperation("action:reviewSalaryDocumentAction", async () => {
+    const actor = await requireAuth();
+    validateActionArguments("reviewSalaryDocumentAction", { id, decision, notes });
+    // Who may issue is defined by the salary document approval policy and enforced by the engine.
+    await runAtomicMutation(async () => {
+      const pending = await findPendingApproval("salary_document", id);
+      if (!pending) throw new Error("Request has already been reviewed");
+      const outcome = await decideApprovalRequest(
+        pending.id,
+        actor.id,
+        decision === "issued" ? "approved" : "rejected",
+        notes,
+      );
+      await createActivityLog({
+        user_id: actor.id,
+        action: decision,
+        entity_type: "salary_document",
+        entity_id: id,
+        details: { notes, approvalStatus: outcome.status },
+      });
+    });
+    revalidatePath("/dashboard/hr/documents");
+    revalidatePath("/dashboard/profile");
+    revalidatePath("/dashboard/approvals");
+    revalidatePath("/dashboard/hr/employees");
+    return { success: true };
   });
-  if (!(await canManageSalaryDocuments(actor)))
-    throw new Error("HR and payroll permissions required");
-  await runAtomicMutation(async () => {
-    await db.$queryRaw`SELECT id FROM "SalaryDocument" WHERE id=${id} FOR UPDATE`;
-    const document = await db.salaryDocument.findUniqueOrThrow({
-      where: { id },
-    });
-    if (document.status !== "pending")
-      throw new Error("Request has already been reviewed");
-    const snapshot =
-      decision === "issued"
-        ? await salaryDocumentSnapshot(
-            document.employeeId,
-            document.kind,
-            document.months as string[],
-          )
-        : undefined;
-    await db.salaryDocument.update({
-      where: { id },
-      data: {
-        status: decision,
-        reviewedById: actor.id,
-        reviewNotes: notes || null,
-        snapshot,
-        issuedAt: decision === "issued" ? new Date() : null,
-      },
-    });
-    await createActivityLog({
-      user_id: actor.id,
-      action: decision,
-      entity_type: "salary_document",
-      entity_id: id,
-      details: { before: document.status, after: decision, notes },
-    });
-  });
-  revalidatePath("/dashboard/hr/documents");
-  revalidatePath("/dashboard/profile");
-  revalidatePath("/dashboard/hr/employees");
-  return { success: true };
 }
 
 export async function emailSalaryDocumentAction(

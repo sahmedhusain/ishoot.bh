@@ -1,4 +1,7 @@
-import { db } from "../db";
+import { db, runAtomicMutation } from "../db";
+import { canTransitionRequest } from "../constants/requests";
+import { cancelPendingApprovals } from "../services/approval-engine";
+import { assignRequest, reassignRequest } from "./inquiries";
 import { getNextSequenceNumber } from "./sequence";
 import { assertAssigneeAvailable, assertActorNotOnLeave } from "./leave";
 
@@ -100,6 +103,10 @@ export async function createConsolidatedRequest(
   return inquiry;
 }
 
+/**
+ * The single assignment path for SR/CR: locks the row, validates the workflow state and the assignee's
+ * availability, then records the assignment history.
+ */
 export async function assignConsolidatedRequest(
   id: string,
   newAssigneeId: string,
@@ -109,73 +116,64 @@ export async function assignConsolidatedRequest(
 ): Promise<any> {
   await assertActorNotOnLeave(actorId);
 
-  const request = await db.inquiry.findUnique({
-    where: { id },
-    select: { id: true, slaDueDate: true, assignedToId: true, workflowStatus: true },
-  });
-
-  if (!request) throw new Error("Request not found");
-
-  // Validate assignee availability against leave periods
-  const periodStart = new Date();
-  const periodEnd = request.slaDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  await assertAssigneeAvailable(newAssigneeId, periodStart, periodEnd);
-
-  const updated = await db.$transaction(async (tx) => {
-    // Deactivate previous active assignment
-    await tx.requestAssignment.updateMany({
-      where: { inquiryId: id, active: true },
-      data: { active: false },
+  return runAtomicMutation(async () => {
+    const request = await db.inquiry.findUnique({
+      where: { id },
+      select: { id: true, slaDueDate: true, assignedToId: true, workflowStatus: true },
     });
+    if (!request) throw new Error("Request not found");
 
-    // Create new assignment record
-    await tx.requestAssignment.create({
+    const periodStart = new Date();
+    const periodEnd = request.slaDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await assertAssigneeAvailable(newAssigneeId, periodStart, periodEnd);
+
+    const actor = await db.user.findUnique({ where: { id: actorId }, select: { fullName: true } });
+    const isFirstAssignment = canTransitionRequest(request.workflowStatus, "assign") && !request.assignedToId;
+    if (isFirstAssignment) {
+      await assignRequest(id, {
+        assignedToId: newAssigneeId,
+        team: team || undefined,
+        assignedById: actorId,
+        assignedByName: actor?.fullName,
+        notes: reason || undefined,
+      });
+    } else {
+      // Re-assigning work that is waiting for approval withdraws that approval.
+      if (request.workflowStatus === "pending_approval") await cancelPendingApprovals("service_request", id);
+      await reassignRequest(id, {
+        newAssignedToId: newAssigneeId,
+        newTeam: team || undefined,
+        reassignedById: actorId,
+        reassignedByName: actor?.fullName,
+        notes: reason?.trim() || "Reassigned",
+      });
+    }
+
+    await db.requestAssignment.updateMany({ where: { inquiryId: id, active: true }, data: { active: false } });
+    await db.requestAssignment.create({
       data: {
         inquiryId: id,
         assignedToId: newAssigneeId,
         assignedById: actorId,
         team: team || null,
-        reason: reason || "Reassigned",
+        reason: reason || (isFirstAssignment ? "Assigned" : "Reassigned"),
         active: true,
       },
-      include: {
-        assignedTo: { select: { id: true, fullName: true, email: true } },
-      },
     });
-
-    // Update inquiry
-    const inq = await tx.inquiry.update({
-      where: { id },
-      data: {
-        assignedToId: newAssigneeId,
-        team: team || undefined,
-        workflowStatus: "assigned",
-      },
-      include: {
-        assignedTo: { select: { id: true, fullName: true, email: true } },
-        customer: true,
-      },
-    });
-
-    // Record audit event
-    await tx.requestEvent.create({
+    await db.requestEvent.create({
       data: {
         inquiryId: id,
         actorId,
         eventType: "assignment",
-        details: {
-          previousAssigneeId: request.assignedToId,
-          newAssigneeId,
-          team,
-          reason,
-        },
+        details: { previousAssigneeId: request.assignedToId, newAssigneeId, team, reason },
       },
     });
 
-    return inq;
+    return db.inquiry.findUnique({
+      where: { id },
+      include: { assignedTo: { select: { id: true, fullName: true, email: true } }, customer: true },
+    });
   });
-
-  return updated;
 }
 
 export async function addRequestComment(
@@ -274,76 +272,3 @@ export async function getConsolidatedRequestById(id: string): Promise<any> {
   return request;
 }
 
-export async function getConsolidatedRequestsInbox(
-  filters: {
-    view?: "all" | "my_work" | "my_team" | "awaiting_approval" | "sr" | "cr" | "closed";
-    type?: string;
-    status?: string;
-    team?: string;
-    priority?: string;
-    search?: string;
-    page?: number;
-    pageSize?: number;
-  },
-  actor: { id: string; role: string; team?: string },
-): Promise<{ items: any[]; total: number }> {
-  const page = Math.max(1, filters.page || 1);
-  const pageSize = Math.min(100, Math.max(1, filters.pageSize || 25));
-  const where: any = {};
-
-  // Saved view filter
-  if (filters.view === "my_work") {
-    where.assignedToId = actor.id;
-  } else if (filters.view === "my_team" && actor.team) {
-    where.team = actor.team;
-  } else if (filters.view === "awaiting_approval") {
-    where.workflowStatus = "pending_approval";
-  } else if (filters.view === "sr") {
-    where.requestType = "SR";
-  } else if (filters.view === "cr") {
-    where.requestType = "CR";
-  } else if (filters.view === "closed") {
-    where.workflowStatus = { in: ["resolved", "rejected"] };
-  }
-
-  if (filters.type) {
-    where.requestType = filters.type;
-  }
-  if (filters.status) {
-    where.workflowStatus = filters.status;
-  }
-  if (filters.team) {
-    where.team = filters.team;
-  }
-  if (filters.priority) {
-    where.priority = filters.priority;
-  }
-
-  if (filters.search) {
-    where.OR = [
-      { reference: { contains: filters.search, mode: "insensitive" } },
-      { name: { contains: filters.search, mode: "insensitive" } },
-      { email: { contains: filters.search, mode: "insensitive" } },
-      { companyName: { contains: filters.search, mode: "insensitive" } },
-    ];
-  }
-
-  const [total, records] = await Promise.all([
-    db.inquiry.count({ where }),
-    db.inquiry.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      include: {
-        customer: { select: { id: true, companyName: true, firstName: true } },
-        assignedTo: { select: { id: true, fullName: true, email: true } },
-        _count: {
-          select: { comments: true, requestEvents: true },
-        },
-      },
-    }),
-  ]);
-
-  return { total, items: records };
-}

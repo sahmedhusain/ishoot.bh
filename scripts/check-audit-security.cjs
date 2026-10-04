@@ -1,4 +1,5 @@
 require("ts-node").register({transpileOnly:true,skipProject:true,compilerOptions:{module:"CommonJS",target:"ES2022",moduleResolution:"Node",esModuleInterop:true,resolveJsonModule:true}});
+const { realConstants } = require("./lib/real-constants.cjs");
 // Exercise actual server-action boundaries without a network or database.
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -26,7 +27,7 @@ function load(file, mocks) {
         if (id === "node:crypto") return require(id);
         if (id === "../../lib/pdf/mom-pdf") return {};
         id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
-        if (!(id in mocks)) throw Error(`Missing mock ${id}`);
+        if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error(`Missing mock ${id}`); }
         return mocks[id];
       },
       console,
@@ -89,15 +90,17 @@ async function main() {
   await assert.rejects(mom.shareMomViaEmailAction("m", "x@example.com"), /Approve the meeting/);
   assert.equal(touched, false, "unapproved sharing must not log success");
 
-  let captured = [],
+  // Roles save only the cells that changed; cells not submitted keep their stored value.
+  let stored = [],
+    upserts = [],
     fail = false;
   const transaction = {
     role: { update: async ({ where }) => ({ id: where.id }) },
     permission: {
-      deleteMany: async () => {},
-      createMany: async ({ data }) => {
-        captured = data;
+      findMany: async () => stored,
+      upsert: async (args) => {
         if (fail) throw Error("DB failure");
+        upserts.push(args);
       },
     },
     activityLog: { create: async () => {} },
@@ -107,63 +110,43 @@ async function main() {
     "next/cache": { revalidatePath() {} },
     "@ishoot/database": {
       ALL_RESOURCES: ["invoices", "moms"],
-      ALL_ACTIONS: ["read", "write", "delete", "export", "approve"],
+      ALL_ACTIONS: ["read", "write", "delete", "export", "approve", "create", "edit"],
       db: { $transaction: async (fn) => fn(transaction) },
     },
   });
   actor = { id: "a", role: "admin" };
-  await assert.rejects(roles.upsertRoleAction({ nameEn: "Admin", nameAr: "مدير", permissions: [] }), /Only super/);
+  await assert.rejects(roles.upsertRoleAction({ nameEn: "Admin", nameAr: "مدير", grants: {} }), /Only super/);
   actor = { id: "s", role: "super_admin" };
+  stored = [
+    { resource: "invoices", action: "read", allowed: false },
+    { resource: "moms", action: "approve", allowed: true },
+  ];
   await roles.upsertRoleAction({
     id: "admin",
     nameEn: "Admin",
     nameAr: "مدير",
-    permissions: [
-      {
-        module: "invoices",
-        canRead: true,
-        canWrite: false,
-        canDelete: false,
-        canExport: true,
-        canApprove: false,
-      },
-    ],
+    grants: { "invoices:read": true, "invoices:export": true },
   });
-  assert.equal(captured.length, 10);
-  assert.equal(
-    captured.find((p) => p.resource === "invoices" && p.action === "write")
-      .allowed,
-    false,
+  const grantOf = (key) => upserts.find((u) => `${u.where.role_resource_action.resource}:${u.where.role_resource_action.action}` === key);
+  assert.equal(upserts.length, 2, "only changed cells are written");
+  assert.equal(grantOf("invoices:read").update.allowed, true);
+  assert.equal(grantOf("invoices:export").create.allowed, true);
+  assert.equal(grantOf("moms:approve"), undefined, "cells not shown in the payload are never revoked");
+  await assert.rejects(
+    roles.upsertRoleAction({ id: "admin", nameEn: "Admin", nameAr: "مدير", grants: { "invoices:write": true } }),
+    /Invalid permission resource/,
+    "the legacy write grant is derived, never submitted",
   );
-  assert.equal(
-    captured.find((p) => p.resource === "invoices" && p.action === "export")
-      .allowed,
-    true,
-  );
-  assert.equal(
-    captured.find((p) => p.resource === "moms" && p.action === "approve")
-      .allowed,
-    false,
-  );
-  await roles.upsertRoleAction({
-    id: "super_admin",
-    nameEn: "Super",
-    nameAr: "مدير",
-    permissions: [],
-  });
-  assert.equal(captured.length, 10);
-  assert.equal(captured.every((grant) => grant.role === "super_admin" && grant.allowed), true, "Super Admin retains all grants even when the submitted matrix is empty");
+  upserts = [];
+  stored = [];
+  await roles.upsertRoleAction({ id: "super_admin", nameEn: "Super", nameAr: "مدير", grants: { "invoices:read": false } });
+  assert.equal(upserts.length, 14);
+  assert.equal(upserts.every((u) => u.create.allowed && u.update.allowed), true, "Super Admin retains all grants even when a denial is submitted");
   fail = true;
   await assert.rejects(
-    roles.upsertRoleAction({
-      id: "admin",
-      nameEn: "Admin",
-      nameAr: "مدير",
-      permissions: [],
-    }),
+    roles.upsertRoleAction({ id: "admin", nameEn: "Admin", nameAr: "مدير", grants: { "invoices:delete": true } }),
     /DB failure/,
   );
-
   let updateData = null;
   const users = load("apps/admin/app/actions/users.ts", {
     "../../lib/auth": { requirePermission: async () => actor },

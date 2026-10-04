@@ -34,6 +34,8 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 interface UsersManagementViewProps {
   canWrite: boolean;
   canDelete: boolean;
+  /** May create employee records (HR), used for the "create employee profile" shortcut. */
+  canCreateEmployees?: boolean;
   employees: Array<{
     id: string;
     employeeNumber: string;
@@ -51,6 +53,7 @@ export function UsersManagementView({
   initialUsers,
   canWrite,
   canDelete,
+  canCreateEmployees = false,
   employees,
   roles,
   resources,
@@ -293,6 +296,16 @@ export function UsersManagementView({
                             <div className="text-[#9EADA9] text-[11px]">
                               {u.email}
                             </div>
+                            {!u.employee_id && (
+                              <div className="mt-1 flex items-center gap-2 text-[11px]">
+                                <span className="text-amber-400">{t.hrSelfService.employeeNotLinked}</span>
+                                {canCreateEmployees && (
+                                  <Link href={`/dashboard/hr/employees/new?userId=${u.id}`} className="text-[#5EEAD4] underline">
+                                    {t.hrSelfService.createEmployeeProfile}
+                                  </Link>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
