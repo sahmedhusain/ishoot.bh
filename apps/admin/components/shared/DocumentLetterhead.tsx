@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "./ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
@@ -78,31 +79,43 @@ export function DocumentLetterhead({
         <div className="relative z-10 space-y-2">
           {/* Brand Logo: Icon + Wordmark beside each other */}
           <div className="flex items-center gap-3">
-            <img
-              src={company.dark_icon_url || company.icon_url || "/brand/icon-dark.svg"}
+            <ContentImage
+              src={
+                company.dark_icon_url ||
+                company.icon_url
+              }
               alt="Brand Icon"
               className="h-10 w-auto object-contain shrink-0"
-            />
-            <img
-              src={company.dark_logo_url || company.logo_url || "/brand/logo-text-light.svg"}
+             width={40} height={40} />
+            <ContentImage
+              src={
+                company.dark_logo_url ||
+                company.logo_url
+              }
               alt={isAr ? company.company_name_ar : company.company_name_en}
               className="h-7 w-auto object-contain"
-            />
+             fallbackText={(isAr ? company.company_name_ar : company.company_name_en)}  width={240} height={60} />
           </div>
 
           <div className="text-xs text-white/80 font-medium">
             {isAr ? company.company_name_ar : company.company_name_en}
             {company.company_name_ar && !isAr && (
-              <span className="text-white/60 mx-1.5">• {company.company_name_ar}</span>
+              <span className="text-white/60 mx-1.5">
+                • {company.company_name_ar}
+              </span>
             )}
           </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/70 ">
-            <span>{t.crLabel} {company.cr_number}</span>
+            <span>
+              {t.crLabel} {company.cr_number}
+            </span>
             {company.vat_enabled && company.vat_id && (
               <>
                 <span className="text-white/40">•</span>
-                <span>{t.vatIdLabel} {company.vat_id}</span>
+                <span>
+                  {t.vatIdLabel} {company.vat_id}
+                </span>
               </>
             )}
             <span className="text-white/40">•</span>
@@ -153,9 +166,7 @@ export function DocumentLetterhead({
           </div>
 
           {client.company && client.name && client.company !== client.name && (
-            <div className="text-gray-600 font-medium">
-              Attn: {client.name}
-            </div>
+            <div className="text-gray-600 font-medium">Attn: {client.name}</div>
           )}
 
           {client.vatNumber && (
@@ -164,11 +175,7 @@ export function DocumentLetterhead({
             </div>
           )}
 
-          {client.email && (
-            <div className="text-gray-500 ">
-              {client.email}
-            </div>
-          )}
+          {client.email && <div className="text-gray-500 ">{client.email}</div>}
 
           {client.phone && (
             <div className="text-gray-500 " dir="ltr">
@@ -189,9 +196,7 @@ export function DocumentLetterhead({
             <span className="text-gray-400 font-bold uppercase text-[10px]">
               {issueDateLabel}
             </span>
-            <span className=" font-medium text-gray-900">
-              {issueDate}
-            </span>
+            <span className=" font-medium text-gray-900">{issueDate}</span>
           </div>
 
           {secondaryDateLabel && secondaryDate && (
@@ -199,17 +204,11 @@ export function DocumentLetterhead({
               <span className="text-gray-400 font-bold uppercase text-[10px]">
                 {secondaryDateLabel}
               </span>
-              <span className=" font-bold text-[#014842]">
-                {secondaryDate}
-              </span>
+              <span className=" font-bold text-[#014842]">{secondaryDate}</span>
             </div>
           )}
 
-          {extraMeta && (
-            <div className="w-full pt-1">
-              {extraMeta}
-            </div>
-          )}
+          {extraMeta && <div className="w-full pt-1">{extraMeta}</div>}
         </div>
       </div>
     </div>
@@ -240,14 +239,21 @@ export function DocumentFooter({
   const isAr = language === "ar";
   const t = adminTranslations[isAr ? "ar" : "en"].documentLetterhead;
   const companyName = isAr
-    ? (company.company_name_ar ? company.company_name_ar : company.company_name_en)
-    : (company.company_name_en ? company.company_name_en : company.company_name_ar);
+    ? company.company_name_ar
+      ? company.company_name_ar
+      : company.company_name_en
+    : company.company_name_en
+      ? company.company_name_en
+      : company.company_name_ar;
 
   const defaultSig = signatureTitle ? signatureTitle : t.authorizedSignatory;
-  const defaultSigAr = signatureTitleAr ? signatureTitleAr : adminTranslations.ar.documentLetterhead.authorizedSignatory;
+  const defaultSigAr = signatureTitleAr
+    ? signatureTitleAr
+    : adminTranslations.ar.documentLetterhead.authorizedSignatory;
 
-  const effectiveStamp = stampUrl || company.stamp_url || "/brand/stamp.svg";
-  const effectiveSignature = signatureUrl !== undefined ? signatureUrl : company.signature_url;
+  const effectiveStamp = stampUrl !== undefined ? stampUrl : company.stamp_url;
+  const effectiveSignature =
+    signatureUrl !== undefined ? signatureUrl : company.signature_url;
 
   return (
     <div className="border-t border-gray-200 bg-white">
@@ -257,9 +263,7 @@ export function DocumentFooter({
             <span className="text-gray-400 uppercase tracking-wider text-[10px] block font-bold">
               {t.issuedBy}
             </span>
-            <div className="font-semibold text-gray-900">
-              {companyName}
-            </div>
+            <div className="font-semibold text-gray-900">{companyName}</div>
             {signerName && (
               <div className="text-[11px] font-medium text-slate-700">
                 {isAr ? `الموقع: ${signerName}` : `Signed by: ${signerName}`}
@@ -275,21 +279,21 @@ export function DocumentFooter({
           <div className="flex items-center gap-6">
             {effectiveStamp && (
               <div className="relative w-20 h-20 shrink-0 opacity-90 print:opacity-85">
-                <img
+                <ContentImage
                   src={effectiveStamp}
                   alt="Official Corporate Seal"
                   className="w-full h-full object-contain select-none"
-                />
+                 width={40} height={40} />
               </div>
             )}
             <div className="text-center sm:text-end space-y-1.5 min-w-[180px]">
               <div className="relative h-14 flex items-end justify-center sm:justify-end pb-1">
                 {effectiveSignature ? (
-                  <img
+                  <ContentImage
                     src={effectiveSignature}
                     alt="Authorized Signature"
                     className="max-h-12 w-auto object-contain select-none"
-                  />
+                   width={40} height={40} />
                 ) : (
                   <div className="h-10 w-full border-b border-gray-300 border-dashed" />
                 )}
@@ -304,7 +308,9 @@ export function DocumentFooter({
 
       <div className="p-6 sm:p-8 bg-gray-50/80 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500 print:bg-white print:border-gray-200">
         <div className="font-medium text-gray-700">
-          {thankYouMessage ? thankYouMessage : t.thankYou.replace("{companyName}", companyName)}
+          {thankYouMessage
+            ? thankYouMessage
+            : t.thankYou.replace("{companyName}", companyName)}
         </div>
         <div className="flex flex-wrap items-center gap-3  text-[11px] text-gray-500">
           {company.website && (

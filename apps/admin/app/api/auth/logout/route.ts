@@ -1,9 +1,11 @@
+import { measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import { deleteSession, createActivityLog } from "@ishoot/database";
 import { verifySessionToken } from "../../../../lib/jwt";
 import { SESSION_COOKIE_NAME } from "../../../../lib/auth";
 
 export async function POST(req: NextRequest) {
+  return measureOperation("admin:auth/logout:POST", async () => {
   try {
     const token = req.cookies.get(SESSION_COOKIE_NAME)?.value;
 
@@ -39,4 +41,6 @@ export async function POST(req: NextRequest) {
     response.cookies.delete(SESSION_COOKIE_NAME);
     return response;
   }
+
+  });
 }

@@ -1,4 +1,7 @@
 "use server";
+import { measureOperation } from "@ishoot/database";
+import { runAtomicMutation } from "@ishoot/database";
+import { validateActionArguments } from "../../lib/action-input";
 
 import {
   createService,
@@ -9,7 +12,6 @@ import {
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
-
 
 export async function createServiceAction(data: {
   code?: string;
@@ -23,20 +25,25 @@ export async function createServiceAction(data: {
   is_active?: boolean;
   display_order?: number;
 }) {
-  const user = await requirePermission("invoices", "write");
-  const service = await createService(data);
+  return measureOperation("action:createServiceAction", async () => {
+    const user = await requirePermission("invoices", "write");
+    validateActionArguments("createServiceAction", { data });
+    const { service } = await runAtomicMutation(async () => {
+      const service = await createService(data);
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "service",
+        entity_id: service.id,
+        details: { name: service.name_en, rate: service.default_rate },
+      });
+      return { service };
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "create",
-    entity_type: "service",
-    entity_id: service.id,
-    details: { name: service.name_en, rate: service.default_rate },
+    revalidatePath("/dashboard/services");
+    revalidatePath("/dashboard/invoices");
+    return { success: true, service };
   });
-
-  revalidatePath("/dashboard/services");
-  revalidatePath("/dashboard/invoices");
-  return { success: true, service };
 }
 
 export async function updateServiceAction(
@@ -54,36 +61,44 @@ export async function updateServiceAction(
     display_order: number;
   }>,
 ) {
-  const user = await requirePermission("invoices", "write");
-  const service = await updateService(id, data);
+  return measureOperation("action:updateServiceAction", async () => {
+    const user = await requirePermission("invoices", "write");
+    validateActionArguments("updateServiceAction", { id, data });
+    const { service } = await runAtomicMutation(async () => {
+      const service = await updateService(id, data);
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "service",
+        entity_id: id,
+        details: { name: service.name_en, rate: service.default_rate },
+      });
+      return { service };
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "update",
-    entity_type: "service",
-    entity_id: id,
-    details: { name: service.name_en, rate: service.default_rate },
+    revalidatePath("/dashboard/services");
+    revalidatePath("/dashboard/invoices");
+    return { success: true, service };
   });
-
-  revalidatePath("/dashboard/services");
-  revalidatePath("/dashboard/invoices");
-  return { success: true, service };
 }
 
 export async function deleteServiceAction(id: string) {
-  const user = await requirePermission("invoices", "delete");
-  const success = await deleteService(id);
+  return measureOperation("action:deleteServiceAction", async () => {
+    const user = await requirePermission("invoices", "delete");
+    validateActionArguments("deleteServiceAction", { id });
+    const success = await deleteService(id);
 
-  if (success) {
-    await createActivityLog({
-      user_id: user.id,
-      action: "delete",
-      entity_type: "service",
-      entity_id: id,
-    });
-  }
+    if (success) {
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "service",
+        entity_id: id,
+      });
+    }
 
-  revalidatePath("/dashboard/services");
-  revalidatePath("/dashboard/invoices");
-  return { success };
+    revalidatePath("/dashboard/services");
+    revalidatePath("/dashboard/invoices");
+    return { success };
+  });
 }

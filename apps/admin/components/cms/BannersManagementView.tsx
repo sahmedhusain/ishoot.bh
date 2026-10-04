@@ -1,4 +1,6 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
+import Link from "next/link";
 
 import * as React from "react";
 import type { HeroBanner } from "@ishoot/database/types";
@@ -146,14 +148,14 @@ export function BannersManagementView({
           {error}
         </p>
       )}
-      <a
+      <Link
         href="/dashboard/cms/website"
         className="block text-sm text-[#5eead4] underline"
       >
         {isRTL
           ? "راجع التغييرات وانشرها من محرر الموقع"
           : "Review and publish changes in the website editor"}
-      </a>
+      </Link>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -188,7 +190,7 @@ export function BannersManagementView({
             >
               <div className="flex items-center gap-4">
                 <div className="relative w-36 aspect-video rounded-xl overflow-hidden bg-black border border-white/10 shrink-0">
-                  <img
+                  <ContentImage
                     src={banner.poster_url || banner.media_url}
                     alt={locale === "ar" ? banner.title_ar : banner.title_en}
                     className="w-full h-full object-cover"

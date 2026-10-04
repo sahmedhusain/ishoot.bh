@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 import * as React from "react";
 import type { PortfolioItem } from "@ishoot/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -17,12 +18,13 @@ export function CinemaLightbox({
   const open = !!item && isOpen !== false;
   React.useEffect(() => {
     if (!open) return;
+    const element = dialog.current;
     const previous = document.activeElement as HTMLElement | null;
-    dialog.current?.showModal();
+    element?.showModal();
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      dialog.current?.close();
+      element?.close();
       document.body.style.overflow = overflow;
       previous?.focus();
     };
@@ -77,7 +79,7 @@ export function CinemaLightbox({
             className="w-full aspect-video object-contain bg-black"
           />
         ) : (
-          <img
+          <ContentImage
             src={item.thumbnail_url}
             alt={title}
             className="w-full max-h-[65vh] object-contain"
@@ -108,7 +110,7 @@ export function CinemaLightbox({
         {!!item.gallery_urls?.length && (
           <div className="grid sm:grid-cols-2 gap-4 p-5">
             {item.gallery_urls?.map((url, i) => (
-              <img
+              <ContentImage
                 key={url}
                 src={url}
                 alt={`${title} — ${i + 1}`}

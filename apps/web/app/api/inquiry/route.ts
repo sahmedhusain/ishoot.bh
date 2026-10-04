@@ -1,3 +1,4 @@
+import {requireFeatureEnabled, measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import {
@@ -23,7 +24,9 @@ const escape = (value: string) =>
       ]!,
   );
 export async function POST(req: NextRequest) {
+  return measureOperation("web:inquiry:POST", async () => {
   try {
+    try { await requireFeatureEnabled("crm_deals"); } catch { return NextResponse.json({error:"Submissions are temporarily unavailable"},{status:503}); }
     const body = await readSubmission(req);
     const intent = textField(body, "intent") || "inquiry";
     if (
@@ -197,4 +200,6 @@ export async function POST(req: NextRequest) {
       { status },
     );
   }
+
+  });
 }

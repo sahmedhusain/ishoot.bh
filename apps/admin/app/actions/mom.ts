@@ -1,4 +1,7 @@
 "use server";
+import { measureOperation } from "@ishoot/database";
+import { runAtomicMutation } from "@ishoot/database";
+import { validateActionArguments } from "../../lib/action-input";
 
 import {
   createMinuteOfMeeting,
@@ -13,6 +16,7 @@ import {
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission, getCurrentUser } from "../../lib/auth";
+import { requireFeatureEnabled } from "@ishoot/database";
 
 export async function createMomAction(data: {
   title: string;
@@ -31,25 +35,33 @@ export async function createMomAction(data: {
   notes?: string;
   status?: string;
 }) {
-  const actor = await requirePermission("deals", "write");
-  const user = await getCurrentUser();
+  return measureOperation("action:createMomAction", async () => {
+    await requireFeatureEnabled("crm_deals"); const actor = await requirePermission("moms", "write");
+    validateActionArguments("createMomAction", { data });
+    if (data.dealId) await requirePermission("deals", "read");
+    if (data.clientId) await requirePermission("contacts", "read");
+    const user = await getCurrentUser();
 
-  const mom = await createMinuteOfMeeting({
-    ...data,
-    createdById: user?.id,
-    signatureUrl: user?.signature_url || undefined,
+    const { mom } = await runAtomicMutation(async () => {
+      const mom = await createMinuteOfMeeting({
+        ...data,
+        createdById: user?.id,
+        status: "draft",
+        signatureUrl: undefined,
+      });
+      await createActivityLog({
+        user_id: actor.id,
+        action: "create",
+        entity_type: "mom",
+        entity_id: mom.id,
+        details: { momNumber: mom.mom_number, title: mom.title },
+      });
+      return { mom };
+    });
+
+    revalidatePath("/dashboard/moms");
+    return { success: true, mom };
   });
-
-  await createActivityLog({
-    user_id: actor.id,
-    action: "create",
-    entity_type: "mom",
-    entity_id: mom.id,
-    details: { momNumber: mom.mom_number, title: mom.title },
-  });
-
-  revalidatePath("/dashboard/moms");
-  return { success: true, mom };
 }
 
 export async function updateMomAction(
@@ -73,75 +85,184 @@ export async function updateMomAction(
     approvedById?: string;
     signatureUrl?: string;
     pdfStoragePath?: string;
-  }>
+  }>,
 ) {
-  const actor = await requirePermission("deals", "write");
+  return measureOperation("action:updateMomAction", async () => {
+    await requireFeatureEnabled("crm_deals"); const actor = await requirePermission("moms", "write");
+    validateActionArguments("updateMomAction", { id, data });
+    if (data.dealId) await requirePermission("deals", "read");
+    if (data.clientId) await requirePermission("contacts", "read");
 
-  const mom = await updateMinuteOfMeeting(id, data);
+    if (
+      data.status !== undefined &&
+      !["draft", "in_review"].includes(data.status)
+    )
+      throw new Error("Use the approval action to sign a meeting");
+    if (
+      data.approvedById !== undefined ||
+      data.signatureUrl !== undefined ||
+      data.pdfStoragePath !== undefined
+    )
+      throw new Error("Approval fields cannot be edited directly");
+    const current = await getMinuteOfMeetingById(id);
+    if (!current || ["approved", "shared"].includes(current.status))
+      throw new Error("Signed meetings cannot be edited");
+    const { mom } = await runAtomicMutation(async () => {
+      const mom = await updateMinuteOfMeeting(id, data);
+      if (!mom) throw new Error("Meeting update failed");
+      await createActivityLog({
+        user_id: actor.id,
+        action: "update",
+        entity_type: "mom",
+        entity_id: id,
+        details: { updatedFields: Object.keys(data) },
+      });
+      return { mom };
+    });
 
-  await createActivityLog({
-    user_id: actor.id,
-    action: "update",
-    entity_type: "mom",
-    entity_id: id,
-    details: { updatedFields: Object.keys(data) },
+    revalidatePath("/dashboard/moms");
+    revalidatePath(`/dashboard/moms/${id}`);
+    return { success: true, mom };
   });
-
-  revalidatePath("/dashboard/moms");
-  revalidatePath(`/dashboard/moms/${id}`);
-  return { success: true, mom };
 }
 
 export async function deleteMomAction(id: string) {
-  const actor = await requirePermission("deals", "delete");
+  return measureOperation("action:deleteMomAction", async () => {
+    await requireFeatureEnabled("crm_deals"); const actor = await requirePermission("moms", "delete");
+    validateActionArguments("deleteMomAction", { id });
 
-  await deleteMinuteOfMeeting(id);
+    await runAtomicMutation(async () => {
+      if (!(await deleteMinuteOfMeeting(id)))
+        throw new Error("Meeting deletion failed");
+      await createActivityLog({
+        user_id: actor.id,
+        action: "delete",
+        entity_type: "mom",
+        entity_id: id,
+      });
+      return {};
+    });
 
-  await createActivityLog({
-    user_id: actor.id,
-    action: "delete",
-    entity_type: "mom",
-    entity_id: id,
+    revalidatePath("/dashboard/moms");
+    return { success: true };
   });
-
-  revalidatePath("/dashboard/moms");
-  return { success: true };
 }
 
 export async function approveAndSignMomAction(id: string) {
-  const user = await getCurrentUser();
-  if (!user) {
-    throw new Error("User must be authenticated to approve and sign documents");
-  }
+  return measureOperation("action:approveAndSignMomAction", async () => {
+    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("moms", "approve");
+    validateActionArguments("approveAndSignMomAction", { id });
+    if (!user.signature_url)
+      throw new Error("Configure your signature before signing a meeting");
+    const signatureUrl = user.signature_url;
+    const { mom } = await runAtomicMutation(async () => {
+      const mom = await approveAndSignMom(id, user.id, signatureUrl);
+      if (!mom) throw new Error("Meeting approval failed");
+      await createActivityLog({
+        user_id: user.id,
+        action: "approve",
+        entity_type: "mom",
+        entity_id: id,
+        details: { signedBy: user.full_name, signatureUrl },
+      });
+      return { mom };
+    });
 
-  const signatureUrl = user.signature_url || "/brand/signature.svg";
-  const mom = await approveAndSignMom(id, user.id, signatureUrl);
-
-  await createActivityLog({
-    user_id: user.id,
-    action: "approve",
-    entity_type: "mom",
-    entity_id: id,
-    details: { signedBy: user.full_name, signatureUrl },
+    revalidatePath("/dashboard/moms");
+    revalidatePath(`/dashboard/moms/${id}`);
+    return { success: true, mom };
   });
-
-  revalidatePath("/dashboard/moms");
-  revalidatePath(`/dashboard/moms/${id}`);
-  return { success: true, mom };
 }
 
-export async function shareMomViaEmailAction(id: string, recipientEmail: string) {
-  const user = await getCurrentUser();
-  const mom = await getMinuteOfMeetingById(id);
-  if (!mom) throw new Error("MOM not found");
-
-  await createActivityLog({
-    user_id: user?.id || "system",
-    action: "export",
-    entity_type: "mom",
-    entity_id: id,
-    details: { channel: "email", recipient: recipientEmail },
+export async function shareMomViaEmailAction(
+  id: string,
+  recipientEmail: string,
+) {
+  return measureOperation("action:shareMomViaEmailAction", async () => {
+    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("moms", "export");
+    validateActionArguments("shareMomViaEmailAction", { id, recipientEmail });
+    await requirePermission("moms", "read");
+    const { db, getCompanySettings } = await import("@ishoot/database");
+    const { createHash } = await import("node:crypto");
+    const { generateMomPdf } = await import("../../lib/pdf/mom-pdf");
+    const mom = await getMinuteOfMeetingById(id);
+    if (!mom || !["approved", "shared"].includes(mom.status))
+      throw new Error("Approve the meeting before sharing it");
+    const recipient = recipientEmail.trim().toLowerCase();
+    const company = await getCompanySettings();
+    const eventKey = createHash("sha256")
+      .update(`mom:${id}:${mom.updated_at}:${recipient}`)
+      .digest("hex");
+    const existing = await db.emailJob.findUnique({
+      where: { eventKey },
+      select: { id: true, status: true },
+    });
+    if (existing)
+      return {
+        success: true,
+        status: existing.status,
+        jobId: existing.id,
+        message: "Existing delivery request",
+      };
+    const attachment = await generateMomPdf(mom, company);
+    if (attachment.length > 2 * 1024 * 1024)
+      throw new Error("Meeting PDF exceeds the email attachment limit");
+    const escape = (v: string) =>
+      v.replace(
+        /[&<>"']/g,
+        (c) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[c]!,
+      );
+    const job = await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "MinuteOfMeeting" WHERE id=${id} FOR UPDATE`;
+      const current = await tx.minuteOfMeeting.findUniqueOrThrow({
+        where: { id },
+      });
+      if (
+        current.updatedAt.toISOString() !== mom.updated_at ||
+        !["approved", "shared"].includes(current.status)
+      )
+        throw new Error("Meeting changed. Refresh before sharing");
+      const prior = await tx.emailJob.findUnique({
+        where: { eventKey },
+        select: { id: true, status: true },
+      });
+      if (prior) return prior;
+      const created = await tx.emailJob.create({
+        data: {
+          eventKey,
+          momId: id,
+          createdById: user.id,
+          recipient,
+          subject: `${mom.mom_number} · ${mom.title}`.slice(0, 200),
+          html: `<p>${escape(company.company_name_en)}</p><p>${escape(mom.title)} · ${escape(mom.mom_number)}</p><p>The approved meeting record is attached.</p>`,
+          attachmentName: `Meeting-${mom.mom_number.replace(/[^a-zA-Z0-9_-]/g, "_")}.pdf`,
+          attachment,
+        },
+      });
+      await tx.activityLog.create({
+        data: {
+          userId: user.id,
+          action: "queue_email",
+          entityType: "mom",
+          entityId: id,
+          details: { jobId: created.id },
+        },
+      });
+      return created;
+    });
+    revalidatePath(`/dashboard/moms/${id}`);
+    return {
+      success: true,
+      status: job.status,
+      jobId: job.id,
+      message: "Email queued",
+    };
   });
-
-  return { success: true, message: `MOM ${mom.mom_number} shared with ${recipientEmail}` };
 }

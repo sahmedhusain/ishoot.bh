@@ -1,28 +1,10 @@
 import { requirePermission } from "../../../lib/auth";
-import * as React from "react";
-import {
-  getAllPayments,
-  getAllInvoices,
-  getCompanySettings,
-} from "@ishoot/database";
+import { getPaymentsPage, type ListParameters } from "@ishoot/database";
 import { PaymentsManagementView } from "../../../components/payments/PaymentsManagementView";
-
+import { ListControls } from "../../../components/shared/ListControls";
 export const dynamic = "force-dynamic";
-
-export default async function PaymentsPage() {
+export default async function PaymentsPage({ searchParams }: { searchParams: Promise<ListParameters> }) {
   await requirePermission("payments", "read");
-  await requirePermission("invoices", "read");
-  const [payments, invoices, company] = await Promise.all([
-    getAllPayments(),
-    getAllInvoices(),
-    getCompanySettings(),
-  ]);
-
-  return (
-    <PaymentsManagementView
-      initialPayments={payments}
-      invoices={invoices}
-      company={company}
-    />
-  );
+  const result = await getPaymentsPage(await searchParams);
+  return <><ListControls path="/dashboard/payments" {...result} exportDomain="payments" /><PaymentsManagementView initialPayments={result.items} {...result} /></>;
 }

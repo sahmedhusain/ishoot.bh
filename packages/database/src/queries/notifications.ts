@@ -30,7 +30,7 @@ export async function getNotifications(
     return notifications.map(mapNotification);
   } catch (e) {
     console.error("Error fetching notifications from DB:", e);
-    return [];
+    throw e;
   }
 }
 

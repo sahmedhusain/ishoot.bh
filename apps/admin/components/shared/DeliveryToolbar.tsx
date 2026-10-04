@@ -3,23 +3,25 @@
 import * as React from "react";
 import { Button } from "@ishoot/ui";
 import { Mail, MessageCircle, Printer, Download, Check } from "lucide-react";
+import { usePermissions } from "../../hooks/usePermissions";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import initialCompanyConfig from "@ishoot/database/config";
 
 interface DeliveryToolbarProps {
   documentType: "invoice" | "receipt";
   documentNumber: string;
+  companyName: string;
   clientName: string;
   clientEmail?: string;
   clientPhone?: string;
   amountFormatted: string;
-  onSendEmail?: () => Promise<void>;
+  onSendEmail?: () => Promise<{ status: "sent" | "queued" | "failed" }>;
   className?: string;
 }
 
 export function DeliveryToolbar({
   documentType,
   documentNumber,
+  companyName,
   clientName,
   clientEmail,
   clientPhone,
@@ -28,15 +30,21 @@ export function DeliveryToolbar({
   className = "",
 }: DeliveryToolbarProps) {
   const { t, locale } = useAdminLocale();
+  const { can } = usePermissions();
+  const canExport = can(
+    documentType === "invoice" ? "invoices" : "payments",
+    "export",
+  );
   const [emailSending, setEmailSending] = React.useState(false);
   const [emailSent, setEmailSent] = React.useState(false);
 
   const handleEmail = async () => {
+    if (!canExport) return;
     if (onSendEmail) {
       setEmailSending(true);
       try {
-        await onSendEmail();
-        setEmailSent(true);
+        const result = await onSendEmail();
+        setEmailSent(result.status === "sent");
         setTimeout(() => setEmailSent(false), 3000);
       } catch (err) {
         console.error(err);
@@ -48,12 +56,8 @@ export function DeliveryToolbar({
         documentType === "invoice"
           ? t.deliveryToolbar.invoice
           : t.deliveryToolbar.receipt;
-      const compName =
-        locale === "ar"
-          ? initialCompanyConfig.company.companyNameAr
-          : initialCompanyConfig.company.companyNameEn;
       const subject = encodeURIComponent(
-        `${docLabel} ${documentNumber} - ${compName}`,
+        `${docLabel} ${documentNumber} - ${companyName}`,
       );
       const body = encodeURIComponent(
         (t.deliveryToolbar.emailBody ?? "")
@@ -63,14 +67,13 @@ export function DeliveryToolbar({
           .replace("{amountFormatted}", amountFormatted),
       );
       window.open(
-        `mailto:${clientEmail ?? ""}?subject=${subject}&body=${body}`,
+        `mailto:${encodeURIComponent(clientEmail ?? "")}?subject=${subject}&body=${body}`,
       );
-      setEmailSent(true);
-      setTimeout(() => setEmailSent(false), 3000);
     }
   };
 
   const handleWhatsApp = () => {
+    if (!canExport) return;
     const cleanPhone = (clientPhone ?? "").replace(/[^0-9]/g, "");
     const docLabel =
       documentType === "invoice"
@@ -92,10 +95,11 @@ export function DeliveryToolbar({
   };
 
   const handlePrint = () => {
-    window.print();
+    if (canExport) window.print();
   };
 
   const handleDownloadPdf = () => {
+    if (!canExport) return;
     const downloadUrl = `/api/documents/${encodeURIComponent(documentNumber)}/pdf?type=${documentType}&download=true`;
     const link = document.createElement("a");
     link.href = downloadUrl;
@@ -113,7 +117,7 @@ export function DeliveryToolbar({
       <Button
         variant={emailSent ? "secondary" : "primary"}
         size="sm"
-        disabled={emailSending}
+        disabled={emailSending || !canExport || (!clientEmail && !onSendEmail)}
         onClick={handleEmail}
         className="gap-2"
       >
@@ -127,13 +131,18 @@ export function DeliveryToolbar({
             ? t.deliveryToolbar.dispatching
             : emailSent
               ? t.deliveryToolbar.dispatched
-              : t.deliveryToolbar.sendEmail}
+              : onSendEmail
+                ? t.deliveryToolbar.sendEmail
+                : locale === "ar"
+                  ? "كتابة بريد إلكتروني"
+                  : "Compose email"}
         </span>
       </Button>
 
       <Button
         variant="secondary"
         size="sm"
+        disabled={!canExport || !clientPhone}
         onClick={handleWhatsApp}
         className="gap-2 hover:border-[#25D366]/40 hover:text-[#25D366]"
       >
@@ -144,6 +153,7 @@ export function DeliveryToolbar({
       <Button
         variant="secondary"
         size="sm"
+        disabled={!canExport}
         onClick={handlePrint}
         className="gap-2"
       >
@@ -154,6 +164,7 @@ export function DeliveryToolbar({
       <Button
         variant="secondary"
         size="sm"
+        disabled={!canExport}
         onClick={handleDownloadPdf}
         className="gap-2"
       >

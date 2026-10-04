@@ -1,4 +1,7 @@
 "use server";
+import { measureOperation } from "@ishoot/database";
+import { runAtomicMutation } from "@ishoot/database";
+import { validateActionArguments } from "../../lib/action-input";
 
 import {
   createBanner,
@@ -20,40 +23,51 @@ import {
 import { safeWebsiteUrl } from "@ishoot/database/website-config";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
+import { requireFeatureEnabled } from "@ishoot/database";
 import { revalidatePublicSite } from "../../lib/revalidate-web";
 
 export async function toggleBannerStatusAction(id: string, isActive: boolean) {
-  const user = await requirePermission("banners", "write");
-  if (!(await updateBanner(id, { is_active: isActive })))
-    throw new Error("Could not update banner");
+  return measureOperation("action:toggleBannerStatusAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "write");
+    validateActionArguments("toggleBannerStatusAction", { id, isActive });
+    await runAtomicMutation(async () => {
+      if (!(await updateBanner(id, { is_active: isActive })))
+        throw new Error("Could not update banner");
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "banner",
+        entity_id: id,
+        details: { is_active: isActive },
+      });
+      return {};
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "update",
-    entity_type: "banner",
-    entity_id: id,
-    details: { is_active: isActive },
+    revalidatePath("/dashboard/cms/banners");
+    await revalidatePublicSite(["banners"], ["/"]);
+    return { success: true };
   });
-
-  revalidatePath("/dashboard/cms/banners");
-  await revalidatePublicSite(["banners"], ["/"]);
-  return { success: true };
 }
 
 export async function deleteBannerAction(id: string) {
-  const user = await requirePermission("banners", "delete");
-  if (!(await deleteBanner(id))) throw new Error("Could not delete banner");
+  return measureOperation("action:deleteBannerAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "delete");
+    validateActionArguments("deleteBannerAction", { id });
+    await runAtomicMutation(async () => {
+      if (!(await deleteBanner(id))) throw new Error("Could not delete banner");
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "banner",
+        entity_id: id,
+      });
+      return {};
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "delete",
-    entity_type: "banner",
-    entity_id: id,
+    revalidatePath("/dashboard/cms/banners");
+    await revalidatePublicSite(["banners"], ["/"]);
+    return { success: true };
   });
-
-  revalidatePath("/dashboard/cms/banners");
-  await revalidatePublicSite(["banners"], ["/"]);
-  return { success: true };
 }
 
 export async function createBannerAction(data: {
@@ -69,41 +83,51 @@ export async function createBannerAction(data: {
   cta_link?: string;
   display_order?: number;
 }) {
-  const user = await requirePermission("banners", "write");
-  validateBannerData(data);
-  const banner = await createBanner({
-    ...data,
-    display_order: data.display_order ?? 0,
-    is_active: true,
-  });
+  return measureOperation("action:createBannerAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "write");
+    validateActionArguments("createBannerAction", { data });
+    validateBannerData(data);
+    const { banner } = await runAtomicMutation(async () => {
+      const banner = await createBanner({
+        ...data,
+        display_order: data.display_order ?? 0,
+        is_active: true,
+      });
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "banner",
+        entity_id: banner.id,
+        details: { title_en: data.title_en },
+      });
+      return { banner };
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "create",
-    entity_type: "banner",
-    entity_id: banner.id,
-    details: { title_en: data.title_en },
+    revalidatePath("/dashboard/cms/banners");
+    await revalidatePublicSite(["banners"], ["/"]);
+    return { success: true, banner };
   });
-
-  revalidatePath("/dashboard/cms/banners");
-  await revalidatePublicSite(["banners"], ["/"]);
-  return { success: true, banner };
 }
 
 export async function deleteClientLogoAction(id: string) {
-  const user = await requirePermission("clients", "delete");
-  await deleteClientLogo(id);
+  return measureOperation("action:deleteClientLogoAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("clients", "delete");
+    validateActionArguments("deleteClientLogoAction", { id });
+    await runAtomicMutation(async () => {
+      await deleteClientLogo(id);
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "client",
+        entity_id: id,
+      });
+      return {};
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "delete",
-    entity_type: "client",
-    entity_id: id,
+    revalidatePath("/dashboard/cms/clients");
+    await revalidatePublicSite(["clients"], ["/"]);
+    return { success: true };
   });
-
-  revalidatePath("/dashboard/cms/clients");
-  await revalidatePublicSite(["clients"], ["/"]);
-  return { success: true };
 }
 
 export async function createClientLogoAction(data: {
@@ -112,39 +136,49 @@ export async function createClientLogoAction(data: {
   website_url?: string;
   display_order?: number;
 }) {
-  const user = await requirePermission("clients", "write");
-  const logo = await createClientLogo({
-    ...data,
-    is_active: true,
-  });
+  return measureOperation("action:createClientLogoAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("clients", "write");
+    validateActionArguments("createClientLogoAction", { data });
+    const { logo } = await runAtomicMutation(async () => {
+      const logo = await createClientLogo({
+        ...data,
+        is_active: true,
+      });
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "client",
+        entity_id: logo.id,
+        details: { client_name: data.client_name },
+      });
+      return { logo };
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "create",
-    entity_type: "client",
-    entity_id: logo.id,
-    details: { client_name: data.client_name },
+    revalidatePath("/dashboard/cms/clients");
+    await revalidatePublicSite(["clients"], ["/"]);
+    return { success: true, logo };
   });
-
-  revalidatePath("/dashboard/cms/clients");
-  await revalidatePublicSite(["clients"], ["/"]);
-  return { success: true, logo };
 }
 
 export async function deleteEquipmentAction(id: string) {
-  const user = await requirePermission("equipment", "delete");
-  await deleteEquipment(id);
+  return measureOperation("action:deleteEquipmentAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("equipment", "delete");
+    validateActionArguments("deleteEquipmentAction", { id });
+    await runAtomicMutation(async () => {
+      await deleteEquipment(id);
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "equipment",
+        entity_id: id,
+      });
+      return {};
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "delete",
-    entity_type: "equipment",
-    entity_id: id,
+    revalidatePath("/dashboard/cms/equipment");
+    await revalidatePublicSite(["equipment"], ["/equipment", "/"]);
+    return { success: true };
   });
-
-  revalidatePath("/dashboard/cms/equipment");
-  await revalidatePublicSite(["equipment"], ["/equipment", "/"]);
-  return { success: true };
 }
 
 export async function createEquipmentAction(data: {
@@ -156,58 +190,76 @@ export async function createEquipmentAction(data: {
   daily_rate_bhd?: number;
   quantity?: number;
 }) {
-  const user = await requirePermission("equipment", "write");
-  const item = await createEquipment(data);
+  return measureOperation("action:createEquipmentAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("equipment", "write");
+    validateActionArguments("createEquipmentAction", { data });
+    const { item } = await runAtomicMutation(async () => {
+      const item = await createEquipment(data);
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "equipment",
+        entity_id: item.id,
+        details: { model_name: data.model_name },
+      });
+      return { item };
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "create",
-    entity_type: "equipment",
-    entity_id: item.id,
-    details: { model_name: data.model_name },
+    revalidatePath("/dashboard/cms/equipment");
+    await revalidatePublicSite(["equipment"], ["/equipment", "/"]);
+    return { success: true, item };
   });
-
-  revalidatePath("/dashboard/cms/equipment");
-  await revalidatePublicSite(["equipment"], ["/equipment", "/"]);
-  return { success: true, item };
 }
 
 export async function togglePortfolioFeaturedAction(
   id: string,
   isFeatured: boolean,
 ) {
-  const user = await requirePermission("portfolio", "write");
-  if (!(await updatePortfolioItem(id, { is_featured: isFeatured })))
-    throw new Error("Could not update project");
+  return measureOperation("action:togglePortfolioFeaturedAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "write");
+    validateActionArguments("togglePortfolioFeaturedAction", {
+      id,
+      isFeatured,
+    });
+    await runAtomicMutation(async () => {
+      if (!(await updatePortfolioItem(id, { is_featured: isFeatured })))
+        throw new Error("Could not update project");
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "portfolio",
+        entity_id: id,
+        details: { is_featured: isFeatured },
+      });
+      return {};
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "update",
-    entity_type: "portfolio",
-    entity_id: id,
-    details: { is_featured: isFeatured },
+    revalidatePath("/dashboard/cms/portfolio");
+    await revalidatePublicSite(["portfolio"], ["/works", "/"]);
+    return { success: true };
   });
-
-  revalidatePath("/dashboard/cms/portfolio");
-  await revalidatePublicSite(["portfolio"], ["/works", "/"]);
-  return { success: true };
 }
 
 export async function deletePortfolioItemAction(id: string) {
-  const user = await requirePermission("portfolio", "delete");
-  if (!(await deletePortfolioItem(id)))
-    throw new Error("Could not delete project");
+  return measureOperation("action:deletePortfolioItemAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "delete");
+    validateActionArguments("deletePortfolioItemAction", { id });
+    await runAtomicMutation(async () => {
+      if (!(await deletePortfolioItem(id)))
+        throw new Error("Could not delete project");
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "portfolio",
+        entity_id: id,
+      });
+      return {};
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "delete",
-    entity_type: "portfolio",
-    entity_id: id,
+    revalidatePath("/dashboard/cms/portfolio");
+    await revalidatePublicSite(["portfolio"], ["/works", "/"]);
+    return { success: true };
   });
-
-  revalidatePath("/dashboard/cms/portfolio");
-  await revalidatePublicSite(["portfolio"], ["/works", "/"]);
-  return { success: true };
 }
 
 export async function createPortfolioItemAction(data: {
@@ -227,24 +279,29 @@ export async function createPortfolioItemAction(data: {
   gallery_urls?: string[];
   display_order?: number;
 }) {
-  const user = await requirePermission("portfolio", "write");
-  validatePortfolioData(data);
-  const project = await createPortfolioItem({
-    ...data,
-    aspect_ratio: data.aspect_ratio || "16:9",
-  });
+  return measureOperation("action:createPortfolioItemAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "write");
+    validateActionArguments("createPortfolioItemAction", { data });
+    validatePortfolioData(data);
+    const { project } = await runAtomicMutation(async () => {
+      const project = await createPortfolioItem({
+        ...data,
+        aspect_ratio: data.aspect_ratio || "16:9",
+      });
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "portfolio",
+        entity_id: project.id,
+        details: { title_en: data.title_en, slug: data.slug },
+      });
+      return { project };
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "create",
-    entity_type: "portfolio",
-    entity_id: project.id,
-    details: { title_en: data.title_en, slug: data.slug },
+    revalidatePath("/dashboard/cms/portfolio");
+    await revalidatePublicSite(["portfolio"], ["/works", "/"]);
+    return { success: true, project };
   });
-
-  revalidatePath("/dashboard/cms/portfolio");
-  await revalidatePublicSite(["portfolio"], ["/works", "/"]);
-  return { success: true, project };
 }
 
 import {
@@ -259,87 +316,217 @@ import {
   deleteStatistic,
 } from "@ishoot/database";
 
-export async function createReviewAction(data: any) {
-  await requirePermission("reviews", "write");
-  const review = await createReview(data);
-  revalidatePublicSite(["reviews"]);
-  revalidatePath("/dashboard/cms/reviews");
-  return { success: true, review };
+export async function createReviewAction(
+  data: Parameters<typeof createReview>[0],
+) {
+  return measureOperation("action:createReviewAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("reviews", "write");
+    validateActionArguments("createReviewAction", { data });
+    const review = await runAtomicMutation(async () => {
+      const review = await createReview(data);
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "review",
+        entity_id: review.id,
+      });
+      return review;
+    });
+    revalidatePublicSite(["reviews"]);
+    revalidatePath("/dashboard/cms/reviews");
+    return { success: true, review };
+  });
 }
 
-export async function updateReviewAction(id: string, data: any) {
-  await requirePermission("reviews", "write");
-  const review = await updateReview(id, data);
-  revalidatePublicSite(["reviews"]);
-  revalidatePath("/dashboard/cms/reviews");
-  return { success: true, review };
+export async function updateReviewAction(
+  id: string,
+  data: Partial<Parameters<typeof createReview>[0]>,
+) {
+  return measureOperation("action:updateReviewAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("reviews", "write");
+    validateActionArguments("updateReviewAction", { id, data });
+    const review = await runAtomicMutation(async () => {
+      const review = await updateReview(id, data);
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "review",
+        entity_id: review.id,
+      });
+      return review;
+    });
+    revalidatePublicSite(["reviews"]);
+    revalidatePath("/dashboard/cms/reviews");
+    return { success: true, review };
+  });
 }
 
 export async function toggleReviewApprovalAction(
   id: string,
   isApproved: boolean,
 ) {
-  await requirePermission("reviews", "write");
-  const review = await updateReview(id, { isApproved });
-  await revalidatePublicSite(["reviews"], ["/"]);
-  revalidatePath("/dashboard/cms/reviews");
-  return { success: true, review };
+  return measureOperation("action:toggleReviewApprovalAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("reviews", "write");
+    validateActionArguments("toggleReviewApprovalAction", { id, isApproved });
+    const review = await runAtomicMutation(async () => {
+      const review = await updateReview(id, { isApproved });
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "review",
+        entity_id: review.id,
+      });
+      return review;
+    });
+    await revalidatePublicSite(["reviews"], ["/"]);
+    revalidatePath("/dashboard/cms/reviews");
+    return { success: true, review };
+  });
 }
 
 export async function deleteReviewAction(id: string) {
-  await requirePermission("reviews", "delete");
-  await deleteReview(id);
-  await revalidatePublicSite(["reviews"], ["/"]);
-  revalidatePath("/dashboard/cms/reviews");
-  return { success: true };
+  return measureOperation("action:deleteReviewAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("reviews", "delete");
+    validateActionArguments("deleteReviewAction", { id });
+    await runAtomicMutation(async () => {
+      await deleteReview(id);
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "review",
+        entity_id: id,
+      });
+    });
+    await revalidatePublicSite(["reviews"], ["/"]);
+    revalidatePath("/dashboard/cms/reviews");
+    return { success: true };
+  });
 }
 
-export async function createFaqAction(data: any) {
-  await requirePermission("faqs", "write");
-  const faq = await createFaq(data);
-  revalidatePublicSite(["faqs"]);
-  revalidatePath("/dashboard/cms/faqs");
-  return { success: true, faq };
+export async function createFaqAction(data: Parameters<typeof createFaq>[0]) {
+  return measureOperation("action:createFaqAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("faqs", "write");
+    validateActionArguments("createFaqAction", { data });
+    const faq = await runAtomicMutation(async () => {
+      const faq = await createFaq(data);
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "faq",
+        entity_id: faq.id,
+      });
+      return faq;
+    });
+    revalidatePublicSite(["faqs"]);
+    revalidatePath("/dashboard/cms/faqs");
+    return { success: true, faq };
+  });
 }
 
-export async function updateFaqAction(id: string, data: any) {
-  await requirePermission("faqs", "write");
-  const faq = await updateFaq(id, data);
-  revalidatePublicSite(["faqs"]);
-  revalidatePath("/dashboard/cms/faqs");
-  return { success: true, faq };
+export async function updateFaqAction(
+  id: string,
+  data: Partial<Parameters<typeof createFaq>[0]>,
+) {
+  return measureOperation("action:updateFaqAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("faqs", "write");
+    validateActionArguments("updateFaqAction", { id, data });
+    const faq = await runAtomicMutation(async () => {
+      const faq = await updateFaq(id, data);
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "faq",
+        entity_id: faq.id,
+      });
+      return faq;
+    });
+    revalidatePublicSite(["faqs"]);
+    revalidatePath("/dashboard/cms/faqs");
+    return { success: true, faq };
+  });
 }
 
 export async function deleteFaqAction(id: string) {
-  await requirePermission("faqs", "delete");
-  await deleteFaq(id);
-  revalidatePublicSite(["faqs"]);
-  revalidatePath("/dashboard/cms/faqs");
-  return { success: true };
+  return measureOperation("action:deleteFaqAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("faqs", "delete");
+    validateActionArguments("deleteFaqAction", { id });
+    await runAtomicMutation(async () => {
+      await deleteFaq(id);
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "faq",
+        entity_id: id,
+      });
+    });
+    revalidatePublicSite(["faqs"]);
+    revalidatePath("/dashboard/cms/faqs");
+    return { success: true };
+  });
 }
 
-export async function createStatisticAction(data: any) {
-  await requirePermission("stats", "write");
-  const stat = await createStatistic(data);
-  revalidatePublicSite(["stats"]);
-  revalidatePath("/dashboard/cms/stats");
-  return { success: true, stat };
+export async function createStatisticAction(
+  data: Parameters<typeof createStatistic>[0],
+) {
+  return measureOperation("action:createStatisticAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "write");
+    validateActionArguments("createStatisticAction", { data });
+    const stat = await runAtomicMutation(async () => {
+      const stat = await createStatistic(data);
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "statistic",
+        entity_id: stat.id,
+      });
+      return stat;
+    });
+    revalidatePublicSite(["stats"]);
+    revalidatePath("/dashboard/cms/stats");
+    return { success: true, stat };
+  });
 }
 
-export async function updateStatisticAction(id: string, data: any) {
-  await requirePermission("stats", "write");
-  const stat = await updateStatistic(id, data);
-  revalidatePublicSite(["stats"]);
-  revalidatePath("/dashboard/cms/stats");
-  return { success: true, stat };
+export async function updateStatisticAction(
+  id: string,
+  data: Partial<Parameters<typeof createStatistic>[0]>,
+) {
+  return measureOperation("action:updateStatisticAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "write");
+    validateActionArguments("updateStatisticAction", { id, data });
+    const stat = await runAtomicMutation(async () => {
+      const stat = await updateStatistic(id, data);
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "statistic",
+        entity_id: stat.id,
+      });
+      return stat;
+    });
+    revalidatePublicSite(["stats"]);
+    revalidatePath("/dashboard/cms/stats");
+    return { success: true, stat };
+  });
 }
 
 export async function deleteStatisticAction(id: string) {
-  await requirePermission("stats", "delete");
-  await deleteStatistic(id);
-  revalidatePublicSite(["stats"]);
-  revalidatePath("/dashboard/cms/stats");
-  return { success: true };
+  return measureOperation("action:deleteStatisticAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "delete");
+    validateActionArguments("deleteStatisticAction", { id });
+    await runAtomicMutation(async () => {
+      await deleteStatistic(id);
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "statistic",
+        entity_id: id,
+      });
+    });
+    revalidatePublicSite(["stats"]);
+    revalidatePath("/dashboard/cms/stats");
+    return { success: true };
+  });
 }
 
 function validateBannerData(data: Parameters<typeof createBannerAction>[0]) {
@@ -397,36 +584,48 @@ export async function updateBannerContentAction(
   id: string,
   data: Parameters<typeof createBannerAction>[0],
 ) {
-  const user = await requirePermission("banners", "write");
-  validateBannerData(data);
-  const banner = await updateBanner(id, data);
-  if (!banner) throw new Error("Banner could not be saved");
-  await createActivityLog({
-    user_id: user.id,
-    action: "update",
-    entity_type: "banner",
-    entity_id: id,
+  return measureOperation("action:updateBannerContentAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "write");
+    validateActionArguments("updateBannerContentAction", { id, data });
+    validateBannerData(data);
+    const { banner } = await runAtomicMutation(async () => {
+      const banner = await updateBanner(id, data);
+      if (!banner) throw new Error("Banner could not be saved");
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "banner",
+        entity_id: id,
+      });
+      return { banner };
+    });
+    revalidatePath("/dashboard/cms/banners");
+    return { success: true, banner };
   });
-  revalidatePath("/dashboard/cms/banners");
-  return { success: true, banner };
 }
 export async function updatePortfolioContentAction(
   id: string,
   data: Parameters<typeof createPortfolioItemAction>[0],
 ) {
-  const user = await requirePermission("portfolio", "write");
-  validatePortfolioData(data);
-  const project = await updatePortfolioItem(id, {
-    ...data,
-    aspect_ratio: data.aspect_ratio as PortfolioItem["aspect_ratio"],
+  return measureOperation("action:updatePortfolioContentAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "write");
+    validateActionArguments("updatePortfolioContentAction", { id, data });
+    validatePortfolioData(data);
+    const { project } = await runAtomicMutation(async () => {
+      const project = await updatePortfolioItem(id, {
+        ...data,
+        aspect_ratio: data.aspect_ratio as PortfolioItem["aspect_ratio"],
+      });
+      if (!project) throw new Error("Project could not be saved");
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "portfolio",
+        entity_id: id,
+      });
+      return { project };
+    });
+    revalidatePath("/dashboard/cms/portfolio");
+    return { success: true, project };
   });
-  if (!project) throw new Error("Project could not be saved");
-  await createActivityLog({
-    user_id: user.id,
-    action: "update",
-    entity_type: "portfolio",
-    entity_id: id,
-  });
-  revalidatePath("/dashboard/cms/portfolio");
-  return { success: true, project };
 }

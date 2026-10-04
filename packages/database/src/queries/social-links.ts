@@ -23,7 +23,7 @@ export async function getSocialLinks(onlyActive = true): Promise<SocialLink[]> {
     return links.map(mapSocialLink);
   } catch (e) {
     console.error("Error fetching social links from DB:", e instanceof Error ? e.message : e);
-    return [];
+    throw e;
   }
 }
 
@@ -65,7 +65,7 @@ export async function updateSocialLink(
     return mapSocialLink(updated);
   } catch (e) {
     console.error(`Error updating social link ${id}:`, e instanceof Error ? e.message : e);
-    return null;
+    throw e;
   }
 }
 
@@ -75,6 +75,6 @@ export async function deleteSocialLink(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error(`Error deleting social link ${id}:`, e instanceof Error ? e.message : e);
-    return false;
+    throw e;
   }
 }

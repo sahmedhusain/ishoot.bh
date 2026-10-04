@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 import type { PortfolioItem } from "@ishoot/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Play, ArrowUpRight } from "lucide-react";
@@ -25,7 +26,7 @@ export function PortfolioCard({
       aria-label={`${t("portfolio.viewProject")}: ${title}`}
     >
       <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-black/40">
-        <img
+        <ContentImage
           src={item.thumbnail_url}
           alt={title}
           loading="lazy"

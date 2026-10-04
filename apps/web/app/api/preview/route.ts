@@ -1,6 +1,8 @@
+import { measureOperation } from "@ishoot/database";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
+  return measureOperation("web:preview:GET", async () => {
   const expires = req.nextUrl.searchParams.get("expires") || "";
   const token = req.nextUrl.searchParams.get("token") || "";
   const secret = process.env.REVALIDATION_SECRET;
@@ -29,11 +31,16 @@ export async function GET(req: NextRequest) {
   });
   response.headers.set("Referrer-Policy", "no-referrer");
   return response;
+
+  });
 }
 export async function POST(req: NextRequest) {
+  return measureOperation("web:preview:POST", async () => {
   if (req.headers.get("origin") !== req.nextUrl.origin)
     return new NextResponse("Forbidden", { status: 403 });
   const response = NextResponse.redirect(new URL("/", req.url), 303);
   response.cookies.delete("ishoot_preview");
   return response;
+
+  });
 }

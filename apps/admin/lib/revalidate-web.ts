@@ -1,12 +1,15 @@
 export async function revalidatePublicSite(
   tags: string[] = [],
   paths: string[] = ["/"],
-): Promise<void> {
+): Promise<boolean> {
   const webUrl = process.env.WEB_URL;
   const secret = process.env.REVALIDATION_SECRET;
 
   if (!webUrl || !secret) {
-    return;
+    console.warn(
+      "Public cache invalidation is unconfigured; cached content refreshes after its 60-second TTL.",
+    );
+    return false;
   }
 
   try {
@@ -19,8 +22,11 @@ export async function revalidatePublicSite(
       body: JSON.stringify({ tags, paths }),
       signal: AbortSignal.timeout(3000),
     });
-    if (!response.ok) throw new Error(`Public site revalidation failed (${response.status})`);
+    if (!response.ok)
+      throw new Error(`Public site revalidation failed (${response.status})`);
+    return true;
   } catch (err) {
     console.warn("Failed to revalidate public site cache:", err);
+    return false;
   }
 }

@@ -1,21 +1,9 @@
 import { NextRequest } from "next/server";
 
-// ponytail: process-local abuse guard; use a shared limiter when deploying multiple instances.
-const windows = new Map<string, { count: number; until: number }>();
-export async function readSubmission(
-  req: NextRequest,
-): Promise<Record<string, unknown>> {
-  const key =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  const now = Date.now();
-  windows.forEach((state, id) => {
-    if (state.until < now) windows.delete(id);
-  });
-  const state = windows.get(key) || { count: 0, until: now + 60000 };
-  if (state.count >= 12 || (!windows.has(key) && windows.size >= 5000))
-    throw new Error("RATE_LIMIT");
-  state.count++;
-  windows.set(key, state);
+import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database";
+export async function readSubmission(req: NextRequest): Promise<Record<string, unknown>> {
+  const ip = trustedClientIp(req.headers);
+  await consumeAbuseLimit("public-intake", ip || "untrusted-ingress", ip ? 12 : 300);
   if (Number(req.headers.get("content-length")) > 24000)
     throw new Error("INVALID_INPUT");
   const reader = req.body?.getReader();

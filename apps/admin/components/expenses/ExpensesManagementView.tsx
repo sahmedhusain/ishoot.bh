@@ -27,16 +27,22 @@ import {
   deleteExpenseAction,
 } from "../../app/actions/finance";
 
+import { EntityLookup } from "../shared/EntityLookup";
+
 interface ExpensesManagementViewProps {
+  totals: { currency: string; amount: number }[];
+  count: number;
   initialExpenses: Expense[];
   categories: ExpenseCategory[];
-  deals: CRMDeal[];
+  deals?: CRMDeal[];
 }
 
 export function ExpensesManagementView({
   initialExpenses,
   categories,
-  deals,
+  deals = [],
+  totals,
+  count,
 }: ExpensesManagementViewProps) {
   const { t, locale } = useAdminLocale();
 
@@ -57,7 +63,7 @@ export function ExpensesManagementView({
   );
   const [saving, setSaving] = React.useState(false);
 
-  const totalExpense = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+
 
   const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,10 +137,10 @@ export function ExpensesManagementView({
             </div>
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-white ">
-            <CurrencyDisplay amount={totalExpense} currency="BHD" />
+            {totals.map((v) => <div key={v.currency}><CurrencyDisplay amount={v.amount} currency={v.currency as any} /></div>)}
           </div>
           <div className="text-[11px] text-[#9EADA9]">
-            {expenses.length} {t.expensesView.loggedItems}
+            {count} {t.expensesView.loggedItems}
           </div>
         </Card>
 
@@ -217,7 +223,7 @@ export function ExpensesManagementView({
                   -
                   <CurrencyDisplay
                     amount={Number(expense.amount)}
-                    currency="BHD"
+                    currency={expense.currency}
                   />
                 </td>
                 <td className="p-4 text-end">
@@ -315,23 +321,7 @@ export function ExpensesManagementView({
               <label className="text-xs text-white mb-1.5 block">
                 {t.expensesView.linkedDeal}
               </label>
-              <Select
-                value={dealId}
-                onChange={(e) => setDealId(e.target.value)}
-              >
-                <option value="" className="bg-[#0B1210] text-white">
-                  {t.expensesView.generalOverhead}
-                </option>
-                {deals.map((d) => (
-                  <option
-                    key={d.id}
-                    value={d.id}
-                    className="bg-[#0B1210] text-white"
-                  >
-                    {d.title}
-                  </option>
-                ))}
-              </Select>
+              <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
             </div>
           </div>
 

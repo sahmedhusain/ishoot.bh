@@ -2,13 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import type { Invoice, FinancialSummary } from "@ishoot/database/types";
+import type { FinancialSummary } from "@ishoot/database/types";
 import { Button, StatusBadge, CurrencyDisplay } from "@ishoot/ui";
 import { Plus, Eye, Search, ExternalLink } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
+import type { InvoiceListRow } from "@ishoot/database";
+
 interface InvoicesListViewProps {
-  initialInvoices: Invoice[];
+  initialInvoices: InvoiceListRow[];
   finance: Pick<FinancialSummary, "outstanding" | "overdue" | "discountsGiven">;
 }
 
@@ -17,27 +19,8 @@ export function InvoicesListView({
   finance,
 }: InvoicesListViewProps) {
   const { t, locale } = useAdminLocale();
-  const [invoices] = React.useState<Invoice[]>(initialInvoices);
-  const [filterStatus, setFilterStatus] = React.useState<string>("all");
-  const [searchQuery, setSearchQuery] = React.useState("");
-
-  const filteredInvoices = invoices.filter((inv) => {
-    const matchesStatus = filterStatus === "all" || inv.status === filterStatus;
-    const clientName = inv.contact?.company || inv.contact?.full_name || "";
-    const matchesSearch =
-      inv.invoice_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      clientName.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
-
-  const statusLabels: Record<string, string> = {
-    all: t.actions.all,
-    draft: t.finance.statusDraft,
-    sent: t.finance.statusSent,
-    partially_paid: t.finance.statusPartiallyPaid,
-    paid: t.finance.statusPaid,
-    overdue: t.finance.statusOverdue,
-  };
+  const [invoices] = React.useState<InvoiceListRow[]>(initialInvoices);
+  const filteredInvoices = invoices;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
@@ -99,37 +82,6 @@ export function InvoicesListView({
 
       {/* Search & Filter Toolbar + Table */}
       <div className="bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl overflow-hidden shadow-xs">
-        <div className="p-3 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="relative max-w-sm w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute start-3 top-2.5" />
-            <input
-              type="text"
-              placeholder={t.actions.search}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full ps-9 pe-4 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
-            />
-          </div>
-
-          <div className="flex items-center gap-1.5 overflow-x-auto text-xs pb-1 sm:pb-0">
-            {["all", "draft", "sent", "partially_paid", "paid", "overdue"].map(
-              (st) => (
-                <button
-                  key={st}
-                  onClick={() => setFilterStatus(st)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors shrink-0 ${
-                    filterStatus === st
-                      ? "bg-[#e6f5f2] text-[#014842] border border-[#014842]/30 dark:bg-[#004d40]/40 dark:text-[#7de0d1] dark:border-[#004d40] font-semibold"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-                  }`}
-                >
-                  {statusLabels[st] || st}
-                </button>
-              ),
-            )}
-          </div>
-        </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-start text-xs">
             <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-slate-600 dark:text-neutral-400 uppercase  tracking-wider text-[11px]">

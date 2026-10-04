@@ -5,11 +5,11 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { motion, useReducedMotion } from "framer-motion";
 
-export function PillarsOfCraft() {
+export function PillarsOfCraft({pillars=[]}:{pillars?:import("@ishoot/database/website-config").WebsitePillar[]}) {
   const reduced = useReducedMotion();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
-  const pillarKeys = ["p1", "p2", "p3", "p4"] as const;
+  if(!pillars.length) return null;
 
   return (
     <section className="relative z-10 bg-[#050807] text-[#F2F6F5] py-20 sm:py-28 border-t border-white/10 overflow-hidden">
@@ -28,10 +28,10 @@ export function PillarsOfCraft() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {pillarKeys.map((key, idx) => {
+          {pillars.map((entry, idx) => {
             return (
               <motion.div
-                key={key}
+                key={idx}
                 initial={reduced ? false : { opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
@@ -43,19 +43,19 @@ export function PillarsOfCraft() {
               >
                 <div className="flex items-center justify-between font-sans relative z-10">
                   <span className="text-xs font-sans font-bold text-[#5EEAD4]">
-                    {t(`about.pillars.${key}.number`)}
+                    {String(idx+1).padStart(2,"0")}
                   </span>
                   <span className="text-[10px] uppercase font-bold text-[#5EEAD4] tracking-widest ">
-                    {t(`about.pillars.${key}.tag`)}
+
                   </span>
                 </div>
 
                 <div className="space-y-3 relative z-10">
                   <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-[#5EEAD4] transition-colors font-display">
-                    {t(`about.pillars.${key}.title`)}
+                    {locale === "ar" ? entry.titleAr : entry.titleEn}
                   </h3>
                   <p className="text-xs sm:text-sm text-[#9EADA9] font-sans leading-relaxed">
-                    {t(`about.pillars.${key}.desc`)}
+                    {locale === "ar" ? entry.textAr : entry.textEn}
                   </p>
                 </div>
               </motion.div>

@@ -1,7 +1,13 @@
 import { db } from "../db";
-import { MinuteOfMeetingItem, MomAttendee, MomDiscussionPoint, MomActionItem } from "../types";
+import type { Prisma } from "../../prisma/generated/client";
+import {
+  MinuteOfMeetingItem,
+  MomAttendee,
+  MomDiscussionPoint,
+  MomActionItem,
+} from "../types";
 
-function mapPrismaMom(m: any): MinuteOfMeetingItem {
+export function mapPrismaMom(m: any): MinuteOfMeetingItem {
   return {
     id: m.id,
     mom_number: m.momNumber,
@@ -15,7 +21,9 @@ function mapPrismaMom(m: any): MinuteOfMeetingItem {
     deal_title: m.deal?.title || undefined,
     client_id: m.clientId || undefined,
     client_name: m.client
-      ? `${m.client.firstName} ${m.client.lastName || ""}`.trim() || m.client.companyName || undefined
+      ? `${m.client.firstName} ${m.client.lastName || ""}`.trim() ||
+        m.client.companyName ||
+        undefined
       : undefined,
     attendees: (m.attendees as MomAttendee[]) || [],
     agenda: m.agenda,
@@ -59,7 +67,9 @@ export async function getMinutesOfMeetings(filters?: {
       where,
       include: {
         deal: { select: { title: true } },
-        client: { select: { firstName: true, lastName: true, companyName: true } },
+        client: {
+          select: { firstName: true, lastName: true, companyName: true },
+        },
         createdBy: { select: { fullName: true } },
         approvedBy: { select: { fullName: true } },
       },
@@ -69,17 +79,21 @@ export async function getMinutesOfMeetings(filters?: {
     return moms.map(mapPrismaMom);
   } catch (error) {
     console.error("Error fetching Minutes of Meetings:", error);
-    return [];
+    throw error;
   }
 }
 
-export async function getMinuteOfMeetingById(id: string): Promise<MinuteOfMeetingItem | null> {
+export async function getMinuteOfMeetingById(
+  id: string,
+): Promise<MinuteOfMeetingItem | null> {
   try {
     const mom = await db.minuteOfMeeting.findUnique({
       where: { id },
       include: {
         deal: { select: { title: true } },
-        client: { select: { firstName: true, lastName: true, companyName: true } },
+        client: {
+          select: { firstName: true, lastName: true, companyName: true },
+        },
         createdBy: { select: { fullName: true, signatureUrl: true } },
         approvedBy: { select: { fullName: true, signatureUrl: true } },
       },
@@ -88,27 +102,19 @@ export async function getMinuteOfMeetingById(id: string): Promise<MinuteOfMeetin
     return mom ? mapPrismaMom(mom) : null;
   } catch (error) {
     console.error(`Error fetching MOM with id ${id}:`, error);
-    return null;
+    throw error;
   }
 }
 
-export async function getNextMomNumber(): Promise<string> {
-  const currentYear = new Date().getFullYear();
-  const prefix = `MOM-${currentYear}-`;
-
-  const latest = await db.minuteOfMeeting.findFirst({
-    where: { momNumber: { startsWith: prefix } },
-    orderBy: { momNumber: "desc" },
-  });
-
-  if (!latest) {
-    return `${prefix}001`;
-  }
-
-  const parts = latest.momNumber.split("-");
-  const lastSeq = parseInt(parts[parts.length - 1], 10);
-  const nextSeq = isNaN(lastSeq) ? 1 : lastSeq + 1;
-  return `${prefix}${String(nextSeq).padStart(3, "0")}`;
+export async function getNextMomNumber(
+  client: Prisma.TransactionClient = db,
+): Promise<string> {
+  const prefix = `MOM-${new Date().getFullYear()}-`;
+  const [row] = await client.$queryRaw<Array<{ next: number }>>`
+    SELECT COALESCE(MAX(CAST(substring("momNumber" FROM '[0-9]+$') AS integer)), 0) + 1 AS next
+    FROM "MinuteOfMeeting" WHERE "momNumber" LIKE ${`${prefix}%`}
+  `;
+  return `${prefix}${String(row.next).padStart(3, "0")}`;
 }
 
 export async function createMinuteOfMeeting(data: {
@@ -130,37 +136,40 @@ export async function createMinuteOfMeeting(data: {
   createdById?: string;
   signatureUrl?: string;
 }): Promise<MinuteOfMeetingItem> {
-  const momNumber = await getNextMomNumber();
-
-  const created = await db.minuteOfMeeting.create({
-    data: {
-      momNumber,
-      title: data.title,
-      titleAr: data.titleAr || null,
-      meetingDate: new Date(data.meetingDate),
-      startTime: data.startTime || null,
-      endTime: data.endTime || null,
-      location: data.location || null,
-      dealId: data.dealId || null,
-      clientId: data.clientId || null,
-      attendees: (data.attendees || []) as any,
-      agenda: data.agenda,
-      discussionPoints: (data.discussionPoints || []) as any,
-      actionItems: (data.actionItems || []) as any,
-      decisions: (data.decisions || []) as any,
-      notes: data.notes || null,
-      status: data.status || "draft",
-      createdById: data.createdById || null,
-      signatureUrl: data.signatureUrl || null,
-    },
-    include: {
-      deal: { select: { title: true } },
-      client: { select: { firstName: true, lastName: true, companyName: true } },
-      createdBy: { select: { fullName: true } },
-      approvedBy: { select: { fullName: true } },
-    },
+  const created = await db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
+    const momNumber = await getNextMomNumber(tx);
+    return tx.minuteOfMeeting.create({
+      data: {
+        momNumber,
+        title: data.title,
+        titleAr: data.titleAr || null,
+        meetingDate: new Date(data.meetingDate),
+        startTime: data.startTime || null,
+        endTime: data.endTime || null,
+        location: data.location || null,
+        dealId: data.dealId || null,
+        clientId: data.clientId || null,
+        attendees: (data.attendees || []) as any,
+        agenda: data.agenda,
+        discussionPoints: (data.discussionPoints || []) as any,
+        actionItems: (data.actionItems || []) as any,
+        decisions: (data.decisions || []) as any,
+        notes: data.notes || null,
+        status: data.status || "draft",
+        createdById: data.createdById || null,
+        signatureUrl: data.signatureUrl || null,
+      },
+      include: {
+        deal: { select: { title: true } },
+        client: {
+          select: { firstName: true, lastName: true, companyName: true },
+        },
+        createdBy: { select: { fullName: true } },
+        approvedBy: { select: { fullName: true } },
+      },
+    });
   });
-
   return mapPrismaMom(created);
 }
 
@@ -185,44 +194,62 @@ export async function updateMinuteOfMeeting(
     approvedById?: string;
     signatureUrl?: string;
     pdfStoragePath?: string;
-  }>
+  }>,
 ): Promise<MinuteOfMeetingItem | null> {
   try {
     const updateData: any = {};
     if (data.title !== undefined) updateData.title = data.title;
     if (data.titleAr !== undefined) updateData.titleAr = data.titleAr;
-    if (data.meetingDate !== undefined) updateData.meetingDate = new Date(data.meetingDate);
+    if (data.meetingDate !== undefined)
+      updateData.meetingDate = new Date(data.meetingDate);
     if (data.startTime !== undefined) updateData.startTime = data.startTime;
     if (data.endTime !== undefined) updateData.endTime = data.endTime;
     if (data.location !== undefined) updateData.location = data.location;
     if (data.dealId !== undefined) updateData.dealId = data.dealId;
     if (data.clientId !== undefined) updateData.clientId = data.clientId;
-    if (data.attendees !== undefined) updateData.attendees = data.attendees as any;
+    if (data.attendees !== undefined)
+      updateData.attendees = data.attendees as any;
     if (data.agenda !== undefined) updateData.agenda = data.agenda;
-    if (data.discussionPoints !== undefined) updateData.discussionPoints = data.discussionPoints as any;
-    if (data.actionItems !== undefined) updateData.actionItems = data.actionItems as any;
-    if (data.decisions !== undefined) updateData.decisions = data.decisions as any;
+    if (data.discussionPoints !== undefined)
+      updateData.discussionPoints = data.discussionPoints as any;
+    if (data.actionItems !== undefined)
+      updateData.actionItems = data.actionItems as any;
+    if (data.decisions !== undefined)
+      updateData.decisions = data.decisions as any;
     if (data.notes !== undefined) updateData.notes = data.notes;
     if (data.status !== undefined) updateData.status = data.status;
-    if (data.approvedById !== undefined) updateData.approvedById = data.approvedById;
-    if (data.signatureUrl !== undefined) updateData.signatureUrl = data.signatureUrl;
-    if (data.pdfStoragePath !== undefined) updateData.pdfStoragePath = data.pdfStoragePath;
+    if (data.approvedById !== undefined)
+      updateData.approvedById = data.approvedById;
+    if (data.signatureUrl !== undefined)
+      updateData.signatureUrl = data.signatureUrl;
+    if (data.pdfStoragePath !== undefined)
+      updateData.pdfStoragePath = data.pdfStoragePath;
 
-    const updated = await db.minuteOfMeeting.update({
-      where: { id },
-      data: updateData,
-      include: {
-        deal: { select: { title: true } },
-        client: { select: { firstName: true, lastName: true, companyName: true } },
-        createdBy: { select: { fullName: true } },
-        approvedBy: { select: { fullName: true } },
-      },
+    const updated = await db.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "MinuteOfMeeting" WHERE id = ${id} FOR UPDATE`;
+      const current = await tx.minuteOfMeeting.findUnique({
+        where: { id },
+        select: { status: true },
+      });
+      if (!current || ["approved", "shared"].includes(current.status))
+        throw new Error("Signed meetings cannot be edited");
+      return tx.minuteOfMeeting.update({
+        where: { id },
+        data: updateData,
+        include: {
+          deal: { select: { title: true } },
+          client: {
+            select: { firstName: true, lastName: true, companyName: true },
+          },
+          createdBy: { select: { fullName: true } },
+          approvedBy: { select: { fullName: true } },
+        },
+      });
     });
-
     return mapPrismaMom(updated);
   } catch (error) {
     console.error(`Error updating MOM ${id}:`, error);
-    return null;
+    throw error;
   }
 }
 
@@ -232,14 +259,14 @@ export async function deleteMinuteOfMeeting(id: string): Promise<boolean> {
     return true;
   } catch (error) {
     console.error(`Error deleting MOM ${id}:`, error);
-    return false;
+    throw error;
   }
 }
 
 export async function approveAndSignMom(
   id: string,
   userId: string,
-  signatureUrl: string
+  signatureUrl: string,
 ): Promise<MinuteOfMeetingItem | null> {
   return updateMinuteOfMeeting(id, {
     status: "approved",

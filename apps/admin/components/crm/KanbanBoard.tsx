@@ -33,6 +33,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
       label: t.stages.post_production,
       color: "#A855F7",
     },
+    { stage: "invoiced", label: t.stages.invoiced, color: "#0D9488" },
     { stage: "delivered", label: t.stages.delivered, color: "#10B981" },
     { stage: "closed_won", label: t.stages.closed_won, color: "#059669" },
     { stage: "closed_lost", label: t.stages.closed_lost, color: "#E11D48" },
@@ -52,6 +53,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
     try {
       await updateDealStageAction(dealId, targetStage);
     } catch (err) {
+      setDeals(initialDeals);
       console.error("Failed to update deal stage in DB:", err);
     }
   };

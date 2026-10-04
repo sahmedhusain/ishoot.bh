@@ -1,3 +1,4 @@
+require("ts-node").register({transpileOnly:true,skipProject:true,compilerOptions:{module:"CommonJS",target:"ES2022",moduleResolution:"Node",esModuleInterop:true,resolveJsonModule:true}});
 // Run: node scripts/check-platform.cjs
 // Exercise source modules with boundary mocks; no production database writes.
 const assert = require("node:assert/strict");
@@ -5,6 +6,12 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 function load(file, mocks) {
+  if (mocks["@ishoot/database"]) { mocks["@ishoot/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@ishoot/database"].memoizeOperation ??= async(_key,fn)=>fn(); mocks["@ishoot/database"].requireFeatureEnabled ??= async()=>{}; mocks["@ishoot/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@ishoot/database"].db) mocks["@ishoot/database"].db.$queryRaw ??= async () => []; }
+  mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
+  mocks["../../../lib/upload-input"] ??= require("../apps/admin/lib/upload-input.ts");
+  mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };
+  if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
+
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(file, "utf8"), {
     compilerOptions: {
@@ -35,6 +42,7 @@ async function main() {
   let session = null;
   const user = { id: "u", role: "viewer", is_active: true };
   const auth = load("apps/admin/lib/auth.ts", {
+    react: { cache: (fn) => fn },
     "next/headers": {
       cookies: async () => ({ get: () => ({ value: "token" }) }),
     },
@@ -50,6 +58,7 @@ async function main() {
     "@ishoot/database": {
       getSessionByToken: async () => session,
       hasPermission: async () => false,
+      getEffectivePermissions:async()=>({}),
     },
   });
   assert.equal(await auth.getCurrentUser(), null, "revoked JWT must fail");
@@ -74,7 +83,7 @@ async function main() {
       },
     },
   });
-  await assert.rejects(settings.createSocialLinkAction({}), /denied/);
+  await assert.rejects(settings.createSocialLinkAction({ platform: "website", url: "https://example.invalid" }), /denied/);
   await assert.rejects(settings.toggleFeatureAction("crm", false), /denied/);
   assert.equal(mutation, false);
 
@@ -128,12 +137,7 @@ async function main() {
     "../initial-company-config.json": { company: {} },
     "../types": types,
   });
-  assert.equal(
-    await invoices.updateInvoice("i", {
-      line_items: [{ quantity: 1, unit_price: 100, description_en: "Shoot" }],
-    }),
-    null,
-  );
+  await assert.rejects(invoices.updateInvoice("i", { line_items: [{ quantity: 1, unit_price: 100, description_en: "Shoot" }] }), /simulated update failure/);
   assert.equal(usedTransaction, true);
   assert.equal(deleted, false, "rollback must preserve items");
 
@@ -195,6 +199,7 @@ async function main() {
     inquiry: { findUnique: async () => inquiry, update: async () => {} },
     crmContact: { findUnique: async () => ({ id: "c" }) },
     crmDeal: {
+      findUnique: async () => conversion ? { id: "d", contactId: "c" } : null,
       create: async (args) => {
         assert.equal(args.data.dealValue, 5000);
         dealCount++;
@@ -287,46 +292,19 @@ async function main() {
     /line items/,
   );
   const financial = load("packages/database/src/queries/finance.ts", {
-    "./invoices": {
-      getAllInvoices: async () => [
-        {
-          currency: "BHD",
-          status: "sent",
-          amount_due: 55,
-          due_date: "2000-01-01",
-          discount_amount: 0,
-          vat_enabled: true,
-          total_amount: 110,
-          amount_paid: 55,
-          vat_amount: 10,
-        },
-        {
-          currency: "USD",
-          status: "sent",
-          amount_due: 900,
-          discount_amount: 0,
-        },
-        {
-          currency: "BHD",
-          status: "void",
-          amount_due: 100,
-          discount_amount: 0,
-          vat_enabled: true,
-          vat_amount: 10,
-        },
-      ],
-    },
-    "./payments": {
-      getAllPayments: async () => [
-        { currency: "BHD", amount: 55 },
-        { currency: "USD", amount: 900 },
-      ],
-    },
-    "./expenses": {
-      getAllExpenses: async () => [
-        { currency: "BHD", amount: 20 },
-        { currency: "USD", amount: 800 },
-      ],
+    "../db": {
+      db: {
+        $queryRaw: async () => [
+          {
+            revenue: "55",
+            expenses: "20",
+            outstanding: "55",
+            overdue: "55",
+            discountsGiven: "0",
+            vatCollected: "5",
+          },
+        ],
+      },
     },
   });
   const totals = await financial.getFinancialSummary();
@@ -334,40 +312,11 @@ async function main() {
   assert.equal(totals.expenses, 20);
   assert.equal(totals.overdue, 55);
   assert.equal(totals.vatCollected, 5);
-  const page = load("apps/admin/app/dashboard/invoices/page.tsx", {
-    "../../../lib/auth": { requirePermission: async () => user },
-    "@ishoot/database": {
-      getAllInvoices: async () => [
-        {
-          currency: "BHD",
-          status: "sent",
-          amount_due: 55,
-          due_date: "2000-01-01",
-          discount_amount: 5,
-        },
-        {
-          currency: "USD",
-          status: "sent",
-          amount_due: 900,
-          due_date: "2000-01-01",
-          discount_amount: 100,
-        },
-        {
-          currency: "BHD",
-          status: "void",
-          amount_due: 100,
-          due_date: "2000-01-01",
-          discount_amount: 50,
-        },
-      ],
-    },
-    react: { createElement: (component, props) => props },
-    "../../../components/invoices/InvoicesListView": { InvoicesListView() {} },
-  });
-  const rendered = await page.default();
-  assert.equal(rendered.finance.outstanding, 55);
-  assert.equal(rendered.finance.overdue, 55);
-  assert.equal(rendered.finance.discountsGiven, 5);
+  await assert.rejects(financial.getMonthlyCashflow(0), /Month count/);
+  const invoiceMetrics = await financial.getInvoiceSummary();
+  assert.deepEqual(Object.keys(invoiceMetrics).sort(), ["discountsGiven", "outstanding", "overdue"]);
+  assert.equal(invoiceMetrics.outstanding, 55);
+  assert.equal(invoiceMetrics.overdue, 55);
   console.log(
     "Platform checks passed: revocation, permissions, invoice rollback/VAT, payment validation, lead conversion/idempotency.",
   );

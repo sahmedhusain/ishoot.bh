@@ -5,7 +5,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { Button, Card, Modal, Input, ConfirmDestructiveModal } from "@ishoot/ui";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { createStatisticAction, updateStatisticAction, deleteStatisticAction } from "../../app/actions/cms";
-import { IconPicker } from "../shared/IconPicker";
+import { IconPicker } from "../shared/LazyIconPicker";
 
 export function StatsManagementView({ initialStats }: { initialStats: any[] }) {
   const { t, isRTL } = useAdminLocale();

@@ -4,7 +4,9 @@ import { db } from "@ishoot/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";
 
 export default async function RolesSettingsPage() {
-  await requirePermission("settings", "read");
+  const actor = await requirePermission("users", "read");
+  if (actor.role !== "super_admin")
+    throw new Error("Only super administrators can manage roles");
 
   const [roles, userCounts, permissions] = await Promise.all([
     db.role.findMany({
@@ -29,6 +31,7 @@ export default async function RolesSettingsPage() {
         canWrite: boolean;
         canDelete: boolean;
         canApprove: boolean;
+        canExport: boolean;
       }
     >
   >();
@@ -45,12 +48,18 @@ export default async function RolesSettingsPage() {
         canWrite: false,
         canDelete: false,
         canApprove: false,
+        canExport: false,
       };
     }
     if (p.action === "read" && p.allowed) roleRecord[p.resource].canRead = true;
-    if (p.action === "write" && p.allowed) roleRecord[p.resource].canWrite = true;
-    if (p.action === "delete" && p.allowed) roleRecord[p.resource].canDelete = true;
-    if (p.action === "approve" && p.allowed) roleRecord[p.resource].canApprove = true;
+    if (p.action === "write" && p.allowed)
+      roleRecord[p.resource].canWrite = true;
+    if (p.action === "delete" && p.allowed)
+      roleRecord[p.resource].canDelete = true;
+    if (p.action === "export" && p.allowed)
+      roleRecord[p.resource].canExport = true;
+    if (p.action === "approve" && p.allowed)
+      roleRecord[p.resource].canApprove = true;
   }
 
   const enrichedRoles = roles.map((role) => ({

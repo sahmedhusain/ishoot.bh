@@ -127,6 +127,11 @@ async function main() {
   assert.equal(safeWebsiteUrl("javascript:alert(1)", "/contact"), "/contact");
   assert.equal(safeWebsiteUrl("//evil.example", "/contact"), "/contact");
   const content = await getWebsiteEditor();
+  if (!content.published) {
+    await assert.rejects(getWebsiteSnapshot(), /setup is incomplete/);
+    const {collectWebsiteDraft} = require("../packages/database/src/queries/website.ts");
+    await db.websiteContent.update({where:{id:"main"},data:{published:JSON.parse(JSON.stringify(await collectWebsiteDraft(defaultWebsiteConfig))),publishedAt:new Date()}});
+  }
   const old = await getWebsiteSnapshot();
   await db.websiteContent.update({
     where: { id: "main" },
@@ -142,7 +147,7 @@ async function main() {
   );
   await db.websiteContent.update({
     where: { id: "main" },
-    data: { draft: content.draft },
+    data: { draft: content.draft, published: content.published ?? require("../packages/database/prisma/generated/client").Prisma.DbNull, publishedAt:content.publishedAt },
   });
   await db.review.delete({ where: { id: review.id } });
   await db.inquiry.deleteMany({

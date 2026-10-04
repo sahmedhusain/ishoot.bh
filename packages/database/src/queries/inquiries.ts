@@ -1,11 +1,18 @@
 import { db } from "../db";
+import type { Prisma } from "../../prisma/generated/client";
 import { Inquiry } from "../types";
 
 function mapInquiry(inq: any): Inquiry {
   return {
     id: inq.id,
     type: inq.intent || "inquiry",
-    subject: inq.reference || (inq.serviceType ? inq.serviceType : inq.message ? inq.message.slice(0, 45) + "..." : undefined),
+    subject:
+      inq.reference ||
+      (inq.serviceType
+        ? inq.serviceType
+        : inq.message
+          ? inq.message.slice(0, 45) + "..."
+          : undefined),
     full_name: inq.name,
     email: inq.email,
     phone: inq.phone || undefined,
@@ -19,6 +26,8 @@ function mapInquiry(inq: any): Inquiry {
     workflow_status: (inq.workflowStatus as any) || "received",
     custom_assignments: (inq.customAssignments as any) || [],
     approval_notes: inq.approvalNotes || undefined,
+    approved_by_id: inq.approvedById || undefined,
+    approved_at: inq.approvedAt?.toISOString(),
     return_reason: inq.returnReason || undefined,
     resolution_notes: inq.resolutionNotes || undefined,
     confirmed_at: inq.confirmedAt ? inq.confirmedAt.toISOString() : undefined,
@@ -98,33 +107,37 @@ export async function getAllInquiries(
     return inquiries.map(mapInquiry);
   } catch (e) {
     console.error("Error fetching inquiries from DB:", e);
-    return [];
+    throw e;
   }
 }
 
-export async function getRequestsAndComplaints(filters?: {
-  intent?: string; // "service_request" | "complaint" | "quote_request" | "inquiry"
+export interface RequestFilters {
+  intent?: string;
   team?: string;
   workflowStatus?: string;
   search?: string;
-}): Promise<Inquiry[]> {
-  try {
-    const where: any = {};
-    if (filters?.intent && filters.intent !== "all") where.intent = filters.intent;
-    if (filters?.team && filters.team !== "all") where.team = filters.team;
-    if (filters?.workflowStatus && filters.workflowStatus !== "all")
-      where.workflowStatus = filters.workflowStatus;
-    if (filters?.search) {
-      where.OR = [
-        { name: { contains: filters.search, mode: "insensitive" } },
-        { email: { contains: filters.search, mode: "insensitive" } },
-        { companyName: { contains: filters.search, mode: "insensitive" } },
-        { message: { contains: filters.search, mode: "insensitive" } },
-        { reference: { contains: filters.search, mode: "insensitive" } },
-      ];
-    }
-
-    const items = await db.inquiry.findMany({
+}
+export async function getRequestsPage(filters: RequestFilters = {}, page = 1) {
+  const where: Prisma.InquiryWhereInput = {};
+  if (filters.intent && filters.intent !== "all") where.intent = filters.intent;
+  if (filters.team && filters.team !== "all") where.team = filters.team;
+  if (filters.workflowStatus && filters.workflowStatus !== "all")
+    where.workflowStatus = filters.workflowStatus;
+  if (filters.search) {
+    const term = filters.search.trim().slice(0, 200);
+    where.OR = ["name", "email", "companyName", "message", "reference"].map(
+      (field) => ({ [field]: { contains: term, mode: "insensitive" } }),
+    );
+  }
+  const safePage =
+    Number.isInteger(page) && page >= 1 ? Math.min(page, 10000) : 1;
+  const groupsQuery = db.inquiry.groupBy({
+    by: ["intent", "workflowStatus"],
+    orderBy: { intent: "asc" },
+    _count: { _all: true },
+  });
+  const [items, total, groups] = await db.$transaction([
+    db.inquiry.findMany({
       where,
       include: {
         assignedTo: { select: { fullName: true } },
@@ -134,14 +147,29 @@ export async function getRequestsAndComplaints(filters?: {
           include: { author: { select: { fullName: true } } },
         },
       },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return items.map(mapInquiry);
-  } catch (error) {
-    console.error("Error fetching requests and complaints:", error);
-    return [];
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: 50,
+      skip: (safePage - 1) * 50,
+    }),
+    db.inquiry.count({ where }),
+    groupsQuery,
+  ]);
+  const stats = { total: 0, complaints: 0, services: 0, approvals: 0 };
+  for (const group of groups) {
+    stats.total += group._count._all;
+    if (group.intent === "complaint") stats.complaints += group._count._all;
+    if (["service_request", "quote_request"].includes(group.intent))
+      stats.services += group._count._all;
+    if (["assigned", "pending_approval"].includes(group.workflowStatus))
+      stats.approvals += group._count._all;
   }
+  return {
+    items: items.map(mapInquiry),
+    total,
+    page: safePage,
+    pageSize: 50,
+    stats,
+  };
 }
 
 export async function updateInquiryStatus(
@@ -156,250 +184,263 @@ export async function updateInquiryStatus(
     return true;
   } catch (e) {
     console.error(`Error updating inquiry ${id}:`, e);
-    return false;
+    throw e;
   }
 }
 
+type Transition =
+  "assign" | "reassign" | "return" | "approve" | "confirm" | "resolve";
+const allowedStates: Record<Transition, string[]> = {
+  assign: ["received", "under_review", "returned", "assigned", "in_progress"],
+  reassign: [
+    "assigned",
+    "in_progress",
+    "pending_approval",
+    "approved",
+    "returned",
+  ],
+  return: [
+    "received",
+    "under_review",
+    "assigned",
+    "in_progress",
+    "pending_approval",
+    "approved",
+    "confirmed",
+  ],
+  approve: ["assigned", "in_progress", "pending_approval"],
+  confirm: ["approved"],
+  resolve: [
+    "received",
+    "under_review",
+    "assigned",
+    "in_progress",
+    "approved",
+    "confirmed",
+    "returned",
+  ],
+};
+async function transitionRequest(
+  id: string,
+  action: Transition,
+  input: {
+    actorId: string;
+    actorName?: string;
+    assigneeId?: string;
+    team?: string;
+    notes?: string;
+  },
+): Promise<Inquiry> {
+  if (
+    typeof id !== "string" ||
+    !id ||
+    id.length > 100 ||
+    typeof input.actorId !== "string" ||
+    !input.actorId
+  )
+    throw new Error("Invalid request identity");
+  if (
+    input.notes !== undefined &&
+    (typeof input.notes !== "string" || input.notes.length > 10000)
+  )
+    throw new Error("Invalid notes");
+  if (
+    ["return", "resolve", "reassign"].includes(action) &&
+    !input.notes?.trim()
+  )
+    throw new Error("Notes are required");
+  if (
+    input.team !== undefined &&
+    ![
+      "production",
+      "post_production",
+      "finance",
+      "sales",
+      "executive",
+      "support",
+    ].includes(input.team)
+  )
+    throw new Error("Invalid team");
+  return db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "Inquiry" WHERE "id" = ${id} FOR UPDATE`;
+    const existing = await tx.inquiry.findUnique({ where: { id } });
+    if (!existing) throw new Error("Request not found");
+    if (
+      !allowedStates[action].includes(existing.workflowStatus) ||
+      ["resolved", "archived", "rejected"].includes(existing.status)
+    )
+      throw new Error(
+        "Request state changed or transition is unavailable. Refresh the request.",
+      );
+    if (action === "assign" || action === "reassign") {
+      if (
+        typeof input.assigneeId !== "string" ||
+        !input.assigneeId ||
+        !(await tx.user.findFirst({
+          where: { id: input.assigneeId, isActive: true },
+          select: { id: true },
+        }))
+      )
+        throw new Error("Invalid active assignee");
+    }
+    const history = Array.isArray(existing.customAssignments)
+      ? [...existing.customAssignments]
+      : [];
+    const timestamp = new Date();
+    history.push({
+      actorId: input.actorId,
+      assignedByName: input.actorName || "",
+      assignedToId: input.assigneeId || null,
+      timestamp: timestamp.toISOString(),
+      notes: input.notes || "",
+      action,
+    });
+    const data = {
+      workflowStatus:
+        action === "assign" || action === "reassign"
+          ? "assigned"
+          : action === "return"
+            ? "returned"
+            : action === "approve"
+              ? "approved"
+              : action === "confirm"
+                ? "confirmed"
+                : "resolved",
+      customAssignments: history,
+      ...(action === "assign" || action === "reassign"
+        ? {
+            assignedToId: input.assigneeId,
+            team: input.team || existing.team,
+            status: existing.status === "new" ? "in_progress" : existing.status,
+          }
+        : {}),
+      ...(["assign", "reassign", "return"].includes(action)
+        ? {
+            approvedById: null,
+            approvedAt: null,
+            confirmedById: null,
+            confirmedAt: null,
+          }
+        : {}),
+      ...(action === "return" ? { returnReason: input.notes } : {}),
+      ...(action === "approve"
+        ? {
+            approvalNotes: input.notes || null,
+            approvedById: input.actorId,
+            approvedAt: timestamp,
+          }
+        : {}),
+      ...(action === "confirm"
+        ? { confirmedById: input.actorId, confirmedAt: timestamp }
+        : {}),
+      ...(action === "resolve"
+        ? {
+            status: "resolved",
+            resolvedAt: timestamp,
+            resolutionNotes: input.notes,
+          }
+        : {}),
+    };
+    const updated = await tx.inquiry.update({
+      where: { id },
+      data,
+      include: { assignedTo: { select: { fullName: true } } },
+    });
+    await tx.activityLog.create({
+      data: {
+        userId: input.actorId,
+        action: action === "approve" ? "approve" : "update",
+        entityType: "inquiry",
+        entityId: id,
+        details: {
+          action,
+          from: existing.workflowStatus,
+          to: updated.workflowStatus,
+        },
+      },
+    });
+    return mapInquiry(updated);
+  });
+}
 export async function assignRequest(
   id: string,
-  assignment: {
+  input: {
     assignedToId: string;
     team?: string;
+    assignedById: string;
     assignedByName?: string;
     notes?: string;
-  }
-): Promise<Inquiry | null> {
-  try {
-    const existing = await db.inquiry.findUnique({ where: { id } });
-    if (!existing) return null;
-
-    const history = (existing.customAssignments as any[]) || [];
-    history.push({
-      assignedToId: assignment.assignedToId,
-      assignedByName: assignment.assignedByName || "Admin",
-      timestamp: new Date().toISOString(),
-      notes: assignment.notes || "Assigned",
-      action: "assign",
-    });
-
-    const updated = await db.inquiry.update({
-      where: { id },
-      data: {
-        assignedToId: assignment.assignedToId,
-        team: assignment.team || existing.team,
-        workflowStatus: "assigned",
-        status: existing.status === "new" ? "in_progress" : existing.status,
-        customAssignments: history,
-      },
-      include: {
-        assignedTo: { select: { fullName: true } },
-      },
-    });
-
-    return mapInquiry(updated);
-  } catch (error) {
-    console.error(`Error assigning request ${id}:`, error);
-    return null;
-  }
+  },
+) {
+  return transitionRequest(id, "assign", {
+    actorId: input.assignedById,
+    actorName: input.assignedByName,
+    assigneeId: input.assignedToId,
+    team: input.team,
+    notes: input.notes,
+  });
 }
-
 export async function reassignRequest(
   id: string,
-  assignment: {
+  input: {
     newAssignedToId: string;
     newTeam?: string;
+    reassignedById: string;
     reassignedByName?: string;
     notes: string;
-  }
-): Promise<Inquiry | null> {
-  try {
-    const existing = await db.inquiry.findUnique({ where: { id } });
-    if (!existing) return null;
-
-    const history = (existing.customAssignments as any[]) || [];
-    history.push({
-      assignedToId: assignment.newAssignedToId,
-      assignedByName: assignment.reassignedByName || "Admin",
-      timestamp: new Date().toISOString(),
-      notes: assignment.notes,
-      action: "reassign",
-    });
-
-    const updated = await db.inquiry.update({
-      where: { id },
-      data: {
-        assignedToId: assignment.newAssignedToId,
-        team: assignment.newTeam || existing.team,
-        workflowStatus: "assigned",
-        customAssignments: history,
-      },
-      include: {
-        assignedTo: { select: { fullName: true } },
-      },
-    });
-
-    return mapInquiry(updated);
-  } catch (error) {
-    console.error(`Error reassigning request ${id}:`, error);
-    return null;
-  }
+  },
+) {
+  return transitionRequest(id, "reassign", {
+    actorId: input.reassignedById,
+    actorName: input.reassignedByName,
+    assigneeId: input.newAssignedToId,
+    team: input.newTeam,
+    notes: input.notes,
+  });
 }
-
 export async function returnRequest(
   id: string,
-  details: {
-    returnedByName?: string;
-    reason: string;
-  }
-): Promise<Inquiry | null> {
-  try {
-    const existing = await db.inquiry.findUnique({ where: { id } });
-    if (!existing) return null;
-
-    const history = (existing.customAssignments as any[]) || [];
-    history.push({
-      assignedByName: details.returnedByName || "Admin",
-      timestamp: new Date().toISOString(),
-      notes: details.reason,
-      action: "return",
-    });
-
-    const updated = await db.inquiry.update({
-      where: { id },
-      data: {
-        workflowStatus: "returned",
-        returnReason: details.reason,
-        customAssignments: history,
-      },
-      include: {
-        assignedTo: { select: { fullName: true } },
-      },
-    });
-
-    return mapInquiry(updated);
-  } catch (error) {
-    console.error(`Error returning request ${id}:`, error);
-    return null;
-  }
+  input: { returnedById: string; returnedByName?: string; reason: string },
+) {
+  return transitionRequest(id, "return", {
+    actorId: input.returnedById,
+    actorName: input.returnedByName,
+    notes: input.reason,
+  });
 }
-
 export async function approveRequest(
   id: string,
-  details: {
-    approvedById: string;
-    approvedByName?: string;
-    notes?: string;
-  }
-): Promise<Inquiry | null> {
-  try {
-    const existing = await db.inquiry.findUnique({ where: { id } });
-    if (!existing) return null;
-
-    const history = (existing.customAssignments as any[]) || [];
-    history.push({
-      assignedByName: details.approvedByName || "Executive",
-      timestamp: new Date().toISOString(),
-      notes: details.notes || "Approved",
-      action: "approve",
-    });
-
-    const updated = await db.inquiry.update({
-      where: { id },
-      data: {
-        workflowStatus: "pending_approval",
-        approvalNotes: details.notes || null,
-        customAssignments: history,
-      },
-      include: {
-        assignedTo: { select: { fullName: true } },
-      },
-    });
-
-    return mapInquiry(updated);
-  } catch (error) {
-    console.error(`Error approving request ${id}:`, error);
-    return null;
-  }
+  input: { approvedById: string; approvedByName?: string; notes?: string },
+) {
+  return transitionRequest(id, "approve", {
+    actorId: input.approvedById,
+    actorName: input.approvedByName,
+    notes: input.notes,
+  });
 }
-
 export async function confirmRequest(
   id: string,
-  details: {
-    confirmedById: string;
-    confirmedByName?: string;
-    notes?: string;
-  }
-): Promise<Inquiry | null> {
-  try {
-    const existing = await db.inquiry.findUnique({ where: { id } });
-    if (!existing) return null;
-
-    const history = (existing.customAssignments as any[]) || [];
-    history.push({
-      assignedByName: details.confirmedByName || "Manager",
-      timestamp: new Date().toISOString(),
-      notes: details.notes || "Confirmed",
-      action: "confirm",
-    });
-
-    const updated = await db.inquiry.update({
-      where: { id },
-      data: {
-        workflowStatus: "confirmed",
-        confirmedById: details.confirmedById,
-        confirmedAt: new Date(),
-        customAssignments: history,
-      },
-      include: {
-        assignedTo: { select: { fullName: true } },
-      },
-    });
-
-    return mapInquiry(updated);
-  } catch (error) {
-    console.error(`Error confirming request ${id}:`, error);
-    return null;
-  }
+  input: { confirmedById: string; confirmedByName?: string; notes?: string },
+) {
+  return transitionRequest(id, "confirm", {
+    actorId: input.confirmedById,
+    actorName: input.confirmedByName,
+    notes: input.notes,
+  });
 }
-
 export async function resolveRequest(
   id: string,
-  details: {
+  input: {
+    resolvedById: string;
     resolvedByName?: string;
     resolutionNotes: string;
-  }
-): Promise<Inquiry | null> {
-  try {
-    const existing = await db.inquiry.findUnique({ where: { id } });
-    if (!existing) return null;
-
-    const history = (existing.customAssignments as any[]) || [];
-    history.push({
-      assignedByName: details.resolvedByName || "Specialist",
-      timestamp: new Date().toISOString(),
-      notes: details.resolutionNotes,
-      action: "resolve",
-    });
-
-    const updated = await db.inquiry.update({
-      where: { id },
-      data: {
-        workflowStatus: "resolved",
-        status: "resolved",
-        resolvedAt: new Date(),
-        resolutionNotes: details.resolutionNotes,
-        customAssignments: history,
-      },
-      include: {
-        assignedTo: { select: { fullName: true } },
-      },
-    });
-
-    return mapInquiry(updated);
-  } catch (error) {
-    console.error(`Error resolving request ${id}:`, error);
-    return null;
-  }
+  },
+) {
+  return transitionRequest(id, "resolve", {
+    actorId: input.resolvedById,
+    actorName: input.resolvedByName,
+    notes: input.resolutionNotes,
+  });
 }
 
 export async function deleteInquiry(id: string): Promise<boolean> {
@@ -408,6 +449,6 @@ export async function deleteInquiry(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error(`Error deleting inquiry ${id}:`, e);
-    return false;
+    throw e;
   }
 }

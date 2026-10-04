@@ -21,10 +21,16 @@ import {
   deleteReviewAction,
 } from "../../app/actions/cms";
 
-export function ReviewsManagementView({ initialReviews }: { initialReviews: any[] }) {
+export function ReviewsManagementView({
+  initialReviews,
+}: {
+  initialReviews: any[];
+}) {
   const { t, isRTL } = useAdminLocale();
   const [reviews, setReviews] = React.useState(initialReviews);
-  const [filter, setFilter] = React.useState<"all" | "pending" | "published">("all");
+  const [filter, setFilter] = React.useState<"all" | "pending" | "published">(
+    "all",
+  );
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
   const [processingId, setProcessingId] = React.useState<string | null>(null);
 
@@ -51,7 +57,7 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
       const newStatus = !currentStatus;
       await toggleReviewApprovalAction(id, newStatus);
       setReviews((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, isApproved: newStatus } : r))
+        prev.map((r) => (r.id === id ? { ...r, isApproved: newStatus } : r)),
       );
     } catch (error) {
       console.error("Failed to toggle review status:", error);
@@ -126,7 +132,9 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
             </div>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-0.5 flex items-center gap-1.5">
               <span>{averageRating}</span>
-              <span className="text-xs font-normal text-amber-400">★ ★ ★ ★ ★</span>
+              <span className="text-xs font-normal text-amber-400">
+                ★ ★ ★ ★ ★
+              </span>
             </div>
           </div>
           <div className="w-10 h-10 rounded-xl bg-[#09937F]/10 border border-[#09937F]/20 text-[#09937F] flex items-center justify-center">
@@ -185,7 +193,8 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
             No reviews in this view.
           </p>
           <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1">
-            Client reviews submitted through the website will appear here for your moderation.
+            Client reviews submitted through the website will appear here for
+            your moderation.
           </p>
         </Card>
       ) : (
@@ -214,20 +223,24 @@ export function ReviewsManagementView({ initialReviews }: { initialReviews: any[
                         : "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
                     }
                   >
-                    {rev.isApproved ? t.reviewsView.statusPublished : t.reviewsView.statusPending}
+                    {rev.isApproved
+                      ? t.reviewsView.statusPublished
+                      : t.reviewsView.statusPending}
                   </Badge>
                 </div>
 
                 <div className="pt-3 space-y-2">
                   <p className="text-xs sm:text-sm text-slate-800 dark:text-neutral-200 leading-relaxed italic">
-                    "{rev.quoteEn || rev.quoteAr}"
+                    &quot;{rev.quoteEn || rev.quoteAr}&quot;
                   </p>
 
-                  {rev.quoteAr && rev.quoteEn && rev.quoteAr !== rev.quoteEn && (
-                    <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed font-arabic text-right">
-                      "{rev.quoteAr}"
-                    </p>
-                  )}
+                  {rev.quoteAr &&
+                    rev.quoteEn &&
+                    rev.quoteAr !== rev.quoteEn && (
+                      <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed font-arabic text-right">
+                        &quot;{rev.quoteAr}&quot;
+                      </p>
+                    )}
                 </div>
               </div>
 

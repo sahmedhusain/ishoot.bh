@@ -306,6 +306,7 @@ export function NewInvoiceFormView({
                 selectedContactId={selectedContactId}
                 onSelect={(c) => {
                   setSelectedContactId(c ? c.id : "");
+                  if(c) setContacts(prev=>[c,...prev.filter(item=>item.id!==c.id)]);
                 }}
                 label={`${t.finance.client}`}
                 required

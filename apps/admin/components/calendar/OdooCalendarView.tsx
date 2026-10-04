@@ -1,4 +1,5 @@
 "use client";
+import {EntityLookup} from "../shared/EntityLookup";
 
 import * as React from "react";
 import type { CalendarEvent, CRMDeal } from "@ishoot/database/types";
@@ -69,7 +70,7 @@ export function OdooCalendarView({
   const month = currentDate.getMonth();
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayIndex = new Date(year, month, 1).getDay(); 
+  const firstDayIndex = new Date(year, month, 1).getDay();
 
   const monthNames = t.calendarView.months;
   const weekDayNames = t.calendarView.weekdays;
@@ -556,17 +557,7 @@ export function OdooCalendarView({
               <label className="text-[#9EADA9] font-medium">
                 {t.calendarView.linkDeal}
               </label>
-              <Select
-                value={dealId}
-                onChange={(e) => setDealId(e.target.value)}
-              >
-                <option value="">{t.calendarView.noDeal}</option>
-                {deals.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.title}
-                  </option>
-                ))}
-              </Select>
+              <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
             </div>
           </div>
 

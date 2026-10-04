@@ -1,48 +1,48 @@
-import { getAllInvoices } from "./invoices";
-import { getAllPayments } from "./payments";
-import { getAllExpenses } from "./expenses";
+import { db } from "../db";
 import { FinancialSummary } from "../types";
 
+// SQL numeric arithmetic keeps balances exact until the public number DTO boundary.
+// One statement gives a consistent snapshot without fetching contacts or line items.
 export async function getFinancialSummary(): Promise<FinancialSummary> {
-  const [allInvoices, allPayments, allExpenses] = await Promise.all([
-    getAllInvoices(),
-    getAllPayments(),
-    getAllExpenses(),
-  ]);
-
-  const invoices = allInvoices.filter((invoice) => invoice.currency === "BHD" && invoice.status !== "void");
-  const payments = allPayments.filter((payment) => payment.currency === "BHD" && payment.invoice?.status !== "void");
-  const expenses = allExpenses.filter((expense) => expense.currency === "BHD");
-  const revenue = payments.reduce((acc, p) => acc + Number(p.amount), 0);
-  const totalExpenses = expenses.reduce((acc, e) => acc + Number(e.amount), 0);
-  const netProfit = revenue - totalExpenses;
-  const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
-
-  const outstanding = invoices
-    .filter((inv) => ["sent", "partially_paid", "overdue"].includes(inv.status))
-    .reduce((acc, inv) => acc + Number(inv.amount_due), 0);
-
-  const overdue = invoices
-    .filter((inv) => inv.status !== "draft" && inv.amount_due > 0 && inv.due_date < new Date().toISOString().slice(0, 10))
-    .reduce((acc, inv) => acc + Number(inv.amount_due), 0);
-
-  const discountsGiven = invoices.reduce(
-    (acc, inv) => acc + Number(inv.discount_amount),
-    0,
-  );
-  const vatCollected = invoices
-    .filter((inv) => inv.vat_enabled && inv.total_amount > 0 && inv.status !== "draft")
-    .reduce((acc, inv) => acc + Number(inv.vat_amount) * Math.min(1, inv.amount_paid / inv.total_amount), 0);
-
+  const [row] = await db.$queryRaw<
+    Array<{
+      revenue: unknown;
+      expenses: unknown;
+      outstanding: unknown;
+      overdue: unknown;
+      discountsGiven: unknown;
+      vatCollected: unknown;
+    }>
+  >`
+    WITH paid AS (
+      SELECT "invoiceId", SUM(amount) AS amount FROM "Payment" WHERE currency = 'BHD' GROUP BY "invoiceId"
+    ), invoices AS (
+      SELECT i.*, COALESCE(p.amount, 0) AS paid,
+        GREATEST(0, i."totalAmount" - COALESCE(p.amount, 0)) AS due
+      FROM "Invoice" i LEFT JOIN paid p ON p."invoiceId" = i.id
+      WHERE i.currency = 'BHD' AND i.status <> 'void'
+    )
+    SELECT
+      (SELECT COALESCE(SUM(p.amount), 0) FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId" WHERE p.currency = 'BHD' AND i.status <> 'void') AS revenue,
+      (SELECT COALESCE(SUM(amount), 0) FROM "Expense" WHERE currency = 'BHD') AS expenses,
+      COALESCE(SUM(due) FILTER (WHERE status IN ('sent', 'partially_paid', 'overdue')), 0) AS outstanding,
+      COALESCE(SUM(due) FILTER (WHERE status <> 'draft' AND "dueDate" < (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bahrain')::date), 0) AS overdue,
+      COALESCE(SUM("discountAmount"), 0) AS "discountsGiven",
+      COALESCE(SUM(CASE WHEN "vatEnabled" AND status <> 'draft' AND "totalAmount" > 0 THEN "vatAmount" * LEAST(1, paid / "totalAmount") ELSE 0 END), 0) AS "vatCollected"
+    FROM invoices
+  `;
+  const revenue = Number(row.revenue);
+  const expenses = Number(row.expenses);
+  const netProfit = revenue - expenses;
   return {
     revenue,
-    expenses: totalExpenses,
+    expenses,
     netProfit,
-    profitMargin,
-    outstanding,
-    overdue,
-    discountsGiven,
-    vatCollected,
+    profitMargin: revenue > 0 ? (netProfit / revenue) * 100 : 0,
+    outstanding: Number(row.outstanding),
+    overdue: Number(row.overdue),
+    discountsGiven: Number(row.discountsGiven),
+    vatCollected: Number(row.vatCollected),
     currency: "BHD",
   };
 }
@@ -54,34 +54,59 @@ export interface MonthlyCashflowPoint {
 }
 
 export async function getMonthlyCashflow(
-  monthsCount: number = 6,
+  monthsCount = 6,
 ): Promise<MonthlyCashflowPoint[]> {
-  const [payments, expenses] = await Promise.all([
-    getAllPayments(),
-    getAllExpenses(),
-  ]);
+  if (!Number.isInteger(monthsCount) || monthsCount < 1 || monthsCount > 120)
+    throw new Error("Month count must be between 1 and 120");
+  const rows = await db.$queryRaw<
+    Array<{ monthKey: string; revenue: unknown; expenses: unknown }>
+  >`
+    WITH bounds AS (
+      SELECT date_trunc('month', CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bahrain')::date AS last_month
+    ), months AS (
+      SELECT generate_series(last_month - (${monthsCount} - 1) * INTERVAL '1 month', last_month, INTERVAL '1 month') AS month FROM bounds
+    ), revenue AS (
+      SELECT date_trunc('month', p."paymentDate") AS month, SUM(p.amount) AS amount
+      FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId"
+      WHERE p.currency = 'BHD' AND i.status <> 'void'
+        AND p."paymentDate" >= (SELECT MIN(month) FROM months)
+        AND p."paymentDate" < (SELECT MAX(month) + INTERVAL '1 month' FROM months)
+      GROUP BY 1
+    ), expenses AS (
+      SELECT date_trunc('month', "expenseDate") AS month, SUM(amount) AS amount FROM "Expense"
+      WHERE currency = 'BHD' AND "expenseDate" >= (SELECT MIN(month) FROM months)
+        AND "expenseDate" < (SELECT MAX(month) + INTERVAL '1 month' FROM months)
+      GROUP BY 1
+    )
+    SELECT to_char(m.month, 'YYYY-MM') AS "monthKey", COALESCE(r.amount, 0) AS revenue, COALESCE(e.amount, 0) AS expenses
+    FROM months m LEFT JOIN revenue r ON r.month = m.month LEFT JOIN expenses e ON e.month = m.month ORDER BY m.month
+  `;
+  return rows.map((row) => ({
+    monthKey: row.monthKey,
+    revenue: Number(row.revenue),
+    expenses: Number(row.expenses),
+  }));
+}
 
-  const now = new Date();
-  const result: MonthlyCashflowPoint[] = [];
+export async function getExpenseCategoryTotals(): Promise<
+  Record<string, number>
+> {
+  const rows = await db.$queryRaw<Array<{ slug: string; amount: unknown }>>`
+    SELECT COALESCE(c.slug, 'other') AS slug, SUM(e.amount) AS amount
+    FROM "Expense" e LEFT JOIN "ExpenseCategory" c ON c.id = e."categoryId"
+    WHERE e.currency = 'BHD' GROUP BY COALESCE(c.slug, 'other')
+  `;
+  return Object.fromEntries(rows.map((row) => [row.slug, Number(row.amount)]));
+}
 
-  for (let i = monthsCount - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-
-    const monthRevenue = payments
-      .filter((p) => p.currency === "BHD" && p.invoice?.status !== "void" && p.payment_date && p.payment_date.startsWith(yearMonth))
-      .reduce((sum, p) => sum + Number(p.amount), 0);
-
-    const monthExpenses = expenses
-      .filter((e) => e.currency === "BHD" && e.expense_date && e.expense_date.startsWith(yearMonth))
-      .reduce((sum, e) => sum + Number(e.amount), 0);
-
-    result.push({
-      monthKey: yearMonth,
-      revenue: monthRevenue,
-      expenses: monthExpenses,
-    });
-  }
-
-  return result;
+// Invoice readers receive invoice metrics without expense or unrelated revenue data.
+export async function getInvoiceSummary() {
+  const [row] = await db.$queryRaw<Array<{ outstanding: unknown; overdue: unknown; discountsGiven: unknown }>>`
+    WITH paid AS (SELECT "invoiceId", SUM(amount) amount FROM "Payment" WHERE currency='BHD' GROUP BY "invoiceId"),
+    balances AS (SELECT i.*, GREATEST(0, i."totalAmount" - COALESCE(p.amount,0)) due FROM "Invoice" i LEFT JOIN paid p ON p."invoiceId"=i.id WHERE i.currency='BHD' AND i.status<>'void')
+    SELECT COALESCE(SUM(due) FILTER (WHERE status IN ('sent','partially_paid','overdue')),0) outstanding,
+    COALESCE(SUM(due) FILTER (WHERE status<>'draft' AND "dueDate"<(CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Bahrain')::date),0) overdue,
+    COALESCE(SUM("discountAmount"),0) "discountsGiven" FROM balances
+  `;
+  return { outstanding: Number(row.outstanding), overdue: Number(row.overdue), discountsGiven: Number(row.discountsGiven) };
 }

@@ -105,6 +105,7 @@ export function InvoiceDetailView({
 
       <div className="no-print" data-delivery-toolbar="true">
         <DeliveryToolbar
+          companyName={company?.company_name_en || ""}
           documentType="invoice"
           documentNumber={invoice.invoice_number}
           clientName={clientName}
@@ -138,7 +139,9 @@ export function InvoiceDetailView({
                     title="View Official Receipt"
                   >
                     <span>{p.receipt_number}</span>
-                    <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+                    <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">
+                      ↗
+                    </span>
                   </Link>
                   <div className="text-slate-500 dark:text-slate-400 text-[11px] mt-0.5">
                     {p.payment_date} • {p.payment_method.replace("_", " ")}

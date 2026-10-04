@@ -15,6 +15,7 @@ import {
   Globe,
   ExternalLink,
 } from "lucide-react";
+import { usePermissions } from "../../hooks/usePermissions";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useAdminTheme } from "../../hooks/useAdminTheme";
 import { ConfirmDestructiveModal } from "@ishoot/ui";
@@ -30,35 +31,12 @@ interface CurrentUser {
 
 export function AdminProfileDropdown() {
   const router = useRouter();
-  const { t } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
   const { theme, resolvedTheme } = useAdminTheme();
   const [isOpen, setIsOpen] = React.useState(false);
   const [confirmSignOutOpen, setConfirmSignOutOpen] = React.useState(false);
-  const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(
-    null,
-  );
+  const { user: currentUser } = usePermissions();
   const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    let mounted = true;
-    async function loadUser() {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          if (mounted && data.user) {
-            setCurrentUser(data.user);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load active user profile:", err);
-      }
-    }
-    loadUser();
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -92,7 +70,7 @@ export function AdminProfileDropdown() {
   const displayEmail = currentUser?.email || "";
   const displayRole = currentUser?.role
     ? currentUser.role.replace("_", " ").toUpperCase()
-    : t.profileDropdown.superAdmin;
+    : "";
   const initials =
     displayName
       .split(" ")
@@ -117,8 +95,9 @@ export function AdminProfileDropdown() {
           <div className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1">
             <span>{displayName}</span>
             <ChevronDown
-              className={`w-3 h-3 text-slate-400 dark:text-[#9EADA9] transition-transform duration-200 ${isOpen ? "rotate-180" : ""
-                }`}
+              className={`w-3 h-3 text-slate-400 dark:text-[#9EADA9] transition-transform duration-200 ${
+                isOpen ? "rotate-180" : ""
+              }`}
             />
           </div>
           <div className="text-[10px] text-[#09937F] font-semibold ">
@@ -128,9 +107,7 @@ export function AdminProfileDropdown() {
       </button>
 
       {isOpen && (
-        <div
-          className="absolute top-full end-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col"
-        >
+        <div className="absolute top-full end-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col">
           <div className="p-4 bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-[#014842] border border-[#09937F]/50 flex items-center justify-center text-sm font-bold text-white  shrink-0 shadow-md">
@@ -161,6 +138,7 @@ export function AdminProfileDropdown() {
               <span>{t.profileDropdown.userProfile}</span>
             </Link>
 
+            <Link href="/dashboard/settings/security" onClick={() => setIsOpen(false)} className="block px-4 py-2 text-xs">{isRTL ? "أمان الحساب" : "Account security"}</Link>
             <Link
               href="/dashboard/settings/company"
               onClick={() => setIsOpen(false)}
@@ -219,21 +197,6 @@ export function AdminProfileDropdown() {
                 </div>
               </a>
             ) : null}
-          </div>
-
-          <div className="p-3 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.01] text-[10px]  text-slate-500 dark:text-[#9EADA9] space-y-1">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Database className="w-3 h-3 text-[#09937F]" />
-                <span>PostgreSQL 15</span>
-              </span>
-              <span className="text-emerald-500 dark:text-emerald-400 font-bold">
-                {t.profileDropdown.connected}
-              </span>
-            </div>
-            <div className="text-[9px] text-slate-400 dark:text-[#9EADA9]/60">
-              {t.profileDropdown.serverless}
-            </div>
           </div>
 
           <div className="p-2 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">

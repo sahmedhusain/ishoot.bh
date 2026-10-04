@@ -1,4 +1,6 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
+import Link from "next/link";
 
 import * as React from "react";
 import type { PortfolioItem, PortfolioCategory } from "@ishoot/database/types";
@@ -175,14 +177,14 @@ export function PortfolioManagementView({
           {error}
         </p>
       )}
-      <a
+      <Link
         href="/dashboard/cms/website"
         className="block text-sm text-[#5eead4] underline"
       >
         {isRTL
           ? "راجع التغييرات وانشرها من محرر الموقع"
           : "Review and publish changes in the website editor"}
-      </a>
+      </Link>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
@@ -252,7 +254,7 @@ export function PortfolioManagementView({
               >
                 <td className="p-4">
                   <div className="flex items-center gap-3">
-                    <img
+                    <ContentImage
                       src={item.thumbnail_url}
                       alt={locale === "ar" ? item.title_ar : item.title_en}
                       className="w-16 h-10 rounded-xl object-cover bg-black shrink-0 border border-white/10"

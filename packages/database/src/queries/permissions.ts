@@ -199,12 +199,31 @@ export const DEFAULT_ROLE_RULES: Record<
   },
 };
 
+// Toggles disable server access as well as navigation. Missing rows preserve core availability.
+export const RESOURCE_FEATURES: Partial<Record<PermissionResource, string>> = {
+  contacts: "crm_deals", deals: "crm_deals", leads: "crm_deals", moms: "crm_deals", requests: "crm_deals", contracts: "crm_deals",
+  invoices: "invoicing", payments: "invoicing", expenses: "invoicing", finance_analytics: "invoicing",
+  calendar: "calendar", banners: "cms", portfolio: "cms", clients: "cms", faqs: "cms", stats: "cms",
+  equipment: "equipment", reviews: "reviews",
+};
+async function resourceEnabled(resource: PermissionResource) {
+  const moduleKey = RESOURCE_FEATURES[resource];
+  if (!moduleKey) return true;
+  try {
+    const feature = await db.featureToggle.findUnique({ where: { moduleKey }, select: { isEnabled: true } });
+    return feature?.isEnabled !== false;
+  } catch {
+    return false;
+  }
+}
+
 export async function hasPermission(
   role: string,
   resource: PermissionResource,
   action: PermissionAction,
   userOverrides?: Record<string, boolean> | null,
 ): Promise<boolean> {
+  if (!(await resourceEnabled(resource))) return false;
   if (role === "super_admin") return true;
 
   if (userOverrides) {
@@ -233,10 +252,7 @@ export async function hasPermission(
     return false;
   }
 
-  const roleRules = DEFAULT_ROLE_RULES[role as UserRole];
-  if (!roleRules) return false;
-  const allowedActions = roleRules[resource];
-  return allowedActions ? allowedActions.includes(action) : false;
+  return false;
 }
 
 export async function getAllPermissions(): Promise<Permission[]> {
@@ -254,7 +270,7 @@ export async function getAllPermissions(): Promise<Permission[]> {
     }));
   } catch (err) {
     console.error("Error fetching permissions:", err);
-    return [];
+    throw err;
   }
 }
 
@@ -284,7 +300,7 @@ export async function setPermission(
     return true;
   } catch (err) {
     console.error("Error upserting permission:", err);
-    return false;
+    throw err;
   }
 }
 
@@ -315,4 +331,37 @@ export async function seedDefaultPermissions(): Promise<void> {
       }
     }
   }
+}
+
+// One role query supplies the complete UI matrix, including explicit denials.
+export async function getEffectivePermissions(
+  role: string,
+  userOverrides?: Record<string, boolean> | null,
+): Promise<Record<string, boolean>> {
+  const permissions: Record<string, boolean> = {};
+  for (const resource of ALL_RESOURCES) {
+    for (const action of ALL_ACTIONS) {
+      permissions[`${resource}:${action}`] = role === "super_admin";
+    }
+  }
+  const features = await db.featureToggle.findMany({ select: { moduleKey: true, isEnabled: true } });
+  const disabled = new Set(features.filter((f) => !f.isEnabled).map((f) => f.moduleKey));
+  const records = await db.permission.findMany({
+    where: { role },
+    select: { resource: true, action: true, allowed: true },
+  });
+  for (const record of records) {
+    const key = `${record.resource}:${record.action}`;
+    if (role !== "super_admin" && key in permissions) permissions[key] = record.allowed;
+  }
+  for (const [key, allowed] of Object.entries(userOverrides || {})) {
+    if (key in permissions && typeof allowed === "boolean")
+      permissions[key] = allowed;
+  }
+  for (const resource of ALL_RESOURCES) {
+    if (disabled.has(RESOURCE_FEATURES[resource] || "")) {
+      for (const action of ALL_ACTIONS) permissions[`${resource}:${action}`] = false;
+    }
+  }
+  return permissions;
 }

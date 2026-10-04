@@ -1,13 +1,19 @@
 import { Resend } from "resend";
 
 const resendApiKey = process.env.RESEND_API_KEY;
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
+class BoundedResend extends Resend {
+  override fetchRequest<T>(path:string, options:RequestInit={}) {
+    return super.fetchRequest<T>(path,{...options,signal:AbortSignal.timeout(30000)});
+  }
+}
+const resend = resendApiKey ? new BoundedResend(resendApiKey) : null;
 
 export interface SendEmailOptions {
   to: string | string[];
   subject: string;
   html: string;
   from?: string;
+  idempotencyKey?: string;
   attachments?: Array<{
     filename: string;
     content: Buffer | string;
@@ -20,18 +26,9 @@ export async function sendEmail({
   html,
   from = process.env.FROM_EMAIL ?? "",
   attachments,
+  idempotencyKey,
 }: SendEmailOptions) {
-  if (!resend) {
-    if (process.env.NODE_ENV === "production") return { success: false, error: "Email service is not configured" };
-    console.log("\n========================================");
-    console.log("[LOCAL EMAIL DISPATCH - RESEND DEV MODE]");
-    console.log(`To: ${Array.isArray(to) ? to.join(", ") : to}`);
-    console.log(`From: ${from}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`Attachments: ${attachments?.length || 0} file(s)`);
-    console.log("========================================\n");
-    return { success: true, id: `mock-email-${Date.now()}` };
-  }
+  if (!resend || !from) return { success: false, error: "Email service is not configured" };
 
   try {
     const { data, error } = await resend.emails.send({
@@ -40,7 +37,7 @@ export async function sendEmail({
       subject,
       html,
       attachments,
-    });
+    }, { idempotencyKey });
     if (error) {
       console.error("[Resend Error]:", error);
       return { success: false, error };

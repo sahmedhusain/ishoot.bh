@@ -1,12 +1,16 @@
+import { claimUpload } from "../services/uploads";
 import { db } from "../db";
-import initialConfig from "../initial-company-config.json";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
 function mapPayment(p: any): Payment {
   const invPayments = p.invoice?.payments || [];
-  const totalPaidOnInvoice = invPayments.length > 0
-    ? invPayments.reduce((acc: number, item: any) => acc + Number(item.amount), 0)
-    : Number(p.amount);
+  const totalPaidOnInvoice =
+    invPayments.length > 0
+      ? invPayments.reduce(
+          (acc: number, item: any) => acc + Number(item.amount),
+          0,
+        )
+      : Number(p.amount);
   const totalInvoice = p.invoice ? Number(p.invoice.totalAmount) : 0;
   const amountDue = Math.max(0, totalInvoice - totalPaidOnInvoice);
   const contactObj = p.invoice?.client || p.invoice?.deal?.contact;
@@ -61,8 +65,12 @@ function mapPayment(p: any): Payment {
                 email: contactObj.email || "",
                 phone: contactObj.phone || undefined,
                 company: contactObj.companyName || undefined,
-                created_at: contactObj.createdAt ? contactObj.createdAt.toISOString() : new Date().toISOString(),
-                updated_at: contactObj.updatedAt ? contactObj.updatedAt.toISOString() : new Date().toISOString(),
+                created_at: contactObj.createdAt
+                  ? contactObj.createdAt.toISOString()
+                  : new Date().toISOString(),
+                updated_at: contactObj.updatedAt
+                  ? contactObj.updatedAt.toISOString()
+                  : new Date().toISOString(),
               }
             : undefined,
         }
@@ -73,16 +81,17 @@ function mapPayment(p: any): Payment {
 export async function getAllPayments(options?: {
   limit?: number;
   offset?: number;
+  invoiceId?:string;
 }): Promise<Payment[]> {
   try {
     const payments = await db.payment.findMany({
+      where: options?.invoiceId ? {invoiceId:options.invoiceId} : undefined,
       take: options?.limit,
       skip: options?.offset,
-      include: {
+      include: options?.invoiceId ? undefined : {
         invoice: {
           include: {
             client: true,
-            lineItems: true,
             payments: true,
             deal: {
               include: { contact: true },
@@ -95,7 +104,7 @@ export async function getAllPayments(options?: {
     return payments.map(mapPayment);
   } catch (e) {
     console.error("Error fetching payments from DB:", e);
-    return [];
+    throw e;
   }
 }
 
@@ -107,7 +116,6 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
         invoice: {
           include: {
             client: true,
-            lineItems: true,
             payments: true,
             deal: {
               include: { contact: true },
@@ -140,7 +148,7 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
     return mapped;
   } catch (e) {
     console.error(`Error fetching payment ${id}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -156,7 +164,6 @@ export async function getPaymentByIdOrNumber(
         invoice: {
           include: {
             client: true,
-            lineItems: true,
             payments: true,
             deal: {
               include: { contact: true },
@@ -189,7 +196,7 @@ export async function getPaymentByIdOrNumber(
     return mapped;
   } catch (e) {
     console.error(`Error fetching payment ${idOrNumber}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -212,19 +219,38 @@ export async function createPayment(paymentData: {
     mimeType?: string;
   }>;
 }): Promise<Payment> {
-  if (!Number.isFinite(paymentData.amount) || paymentData.amount <= 0) throw new Error("Payment amount must be positive");
-  if (paymentData.payment_method && !["bank_transfer", "cash", "cheque", "card", "online"].includes(paymentData.payment_method)) throw new Error("Invalid payment method");
+  if (!Number.isFinite(paymentData.amount) || paymentData.amount <= 0)
+    throw new Error("Payment amount must be positive");
+  if (
+    paymentData.payment_method &&
+    !["bank_transfer", "cash", "cheque", "card", "online"].includes(
+      paymentData.payment_method,
+    )
+  )
+    throw new Error("Invalid payment method");
   const year = new Date().getFullYear();
   const createdId = await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${paymentData.invoice_id} FOR UPDATE`;
-    const payable = await tx.invoice.findUnique({ where: { id: paymentData.invoice_id }, include: { payments: true } });
-    if (!payable || payable.status === "void") throw new Error("Invoice is not payable");
-    if (paymentData.currency && paymentData.currency !== payable.currency) throw new Error("Payment currency must match invoice");
+    const payable = await tx.invoice.findUnique({
+      where: { id: paymentData.invoice_id },
+      include: { payments: true },
+    });
+    if (!payable || payable.status === "void")
+      throw new Error("Invoice is not payable");
+    if (paymentData.currency && paymentData.currency !== payable.currency)
+      throw new Error("Payment currency must match invoice");
     const paid = payable.payments.reduce((sum, p) => sum + Number(p.amount), 0);
-    if (Math.round((paid + paymentData.amount) * 1000) > Math.round(Number(payable.totalAmount) * 1000)) throw new Error("Payment exceeds outstanding balance");
+    if (
+      Math.round((paid + paymentData.amount) * 1000) >
+      Math.round(Number(payable.totalAmount) * 1000)
+    )
+      throw new Error("Payment exceeds outstanding balance");
     let company = await tx.companySetting.findFirst();
-    if (!company) throw new Error("Configure company settings before creating financial records");
-    const prefix = company.receiptPrefix || initialConfig.company.receiptPrefix;
+    if (!company)
+      throw new Error(
+        "Configure company settings before creating financial records",
+      );
+    const prefix = company.receiptPrefix;
     const counter = await tx.companySetting.update({
       where: { id: company.id },
       data: { receiptNextNumber: { increment: 1 } },
@@ -249,14 +275,18 @@ export async function createPayment(paymentData: {
       },
     });
 
-    if (paymentData.proof_attachments && paymentData.proof_attachments.length > 0) {
+    if (
+      paymentData.proof_attachments &&
+      paymentData.proof_attachments.length > 0
+    ) {
       for (const att of paymentData.proof_attachments) {
+        const upload = await claimUpload(tx, att.fileUrl, paymentData.created_by);
         await tx.attachment.create({
           data: {
             fileName: att.fileName,
             fileUrl: att.fileUrl,
-            fileSize: att.fileSize,
-            mimeType: att.mimeType,
+            fileSize: upload.fileSize,
+            mimeType: upload.mimeType,
             entityType: "payment",
             entityId: payment.id,
             uploadedById: paymentData.created_by || null,
@@ -311,6 +341,8 @@ export async function deletePayment(id: string): Promise<boolean> {
         select: { invoiceId: true },
       });
 
+      if (!payment) throw new Error("Payment not found");
+      await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${payment.invoiceId} FOR UPDATE`;
       await tx.payment.delete({ where: { id } });
 
       if (payment?.invoiceId) {
@@ -346,8 +378,6 @@ export async function deletePayment(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error(`Error deleting payment ${id}:`, e);
-    return false;
+    throw e;
   }
 }
-
-

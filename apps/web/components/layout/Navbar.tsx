@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
@@ -7,10 +8,10 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { Menu } from "lucide-react";
-import type { CompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@ishoot/database/types";
 
 interface NavbarProps {
-  company: CompanySettings;
+  company: PublicCompanySettings;
   pages?: { id: string; visible: boolean }[];
 }
 
@@ -68,25 +69,23 @@ export function Navbar({ company, pages }: NavbarProps) {
         <div className="shell flex items-center justify-between">
           <Link href={`/${locale}`} className="flex items-center gap-3 group">
             <div className="relative h-11 w-11 flex items-center justify-center shrink-0">
-              <img
+              <ContentImage
                 src={
                   company.dark_icon_url ||
-                  company.icon_url ||
-                  "/brand/icon-dark.svg"
+                  company.icon_url
                 }
                 alt={t("common.brandIconAlt")}
                 className="h-full w-full object-contain "
-              />
+               width={40} height={40} />
             </div>
-            <img
+            <ContentImage
               src={
                 company.dark_logo_url ||
-                company.logo_url ||
-                "/brand/logo-text-light.svg"
+                company.logo_url
               }
               alt={t("common.brandLogoAlt")}
               className="h-7 w-auto object-contain"
-            />
+             fallbackText={company.company_name_en}  width={240} height={60} />
           </Link>
 
           <nav

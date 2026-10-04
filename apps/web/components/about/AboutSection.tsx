@@ -1,18 +1,20 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight, Target, Eye } from "lucide-react";
-import type { CompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@ishoot/database/types";
 import { Reveal } from "../shared/Reveal";
 import { SectionBadge } from "../shared/SectionBadge";
 
 interface AboutSectionProps {
   clientLogos?: unknown[];
-  company?: CompanySettings;
+  company?: PublicCompanySettings;
+  imageUrl?:string;
 }
 
-export function AboutSection({ company }: AboutSectionProps) {
+export function AboutSection({ company, imageUrl }: AboutSectionProps) {
   const { t, locale } = useTranslation();
   const ar = locale === "ar";
 
@@ -30,16 +32,16 @@ export function AboutSection({ company }: AboutSectionProps) {
             {t("about.headline")}
           </h2>
           <p className="font-sans text-[clamp(1.05rem,1.8vw,1.4rem)] leading-relaxed text-slate-600 max-w-3xl">
-            {t("about.intro")}
+            {ar ? company?.about_text_ar : company?.about_text_en}
           </p>
         </Reveal>
 
         <div className="grid gap-10 lg:gap-16 lg:grid-cols-[minmax(0,440px)_1fr] items-center">
-          <Reveal>
+          {imageUrl && <Reveal>
             <figure>
               <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-200">
-                <img
-                  src="/banners/web-banner-04.jpg"
+                <ContentImage
+                  src={imageUrl}
                   alt={t("about.behindTheScenes")}
                   loading="lazy"
                   width={600}
@@ -52,11 +54,11 @@ export function AboutSection({ company }: AboutSectionProps) {
                   {t("about.behindTheScenes")}
                 </span>
                 <p className="text-sm leading-relaxed text-slate-600">
-                  {t("about.shootCaption")}
+                  {ar ? company?.company_name_ar : company?.company_name_en}
                 </p>
               </figcaption>
             </figure>
-          </Reveal>
+          </Reveal>}
 
           <div className="space-y-8">
             <Reveal className="pb-8 border-b border-slate-200">
@@ -65,8 +67,7 @@ export function AboutSection({ company }: AboutSectionProps) {
                 {t("about.missionLabel")}
               </h3>
               <p className="text-base sm:text-lg leading-relaxed text-slate-700 max-w-xl">
-                {(ar ? company?.mission_ar : company?.mission_en) ||
-                  t("about.mission")}
+                {(ar ? company?.mission_ar : company?.mission_en) || ""}
               </p>
             </Reveal>
             <Reveal delay={0.08}>
@@ -75,8 +76,7 @@ export function AboutSection({ company }: AboutSectionProps) {
                 {t("about.visionLabel")}
               </h3>
               <p className="text-base sm:text-lg leading-relaxed text-slate-700 max-w-xl">
-                {(ar ? company?.vision_ar : company?.vision_en) ||
-                  t("about.vision")}
+                {(ar ? company?.vision_ar : company?.vision_en) || ""}
               </p>
             </Reveal>
             <Link href={`/${locale}/about`} className="web-button">

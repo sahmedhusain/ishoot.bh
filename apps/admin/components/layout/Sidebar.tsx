@@ -52,7 +52,7 @@ export function Sidebar() {
   const { t, isRTL } = useAdminLocale();
   const { isFeatureEnabled } = useFeatureToggles();
 
-  const sections: NavSection[] = [
+  const sections = React.useMemo<NavSection[]>(() => [
     {
       title: t.nav.overview,
       items: [
@@ -247,7 +247,7 @@ export function Sidebar() {
         },
       ],
     },
-  ];
+  ],[t,isRTL]);
 
   const visibleSections = React.useMemo(() => {
     if (loading) return sections;

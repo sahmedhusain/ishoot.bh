@@ -1,4 +1,6 @@
 "use client";
+import { uploadFileDirectly } from "../../lib/upload-client";
+import {EntityLookup} from "../shared/EntityLookup";
 
 import * as React from "react";
 import Link from "next/link";
@@ -90,26 +92,8 @@ export function NewPaymentFormView({
     else setUploadingProof(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("entityType", "payment");
-      formData.append("entityId", "pending");
-      formData.append(
-        "customName",
-        type === "cheque"
-          ? `Cheque Copy - ${file.name}`
-          : type === "bank_receipt"
-            ? `Bank Statement Slip - ${file.name}`
-            : `Payment Proof - ${file.name}`,
-      );
-      formData.append("documentType", type);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
+      const data = await uploadFileDirectly(file, { entityType: "payment", entityId: "pending", documentType: type });
+        const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Upload failed");
       }
@@ -134,59 +118,23 @@ export function NewPaymentFormView({
     }
   };
 
-  // Dynamically fetch fresh client invoices whenever selectedClientId changes
-  React.useEffect(() => {
-    if (!selectedClientId) return;
-
-    let active = true;
-    async function loadClientInvoices() {
-      setFetchingInvoices(true);
-      try {
-        const res = await getUnpaidInvoicesByClientAction(selectedClientId);
-        if (active && res.success && res.invoices) {
-          setInvoices((prev) => {
-            // Merge or update with fresh invoices
-            const map = new Map<string, Invoice>();
-            prev.forEach((inv) => map.set(inv.id, inv));
-            res.invoices.forEach((inv: Invoice) => map.set(inv.id, inv));
-            return Array.from(map.values());
-          });
-        }
-      } catch (err) {
-        console.error("Error loading client invoices:", err);
-      } finally {
-        if (active) setFetchingInvoices(false);
-      }
-    }
-
-    loadClientInvoices();
-    return () => {
-      active = false;
-    };
-  }, [selectedClientId]);
-
-  // Filter invoices belonging to selected client
-  const clientInvoices = React.useMemo(() => {
-    if (!selectedClientId) return invoices;
-    return invoices.filter(
-      (inv) =>
-        inv.contact_id === selectedClientId ||
-        inv.deal?.contact_id === selectedClientId,
-    );
-  }, [selectedClientId, invoices]);
-
-  // Find the selected invoice object for detailed summary
-  const selectedInvoice = React.useMemo(() => {
-    return invoices.find((i) => i.id === selectedInvoiceId) || null;
-  }, [invoices, selectedInvoiceId]);
-
-  // When invoice changes, default payment amount to amount_due or total_amount
-  const handleInvoiceChange = (invId: string) => {
-    setSelectedInvoiceId(invId);
-    const found = invoices.find((i) => i.id === invId);
-    if (found) {
-      setAmount(found.amount_due > 0 ? found.amount_due : found.total_amount);
-    }
+  const selectedInvoice = invoices.find(i=>i.id===selectedInvoiceId) || null;
+  const [error,setError] = React.useState("");
+  const requestVersion = React.useRef(0);
+  React.useEffect(()=>{requestVersion.current++;setSelectedInvoiceId("");setInvoices([]);},[selectedClientId]);
+  const handleInvoiceChange = async (id:string) => {
+    const version=++requestVersion.current; setSelectedInvoiceId(id);setError("");
+    if(!id){setInvoices([]);return;}
+    setFetchingInvoices(true);
+    try {
+      const response=await fetch(`/api/lookups/invoices?${new URLSearchParams({id,clientId:selectedClientId})}`);
+      if(!response.ok) throw Error("Invoice could not be loaded");
+      const result=await response.json(), invoice=result.items[0]?.invoice;
+      if(!invoice)throw Error("Invoice is no longer payable");
+      if(version!==requestVersion.current)return;
+      setInvoices([invoice]);setAmount(invoice.amount_due);
+    }catch(error){if(version!==requestVersion.current)return;setSelectedInvoiceId("");setInvoices([]);setError(error instanceof Error?error.message:"Could not load invoice");}
+    finally{if(version===requestVersion.current)setFetchingInvoices(false);}
   };
 
   const remainingBalance = React.useMemo(() => {
@@ -266,6 +214,7 @@ export function NewPaymentFormView({
       </div>
 
       <Card className="p-6 sm:p-8 space-y-6">
+        {error ? <p role="alert" className="text-red-600">{error}</p> : null}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Step 1 & Step 2 Client and Invoice Association */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -297,36 +246,8 @@ export function NewPaymentFormView({
                   </span>
                 )}
               </div>
-              <Select
-                value={selectedInvoiceId}
-                onChange={(e) => handleInvoiceChange(e.target.value)}
-                required
-                disabled={!selectedClientId || clientInvoices.length === 0}
-              >
-                <option value="">
-                  {!selectedClientId
-                    ? t.newPaymentView.selectClientFirst
-                    : clientInvoices.length === 0
-                    ? t.newPaymentView.noInvoicesFound
-                    : t.newPaymentView.chooseInvoice}
-                </option>
-                {clientInvoices.map((inv) => (
-                  <option key={inv.id} value={inv.id}>
-                    {inv.invoice_number} • Total: {Number(inv.total_amount).toFixed(3)} {inv.currency} (Due: {Number(inv.amount_due).toFixed(3)}) [{inv.status}]
-                  </option>
-                ))}
-              </Select>
-              {selectedClientId && clientInvoices.length === 0 && !fetchingInvoices && (
-                <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                  {t.newPaymentView.noInvoicesClientNotice}{" "}
-                  <Link
-                    href={`/dashboard/invoices/new?clientId=${selectedClientId}`}
-                    className="underline font-bold text-[#09937F]"
-                  >
-                    {t.newPaymentView.createInvoiceFirst}
-                  </Link>
-                </p>
-              )}
+              <EntityLookup domain="invoices" clientId={selectedClientId} value={selectedInvoiceId} onChange={handleInvoiceChange} />
+
             </div>
           </div>
 

@@ -33,7 +33,7 @@ export async function getAllUsers(): Promise<Profile[]> {
     return users.map(mapUser);
   } catch (e) {
     console.error("Error fetching users from DB:", e);
-    return [];
+    throw e;
   }
 }
 
@@ -62,11 +62,13 @@ export async function createUser(data: {
   signature_url?: string;
   manager_id?: string;
 }): Promise<Profile> {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) throw new Error("Invalid user email");
+  if (data.manager_id) await validateManager(data.manager_id);
   const passwordHash = await bcrypt.hash(data.password, 10);
   const created = await db.user.create({
     data: {
       fullName: data.full_name,
-      email: data.email,
+      email: data.email.trim().toLowerCase(),
       passwordHash,
       role: data.role,
       phone: data.phone || null,
@@ -87,15 +89,22 @@ export async function updateUser(
   data: Partial<Profile> & { password?: string },
 ): Promise<Profile | null> {
   try {
+    if (data.manager_id) await validateManager(data.manager_id, id);
+    const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } });
+    if (existing.role === "super_admin" && existing.isActive && (data.is_active === false || (data.role !== undefined && data.role !== "super_admin")) && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) throw new Error("Keep at least one active super administrator");
     const updateData: any = {};
     if (data.full_name !== undefined) updateData.fullName = data.full_name;
-    if (data.email !== undefined) updateData.email = data.email;
+    if (data.email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) throw new Error("Invalid user email");
+    if (data.email !== undefined)
+      updateData.email = data.email.trim().toLowerCase();
     if (data.role !== undefined) updateData.role = data.role;
     if (data.avatar_url !== undefined) updateData.avatarUrl = data.avatar_url;
-    if (data.signature_url !== undefined) updateData.signatureUrl = data.signature_url;
+    if (data.signature_url !== undefined)
+      updateData.signatureUrl = data.signature_url;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.department !== undefined) updateData.department = data.department;
-    if (data.manager_id !== undefined) updateData.managerId = data.manager_id || null;
+    if (data.manager_id !== undefined)
+      updateData.managerId = data.manager_id || null;
     if (data.is_active !== undefined) updateData.isActive = data.is_active;
     if (data.permissions !== undefined)
       updateData.permissions = data.permissions;
@@ -113,7 +122,7 @@ export async function updateUser(
     return mapUser(updated);
   } catch (e) {
     console.error(`Error updating user ${id}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -126,11 +135,13 @@ export async function updateUserRole(
 
 export async function deleteUser(id: string): Promise<boolean> {
   try {
+    const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } });
+    if (existing.role === "super_admin" && existing.isActive && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) throw new Error("Keep at least one active super administrator");
     await db.user.delete({ where: { id } });
     return true;
   } catch (e) {
     console.error(`Error deleting user ${id}:`, e);
-    return false;
+    throw e;
   }
 }
 
@@ -184,5 +195,13 @@ export async function updateUserLastLogin(id: string): Promise<void> {
     });
   } catch (e) {
     console.error(`Error updating last login for user ${id}:`, e);
+  }
+}
+
+async function validateManager(managerId: string, userId?: string) {
+  if (managerId === userId || !(await db.user.findFirst({ where: { id: managerId, isActive: true }, select: { id: true } }))) throw new Error("Invalid manager");
+  if (userId) {
+    const cycle = await db.$queryRaw<Array<{ id: string }>>`WITH RECURSIVE chain AS (SELECT id,"managerId" FROM "User" WHERE id=${managerId} UNION SELECT u.id,u."managerId" FROM "User" u JOIN chain c ON u.id=c."managerId") SELECT id FROM chain WHERE id=${userId}`;
+    if (cycle.length) throw new Error("Manager assignment would create a cycle");
   }
 }

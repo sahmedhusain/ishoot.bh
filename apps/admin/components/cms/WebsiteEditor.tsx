@@ -20,8 +20,10 @@ export function WebsiteEditor({
   publishedAt,
   canRestore,
   services,
+  deliveryStatus,
 }: {
   config: WebsiteConfig;
+  deliveryStatus?: string;
   revision: number;
   publishedAt?: string;
   canRestore: boolean;
@@ -125,6 +127,28 @@ export function WebsiteEditor({
               ? "لم يتم إنشاء نسخة منشورة بعد. المحتوى الحالي ظاهر مباشرة."
               : "No published snapshot yet. Existing content is currently live."}
         </p>
+        {deliveryStatus && (
+          <p className="text-xs text-slate-500 mt-2">
+            {ar ? "تحديث النسخة العامة:" : "Public refresh:"}{" "}
+            {ar
+              ? (
+                  {
+                    delivered: "تم",
+                    pending: "في الانتظار",
+                    processing: "قيد التنفيذ",
+                    failed: "تعذر التحديث",
+                  } as Record<string, string>
+                )[deliveryStatus]
+              : (
+                  {
+                    delivered: "Delivered",
+                    pending: "Queued",
+                    processing: "In progress",
+                    failed: "Failed",
+                  } as Record<string, string>
+                )[deliveryStatus]}
+          </p>
+        )}
       </header>
       <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-white dark:bg-neutral-900 py-3 border-b border-slate-200 dark:border-neutral-700">
         <button disabled={busy} className={button} onClick={() => run(save)}>
@@ -188,6 +212,16 @@ export function WebsiteEditor({
           {message}
         </p>
       )}
+      <section className="space-y-4 rounded-xl border p-5">
+        <h2 className="font-bold">{ar ? "صورة الاستوديو وتاريخه" : "Studio image and history"}</h2>
+        <label className="block">{ar ? "رابط الصورة" : "Image URL"}<input className={field} value={draft.aboutImageUrl || ""} onChange={e=>change({...draft,aboutImageUrl:e.target.value})} /></label>
+        {(draft.pillars || []).map((entry,index)=><div key={index} className="grid gap-3 sm:grid-cols-2 border p-3 rounded">
+          {(["titleEn","titleAr","textEn","textAr"] as const).map(key=><label key={key}>{key}<textarea className={field} maxLength={1500} value={entry[key]} onChange={e=>change({...draft,pillars:draft.pillars!.map((p,i)=>i===index?{...p,[key]:e.target.value}:p)})}/></label>)}
+          <button className={button} onClick={()=>change({...draft,pillars:draft.pillars!.filter((_,i)=>i!==index)})}>{ar ? "حذف" : "Remove"}</button>
+        </div>)}
+        <button className={button} disabled={(draft.pillars?.length || 0)>=12} onClick={()=>change({...draft,pillars:[...(draft.pillars||[]),{titleEn:"",titleAr:"",textEn:"",textAr:""}]})}>{ar ? "إضافة فقرة" : "Add history entry"}</button>
+        <p className="text-xs">{ar ? "المحتوى الفارغ لا يظهر. احفظ ثم انشر." : "Empty content stays hidden. Save, then publish."}</p>
+      </section>
       <section className="space-y-4 rounded-xl border border-slate-200 dark:border-neutral-800 p-5 bg-slate-50/50 dark:bg-neutral-900/30">
         <div>
           <h2 className="font-bold text-lg">
@@ -201,12 +235,27 @@ export function WebsiteEditor({
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {(draft.pages || defaultWebsitePages).map((p) => {
-            const pageLabels: Record<string, { en: string; ar: string; path: string }> = {
-              works: { en: "Selected Works", ar: "صفحة الأعمال", path: "/works" },
+            const pageLabels: Record<
+              string,
+              { en: string; ar: string; path: string }
+            > = {
+              works: {
+                en: "Selected Works",
+                ar: "صفحة الأعمال",
+                path: "/works",
+              },
               about: { en: "About Studio", ar: "صفحة من نحن", path: "/about" },
-              contact: { en: "Contact Page", ar: "صفحة التواصل", path: "/contact" },
+              contact: {
+                en: "Contact Page",
+                ar: "صفحة التواصل",
+                path: "/contact",
+              },
             };
-            const meta = pageLabels[p.id] || { en: p.id, ar: p.id, path: `/${p.id}` };
+            const meta = pageLabels[p.id] || {
+              en: p.id,
+              ar: p.id,
+              path: `/${p.id}`,
+            };
             return (
               <div
                 key={p.id}
@@ -231,7 +280,9 @@ export function WebsiteEditor({
                     onChange={(e) => {
                       const curPages = draft.pages || defaultWebsitePages;
                       const nextPages = curPages.map((item) =>
-                        item.id === p.id ? { ...item, visible: e.target.checked } : item,
+                        item.id === p.id
+                          ? { ...item, visible: e.target.checked }
+                          : item,
                       );
                       change({ ...draft, pages: nextPages });
                     }}
@@ -310,7 +361,7 @@ export function WebsiteEditor({
             (["En", "Ar"] as const).map((lang) => {
               const name = `${key}${lang}` as Exclude<
                 keyof WebsiteConfig,
-                "sections" | "pages"
+                "sections" | "pages" | "pillars" | "aboutImageUrl"
               >;
               return (
                 <label key={name} className="text-sm space-y-2">

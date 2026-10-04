@@ -1,6 +1,6 @@
 import { requirePermission } from "../../../../lib/auth";
 import * as React from "react";
-import { getCRMContacts, getCompanySettings, getAllServices } from "@ishoot/database";
+import { getCRMContactById, getCompanySettings, getAllServices } from "@ishoot/database";
 import { NewInvoiceFormView } from "../../../../components/invoices/NewInvoiceFormView";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export default async function NewInvoicePage({
   await requirePermission("contacts", "read");
   const params = await searchParams;
   const [contacts, company, services] = await Promise.all([
-    getCRMContacts(),
+    params?.clientId ? getCRMContactById(params.clientId).then(c=>c?[c]:[]) : Promise.resolve([]),
     getCompanySettings(),
     getAllServices({ isActive: true }),
   ]);

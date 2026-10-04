@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
+import { saveIntegration, unlinkIntegration } from "../../app/actions/integrations";
 
 function maskValue(val: string, visibleChars = 4): string {
   if (!val) return "—";
@@ -25,15 +26,21 @@ function maskValue(val: string, visibleChars = 4): string {
   return `••••••••••••${val.slice(-visibleChars)}`;
 }
 
-export function MetaIntegrationsView() {
+export function MetaIntegrationsView({
+  initialWhatsApp,
+  initialMeta
+}: {
+  initialWhatsApp?: any;
+  initialMeta?: any;
+}) {
   const { t, isRTL } = useAdminLocale();
 
-  // WhatsApp State
-  const [isWaLinked, setIsWaLinked] = React.useState(true);
+    // WhatsApp State
+  const [isWaLinked, setIsWaLinked] = React.useState(initialWhatsApp?.isActive || false);
   const [isWaEditing, setIsWaEditing] = React.useState(false);
-  const [whatsappPhoneId, setWhatsappPhoneId] = React.useState("109827364512938");
-  const [whatsappBusinessId, setWhatsappBusinessId] = React.useState("782910394857201");
-  const [whatsappToken, setWhatsappToken] = React.useState("EAAG8ZCK9482LDP");
+  const [whatsappPhoneId, setWhatsappPhoneId] = React.useState(initialWhatsApp?.phoneId || "");
+  const [whatsappBusinessId, setWhatsappBusinessId] = React.useState(initialWhatsApp?.businessId || "");
+  const [whatsappToken, setWhatsappToken] = React.useState(initialWhatsApp?.token || "");
 
   // Draft WhatsApp state for editing
   const [draftWaPhoneId, setDraftWaPhoneId] = React.useState(whatsappPhoneId);
@@ -41,65 +48,89 @@ export function MetaIntegrationsView() {
   const [draftWaToken, setDraftWaToken] = React.useState(whatsappToken);
 
   // Instagram / Facebook State
-  const [isIgLinked, setIsIgLinked] = React.useState(true);
+  const [isIgLinked, setIsIgLinked] = React.useState(initialMeta?.isActive || false);
   const [isIgEditing, setIsIgEditing] = React.useState(false);
-  const [instagramAccountId, setInstagramAccountId] = React.useState("ishoot.bh");
-  const [facebookPageId, setFacebookPageId] = React.useState("102938475610293");
+  const [instagramAccountId, setInstagramAccountId] = React.useState(initialMeta?.accountId || "");
+  const [facebookPageId, setFacebookPageId] = React.useState(initialMeta?.pageId || "");
 
   // Draft IG state for editing
   const [draftIgAccount, setDraftIgAccount] = React.useState(instagramAccountId);
   const [draftFbPage, setDraftFbPage] = React.useState(facebookPageId);
 
   // Automations
-  const [autoSendInvoices, setAutoSendInvoices] = React.useState(true);
-  const [autoSendReceipts, setAutoSendReceipts] = React.useState(true);
-  const [syncFacebookLeads, setSyncFacebookLeads] = React.useState(true);
+  const [autoSendInvoices, setAutoSendInvoices] = React.useState(initialWhatsApp?.config?.autoSendInvoices ?? true);
+  const [autoSendReceipts, setAutoSendReceipts] = React.useState(initialWhatsApp?.config?.autoSendReceipts ?? true);
+  const [syncFacebookLeads, setSyncFacebookLeads] = React.useState(initialMeta?.config?.syncFacebookLeads ?? true);
+
 
   // Confirmations
   const [unlinkTarget, setUnlinkTarget] = React.useState<"wa" | "ig" | null>(null);
   const [savedMessage, setSavedMessage] = React.useState("");
   const [testSent, setTestSent] = React.useState(false);
 
-  const handleSaveWa = () => {
-    setWhatsappPhoneId(draftWaPhoneId);
-    setWhatsappBusinessId(draftWaBusinessId);
-    setWhatsappToken(draftWaToken);
-    setIsWaEditing(false);
-    setIsWaLinked(true);
-    setSavedMessage(isRTL ? "تم تحديث وتشفير بيانات واتساب بنجاح." : "WhatsApp credentials encrypted and saved.");
-    setTimeout(() => setSavedMessage(""), 3500);
-  };
-
-  const handleSaveIg = () => {
-    setInstagramAccountId(draftIgAccount);
-    setFacebookPageId(draftFbPage);
-    setIsIgEditing(false);
-    setIsIgLinked(true);
-    setSavedMessage(isRTL ? "تم تحديث ربط إنستغرام وفيسبوك بنجاح." : "Instagram & Facebook connection saved.");
-    setTimeout(() => setSavedMessage(""), 3500);
-  };
-
-  const confirmUnlink = () => {
-    if (unlinkTarget === "wa") {
-      setIsWaLinked(false);
+    const handleSaveWa = async () => {
+    try {
+      await saveIntegration("whatsapp", true, {
+        phoneId: draftWaPhoneId,
+        businessId: draftWaBusinessId,
+        token: draftWaToken
+      }, { autoSendInvoices, autoSendReceipts });
+      setWhatsappPhoneId(draftWaPhoneId);
+      setWhatsappBusinessId(draftWaBusinessId);
+      setWhatsappToken(draftWaToken);
       setIsWaEditing(false);
-      setWhatsappPhoneId("");
-      setWhatsappBusinessId("");
-      setWhatsappToken("");
-      setDraftWaPhoneId("");
-      setDraftWaBusinessId("");
-      setDraftWaToken("");
-    } else if (unlinkTarget === "ig") {
-      setIsIgLinked(false);
-      setIsIgEditing(false);
-      setInstagramAccountId("");
-      setFacebookPageId("");
-      setDraftIgAccount("");
-      setDraftFbPage("");
+      setIsWaLinked(true);
+      setSavedMessage(isRTL ? "تم تحديث وتشفير بيانات واتساب بنجاح." : "WhatsApp credentials encrypted and saved.");
+      setTimeout(() => setSavedMessage(""), 3500);
+    } catch(err) {
+      console.error(err);
     }
-    setUnlinkTarget(null);
-    setSavedMessage(isRTL ? "تم فك الارتباط بنجاح." : "Integration unlinked and keys purged.");
-    setTimeout(() => setSavedMessage(""), 3500);
+  };
+
+    const handleSaveIg = async () => {
+    try {
+      await saveIntegration("meta", true, {
+        accountId: draftIgAccount,
+        pageId: draftFbPage
+      }, { syncFacebookLeads });
+      setInstagramAccountId(draftIgAccount);
+      setFacebookPageId(draftFbPage);
+      setIsIgEditing(false);
+      setIsIgLinked(true);
+      setSavedMessage(isRTL ? "تم تحديث ربط إنستغرام وفيسبوك بنجاح." : "Instagram & Facebook connection saved.");
+      setTimeout(() => setSavedMessage(""), 3500);
+    } catch(err) {
+      console.error(err);
+    }
+  };
+
+    const confirmUnlink = async () => {
+    try {
+      if (unlinkTarget === "wa") {
+        await unlinkIntegration("whatsapp");
+        setIsWaLinked(false);
+        setIsWaEditing(false);
+        setWhatsappPhoneId("");
+        setWhatsappBusinessId("");
+        setWhatsappToken("");
+        setDraftWaPhoneId("");
+        setDraftWaBusinessId("");
+        setDraftWaToken("");
+      } else if (unlinkTarget === "ig") {
+        await unlinkIntegration("meta");
+        setIsIgLinked(false);
+        setIsIgEditing(false);
+        setInstagramAccountId("");
+        setFacebookPageId("");
+        setDraftIgAccount("");
+        setDraftFbPage("");
+      }
+      setUnlinkTarget(null);
+      setSavedMessage(isRTL ? "تم فك الارتباط بنجاح." : "Integration unlinked and keys purged.");
+      setTimeout(() => setSavedMessage(""), 3500);
+    } catch(err) {
+      console.error(err);
+    }
   };
 
   const handleTestWhatsApp = () => {
@@ -151,9 +182,9 @@ export function MetaIntegrationsView() {
                 {isWaLinked ? (
                   <Badge
                     variant="outline"
-                    className="text-emerald-400 border-emerald-500/30 bg-emerald-500/10 text-[10px]"
+                    className={`text-[10px] ${initialWhatsApp?.healthStatus === 'error' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}`}
                   >
-                    {t.integrations.connected}
+                    {initialWhatsApp?.healthStatus === 'error' ? (isRTL ? "خطأ في الاتصال" : "Connection Error") : t.integrations.connected}
                   </Badge>
                 ) : (
                   <Badge
@@ -379,9 +410,9 @@ export function MetaIntegrationsView() {
                 {isIgLinked ? (
                   <Badge
                     variant="outline"
-                    className="text-emerald-400 border-emerald-500/30 bg-emerald-500/10 text-[10px]"
+                    className={`text-[10px] ${initialMeta?.healthStatus === 'error' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}`}
                   >
-                    {t.integrations.connected}
+                    {initialMeta?.healthStatus === 'error' ? (isRTL ? "خطأ في الاتصال" : "Connection Error") : t.integrations.connected}
                   </Badge>
                 ) : (
                   <Badge

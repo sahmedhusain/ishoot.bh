@@ -1,4 +1,5 @@
 "use client";
+import { DeferredCashflowChart } from "../shared/DeferredCharts";
 
 import * as React from "react";
 import Link from "next/link";
@@ -33,23 +34,16 @@ import {
   AlertTriangle,
   ExternalLink,
 } from "lucide-react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  Legend,
-} from "recharts";
+
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface ExecutiveDashboardViewProps {
   finance: FinancialSummary;
   monthlyCashflow?: MonthlyCashflowPoint[];
-  deals: CRMDeal[];
-  inquiries: Inquiry[];
+  dealOverview: Awaited<
+    ReturnType<typeof import("@ishoot/database").getCRMDealOverview>
+  >;
+  inquiryCount: number;
   company: CompanySettings;
   upcomingEvents: CalendarEvent[];
 }
@@ -57,16 +51,23 @@ interface ExecutiveDashboardViewProps {
 export function ExecutiveDashboardView({
   finance,
   monthlyCashflow = [],
-  deals,
-  inquiries,
+  dealOverview,
+  inquiryCount,
   company,
   upcomingEvents,
 }: ExecutiveDashboardViewProps) {
   const { t, isRTL, locale } = useAdminLocale();
 
-  const activePipelineValue = deals
-    .filter((d) => d.stage !== "closed_won" && d.stage !== "closed_lost")
-    .reduce((acc, d) => acc + Number(d.value), 0);
+  const {
+    recent: deals,
+    stageStats,
+    activeCount,
+    activePipelineValue,
+  } = dealOverview;
+  const totalStageValue = Object.values(stageStats).reduce(
+    (total, stage) => total + stage.value,
+    0,
+  );
 
   const cashflowData = monthlyCashflow.map((pt) => {
     const [year, month] = pt.monthKey.split("-").map(Number);
@@ -80,15 +81,6 @@ export function ExecutiveDashboardView({
       revenue: pt.revenue,
       expenses: pt.expenses,
     };
-  });
-
-  const stageStats: Record<string, { count: number; value: number }> = {};
-  deals.forEach((d) => {
-    if (!stageStats[d.stage]) {
-      stageStats[d.stage] = { count: 0, value: 0 };
-    }
-    stageStats[d.stage].count += 1;
-    stageStats[d.stage].value += Number(d.value);
   });
 
   return (
@@ -113,13 +105,21 @@ export function ExecutiveDashboardView({
             </Button>
           </Link>
           <Link href="/dashboard/calendar">
-            <Button variant="secondary" size="sm" className="gap-1.5 rounded-full h-8 px-3.5 text-xs font-medium">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="gap-1.5 rounded-full h-8 px-3.5 text-xs font-medium"
+            >
               <CalendarIcon className="w-3.5 h-3.5 text-[#09937F]" />
               <span>{t.nav.calendar}</span>
             </Button>
           </Link>
           <Link href="/dashboard/crm/deals">
-            <Button variant="secondary" size="sm" className="rounded-full h-8 px-3.5 text-xs font-medium">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="rounded-full h-8 px-3.5 text-xs font-medium"
+            >
               <span>{t.nav.deals}</span>
             </Button>
           </Link>
@@ -140,12 +140,7 @@ export function ExecutiveDashboardView({
           <div className="text-lg font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay amount={finance.revenue} currency="BHD" />
           </div>
-          <div className="text-[10px] text-[#10B981]  flex items-center gap-1 font-medium">
-            <span>+18.4%</span>
-            <span className="text-slate-400">
-              {t.dashboardView.vsLastMonth}
-            </span>
-          </div>
+
         </div>
 
         <div className="p-4 space-y-1.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs">
@@ -161,7 +156,7 @@ export function ExecutiveDashboardView({
             <CurrencyDisplay amount={activePipelineValue} currency="BHD" />
           </div>
           <div className="text-[10px] text-[#09937F]  font-medium">
-            {deals.length} {t.kpi.activeDealsCount}
+            {activeCount} {t.kpi.activeDealsCount}
           </div>
         </div>
 
@@ -231,7 +226,7 @@ export function ExecutiveDashboardView({
             </div>
           </div>
           <div className="text-lg font-bold text-slate-900 dark:text-white ">
-            {inquiries.length}
+            {inquiryCount}
           </div>
           <div className="text-[10px] text-blue-600 dark:text-blue-400  font-medium">
             {t.kpi.lastSevenDays}
@@ -251,64 +246,21 @@ export function ExecutiveDashboardView({
             <div className="flex items-center gap-4 text-xs ">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-xs bg-[#09937F]" />
-                <span className="text-slate-700 dark:text-neutral-300 font-semibold">{t.dashboardView.revenue}</span>
+                <span className="text-slate-700 dark:text-neutral-300 font-semibold">
+                  {t.dashboardView.revenue}
+                </span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-xs bg-rose-500" />
-                <span className="text-slate-700 dark:text-neutral-300 font-semibold">{t.dashboardView.expenses}</span>
+                <span className="text-slate-700 dark:text-neutral-300 font-semibold">
+                  {t.dashboardView.expenses}
+                </span>
               </div>
             </div>
           </div>
 
           <div className="h-72 w-full pt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={cashflowData}
-                margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="rgba(148, 163, 184, 0.2)"
-                />
-                <XAxis
-                  dataKey="month"
-                  stroke="#94A3B8"
-                  fontSize={11}
-                  tickLine={false}
-                />
-                <YAxis
-                  stroke="#94A3B8"
-                  fontSize={11}
-                  tickLine={false}
-                  tickFormatter={(v) => `${v / 1000}k`}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1a1a1a",
-                    borderColor: "#3c4043",
-                    borderRadius: 8,
-                    fontSize: 12,
-                    color: "#FFF",
-                  }}
-                  formatter={(value: any) => [
-                    `${Number(value).toFixed(3)} BHD`,
-                    "",
-                  ]}
-                />
-                <Bar
-                  dataKey="revenue"
-                  fill="#09937F"
-                  radius={[4, 4, 0, 0]}
-                  name={t.dashboardView.revenue}
-                />
-                <Bar
-                  dataKey="expenses"
-                  fill="#F43F5E"
-                  radius={[4, 4, 0, 0]}
-                  name={t.dashboardView.expenses}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <DeferredCashflowChart kind="dashboard" data={cashflowData} />
           </div>
         </div>
 
@@ -329,8 +281,8 @@ export function ExecutiveDashboardView({
             {Object.entries(stageStats).map(([stageKey, data]) => {
               const label = (t.stages as any)[stageKey] || stageKey;
               const percent =
-                activePipelineValue > 0
-                  ? (data.value / activePipelineValue) * 100
+                totalStageValue > 0
+                  ? (data.value / totalStageValue) * 100
                   : 0;
               return (
                 <div key={stageKey} className="space-y-1 text-xs">
@@ -346,7 +298,7 @@ export function ExecutiveDashboardView({
                     <div
                       className="h-full bg-[#09937F] rounded-full transition-all duration-500"
                       style={{
-                        width: `${Math.min(100, Math.max(8, percent))}%`,
+                        width: `${Math.min(100, Math.max(0, percent))}%`,
                       }}
                     />
                   </div>
@@ -402,7 +354,9 @@ export function ExecutiveDashboardView({
                         className="hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline font-medium inline-flex items-center gap-1"
                         title="View Customer Dossier"
                       >
-                        <span>{deal.contact.company || deal.contact.full_name}</span>
+                        <span>
+                          {deal.contact.company || deal.contact.full_name}
+                        </span>
                         <ExternalLink className="w-3 h-3 text-slate-400" />
                       </Link>
                     ) : (
@@ -509,7 +463,9 @@ export function ExecutiveDashboardView({
 
             <div className="space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-neutral-400">{t.settings.vatTitle}:</span>
+                <span className="text-slate-500 dark:text-neutral-400">
+                  {t.settings.vatTitle}:
+                </span>
                 <span
                   className={`px-2 py-0.5 rounded  text-[10px] font-bold ${
                     company.vat_enabled
@@ -523,13 +479,17 @@ export function ExecutiveDashboardView({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-neutral-400">{t.settings.bankName}:</span>
+                <span className="text-slate-500 dark:text-neutral-400">
+                  {t.settings.bankName}:
+                </span>
                 <span className="text-slate-900 dark:text-white text-end truncate max-w-[140px]  text-[11px] font-medium">
                   {company.bank_name}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 dark:text-neutral-400">{t.settings.bankIban}:</span>
+                <span className="text-slate-500 dark:text-neutral-400">
+                  {t.settings.bankIban}:
+                </span>
                 <span className="text-slate-900 dark:text-white text-end truncate max-w-[140px]  text-[10px]">
                   {company.bank_iban}
                 </span>
@@ -537,7 +497,11 @@ export function ExecutiveDashboardView({
             </div>
 
             <Link href="/dashboard/settings/company" className="block pt-1">
-              <Button variant="outline" size="sm" className="w-full text-xs rounded-lg h-7">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs rounded-lg h-7"
+              >
                 {t.nav.companySettings}
               </Button>
             </Link>

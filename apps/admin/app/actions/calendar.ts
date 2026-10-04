@@ -1,4 +1,7 @@
 "use server";
+import { measureOperation } from "@ishoot/database";
+import { runAtomicMutation } from "@ishoot/database";
+import { validateActionArguments } from "../../lib/action-input";
 
 import {
   createCalendarEvent,
@@ -23,37 +26,48 @@ export async function createCalendarEventAction(data: {
   google_event_id?: string;
   google_calendar_id?: string;
 }) {
-  const user = await requirePermission("calendar", "write");
-  const event = await createCalendarEvent({
-    ...data,
-    created_by: user.id,
-  });
+  return measureOperation("action:createCalendarEventAction", async () => {
+    const user = await requirePermission("calendar", "write");
+    validateActionArguments("createCalendarEventAction", { data });
+    if (data.deal_id) await requirePermission("deals", "read");
+    const { event } = await runAtomicMutation(async () => {
+      const event = await createCalendarEvent({
+        ...data,
+        created_by: user.id,
+      });
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "calendar_event",
+        entity_id: event.id,
+        details: { title: data.title, event_type: data.event_type },
+      });
+      return { event };
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "create",
-    entity_type: "calendar_event",
-    entity_id: event.id,
-    details: { title: data.title, event_type: data.event_type },
+    revalidatePath("/dashboard/calendar");
+    revalidatePath("/dashboard");
+    return { success: true, event };
   });
-
-  revalidatePath("/dashboard/calendar");
-  revalidatePath("/dashboard");
-  return { success: true, event };
 }
 
 export async function deleteCalendarEventAction(id: string) {
-  const user = await requirePermission("calendar", "delete");
-  await deleteCalendarEvent(id);
+  return measureOperation("action:deleteCalendarEventAction", async () => {
+    const user = await requirePermission("calendar", "delete");
+    validateActionArguments("deleteCalendarEventAction", { id });
+    await runAtomicMutation(async () => {
+      await deleteCalendarEvent(id);
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "calendar_event",
+        entity_id: id,
+      });
+      return {};
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "delete",
-    entity_type: "calendar_event",
-    entity_id: id,
+    revalidatePath("/dashboard/calendar");
+    revalidatePath("/dashboard");
+    return { success: true };
   });
-
-  revalidatePath("/dashboard/calendar");
-  revalidatePath("/dashboard");
-  return { success: true };
 }

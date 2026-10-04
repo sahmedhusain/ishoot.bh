@@ -1,4 +1,6 @@
 "use client";
+import { uploadFileDirectly } from "../../../lib/upload-client";
+import {ContentImage} from "../../shared/ContentImage";
 
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
@@ -147,19 +149,8 @@ export function BrandAssetsTab({
     setErrorKey((prev) => ({ ...prev, [slot.key]: "" }));
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("entityType", "company_asset");
-      formData.append("entityId", slot.key);
-      formData.append("customName", `${slot.key}-${file.name}`);
-      formData.append("documentType", "branding_asset");
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
+      const data = await uploadFileDirectly(file, { entityType: "company_asset", entityId: slot.key, customName: `${slot.key}-${file.name}`, documentType: "branding_asset" });
+        const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Upload failed");
       }
@@ -254,12 +245,12 @@ export function BrandAssetsTab({
                 <span className="text-[10px] text-slate-400 ">Pine Green + Emerald</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
-                <img
+                <ContentImage
                   src={settings.icon_url || "/brand/icon-light.svg"}
                   alt="Brand Icon Light"
                   className="h-10 w-auto object-contain shrink-0"
                 />
-                <img
+                <ContentImage
                   src={settings.logo_url || "/brand/logo-text-dark.svg"}
                   alt="Brand Wordmark Dark Text"
                   className="h-7 w-auto object-contain"
@@ -277,12 +268,12 @@ export function BrandAssetsTab({
                 <span className="text-[10px] text-emerald-400 ">Crisp White + Emerald</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
-                <img
+                <ContentImage
                   src={settings.dark_icon_url || "/brand/icon-dark.svg"}
                   alt="Brand Icon Dark"
                   className="h-10 w-auto object-contain shrink-0"
                 />
-                <img
+                <ContentImage
                   src={settings.dark_logo_url || "/brand/logo-text-light.svg"}
                   alt="Brand Wordmark Light Text"
                   className="h-7 w-auto object-contain"
@@ -334,7 +325,7 @@ export function BrandAssetsTab({
                     )}
 
                     {currentAsset?.fileUrl ? (
-                      <img
+                      <ContentImage
                         src={currentAsset.fileUrl}
                         alt={title}
                         className="relative max-h-20 max-w-[85%] object-contain p-2"

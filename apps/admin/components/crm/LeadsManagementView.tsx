@@ -1,4 +1,5 @@
 "use client";
+import {EntityLookup} from "../shared/EntityLookup";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,6 +9,7 @@ import {
   updateInquiryStatusAction,
   convertInquiryToClientAction,
   manageInquiryAction,
+  linkInquiryCustomerAction,
 } from "../../app/actions/crm";
 
 export function LeadsManagementView({
@@ -23,6 +25,7 @@ export function LeadsManagementView({
   const [filter, setFilter] = React.useState("all");
   const [busy, setBusy] = React.useState("");
   const [error, setError] = React.useState("");
+  const [customerLinks,setCustomerLinks] = React.useState<Record<string,string>>({});
   const [notes, setNotes] = React.useState<Record<string, string>>({});
   const intents: Record<string, string> = ar
     ? {
@@ -212,6 +215,7 @@ export function LeadsManagementView({
                     </div>
                   ))}
               </dl>
+              {sales && inquiry.status !== "qualified" && <details className="text-sm"><summary>{ar ? "ربط العميل" : "Link customer"}</summary><EntityLookup domain="contacts" value={customerLinks[inquiry.id]||""} onChange={id=>setCustomerLinks(prev=>({...prev,[inquiry.id]:id}))}/><button disabled={!!busy || !customerLinks[inquiry.id]} onClick={()=>run(inquiry.id,()=>linkInquiryCustomerAction(inquiry.id,customerLinks[inquiry.id]))}>{ar ? "تأكيد الربط" : "Confirm customer link"}</button></details>}
               {inquiry.merge_flag && (
                 <p className="text-amber-700 text-sm">
                   {ar

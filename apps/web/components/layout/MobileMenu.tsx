@@ -1,17 +1,18 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { X, ArrowRight, ArrowLeft } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { CompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@ishoot/database/types";
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   links?: { href: string; label: string }[];
-  company: CompanySettings;
+  company: PublicCompanySettings;
 }
 
 export function MobileMenu({
@@ -32,12 +33,13 @@ export function MobileMenu({
   const dialog = React.useRef<HTMLDialogElement>(null);
   React.useEffect(() => {
     if (!isOpen) return;
+    const element = dialog.current;
     const previous = document.activeElement as HTMLElement | null;
     const overflow = document.body.style.overflow;
-    dialog.current?.showModal();
+    element?.showModal();
     document.body.style.overflow = "hidden";
     return () => {
-      dialog.current?.close();
+      element?.close();
       document.body.style.overflow = overflow;
       previous?.focus();
     };
@@ -64,24 +66,22 @@ export function MobileMenu({
           onClick={onClose}
           className="flex items-center gap-2.5"
         >
-          <img
+          <ContentImage
             src={
               company.dark_icon_url ||
-              company.icon_url ||
-              "/brand/icon-dark.svg"
+              company.icon_url
             }
             alt={t("common.brandIconAlt")}
             className="h-8 w-auto object-contain"
-          />
-          <img
+           width={40} height={40} />
+          <ContentImage
             src={
               company.dark_logo_url ||
-              company.logo_url ||
-              "/brand/logo-text-light.svg"
+              company.logo_url
             }
             alt={t("common.brandLogoAlt")}
             className="h-6 w-auto object-contain"
-          />
+           fallbackText={company.company_name_en}  width={240} height={60} />
         </Link>
         <div className="flex items-center gap-4">
           <button

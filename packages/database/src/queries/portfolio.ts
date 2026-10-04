@@ -46,7 +46,7 @@ export async function getPortfolioCategories(): Promise<PortfolioCategory[]> {
       "Error fetching portfolio categories:",
       e instanceof Error ? e.message : e,
     );
-    return [];
+    throw e;
   }
 }
 
@@ -89,7 +89,7 @@ export async function updatePortfolioCategory(
       `Error updating portfolio category ${id}:`,
       e instanceof Error ? e.message : e,
     );
-    return null;
+    throw e;
   }
 }
 
@@ -102,7 +102,7 @@ export async function deletePortfolioCategory(id: string): Promise<boolean> {
       `Error deleting portfolio category ${id}:`,
       e instanceof Error ? e.message : e,
     );
-    return false;
+    throw e;
   }
 }
 
@@ -131,7 +131,7 @@ export async function getPortfolioItems(
       "Error fetching portfolio items:",
       e instanceof Error ? e.message : e,
     );
-    return [];
+    throw e;
   }
 }
 
@@ -149,7 +149,7 @@ export async function getPortfolioItemBySlug(
       `Error fetching portfolio item ${slug}:`,
       e instanceof Error ? e.message : e,
     );
-    return null;
+    throw e;
   }
 }
 
@@ -238,7 +238,7 @@ export async function updatePortfolioItem(
       `Error updating portfolio item ${id}:`,
       e instanceof Error ? e.message : e,
     );
-    return null;
+    throw e;
   }
 }
 
@@ -251,6 +251,6 @@ export async function deletePortfolioItem(id: string): Promise<boolean> {
       `Error deleting portfolio item ${id}:`,
       e instanceof Error ? e.message : e,
     );
-    return false;
+    throw e;
   }
 }

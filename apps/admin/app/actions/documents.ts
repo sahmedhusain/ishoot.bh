@@ -1,4 +1,7 @@
 "use server";
+import { measureOperation } from "@ishoot/database";
+import { runAtomicMutation } from "@ishoot/database";
+import { validateActionArguments } from "../../lib/action-input";
 
 import {
   getCompanyDocuments,
@@ -22,35 +25,45 @@ export async function createCompanyDocumentAction(data: {
   valid_until?: string;
   notes?: string;
 }) {
-  const user = await requirePermission("settings", "write");
-  const doc = await createCompanyDocument({
-    ...data,
-    uploaded_by_id: user.id,
-  });
+  return measureOperation("action:createCompanyDocumentAction", async () => {
+    const user = await requirePermission("settings", "write");
+    validateActionArguments("createCompanyDocumentAction", { data });
+    const { doc } = await runAtomicMutation(async () => {
+      const doc = await createCompanyDocument({
+        ...data,
+        uploaded_by_id: user.id,
+      });
+      await createActivityLog({
+        user_id: user.id,
+        action: "create",
+        entity_type: "company_document",
+        entity_id: doc.id,
+        details: { title: data.title_en, category: data.category },
+      });
+      return { doc };
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "create",
-    entity_type: "company_document",
-    entity_id: doc.id,
-    details: { title: data.title_en, category: data.category },
+    revalidatePath("/dashboard/company/documents");
+    return { success: true, doc };
   });
-
-  revalidatePath("/dashboard/company/documents");
-  return { success: true, doc };
 }
 
 export async function deleteCompanyDocumentAction(id: string) {
-  const user = await requirePermission("settings", "delete");
-  await deleteCompanyDocument(id);
+  return measureOperation("action:deleteCompanyDocumentAction", async () => {
+    const user = await requirePermission("settings", "delete");
+    validateActionArguments("deleteCompanyDocumentAction", { id });
+    await runAtomicMutation(async () => {
+      await deleteCompanyDocument(id);
+      await createActivityLog({
+        user_id: user.id,
+        action: "delete",
+        entity_type: "company_document",
+        entity_id: id,
+      });
+      return {};
+    });
 
-  await createActivityLog({
-    user_id: user.id,
-    action: "delete",
-    entity_type: "company_document",
-    entity_id: id,
+    revalidatePath("/dashboard/company/documents");
+    return { success: true };
   });
-
-  revalidatePath("/dashboard/company/documents");
-  return { success: true };
 }

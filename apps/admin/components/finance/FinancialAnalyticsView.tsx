@@ -1,12 +1,8 @@
 "use client";
+import { DeferredCashflowChart } from "../shared/DeferredCharts";
 
 import * as React from "react";
-import type {
-  FinancialSummary,
-  Expense,
-  ExpenseCategory,
-  Invoice,
-} from "@ishoot/database/types";
+import type { FinancialSummary, ExpenseCategory } from "@ishoot/database/types";
 import { Card, CurrencyDisplay } from "@ishoot/ui";
 import {
   TrendingUp,
@@ -16,41 +12,34 @@ import {
   Percent,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
+
 
 interface FinancialAnalyticsViewProps {
   finance: FinancialSummary;
-  expenses: Expense[];
+  categoryTotals: Record<string, number>;
   categories: ExpenseCategory[];
-  invoices: Invoice[];
-  monthlyCashflow: Array<{ monthKey: string; revenue: number; expenses: number }>;
+  monthlyCashflow: Array<{
+    monthKey: string;
+    revenue: number;
+    expenses: number;
+  }>;
 }
 
 export function FinancialAnalyticsView({
   finance,
-  expenses,
+  categoryTotals,
   categories,
-  invoices,
   monthlyCashflow,
 }: FinancialAnalyticsViewProps) {
   const { t, locale } = useAdminLocale();
 
-  const categoryTotals: Record<string, number> = {};
-  expenses.filter((expense) => expense.currency === "BHD").forEach((e) => {
-    const slug = e.category?.slug || "other";
-    categoryTotals[slug] = (categoryTotals[slug] || 0) + Number(e.amount);
-  });
-
   const chartData = monthlyCashflow.map((point) => ({
-    ...point, name: new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-BH", { month: "short", year: "2-digit", timeZone: "UTC" }).format(new Date(`${point.monthKey}-01T00:00:00Z`)),
+    ...point,
+    name: new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-BH", {
+      month: "short",
+      year: "2-digit",
+      timeZone: "UTC",
+    }).format(new Date(`${point.monthKey}-01T00:00:00Z`)),
   }));
 
   return (
@@ -136,66 +125,7 @@ export function FinancialAnalyticsView({
           </div>
         </div>
         <div className="h-72 w-full pt-4">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-            >
-              <defs>
-                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#F43F5E" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#F43F5E" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="rgba(255,255,255,0.05)"
-                vertical={false}
-              />
-              <XAxis
-                dataKey="name"
-                stroke="#9EADA9"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                stroke="#9EADA9"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(val) => `${val}`}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#0B1210",
-                  borderColor: "rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
-                }}
-                itemStyle={{ fontWeight: "bold" }}
-              />
-              <Area
-                type="monotone"
-                dataKey="revenue"
-                stroke="#10B981"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorRevenue)"
-              />
-              <Area
-                type="monotone"
-                dataKey="expenses"
-                stroke="#F43F5E"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorExpenses)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <DeferredCashflowChart kind="finance" data={chartData} />
         </div>
       </Card>
 

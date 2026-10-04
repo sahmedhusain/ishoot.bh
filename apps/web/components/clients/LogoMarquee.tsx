@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import type { ClientLogo } from "@ishoot/database/types";
@@ -145,7 +146,7 @@ export function LogoMarquee({ logos }: { logos: ClientLogo[] }) {
               {logos.map((client) => (
                 <li key={client.id} className="client-logo-slot">
                   {client.logo_svg_url ? (
-                    <img
+                    <ContentImage
                       src={client.logo_svg_url}
                       alt={duplicate ? "" : client.client_name}
                       width={160}

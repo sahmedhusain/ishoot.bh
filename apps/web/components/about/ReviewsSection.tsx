@@ -107,11 +107,11 @@ export function ReviewsSection({
                   </div>
 
                   <blockquote className="text-sm sm:text-base leading-relaxed text-slate-800 font-sans italic">
-                    "
+                    &quot;
                     {ar
                       ? review.quoteAr || review.quoteEn
                       : review.quoteEn || review.quoteAr}
-                    "
+                    &quot;
                   </blockquote>
                 </div>
 

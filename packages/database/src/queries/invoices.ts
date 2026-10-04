@@ -1,5 +1,4 @@
 import { db } from "../db";
-import initialConfig from "../initial-company-config.json";
 import {
   Invoice,
   InvoiceLineItem,
@@ -40,7 +39,7 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
     discount_value: Number(inv.discountValue || discountAmount),
     discount_amount: discountAmount,
     after_discount: afterDiscount,
-    vat_enabled: inv.vatEnabled ?? (vatAmount > 0),
+    vat_enabled: inv.vatEnabled ?? vatAmount > 0,
     vat_percentage: inv.vatPercentage != null ? Number(inv.vatPercentage) : 10,
     vat_amount: vatAmount,
     total_amount: totalAmount,
@@ -82,8 +81,12 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
           company: contactObj.companyName || undefined,
           job_title: contactObj.jobTitle || undefined,
           notes: contactObj.notes || undefined,
-          created_at: contactObj.createdAt ? contactObj.createdAt.toISOString() : new Date().toISOString(),
-          updated_at: contactObj.updatedAt ? contactObj.updatedAt.toISOString() : new Date().toISOString(),
+          created_at: contactObj.createdAt
+            ? contactObj.createdAt.toISOString()
+            : new Date().toISOString(),
+          updated_at: contactObj.updatedAt
+            ? contactObj.updatedAt.toISOString()
+            : new Date().toISOString(),
         }
       : undefined,
   };
@@ -112,7 +115,7 @@ export async function getAllInvoices(options?: {
     return invoices.map(mapPrismaInvoiceToInvoice);
   } catch (e) {
     console.error("Error fetching invoices from DB:", e);
-    return [];
+    throw e;
   }
 }
 
@@ -133,11 +136,13 @@ export async function getInvoicesByDealId(dealId: string): Promise<Invoice[]> {
     return invoices.map(mapPrismaInvoiceToInvoice);
   } catch (e) {
     console.error(`Error fetching invoices for deal ${dealId}:`, e);
-    return [];
+    throw e;
   }
 }
 
-export async function getInvoicesByClientId(clientId: string): Promise<Invoice[]> {
+export async function getInvoicesByClientId(
+  clientId: string,
+): Promise<Invoice[]> {
   try {
     const invoices = await db.invoice.findMany({
       where: {
@@ -156,7 +161,7 @@ export async function getInvoicesByClientId(clientId: string): Promise<Invoice[]
     return invoices.map(mapPrismaInvoiceToInvoice);
   } catch (e) {
     console.error(`Error fetching invoices for client ${clientId}:`, e);
-    return [];
+    throw e;
   }
 }
 
@@ -168,13 +173,11 @@ export async function getUnpaidInvoicesByClientId(
     // Return invoices that have outstanding balance and are not void
     return invoices.filter(
       (inv) =>
-        inv.status !== "void" &&
-        inv.status !== "paid" &&
-        inv.amount_due > 0,
+        inv.status !== "void" && inv.status !== "paid" && inv.amount_due > 0,
     );
   } catch (e) {
     console.error(`Error fetching unpaid invoices for client ${clientId}:`, e);
-    return [];
+    throw e;
   }
 }
 
@@ -194,7 +197,7 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
     return inv ? mapPrismaInvoiceToInvoice(inv) : null;
   } catch (e) {
     console.error(`Error fetching invoice ${id}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -218,7 +221,7 @@ export async function getInvoiceByIdOrNumber(
     return inv ? mapPrismaInvoiceToInvoice(inv) : null;
   } catch (e) {
     console.error(`Error fetching invoice ${idOrNumber}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -260,8 +263,11 @@ export async function createInvoice(data: {
   const year = new Date().getFullYear();
   const created = await db.$transaction(async (tx) => {
     let company = await tx.companySetting.findFirst();
-    if (!company) throw new Error("Configure company settings before creating financial records");
-    const prefix = company.invoicePrefix || initialConfig.company.invoicePrefix;
+    if (!company)
+      throw new Error(
+        "Configure company settings before creating financial records",
+      );
+    const prefix = company.invoicePrefix;
     const counter = await tx.companySetting.update({
       where: { id: company.id },
       data: { invoiceNextNumber: { increment: 1 } },
@@ -345,7 +351,8 @@ export async function updateInvoice(
         include: { lineItems: true, payments: true },
       });
       if (!existing) return null;
-      if (existing.status === "void" || existing.payments.length > 0) throw new Error("Void or paid invoices cannot be edited");
+      if (existing.status === "void" || existing.payments.length > 0)
+        throw new Error("Void or paid invoices cannot be edited");
 
       const currency =
         data.currency || (existing.currency as SupportedCurrency) || "BHD";
@@ -401,8 +408,10 @@ export async function updateInvoice(
           totalAmount: totals.totalAmount,
           currency,
           language: data.language || existing.language,
-          notesEn: data.notes_en !== undefined ? data.notes_en : existing.notesEn,
-          notesAr: data.notes_ar !== undefined ? data.notes_ar : existing.notesAr,
+          notesEn:
+            data.notes_en !== undefined ? data.notes_en : existing.notesEn,
+          notesAr:
+            data.notes_ar !== undefined ? data.notes_ar : existing.notesAr,
           ...(data.line_items
             ? {
                 lineItems: {
@@ -431,7 +440,7 @@ export async function updateInvoice(
     });
   } catch (e) {
     console.error(`Error updating invoice ${id}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -442,15 +451,21 @@ export async function updateInvoiceStatus(
   try {
     await db.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${id} FOR UPDATE`;
-      const invoice = await tx.invoice.findUnique({ where: { id }, include: { payments: true } });
+      const invoice = await tx.invoice.findUnique({
+        where: { id },
+        include: { payments: true },
+      });
       if (!invoice) throw new Error("Invoice not found");
-      if (status === "void" && invoice.payments.length) throw new Error("Paid invoices require a credit adjustment before voiding");
+      if (status === "void" && invoice.payments.length)
+        throw new Error(
+          "Paid invoices require a credit adjustment before voiding",
+        );
       await tx.invoice.update({ where: { id }, data: { status } });
     });
     return true;
   } catch (e) {
     console.error(`Error updating invoice status ${id}:`, e);
-    return false;
+    throw e;
   }
 }
 
@@ -460,6 +475,6 @@ export async function deleteInvoice(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error(`Error deleting invoice ${id}:`, e);
-    return false;
+    throw e;
   }
 }

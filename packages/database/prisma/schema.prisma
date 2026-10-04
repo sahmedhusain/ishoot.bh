@@ -1,6 +1,7 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
@@ -14,6 +15,7 @@ model User {
   fullName       String
   passwordHash   String
   role           String    @default("viewer") // "super_admin", "admin", "finance_manager", "production_manager", "producer", "editor", "accountant", "viewer"
+  roleDefinition Role      @relation(fields: [role], references: [id], onDelete: Restrict)
   permissions    Json? // custom granular override
   avatarUrl      String?
   signatureUrl   String?
@@ -24,11 +26,18 @@ model User {
   subordinates   User[]    @relation("UserHierarchy")
   isActive       Boolean   @default(true)
   lastLoginAt    DateTime?
+  mfaEnabled Boolean @default(false)
+  mfaSecretEncrypted String?
+  mfaPendingSecretEncrypted String?
+  mfaPendingExpiresAt DateTime?
+  mfaLastStep BigInt?
+  recoveryCodes MfaRecoveryCode[]
   resetToken     String?
   resetExpiresAt DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
+  assignedDeals      CrmDeal[]
   assignedInquiries  Inquiry[]
   inquiryNotes       InquiryNote[]
   invoicesCreated    Invoice[]
@@ -38,18 +47,25 @@ model User {
   activities         ActivityLog[]
   notifications      Notification[]
   attachments        Attachment[]
+  uploads            UploadObject[]
   sessions           Session[]
   contractsCreated   Contract[]
   generatedDocuments GeneratedDocument[]
   companyDocuments   CompanyDocument[]
+  emailJobs          EmailJob[]
   momsCreated        MinuteOfMeeting[]   @relation("MomCreator")
   momsApproved       MinuteOfMeeting[]   @relation("MomApprover")
+  @@index([role])
+  authChallenges AuthChallenge[]
+  quotations Quotation[] @relation("QuotationCreator")
+  communicationThreads CommunicationThread[]
 }
 
 model CompanySetting {
   id                String  @id @default(uuid())
-  companyNameEn     String  @default("Production Studio")
-  companyNameAr     String  @default("استوديو الإنتاج")
+  singleton         Int     @unique @default(1)
+  companyNameEn     String
+  companyNameAr     String
   crNumber          String?
   vatId             String?
   vatEnabled        Boolean @default(false)
@@ -220,6 +236,8 @@ model Inquiry {
   team                   String? // "production", "post_production", "finance", "sales", "executive", "support"
   workflowStatus         String        @default("received") // "received", "under_review", "assigned", "pending_approval", "confirmed", "returned", "in_progress", "resolved", "rejected"
   customAssignments      Json?         @default("[]") // [{ assignedToId, assignedBy, timestamp, notes, action }]
+  approvedById           String?
+  approvedAt             DateTime?
   approvalNotes          String?       @db.Text
   returnReason           String?       @db.Text
   resolutionNotes        String?       @db.Text
@@ -231,6 +249,7 @@ model Inquiry {
   notificationStatus     String        @default("unknown")
   confirmationProviderId String?
   notificationProviderId String?
+  convertedDeal          CrmDeal?      @relation("InquiryConversion")
   notes                  InquiryNote[]
   mergeFlag              Boolean       @default(false)
   createdAt              DateTime      @default(now())
@@ -241,6 +260,8 @@ model Inquiry {
   @@index([customerId])
   @@index([emailNorm])
   @@index([phoneE164])
+  quotations Quotation[]
+  communicationThreads CommunicationThread[]
 }
 
 model InquiryNote {
@@ -288,12 +309,16 @@ model CrmContact {
 
   @@index([emailNorm])
   @@index([phoneE164])
+  quotations Quotation[]
+  communicationThreads CommunicationThread[]
 }
 
 model CrmDeal {
   id                String            @id @default(uuid())
   contactId         String?
   contact           CrmContact?       @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  sourceInquiryId   String?           @unique
+  sourceInquiry     Inquiry?          @relation("InquiryConversion", fields: [sourceInquiryId], references: [id], onDelete: Restrict)
   title             String
   dealStage         String            @default("lead") // "lead", "proposal_sent", "contract_signed", "production", "post_production", "delivered", "invoiced", "closed_won", "closed_lost"
   dealValue         Decimal           @default(0.000) @db.Decimal(12, 3)
@@ -303,6 +328,7 @@ model CrmDeal {
   shootDate         DateTime?         @db.Date
   lostReason        String?
   assignedTo        String?
+  assignee          User? @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
   notes             String?
   invoices          Invoice[]
   expenses          Expense[]
@@ -314,6 +340,8 @@ model CrmDeal {
 
   @@index([contactId])
   @@index([dealStage])
+  @@index([assignedTo])
+  quotations Quotation[]
 }
 
 model Invoice {
@@ -353,6 +381,8 @@ model Invoice {
   @@index([status])
   @@index([issueDate])
   @@index([createdAt])
+  quotation Quotation?
+  communicationMessages CommunicationMessage[]
 }
 
 model InvoiceLineItem {
@@ -369,6 +399,7 @@ model InvoiceLineItem {
   displayOrder  Int      @default(0)
 
   @@index([serviceId])
+  @@index([invoiceId, displayOrder])
 }
 
 model Payment {
@@ -417,6 +448,7 @@ model Expense {
   expenseDate        DateTime         @default(now()) @db.Date
   vendorName         String?
   receiptUrl         String?
+  isBillable         Boolean          @default(false)
   isRecurring        Boolean          @default(false)
   recurrenceInterval String? // "monthly", "quarterly", "yearly"
   notes              String?
@@ -426,6 +458,7 @@ model Expense {
 
   @@index([dealId])
   @@index([categoryId])
+  @@index([currency, expenseDate])
 }
 
 model CalendarEvent {
@@ -452,6 +485,7 @@ model CalendarEvent {
   updatedAt        DateTime @updatedAt
 
   @@index([dealId])
+  @@index([startDate])
 }
 
 model ActivityLog {
@@ -483,6 +517,8 @@ model Notification {
   entityId   String?
   isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
+
+  @@index([userId, isRead, createdAt])
 }
 
 model Tag {
@@ -505,11 +541,15 @@ model Attachment {
   uploadedById String?
   uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
+  @@index([fileUrl])
 }
 
 model Permission {
   id        String   @id @default(uuid())
   role      String // "super_admin", "admin", "finance_manager", "sales", "marketing", "production_manager", "producer", "editor", "accountant", "viewer"
+  roleDefinition Role @relation(fields: [role], references: [id], onDelete: Cascade)
   resource  String // "invoices", "payments", "expenses", "finance_analytics", "deals", "contacts", "leads", "contracts", "banners", "portfolio", "clients", "equipment", "users", "settings", "audit_logs"
   action    String // "read", "write", "delete", "export", "approve"
   allowed   Boolean  @default(false)
@@ -577,6 +617,7 @@ model Contract {
 }
 
 model MinuteOfMeeting {
+  emailJobs EmailJob[]
   id               String      @id @default(uuid())
   momNumber        String      @unique // e.g. "MOM-2026-001"
   title            String
@@ -685,6 +726,8 @@ model SocialLink {
 }
 
 model Role {
+  users       User[]
+  permissions Permission[]
   id        String   @id @default(cuid()) // e.g. "sales_lead", "agency_partner"
   nameEn    String
   nameAr    String
@@ -742,4 +785,249 @@ model Statistic {
   subLabelAr String?
   icon       String? // Lucide icon name, e.g. "Film"
   sortOrder  Int     @default(0)
+}
+
+// Durable cross-app cache invalidation, committed with publication.
+model RevalidationJob {
+  id            String   @id @default(cuid())
+  eventKey      String   @unique
+  payload       Json
+  status        String   @default("pending")
+  attempts      Int      @default(0)
+  nextAttemptAt DateTime @default(now())
+  lastError     String?
+  deliveredAt   DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([status, nextAttemptAt])
+}
+
+model UploadObject {
+  id String @id @default(uuid())
+  fileUrl String @unique
+  ownerId String
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  fileName String
+  fileSize Int
+  mimeType String
+  isPublic Boolean @default(false)
+  claimedAt DateTime?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([ownerId, expiresAt])
+}
+
+model AbuseWindow {
+  key String @id
+  count Int @default(1)
+  expiresAt DateTime
+  @@index([expiresAt])
+}
+
+model MfaRecoveryCode {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash String @unique
+  usedAt DateTime?
+  @@index([userId])
+}
+
+model EmailJob {
+  id String @id @default(uuid())
+  eventKey String @unique
+  momId String
+  mom MinuteOfMeeting @relation(fields: [momId], references: [id], onDelete: Restrict)
+  createdById String?
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  recipient String
+  subject String
+  html String @db.Text
+  attachmentName String
+  attachment Bytes
+  status String @default("pending")
+  attempts Int @default(0)
+  nextAttemptAt DateTime @default(now())
+  providerId String?
+  lastError String?
+  acceptedAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([status, nextAttemptAt])
+  @@index([momId, createdAt])
+}
+
+model IntegrationSetting {
+  provider       String    @id // e.g. "whatsapp", "meta"
+  isActive       Boolean   @default(false)
+  credentials    String?   // Encrypted payload (e.g. aes-256-gcm)
+  config         Json?     // Cleartext config (e.g. autoSendInvoices)
+  healthStatus   String    @default("unknown") // "healthy", "error", "unknown"
+  lastCheckedAt  DateTime?
+  updatedAt      DateTime  @updatedAt
+  updatedById    String?
+}
+
+model AuthChallenge {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email       String
+  type        String   // "invitation", "password_reset", "login_otp", "mfa_setup"
+  codeHash    String   // bcrypt hash of the plain token/otp
+  expiresAt   DateTime
+  attempts    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([email, type])
+}
+
+model Quotation {
+  id              String                @id @default(uuid())
+  quotationNumber String                @unique
+  revision        Int                   @default(1)
+  
+  dealId          String?
+  deal            CrmDeal?              @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  clientId        String?
+  client          CrmContact?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  inquiryId       String?
+  inquiry         Inquiry?              @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  invoiceId       String?               @unique
+  invoice         Invoice?              @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  
+  issueDate       DateTime              @default(now()) @db.Date
+  validUntilDate  DateTime              @db.Date
+  
+  subtotal        Decimal               @default(0.000) @db.Decimal(12, 3)
+  vatEnabled      Boolean               @default(false)
+  vatPercentage   Decimal               @default(10.00) @db.Decimal(5, 2)
+  vatAmount       Decimal               @default(0.000) @db.Decimal(12, 3)
+  discountType    String                @default("none") // "none", "percentage", "fixed"
+  discountValue   Decimal               @default(0.000) @db.Decimal(12, 3)
+  discountAmount  Decimal               @default(0.000) @db.Decimal(12, 3)
+  totalAmount     Decimal               @default(0.000) @db.Decimal(12, 3)
+  currency        String                @default("BHD")
+  language        String                @default("ar") // "ar", "en"
+  
+  status          String                @default("draft") // "draft", "review", "approved", "issued", "accepted", "declined", "expired", "cancelled"
+  acceptanceEvidence String?
+  
+  pdfStoragePath  String?
+  deliveryChannel String?
+  deliveredAt     DateTime?             @db.Timestamptz
+  
+  termsEn         String?
+  termsAr         String?
+  
+  createdById     String?
+  createdBy       User?                 @relation("QuotationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  lineItems       QuotationLineItem[]
+  
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([clientId])
+  @@index([dealId])
+  @@index([inquiryId])
+  @@index([status])
+  @@index([validUntilDate])
+  communicationMessages CommunicationMessage[]
+}
+
+model QuotationLineItem {
+  id            String    @id @default(uuid())
+  quotationId   String
+  quotation     Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  descriptionEn String
+  descriptionAr String?
+  quantity      Decimal   @default(1.00) @db.Decimal(10, 2)
+  unitPrice     Decimal   @default(0.000) @db.Decimal(12, 3)
+  lineTotal     Decimal   @default(0.000) @db.Decimal(12, 3)
+  orderIndex    Int       @default(0)
+
+  @@index([quotationId])
+}
+
+model CommunicationThread {
+  id          String   @id @default(uuid())
+  subject     String
+  status      String   @default("open") // "open", "resolved", "snoozed"
+  contactId   String?
+  contact     CrmContact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  inquiryId   String?
+  inquiry     Inquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  assignedTo  String?
+  assignee    User?    @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
+  
+  messages    CommunicationMessage[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([contactId])
+  @@index([inquiryId])
+}
+
+model CommunicationMessage {
+  id              String   @id @default(uuid())
+  threadId        String?
+  thread          CommunicationThread? @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  
+  messageId       String?  @unique // SMTP Message-ID
+  inReplyTo       String?  // SMTP In-Reply-To
+  
+  direction       String   // "inbound", "outbound"
+  fromEmail       String
+  toEmail         String
+  subject         String
+  bodyText        String?  @db.Text
+  bodyHtml        String?  @db.Text
+  
+  status          String   @default("queued") // "queued", "accepted", "delivered", "bounced", "failed"
+  deliveryLog     Json?    // Array of delivery events from webhooks
+  
+  // Relations to sent documents
+  invoiceId       String?
+  invoice         Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  quotationId     String?
+  quotation       Quotation? @relation(fields: [quotationId], references: [id], onDelete: SetNull)
+  
+  attachments     MessageAttachment[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([threadId])
+  @@index([messageId])
+}
+
+model MessageAttachment {
+  id            String   @id @default(uuid())
+  messageId     String
+  message       CommunicationMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  filename      String
+  contentType   String
+  size          Int
+  storagePath   String
+  isQuarantined Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([messageId])
+}
+
+model SocialMetric {
+  id              String   @id @default(uuid())
+  platform        String   // "facebook", "instagram", "youtube", "whatsapp"
+  metricType      String   // "followers", "views", "engagement", "messages_sent", "messages_read"
+  value           Int
+  recordedAt      DateTime @default(now())
+  
+  // To track freshness and handle unavailable data truthfully
+  isStale         Boolean  @default(false)
+  errorStatus     String?  // If there was an error fetching the data
+  
+  createdAt       DateTime @default(now())
+
+  @@index([platform, metricType])
+  @@index([recordedAt])
 }

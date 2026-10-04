@@ -3,7 +3,7 @@ import * as React from "react";
 import { notFound } from "next/navigation";
 import {
   getInvoiceById,
-  getCRMContacts,
+  getCRMContactById,
   getCompanySettings,
   getAllServices,
 } from "@ishoot/database";
@@ -22,9 +22,10 @@ export default async function InvoiceEditPage({
   await requirePermission("contacts", "read");
   const { id } = await params;
 
+  const invoicePromise = getInvoiceById(id);
   const [invoice, contacts, company, services] = await Promise.all([
-    getInvoiceById(id),
-    getCRMContacts(),
+    invoicePromise,
+    invoicePromise.then(inv=>inv?.contact_id ? getCRMContactById(inv.contact_id).then(c=>c?[c]:[]) : []),
     getCompanySettings(),
     getAllServices({ isActive: true }),
   ]);

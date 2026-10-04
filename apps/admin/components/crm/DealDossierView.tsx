@@ -1,4 +1,6 @@
 "use client";
+import { ListControls } from "../shared/ListControls";
+import type { InvoiceListRow } from "@ishoot/database";
 
 import * as React from "react";
 import Link from "next/link";
@@ -32,18 +34,30 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 interface DealDossierViewProps {
   deal: CRMDeal;
   contact?: CRMContact | null;
-  invoices?: Invoice[];
+  invoices?: InvoiceListRow[];
+  invoicePage?: {
+    page: number;
+    total: number;
+    filters: { q: string; status: string; dealId?: string };
+  };
 }
 
 export function DealDossierView({
   deal,
   contact,
   invoices = [],
+  invoicePage,
 }: DealDossierViewProps) {
   const { t, locale } = useAdminLocale();
   const [activeTab, setActiveTab] = React.useState<
     "overview" | "timeline" | "documents" | "invoices"
-  >("overview");
+  >(
+    invoicePage?.filters.q ||
+      (invoicePage?.page || 1) > 1 ||
+      (invoicePage?.filters.status && invoicePage.filters.status !== "all")
+      ? "invoices"
+      : "overview",
+  );
 
   const clientName = contact?.company || contact?.full_name || "Direct Client";
   const isWon = deal.stage === "closed_won" || deal.stage === "delivered";
@@ -78,7 +92,8 @@ export function DealDossierView({
               </Badge>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ">
-              ID: {deal.id} • <DateDisplay date={deal.created_at} locale={locale} />
+              ID: {deal.id} •{" "}
+              <DateDisplay date={deal.created_at} locale={locale} />
             </p>
           </div>
         </div>
@@ -95,7 +110,9 @@ export function DealDossierView({
             </Button>
           </Link>
           {isWon && (
-            <Link href={`/dashboard/invoices/new${contact ? `?clientId=${contact.id}` : ""}`}>
+            <Link
+              href={`/dashboard/invoices/new${contact ? `?clientId=${contact.id}` : ""}`}
+            >
               <Button
                 variant="outline"
                 size="sm"
@@ -167,7 +184,7 @@ export function DealDossierView({
             <span>{t.dealDossier.invoicesGenerated}</span>
           </div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white ">
-            {invoices.length}
+            {invoicePage?.total ?? invoices.length}
           </div>
           <span className="text-[11px] text-slate-500 dark:text-slate-400 ">
             {t.dealDossier.billingRecords}
@@ -180,10 +197,14 @@ export function DealDossierView({
         {[
           { id: "overview", label: t.dealDossier.tabOverview, icon: User },
           { id: "timeline", label: t.dealDossier.tabTimeline, icon: Clock },
-          { id: "documents", label: t.dealDossier.tabDocuments, icon: FileText },
+          {
+            id: "documents",
+            label: t.dealDossier.tabDocuments,
+            icon: FileText,
+          },
           {
             id: "invoices",
-            label: `${t.dealDossier.tabInvoices} (${invoices.length})`,
+            label: `${t.dealDossier.tabInvoices} (${invoicePage?.total ?? invoices.length})`,
             icon: FileText,
           },
         ].map((tab) => {
@@ -215,11 +236,17 @@ export function DealDossierView({
 
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400">{t.dealEdit.stageLabel}</span>
-                <span className="text-slate-900 dark:text-white font-semibold">{deal.stage}</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {t.dealEdit.stageLabel}
+                </span>
+                <span className="text-slate-900 dark:text-white font-semibold">
+                  {deal.stage}
+                </span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400">{t.dealDossier.associatedClient}</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {t.dealDossier.associatedClient}
+                </span>
                 {contact ? (
                   <Link
                     href={`/dashboard/crm/customers/${contact.id}`}
@@ -230,24 +257,32 @@ export function DealDossierView({
                     <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                 ) : (
-                  <span className="text-slate-900 dark:text-white font-semibold">{clientName}</span>
+                  <span className="text-slate-900 dark:text-white font-semibold">
+                    {clientName}
+                  </span>
                 )}
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400">{t.dealEdit.probabilityLabel}</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {t.dealEdit.probabilityLabel}
+                </span>
                 <span className="text-slate-900 dark:text-white font-semibold">
                   {deal.probability}%
                 </span>
               </div>
               <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 dark:text-slate-400">{t.invoiceEdit.currency}</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  {t.invoiceEdit.currency}
+                </span>
                 <span className="text-slate-900 dark:text-white font-semibold">
                   {deal.currency}
                 </span>
               </div>
               {deal.shoot_date && (
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 dark:text-slate-400">{t.dealDossier.shootDate}</span>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    {t.dealDossier.shootDate}
+                  </span>
                   <span className="text-slate-900 dark:text-white font-semibold">
                     <DateDisplay date={deal.shoot_date} locale={locale} />
                   </span>
@@ -447,17 +482,34 @@ export function DealDossierView({
               {t.dealDossier.linkedInvoices}
             </h2>
             <span className="text-xs text-slate-500 dark:text-slate-400  font-semibold">
-              {invoices.length} Invoice(s)
+              {invoicePage?.total ?? invoices.length} Invoice(s)
             </span>
           </div>
 
+          {invoicePage ? (
+            <ListControls
+              path={`/dashboard/crm/deals/${deal.id}`}
+              {...invoicePage}
+              exportDomain="invoices"
+              statuses={[
+                "draft",
+                "sent",
+                "partially_paid",
+                "paid",
+                "overdue",
+                "void",
+              ]}
+            />
+          ) : null}
           {invoices.length === 0 ? (
             <div className="text-center py-12 bg-slate-50 dark:bg-white/[0.02] rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10">
               <FileText className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-3">
                 {t.dealDossier.noInvoices}
               </p>
-              <Link href={`/dashboard/invoices/new${contact ? `?clientId=${contact.id}` : ""}`}>
+              <Link
+                href={`/dashboard/invoices/new${contact ? `?clientId=${contact.id}` : ""}`}
+              >
                 <Button variant="outline" size="sm" className="text-xs gap-1.5">
                   <FileText className="w-3.5 h-3.5" />
                   <span>{t.dealDossier.issueInvoice}</span>
@@ -469,9 +521,15 @@ export function DealDossierView({
               <table className="w-full text-start text-xs">
                 <thead className="bg-slate-50 dark:bg-white/[0.03] border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 uppercase  tracking-wider text-[11px]">
                   <tr>
-                    <th className="p-3 text-start">{t.dealDossier.invoiceNum}</th>
-                    <th className="p-3 text-start">{t.dealDossier.issueDate}</th>
-                    <th className="p-3 text-end">{t.dealDossier.totalAmount}</th>
+                    <th className="p-3 text-start">
+                      {t.dealDossier.invoiceNum}
+                    </th>
+                    <th className="p-3 text-start">
+                      {t.dealDossier.issueDate}
+                    </th>
+                    <th className="p-3 text-end">
+                      {t.dealDossier.totalAmount}
+                    </th>
                     <th className="p-3 text-end">{t.dealDossier.balanceDue}</th>
                     <th className="p-3 text-center">{t.dealDossier.status}</th>
                   </tr>

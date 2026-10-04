@@ -1,3 +1,4 @@
+import {ContentImage} from "../../../../components/shared/ContentImage";
 import { Reveal } from "../../../../components/shared/Reveal";
 import { getWebsite } from "../../../../lib/website";
 import * as React from "react";
@@ -61,7 +62,7 @@ export default async function ProjectDetailPage({
             className="w-full h-full object-cover"
           />
         ) : (
-          <img
+          <ContentImage
             src={item.thumbnail_url}
             alt={title}
             className="w-full h-full object-cover"

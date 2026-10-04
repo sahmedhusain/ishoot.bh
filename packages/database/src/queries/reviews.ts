@@ -31,7 +31,7 @@ export async function getReviews(adminOnly = true) {
       "Error fetching reviews from DB:",
       e instanceof Error ? e.message : e,
     );
-    return [];
+    throw e;
   }
 }
 
@@ -43,7 +43,7 @@ export async function getReviewById(id: string) {
       `Error fetching review ${id}:`,
       e instanceof Error ? e.message : e,
     );
-    return null;
+    throw e;
   }
 }
 

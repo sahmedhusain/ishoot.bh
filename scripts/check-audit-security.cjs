@@ -1,0 +1,402 @@
+require("ts-node").register({transpileOnly:true,skipProject:true,compilerOptions:{module:"CommonJS",target:"ES2022",moduleResolution:"Node",esModuleInterop:true,resolveJsonModule:true}});
+// Exercise actual server-action boundaries without a network or database.
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const vm = require("node:vm");
+const ts = require("typescript");
+function load(file, mocks) {
+  if (mocks["@ishoot/database"]) { mocks["@ishoot/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@ishoot/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@ishoot/database"].db) mocks["@ishoot/database"].db.$queryRaw ??= async () => []; }
+  mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
+  mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };
+  if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
+
+  const module = { exports: {} };
+  vm.runInNewContext(
+    ts.transpileModule(fs.readFileSync(file, "utf8"), {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2022,
+        esModuleInterop: true,
+      },
+    }).outputText,
+    {
+      module,
+      exports: module.exports,
+      require: (id) => {
+        if (id === "node:crypto") return require(id);
+        if (id === "../../lib/pdf/mom-pdf") return {};
+        if (!(id in mocks)) throw Error(`Missing mock ${id}`);
+        return mocks[id];
+      },
+      console,
+      Date,
+      Set,
+      Map,
+      Buffer,
+      URL,
+      Error,
+      process,
+    },
+  );
+  return module.exports;
+}
+async function main() {
+  let actor = { id: "u", role: "viewer" },
+    touched = false;
+  const mom = load("apps/admin/app/actions/mom.ts", {
+    "../../lib/auth": {
+      requirePermission: async (resource, action) => {
+        assert.equal(resource, "moms");
+        if (actor.role !== "super_admin") throw Error(`Denied ${action}`);
+        return actor;
+      },
+      getCurrentUser: async () => actor,
+    },
+    "next/cache": { revalidatePath() {} },
+    "@ishoot/database": {
+      createMinuteOfMeeting: async () => {
+        touched = true;
+      },
+      getMinuteOfMeetingById: async () => ({ id: "m", status: "draft" }),
+      createActivityLog: async () => {
+        touched = true;
+      },
+      approveAndSignMom: async () => {
+        touched = true;
+      },
+    },
+  });
+  await assert.rejects(mom.approveAndSignMomAction("m"), /Denied approve/);
+  await assert.rejects(
+    mom.shareMomViaEmailAction("m", "x@example.com"),
+    /Denied export/,
+  );
+  assert.equal(touched, false);
+  actor = { id: "s", role: "super_admin" };
+  await assert.rejects(
+    mom.approveAndSignMomAction("m"),
+    /Configure your signature/,
+  );
+  await assert.rejects(
+    mom.updateMomAction("m", { approvedById: "forged" }),
+    /Approval fields/,
+  );
+  await assert.rejects(
+    mom.updateMomAction("m", { status: "approved" }),
+    /approval action/,
+  );
+  await assert.rejects(mom.shareMomViaEmailAction("m", "x@example.com"), /Approve the meeting/);
+  assert.equal(touched, false, "unapproved sharing must not log success");
+
+  let captured = [],
+    fail = false;
+  const transaction = {
+    role: { update: async () => ({ id: "admin" }) },
+    permission: {
+      deleteMany: async () => {},
+      createMany: async ({ data }) => {
+        captured = data;
+        if (fail) throw Error("DB failure");
+      },
+    },
+    activityLog: { create: async () => {} },
+  };
+  const roles = load("apps/admin/app/actions/roles.ts", {
+    "../../lib/auth": { requirePermission: async () => actor },
+    "next/cache": { revalidatePath() {} },
+    "@ishoot/database": {
+      ALL_RESOURCES: ["invoices", "moms"],
+      ALL_ACTIONS: ["read", "write", "delete", "export", "approve"],
+      db: { $transaction: async (fn) => fn(transaction) },
+    },
+  });
+  actor = { id: "a", role: "admin" };
+  await assert.rejects(roles.upsertRoleAction({ nameEn: "Admin", nameAr: "مدير", permissions: [] }), /Only super/);
+  actor = { id: "s", role: "super_admin" };
+  await roles.upsertRoleAction({
+    id: "admin",
+    nameEn: "Admin",
+    nameAr: "مدير",
+    permissions: [
+      {
+        module: "invoices",
+        canRead: true,
+        canWrite: false,
+        canDelete: false,
+        canExport: true,
+        canApprove: false,
+      },
+    ],
+  });
+  assert.equal(captured.length, 10);
+  assert.equal(
+    captured.find((p) => p.resource === "invoices" && p.action === "write")
+      .allowed,
+    false,
+  );
+  assert.equal(
+    captured.find((p) => p.resource === "invoices" && p.action === "export")
+      .allowed,
+    true,
+  );
+  assert.equal(
+    captured.find((p) => p.resource === "moms" && p.action === "approve")
+      .allowed,
+    false,
+  );
+  await assert.rejects(
+    roles.upsertRoleAction({
+      id: "super_admin",
+      nameEn: "Super",
+      nameAr: "مدير",
+      permissions: [],
+    }),
+    /cannot be edited/,
+  );
+  fail = true;
+  await assert.rejects(
+    roles.upsertRoleAction({
+      id: "admin",
+      nameEn: "Admin",
+      nameAr: "مدير",
+      permissions: [],
+    }),
+    /DB failure/,
+  );
+
+  let updateData = null;
+  const users = load("apps/admin/app/actions/users.ts", {
+    "../../lib/auth": { requirePermission: async () => actor },
+    "next/cache": { revalidatePath() {} },
+    "@ishoot/database": {
+      getUserById: async () => ({ id: "t", role: "viewer" }),
+      getEffectivePermissions: async () => ({ "deals:read": true }),
+      db: { role: { findUnique: async () => ({ id: "super_admin" }) } },
+      updateUser: async (id, data) => {
+        updateData = data;
+        return { id };
+      },
+      createActivityLog: async () => {},
+    },
+  });
+  actor = { id: "a", role: "admin" };
+  await assert.rejects(
+    users.updateUserAction("t", { role: "super_admin" }),
+    /Only super/,
+  );
+  await assert.rejects(users.updateUserAction("t", { full_name: "Updated", permissions: { "users:write": true } }), /Invalid input/);
+  assert.equal(updateData, null, "forged override must reject before mutation");
+
+  await assert.rejects(
+    users.createUserAction({
+      email: "new@example.invalid",
+      full_name: "New",
+      role: "viewer",
+    }),
+    /Password must/,
+  );
+  await assert.rejects(
+    users.createUserAction({
+      email: "new@example.invalid",
+      full_name: "New",
+      role: "viewer",
+      password: "short",
+    }),
+    /Password must/,
+  );
+  await assert.rejects(
+    users.updateUserAction("t", { password: "short" }),
+    /Password must/,
+  );
+  const translations = require("../packages/locales/src/en.json");
+  const emailTemplates = load(
+    "packages/email/src/templates/html-templates.ts",
+    { "@ishoot/locales": { getTranslations: () => translations } },
+  );
+  const hostile = "<img src=x onerror=alert(1)>";
+  const html = emailTemplates.createInquiryConfirmationEmail(
+    hostile,
+    [hostile],
+    "en",
+    { nameEn: hostile, nameAr: hostile, website: "javascript:alert(1)" },
+  );
+  assert.ok(!html.includes(hostile));
+  assert.ok(html.includes("&lt;img"));
+  assert.ok(!html.includes('href="javascript:'));
+  const publicCompany = load("apps/web/lib/company.ts", {
+    react: { cache: (fn) => fn },
+    "next/cache": { unstable_cache: (fn) => fn },
+    "@ishoot/database": {
+      getCompanySettings: async () => ({
+        company_name_en: "Stored name",
+        bank_iban: "sensitive",
+        signature_url: "/private",
+        invoice_next_number: 999,
+        internalFutureField: "hidden",
+      }),
+    },
+  });
+  const publicSettings = await publicCompany.getPublicCompanySettings();
+  assert.equal(publicSettings.company_name_en, "Stored name");
+  for (const field of [
+    "bank_iban",
+    "signature_url",
+    "invoice_next_number",
+    "internalFutureField",
+  ])
+    assert.ok(!(field in publicSettings));
+
+  let user = null,
+    allowed = false,
+    fetched = false;
+  class Response {
+    constructor(body, options) {
+      this.body = body;
+      this.status = options?.status || 200;
+      this.headers = options?.headers;
+    }
+  }
+  const feed = load("apps/admin/app/api/calendar/feed/route.ts", {
+    "next/server": { NextResponse: Response },
+    "../../../../lib/auth": { getCurrentUser: async () => user },
+    "@ishoot/database": {
+      hasPermission: async () => allowed,
+      getCalendarEvents: async () => {
+        fetched = true;
+        return [
+          {
+            id: "e",
+            title: "Shoot\r\nEND:VEVENT",
+            start_date: "2026-10-01T09:00:00Z",
+            end_date: "2026-10-01T10:00:00Z",
+          },
+        ];
+      },
+    },
+  });
+  assert.equal((await feed.GET({})).status, 401);
+  user = { id: "v", role: "viewer" };
+  assert.equal((await feed.GET({})).status, 403);
+  assert.equal(fetched, false);
+  allowed = true;
+  const response = await feed.GET({});
+  assert.equal(response.headers["Cache-Control"], "private, no-store");
+  assert.ok(response.body.includes("SUMMARY:Shoot\\nEND:VEVENT"));
+  const legal = load("apps/web/lib/legal-html.ts", {});
+  const sanitized = legal.safeLegalHtml(
+    '<p>Hello</p><script>alert(1)</script><img src=x onerror=alert(1)><a href="javascript:alert(1)">Link</a>',
+  );
+  assert.ok(sanitized.startsWith("<p>Hello</p>"));
+  assert.ok(
+    !sanitized.includes("<script") &&
+      !sanitized.includes("<img") &&
+      !sanitized.includes("<a "),
+  );
+  assert.equal(
+    legal
+      .safeLegalHtml('<strong onclick="alert(1)">test</strong>')
+      .includes("<strong onclick"),
+    false,
+  );
+  const assetRoot = require("node:path").resolve(process.cwd(), "public");
+  const asset = load("apps/admin/lib/pdf/configured-asset.ts", {
+    fs: {
+      realpathSync: (file) =>
+        file.endsWith("escape.png") ? "/tmp/escape.png" : file,
+      statSync: () => ({ isFile: () => true }),
+    },
+    path: require("node:path"),
+    "@ishoot/database": { uploadRoot: () => "/unused" },
+  });
+  assert.equal(asset.resolveConfiguredPdfAsset(null), undefined);
+  assert.equal(
+    asset.resolveConfiguredPdfAsset("https://external.invalid/stamp.png"),
+    undefined,
+  );
+  assert.equal(
+    asset.resolveConfiguredPdfAsset("/brand/../../secret.png"),
+    undefined,
+  );
+  assert.equal(asset.resolveConfiguredPdfAsset("/brand/escape.png"), undefined);
+  assert.equal(
+    asset.resolveConfiguredPdfAsset("/brand/configured.svg"),
+    assetRoot + "/brand/configured.png",
+  );
+  const brokenReads = load("packages/database/src/queries/banners.ts", {
+    "../db": {
+      db: {
+        heroBanner: {
+          findMany: async () => {
+            throw Error("Database unavailable");
+          },
+        },
+      },
+    },
+  });
+  await assert.rejects(brokenReads.getActiveBanners(), /Database unavailable/);
+  await assert.rejects(brokenReads.getAllBanners(), /Database unavailable/);
+  const brokenPermissions = load(
+    "packages/database/src/queries/permissions.ts",
+    {
+      "../db": {
+        db: {
+          permission: {
+            findMany: async () => {
+              throw Error("Database unavailable");
+            },
+            findUnique: async () => {
+              throw Error("Database unavailable");
+            },
+          },
+        },
+      },
+    },
+  );
+  await assert.rejects(
+    brokenPermissions.getAllPermissions(),
+    /Database unavailable/,
+  );
+  assert.equal(
+    await brokenPermissions.hasPermission("viewer", "calendar", "read"),
+    false,
+  );
+
+  const buckets = new Map();
+  const loginInput = load("apps/admin/lib/login-input.ts", { "@ishoot/database": { trustedClientIp: (h) => h.get("x-forwarded-for"), consumeAbuseLimit: async (scope,key,limit) => {const next=(buckets.get(key)||0)+1;buckets.set(key,next);if(next>limit)throw Error("RATE_LIMIT");} } });
+  const request = (ip, body) => ({
+    headers: { get: (key) => (key === "x-forwarded-for" ? ip : null) },
+    body: {
+      getReader: () => {
+        let done = false;
+        return {
+          read: async () =>
+            done
+              ? { done: true }
+              : ((done = true), { done: false, value: Buffer.from(body) }),
+          cancel: async () => {},
+        };
+      },
+    },
+  });
+  await assert.rejects(
+    loginInput.readLoginInput(request("bad", "null")),
+    /INVALID_INPUT/,
+  );
+  await assert.rejects(
+    loginInput.readLoginInput(request("large", "x".repeat(5000))),
+    /INVALID_INPUT/,
+  );
+  for (let i = 0; i < 10; i++)
+    await loginInput.readLoginInput(request("limited", "{}"));
+  await assert.rejects(
+    loginInput.readLoginInput(request("limited", "{}")),
+    /RATE_LIMIT/,
+  );
+  console.log(
+    "Audit security checks passed: calendar authentication/authorization, ICS injection, meeting approval/export/signature, role denials/export/transaction failures, privileged-user boundaries and forged override payloads.",
+  );
+}
+main().catch((e) => {
+  console.error(e);
+  process.exitCode = 1;
+});

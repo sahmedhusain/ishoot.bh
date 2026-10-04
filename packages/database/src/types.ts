@@ -238,6 +238,7 @@ export interface Inquiry {
     | "under_review"
     | "assigned"
     | "pending_approval"
+    | "approved"
     | "confirmed"
     | "returned"
     | "in_progress"
@@ -251,6 +252,8 @@ export interface Inquiry {
     action: string;
   }>;
   approval_notes?: string;
+  approved_by_id?: string;
+  approved_at?: string;
   return_reason?: string;
   resolution_notes?: string;
   confirmed_at?: string;
@@ -341,6 +344,7 @@ export interface CRMContact {
 }
 
 export interface CustomerDossier {
+  pagination?: Record<string, {page:number;total:number}>;
   contact: CRMContact;
   inquiries: Inquiry[];
   deals: CRMDeal[];
@@ -350,6 +354,10 @@ export interface CustomerDossier {
   attachments: Attachment[];
   activities: ActivityLog[];
   metrics: {
+    balancesByCurrency: Record<
+      string,
+      { totalLtv: number; totalPaid: number; totalOutstanding: number }
+    >;
     totalLtv: number;
     totalPaid: number;
     totalOutstanding: number;
@@ -591,6 +599,7 @@ export interface Expense {
   expense_date: string;
   vendor_name?: string;
   receipt_url?: string;
+  is_billable?: boolean;
   is_recurring: boolean;
   recurrence_interval?: "monthly" | "quarterly" | "yearly";
   notes?: string;
@@ -799,4 +808,139 @@ export interface SocialLink {
   display_order: number;
   created_at: string;
   updated_at: string;
+}
+
+export type PublicCompanySettings = Pick<
+  CompanySettings,
+  | "company_name_en"
+  | "company_name_ar"
+  | "cr_number"
+  | "address_en"
+  | "address_ar"
+  | "phone"
+  | "whatsapp_phone"
+  | "email"
+  | "website"
+  | "instagram_url"
+  | "linkedin_url"
+  | "youtube_url"
+  | "logo_url"
+  | "dark_logo_url"
+  | "logo_text_dark_url"
+  | "logo_text_light_url"
+  | "icon_url"
+  | "dark_icon_url"
+  | "icon_light_url"
+  | "icon_dark_url"
+  | "ceo_name_en"
+  | "ceo_name_ar"
+  | "ceo_title_en"
+  | "ceo_title_ar"
+  | "ceo_quote_en"
+  | "ceo_quote_ar"
+  | "mission_en"
+  | "mission_ar"
+  | "vision_en"
+  | "vision_ar"
+  | "about_text_en"
+  | "about_text_ar"
+  | "terms_en"
+  | "terms_ar"
+  | "rules_en"
+  | "rules_ar"
+>;
+
+export type WebSettingsInput = Partial<Pick<CompanySettings,
+  "company_name_en" | "company_name_ar" | "address_en" | "address_ar" | "phone" | "whatsapp_phone" | "email" | "website" | "instagram_url" | "linkedin_url" | "youtube_url" | "ceo_name_en" | "ceo_name_ar" | "ceo_title_en" | "ceo_title_ar" | "ceo_quote_en" | "ceo_quote_ar" | "mission_en" | "mission_ar" | "vision_en" | "vision_ar" | "about_text_en" | "about_text_ar" | "terms_en" | "terms_ar" | "rules_en" | "rules_ar"
+>>;
+
+export type QuotationStatus = "draft" | "review" | "approved" | "issued" | "accepted" | "declined" | "expired" | "cancelled";
+
+export interface QuotationLineItem {
+  id: string;
+  quotationId: string;
+  descriptionEn: string;
+  descriptionAr?: string | null;
+  quantity: any;
+  unitPrice: any;
+  lineTotal: any;
+  orderIndex: number;
+}
+
+export interface Quotation {
+  id: string;
+  quotationNumber: string;
+  revision: number;
+  dealId?: string | null;
+  clientId?: string | null;
+  inquiryId?: string | null;
+  invoiceId?: string | null;
+  issueDate: Date;
+  validUntilDate: Date;
+  subtotal: any;
+  vatEnabled: boolean;
+  vatPercentage: any;
+  vatAmount: any;
+  discountType: string;
+  discountValue: any;
+  discountAmount: any;
+  totalAmount: any;
+  currency: string;
+  language: string;
+  status: QuotationStatus | string;
+  acceptanceEvidence?: string | null;
+  pdfStoragePath?: string | null;
+  deliveryChannel?: string | null;
+  deliveredAt?: Date | null;
+  termsEn?: string | null;
+  termsAr?: string | null;
+  createdById?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  lineItems?: QuotationLineItem[];
+}
+
+export type MessageDirection = "inbound" | "outbound";
+export type MessageStatus = "queued" | "accepted" | "delivered" | "bounced" | "failed";
+
+export interface CommunicationThread {
+  id: string;
+  subject: string;
+  status: string;
+  contactId?: string | null;
+  inquiryId?: string | null;
+  assignedTo?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  messages?: CommunicationMessage[];
+}
+
+export interface CommunicationMessage {
+  id: string;
+  threadId?: string | null;
+  messageId?: string | null;
+  inReplyTo?: string | null;
+  direction: MessageDirection | string;
+  fromEmail: string;
+  toEmail: string;
+  subject: string;
+  bodyText?: string | null;
+  bodyHtml?: string | null;
+  status: MessageStatus | string;
+  deliveryLog?: any | null;
+  invoiceId?: string | null;
+  quotationId?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SocialMetric {
+  id: string;
+  platform: string;
+  metricType: string;
+  value: number;
+  recordedAt: Date;
+  isStale: boolean;
+  errorStatus?: string | null;
+  createdAt: Date;
 }

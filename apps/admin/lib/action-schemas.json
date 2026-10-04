@@ -1,0 +1,3545 @@
+{
+  "createAttachmentAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "fileName": {
+            "kind": "string",
+            "optional": false
+          },
+          "fileUrl": {
+            "kind": "string",
+            "optional": false
+          },
+          "fileSize": {
+            "kind": "number",
+            "optional": true
+          },
+          "mimeType": {
+            "kind": "string",
+            "optional": true
+          },
+          "entityType": {
+            "kind": "string",
+            "optional": false
+          },
+          "entityId": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteAttachmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createCalendarEventAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "description": {
+            "kind": "string",
+            "optional": true
+          },
+          "start_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "end_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "all_day": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "location": {
+            "kind": "string",
+            "optional": true
+          },
+          "color": {
+            "kind": "string",
+            "optional": true
+          },
+          "event_type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "meeting"
+              },
+              {
+                "kind": "literal",
+                "value": "shoot"
+              },
+              {
+                "kind": "literal",
+                "value": "deadline"
+              },
+              {
+                "kind": "literal",
+                "value": "reminder"
+              }
+            ],
+            "optional": true
+          },
+          "deal_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "created_by": {
+            "kind": "string",
+            "optional": true
+          },
+          "google_event_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "google_calendar_id": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteCalendarEventAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "toggleBannerStatusAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "isActive": {
+        "kind": "boolean",
+        "optional": false
+      }
+    }
+  },
+  "deleteBannerAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createBannerAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "subtitle_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "subtitle_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "media_type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "video"
+              },
+              {
+                "kind": "literal",
+                "value": "image"
+              }
+            ],
+            "optional": false
+          },
+          "media_url": {
+            "kind": "string",
+            "optional": false
+          },
+          "poster_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "cta_label_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "cta_label_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "cta_link": {
+            "kind": "string",
+            "optional": true
+          },
+          "display_order": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteClientLogoAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createClientLogoAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "client_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "logo_svg_url": {
+            "kind": "string",
+            "optional": false
+          },
+          "website_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "display_order": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteEquipmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createEquipmentAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "category": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "cameras"
+              },
+              {
+                "kind": "literal",
+                "value": "lenses"
+              },
+              {
+                "kind": "literal",
+                "value": "lighting"
+              },
+              {
+                "kind": "literal",
+                "value": "audio_grading"
+              },
+              {
+                "kind": "literal",
+                "value": "stages"
+              },
+              {
+                "kind": "literal",
+                "value": "grip"
+              },
+              {
+                "kind": "literal",
+                "value": "audio"
+              }
+            ],
+            "optional": false
+          },
+          "model_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "brand": {
+            "kind": "string",
+            "optional": true
+          },
+          "specification": {
+            "kind": "string",
+            "optional": true
+          },
+          "daily_rate_bhd": {
+            "kind": "number",
+            "optional": true
+          },
+          "quantity": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "togglePortfolioFeaturedAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "isFeatured": {
+        "kind": "boolean",
+        "optional": false
+      }
+    }
+  },
+  "deletePortfolioItemAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createPortfolioItemAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "category_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "slug": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "client_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "year": {
+            "kind": "number",
+            "optional": false
+          },
+          "aspect_ratio": {
+            "kind": "string",
+            "optional": true
+          },
+          "thumbnail_url": {
+            "kind": "string",
+            "optional": false
+          },
+          "preview_video_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "is_featured": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "full_video_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "description_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "description_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "gallery_urls": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "display_order": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "createReviewAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "authorEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "authorAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "companyEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "companyAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "quoteEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "quoteAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "rating": {
+            "kind": "number",
+            "optional": true
+          },
+          "year": {
+            "kind": "string",
+            "optional": true
+          },
+          "clientId": {
+            "kind": "string",
+            "optional": true
+          },
+          "isApproved": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "originalLocale": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateReviewAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "authorEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "authorAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "companyEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "companyAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "quoteEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "quoteAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "rating": {
+            "kind": "number",
+            "optional": true
+          },
+          "year": {
+            "kind": "string",
+            "optional": true
+          },
+          "clientId": {
+            "kind": "string",
+            "optional": true
+          },
+          "isApproved": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "originalLocale": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "toggleReviewApprovalAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "isApproved": {
+        "kind": "boolean",
+        "optional": false
+      }
+    }
+  },
+  "deleteReviewAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createFaqAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "questionEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "questionAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "answerEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "answerAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "category": {
+            "kind": "string",
+            "optional": true
+          },
+          "isPublished": {
+            "kind": "boolean",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateFaqAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "questionEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "questionAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "answerEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "answerAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "category": {
+            "kind": "string",
+            "optional": true
+          },
+          "isPublished": {
+            "kind": "boolean",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteFaqAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createStatisticAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "value": {
+            "kind": "string",
+            "optional": false
+          },
+          "labelEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "labelAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "subLabelEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "subLabelAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "icon": {
+            "kind": "string",
+            "optional": true
+          },
+          "sortOrder": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateStatisticAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "value": {
+            "kind": "string",
+            "optional": true
+          },
+          "labelEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "labelAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "subLabelEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "subLabelAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "icon": {
+            "kind": "string",
+            "optional": true
+          },
+          "sortOrder": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteStatisticAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateBannerContentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "subtitle_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "subtitle_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "media_type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "video"
+              },
+              {
+                "kind": "literal",
+                "value": "image"
+              }
+            ],
+            "optional": false
+          },
+          "media_url": {
+            "kind": "string",
+            "optional": false
+          },
+          "poster_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "cta_label_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "cta_label_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "cta_link": {
+            "kind": "string",
+            "optional": true
+          },
+          "display_order": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updatePortfolioContentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "category_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "slug": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "client_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "year": {
+            "kind": "number",
+            "optional": false
+          },
+          "aspect_ratio": {
+            "kind": "string",
+            "optional": true
+          },
+          "thumbnail_url": {
+            "kind": "string",
+            "optional": false
+          },
+          "preview_video_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "is_featured": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "full_video_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "description_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "description_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "gallery_urls": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "display_order": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateDealStageAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "stage": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "lead"
+          },
+          {
+            "kind": "literal",
+            "value": "proposal_sent"
+          },
+          {
+            "kind": "literal",
+            "value": "contract_signed"
+          },
+          {
+            "kind": "literal",
+            "value": "production"
+          },
+          {
+            "kind": "literal",
+            "value": "post_production"
+          },
+          {
+            "kind": "literal",
+            "value": "delivered"
+          },
+          {
+            "kind": "literal",
+            "value": "invoiced"
+          },
+          {
+            "kind": "literal",
+            "value": "closed_won"
+          },
+          {
+            "kind": "literal",
+            "value": "closed_lost"
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "createCRMDealAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "value": {
+            "kind": "number",
+            "optional": false
+          },
+          "stage": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "lead"
+              },
+              {
+                "kind": "literal",
+                "value": "proposal_sent"
+              },
+              {
+                "kind": "literal",
+                "value": "contract_signed"
+              },
+              {
+                "kind": "literal",
+                "value": "production"
+              },
+              {
+                "kind": "literal",
+                "value": "post_production"
+              },
+              {
+                "kind": "literal",
+                "value": "delivered"
+              },
+              {
+                "kind": "literal",
+                "value": "invoiced"
+              },
+              {
+                "kind": "literal",
+                "value": "closed_won"
+              },
+              {
+                "kind": "literal",
+                "value": "closed_lost"
+              }
+            ],
+            "optional": true
+          },
+          "contact_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "shoot_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "target_close_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateDealAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": true
+          },
+          "value": {
+            "kind": "number",
+            "optional": true
+          },
+          "currency": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "BHD"
+              },
+              {
+                "kind": "literal",
+                "value": "SAR"
+              },
+              {
+                "kind": "literal",
+                "value": "AED"
+              },
+              {
+                "kind": "literal",
+                "value": "KWD"
+              },
+              {
+                "kind": "literal",
+                "value": "OMR"
+              },
+              {
+                "kind": "literal",
+                "value": "QAR"
+              },
+              {
+                "kind": "literal",
+                "value": "USD"
+              }
+            ],
+            "optional": true
+          },
+          "stage": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "lead"
+              },
+              {
+                "kind": "literal",
+                "value": "proposal_sent"
+              },
+              {
+                "kind": "literal",
+                "value": "contract_signed"
+              },
+              {
+                "kind": "literal",
+                "value": "production"
+              },
+              {
+                "kind": "literal",
+                "value": "post_production"
+              },
+              {
+                "kind": "literal",
+                "value": "delivered"
+              },
+              {
+                "kind": "literal",
+                "value": "invoiced"
+              },
+              {
+                "kind": "literal",
+                "value": "closed_won"
+              },
+              {
+                "kind": "literal",
+                "value": "closed_lost"
+              }
+            ],
+            "optional": true
+          },
+          "probability": {
+            "kind": "number",
+            "optional": true
+          },
+          "contact_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "shoot_date": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "target_close_date": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          },
+          "assigned_to": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "lost_reason": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "createContactAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "full_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "email": {
+            "kind": "string",
+            "optional": true
+          },
+          "phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "company": {
+            "kind": "string",
+            "optional": true
+          },
+          "job_title": {
+            "kind": "string",
+            "optional": true
+          },
+          "contact_type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "client"
+              },
+              {
+                "kind": "literal",
+                "value": "agency"
+              },
+              {
+                "kind": "literal",
+                "value": "vendor"
+              },
+              {
+                "kind": "literal",
+                "value": "freelancer"
+              }
+            ],
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateContactAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "full_name": {
+            "kind": "string",
+            "optional": true
+          },
+          "email": {
+            "kind": "string",
+            "optional": true
+          },
+          "phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "company": {
+            "kind": "string",
+            "optional": true
+          },
+          "job_title": {
+            "kind": "string",
+            "optional": true
+          },
+          "contact_type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "client"
+              },
+              {
+                "kind": "literal",
+                "value": "agency"
+              },
+              {
+                "kind": "literal",
+                "value": "vendor"
+              },
+              {
+                "kind": "literal",
+                "value": "freelancer"
+              }
+            ],
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteContactAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "lookupClientAction": {
+    "kind": "object",
+    "fields": {
+      "term": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "searchContactsAction": {
+    "kind": "object",
+    "fields": {
+      "query": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "globalSearchAction": {
+    "kind": "object",
+    "fields": {
+      "query": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateInquiryStatusAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "status": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "new"
+          },
+          {
+            "kind": "literal",
+            "value": "contacted"
+          },
+          {
+            "kind": "literal",
+            "value": "qualified"
+          },
+          {
+            "kind": "literal",
+            "value": "archived"
+          },
+          {
+            "kind": "literal",
+            "value": "in_progress"
+          },
+          {
+            "kind": "literal",
+            "value": "waiting"
+          },
+          {
+            "kind": "literal",
+            "value": "resolved"
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "deleteInquiryAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "convertInquiryToClientAction": {
+    "kind": "object",
+    "fields": {
+      "inquiryId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "manageInquiryAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "priority": {
+            "kind": "string",
+            "optional": true
+          },
+          "claim": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "linkInquiryCustomerAction": {
+    "kind": "object",
+    "fields": {
+      "inquiryId": {
+        "kind": "string",
+        "optional": false
+      },
+      "customerId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "mergeContactsAction": {
+    "kind": "object",
+    "fields": {
+      "primaryId": {
+        "kind": "string",
+        "optional": false
+      },
+      "duplicateIds": {
+        "kind": "array",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      }
+    }
+  },
+  "createCompanyDocumentAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "category": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "cr_license"
+              },
+              {
+                "kind": "literal",
+                "value": "vat_certificate"
+              },
+              {
+                "kind": "literal",
+                "value": "company_profile"
+              },
+              {
+                "kind": "literal",
+                "value": "bylaws"
+              },
+              {
+                "kind": "literal",
+                "value": "standard_contract"
+              }
+            ],
+            "optional": false
+          },
+          "document_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "file_url": {
+            "kind": "string",
+            "optional": false
+          },
+          "file_size": {
+            "kind": "number",
+            "optional": true
+          },
+          "mime_type": {
+            "kind": "string",
+            "optional": true
+          },
+          "valid_from": {
+            "kind": "string",
+            "optional": true
+          },
+          "valid_until": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteCompanyDocumentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createExpenseAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "amount": {
+            "kind": "number",
+            "optional": false
+          },
+          "category_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "deal_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "vendor_name": {
+            "kind": "string",
+            "optional": true
+          },
+          "description_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "description_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "expense_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "is_billable": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "currency": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "BHD"
+              },
+              {
+                "kind": "literal",
+                "value": "SAR"
+              },
+              {
+                "kind": "literal",
+                "value": "AED"
+              },
+              {
+                "kind": "literal",
+                "value": "KWD"
+              },
+              {
+                "kind": "literal",
+                "value": "OMR"
+              },
+              {
+                "kind": "literal",
+                "value": "QAR"
+              },
+              {
+                "kind": "literal",
+                "value": "USD"
+              }
+            ],
+            "optional": true
+          },
+          "receipt_url": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteExpenseAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createPaymentAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "invoice_id": {
+            "kind": "string",
+            "optional": false
+          },
+          "amount": {
+            "kind": "number",
+            "optional": false
+          },
+          "payment_method": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "bank_transfer"
+              },
+              {
+                "kind": "literal",
+                "value": "cash"
+              },
+              {
+                "kind": "literal",
+                "value": "cheque"
+              },
+              {
+                "kind": "literal",
+                "value": "card"
+              },
+              {
+                "kind": "literal",
+                "value": "online"
+              }
+            ],
+            "optional": false
+          },
+          "payment_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "reference_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          },
+          "proof_attachments": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "fileName": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "fileUrl": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "fileSize": {
+                  "kind": "number",
+                  "optional": true
+                },
+                "mimeType": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "createInvoiceAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "contact_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "deal_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "issue_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "due_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "currency": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "BHD"
+              },
+              {
+                "kind": "literal",
+                "value": "SAR"
+              },
+              {
+                "kind": "literal",
+                "value": "AED"
+              },
+              {
+                "kind": "literal",
+                "value": "KWD"
+              },
+              {
+                "kind": "literal",
+                "value": "OMR"
+              },
+              {
+                "kind": "literal",
+                "value": "QAR"
+              },
+              {
+                "kind": "literal",
+                "value": "USD"
+              }
+            ],
+            "optional": true
+          },
+          "language": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "en"
+              },
+              {
+                "kind": "literal",
+                "value": "ar"
+              }
+            ],
+            "optional": true
+          },
+          "notes_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "discount_type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "none"
+              },
+              {
+                "kind": "literal",
+                "value": "percentage"
+              },
+              {
+                "kind": "literal",
+                "value": "fixed"
+              }
+            ],
+            "optional": true
+          },
+          "discount_value": {
+            "kind": "number",
+            "optional": true
+          },
+          "vat_enabled": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "vat_percentage": {
+            "kind": "number",
+            "optional": true
+          },
+          "created_by": {
+            "kind": "string",
+            "optional": true
+          },
+          "line_items": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "service_id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description_en": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "description_ar": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "quantity": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "unit_price": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "line_total": {
+                  "kind": "number",
+                  "optional": true
+                },
+                "display_order": {
+                  "kind": "number",
+                  "optional": true
+                },
+                "id": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateInvoiceAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "contact_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "deal_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "issue_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "due_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "currency": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "BHD"
+              },
+              {
+                "kind": "literal",
+                "value": "SAR"
+              },
+              {
+                "kind": "literal",
+                "value": "AED"
+              },
+              {
+                "kind": "literal",
+                "value": "KWD"
+              },
+              {
+                "kind": "literal",
+                "value": "OMR"
+              },
+              {
+                "kind": "literal",
+                "value": "QAR"
+              },
+              {
+                "kind": "literal",
+                "value": "USD"
+              }
+            ],
+            "optional": true
+          },
+          "language": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "en"
+              },
+              {
+                "kind": "literal",
+                "value": "ar"
+              }
+            ],
+            "optional": true
+          },
+          "notes_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "discount_type": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "none"
+              },
+              {
+                "kind": "literal",
+                "value": "percentage"
+              },
+              {
+                "kind": "literal",
+                "value": "fixed"
+              }
+            ],
+            "optional": true
+          },
+          "discount_value": {
+            "kind": "number",
+            "optional": true
+          },
+          "vat_enabled": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "vat_percentage": {
+            "kind": "number",
+            "optional": true
+          },
+          "line_items": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "service_id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description_en": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "description_ar": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "quantity": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "unit_price": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "line_total": {
+                  "kind": "number",
+                  "optional": true
+                },
+                "display_order": {
+                  "kind": "number",
+                  "optional": true
+                },
+                "id": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "voidInvoiceAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "getUnpaidInvoicesByClientAction": {
+    "kind": "object",
+    "fields": {
+      "clientId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createMomAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "titleAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "meetingDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "startTime": {
+            "kind": "string",
+            "optional": true
+          },
+          "endTime": {
+            "kind": "string",
+            "optional": true
+          },
+          "location": {
+            "kind": "string",
+            "optional": true
+          },
+          "dealId": {
+            "kind": "string",
+            "optional": true
+          },
+          "clientId": {
+            "kind": "string",
+            "optional": true
+          },
+          "attendees": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "name": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "role": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "email": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "organization": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "attended": {
+                  "kind": "boolean",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "agenda": {
+            "kind": "string",
+            "optional": false
+          },
+          "discussionPoints": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "topic": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "notes": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "speaker": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
+          },
+          "actionItems": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "task": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "assignee": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "dueDate": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "status": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "literal",
+                      "value": "pending"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": "in_progress"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": "completed"
+                    }
+                  ],
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "decisions": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          },
+          "status": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateMomAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": true
+          },
+          "titleAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "meetingDate": {
+            "kind": "string",
+            "optional": true
+          },
+          "startTime": {
+            "kind": "string",
+            "optional": true
+          },
+          "endTime": {
+            "kind": "string",
+            "optional": true
+          },
+          "location": {
+            "kind": "string",
+            "optional": true
+          },
+          "dealId": {
+            "kind": "string",
+            "optional": true
+          },
+          "clientId": {
+            "kind": "string",
+            "optional": true
+          },
+          "attendees": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "name": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "role": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "email": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "organization": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "attended": {
+                  "kind": "boolean",
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
+          },
+          "agenda": {
+            "kind": "string",
+            "optional": true
+          },
+          "discussionPoints": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "topic": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "notes": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "speaker": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": true
+          },
+          "actionItems": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "task": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "assignee": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "dueDate": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "status": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "literal",
+                      "value": "pending"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": "in_progress"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": "completed"
+                    }
+                  ],
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
+          },
+          "decisions": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          },
+          "status": {
+            "kind": "string",
+            "optional": true
+          },
+          "approvedById": {
+            "kind": "string",
+            "optional": true
+          },
+          "signatureUrl": {
+            "kind": "string",
+            "optional": true
+          },
+          "pdfStoragePath": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteMomAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "approveAndSignMomAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "shareMomViaEmailAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "recipientEmail": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "getNotificationsAction": {
+    "kind": "object",
+    "fields": {
+      "userId": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "markNotificationReadAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "markAllNotificationsReadAction": {
+    "kind": "object",
+    "fields": {
+      "userId": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "assignRequestAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "assignment": {
+        "kind": "object",
+        "fields": {
+          "assignedToId": {
+            "kind": "string",
+            "optional": false
+          },
+          "team": {
+            "kind": "string",
+            "optional": false
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "reassignRequestAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "assignment": {
+        "kind": "object",
+        "fields": {
+          "newAssignedToId": {
+            "kind": "string",
+            "optional": false
+          },
+          "newTeam": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "returnRequestAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "details": {
+        "kind": "object",
+        "fields": {
+          "reason": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "approveRequestAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "details": {
+        "kind": "object",
+        "fields": {
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "confirmRequestAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "details": {
+        "kind": "object",
+        "fields": {
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "resolveRequestAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "details": {
+        "kind": "object",
+        "fields": {
+          "resolutionNotes": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "upsertRoleAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "permissions": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "module": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "canRead": {
+                  "kind": "boolean",
+                  "optional": false
+                },
+                "canWrite": {
+                  "kind": "boolean",
+                  "optional": false
+                },
+                "canDelete": {
+                  "kind": "boolean",
+                  "optional": false
+                },
+                "canApprove": {
+                  "kind": "boolean",
+                  "optional": false
+                },
+                "canExport": {
+                  "kind": "boolean",
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteRoleAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createServiceAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "code": {
+            "kind": "string",
+            "optional": true
+          },
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "category": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "pre_production"
+              },
+              {
+                "kind": "literal",
+                "value": "production"
+              },
+              {
+                "kind": "literal",
+                "value": "post_production"
+              },
+              {
+                "kind": "literal",
+                "value": "studio_rental"
+              },
+              {
+                "kind": "literal",
+                "value": "equipment"
+              },
+              {
+                "kind": "literal",
+                "value": "consulting"
+              },
+              {
+                "kind": "literal",
+                "value": "other"
+              }
+            ],
+            "optional": true
+          },
+          "description_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "description_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "unit": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "hour"
+              },
+              {
+                "kind": "literal",
+                "value": "day"
+              },
+              {
+                "kind": "literal",
+                "value": "project"
+              },
+              {
+                "kind": "literal",
+                "value": "unit"
+              },
+              {
+                "kind": "literal",
+                "value": "minute"
+              }
+            ],
+            "optional": true
+          },
+          "default_rate": {
+            "kind": "number",
+            "optional": false
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "display_order": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateServiceAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "code": {
+            "kind": "string",
+            "optional": true
+          },
+          "name_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "category": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "pre_production"
+              },
+              {
+                "kind": "literal",
+                "value": "production"
+              },
+              {
+                "kind": "literal",
+                "value": "post_production"
+              },
+              {
+                "kind": "literal",
+                "value": "studio_rental"
+              },
+              {
+                "kind": "literal",
+                "value": "equipment"
+              },
+              {
+                "kind": "literal",
+                "value": "consulting"
+              },
+              {
+                "kind": "literal",
+                "value": "other"
+              }
+            ],
+            "optional": true
+          },
+          "description_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "description_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "unit": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "hour"
+              },
+              {
+                "kind": "literal",
+                "value": "day"
+              },
+              {
+                "kind": "literal",
+                "value": "project"
+              },
+              {
+                "kind": "literal",
+                "value": "unit"
+              },
+              {
+                "kind": "literal",
+                "value": "minute"
+              }
+            ],
+            "optional": true
+          },
+          "default_rate": {
+            "kind": "number",
+            "optional": true
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "display_order": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteServiceAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateCompanySettingsAction": {
+    "kind": "object",
+    "fields": {
+      "settings": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": false
+          },
+          "company_name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "company_name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "cr_number": {
+            "kind": "string",
+            "optional": false
+          },
+          "vat_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "vat_enabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "vat_percentage": {
+            "kind": "number",
+            "optional": false
+          },
+          "vat_certificate_url": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "default_currency": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "BHD"
+              },
+              {
+                "kind": "literal",
+                "value": "SAR"
+              },
+              {
+                "kind": "literal",
+                "value": "AED"
+              },
+              {
+                "kind": "literal",
+                "value": "KWD"
+              },
+              {
+                "kind": "literal",
+                "value": "OMR"
+              },
+              {
+                "kind": "literal",
+                "value": "QAR"
+              },
+              {
+                "kind": "literal",
+                "value": "USD"
+              }
+            ],
+            "optional": false
+          },
+          "currency_decimals": {
+            "kind": "number",
+            "optional": false
+          },
+          "address_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "address_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": false
+          },
+          "whatsapp_phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "website": {
+            "kind": "string",
+            "optional": false
+          },
+          "instagram_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "linkedin_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "youtube_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "bank_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "bank_iban": {
+            "kind": "string",
+            "optional": false
+          },
+          "bank_account_number": {
+            "kind": "string",
+            "optional": false
+          },
+          "bank_swift": {
+            "kind": "string",
+            "optional": false
+          },
+          "logo_url": {
+            "kind": "string",
+            "optional": false
+          },
+          "dark_logo_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "logo_text_dark_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "logo_text_light_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "icon_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "dark_icon_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "icon_light_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "icon_dark_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "stamp_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "signature_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "payment_terms_days": {
+            "kind": "number",
+            "optional": false
+          },
+          "invoice_prefix": {
+            "kind": "string",
+            "optional": false
+          },
+          "invoice_next_number": {
+            "kind": "number",
+            "optional": false
+          },
+          "receipt_prefix": {
+            "kind": "string",
+            "optional": false
+          },
+          "receipt_next_number": {
+            "kind": "number",
+            "optional": false
+          },
+          "default_invoice_notes_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "default_invoice_notes_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "tax_registration_status": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "ceo_name_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_name_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_title_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_title_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_quote_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_quote_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "mission_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "mission_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "vision_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "vision_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "about_text_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "about_text_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "terms_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "terms_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "rules_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "rules_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "updated_at": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveCompanyAssetAction": {
+    "kind": "object",
+    "fields": {
+      "assetKey": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "fileUrl": {
+            "kind": "string",
+            "optional": false
+          },
+          "mimeType": {
+            "kind": "string",
+            "optional": true
+          },
+          "fileSize": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteCompanyAssetAction": {
+    "kind": "object",
+    "fields": {
+      "assetKey": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "toggleFeatureAction": {
+    "kind": "object",
+    "fields": {
+      "moduleKey": {
+        "kind": "string",
+        "optional": false
+      },
+      "isEnabled": {
+        "kind": "boolean",
+        "optional": false
+      }
+    }
+  },
+  "updateWebSettingsAction": {
+    "kind": "object",
+    "fields": {
+      "settings": {
+        "kind": "object",
+        "fields": {
+          "company_name_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "company_name_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "address_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "address_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "whatsapp_phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "email": {
+            "kind": "string",
+            "optional": true
+          },
+          "website": {
+            "kind": "string",
+            "optional": true
+          },
+          "instagram_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "linkedin_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "youtube_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_name_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_name_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_title_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_title_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_quote_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "ceo_quote_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "mission_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "mission_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "vision_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "vision_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "about_text_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "about_text_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "terms_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "terms_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "rules_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "rules_ar": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "revalidateEntireSiteAction": {
+    "kind": "object",
+    "fields": {}
+  },
+  "createSocialLinkAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "platform": {
+            "kind": "string",
+            "optional": false
+          },
+          "url": {
+            "kind": "string",
+            "optional": false
+          },
+          "icon": {
+            "kind": "string",
+            "optional": true
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "display_order": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateSocialLinkAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "platform": {
+            "kind": "string",
+            "optional": true
+          },
+          "url": {
+            "kind": "string",
+            "optional": true
+          },
+          "icon": {
+            "kind": "string",
+            "optional": true
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "display_order": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteSocialLinkAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createUserAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "password": {
+            "kind": "string",
+            "optional": true
+          },
+          "full_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "role": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "department": {
+            "kind": "string",
+            "optional": true
+          },
+          "manager_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "signature_url": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateUserRoleAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "role": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateUserAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "full_name": {
+            "kind": "string",
+            "optional": true
+          },
+          "email": {
+            "kind": "string",
+            "optional": true
+          },
+          "role": {
+            "kind": "string",
+            "optional": true
+          },
+          "phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "department": {
+            "kind": "string",
+            "optional": true
+          },
+          "manager_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "signature_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "password": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteUserAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveWebsiteDraftAction": {
+    "kind": "object",
+    "fields": {
+      "value": {
+        "kind": "unknown",
+        "optional": false
+      },
+      "revision": {
+        "kind": "number",
+        "optional": false
+      }
+    }
+  },
+  "publishWebsiteAction": {
+    "kind": "object",
+    "fields": {
+      "revision": {
+        "kind": "number",
+        "optional": false
+      }
+    }
+  },
+  "restoreWebsiteAction": {
+    "kind": "object",
+    "fields": {
+      "revision": {
+        "kind": "number",
+        "optional": false
+      }
+    }
+  },
+  "previewWebsiteAction": {
+    "kind": "object",
+    "fields": {
+      "locale": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateWebsiteServiceAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "isPublic": {
+        "kind": "boolean",
+        "optional": false
+      },
+      "imageUrl": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  }
+}

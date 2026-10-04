@@ -1,33 +1,10 @@
 import { requirePermission } from "../../../lib/auth";
-import * as React from "react";
-import {
-  getAllAttachments,
-  getCRMContacts,
-  getCRMDeals,
-  getAllInvoices,
-  getAllPayments,
-} from "@ishoot/database";
+import { getAttachmentsPage, type ListParameters } from "@ishoot/database";
 import { ArchiveManagementView } from "../../../components/archive/ArchiveManagementView";
-
+import { ListControls } from "../../../components/shared/ListControls";
 export const dynamic = "force-dynamic";
-
-export default async function ArchiveVaultPage() {
-  for (const resource of ["contacts", "deals", "invoices", "payments", "settings"] as const) await requirePermission(resource, "read");
-  const [attachments, contacts, deals, invoices, payments] = await Promise.all([
-    getAllAttachments(),
-    getCRMContacts(),
-    getCRMDeals(),
-    getAllInvoices(),
-    getAllPayments(),
-  ]);
-
-  return (
-    <ArchiveManagementView
-      initialAttachments={attachments}
-      contacts={contacts}
-      deals={deals}
-      invoices={invoices}
-      payments={payments}
-    />
-  );
+export default async function ArchiveVaultPage({ searchParams }: { searchParams: Promise<ListParameters> }) {
+  for (const resource of ["contacts", "deals", "invoices", "payments", "expenses", "settings"] as const) await requirePermission(resource, "read");
+  const result = await getAttachmentsPage(await searchParams);
+  return <><ListControls exportDomain="archive" path="/dashboard/archive" {...result} statuses={["payment", "invoice", "contact", "customer_vault", "deal", "company_setting", "general"]} /><ArchiveManagementView key={JSON.stringify(result.filters) + result.page} initialAttachments={result.items} counts={result.counts} /></>;
 }

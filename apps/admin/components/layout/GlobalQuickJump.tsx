@@ -2,7 +2,16 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Search, Command, Users, FileText, Briefcase, ArrowRight, Loader2, X } from "lucide-react";
+import {
+  Search,
+  Command,
+  Users,
+  FileText,
+  Briefcase,
+  ArrowRight,
+  Loader2,
+  X,
+} from "lucide-react";
 import { globalSearchAction } from "../../app/actions/crm";
 import type { GlobalSearchResult } from "@ishoot/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -124,10 +133,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
       {/* Modal Dialog */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div
-            className="fixed inset-0"
-            onClick={() => setIsOpen(false)}
-          />
+          <div className="fixed inset-0" onClick={() => setIsOpen(false)} />
 
           <div className="relative w-full max-w-xl bg-white dark:bg-[#121B19] rounded-2xl border border-slate-200 dark:border-white/15 shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
             {/* Input Header */}
@@ -164,7 +170,10 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
 
               {query.trim().length >= 2 && results.length === 0 && !loading && (
                 <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
-                  {t.quickJump.noMatches} <span className="font-semibold text-slate-700 dark:text-slate-300">"{query}"</span>
+                  {t.quickJump.noMatches}{" "}
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    &quot;{query}&quot;
+                  </span>
                 </div>
               )}
 
@@ -211,11 +220,28 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
             {/* Footer */}
             <div className="px-4 py-2.5 bg-slate-50 dark:bg-[#0B1312] border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-3">
-                <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">↑↓</kbd> {t.quickJump.navigate}</span>
-                <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">↵</kbd> {t.quickJump.select}</span>
-                <span><kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">esc</kbd> {t.actions.cancel}</span>
+                <span>
+                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                    ↑↓
+                  </kbd>{" "}
+                  {t.quickJump.navigate}
+                </span>
+                <span>
+                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                    ↵
+                  </kbd>{" "}
+                  {t.quickJump.select}
+                </span>
+                <span>
+                  <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
+                    esc
+                  </kbd>{" "}
+                  {t.actions.cancel}
+                </span>
               </span>
-              <span className=" text-[10px] text-[#09937F] font-semibold">{t.quickJump.universalSearch}</span>
+              <span className=" text-[10px] text-[#09937F] font-semibold">
+                {t.quickJump.universalSearch}
+              </span>
             </div>
           </div>
         </div>

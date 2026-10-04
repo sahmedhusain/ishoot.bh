@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import type { ClientLogo } from "@ishoot/database/types";
@@ -116,7 +117,7 @@ export function ClientsManagementView({
               <div className="w-16 h-16 rounded-2xl mx-auto bg-white/5 border border-white/10 flex items-center justify-center p-3">
                 {logo.logo_svg_url.startsWith("http") ||
                 logo.logo_svg_url.startsWith("/") ? (
-                  <img
+                  <ContentImage
                     src={logo.logo_svg_url}
                     alt={logo.client_name}
                     className="w-full h-full object-contain filter invert opacity-80 group-hover:opacity-100 transition-opacity"

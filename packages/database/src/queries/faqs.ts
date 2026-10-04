@@ -8,7 +8,7 @@ export async function getFaqs(adminOnly = true) {
     });
   } catch (e) {
     console.error("Error fetching FAQs from DB:", e instanceof Error ? e.message : e);
-    return [];
+    throw e;
   }
 }
 
@@ -17,7 +17,7 @@ export async function getFaqById(id: string) {
     return await db.faq.findUnique({ where: { id } });
   } catch (e) {
     console.error(`Error fetching FAQ ${id}:`, e instanceof Error ? e.message : e);
-    return null;
+    throw e;
   }
 }
 

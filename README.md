@@ -34,7 +34,7 @@ ishoot.bh/
 | :------------------------------------ | :------------- | :-------------------------------------- | :------------------------------------------------------------- |
 | **Consumer Web App (`@ishoot/web`)**  | `3000`         | Next.js 15 Consumer Website (EN/AR)     | `http://localhost:3000`                                        |
 | **Admin Dashboard (`@ishoot/admin`)** | `3001`         | Enterprise Admin & CRM Platform         | `http://localhost:3001`                                        |
-| **PostgreSQL Database**               | `5432`         | PostgreSQL 15 Container (`ishoot_db`)   | `postgresql://ishoot:ishoot_password@localhost:5432/ishoot_db` |
+| **PostgreSQL Database**               | `5432`         | PostgreSQL 15 Container (`ishoot_db`)   | `Configured by `DATABASE_URL` in `.env`` |
 | **Prisma Studio (DB GUI)**            | `5555`         | Visual Database Editor & Inspection GUI | `http://localhost:5555`                                        |
 | **pgAdmin / Database Tools**          | `5432`         | External DB Client Connection Port      | Connection Host: `localhost`, Port: `5432`                     |
 
@@ -430,7 +430,7 @@ Create a `.env` file in the root directory:
 
 ```env
 # PostgreSQL Database Connection URL
-DATABASE_URL="postgresql://ishoot:ishoot_password@localhost:5432/ishoot_db?schema=public"
+DATABASE_URL="Configured by `DATABASE_URL` in `.env`?schema=public"
 
 # Authentication Security Secrets
 JWT_SECRET="super-secret-jwt-key-change-in-production-2026"
@@ -480,3 +480,9 @@ ADMIN_URL="http://localhost:3001"
    ```
    - Consumer Web App: `http://localhost:3000`
    - Admin Dashboard: `http://localhost:3001`
+
+## Platform audit
+
+The [4 October 2026 audit](docs/audit-2026-10-04/REPORT.md) records implemented fixes, isolated test evidence, performance measurements, open findings and migration rollout constraints. The [system design](docs/audit-2026-10-04/SYSTEM-DESIGN.md) describes the remaining optimization plan. Regenerate the source inventory with `pnpm audit:inventory`.
+
+Current audit follow-up status and deployment requirements are in [FOLLOWUP.md](docs/audit-2026-10-04/FOLLOWUP.md). Publish invalidation is durable; run `pnpm worker:revalidation` as a separately managed process with `DATABASE_URL`, `WEB_URL` and `REVALIDATION_SECRET` configured. Session token hashing requires a coordinated application/migration cutover.

@@ -13,22 +13,33 @@
     "build:clean": "npm run clean && turbo run build --concurrency=1",
     "db:push": "prisma db push --schema=packages/database/prisma/schema.prisma",
     "db:seed": "ts-node packages/database/prisma/seed.ts",
-    "lint": "turbo run lint",
+    "lint": "eslint apps/admin apps/web packages --ext .ts,.tsx",
     "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "test:platform": "node scripts/check-platform.cjs"
+    "test:platform": "node scripts/check-platform.cjs",
+    "db:bootstrap": "node scripts/bootstrap-database.cjs",
+    "test:audit-db": "node scripts/check-audit-db.cjs",
+    "test:audit-security": "node scripts/check-audit-security.cjs",
+    "audit:inventory": "node scripts/inventory-platform.cjs",
+    "test:followup-db": "node scripts/check-followup-db.cjs",
+    "test:followup-http": "node scripts/check-followup-http.cjs",
+    "worker:revalidation": "node scripts/revalidation-worker.cjs",
+    "worker:email": "node scripts/email-worker.cjs",
+    "test:action-schemas": "node scripts/generate-action-schemas.cjs --check",
+    "test:open-items-db": "node scripts/check-open-items-db.cjs",
+    "check:deployment": "node scripts/check-deployment-config.cjs",
+    "check:workers": "node scripts/check-workers.cjs",
+    "worker:maintenance": "node scripts/maintenance-worker.cjs",
+    "audit:customer-identities": "node scripts/check-customer-identities.cjs"
   },
   "devDependencies": {
+    "eslint": "8.57.1",
+    "eslint-config-next": "15.5.27",
     "prettier": "^3.5.1",
     "prisma": "^5.22.0",
     "ts-node": "^10.9.2",
     "turbo": "^2.4.4",
     "typescript": "^5.7.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "*"
-    ]
   },
   "dependencies": {
     "dotenv": "^18.0.4"

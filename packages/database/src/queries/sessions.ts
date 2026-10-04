@@ -1,5 +1,11 @@
 import { db } from "../db";
+import { createHash } from "node:crypto";
+
+const hashSessionToken = (token: string) =>
+  createHash("sha256").update(token).digest("hex");
 import { Session, Profile, UserRole } from "../types";
+
+const sessionUserSelect = {id:true,fullName:true,email:true,role:true,avatarUrl:true,signatureUrl:true,phone:true,department:true,isActive:true,permissions:true,createdAt:true,updatedAt:true} as const;
 
 function mapSession(s: any): Session {
   return {
@@ -17,6 +23,7 @@ function mapSession(s: any): Session {
           email: s.user.email,
           role: s.user.role as UserRole,
           avatar_url: s.user.avatarUrl || undefined,
+          signature_url: s.user.signatureUrl || undefined,
           phone: s.user.phone || undefined,
           department: s.user.department || undefined,
           is_active: s.user.isActive,
@@ -38,13 +45,13 @@ export async function createSession(data: {
   const session = await db.session.create({
     data: {
       userId: data.userId,
-      token: data.token,
+      token: hashSessionToken(data.token),
       expiresAt: data.expiresAt,
       ipAddress: data.ipAddress || null,
       userAgent: data.userAgent || null,
     },
     include: {
-      user: true,
+      user: {select:sessionUserSelect},
     },
   });
 
@@ -56,14 +63,16 @@ export async function getSessionByToken(
 ): Promise<(Session & { user: Profile }) | null> {
   try {
     const session = await db.session.findUnique({
-      where: { token },
-      include: { user: true },
+      where: { token: hashSessionToken(token) },
+      include: { user: {select:sessionUserSelect} },
     });
 
     if (!session) return null;
 
     if (new Date() > session.expiresAt) {
-      db.session.delete({ where: { token } }).catch(() => {});
+      db.session
+        .delete({ where: { token: hashSessionToken(token) } })
+        .catch(() => {});
       return null;
     }
 
@@ -80,11 +89,11 @@ export async function getSessionByToken(
 
 export async function deleteSession(token: string): Promise<boolean> {
   try {
-    await db.session.delete({ where: { token } });
+    await db.session.delete({ where: { token: hashSessionToken(token) } });
     return true;
   } catch (err) {
     console.error("Error deleting session:", err);
-    return false;
+    throw err;
   }
 }
 
@@ -94,7 +103,7 @@ export async function deleteUserSessions(userId: string): Promise<boolean> {
     return true;
   } catch (err) {
     console.error("Error deleting user sessions:", err);
-    return false;
+    throw err;
   }
 }
 
@@ -107,7 +116,7 @@ export async function getAllActiveSessions(): Promise<Session[]> {
         },
       },
       include: {
-        user: true,
+        user: {select:sessionUserSelect},
       },
       orderBy: { createdAt: "desc" },
     });
@@ -115,7 +124,7 @@ export async function getAllActiveSessions(): Promise<Session[]> {
     return sessions.map(mapSession);
   } catch (err) {
     console.error("Error fetching active sessions:", err);
-    return [];
+    throw err;
   }
 }
 

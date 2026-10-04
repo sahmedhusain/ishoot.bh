@@ -7,7 +7,7 @@ export async function getStatistics() {
     });
   } catch (e) {
     console.error("Error fetching statistics from DB:", e instanceof Error ? e.message : e);
-    return [];
+    throw e;
   }
 }
 

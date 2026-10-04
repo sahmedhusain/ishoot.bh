@@ -1,19 +1,10 @@
 import { requirePermission } from "../../../lib/auth";
-import * as React from "react";
-import { getAllInvoices } from "@ishoot/database";
+import { getInvoicesPage, getInvoiceSummary, type ListParameters } from "@ishoot/database";
 import { InvoicesListView } from "../../../components/invoices/InvoicesListView";
-
+import { ListControls } from "../../../components/shared/ListControls";
 export const dynamic = "force-dynamic";
-
-export default async function InvoicesPage() {
+export default async function InvoicesPage({ searchParams }: { searchParams: Promise<ListParameters> }) {
   await requirePermission("invoices", "read");
-  const invoices = await getAllInvoices();
-  const active = invoices.filter((invoice) => invoice.currency === "BHD" && invoice.status !== "void");
-  const finance = {
-    outstanding: active.filter((invoice) => invoice.status !== "draft").reduce((total, invoice) => total + invoice.amount_due, 0),
-    overdue: active.filter((invoice) => invoice.status !== "draft" && invoice.due_date < new Date().toISOString().slice(0, 10)).reduce((total, invoice) => total + invoice.amount_due, 0),
-    discountsGiven: active.reduce((total, invoice) => total + invoice.discount_amount, 0),
-  };
-
-  return <InvoicesListView initialInvoices={invoices} finance={finance} />;
+  const [result, finance] = await Promise.all([getInvoicesPage(await searchParams), getInvoiceSummary()]);
+  return <><ListControls path="/dashboard/invoices" {...result} statuses={["draft", "sent", "partially_paid", "paid", "overdue", "void"]} exportDomain="invoices" /><InvoicesListView key={JSON.stringify(result.filters) + result.page} initialInvoices={result.items} finance={finance} /></>;
 }

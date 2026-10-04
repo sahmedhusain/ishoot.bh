@@ -39,7 +39,7 @@ export async function getActivityLogs(
     return logs.map(mapActivity);
   } catch (e) {
     console.error("Error fetching activity logs from DB:", e);
-    return [];
+    throw e;
   }
 }
 

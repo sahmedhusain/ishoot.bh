@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 import * as React from "react";
 import Link from "next/link";
 import type { HeroBanner } from "@ishoot/database/types";
@@ -49,18 +50,19 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
     ? ar
       ? banner.title_ar
       : banner.title_en
-    : t("hero.fallbackTitle");
+    : "";
   const subtitle = banner
     ? ar
       ? banner.subtitle_ar
       : banner.subtitle_en
-    : t("hero.fallbackSubtitle");
+    : "";
   let href = safeWebsiteUrl(
     banner?.cta_link || "",
     `/${locale}/contact?intent=quote_request`,
   );
   if (/^\/(contact|works|about|services)([/?#]|$)/.test(href))
     href = `/${locale}${href}`;
+  if (!banner) return null;
   return (
     <section
       ref={section}
@@ -76,7 +78,7 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
             src={safeWebsiteUrl(banner.media_url)}
             poster={safeWebsiteUrl(
               banner.poster_url || "",
-              "/banners/web-banner-04.jpg",
+              "",
             )}
             muted
             loop
@@ -85,10 +87,10 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <img
+          <ContentImage
             src={safeWebsiteUrl(
               banner?.media_url || "",
-              "/banners/web-banner-04.jpg",
+              "",
             )}
             alt=""
             fetchPriority="high"

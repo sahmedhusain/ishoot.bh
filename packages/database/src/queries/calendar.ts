@@ -1,7 +1,7 @@
 import { db } from "../db";
 import { CalendarEvent } from "../types";
 
-function mapEvent(e: any): CalendarEvent {
+export function mapEvent(e: any): CalendarEvent {
   return {
     id: e.id,
     title: e.title,
@@ -40,6 +40,7 @@ function mapEvent(e: any): CalendarEvent {
 export async function getCalendarEvents(
   startDate?: Date,
   endDate?: Date,
+  limit?: number,
 ): Promise<CalendarEvent[]> {
   try {
     const where: any = {};
@@ -52,13 +53,14 @@ export async function getCalendarEvents(
 
     const events = await db.calendarEvent.findMany({
       where,
+      take: limit,
       include: { deal: true },
       orderBy: { startDate: "asc" },
     });
     return events.map(mapEvent);
   } catch (e) {
     console.error("Error fetching calendar events from DB:", e);
-    return [];
+    throw e;
   }
 }
 
@@ -73,7 +75,7 @@ export async function getCalendarEventById(
     return event ? mapEvent(event) : null;
   } catch (e) {
     console.error(`Error fetching calendar event ${id}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -145,7 +147,7 @@ export async function updateCalendarEvent(
     return mapEvent(updated);
   } catch (e) {
     console.error(`Error updating calendar event ${id}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -155,6 +157,6 @@ export async function deleteCalendarEvent(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error(`Error deleting calendar event ${id}:`, e);
-    return false;
+    throw e;
   }
 }

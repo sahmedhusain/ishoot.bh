@@ -26,20 +26,11 @@ export function ContactsManagementView({
   const { t } = useAdminLocale();
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
-  const [query, setQuery] = React.useState("");
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
     null,
   );
 
-  const filtered = contacts.filter((c) => {
-    const q = query.toLowerCase();
-    return (
-      c.full_name.toLowerCase().includes(q) ||
-      (c.company && c.company.toLowerCase().includes(q)) ||
-      (c.email && c.email.toLowerCase().includes(q)) ||
-      (c.phone && c.phone.includes(q))
-    );
-  });
+  const filtered = contacts;
 
   const handleDelete = async () => {
     if (!deleteTargetId) return;
@@ -73,18 +64,6 @@ export function ContactsManagementView({
             <span>{t.actions.newContact}</span>
           </Button>
         </Link>
-      </div>
-
-      {/* Search Input */}
-      <div className="relative max-w-md">
-        <Search className="w-4 h-4 absolute start-3 top-2.5 text-slate-400" />
-        <input
-          type="text"
-          placeholder={t.actions.search}
-          className="w-full ps-9 pe-4 py-1.5 text-xs rounded-lg bg-white border border-[#dadce0] text-slate-900 placeholder:text-slate-400 dark:bg-[#1a1a1a] dark:border-[#3c4043] dark:text-white focus:outline-none focus:border-[#09937F]"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
       </div>
 
       {/* Grid of Client Cards */}

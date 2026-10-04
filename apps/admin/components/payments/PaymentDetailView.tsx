@@ -1,4 +1,5 @@
 "use client";
+import { uploadFileDirectly } from "../../lib/upload-client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -41,28 +42,16 @@ export function PaymentDetailView({
 
   const attachments = payment.proof_attachments || [];
 
-  const handleInstantUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInstantUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("entityType", "payment");
-      formData.append("entityId", payment.id);
-      formData.append(
-        "customName",
-        payment.payment_method === "cheque"
-          ? `Cheque Document - ${payment.receipt_number} - ${file.name}`
-          : `Payment Slip - ${payment.receipt_number} - ${file.name}`,
-      );
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
+      const data = await uploadFileDirectly(file, { entityType: "payment", entityId: payment.id });
+        const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Upload failed");
       }
@@ -128,7 +117,9 @@ export function PaymentDetailView({
                 title="View Linked Invoice"
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>{t.paymentDetailView.invoice}: {invoice.invoice_number}</span>
+                <span>
+                  {t.paymentDetailView.invoice}: {invoice.invoice_number}
+                </span>
                 <span className="text-[10px] opacity-70">↗</span>
               </Link>
             )}
@@ -140,7 +131,9 @@ export function PaymentDetailView({
                 title="View Client Dossier in CRM"
               >
                 <User className="w-3.5 h-3.5" />
-                <span>{t.paymentDetailView.client}: {clientName}</span>
+                <span>
+                  {t.paymentDetailView.client}: {clientName}
+                </span>
                 <span className="text-[10px] opacity-70">↗</span>
               </Link>
             )}
@@ -162,6 +155,7 @@ export function PaymentDetailView({
       {/* Delivery & Share Toolbar */}
       <div className="no-print" data-delivery-toolbar="true">
         <DeliveryToolbar
+          companyName={company?.company_name_en || ""}
           documentType="receipt"
           documentNumber={payment.receipt_number}
           clientName={clientName}

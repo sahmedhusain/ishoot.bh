@@ -48,7 +48,7 @@ export async function getAllServices(options?: {
     return items.map(mapService);
   } catch (e) {
     console.error("Error fetching services:", e);
-    return [];
+    throw e;
   }
 }
 
@@ -60,7 +60,7 @@ export async function getServiceById(id: string): Promise<ServiceItem | null> {
     return s ? mapService(s) : null;
   } catch (e) {
     console.error("Error fetching service by ID:", e);
-    return null;
+    throw e;
   }
 }
 
@@ -139,6 +139,6 @@ export async function deleteService(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error("Error deleting service:", e);
-    return false;
+    throw e;
   }
 }

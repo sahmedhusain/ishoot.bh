@@ -1,7 +1,9 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { getWebsiteSnapshot } from "@ishoot/database";
-export async function isWebsitePreview() {
+export const isWebsitePreview = cache(async () => {
   const value = (await cookies()).get("ishoot_preview")?.value;
   const secret = process.env.REVALIDATION_SECRET;
   if (!value || !secret) return false;
@@ -16,7 +18,14 @@ export async function isWebsitePreview() {
     .update(`website-preview:${expires}`)
     .digest("hex");
   return timingSafeEqual(Buffer.from(expected), Buffer.from(token));
-}
-export async function getWebsite() {
-  return getWebsiteSnapshot(await isWebsitePreview());
-}
+});
+const getPublishedWebsite = unstable_cache(
+  () => getWebsiteSnapshot(false),
+  ["published-website"],
+  { revalidate: 60, tags: ["website"] },
+);
+export const getWebsite = cache(async () => {
+  return (await isWebsitePreview())
+    ? getWebsiteSnapshot(true)
+    : getPublishedWebsite();
+});

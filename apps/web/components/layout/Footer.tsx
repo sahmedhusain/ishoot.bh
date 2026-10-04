@@ -1,17 +1,18 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight } from "lucide-react";
-import type { CompanySettings, SocialLink } from "@ishoot/database/types";
+import type { PublicCompanySettings, SocialLink } from "@ishoot/database/types";
 import { SocialIcon } from "./SocialIcon";
 import { Reveal } from "../shared/Reveal";
 import { LegalModal } from "../shared/LegalModal";
 
 interface FooterProps {
-  company: CompanySettings;
+  company: PublicCompanySettings;
   socialLinks?: SocialLink[];
   pages?: { id: string; visible: boolean }[];
 }
@@ -114,24 +115,22 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
               href={`/${locale}`}
               className="flex items-center gap-3 group w-fit"
             >
-              <img
+              <ContentImage
                 src={
                   company.dark_icon_url ||
-                  company.icon_url ||
-                  "/brand/icon-dark.svg"
+                  company.icon_url
                 }
                 alt={t("common.brandIconAlt")}
                 className="h-9 w-9 object-contain"
-              />
-              <img
+               width={40} height={40} />
+              <ContentImage
                 src={
                   company.dark_logo_url ||
-                  company.logo_url ||
-                  "/brand/logo-text-light.svg"
+                  company.logo_url
                 }
                 alt={t("common.brandLogoAlt")}
                 className="h-7 w-auto object-contain"
-              />
+               fallbackText={company.company_name_en}  width={240} height={60} />
             </Link>
             <p className="text-sm text-[#9EADA9] max-w-md leading-relaxed font-sans">
               {t("footer.tagline")}

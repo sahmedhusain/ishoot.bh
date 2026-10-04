@@ -27,7 +27,7 @@ export async function getStudioEquipment(): Promise<StudioEquipment[]> {
     return items.map(mapEquipment);
   } catch (e) {
     console.error("Error fetching studio equipment from DB:", e instanceof Error ? e.message : e);
-    return [];
+    throw e;
   }
 }
 
@@ -88,7 +88,7 @@ export async function updateEquipment(
     return mapEquipment(updated);
   } catch (e) {
     console.error(`Error updating equipment ${id}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -98,6 +98,6 @@ export async function deleteEquipment(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error(`Error deleting equipment ${id}:`, e);
-    return false;
+    throw e;
   }
 }

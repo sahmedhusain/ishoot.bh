@@ -9,6 +9,7 @@ interface IconPickerProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  initialOpen?:boolean;
 }
 
 // Popular social & media icons curated for quick access
@@ -36,11 +37,13 @@ const POPULAR_ICONS = [
 ];
 
 const ALL_ICON_NAMES = Object.keys(LucideIcons).filter(
-  (name) => name !== "createLucideIcon" && typeof (LucideIcons as any)[name] === "function"
+  (name) => name !== "createLucideIcon" && (typeof (LucideIcons as any)[name] === "function" || !!(LucideIcons as any)[name]?.$$typeof)
 );
 
-export function IconPicker({ value, onChange, placeholder = "Select icon" }: IconPickerProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+export function IconPicker({ value, onChange, placeholder = "Select icon", initialOpen=false }: IconPickerProps) {
+  const [isOpen, setIsOpen] = React.useState(initialOpen);
+  const [page,setPage]=React.useState(0);
+  const menuId=React.useId();
   const [search, setSearch] = React.useState("");
   const [tab, setTab] = React.useState<"popular" | "all">("popular");
   const dropdownRef = React.useRef<HTMLDivElement>(null);
@@ -55,14 +58,9 @@ export function IconPicker({ value, onChange, placeholder = "Select icon" }: Ico
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const displayedIcons = React.useMemo(() => {
-    if (search.trim()) {
-      return ALL_ICON_NAMES.filter((name) =>
-        name.toLowerCase().includes(search.toLowerCase().trim())
-      ).slice(0, 80);
-    }
-    return tab === "popular" ? POPULAR_ICONS : ALL_ICON_NAMES.slice(0, 100);
-  }, [search, tab]);
+  const matches = React.useMemo(()=>search.trim() ? ALL_ICON_NAMES.filter(name=>name.toLowerCase().includes(search.toLowerCase().trim())) : tab === "popular" ? POPULAR_ICONS : ALL_ICON_NAMES,[search,tab]);
+  const displayedIcons=matches.slice(page*50,(page+1)*50);
+  React.useEffect(()=>setPage(0),[search,tab]);
 
   const SelectedIcon = value && (LucideIcons as any)[value] ? (LucideIcons as any)[value] : null;
 
@@ -70,6 +68,9 @@ export function IconPicker({ value, onChange, placeholder = "Select icon" }: Ico
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
+        aria-expanded={isOpen}
+        aria-controls={menuId}
+        aria-haspopup="dialog"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 rounded-xl text-xs hover:border-[#09937F] focus:outline-none focus:ring-2 focus:ring-[#09937F]/30 transition-all cursor-pointer shadow-2xs group"
       >
@@ -90,7 +91,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon" }: Ico
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <motion.div id={menuId} role="dialog" aria-label="Select icon" onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();setIsOpen(false);}}}
             initial={{ opacity: 0, scale: 0.95, y: 6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 6 }}
@@ -103,6 +104,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon" }: Ico
                 <Search className="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
+                  aria-label="Search icons"
                   placeholder="Search 1,000+ icons..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -139,6 +141,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon" }: Ico
               )}
             </div>
 
+            <nav aria-label="Icon result pages" className="flex gap-3 px-3 py-2 text-xs"><span>{matches.length} icons · {page+1}/{Math.max(1,Math.ceil(matches.length/50))}</span>{page>0?<button type="button" onClick={()=>setPage(page-1)}>Previous</button>:null}{(page+1)*50<matches.length?<button type="button" onClick={()=>setPage(page+1)}>Next</button>:null}</nav>
             {/* Icon Grid */}
             <div className="p-3 max-h-[220px] overflow-y-auto grid grid-cols-5 gap-1.5 custom-scrollbar">
               {displayedIcons.map((iconName) => {

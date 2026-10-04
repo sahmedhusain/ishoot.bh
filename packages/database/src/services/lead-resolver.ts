@@ -79,8 +79,9 @@ export async function resolveIncomingLead(
     let customerId: string | null = null;
     let resolution: ResolvedLeadResult["resolution"] = "feedback";
     if (intent === "inquiry" || intent === "quote_request") {
-      const emailMatch = emailNorm
-        ? await tx.crmContact.findFirst({
+      const emailMatches = emailNorm
+        ? await tx.crmContact.findMany({
+            take: 2,
             where: {
               OR: [
                 { emailNorm },
@@ -88,11 +89,13 @@ export async function resolveIncomingLead(
               ],
             },
           })
-        : null;
-      const phoneMatch = phoneE164
-        ? await tx.crmContact.findFirst({ where: { phoneE164 } })
-        : null;
-      if (emailMatch && phoneMatch && emailMatch.id !== phoneMatch.id) {
+        : [];
+      const phoneMatches = phoneE164
+        ? await tx.crmContact.findMany({ where: { phoneE164 }, take: 2 })
+        : [];
+      const emailMatch = emailMatches.length === 1 ? emailMatches[0] : null;
+      const phoneMatch = phoneMatches.length === 1 ? phoneMatches[0] : null;
+      if (emailMatches.length > 1 || phoneMatches.length > 1 || (emailMatch && phoneMatch && emailMatch.id !== phoneMatch.id)) {
         resolution = "merge_conflict";
       } else {
         const existing = emailMatch || phoneMatch;

@@ -1,9 +1,11 @@
+import { measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser, requirePermission } from "../../../../../lib/auth";
 import {
   getInvoiceByIdOrNumber,
   getPaymentByIdOrNumber,
   getCompanySettings,
+  hasPermission,
 } from "@ishoot/database";
 import { getTranslations } from "@ishoot/locales";
 import {
@@ -15,14 +17,28 @@ export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
+  return measureOperation("admin:documents/[id]/pdf:GET", async () => {
   const trans = getTranslations("en");
-  if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const user = await getCurrentUser();
+  if (!user)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const { id } = await context.params;
     const url = new URL(request.url);
     const docType = url.searchParams.get("type") || "invoice";
-    await requirePermission(docType === "receipt" ? "payments" : "invoices", "read");
+    if (!["invoice", "receipt"].includes(docType))
+      return NextResponse.json(
+        { error: "Invalid document type" },
+        { status: 400 },
+      );
+    const resource = docType === "receipt" ? "payments" : "invoices";
     const isDownload = url.searchParams.get("download") === "true";
+    if (
+      !(await hasPermission(user.role, resource, "read", user.permissions)) ||
+      (isDownload &&
+        !(await hasPermission(user.role, resource, "export", user.permissions)))
+    )
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const company = await getCompanySettings();
 
@@ -72,4 +88,6 @@ export async function GET(
       { status: 500 },
     );
   }
+
+  });
 }

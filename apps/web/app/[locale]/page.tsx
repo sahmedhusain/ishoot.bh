@@ -17,7 +17,7 @@ export default async function HomePage() {
     getPublicCompanySettings(),
   ]);
   const components: Record<WebsiteSection, React.ReactNode> = {
-    about: <AboutSection clientLogos={website.clients} company={company} />,
+    about: <AboutSection imageUrl={website.config.aboutImageUrl} clientLogos={website.clients} company={company} />,
     clients: <LogoMarquee logos={website.clients} />,
     services: <ServicesSection services={website.services} />,
     portfolio: <WorksSection items={website.portfolio} />,

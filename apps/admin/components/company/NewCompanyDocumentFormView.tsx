@@ -1,4 +1,5 @@
 "use client";
+import { uploadFileDirectly } from "../../lib/upload-client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -27,15 +28,20 @@ export function NewCompanyDocumentFormView() {
   const [validUntil, setValidUntil] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [files, setFiles] = React.useState<ProofFile[]>([]);
+  const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titleEn) return;
+    if (!titleEn || !files[0]?.file) {setError("Select a document file and enter its title"); return;}
+    setError("");
     setSaving(true);
 
     try {
-      const fileUrl = files[0]?.url || "/documents/sample-legal-doc.pdf";
+      const body = new FormData(); body.set("file",files[0].file); body.set("entityType","company_document"); body.set("entityId","pending");
+      const response = await fetch("/api/upload",{method:"POST",body}); const uploaded = await response.json();
+      if(!response.ok || !uploaded.success) throw new Error(uploaded.error || "Upload failed");
+      const fileUrl = uploaded.fileUrl;
 
       await createCompanyDocumentAction({
         title_en: titleEn,
@@ -50,7 +56,7 @@ export function NewCompanyDocumentFormView() {
 
       router.push("/dashboard/company/documents");
     } catch (err) {
-      console.error("Failed to upload legal document:", err);
+      setError(err instanceof Error ? err.message : "Could not save document");
     } finally {
       setSaving(false);
     }
@@ -82,6 +88,7 @@ export function NewCompanyDocumentFormView() {
 
       <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error ? <p role="alert">{error}</p> : null}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-white mb-1.5 block">

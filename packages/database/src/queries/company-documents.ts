@@ -1,7 +1,8 @@
-import { db } from "../db";
+import { db, runAtomicMutation } from "../db";
+import { claimUpload } from "../services/uploads";
 import { CompanyDocument, DocumentCategory } from "../types";
 
-function mapCompanyDocument(doc: any): CompanyDocument {
+export function mapCompanyDocument(doc: any): CompanyDocument {
   return {
     id: doc.id,
     title_en: doc.titleEn,
@@ -39,7 +40,7 @@ export async function getCompanyDocuments(
     return docs.map(mapCompanyDocument);
   } catch (e) {
     console.error("Error fetching company documents:", e);
-    return [];
+    throw e;
   }
 }
 
@@ -56,6 +57,8 @@ export async function createCompanyDocument(data: {
   notes?: string;
   uploaded_by_id?: string;
 }): Promise<CompanyDocument> {
+  return runAtomicMutation(async () => {
+  const upload = await claimUpload(db, data.file_url, data.uploaded_by_id);
   const created = await db.companyDocument.create({
     data: {
       titleEn: data.title_en,
@@ -63,8 +66,8 @@ export async function createCompanyDocument(data: {
       category: data.category,
       documentNumber: data.document_number || null,
       fileUrl: data.file_url,
-      fileSize: data.file_size || null,
-      mimeType: data.mime_type || null,
+      fileSize: upload.fileSize,
+      mimeType: upload.mimeType,
       validFrom: data.valid_from ? new Date(data.valid_from) : null,
       validUntil: data.valid_until ? new Date(data.valid_until) : null,
       notes: data.notes || null,
@@ -72,6 +75,7 @@ export async function createCompanyDocument(data: {
     },
   });
   return mapCompanyDocument(created);
+  });
 }
 
 export async function deleteCompanyDocument(id: string): Promise<boolean> {
@@ -80,6 +84,6 @@ export async function deleteCompanyDocument(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error(`Error deleting company document ${id}:`, e);
-    return false;
+    throw e;
   }
 }

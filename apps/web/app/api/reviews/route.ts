@@ -1,3 +1,4 @@
+import {requireFeatureEnabled, measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { db } from "@ishoot/database";
@@ -7,7 +8,9 @@ import {
   submissionKey,
 } from "../../../lib/submissions";
 export async function POST(req: NextRequest) {
+  return measureOperation("web:reviews:POST", async () => {
   try {
+    try { await requireFeatureEnabled("reviews"); } catch { return NextResponse.json({error:"Submissions are temporarily unavailable"},{status:503}); }
     const body = await readSubmission(req);
     const authorName = textField(body, "authorName", 200, true);
     const companyName = textField(body, "companyName", 200);
@@ -68,4 +71,6 @@ export async function POST(req: NextRequest) {
       { status },
     );
   }
+
+  });
 }

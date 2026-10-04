@@ -5,13 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, Button, Input, Select } from "@ishoot/ui";
 import { ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
-import { USER_ROLES } from "@ishoot/config/constants";
 import { createUserAction } from "../../app/actions/users";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-export function NewUserFormView() {
+export function NewUserFormView({
+  roles,
+}: {
+  roles: Array<{ id: string; nameEn: string; nameAr: string }>;
+}) {
   const router = useRouter();
-  const { t } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
 
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -101,6 +104,8 @@ export function NewUserFormView() {
               </label>
               <Input
                 type="password"
+                minLength={12}
+                autoComplete="new-password"
                 required
                 placeholder={t.usersNew.passwordPlaceholder}
                 value={password}
@@ -115,13 +120,13 @@ export function NewUserFormView() {
                 value={role}
                 onChange={(e) => setRole(e.target.value as any)}
               >
-                {USER_ROLES.map((r) => (
+                {roles.map((r) => (
                   <option
-                    key={r.value}
-                    value={r.value}
+                    key={r.id}
+                    value={r.id}
                     className="bg-[#0B1210] text-white"
                   >
-                    {t.security.roles[r.value as keyof typeof t.security.roles] || r.value}
+                    {isRTL ? r.nameAr : r.nameEn}
                   </option>
                 ))}
               </Select>

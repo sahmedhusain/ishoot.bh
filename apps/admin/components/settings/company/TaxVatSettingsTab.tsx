@@ -1,4 +1,5 @@
 "use client";
+import { uploadFileDirectly } from "../../../lib/upload-client";
 
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
@@ -48,22 +49,8 @@ export function TaxVatSettingsTab({
     setVatUploadError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("entityType", "company_setting");
-      formData.append("entityId", "company-settings");
-      formData.append(
-        "customName",
-        `NBR VAT Registration Certificate - ${file.name}`,
-      );
-      formData.append("documentType", "vat_certificate");
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
+      const data = await uploadFileDirectly(file, { entityType: "company_setting", entityId: "company-settings", documentType: "vat_certificate" });
+        const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
         throw new Error(data.error || "Upload failed");
       }

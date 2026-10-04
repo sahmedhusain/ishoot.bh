@@ -12,6 +12,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === "production") throw new Error("Demo seed is disabled in production; use pnpm db:bootstrap for initial real accounts and configuration.");
   console.log("🌱 Starting dynamic enterprise database seed...");
 
   const configPath = path.resolve(__dirname, "initial-company-config.json");
@@ -30,6 +31,27 @@ async function main() {
   const superAdminPhone = process.env.SUPER_ADMIN_PHONE ?? "";
 
   const passwordHash = await bcrypt.hash(superAdminPassword, 10);
+
+  const systemRoles = [
+    { id: "super_admin", nameEn: "Super Administrator", nameAr: "مسؤول النظام العام", isSystem: true },
+    { id: "admin", nameEn: "System Administrator", nameAr: "مدير النظام", isSystem: true },
+    { id: "finance_manager", nameEn: "Finance Manager", nameAr: "المدير المالي", isSystem: true },
+    { id: "production_manager", nameEn: "Production Manager", nameAr: "مدير الإنتاج", isSystem: true },
+    { id: "sales", nameEn: "Commercial Sales Director", nameAr: "مدير المبيعات التجارية", isSystem: true },
+    { id: "marketing", nameEn: "Marketing Manager", nameAr: "مدير التسويق", isSystem: true },
+    { id: "producer", nameEn: "Executive Producer", nameAr: "المنتج المنفذ", isSystem: true },
+    { id: "editor", nameEn: "Post-Production Editor", nameAr: "محرر المونتاج", isSystem: true },
+    { id: "accountant", nameEn: "Accountant", nameAr: "محاسب", isSystem: true },
+    { id: "viewer", nameEn: "Read-Only Observer", nameAr: "مراقب", isSystem: true },
+  ];
+
+  for (const role of systemRoles) {
+    await prisma.role.upsert({
+      where: { id: role.id },
+      update: role,
+      create: role,
+    });
+  }
 
   const usersData = [
     {
@@ -2994,25 +3016,7 @@ async function main() {
     },
   });
 
-  const systemRoles = [
-    { id: "super_admin", nameEn: "Super Administrator", nameAr: "مسؤول النظام العام", isSystem: true },
-    { id: "admin", nameEn: "System Administrator", nameAr: "مدير النظام", isSystem: true },
-    { id: "finance_manager", nameEn: "Finance Manager", nameAr: "المدير المالي", isSystem: true },
-    { id: "production_manager", nameEn: "Production Manager", nameAr: "مدير الإنتاج", isSystem: true },
-    { id: "sales", nameEn: "Commercial Sales Director", nameAr: "مدير المبيعات التجارية", isSystem: true },
-    { id: "producer", nameEn: "Executive Producer", nameAr: "المنتج المنفذ", isSystem: true },
-    { id: "editor", nameEn: "Post-Production Editor", nameAr: "محرر المونتاج", isSystem: true },
-    { id: "accountant", nameEn: "Accountant", nameAr: "محاسب", isSystem: true },
-    { id: "viewer", nameEn: "Read-Only Observer", nameAr: "مراقب", isSystem: true },
-  ];
 
-  for (const role of systemRoles) {
-    await prisma.role.upsert({
-      where: { id: role.id },
-      update: role,
-      create: role,
-    });
-  }
 
   const features = [
     { moduleKey: "crm_deals", nameEn: "Deals & Pipeline", nameAr: "الصفقات ومسارات البيع" },

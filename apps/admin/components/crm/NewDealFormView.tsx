@@ -9,7 +9,7 @@ import { DEAL_STAGES } from "@ishoot/config/constants";
 import { createCRMDealAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-export function NewDealFormView() {
+export function NewDealFormView({ defaultCurrency }: { defaultCurrency: string }) {
   const router = useRouter();
   const { t } = useAdminLocale();
 
@@ -82,7 +82,7 @@ export function NewDealFormView() {
             </div>
             <div>
               <label className="text-xs font-semibold text-white mb-1.5 block">
-                {t.dealsNew.valueLabel}
+                {t.dealsNew.valueLabel} ({defaultCurrency})
               </label>
               <Input
                 type="number"

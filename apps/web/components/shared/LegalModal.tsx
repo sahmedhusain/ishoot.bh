@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { safeLegalHtml } from "../../lib/legal-html";
 import { X } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -84,7 +85,7 @@ export function LegalModal({
           {isHtml ? (
             <div
               className="legal-document"
-              dangerouslySetInnerHTML={{ __html: content }}
+              dangerouslySetInnerHTML={{ __html: safeLegalHtml(content) }}
             />
           ) : (
             <div className="legal-document space-y-7">

@@ -1,7 +1,9 @@
+import { measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function POST(req: NextRequest) {
+  return measureOperation("web:revalidate:POST", async () => {
   const secret = req.headers.get("x-revalidate-secret");
   const expectedSecret = process.env.REVALIDATION_SECRET;
   if (!expectedSecret || !secret || secret !== expectedSecret) {
@@ -10,6 +12,30 @@ export async function POST(req: NextRequest) {
 
   try {
     const { tags, paths } = await req.json();
+    if (
+      (tags !== undefined &&
+        (!Array.isArray(tags) ||
+          tags.length > 32 ||
+          tags.some(
+            (tag: unknown) => typeof tag !== "string" || tag.length > 200,
+          ))) ||
+      (paths !== undefined &&
+        (!Array.isArray(paths) ||
+          paths.length > 32 ||
+          paths.some(
+            (path: unknown) =>
+              typeof path !== "string" ||
+              !path.startsWith("/") ||
+              path.startsWith("//") ||
+              path.length > 2000,
+          )))
+    )
+      return NextResponse.json(
+        { error: "Invalid invalidation request" },
+        { status: 400 },
+      );
+    revalidateTag("website");
+    revalidateTag("company");
 
     if (Array.isArray(tags)) {
       for (const tag of tags) {
@@ -41,4 +67,6 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+
+  });
 }

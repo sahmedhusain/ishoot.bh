@@ -15,7 +15,10 @@ export type WebsiteSection = (typeof websiteSections)[number];
 export const websitePages = ["works", "about", "contact"] as const;
 export type WebsitePage = (typeof websitePages)[number];
 
+export interface WebsitePillar {titleEn:string;titleAr:string;textEn:string;textAr:string;}
 export interface WebsiteConfig {
+  aboutImageUrl?: string;
+  pillars?: WebsitePillar[];
   sections: { id: WebsiteSection; visible: boolean }[];
   pages?: { id: WebsitePage; visible: boolean }[];
   contactTitleEn: string;
@@ -77,10 +80,15 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
   } as WebsiteConfig;
   for (const key of Object.keys(defaultWebsiteConfig).filter(
     (k) => k !== "sections" && k !== "pages",
-  ) as Exclude<keyof WebsiteConfig, "sections" | "pages">[]) {
+  ) as Exclude<keyof WebsiteConfig, "sections" | "pages" | "pillars" | "aboutImageUrl">[]) {
     if (typeof data[key] !== "string" || (data[key] as string).length > 1500)
       throw new Error(`Invalid ${key}`);
     result[key] = (data[key] as string).trim();
+  }
+  if (data.aboutImageUrl !== undefined) { if (typeof data.aboutImageUrl !== "string" || data.aboutImageUrl.length > 2000 || (data.aboutImageUrl && !safeWebsiteUrl(data.aboutImageUrl))) throw new Error("Invalid about image"); result.aboutImageUrl = data.aboutImageUrl; }
+  if (data.pillars !== undefined) {
+    if(!Array.isArray(data.pillars) || data.pillars.length > 12) throw new Error("Invalid studio history");
+    result.pillars = data.pillars.map((p:any) => { const entry = {} as WebsitePillar; for(const key of ["titleEn","titleAr","textEn","textAr"] as const){if(typeof p?.[key] !== "string" || p[key].length > 1500) throw new Error("Invalid studio history text");entry[key]=p[key].trim();}return entry;});
   }
   if (!result.contactTitleEn || !result.contactTitleAr)
     throw new Error("Contact titles are required in both languages");

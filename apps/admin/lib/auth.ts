@@ -1,10 +1,16 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { verifySessionToken, SessionJwtPayload, SESSION_COOKIE_NAME } from "./jwt";
+import {
+  verifySessionToken,
+  SessionJwtPayload,
+  SESSION_COOKIE_NAME,
+} from "./jwt";
 export { SESSION_COOKIE_NAME } from "./jwt";
 import {
   getSessionByToken,
-  hasPermission,
+  getEffectivePermissions,
+  memoizeOperation,
   Profile,
   PermissionResource,
   PermissionAction,
@@ -26,7 +32,7 @@ async function getJwtPayload(): Promise<SessionJwtPayload | null> {
   return await verifySessionToken(sessionToken);
 }
 
-export async function getCurrentUser(): Promise<Profile | null> {
+export const getCurrentUser = cache(async (): Promise<Profile | null> => memoizeOperation("auth:user", async () => {
   const jwt = await getJwtPayload();
   if (!jwt) return null;
 
@@ -38,7 +44,7 @@ export async function getCurrentUser(): Promise<Profile | null> {
   if (!user || !user.is_active) return null;
 
   return user;
-}
+}));
 
 export async function requireAuth(): Promise<Profile> {
   const user = await getCurrentUser();
@@ -48,18 +54,18 @@ export async function requireAuth(): Promise<Profile> {
   return user;
 }
 
+export const getCurrentPermissions = cache(async () => memoizeOperation("auth:permissions", async () => {
+  const user = await requireAuth();
+  return getEffectivePermissions(user.role, user.permissions as Record<string,boolean> | undefined);
+}));
+
 export async function requirePermission(
   resource: PermissionResource,
   action: PermissionAction,
 ): Promise<Profile> {
   const user = await requireAuth();
 
-  const allowed = await hasPermission(
-    user.role,
-    resource,
-    action,
-    user.permissions as Record<string, boolean> | undefined,
-  );
+  const allowed = (await getCurrentPermissions())[`${resource}:${action}`] === true;
 
   if (!allowed) {
     throw new Error(
@@ -69,4 +75,3 @@ export async function requirePermission(
 
   return user;
 }
-

@@ -23,9 +23,9 @@ export default async function AboutPage() {
 
   return (
     <div className="w-full flex flex-col">
-      <CEOHero company={company} />
+      <CEOHero company={company} imageUrl={website.config.aboutImageUrl} />
 
-      <PillarsOfCraft />
+      <PillarsOfCraft pillars={website.config.pillars} />
 
       <StatsSection stats={website.stats} />
 

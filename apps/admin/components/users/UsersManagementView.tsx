@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import type { Profile, UserRole } from "@ishoot/database/types";
@@ -31,10 +32,16 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface UsersManagementViewProps {
   initialUsers: Profile[];
+  roles: Array<{ id: string; nameEn: string; nameAr: string }>;
+  resources: string[];
+  rolePermissions: Record<string, Record<string, boolean>>;
 }
 
 export function UsersManagementView({
   initialUsers,
+  roles,
+  resources,
+  rolePermissions,
 }: UsersManagementViewProps) {
   const { t, locale, isRTL } = useAdminLocale();
 
@@ -56,20 +63,11 @@ export function UsersManagementView({
   const [saving, setSaving] = React.useState(false);
   const [successMsg, setSuccessMsg] = React.useState("");
 
-  const allRoles: Array<{ key: UserRole; name: string; color: string }> = [
-    { key: "super_admin", name: t.roles.super_admin, color: "#E11D48" },
-    { key: "admin", name: t.roles.admin, color: "#F43F5E" },
-    { key: "finance_manager", name: t.roles.finance_manager, color: "#10B981" },
-    {
-      key: "production_manager",
-      name: t.roles.production_manager,
-      color: "#09937F",
-    },
-    { key: "producer", name: t.roles.producer, color: "#3B82F6" },
-    { key: "editor", name: t.roles.editor, color: "#8B5CF6" },
-    { key: "accountant", name: t.roles.accountant, color: "#F59E0B" },
-    { key: "viewer", name: t.roles.viewer, color: "#9EADA9" },
-  ];
+  const allRoles = roles.map((r) => ({
+    key: r.id as UserRole,
+    name: isRTL ? r.nameAr : r.nameEn,
+    color: "#09937F",
+  }));
 
   const filteredUsers = users.filter(
     (u) =>
@@ -142,148 +140,13 @@ export function UsersManagementView({
   };
 
   const handleDeleteUser = async (userId: string) => {
-    setUsers(users.filter((u) => u.id !== userId));
     try {
       await deleteUserAction(userId);
+      setUsers(users.filter((u) => u.id !== userId));
     } catch (err) {
       console.error(err);
     }
   };
-
-  const modulesList = [
-    {
-      name: t.usersView.modules.dashboard,
-      super: "RW",
-      admin: "RW",
-      fin: "R",
-      prod: "R",
-      producer: "R",
-      editor: "R",
-      acc: "R",
-      viewer: "R",
-    },
-    {
-      name: t.usersView.modules.calendar,
-      super: "RW",
-      admin: "RW",
-      fin: "-",
-      prod: "RW",
-      producer: "RW",
-      editor: "R",
-      acc: "-",
-      viewer: "R",
-    },
-    {
-      name: t.usersView.modules.deals,
-      super: "RW",
-      admin: "RW",
-      fin: "R",
-      prod: "RW",
-      producer: "RW",
-      editor: "-",
-      acc: "R",
-      viewer: "R",
-    },
-    {
-      name: t.usersView.modules.contacts,
-      super: "RW",
-      admin: "RW",
-      fin: "R",
-      prod: "RW",
-      producer: "RW",
-      editor: "-",
-      acc: "R",
-      viewer: "R",
-    },
-    {
-      name: t.usersView.modules.inquiries,
-      super: "RW",
-      admin: "RW",
-      fin: "R",
-      prod: "RW",
-      producer: "RW",
-      editor: "-",
-      acc: "-",
-      viewer: "R",
-    },
-    {
-      name: t.usersView.modules.invoices,
-      super: "RW",
-      admin: "RW",
-      fin: "RW",
-      prod: "-",
-      producer: "R",
-      editor: "-",
-      acc: "RW",
-      viewer: "R",
-    },
-    {
-      name: t.usersView.modules.payments,
-      super: "RW",
-      admin: "RW",
-      fin: "RW",
-      prod: "-",
-      producer: "-",
-      editor: "-",
-      acc: "RW",
-      viewer: "R",
-    },
-    {
-      name: t.usersView.modules.expenses,
-      super: "RW",
-      admin: "RW",
-      fin: "RW",
-      prod: "RW",
-      producer: "RW",
-      editor: "R",
-      acc: "RW",
-      viewer: "R",
-    },
-    {
-      name: t.usersView.modules.finance,
-      super: "RW",
-      admin: "RW",
-      fin: "RW",
-      prod: "-",
-      producer: "-",
-      editor: "-",
-      acc: "R",
-      viewer: "-",
-    },
-    {
-      name: t.usersView.modules.cms,
-      super: "RW",
-      admin: "RW",
-      fin: "-",
-      prod: "R",
-      producer: "R",
-      editor: "RW",
-      acc: "-",
-      viewer: "R",
-    },
-    {
-      name: t.usersView.modules.companySettings,
-      super: "RW",
-      admin: "RW",
-      fin: "R",
-      prod: "-",
-      producer: "-",
-      editor: "-",
-      acc: "-",
-      viewer: "-",
-    },
-    {
-      name: t.usersView.modules.users,
-      super: "RW",
-      admin: "R",
-      fin: "-",
-      prod: "-",
-      producer: "-",
-      editor: "-",
-      acc: "-",
-      viewer: "-",
-    },
-  ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
@@ -363,17 +226,24 @@ export function UsersManagementView({
                 <tr>
                   <th className="p-4 text-start">{t.usersView.userHeader}</th>
                   <th className="p-4 text-start">{t.roles.department}</th>
-                  <th className="p-4 text-start">{isRTL ? "المسؤول المباشر" : "Reports To"}</th>
+                  <th className="p-4 text-start">
+                    {isRTL ? "المسؤول المباشر" : "Reports To"}
+                  </th>
                   <th className="p-4 text-start">{t.usersView.roleHeader}</th>
-                  <th className="p-4 text-start">{isRTL ? "التوقيع الرقمي" : "Signature"}</th>
+                  <th className="p-4 text-start">
+                    {isRTL ? "التوقيع الرقمي" : "Signature"}
+                  </th>
                   <th className="p-4 text-start">{t.usersView.statusHeader}</th>
                   <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-white">
                 {filteredUsers.map((u) => {
-                  const roleConfig =
-                    allRoles.find((r) => r.key === u.role) || allRoles[7];
+                  const roleConfig = allRoles.find((r) => r.key === u.role) || {
+                    key: u.role,
+                    name: u.role,
+                    color: "#9EADA9",
+                  };
                   return (
                     <tr
                       key={u.id}
@@ -411,11 +281,17 @@ export function UsersManagementView({
                       <td className="p-4">
                         <select
                           value={u.manager_id || ""}
-                          onChange={(e) => handleManagerChange(u.id, e.target.value)}
+                          onChange={(e) =>
+                            handleManagerChange(u.id, e.target.value)
+                          }
                           className="bg-[#050807] border border-white/10 rounded-xl px-2.5 py-1 text-xs text-[#5EEAD4] focus:outline-none focus:border-[#09937F] cursor-pointer max-w-[160px] truncate"
-                          title={isRTL ? "تغيير المسؤول المباشر" : "Change Manager"}
+                          title={
+                            isRTL ? "تغيير المسؤول المباشر" : "Change Manager"
+                          }
                         >
-                          <option value="">{isRTL ? "لا يوجد (مستقل)" : "None (Independent)"}</option>
+                          <option value="">
+                            {isRTL ? "لا يوجد (مستقل)" : "None (Independent)"}
+                          </option>
                           {users
                             .filter((cand) => cand.id !== u.id)
                             .map((cand) => (
@@ -445,9 +321,12 @@ export function UsersManagementView({
                       {/* Digital Signature Preview */}
                       <td className="p-4">
                         <div className="flex items-center gap-2">
-                          <div className="h-8 w-20 px-2 py-0.5 rounded-lg bg-white/95 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm" title={u.full_name}>
-                            <img
-                              src={u.signature_url || "/brand/signature.svg"}
+                          <div
+                            className="h-8 w-20 px-2 py-0.5 rounded-lg bg-white/95 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm"
+                            title={u.full_name}
+                          >
+                            <ContentImage
+                              src={u.signature_url}
                               alt="Signature"
                               className="h-full w-auto object-contain"
                             />
@@ -501,46 +380,32 @@ export function UsersManagementView({
                 <th className="py-2.5 text-start font-sans font-bold">
                   {t.usersView.moduleHeader}
                 </th>
-                <th className="py-2.5 text-center">{t.roles.super_admin}</th>
-                <th className="py-2.5 text-center">{t.roles.admin}</th>
-                <th className="py-2.5 text-center">
-                  {t.roles.finance_manager}
-                </th>
-                <th className="py-2.5 text-center">
-                  {t.roles.production_manager}
-                </th>
-                <th className="py-2.5 text-center">{t.roles.producer}</th>
-                <th className="py-2.5 text-center">{t.roles.editor}</th>
-                <th className="py-2.5 text-center">{t.roles.accountant}</th>
-                <th className="py-2.5 text-center">{t.roles.viewer}</th>
+                {allRoles.map((r) => (
+                  <th key={r.key} className="py-2.5 text-center">
+                    {r.name}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {modulesList.map((m, idx) => (
-                <tr key={idx} className="hover:bg-white/[0.02]">
+              {resources.map((resource) => (
+                <tr key={resource} className="hover:bg-white/[0.02]">
                   <td className="py-3 text-white font-sans font-semibold">
-                    {m.name}
+                    {resource}
                   </td>
-                  <td className="py-3 text-center text-emerald-400 font-bold">
-                    {m.super}
-                  </td>
-                  <td className="py-3 text-center text-emerald-400 font-bold">
-                    {m.admin}
-                  </td>
-                  <td className="py-3 text-center text-emerald-400">{m.fin}</td>
-                  <td className="py-3 text-center text-emerald-400">
-                    {m.prod}
-                  </td>
-                  <td className="py-3 text-center text-blue-400">
-                    {m.producer}
-                  </td>
-                  <td className="py-3 text-center text-purple-400">
-                    {m.editor}
-                  </td>
-                  <td className="py-3 text-center text-amber-400">{m.acc}</td>
-                  <td className="py-3 text-center text-[#9EADA9]/60">
-                    {m.viewer}
-                  </td>
+                  {allRoles.map((r) => (
+                    <td
+                      key={r.key}
+                      className="py-3 text-center text-emerald-400"
+                    >
+                      {["read", "write", "delete", "export", "approve"]
+                        .filter(
+                          (action) =>
+                            rolePermissions[r.key]?.[`${resource}:${action}`],
+                        )
+                        .join(", ") || "—"}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>
@@ -657,7 +522,11 @@ export function UsersManagementView({
               value={managerId}
               onChange={(e) => setManagerId(e.target.value)}
             >
-              <option value="">{isRTL ? "لا يوجد (مستوى قيادي تنفيذي)" : "None (Executive Level)"}</option>
+              <option value="">
+                {isRTL
+                  ? "لا يوجد (مستوى قيادي تنفيذي)"
+                  : "None (Executive Level)"}
+              </option>
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.full_name} ({u.role})

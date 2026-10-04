@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -6,14 +7,17 @@ import { Input, Button, Card } from "@ishoot/ui";
 import { Lock, Mail, ArrowRight, AlertCircle, Globe } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-export function AdminLoginFormView({ companyName }: { companyName?: string }) {
+export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyName?: string;logoUrl?:string;iconUrl?:string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const requestedCallback = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = requestedCallback.startsWith("/") && !requestedCallback.startsWith("//") && !requestedCallback.includes("\\") ? requestedCallback : "/dashboard";
   const { t, locale, setLocale, isRTL } = useAdminLocale();
 
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [otp, setOtp] = React.useState("");
+  const [mfaRequired, setMfaRequired] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
@@ -30,12 +34,13 @@ export function AdminLoginFormView({ companyName }: { companyName?: string }) {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ email: email.trim(), password, otp }),
       });
 
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        if (data.mfaRequired) setMfaRequired(true);
         setErrorMessage(
           res.status === 401
             ? t.loginView.errorInvalid
@@ -74,14 +79,14 @@ export function AdminLoginFormView({ companyName }: { companyName?: string }) {
       <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-[#09937F]/30 shadow-2xl rounded-3xl space-y-8">
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3">
-            <img
-              src="/brand/icon-dark.svg"
-              alt="iShoot Icon"
+            <ContentImage
+              width={40} height={40} src={iconUrl}
+              alt={companyName || ""}
               className="h-10 w-auto object-contain shrink-0 filter drop-shadow-[0_0_12px_rgba(9,147,127,0.3)]"
             />
-            <img
-              src="/brand/logo-text-light.svg"
-              alt="iShoot"
+            <ContentImage
+              width={240} height={60} src={logoUrl}
+              alt={companyName || ""}
               className="h-7 w-auto object-contain"
             />
           </div>
@@ -130,9 +135,14 @@ export function AdminLoginFormView({ companyName }: { companyName?: string }) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#9EADA9]">
-              {t.loginView.passwordLabel}
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-[#9EADA9]">
+                {t.loginView.passwordLabel}
+              </label>
+              <button type="button" onClick={() => router.push("/login/forgot")} className="text-[11px] text-[#09937F] hover:text-white transition-colors">
+                {isRTL ? "هل نسيت كلمة المرور؟" : "Forgot password?"}
+              </button>
+            </div>
             <div className="relative">
               <Lock
                 className={`w-4 h-4 absolute top-3.5 text-[#9EADA9] ${
@@ -150,6 +160,8 @@ export function AdminLoginFormView({ companyName }: { companyName?: string }) {
               />
             </div>
           </div>
+
+          {mfaRequired && <label className="block text-xs text-white">{isRTL ? "رمز المصادقة أو رمز الاسترداد" : "Authentication or recovery code"}<Input autoComplete="one-time-code" value={otp} maxLength={32} onChange={(e) => setOtp(e.target.value.trim())} required /></label>}
 
           <Button
             type="submit"

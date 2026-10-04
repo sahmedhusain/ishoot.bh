@@ -1,4 +1,5 @@
 "use client";
+import { uploadFileDirectly } from "../../lib/upload-client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -36,7 +37,10 @@ import {
 } from "../../app/actions/attachments";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
+import { EntityLookup } from "../shared/EntityLookup";
+
 interface ArchiveManagementViewProps {
+  counts: Record<string, number>;
   initialAttachments: EnrichedAttachment[];
   contacts?: CRMContact[];
   deals?: CRMDeal[];
@@ -46,6 +50,7 @@ interface ArchiveManagementViewProps {
 
 export function ArchiveManagementView({
   initialAttachments,
+  counts,
   contacts = [],
   deals = [],
   invoices = [],
@@ -54,8 +59,6 @@ export function ArchiveManagementView({
   const { isRTL, locale, t } = useAdminLocale();
   const [attachments, setAttachments] =
     React.useState<EnrichedAttachment[]>(initialAttachments);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [activeFilter, setActiveFilter] = React.useState<string>("all");
   const [isUploadOpen, setIsUploadOpen] = React.useState(false);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
 
@@ -86,44 +89,7 @@ export function ArchiveManagementView({
     setUploadError(null);
   };
 
-  // Filter attachments
-  const filteredAttachments = React.useMemo(() => {
-    return attachments.filter((att) => {
-      // Type filter
-      if (activeFilter === "payment" && att.entity_type !== "payment") return false;
-      if (activeFilter === "vat" && att.entity_type !== "company_setting") return false;
-      if (
-        activeFilter === "contact" &&
-        att.entity_type !== "contact" &&
-        att.entity_type !== "customer_vault"
-      )
-        return false;
-      if (activeFilter === "deal" && att.entity_type !== "deal") return false;
-      if (activeFilter === "invoice" && att.entity_type !== "invoice") return false;
-      if (
-        activeFilter === "pdf" &&
-        !att.mime_type?.includes("pdf") &&
-        !att.file_name.endsWith(".pdf")
-      )
-        return false;
-      if (
-        activeFilter === "image" &&
-        !att.mime_type?.includes("image") &&
-        !att.file_name.match(/\.(jpg|jpeg|png|webp|svg|ai)$/i)
-      )
-        return false;
-
-      // Search term
-      if (searchTerm.trim()) {
-        const q = searchTerm.toLowerCase();
-        const matchesName = att.file_name.toLowerCase().includes(q);
-        const matchesEntity = att.entity_label?.toLowerCase().includes(q) || false;
-        const matchesUploader = att.uploaded_by?.toLowerCase().includes(q) || false;
-        if (!matchesName && !matchesEntity && !matchesUploader) return false;
-      }
-      return true;
-    });
-  }, [attachments, activeFilter, searchTerm]);
+  const filteredAttachments = attachments;
 
   // Handle Form Submission
   const handleUploadSubmit = async (e: React.FormEvent) => {
@@ -147,9 +113,7 @@ export function ArchiveManagementView({
       let entityLink: string | undefined = undefined;
 
       if (entityType === "payment") {
-        if (!resolvedEntityId && payments.length > 0) {
-          resolvedEntityId = payments[0].id;
-        }
+
         const p = payments.find((item) => item.id === resolvedEntityId);
         entityLabel = p
           ? `Receipt ${p.receipt_number} (${p.amount} BHD)`
@@ -160,23 +124,17 @@ export function ArchiveManagementView({
         entityLabel = "NBR VAT Registration Certificate";
         entityLink = "/dashboard/settings/company";
       } else if (entityType === "contact" || entityType === "customer_vault") {
-        if (!resolvedEntityId && contacts.length > 0) {
-          resolvedEntityId = contacts[0].id;
-        }
+
         const c = contacts.find((item) => item.id === resolvedEntityId);
         entityLabel = c ? c.company || c.full_name : "Client Document";
         entityLink = resolvedEntityId ? `/dashboard/crm/customers/${resolvedEntityId}` : undefined;
       } else if (entityType === "deal") {
-        if (!resolvedEntityId && deals.length > 0) {
-          resolvedEntityId = deals[0].id;
-        }
+
         const d = deals.find((item) => item.id === resolvedEntityId);
         entityLabel = d ? d.title : "Deal Document";
         entityLink = resolvedEntityId ? `/dashboard/crm/deals/${resolvedEntityId}` : undefined;
       } else if (entityType === "invoice") {
-        if (!resolvedEntityId && invoices.length > 0) {
-          resolvedEntityId = invoices[0].id;
-        }
+
         const i = invoices.find((item) => item.id === resolvedEntityId);
         entityLabel = i ? i.invoice_number : "Invoice Document";
         entityLink = resolvedEntityId ? `/dashboard/invoices/${resolvedEntityId}` : undefined;
@@ -184,21 +142,11 @@ export function ArchiveManagementView({
         resolvedEntityId = "general-vault";
       }
 
+      if (["payment", "contact", "customer_vault", "deal", "invoice"].includes(entityType) && !resolvedEntityId) throw new Error("Select a target record");
       if (uploadMode === "file" && selectedFile) {
         // Send directly to /api/upload
-        const formData = new FormData();
-        formData.append("file", selectedFile);
-        formData.append("entityType", entityType);
-        formData.append("entityId", resolvedEntityId);
-        formData.append("customName", fileName.trim() || selectedFile.name);
-        formData.append("documentType", documentSubtype);
-
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await res.json();
+        const data = await uploadFileDirectly(selectedFile, { entityType: entityType, entityId: resolvedEntityId, documentType: documentSubtype });
+        const res = { ok: true }; // polyfill for following code
         if (!res.ok || !data.success) {
           throw new Error(data.error || "Failed to upload file");
         }
@@ -336,71 +284,32 @@ export function ArchiveManagementView({
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.totalDocuments}</div>
           <div className="text-lg font-bold text-slate-900 dark:text-white  mt-0.5">
-            {attachments.length}
+            {Object.values(counts).reduce((sum, n) => sum + n, 0)}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.filterPayments}</div>
           <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400  mt-0.5">
-            {attachments.filter((a) => a.entity_type === "payment").length}
+            {counts.payment || 0}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.filterLegal}</div>
           <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400  mt-0.5">
-            {attachments.filter((a) => a.entity_type === "company_setting").length}
+            {counts.company_setting || 0}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.invoicePdfs}</div>
           <div className="text-lg font-bold text-slate-900 dark:text-white  mt-0.5">
-            {attachments.filter((a) => a.entity_type === "invoice").length}
+            {counts.invoice || 0}
           </div>
         </div>
         <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.clientVaults}</div>
           <div className="text-lg font-bold text-[#014842] dark:text-[#7de0d1]  mt-0.5">
-            {attachments.filter((a) => a.entity_type === "contact" || a.entity_type === "customer_vault").length}
+            {(counts.contact || 0) + (counts.customer_vault || 0)}
           </div>
-        </div>
-      </div>
-
-      {/* Filter Chips & Search Bar */}
-      <div className="bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="relative max-w-sm w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute start-3 top-2.5" />
-          <input
-            type="text"
-            placeholder={t.archiveView.searchPlaceholder}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full ps-9 pe-4 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
-          />
-        </div>
-
-        <div className="flex items-center gap-1.5 overflow-x-auto text-xs pb-1 sm:pb-0">
-          {[
-            { id: "all", label: t.archiveView.filterAll },
-            { id: "payment", label: t.archiveView.filterPayments },
-            { id: "vat", label: t.archiveView.filterLegal },
-            { id: "invoice", label: t.archiveView.filterInvoices },
-            { id: "contact", label: t.archiveView.filterClients },
-            { id: "deal", label: t.archiveView.filterDeals },
-            { id: "pdf", label: "PDFs" },
-            { id: "image", label: "Images" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveFilter(tab.id)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors shrink-0 ${
-                activeFilter === tab.id
-                  ? "bg-[#e6f5f2] text-[#014842] border border-[#014842]/30 dark:bg-[#004d40]/40 dark:text-[#7de0d1] dark:border-[#004d40] font-semibold"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -782,96 +691,8 @@ export function ArchiveManagementView({
                 )}
               </div>
 
-              {/* Linked Record Selector */}
-              {entityType === "payment" && (
-                <div>
-                  <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    {t.archiveView.selectPayment}
-                  </label>
-                  <select
-                    value={entityId}
-                    onChange={(e) => setEntityId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
-                  >
-                    <option value="">{t.archiveView.selectPaymentPlaceholder}</option>
-                    {payments.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.receipt_number} — {p.amount} BHD ({p.payment_method})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {entityType === "company_setting" && (
-                <div className="p-3 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900 text-indigo-800 dark:text-indigo-300 flex items-start gap-2">
-                  <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
-                  <div className="text-[11px] leading-relaxed">
-                    {t.archiveView.vatCertNotice}
-                  </div>
-                </div>
-              )}
-
-              {entityType === "contact" && (
-                <div>
-                  <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    {t.archiveView.selectClient}
-                  </label>
-                  <select
-                    value={entityId}
-                    onChange={(e) => setEntityId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
-                  >
-                    <option value="">{t.archiveView.selectClientPlaceholder}</option>
-                    {contacts.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.company ? `${c.company} (${c.full_name})` : c.full_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {entityType === "deal" && (
-                <div>
-                  <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    {t.archiveView.selectDeal}
-                  </label>
-                  <select
-                    value={entityId}
-                    onChange={(e) => setEntityId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
-                  >
-                    <option value="">{t.archiveView.selectDealPlaceholder}</option>
-                    {deals.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.title} ({d.contact?.company || d.contact?.full_name || "Direct"})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {entityType === "invoice" && (
-                <div>
-                  <label className="block text-slate-700 dark:text-neutral-300 font-semibold mb-1">
-                    {t.archiveView.selectInvoice}
-                  </label>
-                  <select
-                    value={entityId}
-                    onChange={(e) => setEntityId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
-                  >
-                    <option value="">{t.archiveView.selectInvoicePlaceholder}</option>
-                    {invoices.map((i) => (
-                      <option key={i.id} value={i.id}>
-                        {i.invoice_number} ({i.contact?.company || i.contact?.full_name || "Client"})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
+              {/* Fetch only matching target records; never preload whole business tables. */}
+              {["payment", "contact", "customer_vault", "deal", "invoice"].includes(entityType) && <EntityLookup key={entityType} domain={entityType === "customer_vault" ? "contacts" : entityType + "s"} value={entityId} onChange={setEntityId} />}
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#dadce0] dark:border-[#3c4043]">
                 <Button
                   type="button"

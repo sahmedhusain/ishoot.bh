@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
@@ -78,7 +79,7 @@ export function ServicesSection({
                 </h3>
                 {service.imageUrl && (
                   <div className="mt-4 w-full max-w-xs aspect-[16/9] overflow-hidden rounded-xl border border-white/10 bg-[#0B1210]">
-                    <img
+                    <ContentImage
                       loading="lazy"
                       src={safeWebsiteUrl(service.imageUrl)}
                       alt={ar ? service.nameAr : service.nameEn}

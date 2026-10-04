@@ -31,3 +31,6 @@ apps/admin/public/uploads/
 apps/*/.next-verify/
 
 .next-website-test/
+
+# Isolated verification builds
+.next-audit/

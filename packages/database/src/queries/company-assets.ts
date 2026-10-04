@@ -32,7 +32,7 @@ export async function getCompanyAssets(): Promise<CompanyAssetItem[]> {
     return assets.map(mapAsset);
   } catch (e) {
     console.error("Error fetching company assets:", e);
-    return [];
+    throw e;
   }
 }
 
@@ -46,7 +46,7 @@ export async function getCompanyAsset(
     return asset ? mapAsset(asset) : null;
   } catch (e) {
     console.error(`Error fetching company asset ${assetKey}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -86,7 +86,7 @@ export async function deleteCompanyAsset(assetKey: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error(`Error deleting company asset ${assetKey}:`, e);
-    return false;
+    throw e;
   }
 }
 

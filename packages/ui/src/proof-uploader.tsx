@@ -12,6 +12,7 @@ export interface ProofFile {
   id: string;
   name: string;
   url: string;
+  file?: File;
   size?: number;
   type?: string;
 }
@@ -43,6 +44,7 @@ export function ProofUploader({
 
     const newFiles: ProofFile[] = Array.from(files).map((file, idx) => ({
       id: `file-${Date.now()}-${idx}`,
+      file,
       name: file.name,
       url: URL.createObjectURL(file),
       size: file.size,
@@ -54,6 +56,7 @@ export function ProofUploader({
   };
 
   const handleRemove = (id: string) => {
+    const removed = value.find(f=>f.id===id); if(removed?.url.startsWith("blob:")) URL.revokeObjectURL(removed.url);
     const updated = value.filter((f) => f.id !== id);
     onChange?.(updated);
   };

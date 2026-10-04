@@ -1,4 +1,5 @@
 "use client";
+import {EntityLookup} from "../shared/EntityLookup";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -209,17 +210,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
                   </Link>
                 )}
               </div>
-              <Select
-                value={contactId}
-                onChange={(e) => setContactId(e.target.value)}
-              >
-                <option value="">-- {t.dealEdit.clientLabel} --</option>
-                {contacts.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.company ? `${c.company} (${c.full_name})` : c.full_name}
-                  </option>
-                ))}
-              </Select>
+              <EntityLookup domain="contacts" value={contactId} onChange={setContactId} />
             </div>
           </div>
 

@@ -1,10 +1,14 @@
-import { SignJWT, jwtVerify } from "jose";
+import { SignJWT } from "jose/jwt/sign";
+import { jwtVerify } from "jose/jwt/verify";
 
 export const SESSION_COOKIE_NAME = "ishoot_admin_session";
 
-const JWT_SECRET_STRING = process.env.JWT_SECRET || "ishoot_default_jwt_secret_key_change_in_production";
-if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET is required in production");
+const JWT_SECRET_STRING = process.env.JWT_SECRET;
+if (
+  !JWT_SECRET_STRING ||
+  new TextEncoder().encode(JWT_SECRET_STRING).length < 32
+) {
+  throw new Error("JWT_SECRET must contain at least 32 UTF-8 bytes");
 }
 const key = new TextEncoder().encode(JWT_SECRET_STRING);
 

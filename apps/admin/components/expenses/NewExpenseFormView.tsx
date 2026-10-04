@@ -1,4 +1,5 @@
 "use client";
+import { uploadFileDirectly } from "../../lib/upload-client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -25,15 +26,20 @@ export function NewExpenseFormView() {
     new Date().toISOString().split("T")[0],
   );
   const [proofFiles, setProofFiles] = React.useState<ProofFile[]>([]);
+  const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!descriptionEn || amount <= 0) return;
+    setError("");
     setSaving(true);
 
     try {
+      let receipt_url: string | undefined;
+      if(proofFiles[0]?.file){const body=new FormData();body.set("file",proofFiles[0].file);body.set("entityType","expense");body.set("entityId","pending");const response=await fetch("/api/upload",{method:"POST",body});const result=await response.json();if(!response.ok||!result.success)throw new Error(result.error||"Upload failed");receipt_url=result.fileUrl;}
       await createExpenseAction({
+        receipt_url,
         description_en: descriptionEn,
         amount: Number(amount),
         vendor_name: vendorName || undefined,
@@ -42,7 +48,7 @@ export function NewExpenseFormView() {
 
       router.push("/dashboard/expenses");
     } catch (err) {
-      console.error("Failed to log expense:", err);
+      setError(err instanceof Error ? err.message : "Could not save expense");
     } finally {
       setSaving(false);
     }
@@ -74,6 +80,7 @@ export function NewExpenseFormView() {
 
       <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {error ? <p role="alert">{error}</p> : null}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-white mb-1.5 block">

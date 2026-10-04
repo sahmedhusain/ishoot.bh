@@ -18,3 +18,8 @@ export async function updateFeatureToggle(moduleKey: string, isEnabled: boolean)
     data: { isEnabled },
   });
 }
+
+export async function requireFeatureEnabled(moduleKey:string) {
+  const feature=await db.featureToggle.findUnique({where:{moduleKey},select:{isEnabled:true}});
+  if(feature?.isEnabled === false) throw new Error("FEATURE_DISABLED");
+}

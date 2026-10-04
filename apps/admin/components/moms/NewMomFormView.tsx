@@ -1,4 +1,5 @@
 "use client";
+import {EntityLookup} from "../shared/EntityLookup";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -291,26 +292,12 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">{isRTL ? "العميل المرتبط" : "Linked Client"}</label>
-            <Select value={clientId} onChange={(e) => setClientId(e.target.value)}>
-              <option value="">{isRTL ? "اختر العميل (اختياري)" : "Select Client (Optional)"}</option>
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.company ? `${c.company} (${c.name})` : c.name}
-                </option>
-              ))}
-            </Select>
+            <EntityLookup domain="contacts" value={clientId} onChange={setClientId} />
           </div>
 
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">{isRTL ? "المشروع أو الصفقة" : "Linked Deal"}</label>
-            <Select value={dealId} onChange={(e) => setDealId(e.target.value)}>
-              <option value="">{isRTL ? "اختر الصفقة (اختياري)" : "Select Deal (Optional)"}</option>
-              {deals.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.title}
-                </option>
-              ))}
-            </Select>
+            <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
           </div>
 
           <div className="space-y-1.5">

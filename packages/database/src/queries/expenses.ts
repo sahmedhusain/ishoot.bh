@@ -1,4 +1,6 @@
-import { db } from "../db";
+import { getCompanySettings } from "./company-settings";
+import { db, runAtomicMutation } from "../db";
+import {claimUpload} from "../services/uploads";
 import { Expense, ExpenseCategory, SupportedCurrency } from "../types";
 
 function mapCategory(c: any): ExpenseCategory {
@@ -12,7 +14,7 @@ function mapCategory(c: any): ExpenseCategory {
   };
 }
 
-function mapExpense(e: any): Expense {
+export function mapExpense(e: any): Expense {
   return {
     id: e.id,
     category_id: e.categoryId || "",
@@ -25,6 +27,7 @@ function mapExpense(e: any): Expense {
     expense_date: e.expenseDate.toISOString().split("T")[0],
     vendor_name: e.vendorName || undefined,
     receipt_url: e.receiptUrl || undefined,
+    is_billable: e.isBillable,
     is_recurring: e.isRecurring,
     recurrence_interval: (e.recurrenceInterval as any) || undefined,
     notes: e.notes || undefined,
@@ -40,7 +43,7 @@ export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
     return categories.map(mapCategory);
   } catch (e) {
     console.error("Error fetching expense categories from DB:", e);
-    return [];
+    throw e;
   }
 }
 
@@ -68,14 +71,13 @@ export async function getAllExpenses(): Promise<Expense[]> {
     const expenses = await db.expense.findMany({
       include: {
         category: true,
-        deal: true,
       },
       orderBy: { expenseDate: "desc" },
     });
     return expenses.map(mapExpense);
   } catch (e) {
     console.error("Error fetching expenses from DB:", e);
-    return [];
+    throw e;
   }
 }
 
@@ -93,7 +95,11 @@ export async function createExpense(expense: {
   recurrence_interval?: string;
   notes?: string;
   is_billable?: boolean;
-}): Promise<Expense> {
+}, ownerId?: string): Promise<Expense> {
+  if (!Number.isFinite(expense.amount) || expense.amount <= 0)
+    throw new Error("Expense amount must be positive");
+  return runAtomicMutation(async () => {
+  const upload = expense.receipt_url ? await claimUpload(db, expense.receipt_url, ownerId) : null;
   const created = await db.expense.create({
     data: {
       categoryId: expense.category_id || null,
@@ -101,19 +107,23 @@ export async function createExpense(expense: {
       descriptionEn: expense.description_en,
       descriptionAr: expense.description_ar || null,
       amount: expense.amount,
-      currency: expense.currency || "BHD",
+      currency: expense.currency || (await getCompanySettings()).default_currency,
+      createdById: ownerId || null,
       expenseDate: expense.expense_date
         ? new Date(expense.expense_date)
         : new Date(),
       vendorName: expense.vendor_name || null,
       receiptUrl: expense.receipt_url || null,
+      isBillable: expense.is_billable || false,
       isRecurring: expense.is_recurring || false,
       recurrenceInterval: expense.recurrence_interval || null,
       notes: expense.notes || null,
     },
     include: { category: true, deal: true },
   });
+  if(upload) await db.attachment.create({data:{entityType:"expense",entityId:created.id,fileName:upload.fileName,fileUrl:upload.fileUrl,fileSize:upload.fileSize,mimeType:upload.mimeType,uploadedById:ownerId}});
   return mapExpense(created);
+  });
 }
 
 export async function updateExpense(
@@ -121,6 +131,11 @@ export async function updateExpense(
   data: Partial<Expense>,
 ): Promise<Expense | null> {
   try {
+    if (
+      data.amount !== undefined &&
+      (!Number.isFinite(data.amount) || data.amount <= 0)
+    )
+      throw new Error("Expense amount must be positive");
     const updateData: any = {};
     if (data.category_id !== undefined)
       updateData.categoryId = data.category_id;
@@ -151,7 +166,7 @@ export async function updateExpense(
     return mapExpense(updated);
   } catch (e) {
     console.error(`Error updating expense ${id}:`, e);
-    return null;
+    throw e;
   }
 }
 
@@ -161,6 +176,6 @@ export async function deleteExpense(id: string): Promise<boolean> {
     return true;
   } catch (e) {
     console.error(`Error deleting expense ${id}:`, e);
-    return false;
+    throw e;
   }
 }

@@ -1,4 +1,5 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
@@ -130,7 +131,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
                 aria-label={`${t("portfolio.viewProject")}: ${ar ? item.title_ar : item.title_en}`}
               >
                 <div className="relative overflow-hidden rounded-md aspect-[16/10] bg-[#050807]">
-                  <img
+                  <ContentImage
                     loading="lazy"
                     width={800}
                     height={500}

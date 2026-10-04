@@ -1,7 +1,10 @@
+import { measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
+import { getEffectivePermissions } from "@ishoot/database";
 import { getCurrentUser } from "../../../../lib/auth";
 
 export async function GET(req: NextRequest) {
+  return measureOperation("admin:auth/me:GET", async () => {
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -16,7 +19,10 @@ export async function GET(req: NextRequest) {
         role: user.role,
         department: user.department,
         avatarUrl: user.avatar_url,
-        permissions: user.permissions,
+        permissions: await getEffectivePermissions(
+          user.role,
+          user.permissions as Record<string, boolean> | undefined,
+        ),
       },
     });
   } catch (err: any) {
@@ -25,4 +31,6 @@ export async function GET(req: NextRequest) {
       { status: 401 },
     );
   }
+
+  });
 }

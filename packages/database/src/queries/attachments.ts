@@ -1,3 +1,4 @@
+import { claimUpload } from "../services/uploads";
 import { db } from "../db";
 import type { Attachment } from "../types";
 
@@ -7,14 +8,15 @@ export interface EnrichedAttachment extends Attachment {
   uploader_name?: string;
 }
 
-export async function getAllAttachments(): Promise<EnrichedAttachment[]> {
+export async function getAllAttachments(options?: { ids?: string[] }): Promise<EnrichedAttachment[]> {
   const records = await db.attachment.findMany({
+    where: options?.ids ? { id: { in: options.ids } } : undefined,
     include: {
       uploadedBy: {
         select: { fullName: true, email: true },
       },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
   });
 
   const contactIds = records
@@ -30,7 +32,7 @@ export async function getAllAttachments(): Promise<EnrichedAttachment[]> {
     .filter((r) => r.entityType === "payment")
     .map((r) => r.entityId);
 
-  const [contacts, invoices, deals, payments, companySetting] = await Promise.all([
+  const [contacts, invoices, deals, payments] = await Promise.all([
     contactIds.length > 0
       ? db.crmContact.findMany({
           where: { id: { in: contactIds } },
@@ -73,9 +75,6 @@ export async function getAllAttachments(): Promise<EnrichedAttachment[]> {
           },
         })
       : [],
-    db.companySetting.findFirst({
-      select: { vatCertificateUrl: true, vatId: true },
-    }),
   ]);
 
   const contactMap = new Map(
@@ -136,24 +135,6 @@ export async function getAllAttachments(): Promise<EnrichedAttachment[]> {
     };
   });
 
-  if (
-    companySetting?.vatCertificateUrl &&
-    !records.some((r) => r.entityType === "company_setting")
-  ) {
-    mapped.unshift({
-      id: "company-vat-cert",
-      file_name: "VAT Registration Certificate (NBR).pdf",
-      file_url: companySetting.vatCertificateUrl,
-      file_size: 512 * 1024,
-      mime_type: "application/pdf",
-      entity_type: "company_setting",
-      entity_id: "company_setting",
-      entity_label: "NBR VAT Registration Certificate",
-      entity_link: "/dashboard/settings/company",
-      uploaded_by: "System / Admin",
-      created_at: new Date().toISOString(),
-    });
-  }
 
   return mapped;
 }
@@ -167,16 +148,19 @@ export async function createAttachment(data: {
   entityId: string;
   uploadedById?: string;
 }) {
-  return db.attachment.create({
+  return db.$transaction(async (tx) => {
+    const upload = await claimUpload(tx, data.fileUrl, data.uploadedById);
+    return tx.attachment.create({
     data: {
       fileName: data.fileName,
       fileUrl: data.fileUrl,
-      fileSize: data.fileSize,
-      mimeType: data.mimeType,
+      fileSize: upload.fileSize,
+      mimeType: upload.mimeType,
       entityType: data.entityType,
       entityId: data.entityId,
       uploadedById: data.uploadedById,
     },
+  });
   });
 }
 

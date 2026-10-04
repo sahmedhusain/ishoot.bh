@@ -49,32 +49,72 @@ interface UserOption {
 interface RequestsManagementViewProps {
   initialRequests: Inquiry[];
   users: UserOption[];
+  filters: {
+    intent?: string;
+    team?: string;
+    workflowStatus?: string;
+    search?: string;
+  };
+  page: number;
+  total: number;
+  stats: {
+    total: number;
+    complaints: number;
+    services: number;
+    approvals: number;
+  };
 }
 
 const TEAMS = [
   { id: "all", labelEn: "All Teams", labelAr: "كل الفرق" },
   { id: "production", labelEn: "Production", labelAr: "فريق الإنتاج" },
-  { id: "post_production", labelEn: "Post-Production", labelAr: "ما بعد الإنتاج / المونتاج" },
-  { id: "finance", labelEn: "Finance & Accounts", labelAr: "المالية والحسابات" },
-  { id: "sales", labelEn: "Sales & Client Relations", labelAr: "المبيعات وعلاقات العملاء" },
+  {
+    id: "post_production",
+    labelEn: "Post-Production",
+    labelAr: "ما بعد الإنتاج / المونتاج",
+  },
+  {
+    id: "finance",
+    labelEn: "Finance & Accounts",
+    labelAr: "المالية والحسابات",
+  },
+  {
+    id: "sales",
+    labelEn: "Sales & Client Relations",
+    labelAr: "المبيعات وعلاقات العملاء",
+  },
   { id: "support", labelEn: "Customer Care", labelAr: "خدمة ودعم العملاء" },
 ];
 
 export function RequestsManagementView({
   initialRequests,
   users,
+  filters,
+  page,
+  total,
+  stats,
 }: RequestsManagementViewProps) {
   const router = useRouter();
   const { isRTL } = useAdminLocale();
 
   // Filters
-  const [typeFilter, setTypeFilter] = React.useState<string>("all");
-  const [teamFilter, setTeamFilter] = React.useState<string>("all");
-  const [statusFilter, setStatusFilter] = React.useState<string>("all");
-  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  const [typeFilter, setTypeFilter] = React.useState<string>(
+    filters.intent || "all",
+  );
+  const [teamFilter, setTeamFilter] = React.useState<string>(
+    filters.team || "all",
+  );
+  const [statusFilter, setStatusFilter] = React.useState<string>(
+    filters.workflowStatus || "all",
+  );
+  const [searchQuery, setSearchQuery] = React.useState<string>(
+    filters.search || "",
+  );
 
   // Modals & Drawers
-  const [selectedRequest, setSelectedRequest] = React.useState<Inquiry | null>(null);
+  const [selectedRequest, setSelectedRequest] = React.useState<Inquiry | null>(
+    null,
+  );
   const [activeModal, setActiveModal] = React.useState<
     "assign" | "reassign" | "return" | "approve" | "confirm" | "resolve" | null
   >(null);
@@ -89,45 +129,57 @@ export function RequestsManagementView({
     text: string;
   } | null>(null);
 
-  // Filter Logic
-  const filteredRequests = initialRequests.filter((req) => {
-    if (typeFilter !== "all" && req.type !== typeFilter) return false;
-    if (teamFilter !== "all" && (req.team || "support") !== teamFilter) return false;
-    if (statusFilter !== "all") {
-      const currentWorkflow = req.workflow_status || "received";
-      if (currentWorkflow !== statusFilter) return false;
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const matchName = req.full_name?.toLowerCase().includes(q);
-      const matchEmail = req.email?.toLowerCase().includes(q);
-      const matchCompany = req.company?.toLowerCase().includes(q);
-      const matchSubject = req.subject?.toLowerCase().includes(q);
-      const matchMessage = req.message?.toLowerCase().includes(q);
-      if (!matchName && !matchEmail && !matchCompany && !matchSubject && !matchMessage) {
-        return false;
-      }
-    }
-    return true;
-  });
-
-  // KPI Calculations
-  const totalCount = initialRequests.length;
-  const complaintsCount = initialRequests.filter((r) => r.type === "complaint").length;
-  const serviceRequestsCount = initialRequests.filter(
-    (r) => r.type === "service_request" || r.type === "quote_request"
-  ).length;
-  const pendingApprovalsCount = initialRequests.filter(
-    (r) => r.workflow_status === "pending_approval" || r.workflow_status === "assigned"
-  ).length;
+  const filteredRequests = initialRequests;
+  const totalCount = stats.total;
+  const complaintsCount = stats.complaints;
+  const serviceRequestsCount = stats.services;
+  const pendingApprovalsCount = stats.approvals;
+  const pageUrl = React.useCallback(
+    (nextPage: number) => {
+      const query = new URLSearchParams();
+      for (const [key, value] of Object.entries({
+        intent: typeFilter,
+        team: teamFilter,
+        workflowStatus: statusFilter,
+        search: searchQuery,
+      }))
+        if (value && value !== "all") query.set(key, value);
+      query.set("page", String(nextPage));
+      return `/dashboard/requests?${query}`;
+    },
+    [typeFilter, teamFilter, statusFilter, searchQuery],
+  );
+  React.useEffect(() => {
+    if (
+      typeFilter === (filters.intent || "all") &&
+      teamFilter === (filters.team || "all") &&
+      statusFilter === (filters.workflowStatus || "all") &&
+      searchQuery === (filters.search || "")
+    )
+      return;
+    const timer = setTimeout(() => router.replace(pageUrl(1)), 300);
+    return () => clearTimeout(timer);
+  }, [
+    typeFilter,
+    teamFilter,
+    statusFilter,
+    searchQuery,
+    filters.intent,
+    filters.team,
+    filters.workflowStatus,
+    filters.search,
+    pageUrl,
+    router,
+  ]);
 
   const openActionModal = (
     req: Inquiry,
-    modalType: "assign" | "reassign" | "return" | "approve" | "confirm" | "resolve"
+    modalType:
+      "assign" | "reassign" | "return" | "approve" | "confirm" | "resolve",
   ) => {
     setSelectedRequest(req);
     setActiveModal(modalType);
-    setModalUserId(req.assigned_to_id || (users[0]?.id || ""));
+    setModalUserId(req.assigned_to_id || users[0]?.id || "");
     setModalTeam(req.team || "production");
     setModalNotes("");
   };
@@ -155,7 +207,10 @@ export function RequestsManagementView({
         });
       } else if (activeModal === "return") {
         if (!modalNotes.trim()) {
-          setActionFeedback({ type: "error", text: isRTL ? "يرجى ذكر سبب الإرجاع" : "Return reason is required" });
+          setActionFeedback({
+            type: "error",
+            text: isRTL ? "يرجى ذكر سبب الإرجاع" : "Return reason is required",
+          });
           setIsSubmitting(false);
           return;
         }
@@ -172,7 +227,12 @@ export function RequestsManagementView({
         });
       } else if (activeModal === "resolve") {
         if (!modalNotes.trim()) {
-          setActionFeedback({ type: "error", text: isRTL ? "يرجى كتابة ملخص الحل والتسليم" : "Resolution notes required" });
+          setActionFeedback({
+            type: "error",
+            text: isRTL
+              ? "يرجى كتابة ملخص الحل والتسليم"
+              : "Resolution notes required",
+          });
           setIsSubmitting(false);
           return;
         }
@@ -184,7 +244,9 @@ export function RequestsManagementView({
       if (res.success) {
         setActionFeedback({
           type: "success",
-          text: isRTL ? "تم تحديث الطلب وتطبيق التغييرات بنجاح" : "Workflow action completed successfully",
+          text: isRTL
+            ? "تم تحديث الطلب وتطبيق التغييرات بنجاح"
+            : "Workflow action completed successfully",
         });
         setActiveModal(null);
         setSelectedRequest(null);
@@ -220,6 +282,12 @@ export function RequestsManagementView({
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/50">
             <UserCheck className="w-3 h-3 text-blue-500" />
             <span>{isRTL ? "مُعيّن ومُتابع" : "Assigned"}</span>
+          </span>
+        );
+      case "approved":
+        return (
+          <span className="text-emerald-600">
+            {isRTL ? "معتمد" : "Approved"}
           </span>
         );
       case "pending_approval":
@@ -294,7 +362,11 @@ export function RequestsManagementView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display flex items-center gap-3">
-            <span>{isRTL ? "إدارة الطلبات والشكاوى (SR / CR)" : "Service Requests & Complaints (SR / CR)"}</span>
+            <span>
+              {isRTL
+                ? "إدارة الطلبات والشكاوى (SR / CR)"
+                : "Service Requests & Complaints (SR / CR)"}
+            </span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {isRTL
@@ -395,10 +467,22 @@ export function RequestsManagementView({
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-white/10 pb-3">
           {[
             { id: "all", labelEn: "All Requests", labelAr: "كافة الطلبات" },
-            { id: "complaint", labelEn: "Complaints (CR)", labelAr: "الشكاوى (CR)" },
-            { id: "service_request", labelEn: "Service Requests (SR)", labelAr: "طلبات الخدمات (SR)" },
+            {
+              id: "complaint",
+              labelEn: "Complaints (CR)",
+              labelAr: "الشكاوى (CR)",
+            },
+            {
+              id: "service_request",
+              labelEn: "Service Requests (SR)",
+              labelAr: "طلبات الخدمات (SR)",
+            },
             { id: "quote_request", labelEn: "Quotes", labelAr: "عروض الأسعار" },
-            { id: "inquiry", labelEn: "Inquiries", labelAr: "الاستفسارات العامة" },
+            {
+              id: "inquiry",
+              labelEn: "Inquiries",
+              labelAr: "الاستفسارات العامة",
+            },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -439,13 +523,24 @@ export function RequestsManagementView({
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
             >
-              <option value="all">{isRTL ? "جميع حالات سير العمل" : "All Workflow States"}</option>
-              <option value="received">{isRTL ? "مستلم جديد" : "Received"}</option>
-              <option value="assigned">{isRTL ? "مُعين للمتابعة" : "Assigned"}</option>
-              <option value="pending_approval">{isRTL ? "بانتظار الاعتماد" : "Pending Approval"}</option>
+              <option value="all">
+                {isRTL ? "جميع حالات سير العمل" : "All Workflow States"}
+              </option>
+              <option value="received">
+                {isRTL ? "مستلم جديد" : "Received"}
+              </option>
+              <option value="assigned">
+                {isRTL ? "مُعين للمتابعة" : "Assigned"}
+              </option>
+              <option value="approved">{isRTL ? "معتمد" : "Approved"}</option>
+              <option value="pending_approval">
+                {isRTL ? "بانتظار الاعتماد" : "Pending Approval"}
+              </option>
               <option value="confirmed">{isRTL ? "مؤكد" : "Confirmed"}</option>
               <option value="returned">{isRTL ? "مُعاد" : "Returned"}</option>
-              <option value="resolved">{isRTL ? "محلول ومغلق" : "Resolved"}</option>
+              <option value="resolved">
+                {isRTL ? "محلول ومغلق" : "Resolved"}
+              </option>
             </select>
           </div>
 
@@ -456,7 +551,11 @@ export function RequestsManagementView({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isRTL ? "بحث بالاسم، البريد، الشركة..." : "Search by name, email, topic..."}
+              placeholder={
+                isRTL
+                  ? "بحث بالاسم، البريد، الشركة..."
+                  : "Search by name, email, topic..."
+              }
               className="w-full pl-9 pr-4 rtl:pr-9 rtl:pl-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
             />
           </div>
@@ -469,12 +568,24 @@ export function RequestsManagementView({
           <table className="w-full text-start text-xs border-collapse">
             <thead>
               <tr className="border-b border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-500 uppercase tracking-wider text-[10px]">
-                <th className="py-3.5 px-4 text-start font-bold">{isRTL ? "النوع والموضوع" : "Type & Subject"}</th>
-                <th className="py-3.5 px-4 text-start font-bold">{isRTL ? "بيانات العميل" : "Client & Entity"}</th>
-                <th className="py-3.5 px-4 text-start font-bold">{isRTL ? "الفريق والمسؤول" : "Team & Assignee"}</th>
-                <th className="py-3.5 px-4 text-center font-bold">{isRTL ? "مرحلة العمل" : "Workflow Stage"}</th>
-                <th className="py-3.5 px-4 text-start font-bold">{isRTL ? "التاريخ" : "Date"}</th>
-                <th className="py-3.5 px-4 text-end font-bold">{isRTL ? "الإجراءات المعتمدة" : "Actions"}</th>
+                <th className="py-3.5 px-4 text-start font-bold">
+                  {isRTL ? "النوع والموضوع" : "Type & Subject"}
+                </th>
+                <th className="py-3.5 px-4 text-start font-bold">
+                  {isRTL ? "بيانات العميل" : "Client & Entity"}
+                </th>
+                <th className="py-3.5 px-4 text-start font-bold">
+                  {isRTL ? "الفريق والمسؤول" : "Team & Assignee"}
+                </th>
+                <th className="py-3.5 px-4 text-center font-bold">
+                  {isRTL ? "مرحلة العمل" : "Workflow Stage"}
+                </th>
+                <th className="py-3.5 px-4 text-start font-bold">
+                  {isRTL ? "التاريخ" : "Date"}
+                </th>
+                <th className="py-3.5 px-4 text-end font-bold">
+                  {isRTL ? "الإجراءات المعتمدة" : "Actions"}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -482,12 +593,19 @@ export function RequestsManagementView({
                 <tr>
                   <td colSpan={6} className="py-12 text-center text-slate-400">
                     <MessageSquare className="w-8 h-8 mx-auto mb-2 text-slate-300 opacity-70" />
-                    <span>{isRTL ? "لا توجد طلبات أو شكاوى مطابقة لمعايير البحث" : "No requests found matching filters"}</span>
+                    <span>
+                      {isRTL
+                        ? "لا توجد طلبات أو شكاوى مطابقة لمعايير البحث"
+                        : "No requests found matching filters"}
+                    </span>
                   </td>
                 </tr>
               ) : (
                 filteredRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                  <tr
+                    key={req.id}
+                    className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                  >
                     {/* Type & Subject */}
                     <td className="py-4 px-4 align-top">
                       <div className="space-y-1">
@@ -525,7 +643,10 @@ export function RequestsManagementView({
                           </div>
                         )}
                         {req.phone && (
-                          <div className="text-[11px] text-slate-500 flex items-center gap-1 font-mono" dir="ltr">
+                          <div
+                            className="text-[11px] text-slate-500 flex items-center gap-1 font-mono"
+                            dir="ltr"
+                          >
                             <Phone className="w-3 h-3 text-slate-400" />
                             <span>{req.phone}</span>
                           </div>
@@ -541,7 +662,10 @@ export function RequestsManagementView({
                         </span>
                         <div className="flex items-center gap-1.5 text-xs text-slate-800 dark:text-slate-200 font-medium">
                           <User className="w-3.5 h-3.5 text-[#09937F]" />
-                          <span>{req.assigned_to_name || (isRTL ? "غير مُعيّن" : "Unassigned")}</span>
+                          <span>
+                            {req.assigned_to_name ||
+                              (isRTL ? "غير مُعيّن" : "Unassigned")}
+                          </span>
                         </div>
                       </div>
                     </td>
@@ -574,10 +698,14 @@ export function RequestsManagementView({
                           title="Reassign Team or Person"
                         >
                           <ArrowRightLeft className="w-3 h-3" />
-                          <span>{isRTL ? "تحويل / إعادة تعيين" : "Reassign"}</span>
+                          <span>
+                            {isRTL ? "تحويل / إعادة تعيين" : "Reassign"}
+                          </span>
                         </button>
 
-                        {req.workflow_status === "assigned" && (
+                        {["assigned", "pending_approval"].includes(
+                          req.workflow_status || "",
+                        ) && (
                           <button
                             onClick={() => openActionModal(req, "approve")}
                             className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-[#09937F] hover:bg-[#077a68] text-white transition-colors inline-flex items-center gap-1 shadow-sm"
@@ -588,7 +716,7 @@ export function RequestsManagementView({
                           </button>
                         )}
 
-                        {req.workflow_status === "pending_approval" && (
+                        {req.workflow_status === "approved" && (
                           <button
                             onClick={() => openActionModal(req, "confirm")}
                             className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-colors inline-flex items-center gap-1 shadow-sm"
@@ -599,16 +727,17 @@ export function RequestsManagementView({
                           </button>
                         )}
 
-                        {req.workflow_status !== "returned" && req.workflow_status !== "resolved" && (
-                          <button
-                            onClick={() => openActionModal(req, "return")}
-                            className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors inline-flex items-center gap-1"
-                            title="Return Back with Reason"
-                          >
-                            <RotateCcw className="w-3 h-3" />
-                            <span>{isRTL ? "إرجاع" : "Return"}</span>
-                          </button>
-                        )}
+                        {req.workflow_status !== "returned" &&
+                          req.workflow_status !== "resolved" && (
+                            <button
+                              onClick={() => openActionModal(req, "return")}
+                              className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors inline-flex items-center gap-1"
+                              title="Return Back with Reason"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              <span>{isRTL ? "إرجاع" : "Return"}</span>
+                            </button>
+                          )}
 
                         {req.workflow_status !== "resolved" && (
                           <button
@@ -639,10 +768,13 @@ export function RequestsManagementView({
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   {getTypeBadge(selectedRequest.type)}
-                  <span className="font-mono text-xs text-slate-400">#{selectedRequest.id.slice(-6)}</span>
+                  <span className="font-mono text-xs text-slate-400">
+                    #{selectedRequest.id.slice(-6)}
+                  </span>
                 </div>
                 <h3 className="font-bold text-lg text-slate-900 dark:text-white">
-                  {selectedRequest.subject || (isRTL ? "تفاصيل الطلب" : "Request Details")}
+                  {selectedRequest.subject ||
+                    (isRTL ? "تفاصيل الطلب" : "Request Details")}
                 </h3>
               </div>
               <button
@@ -662,20 +794,39 @@ export function RequestsManagementView({
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <span className="text-slate-400 block">{isRTL ? "الاسم الكامل" : "Name"}</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedRequest.full_name}</span>
+                    <span className="text-slate-400 block">
+                      {isRTL ? "الاسم الكامل" : "Name"}
+                    </span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      {selectedRequest.full_name}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">{isRTL ? "الشركة" : "Company"}</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedRequest.company || "—"}</span>
+                    <span className="text-slate-400 block">
+                      {isRTL ? "الشركة" : "Company"}
+                    </span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      {selectedRequest.company || "—"}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">{isRTL ? "البريد الإلكتروني" : "Email"}</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">{selectedRequest.email}</span>
+                    <span className="text-slate-400 block">
+                      {isRTL ? "البريد الإلكتروني" : "Email"}
+                    </span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                      {selectedRequest.email}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block">{isRTL ? "رقم الهاتف" : "Phone"}</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono" dir="ltr">{selectedRequest.phone || "—"}</span>
+                    <span className="text-slate-400 block">
+                      {isRTL ? "رقم الهاتف" : "Phone"}
+                    </span>
+                    <span
+                      className="font-semibold text-slate-800 dark:text-slate-200 font-mono"
+                      dir="ltr"
+                    >
+                      {selectedRequest.phone || "—"}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -683,7 +834,9 @@ export function RequestsManagementView({
               {/* Message */}
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-                  {isRTL ? "نص الشكوى أو متطلبات الخدمة" : "Request / Complaint Message"}
+                  {isRTL
+                    ? "نص الشكوى أو متطلبات الخدمة"
+                    : "Request / Complaint Message"}
                 </h4>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 text-xs text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
                   {selectedRequest.message}
@@ -693,20 +846,34 @@ export function RequestsManagementView({
               {/* Current Assignment & Stage */}
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-                  {isRTL ? "المسؤولية الإدارية الحالية" : "Current Assignment & Workflow"}
+                  {isRTL
+                    ? "المسؤولية الإدارية الحالية"
+                    : "Current Assignment & Workflow"}
                 </h4>
                 <div className="flex items-center justify-between text-xs">
                   <div>
-                    <span className="text-slate-400 block text-[11px]">{isRTL ? "الفريق المختص" : "Assigned Team"}</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200 capitalize">{selectedRequest.team || "support"}</span>
+                    <span className="text-slate-400 block text-[11px]">
+                      {isRTL ? "الفريق المختص" : "Assigned Team"}
+                    </span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200 capitalize">
+                      {selectedRequest.team || "support"}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">{isRTL ? "المسؤول المباشر" : "Assigned User"}</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedRequest.assigned_to_name || "Unassigned"}</span>
+                    <span className="text-slate-400 block text-[11px]">
+                      {isRTL ? "المسؤول المباشر" : "Assigned User"}
+                    </span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                      {selectedRequest.assigned_to_name || "Unassigned"}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[11px]">{isRTL ? "حالة السير" : "Workflow Stage"}</span>
-                    <div>{getWorkflowBadge(selectedRequest.workflow_status)}</div>
+                    <span className="text-slate-400 block text-[11px]">
+                      {isRTL ? "حالة السير" : "Workflow Stage"}
+                    </span>
+                    <div>
+                      {getWorkflowBadge(selectedRequest.workflow_status)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -715,31 +882,46 @@ export function RequestsManagementView({
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
                   <History className="w-4 h-4 text-[#09937F]" />
-                  <span>{isRTL ? "سجل التحويلات والاعتمادات المخصصة" : "Assignment & Workflow Audit History"}</span>
+                  <span>
+                    {isRTL
+                      ? "سجل التحويلات والاعتمادات المخصصة"
+                      : "Assignment & Workflow Audit History"}
+                  </span>
                 </h4>
-                {selectedRequest.custom_assignments && selectedRequest.custom_assignments.length > 0 ? (
+                {selectedRequest.custom_assignments &&
+                selectedRequest.custom_assignments.length > 0 ? (
                   <div className="space-y-3 pl-3 rtl:pr-3 rtl:pl-0 border-l-2 rtl:border-r-2 rtl:border-l-0 border-slate-200 dark:border-white/10">
-                    {selectedRequest.custom_assignments.map((item: any, i: number) => (
-                      <div key={i} className="relative space-y-1 text-xs">
-                        <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
-                          <span className="w-2 h-2 rounded-full bg-[#09937F] absolute -left-[17px] rtl:-right-[17px] top-1.5" />
-                          <span className="capitalize">{item.action || "Update"}</span>
-                          <span className="text-slate-400 font-normal text-[11px]">by {item.assignedByName || "System"}</span>
+                    {selectedRequest.custom_assignments.map(
+                      (item: any, i: number) => (
+                        <div key={i} className="relative space-y-1 text-xs">
+                          <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
+                            <span className="w-2 h-2 rounded-full bg-[#09937F] absolute -left-[17px] rtl:-right-[17px] top-1.5" />
+                            <span className="capitalize">
+                              {item.action || "Update"}
+                            </span>
+                            <span className="text-slate-400 font-normal text-[11px]">
+                              by {item.assignedByName || "System"}
+                            </span>
+                          </div>
+                          {item.notes && (
+                            <p className="text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.02] p-2.5 rounded-lg border border-slate-200/60 dark:border-white/5">
+                              {item.notes}
+                            </p>
+                          )}
+                          <span className="text-[10px] text-slate-400 font-mono block">
+                            {item.timestamp
+                              ? new Date(item.timestamp).toLocaleString()
+                              : ""}
+                          </span>
                         </div>
-                        {item.notes && (
-                          <p className="text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-white/[0.02] p-2.5 rounded-lg border border-slate-200/60 dark:border-white/5">
-                            {item.notes}
-                          </p>
-                        )}
-                        <span className="text-[10px] text-slate-400 font-mono block">
-                          {item.timestamp ? new Date(item.timestamp).toLocaleString() : ""}
-                        </span>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
                 ) : (
                   <div className="text-xs text-slate-400 p-3 bg-slate-50 dark:bg-white/[0.02] rounded-xl border border-slate-200/60 text-center">
-                    {isRTL ? "لا توجد تحويلات سابقة مسجلة" : "No previous assignment entries"}
+                    {isRTL
+                      ? "لا توجد تحويلات سابقة مسجلة"
+                      : "No previous assignment entries"}
                   </div>
                 )}
               </div>
@@ -781,16 +963,35 @@ export function RequestsManagementView({
                 <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#09937F]" />
                   <span>
-                    {activeModal === "assign" && (isRTL ? "تعيين الطلب إلى فريق ومسؤول" : "Assign Request to Team")}
-                    {activeModal === "reassign" && (isRTL ? "إعادة توجيه وتحويل الطلب (Re-assign)" : "Reassign & Route Request")}
-                    {activeModal === "return" && (isRTL ? "إرجاع الطلب مع السبب (Return Back)" : "Return Request with Reason")}
-                    {activeModal === "approve" && (isRTL ? "اعتماد الطلب والموافقة على المتابعة" : "Approve Request Workflow")}
-                    {activeModal === "confirm" && (isRTL ? "تأكيد إداري نهائي للتنفيذ (Confirm)" : "Final Executive Confirmation")}
-                    {activeModal === "resolve" && (isRTL ? "حل وإغلاق الطلب رسمياً (Resolve)" : "Resolve & Close Request")}
+                    {activeModal === "assign" &&
+                      (isRTL
+                        ? "تعيين الطلب إلى فريق ومسؤول"
+                        : "Assign Request to Team")}
+                    {activeModal === "reassign" &&
+                      (isRTL
+                        ? "إعادة توجيه وتحويل الطلب (Re-assign)"
+                        : "Reassign & Route Request")}
+                    {activeModal === "return" &&
+                      (isRTL
+                        ? "إرجاع الطلب مع السبب (Return Back)"
+                        : "Return Request with Reason")}
+                    {activeModal === "approve" &&
+                      (isRTL
+                        ? "اعتماد الطلب والموافقة على المتابعة"
+                        : "Approve Request Workflow")}
+                    {activeModal === "confirm" &&
+                      (isRTL
+                        ? "تأكيد إداري نهائي للتنفيذ (Confirm)"
+                        : "Final Executive Confirmation")}
+                    {activeModal === "resolve" &&
+                      (isRTL
+                        ? "حل وإغلاق الطلب رسمياً (Resolve)"
+                        : "Resolve & Close Request")}
                   </span>
                 </h3>
                 <span className="text-xs text-slate-400">
-                  {selectedRequest.subject || "SR/CR #" + selectedRequest.id.slice(-6)}
+                  {selectedRequest.subject ||
+                    "SR/CR #" + selectedRequest.id.slice(-6)}
                 </span>
               </div>
               <button
@@ -804,7 +1005,9 @@ export function RequestsManagementView({
             {/* Visual Diff Box: What is the Changed */}
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 space-y-3">
               <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                {isRTL ? "تأكيد الفروقات والتغييرات (Diff Verification)" : "Changes to be Applied (Diff)"}
+                {isRTL
+                  ? "تأكيد الفروقات والتغييرات (Diff Verification)"
+                  : "Changes to be Applied (Diff)"}
               </h4>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
@@ -814,16 +1017,28 @@ export function RequestsManagementView({
                     {isRTL ? "الحالة السابقة" : "Before Change"}
                   </span>
                   <div>
-                    <span className="text-[10px] opacity-70 block">{isRTL ? "المسؤول الحالي:" : "Current Assignee:"}</span>
-                    <strong className="font-semibold">{selectedRequest.assigned_to_name || "Unassigned"}</strong>
+                    <span className="text-[10px] opacity-70 block">
+                      {isRTL ? "المسؤول الحالي:" : "Current Assignee:"}
+                    </span>
+                    <strong className="font-semibold">
+                      {selectedRequest.assigned_to_name || "Unassigned"}
+                    </strong>
                   </div>
                   <div>
-                    <span className="text-[10px] opacity-70 block">{isRTL ? "الفريق الحالي:" : "Current Team:"}</span>
-                    <strong className="font-semibold capitalize">{selectedRequest.team || "support"}</strong>
+                    <span className="text-[10px] opacity-70 block">
+                      {isRTL ? "الفريق الحالي:" : "Current Team:"}
+                    </span>
+                    <strong className="font-semibold capitalize">
+                      {selectedRequest.team || "support"}
+                    </strong>
                   </div>
                   <div>
-                    <span className="text-[10px] opacity-70 block">{isRTL ? "مرحلة السير:" : "Workflow Stage:"}</span>
-                    <strong className="font-semibold">{selectedRequest.workflow_status || "received"}</strong>
+                    <span className="text-[10px] opacity-70 block">
+                      {isRTL ? "مرحلة السير:" : "Workflow Stage:"}
+                    </span>
+                    <strong className="font-semibold">
+                      {selectedRequest.workflow_status || "received"}
+                    </strong>
                   </div>
                 </div>
 
@@ -833,26 +1048,35 @@ export function RequestsManagementView({
                     {isRTL ? "الحالة الجديدة بعد التأكيد" : "After Change"}
                   </span>
                   <div>
-                    <span className="text-[10px] opacity-70 block">{isRTL ? "المسؤول الجديد:" : "New Assignee:"}</span>
+                    <span className="text-[10px] opacity-70 block">
+                      {isRTL ? "المسؤول الجديد:" : "New Assignee:"}
+                    </span>
                     <strong className="font-semibold">
                       {activeModal === "reassign" || activeModal === "assign"
-                        ? users.find((u) => u.id === modalUserId)?.name || "Selected Lead"
+                        ? users.find((u) => u.id === modalUserId)?.name ||
+                          "Selected Lead"
                         : selectedRequest.assigned_to_name || "Same"}
                     </strong>
                   </div>
                   <div>
-                    <span className="text-[10px] opacity-70 block">{isRTL ? "الفريق الجديد:" : "New Team:"}</span>
+                    <span className="text-[10px] opacity-70 block">
+                      {isRTL ? "الفريق الجديد:" : "New Team:"}
+                    </span>
                     <strong className="font-semibold capitalize">
-                      {activeModal === "reassign" || activeModal === "assign" ? modalTeam : selectedRequest.team}
+                      {activeModal === "reassign" || activeModal === "assign"
+                        ? modalTeam
+                        : selectedRequest.team}
                     </strong>
                   </div>
                   <div>
-                    <span className="text-[10px] opacity-70 block">{isRTL ? "مرحلة السير القادمة:" : "New Stage:"}</span>
+                    <span className="text-[10px] opacity-70 block">
+                      {isRTL ? "مرحلة السير القادمة:" : "New Stage:"}
+                    </span>
                     <strong className="font-semibold">
                       {activeModal === "assign" && "assigned"}
                       {activeModal === "reassign" && "assigned"}
                       {activeModal === "return" && "returned"}
-                      {activeModal === "approve" && "pending_approval"}
+                      {activeModal === "approve" && "approved"}
                       {activeModal === "confirm" && "confirmed"}
                       {activeModal === "resolve" && "resolved"}
                     </strong>
@@ -908,16 +1132,18 @@ export function RequestsManagementView({
                       ? "سبب الإرجاع وملاحظات التصحيح *"
                       : "Reason for Return (Required) *"
                     : activeModal === "resolve"
-                    ? isRTL
-                      ? "ملخص الحل وتقرير الإنجاز *"
-                      : "Resolution Summary & Output *"
-                    : isRTL
-                    ? "ملاحظات توجيهية إضافية (اختياري)"
-                    : "Action Notes & Directives (Optional)"}
+                      ? isRTL
+                        ? "ملخص الحل وتقرير الإنجاز *"
+                        : "Resolution Summary & Output *"
+                      : isRTL
+                        ? "ملاحظات توجيهية إضافية (اختياري)"
+                        : "Action Notes & Directives (Optional)"}
                 </label>
                 <textarea
                   rows={3}
-                  required={activeModal === "return" || activeModal === "resolve"}
+                  required={
+                    activeModal === "return" || activeModal === "resolve"
+                  }
                   value={modalNotes}
                   onChange={(e) => setModalNotes(e.target.value)}
                   placeholder={
@@ -926,12 +1152,12 @@ export function RequestsManagementView({
                         ? "اكتب سبب إرجاع الطلب والنواقص التي تحتاج لاستكمال..."
                         : "Describe why this request is returned and what is missing..."
                       : activeModal === "resolve"
-                      ? isRTL
-                        ? "اكتب كيف تم حل الشكوى أو تسليم متطلبات الخدمة بنجاح..."
-                        : "Describe how this issue/service was successfully resolved..."
-                      : isRTL
-                      ? "أضف أي ملاحظات أو تعليمات خاصة للمسؤول..."
-                      : "Add any instructions or remarks for this action..."
+                        ? isRTL
+                          ? "اكتب كيف تم حل الشكوى أو تسليم متطلبات الخدمة بنجاح..."
+                          : "Describe how this issue/service was successfully resolved..."
+                        : isRTL
+                          ? "أضف أي ملاحظات أو تعليمات خاصة للمسؤول..."
+                          : "Add any instructions or remarks for this action..."
                   }
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
                 />
@@ -957,8 +1183,8 @@ export function RequestsManagementView({
                     activeModal === "return"
                       ? "bg-rose-600 hover:bg-rose-700 text-white"
                       : activeModal === "confirm"
-                      ? "bg-purple-600 hover:bg-purple-700 text-white"
-                      : "bg-[#09937F] hover:bg-[#077a68] text-white"
+                        ? "bg-purple-600 hover:bg-purple-700 text-white"
+                        : "bg-[#09937F] hover:bg-[#077a68] text-white"
                   }
                 >
                   {isSubmitting
@@ -966,14 +1192,35 @@ export function RequestsManagementView({
                       ? "جارٍ التنفيذ والتسجيل..."
                       : "Applying..."
                     : isRTL
-                    ? "تأكيد التغيير والتنفيذ"
-                    : "Confirm & Apply"}
+                      ? "تأكيد التغيير والتنفيذ"
+                      : "Confirm & Apply"}
                 </Button>
               </div>
             </form>
           </div>
         </div>
       )}
+      <div className="flex items-center justify-between gap-3 py-4">
+        <Button
+          variant="outline"
+          disabled={page <= 1}
+          onClick={() => router.push(pageUrl(page - 1))}
+        >
+          {isRTL ? "السابق" : "Previous"}
+        </Button>
+        <span>
+          {isRTL ? "الصفحة" : "Page"} {page} /{" "}
+          {Math.max(1, Math.ceil(total / 50))} · {total}{" "}
+          {isRTL ? "نتيجة" : "results"}
+        </span>
+        <Button
+          variant="outline"
+          disabled={page * 50 >= total}
+          onClick={() => router.push(pageUrl(page + 1))}
+        >
+          {isRTL ? "التالي" : "Next"}
+        </Button>
+      </div>
     </div>
   );
 }

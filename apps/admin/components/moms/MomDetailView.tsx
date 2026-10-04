@@ -3,7 +3,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CompanySettings, MinuteOfMeetingItem, MomAttendee, MomDiscussionPoint, MomActionItem } from "@ishoot/database";
+import type {
+  CompanySettings,
+  MinuteOfMeetingItem,
+  MomAttendee,
+  MomDiscussionPoint,
+  MomActionItem,
+} from "@ishoot/database";
 import {
   DocumentLetterhead,
   DocumentFooter,
@@ -26,7 +32,10 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { approveAndSignMomAction, shareMomViaEmailAction } from "../../app/actions/mom";
+import {
+  approveAndSignMomAction,
+  shareMomViaEmailAction,
+} from "../../app/actions/mom";
 
 interface MomDetailViewProps {
   mom: MinuteOfMeetingItem;
@@ -40,7 +49,11 @@ interface MomDetailViewProps {
   } | null;
 }
 
-export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps) {
+export function MomDetailView({
+  mom,
+  company,
+  currentUser,
+}: MomDetailViewProps) {
   const router = useRouter();
   const { isRTL } = useAdminLocale();
   const [isApproving, setIsApproving] = React.useState(false);
@@ -48,24 +61,31 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
   const [recipientEmail, setRecipientEmail] = React.useState("");
   const [emailNote, setEmailNote] = React.useState("");
   const [isSendingEmail, setIsSendingEmail] = React.useState(false);
-  const [feedbackMessage, setFeedbackMessage] = React.useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = React.useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
   const isAr = Boolean(mom.title_ar && (!mom.title || isRTL));
 
   const clientName =
-    mom.client_name ||
-    (isAr ? "غير محدد" : "General Internal Meeting");
+    mom.client_name || (isAr ? "غير محدد" : "General Internal Meeting");
 
-  const formattedDate = new Date(mom.meeting_date).toLocaleDateString(isAr ? "ar-BH" : "en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const formattedDate = new Date(mom.meeting_date).toLocaleDateString(
+    isAr ? "ar-BH" : "en-US",
+    {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  );
 
   const timeLocationString = [
-    mom.start_time ? `${mom.start_time}${mom.end_time ? ` - ${mom.end_time}` : ""}` : "",
+    mom.start_time
+      ? `${mom.start_time}${mom.end_time ? ` - ${mom.end_time}` : ""}`
+      : "",
     mom.location ? mom.location : "",
   ]
     .filter(Boolean)
@@ -80,8 +100,12 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
       `*${isAr ? "محضر اجتماع" : "Minutes of Meeting"} — ${mom.mom_number}*`,
       `*${isAr ? "الموضوع:" : "Title:"}* ${mom.title}`,
       `*${isAr ? "التاريخ:" : "Date:"}* ${formattedDate}`,
-      timeLocationString ? `*${isAr ? "الوقت / المكان:" : "Time / Location:"}* ${timeLocationString}` : "",
-      mom.deal_title ? `*${isAr ? "المشروع / الصفقة:" : "Project / Deal:"}* ${mom.deal_title}` : "",
+      timeLocationString
+        ? `*${isAr ? "الوقت / المكان:" : "Time / Location:"}* ${timeLocationString}`
+        : "",
+      mom.deal_title
+        ? `*${isAr ? "المشروع / الصفقة:" : "Project / Deal:"}* ${mom.deal_title}`
+        : "",
       "",
       `*${isAr ? "أهم القرارات:" : "Key Decisions:"}*`,
       ...(mom.decisions && mom.decisions.length > 0
@@ -94,7 +118,7 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
             (item: MomActionItem, i: number) =>
               `${i + 1}. [${item.status.toUpperCase()}] ${item.task} — ${item.assignee || "Unassigned"}${
                 item.dueDate ? ` (Due: ${item.dueDate})` : ""
-              }`
+              }`,
           )
         : [isAr ? "- لا توجد مهام معلقة" : "- None"]),
       "",
@@ -117,7 +141,9 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
       if (res.success) {
         setFeedbackMessage({
           type: "success",
-          text: isAr ? "تم اعتماد وتوقيع محضر الاجتماع بنجاح!" : "MOM approved and signed successfully!",
+          text: isAr
+            ? "تم اعتماد وتوقيع محضر الاجتماع بنجاح!"
+            : "MOM approved and signed successfully!",
         });
         router.refresh();
       } else {
@@ -143,16 +169,18 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
     setFeedbackMessage(null);
     try {
       const res = await shareMomViaEmailAction(mom.id, recipientEmail);
-      if (res.success) {
+      if (res.success && res.status !== "failed") {
         setFeedbackMessage({
           type: "success",
-          text: isAr ? `تم إرسال المحضر إلى ${recipientEmail}` : `MOM shared successfully to ${recipientEmail}`,
+          text: isAr
+            ? (res.status === "accepted" ? `قبل مزود البريد الرسالة إلى ${recipientEmail}` : `تمت إضافة البريد إلى قائمة الإرسال إلى ${recipientEmail}`)
+            : (res.status === "accepted" ? `Email provider accepted the message to ${recipientEmail}` : `Email queued for ${recipientEmail}`),
         });
         setIsEmailModalOpen(false);
       } else {
         setFeedbackMessage({
           type: "error",
-          text: "Failed to send email",
+          text: res.message || "Failed to send email",
         });
       }
     } catch {
@@ -168,7 +196,9 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
   const canSign =
     mom.status !== "approved" &&
     currentUser &&
-    ["super_admin", "admin", "production_manager", "finance_manager"].includes(currentUser.role);
+    ["super_admin", "admin", "production_manager", "finance_manager"].includes(
+      currentUser.role,
+    );
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24">
@@ -180,7 +210,11 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
             className="inline-flex items-center gap-2 text-xs text-[#9EADA9] hover:text-[#09937F] transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
-            <span>{isAr ? "العودة إلى محاضر الاجتماعات" : "Back to Minutes of Meetings"}</span>
+            <span>
+              {isAr
+                ? "العودة إلى محاضر الاجتماعات"
+                : "Back to Minutes of Meetings"}
+            </span>
           </Link>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
@@ -252,8 +286,8 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
                     ? "جارٍ الاعتماد..."
                     : "Signing..."
                   : isAr
-                  ? "اعتماد وتوقيع"
-                  : "Approve & Sign"}
+                    ? "اعتماد وتوقيع"
+                    : "Approve & Sign"}
               </span>
             </Button>
           )}
@@ -301,10 +335,14 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
             secondaryDate={timeLocationString || undefined}
             statusLabel={isAr ? "حالة المحضر" : "Document Status"}
             statusValue={mom.status.toUpperCase()}
-            clientSectionTitle={isAr ? "الطرف المعني / العميل" : "Meeting Context & Entity"}
+            clientSectionTitle={
+              isAr ? "الطرف المعني / العميل" : "Meeting Context & Entity"
+            }
             client={{
               id: mom.client_id,
-              name: mom.client_name || (isAr ? "اجتماع داخلي / استراتيجي" : "Internal Session"),
+              name:
+                mom.client_name ||
+                (isAr ? "اجتماع داخلي / استراتيجي" : "Internal Session"),
             }}
           />
 
@@ -313,7 +351,9 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
             {/* Title & Subject Block */}
             <div className="border-b-2 border-slate-900 pb-5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#09937F] block mb-1">
-                {isAr ? "موضوع وجدول الاجتماع الرئيسي" : "Session Subject & Focus"}
+                {isAr
+                  ? "موضوع وجدول الاجتماع الرئيسي"
+                  : "Session Subject & Focus"}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-950">
                 {mom.title}
@@ -332,7 +372,9 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
                   <Calendar className="w-3 h-3 text-[#09937F]" />
                   <span>{isAr ? "التاريخ" : "Date"}</span>
                 </span>
-                <p className="font-semibold text-slate-800">{new Date(mom.meeting_date).toISOString().split("T")[0]}</p>
+                <p className="font-semibold text-slate-800">
+                  {new Date(mom.meeting_date).toISOString().split("T")[0]}
+                </p>
               </div>
 
               <div className="space-y-1">
@@ -341,7 +383,8 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
                   <span>{isAr ? "الوقت" : "Timing"}</span>
                 </span>
                 <p className="font-semibold text-slate-800">
-                  {mom.start_time || "—"} {mom.end_time ? `to ${mom.end_time}` : ""}
+                  {mom.start_time || "—"}{" "}
+                  {mom.end_time ? `to ${mom.end_time}` : ""}
                 </p>
               </div>
 
@@ -350,8 +393,12 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
                   <MapPin className="w-3 h-3 text-[#09937F]" />
                   <span>{isAr ? "الموقع" : "Location"}</span>
                 </span>
-                <p className="font-semibold text-slate-800 truncate" title={mom.location || ""}>
-                  {mom.location || (isAr ? "مكتب آي شوت / عن بعد" : "iShoot HQ / Remote")}
+                <p
+                  className="font-semibold text-slate-800 truncate"
+                  title={mom.location || ""}
+                >
+                  {mom.location ||
+                    (isAr ? "مكتب آي شوت / عن بعد" : "iShoot HQ / Remote")}
                 </p>
               </div>
 
@@ -371,16 +418,26 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-2">
                   <Users className="w-4 h-4 text-[#09937F]" />
-                  <span>{isAr ? "سجل الحضور والمشاركين" : "Attendees & Stakeholders"}</span>
+                  <span>
+                    {isAr
+                      ? "سجل الحضور والمشاركين"
+                      : "Attendees & Stakeholders"}
+                  </span>
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-start text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[10px]">
                         <th className="py-2.5 px-3 text-start font-bold">#</th>
-                        <th className="py-2.5 px-3 text-start font-bold">{isAr ? "الاسم" : "Name"}</th>
-                        <th className="py-2.5 px-3 text-start font-bold">{isAr ? "المسمى / الجهة" : "Role / Entity"}</th>
-                        <th className="py-2.5 px-3 text-center font-bold">{isAr ? "حالة الحضور" : "Attendance"}</th>
+                        <th className="py-2.5 px-3 text-start font-bold">
+                          {isAr ? "الاسم" : "Name"}
+                        </th>
+                        <th className="py-2.5 px-3 text-start font-bold">
+                          {isAr ? "المسمى / الجهة" : "Role / Entity"}
+                        </th>
+                        <th className="py-2.5 px-3 text-center font-bold">
+                          {isAr ? "حالة الحضور" : "Attendance"}
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -434,7 +491,9 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-1.5">
                     <FileText className="w-3.5 h-3.5 text-[#09937F]" />
-                    <span>{isAr ? "ملاحظات تنظيمية" : "Administrative Notes"}</span>
+                    <span>
+                      {isAr ? "ملاحظات تنظيمية" : "Administrative Notes"}
+                    </span>
                   </h3>
                   <div className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 whitespace-pre-line">
                     {mom.notes}
@@ -447,28 +506,34 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
             {mom.discussion_points && mom.discussion_points.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1.5">
-                  {isAr ? "أبرز محاور النقاش والمداولات" : "Key Discussion Points & Minutes"}
+                  {isAr
+                    ? "أبرز محاور النقاش والمداولات"
+                    : "Key Discussion Points & Minutes"}
                 </h3>
                 <div className="space-y-2.5">
-                  {mom.discussion_points.map((point: MomDiscussionPoint, i: number) => (
-                    <div
-                      key={i}
-                      className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 text-xs text-slate-800 leading-relaxed"
-                    >
-                      <div className="flex items-center gap-2 font-bold text-slate-900 mb-1">
-                        <span className="w-5 h-5 rounded-full bg-[#09937F]/10 text-[#09937F] flex items-center justify-center text-[10px] font-mono">
-                          {i + 1}
-                        </span>
-                        <span>{point.topic}</span>
-                        {point.speaker && (
-                          <span className="text-slate-400 font-normal text-[11px]">
-                            ({point.speaker})
+                  {mom.discussion_points.map(
+                    (point: MomDiscussionPoint, i: number) => (
+                      <div
+                        key={i}
+                        className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 text-xs text-slate-800 leading-relaxed"
+                      >
+                        <div className="flex items-center gap-2 font-bold text-slate-900 mb-1">
+                          <span className="w-5 h-5 rounded-full bg-[#09937F]/10 text-[#09937F] flex items-center justify-center text-[10px] font-mono">
+                            {i + 1}
                           </span>
-                        )}
+                          <span>{point.topic}</span>
+                          {point.speaker && (
+                            <span className="text-slate-400 font-normal text-[11px]">
+                              ({point.speaker})
+                            </span>
+                          )}
+                        </div>
+                        <p className="pl-7 text-slate-700 whitespace-pre-line">
+                          {point.notes}
+                        </p>
                       </div>
-                      <p className="pl-7 text-slate-700 whitespace-pre-line">{point.notes}</p>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </div>
               </div>
             )}
@@ -478,7 +543,11 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
               <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/80 border-2 border-emerald-500/30 space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#014842] flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-[#09937F]" />
-                  <span>{isAr ? "القرارات المعتمدة في الجلسة" : "Agreed Decisions & Commitments"}</span>
+                  <span>
+                    {isAr
+                      ? "القرارات المعتمدة في الجلسة"
+                      : "Agreed Decisions & Commitments"}
+                  </span>
                 </h3>
                 <ul className="space-y-2 text-xs text-slate-900 font-medium">
                   {mom.decisions.map((dec: string, i: number) => (
@@ -495,7 +564,11 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
             {mom.action_items && mom.action_items.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1.5 flex items-center justify-between">
-                  <span>{isAr ? "مصفوفة خطة العمل والمهام المسندة" : "Action Items & Accountabilities"}</span>
+                  <span>
+                    {isAr
+                      ? "مصفوفة خطة العمل والمهام المسندة"
+                      : "Action Items & Accountabilities"}
+                  </span>
                   <span className="text-[10px] text-slate-400 font-mono">
                     {mom.action_items.length} {isAr ? "مهمة" : "Items"}
                   </span>
@@ -504,16 +577,29 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
                   <table className="w-full text-start text-xs border-collapse">
                     <thead>
                       <tr className="border-y border-slate-900 bg-slate-100 text-slate-900 uppercase tracking-wider text-[10px]">
-                        <th className="py-2.5 px-3 text-start font-bold w-10">#</th>
-                        <th className="py-2.5 px-3 text-start font-bold">{isAr ? "المهمة والتسليم المطلوب" : "Action Item"}</th>
-                        <th className="py-2.5 px-3 text-start font-bold w-36">{isAr ? "المسؤول" : "Assignee"}</th>
-                        <th className="py-2.5 px-3 text-start font-bold w-28">{isAr ? "موعد التسليم" : "Due Date"}</th>
-                        <th className="py-2.5 px-3 text-center font-bold w-24">{isAr ? "الحالة" : "Status"}</th>
+                        <th className="py-2.5 px-3 text-start font-bold w-10">
+                          #
+                        </th>
+                        <th className="py-2.5 px-3 text-start font-bold">
+                          {isAr ? "المهمة والتسليم المطلوب" : "Action Item"}
+                        </th>
+                        <th className="py-2.5 px-3 text-start font-bold w-36">
+                          {isAr ? "المسؤول" : "Assignee"}
+                        </th>
+                        <th className="py-2.5 px-3 text-start font-bold w-28">
+                          {isAr ? "موعد التسليم" : "Due Date"}
+                        </th>
+                        <th className="py-2.5 px-3 text-center font-bold w-24">
+                          {isAr ? "الحالة" : "Status"}
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {mom.action_items.map((act: MomActionItem, i: number) => (
-                        <tr key={i} className="hover:bg-slate-50/50 print-avoid-break">
+                        <tr
+                          key={i}
+                          className="hover:bg-slate-50/50 print-avoid-break"
+                        >
                           <td className="py-3 px-3 text-slate-400 font-mono text-[11px] align-top">
                             {String(i + 1).padStart(2, "0")}
                           </td>
@@ -532,8 +618,8 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
                                 act.status === "completed"
                                   ? "bg-emerald-100 text-emerald-800"
                                   : act.status === "in_progress"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : "bg-amber-100 text-amber-800"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "bg-amber-100 text-amber-800"
                               }`}
                             >
                               {act.status}
@@ -558,12 +644,14 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
                 : "Official Record of Proceedings & Commitments — iShoot Media Production"
             }
             showSignature={true}
-            stampUrl={company.stamp_url || "/brand/stamp.svg"}
-            signatureUrl={mom.signature_url || company.signature_url}
+            stampUrl={company.stamp_url}
+            signatureUrl={mom.signature_url || null}
             signerName={
               mom.approved_by_name ||
               mom.created_by_name ||
-              (isAr ? "رئيس الجلسة / المسؤول التنفيذي" : "Session Lead / Executive Officer")
+              (isAr
+                ? "رئيس الجلسة / المسؤول التنفيذي"
+                : "Session Lead / Executive Officer")
             }
             signatureTitle={isAr ? "المسجل والمعتمد" : "Recorder & Approver"}
             signatureTitleAr="المسجل والمعتمد"
@@ -578,7 +666,11 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#09937F]" />
-                <span>{isAr ? "إرسال محضر الاجتماع عبر البريد" : "Share MOM via Email"}</span>
+                <span>
+                  {isAr
+                    ? "إرسال محضر الاجتماع عبر البريد"
+                    : "Share MOM via Email"}
+                </span>
               </h3>
               <button
                 onClick={() => setIsEmailModalOpen(false)}
@@ -605,7 +697,9 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {isAr ? "ملاحظة أو رسالة مرفقة (اختياري)" : "Message / Note (Optional)"}
+                  {isAr
+                    ? "ملاحظة أو رسالة مرفقة (اختياري)"
+                    : "Message / Note (Optional)"}
                 </label>
                 <textarea
                   rows={3}
@@ -641,8 +735,8 @@ export function MomDetailView({ mom, company, currentUser }: MomDetailViewProps)
                       ? "جارٍ الإرسال..."
                       : "Sending..."
                     : isAr
-                    ? "إرسال الآن"
-                    : "Send Email"}
+                      ? "إرسال الآن"
+                      : "Send Email"}
                 </Button>
               </div>
             </form>

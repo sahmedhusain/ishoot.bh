@@ -1,20 +1,10 @@
 import React from "react";
-import path from "path";
-import fs from "fs";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  Image,
-} from "@react-pdf/renderer";
+
+import { Document, Page, Text, View, Image as PdfImage } from "@react-pdf/renderer";
 import type { Invoice, CompanySettings } from "@ishoot/database/types";
 import { pdfStyles } from "./shared-styles";
 import { PdfBrandLogo } from "./brand-logo-pdf";
 import { adminTranslations } from "../translations";
-import initialCompanyConfig from "@ishoot/database/config";
-
-const defaultCompany = initialCompanyConfig.company;
 
 interface InvoicePDFProps {
   invoice: Invoice;
@@ -40,9 +30,11 @@ function formatAmount(amount: number, decimals: number = 3) {
 
 function InvoicePDF({ invoice, company }: InvoicePDFProps) {
   // VAT on an invoice is immutable: depends strictly on the invoice's own issued snapshot
-  const isVatActive = Boolean(invoice.vat_enabled && Number(invoice.vat_amount) > 0);
-  const currency = invoice.currency || company.default_currency || defaultCompany.defaultCurrency;
-  const decimals = company.currency_decimals ?? defaultCompany.currencyDecimals;
+  const isVatActive = Boolean(
+    invoice.vat_enabled && Number(invoice.vat_amount) > 0,
+  );
+  const currency = invoice.currency || company.default_currency;
+  const decimals = company.currency_decimals;
   const lineItems = invoice.line_items || [];
   const isAr = invoice.language === "ar";
   const t = adminTranslations[isAr ? "ar" : "en"].pdfInvoice;
@@ -55,8 +47,8 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
   const clientAddress = invoice.contact?.address || "";
   const clientVat = invoice.contact?.vat_number || "";
 
-  const compNameEn = company.company_name_en || defaultCompany.companyNameEn;
-  const compNameAr = company.company_name_ar || defaultCompany.companyNameAr;
+  const compNameEn = company.company_name_en;
+  const compNameAr = company.company_name_ar;
   const companyDisplayName = isAr ? compNameAr : compNameEn;
 
   const labels = {
@@ -73,7 +65,7 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
     total: `${t.total} (${currency})`,
     subtotal: t.subtotal,
     discount: t.discount,
-    vat: `${t.vat} (${invoice.vat_percentage || 10}%):`,
+    vat: `${t.vat} (${invoice.vat_percentage}%):`,
     totalFinal: t.totalAmount,
     amountPaid: t.amountPaid,
     balanceDue: t.balanceDue,
@@ -84,7 +76,9 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
     swift: t.swift,
     issuedBy: t.issuedBy,
     authorizedSignatory: t.authorizedSignatory,
-    terms: t.termsNotice.replace("{days}", String(company.payment_terms_days || 30)).replace("{date}", formatDate(invoice.due_date)),
+    terms: t.termsNotice
+      .replace("{days}", String(company.payment_terms_days))
+      .replace("{date}", formatDate(invoice.due_date)),
     wireRef: t.wireRefNotice.replace("{invNum}", invoice.invoice_number),
     thankYou: t.thankYou.replace("{companyName}", companyDisplayName),
   };
@@ -95,14 +89,19 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
         {/* Official Header Banner */}
         <View style={pdfStyles.headerBanner}>
           <View>
-            <PdfBrandLogo company={company} theme="dark" iconHeight={24} wordmarkHeight={16} />
+            <PdfBrandLogo
+              company={company}
+              theme="dark"
+              iconHeight={24}
+              wordmarkHeight={16}
+            />
             <Text style={pdfStyles.companySubtitle}>
               {isAr ? compNameAr : compNameEn}
             </Text>
             <Text style={pdfStyles.companyMeta}>
-              {t.crPrefix} {company.cr_number || defaultCompany.crNumber}
-              {isVatActive && (company.vat_id || defaultCompany.vatId)
-                ? ` • VAT ID: ${company.vat_id || defaultCompany.vatId}`
+              {t.crPrefix} {company.cr_number}
+              {isVatActive && company.vat_id
+                ? ` • VAT ID: ${company.vat_id}`
                 : ""}
               {` • ${t.country}`}
             </Text>
@@ -149,7 +148,8 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
               {labels.dueDate}: {formatDate(invoice.due_date)}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              {labels.status}: {(invoice.status || "draft").replace("_", " ").toUpperCase()}
+              {labels.status}:{" "}
+              {(invoice.status || "draft").replace("_", " ").toUpperCase()}
             </Text>
             <Text style={pdfStyles.metaSub}>
               {labels.currencyLabel}: {currency}
@@ -176,7 +176,9 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
             >
               <View style={pdfStyles.colDesc}>
                 <Text style={{ fontWeight: "bold" }}>
-                  {isAr ? (item.description_ar || item.description_en) : (item.description_en || item.description_ar)}
+                  {isAr
+                    ? item.description_ar || item.description_en
+                    : item.description_en || item.description_ar}
                 </Text>
               </View>
               <Text style={pdfStyles.colQty}>{item.quantity}</Text>
@@ -195,20 +197,27 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
           <View style={pdfStyles.bankBlock}>
             <Text style={pdfStyles.metaLabel}>{labels.bankDetails}</Text>
             <Text style={pdfStyles.metaSub}>
-              {labels.bankName} {company.bank_name || defaultCompany.bankName}
+              {labels.bankName} {company.bank_name}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              {labels.iban} {company.bank_iban || defaultCompany.bankIban}
+              {labels.iban} {company.bank_iban}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              {labels.accountNo} {company.bank_account_number || defaultCompany.bankAccountNumber}
+              {labels.accountNo} {company.bank_account_number}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              {labels.swift} {company.bank_swift || defaultCompany.bankSwift}
+              {labels.swift} {company.bank_swift}
             </Text>
 
             {/* Terms and notes */}
-            <View style={{ marginTop: 8, paddingTop: 6, borderTopWidth: 1, borderTopColor: "#E5E7EB" }}>
+            <View
+              style={{
+                marginTop: 8,
+                paddingTop: 6,
+                borderTopWidth: 1,
+                borderTopColor: "#E5E7EB",
+              }}
+            >
               <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.3 }}>
                 {labels.terms}
               </Text>
@@ -216,7 +225,14 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
                 {labels.wireRef}
               </Text>
               {invoice.notes_en ? (
-                <Text style={{ fontSize: 7, color: "#111827", marginTop: 2, fontWeight: "bold" }}>
+                <Text
+                  style={{
+                    fontSize: 7,
+                    color: "#111827",
+                    marginTop: 2,
+                    fontWeight: "bold",
+                  }}
+                >
                   Note: {invoice.notes_en}
                 </Text>
               ) : null}
@@ -281,30 +297,39 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
 
         {/* Signature Authorization Block */}
         {(() => {
-          const stampFile = path.resolve(process.cwd(), "public/brand/stamp.png");
-          const stampPath = fs.existsSync(stampFile) ? stampFile : undefined;
-          const sigFile = path.resolve(process.cwd(), "public/brand/signature.png");
-          const signaturePath = fs.existsSync(sigFile) ? sigFile : undefined;
+          const stampPath = company.stamp_url;
+          const signaturePath = company.signature_url;
 
           return (
             <View style={pdfStyles.signatureContainer}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+              >
                 {stampPath && (
-                  <Image src={stampPath} style={pdfStyles.stampImage} />
+                  <PdfImage src={stampPath as any} style={pdfStyles.stampImage} />
                 )}
                 <View>
                   <Text style={{ fontSize: 7.5, color: "#6B7280" }}>
                     {labels.issuedBy}
                   </Text>
-                  <Text style={{ fontSize: 8.5, fontWeight: "bold", color: "#111827", marginTop: 1 }}>
-                    {isAr ? (company.company_name_ar || company.company_name_en) : (company.company_name_en || company.company_name_ar)}
+                  <Text
+                    style={{
+                      fontSize: 8.5,
+                      fontWeight: "bold",
+                      color: "#111827",
+                      marginTop: 1,
+                    }}
+                  >
+                    {isAr
+                      ? company.company_name_ar || company.company_name_en
+                      : company.company_name_en || company.company_name_ar}
                   </Text>
                 </View>
               </View>
 
               <View style={{ alignItems: "flex-end" }}>
                 {signaturePath ? (
-                  <Image src={signaturePath} style={pdfStyles.signatureImage} />
+                  <PdfImage src={signaturePath as any} style={pdfStyles.signatureImage} />
                 ) : (
                   <View style={pdfStyles.signatureBox} />
                 )}
@@ -320,9 +345,9 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
         <View style={pdfStyles.footer} fixed>
           <Text>{labels.thankYou}</Text>
           <Text>
-            {company.website || defaultCompany.website}
-            {` • ${company.email || defaultCompany.email}`}
-            {` • ${company.phone || defaultCompany.phone}`}
+            {company.website}
+            {` • ${company.email}`}
+            {` • ${company.phone}`}
           </Text>
         </View>
       </Page>
@@ -331,4 +356,3 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
 }
 
 export { InvoicePDF as InvoicePdfDocument };
-

@@ -24,16 +24,14 @@ export default async function InvoiceDetailPage({
   const [invoice, company, allPayments] = await Promise.all([
     getInvoiceById(id),
     getCompanySettings(),
-    getAllPayments(),
+    getAllPayments({invoiceId:id}),
   ]);
 
   if (!invoice || !company) {
     notFound();
   }
 
-  const invoicePayments = allPayments.filter(
-    (p) => p.invoice_id === invoice.id,
-  );
+  const invoicePayments = allPayments;
 
   return (
     <InvoiceDetailView

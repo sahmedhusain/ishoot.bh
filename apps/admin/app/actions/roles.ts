@@ -1,7 +1,9 @@
 "use server";
+import { measureOperation } from "@ishoot/database";
+import { validateActionArguments } from "../../lib/action-input";
 
-import { requireAuth, requirePermission } from "../../lib/auth";
-import { db } from "@ishoot/database";
+import { requirePermission } from "../../lib/auth";
+import { db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 
 export async function upsertRoleAction(data: {
@@ -14,74 +16,111 @@ export async function upsertRoleAction(data: {
     canWrite: boolean;
     canDelete: boolean;
     canApprove: boolean;
+    canExport?: boolean;
   }[];
 }) {
-  await requirePermission("users", "write");
-
-  const { id, nameEn, nameAr, permissions } = data;
-  let roleId = id;
-
-  if (id) {
-    const existing = await db.role.findUnique({ where: { id } });
-    if (!existing) throw new Error("Role not found");
-
-    await db.role.update({
-      where: { id },
-      data: { nameEn, nameAr },
-    });
-  } else {
-    // Basic ID generation for custom roles
-    const newId = `custom_${Date.now()}`;
-    roleId = newId;
-    await db.role.create({
-      data: {
-        id: newId,
-        nameEn,
-        nameAr,
-        isSystem: false,
-      },
-    });
-  }
-
-  // Replace permissions in the Permission table which requires (role, resource, action, allowed)
-  if (roleId) {
-    await db.permission.deleteMany({ where: { role: roleId } });
-
-    if (permissions.length > 0) {
-      const dbPerms = permissions.flatMap((p) => {
-        const rules: { role: string; resource: string; action: string; allowed: boolean }[] = [];
-        if (p.canRead) rules.push({ role: roleId!, resource: p.module, action: "read", allowed: true });
-        if (p.canWrite) rules.push({ role: roleId!, resource: p.module, action: "write", allowed: true });
-        if (p.canDelete) rules.push({ role: roleId!, resource: p.module, action: "delete", allowed: true });
-        if (p.canApprove) rules.push({ role: roleId!, resource: p.module, action: "approve", allowed: true });
-        return rules;
-      });
-
-      if (dbPerms.length > 0) {
-        await db.permission.createMany({ data: dbPerms });
+  return measureOperation("action:upsertRoleAction", async () => {
+    const actor = await requirePermission("users", "write");
+    validateActionArguments("upsertRoleAction", { data });
+    if (actor.role !== "super_admin")
+      throw new Error("Only super administrators can manage role permissions");
+    if (
+      !data ||
+      typeof data.nameEn !== "string" ||
+      !data.nameEn.trim() ||
+      data.nameEn.length > 100 ||
+      typeof data.nameAr !== "string" ||
+      !data.nameAr.trim() ||
+      data.nameAr.length > 100 ||
+      !Array.isArray(data.permissions)
+    )
+      throw new Error("Invalid role");
+    if (data.id === "super_admin")
+      throw new Error("Super administrator permissions cannot be edited");
+    const actionFields = {
+      read: "canRead",
+      write: "canWrite",
+      delete: "canDelete",
+      approve: "canApprove",
+      export: "canExport",
+    } as const;
+    const submitted = new Map<string, (typeof data.permissions)[number]>();
+    for (const permission of data.permissions) {
+      if (
+        !permission ||
+        !ALL_RESOURCES.includes(permission.module as any) ||
+        submitted.has(permission.module)
+      )
+        throw new Error("Invalid permission resource");
+      for (const field of Object.values(actionFields)) {
+        if (typeof permission[field] !== "boolean")
+          throw new Error("Invalid permission value");
       }
+      submitted.set(permission.module, permission);
     }
-  }
-
-  revalidatePath("/dashboard/settings/roles");
-  return { success: true };
+    await db.$transaction(async (tx) => {
+      const role = data.id
+        ? await tx.role.update({
+            where: { id: data.id },
+            data: { nameEn: data.nameEn.trim(), nameAr: data.nameAr.trim() },
+          })
+        : await tx.role.create({
+            data: {
+              nameEn: data.nameEn.trim(),
+              nameAr: data.nameAr.trim(),
+              isSystem: false,
+            },
+          });
+      await tx.permission.deleteMany({ where: { role: role.id } });
+      await tx.permission.createMany({
+        data: ALL_RESOURCES.flatMap((resource) =>
+          ALL_ACTIONS.map((action) => ({
+            role: role.id,
+            resource,
+            action,
+            allowed: submitted.get(resource)?.[actionFields[action]] === true,
+          })),
+        ),
+      });
+      await tx.activityLog.create({
+        data: {
+          userId: actor.id,
+          action: "update",
+          entityType: "role",
+          entityId: role.id,
+        },
+      });
+    });
+    revalidatePath("/dashboard", "layout");
+    return { success: true };
+  });
 }
 
 export async function deleteRoleAction(id: string) {
-  await requirePermission("users", "delete");
-
-  const role = await db.role.findUnique({ where: { id } });
-  if (!role) throw new Error("Role not found");
-  if (role.isSystem) throw new Error("Cannot delete system roles");
-
-  const assignedUsersCount = await db.user.count({ where: { role: id } });
-  if (assignedUsersCount > 0) {
-    throw new Error("Cannot delete role currently assigned to users");
-  }
-
-  await db.permission.deleteMany({ where: { role: id } });
-  await db.role.delete({ where: { id } });
-
-  revalidatePath("/dashboard/settings/roles");
-  return { success: true };
+  return measureOperation("action:deleteRoleAction", async () => {
+    const actor = await requirePermission("users", "delete");
+    validateActionArguments("deleteRoleAction", { id });
+    if (actor.role !== "super_admin")
+      throw new Error("Only super administrators can manage roles");
+    await db.$transaction(async (tx) => {
+      const role = await tx.role.findUnique({ where: { id } });
+      if (!role) throw new Error("Role not found");
+      if (role.isSystem || id === "super_admin")
+        throw new Error("Cannot delete system roles");
+      if (await tx.user.count({ where: { role: id } }))
+        throw new Error("Cannot delete role currently assigned to users");
+      await tx.permission.deleteMany({ where: { role: id } });
+      await tx.role.delete({ where: { id } });
+      await tx.activityLog.create({
+        data: {
+          userId: actor.id,
+          action: "delete",
+          entityType: "role",
+          entityId: id,
+        },
+      });
+    });
+    revalidatePath("/dashboard", "layout");
+    return { success: true };
+  });
 }

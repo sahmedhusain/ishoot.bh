@@ -1,20 +1,10 @@
 import React from "react";
-import path from "path";
-import fs from "fs";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  Image,
-} from "@react-pdf/renderer";
+
+import { Document, Page, Text, View, Image as PdfImage } from "@react-pdf/renderer";
 import type { Payment, CompanySettings } from "@ishoot/database/types";
 import { pdfStyles } from "./shared-styles";
 import { PdfBrandLogo } from "./brand-logo-pdf";
 import { adminTranslations } from "../translations";
-import initialCompanyConfig from "@ishoot/database/config";
-
-const defaultCompany = initialCompanyConfig.company;
 
 interface ReceiptPDFProps {
   payment: Payment;
@@ -39,24 +29,25 @@ function formatAmount(amount: number, decimals: number = 3) {
 }
 
 function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
-  const currency = payment.currency || company.default_currency || defaultCompany.defaultCurrency;
-  const decimals = company.currency_decimals ?? defaultCompany.currencyDecimals;
+  const currency = payment.currency || company.default_currency;
+  const decimals = company.currency_decimals;
   const invoice = payment.invoice;
   const isAr = invoice?.language === "ar";
   const t = adminTranslations[isAr ? "ar" : "en"].pdfReceipt;
 
-  const clientName =
-    invoice?.contact?.full_name ?? t.defaultClient;
+  const clientName = invoice?.contact?.full_name ?? t.defaultClient;
   const clientCompany = invoice?.contact?.company || "";
   const clientEmail = invoice?.contact?.email || "";
   const clientPhone = invoice?.contact?.phone || "";
 
   const totalInvoice = invoice ? Number(invoice.total_amount) : 0;
-  const totalPaidAfterThis = invoice ? Number(invoice.amount_paid) : payment.amount;
+  const totalPaidAfterThis = invoice
+    ? Number(invoice.amount_paid)
+    : payment.amount;
   const previouslyPaid = Math.max(0, totalPaidAfterThis - payment.amount);
 
-  const compNameEn = company.company_name_en || defaultCompany.companyNameEn;
-  const compNameAr = company.company_name_ar || defaultCompany.companyNameAr;
+  const compNameEn = company.company_name_en;
+  const compNameAr = company.company_name_ar;
   const companyDisplayName = isAr ? compNameAr : compNameEn;
 
   const labels = {
@@ -77,7 +68,10 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
     thisPayment: t.thisPayment,
     remainingBalance: t.remainingBalance,
     verified: t.verifiedNotice,
-    electronicNotice: t.electronicNotice.replace("{companyName}", companyDisplayName),
+    electronicNotice: t.electronicNotice.replace(
+      "{companyName}",
+      companyDisplayName,
+    ),
     issuedBy: t.issuedBy,
     cashier: t.cashier,
     footerReceipt: t.footer.replace("{companyName}", companyDisplayName),
@@ -89,12 +83,17 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
         {/* Official Header Banner */}
         <View style={pdfStyles.headerBanner}>
           <View>
-            <PdfBrandLogo company={company} theme="dark" iconHeight={24} wordmarkHeight={16} />
+            <PdfBrandLogo
+              company={company}
+              theme="dark"
+              iconHeight={24}
+              wordmarkHeight={16}
+            />
             <Text style={pdfStyles.companySubtitle}>
               {isAr ? compNameAr : compNameEn}
             </Text>
             <Text style={pdfStyles.companyMeta}>
-              {t.crPrefix} {company.cr_number || defaultCompany.crNumber} • {t.country}
+              {t.crPrefix} {company.cr_number} • {t.country}
             </Text>
           </View>
 
@@ -108,7 +107,9 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
         <View style={pdfStyles.metaGrid}>
           <View style={pdfStyles.metaCard}>
             <Text style={pdfStyles.metaLabel}>{labels.receivedFrom}</Text>
-            <Text style={pdfStyles.metaValue}>{clientCompany || clientName}</Text>
+            <Text style={pdfStyles.metaValue}>
+              {clientCompany || clientName}
+            </Text>
             {clientCompany && clientName && clientCompany !== clientName ? (
               <Text style={pdfStyles.metaSub}>Attn: {clientName}</Text>
             ) : null}
@@ -126,7 +127,8 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
               {labels.date} {formatDate(payment.payment_date)}
             </Text>
             <Text style={pdfStyles.metaSub}>
-              {labels.method} {payment.payment_method.replace("_", " ").toUpperCase()}
+              {labels.method}{" "}
+              {payment.payment_method.replace("_", " ").toUpperCase()}
             </Text>
             {payment.reference_number ? (
               <Text style={pdfStyles.metaSub}>
@@ -134,7 +136,12 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
               </Text>
             ) : null}
             {invoice ? (
-              <Text style={[pdfStyles.metaSub, { fontWeight: "bold", color: "#014842" }]}>
+              <Text
+                style={[
+                  pdfStyles.metaSub,
+                  { fontWeight: "bold", color: "#014842" },
+                ]}
+              >
                 {labels.linkedInvoice} {invoice.invoice_number}
               </Text>
             ) : null}
@@ -238,36 +245,43 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
 
         {/* Signature Authorization Block */}
         {(() => {
-          const stampFile = path.resolve(process.cwd(), "public/brand/stamp.png");
-          const stampPath = fs.existsSync(stampFile) ? stampFile : undefined;
-          const sigFile = path.resolve(process.cwd(), "public/brand/signature.png");
-          const signaturePath = fs.existsSync(sigFile) ? sigFile : undefined;
+          const stampPath = company.stamp_url;
+          const signaturePath = company.signature_url;
 
           return (
             <View style={pdfStyles.signatureContainer}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+              >
                 {stampPath && (
-                  <Image src={stampPath} style={pdfStyles.stampImage} />
+                  <PdfImage src={stampPath as any} style={pdfStyles.stampImage} />
                 )}
                 <View>
                   <Text style={{ fontSize: 7.5, color: "#6B7280" }}>
                     {labels.issuedBy}
                   </Text>
-                  <Text style={{ fontSize: 8.5, fontWeight: "bold", color: "#111827", marginTop: 1 }}>
-                    {isAr ? (company.company_name_ar || company.company_name_en) : (company.company_name_en || company.company_name_ar)}
+                  <Text
+                    style={{
+                      fontSize: 8.5,
+                      fontWeight: "bold",
+                      color: "#111827",
+                      marginTop: 1,
+                    }}
+                  >
+                    {isAr
+                      ? company.company_name_ar || company.company_name_en
+                      : company.company_name_en || company.company_name_ar}
                   </Text>
                 </View>
               </View>
 
               <View style={{ alignItems: "flex-end" }}>
                 {signaturePath ? (
-                  <Image src={signaturePath} style={pdfStyles.signatureImage} />
+                  <PdfImage src={signaturePath as any} style={pdfStyles.signatureImage} />
                 ) : (
                   <View style={pdfStyles.signatureBox} />
                 )}
-                <Text style={pdfStyles.signatureLabel}>
-                  {labels.cashier}
-                </Text>
+                <Text style={pdfStyles.signatureLabel}>{labels.cashier}</Text>
               </View>
             </View>
           );
@@ -277,9 +291,9 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
         <View style={pdfStyles.footer} fixed>
           <Text>{labels.footerReceipt}</Text>
           <Text>
-            {company.website || defaultCompany.website}
-            {` • ${company.email || defaultCompany.email}`}
-            {` • ${company.phone || defaultCompany.phone}`}
+            {company.website}
+            {` • ${company.email}`}
+            {` • ${company.phone}`}
           </Text>
         </View>
       </Page>
@@ -288,4 +302,3 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
 }
 
 export { ReceiptPDF as ReceiptPdfDocument };
-

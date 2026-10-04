@@ -1,14 +1,9 @@
 "use client";
+import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
-import {
-  Calendar,
-  Sun,
-  Moon,
-  Menu,
-  Search,
-} from "lucide-react";
+import { Calendar, Sun, Moon, Menu, Search } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useAdminTheme } from "../../hooks/useAdminTheme";
 import { NotificationCenter } from "./NotificationCenter";
@@ -16,13 +11,18 @@ import { AdminProfileDropdown } from "./AdminProfileDropdown";
 import { GlobalQuickJump } from "./GlobalQuickJump";
 import { useSidebar } from "./SidebarContext";
 import type { CRMContact, CompanySettings } from "@ishoot/database/types";
-import initialCompanyConfig from "@ishoot/database/config";
-
-const defaultCompany = initialCompanyConfig.company;
 
 interface TopbarProps {
   contacts?: CRMContact[];
-  company?: Pick<CompanySettings, "company_name_en" | "company_name_ar" | "logo_url" | "dark_logo_url" | "icon_url" | "dark_icon_url"> | null;
+  company?: Pick<
+    CompanySettings,
+    | "company_name_en"
+    | "company_name_ar"
+    | "logo_url"
+    | "dark_logo_url"
+    | "icon_url"
+    | "dark_icon_url"
+  > | null;
 }
 
 export function Topbar({ contacts = [], company }: TopbarProps) {
@@ -35,8 +35,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
   };
 
   const companyTitle =
-    (isRTL ? company?.company_name_ar : company?.company_name_en) ||
-    (isRTL ? defaultCompany.companyNameAr : defaultCompany.companyNameEn);
+    (isRTL ? company?.company_name_ar : company?.company_name_en) || "";
 
   return (
     <header
@@ -59,16 +58,24 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
           className="flex items-center gap-2.5 group focus:outline-none ps-1 sm:ps-2"
           title={`${companyTitle} Admin Console`}
         >
-          <img
-            src={resolvedTheme === "dark" ? (company?.dark_icon_url || "/brand/icon-dark.svg") : (company?.icon_url || "/brand/icon-light.svg")}
+          <ContentImage
+            src={
+              resolvedTheme === "dark"
+                ? company?.dark_icon_url
+                : company?.icon_url
+            }
             alt={companyTitle}
             className="w-7 h-7 object-contain shrink-0"
-          />
-          <img
-            src={resolvedTheme === "dark" ? (company?.dark_logo_url || "/brand/logo-text-light.svg") : (company?.logo_url || "/brand/logo-text-dark.svg")}
+           width={40} height={40} />
+          <ContentImage
+            src={
+              resolvedTheme === "dark"
+                ? company?.dark_logo_url
+                : company?.logo_url
+            }
             alt={companyTitle}
             className="h-6 w-auto object-contain"
-          />
+           fallbackText={companyTitle}  width={240} height={60} />
         </Link>
 
         <div className="flex items-center gap-2.5 ms-2">

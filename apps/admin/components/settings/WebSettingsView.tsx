@@ -42,7 +42,7 @@ import {
 } from "../../app/actions/settings";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
-import { IconPicker } from "../shared/IconPicker";
+import { IconPicker } from "../shared/LazyIconPicker";
 import { PlatformPicker } from "../shared/PlatformPicker";
 
 interface WebSettingsViewProps {
@@ -123,7 +123,7 @@ export function WebSettingsView({
     setSaveSuccess(false);
 
     try {
-      const res = await updateWebSettingsAction(settings);
+      const res = await updateWebSettingsAction({company_name_en:settings.company_name_en,company_name_ar:settings.company_name_ar,address_en:settings.address_en,address_ar:settings.address_ar,phone:settings.phone,whatsapp_phone:settings.whatsapp_phone,email:settings.email,website:settings.website,instagram_url:settings.instagram_url,linkedin_url:settings.linkedin_url,youtube_url:settings.youtube_url,ceo_name_en:settings.ceo_name_en,ceo_name_ar:settings.ceo_name_ar,ceo_title_en:settings.ceo_title_en,ceo_title_ar:settings.ceo_title_ar,ceo_quote_en:settings.ceo_quote_en,ceo_quote_ar:settings.ceo_quote_ar,mission_en:settings.mission_en,mission_ar:settings.mission_ar,vision_en:settings.vision_en,vision_ar:settings.vision_ar,about_text_en:settings.about_text_en,about_text_ar:settings.about_text_ar,terms_en:settings.terms_en,terms_ar:settings.terms_ar,rules_en:settings.rules_en,rules_ar:settings.rules_ar});
       if (res.success && res.settings) {
         setSettings(res.settings);
         setSaveSuccess(true);
@@ -390,6 +390,9 @@ export function WebSettingsView({
                 </div>
               </div>
 
+              <div className="grid sm:grid-cols-2 gap-4">
+                {(["about_text_en","about_text_ar"] as const).map(key=><label key={key} className="text-sm">{key === "about_text_ar" ? "نبذة الاستوديو" : "Studio story"}<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar")?"rtl":"ltr"} value={settings[key]||""} onChange={e=>setSettings({...settings,[key]:e.target.value})}/></label>)}
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">

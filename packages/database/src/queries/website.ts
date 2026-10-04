@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db, runAtomicMutation } from "../db";
 import {
   defaultWebsiteConfig,
   validateWebsiteConfig,
@@ -26,6 +26,7 @@ export async function getPublicServices(): Promise<PublicService[]> {
   });
 }
 export async function collectWebsiteDraft(config: WebsiteConfig) {
+  return runAtomicMutation(async () => {
   const [banners, portfolio, clients, faqs, stats, services] =
     await Promise.all([
       getActiveBanners(),
@@ -35,25 +36,7 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
       getStatistics(),
       getPublicServices(),
     ]);
-  // Failed source queries must not replace a live website with an empty snapshot.
-  const [bannerCount, portfolioCount, clientCount, faqCount, statCount] =
-    await Promise.all([
-      db.heroBanner.count({ where: { isActive: true } }),
-      db.portfolioItem.count(),
-      db.clientLogo.count({ where: { isActive: true } }),
-      db.faq.count({ where: { isPublished: true } }),
-      db.statistic.count(),
-    ]);
-  if (
-    [
-      bannerCount !== banners.length,
-      portfolioCount !== portfolio.length,
-      clientCount !== clients.length,
-      faqCount !== faqs.length,
-      statCount !== stats.length,
-    ].some(Boolean)
-  )
-    throw new Error("Content could not be loaded completely. Try again.");
+  // Query failures propagate; no redundant full-table count probes are needed.
   return {
     config: validateWebsiteConfig(config),
     banners,
@@ -63,6 +46,7 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
     stats,
     services,
   };
+  }, "RepeatableRead");
 }
 export type WebsiteSnapshot = Awaited<ReturnType<typeof collectWebsiteDraft>>;
 export async function getWebsiteEditor() {
@@ -70,15 +54,14 @@ export async function getWebsiteEditor() {
     where: { id: "main" },
   });
   if (existing) return existing;
-  const snapshot = await collectWebsiteDraft(defaultWebsiteConfig);
+
   return db.websiteContent.upsert({
     where: { id: "main" },
     update: {},
     create: {
       id: "main",
       draft: JSON.parse(JSON.stringify(defaultWebsiteConfig)),
-      published: JSON.parse(JSON.stringify(snapshot)),
-      publishedAt: new Date(),
+      // Starter copy is a draft; only an explicit publication may make it public.
     },
   });
 }
@@ -88,9 +71,6 @@ export async function getWebsiteSnapshot(
   const content = await db.websiteContent.findUnique({ where: { id: "main" } });
   if (!preview && content?.published)
     return content.published as unknown as WebsiteSnapshot;
-  return collectWebsiteDraft(
-    preview && content
-      ? validateWebsiteConfig(content.draft)
-      : defaultWebsiteConfig,
-  );
+  if (!preview || !content) throw new Error("Website setup is incomplete. Save and publish website content in the admin app.");
+  return collectWebsiteDraft(validateWebsiteConfig(content.draft));
 }
