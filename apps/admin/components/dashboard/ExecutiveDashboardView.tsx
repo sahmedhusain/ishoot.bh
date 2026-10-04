@@ -345,7 +345,7 @@ export function ExecutiveDashboardView({
                       <Link
                         href={ROUTES.crm.customer(deal.contact.id)}
                         className="hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline font-medium inline-flex items-center gap-1"
-                        title="View Customer Dossier"
+                        title={t.executiveDashboard.viewCustomerDossier}
                       >
                         <span>
                           {deal.contact.company || deal.contact.full_name}

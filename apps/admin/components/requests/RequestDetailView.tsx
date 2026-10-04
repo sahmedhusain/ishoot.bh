@@ -14,13 +14,8 @@ import {
   Calendar,
   Clock,
   CheckCircle2,
-  AlertTriangle,
   RotateCcw,
   Check,
-  ShieldAlert,
-  Layers,
-  FileQuestion,
-  HelpCircle,
   MessageSquare,
   History,
   FileText,
@@ -32,9 +27,11 @@ import {
   Send,
 } from "lucide-react";
 import { Button, StatusBadge } from "@ishoot/ui";
+import type { ConsolidatedRequest } from "@ishoot/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
-import { canTransitionRequest } from "@ishoot/database/constants/requests";
+import { REQUEST_TEAMS, canTransitionRequest } from "@ishoot/database/constants/requests";
+import { RequestPriorityBadge, RequestTypeBadge, RequestWorkflowBadge } from "./RequestBadges";
 import {
   assignRequestWithAvailabilityAction,
   approveRequestAction,
@@ -53,32 +50,13 @@ interface UserOption {
 }
 
 interface RequestDetailViewProps {
-  request: any;
+  request: ConsolidatedRequest;
   users: UserOption[];
   currentUserId: string;
   /** Server-computed: the viewer is an approver for this request's pending approval. */
   canDecideApproval: boolean;
 }
 
-const TEAMS = [
-  { id: "production", labelEn: "Production", labelAr: "فريق الإنتاج" },
-  {
-    id: "post_production",
-    labelEn: "Post-Production",
-    labelAr: "المونتاج وما بعد الإنتاج",
-  },
-  {
-    id: "finance",
-    labelEn: "Finance & Accounts",
-    labelAr: "المالية والحسابات",
-  },
-  {
-    id: "sales",
-    labelEn: "Sales & Client Relations",
-    labelAr: "المبيعات وعلاقات العملاء",
-  },
-  { id: "support", labelEn: "Customer Care", labelAr: "خدمة ودعم العملاء" },
-];
 
 export function RequestDetailView({
   request,
@@ -118,127 +96,6 @@ export function RequestDetailView({
   const canApprove = can("requests", "approve");
   const canWrite = can("requests", "write");
 
-  const getTypeBadge = (type?: string) => {
-    switch (type) {
-      case "CR":
-      case "complaint":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300/40">
-            <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
-            <span>{isRTL ? "شكوى عميل (CR)" : "Client Complaint (CR)"}</span>
-          </span>
-        );
-      case "SR":
-      case "service_request":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300/40">
-            <Layers className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{isRTL ? "طلب خدمة (SR)" : "Service Request (SR)"}</span>
-          </span>
-        );
-      case "quote_request":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/40">
-            <FileQuestion className="w-3.5 h-3.5 text-amber-600" />
-            <span>{isRTL ? "طلب عرض سعر" : "Quote Request"}</span>
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-300/40">
-            <HelpCircle className="w-3.5 h-3.5 text-sky-600" />
-            <span>{isRTL ? "استفسار عام" : "Inquiry"}</span>
-          </span>
-        );
-    }
-  };
-
-  const getWorkflowBadge = (status?: string | null) => {
-    const s = status || "received";
-    switch (s) {
-      case "received":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300 border border-slate-200 dark:border-white/10">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <span>{isRTL ? "مستلم جديد" : "Received"}</span>
-          </span>
-        );
-      case "assigned":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/50">
-            <UserCheck className="w-3.5 h-3.5 text-blue-500" />
-            <span>{isRTL ? "مُعيّن ومُتابع" : "Assigned"}</span>
-          </span>
-        );
-      case "pending_approval":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/50">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-            <span>{isRTL ? "بانتظار الاعتماد" : "Pending Approval"}</span>
-          </span>
-        );
-      case "approved":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-            <span>{isRTL ? "معتمد" : "Approved"}</span>
-          </span>
-        );
-      case "confirmed":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300 border border-purple-200/50">
-            <UserCheck className="w-3.5 h-3.5 text-purple-500" />
-            <span>{isRTL ? "مؤكّد تنفيذي" : "Confirmed"}</span>
-          </span>
-        );
-      case "returned":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200/50">
-            <RotateCcw className="w-3.5 h-3.5 text-rose-500" />
-            <span>{isRTL ? "مُعاد للاستكمال" : "Returned"}</span>
-          </span>
-        );
-      case "resolved":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
-            <Check className="w-3.5 h-3.5 text-emerald-500" />
-            <span>{isRTL ? "مكتمل ومغلق" : "Resolved & Closed"}</span>
-          </span>
-        );
-      default:
-        return <StatusBadge status={s} />;
-    }
-  };
-
-  const getPriorityBadge = (p?: string) => {
-    switch (p) {
-      case "urgent":
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200">
-            {isRTL ? "عاجل جداً" : "Urgent SLA"}
-          </span>
-        );
-      case "high":
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200">
-            {isRTL ? "مرتفع" : "High"}
-          </span>
-        );
-      case "low":
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400">
-            {isRTL ? "منخفض" : "Low"}
-          </span>
-        );
-      default:
-        return (
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300">
-            {isRTL ? "عادي" : "Normal"}
-          </span>
-        );
-    }
-  };
-
   const handleApprove = async () => {
     const toastId = toast.loading(t.requestWorkflow.approving);
     try {
@@ -263,7 +120,7 @@ export function RequestDetailView({
 
   const handleConfirm = async () => {
     const toastId = toast.loading(
-      isRTL ? "جارٍ تأكيد الطلب تنفيذاً..." : "Confirming request...",
+      t.requestDetail.confirmingRequest,
     );
     try {
       const res = await confirmRequestAction(request.id, {
@@ -271,15 +128,15 @@ export function RequestDetailView({
       });
       if (res.success) {
         toast.success(
-          isRTL ? "تم تأكيد الطلب بنجاح" : "Request confirmed successfully",
+          t.requestDetail.requestConfirmedSuccessfully,
           { id: toastId },
         );
         router.refresh();
       } else {
-        toast.error(res.error || "Confirmation failed", { id: toastId });
+        toast.error(res.error || t.requestDetail.confirmationFailed, { id: toastId });
       }
     } catch (e: any) {
-      toast.error(e.message || "An error occurred", { id: toastId });
+      toast.error(e.message || t.requestDetail.anErrorOccurred, { id: toastId });
     }
   };
 
@@ -287,7 +144,7 @@ export function RequestDetailView({
     e.preventDefault();
     setIsActionSubmitting(true);
     const toastId = toast.loading(
-      isRTL ? "جارٍ تنفيذ الإجراء..." : "Executing action...",
+      t.requestDetail.executingAction,
     );
 
     try {
@@ -299,22 +156,18 @@ export function RequestDetailView({
         });
         if (res.success) {
           toast.success(
-            isRTL
-              ? "تم تعيين الطلب بنجاح مع فحص الإتاحة"
-              : "Assigned successfully with leave availability check",
+            t.requestDetail.assignedSuccessfullyWithLeaveAvailability,
             { id: toastId },
           );
           setModalType(null);
           router.refresh();
         } else {
-          toast.error(res.error || "Failed to assign request", { id: toastId });
+          toast.error(res.error || t.requestDetail.failedToAssignRequest, { id: toastId });
         }
       } else if (modalType === "return") {
         if (!modalNotes.trim()) {
           toast.error(
-            isRTL
-              ? "يرجى كتابة سبب الإرجاع للمسؤول"
-              : "Return reason is required",
+            t.requestDetail.returnReasonIsRequired,
             { id: toastId },
           );
           setIsActionSubmitting(false);
@@ -325,20 +178,18 @@ export function RequestDetailView({
         });
         if (res.success) {
           toast.success(
-            isRTL ? "تم إرجاع الطلب بنجاح" : "Request returned successfully",
+            t.requestDetail.requestReturnedSuccessfully,
             { id: toastId },
           );
           setModalType(null);
           router.refresh();
         } else {
-          toast.error(res.error || "Failed to return request", { id: toastId });
+          toast.error(res.error || t.requestDetail.failedToReturnRequest, { id: toastId });
         }
       } else if (modalType === "resolve") {
         if (!modalNotes.trim()) {
           toast.error(
-            isRTL
-              ? "يرجى كتابة ملخص الحل والتسليم"
-              : "Resolution summary is required",
+            t.requestDetail.resolutionSummaryIsRequired,
             { id: toastId },
           );
           setIsActionSubmitting(false);
@@ -349,21 +200,19 @@ export function RequestDetailView({
         });
         if (res.success) {
           toast.success(
-            isRTL
-              ? "تم إغلاق وحل الطلب بنجاح"
-              : "Request resolved and closed successfully",
+            t.requestDetail.requestResolvedAndClosedSuccessfully,
             { id: toastId },
           );
           setModalType(null);
           router.refresh();
         } else {
-          toast.error(res.error || "Failed to resolve request", {
+          toast.error(res.error || t.requestDetail.failedToResolveRequest, {
             id: toastId,
           });
         }
       }
     } catch (err: any) {
-      toast.error(err.message || "Action failed", { id: toastId });
+      toast.error(err.message || t.requestDetail.actionFailed, { id: toastId });
     } finally {
       setIsActionSubmitting(false);
     }
@@ -375,7 +224,7 @@ export function RequestDetailView({
 
     setIsPostingComment(true);
     const toastId = toast.loading(
-      isRTL ? "جارٍ إضافة التعليق..." : "Posting comment...",
+      t.requestDetail.postingComment,
     );
     try {
       const res = await addRequestCommentAction(
@@ -385,17 +234,17 @@ export function RequestDetailView({
       );
       if (res.success) {
         toast.success(
-          isRTL ? "تمت إضافة التعليق بنجاح" : "Comment added successfully",
+          t.requestDetail.commentAddedSuccessfully,
           { id: toastId },
         );
         setCommentBody("");
         setIsClientVisible(false);
         router.refresh();
       } else {
-        toast.error(res.error || "Failed to add comment", { id: toastId });
+        toast.error(res.error || t.requestDetail.failedToAddComment, { id: toastId });
       }
     } catch (e: any) {
-      toast.error(e.message || "Failed to add comment", { id: toastId });
+      toast.error(e.message || t.requestDetail.failedToAddComment, { id: toastId });
     } finally {
       setIsPostingComment(false);
     }
@@ -414,17 +263,17 @@ export function RequestDetailView({
         >
           <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
           <span>
-            {isRTL ? "العودة لصندوق الطلبات" : "Back to Requests Inbox"}
+            {t.requestDetail.backToRequestsInbox}
           </span>
         </Link>
 
         <div className="flex items-center gap-2">
-          {getTypeBadge(request.requestType)}
+          <RequestTypeBadge type={request.requestType} />
           <span className="font-mono text-xs font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-white/10">
             {request.reference || `#${request.id.slice(-6)}`}
           </span>
-          {getWorkflowBadge(request.workflowStatus)}
-          {getPriorityBadge(request.priority)}
+          <RequestWorkflowBadge status={request.workflowStatus} />
+          <RequestPriorityBadge priority={request.priority} />
         </div>
       </div>
 
@@ -433,10 +282,7 @@ export function RequestDetailView({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
-              {request.subject ||
-                (isRTL
-                  ? `طلب رقم: ${request.reference}`
-                  : `Request ${request.reference}`)}
+              {t.requestDetail.titleWithReference.replace("{reference}", request.reference)}
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1.5">
@@ -456,14 +302,14 @@ export function RequestDetailView({
                 >
                   <Clock className="w-3.5 h-3.5" />
                   <span>
-                    {isRTL ? "استحقاق الخدمة: " : "SLA Deadline: "}
+                    {t.requestDetail.slaDeadline}
                     {slaDateObj.toLocaleDateString(isRTL ? "ar-BH" : "en-US", {
                       dateStyle: "medium",
                     })}
                   </span>
                   {isOverdue && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
-                      {isRTL ? "متأخر" : "Overdue"}
+                      {t.requestDetail.overdue}
                     </span>
                   )}
                 </span>
@@ -483,12 +329,8 @@ export function RequestDetailView({
                 <ArrowRightLeft className="w-3.5 h-3.5" />
                 <span>
                   {request.assignedToId
-                    ? isRTL
-                      ? "إعادة التوجيه"
-                      : "Reassign"
-                    : isRTL
-                      ? "تعيين مسؤول"
-                      : "Assign Lead"}
+                    ? t.requestDetail.reassign
+                    : t.requestDetail.assignLead}
                 </span>
               </Button>
             )}
@@ -528,7 +370,7 @@ export function RequestDetailView({
                 className="gap-1.5 text-xs bg-purple-600 hover:bg-purple-700 text-white"
               >
                 <UserCheck className="w-3.5 h-3.5" />
-                <span>{isRTL ? "تأكيد تنفيذي" : "Confirm"}</span>
+                <span>{t.requestDetail.confirm}</span>
               </Button>
             )}
 
@@ -541,7 +383,7 @@ export function RequestDetailView({
                   className="gap-1.5 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span>{isRTL ? "إرجاع" : "Return"}</span>
+                  <span>{t.requestDetail.return}</span>
                 </Button>
               )}
 
@@ -553,7 +395,7 @@ export function RequestDetailView({
                 className="gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
               >
                 <Check className="w-3.5 h-3.5" />
-                <span>{isRTL ? "حل وإغلاق" : "Resolve"}</span>
+                <span>{t.requestDetail.resolve}</span>
               </Button>
             )}
 
@@ -566,7 +408,7 @@ export function RequestDetailView({
                 className="gap-1.5 text-xs border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20"
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>{isRTL ? "إصدار عرض سعر" : "Create Quote"}</span>
+                <span>{t.requestDetail.createQuote}</span>
               </Button>
             </Link>
           </div>
@@ -577,28 +419,24 @@ export function RequestDetailView({
           {[
             {
               id: "overview",
-              labelEn: "Overview & Specs",
-              labelAr: "الملف والمواصفات",
+              label: t.requestDetail.overviewAndSpecs,
               count: null,
             },
             {
               id: "comments",
-              labelEn: "Discussion & Notes",
-              labelAr: "المناقشة والملاحظات",
+              label: t.requestDetail.discussionAndNotes,
               count: request.comments?.length || 0,
             },
             {
               id: "timeline",
-              labelEn: "Audit Timeline",
-              labelAr: "سجل العمليات والتعيينات",
+              label: t.requestDetail.auditTimeline,
               count:
                 (request.requestEvents?.length || 0) +
                 (request.assignments?.length || 0),
             },
             {
               id: "related",
-              labelEn: "Linked Documents",
-              labelAr: "المستندات المرتبطة",
+              label: t.requestDetail.linkedDocuments,
               count: request.quotations?.length || 0,
             },
           ].map((tab) => (
@@ -611,7 +449,7 @@ export function RequestDetailView({
                   : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <span>{isRTL ? tab.labelAr : tab.labelEn}</span>
+              <span>{tab.label}</span>
               {tab.count !== null && tab.count > 0 && (
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full ${
@@ -635,9 +473,7 @@ export function RequestDetailView({
           <div className="lg:col-span-2 space-y-6">
             <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 space-y-4 shadow-sm">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F]">
-                {isRTL
-                  ? "نص المتطلبات الفنية والوصف"
-                  : "Technical Scope & Requirements"}
+                {t.requestDetail.technicalScopeAndRequirements}
               </h3>
               <div className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-black/30 p-4 rounded-xl border border-slate-200/50 dark:border-white/5">
                 {request.message}
@@ -646,7 +482,7 @@ export function RequestDetailView({
               {request.serviceType && (
                 <div className="pt-2">
                   <span className="text-xs text-slate-400 block mb-1">
-                    {isRTL ? "الخدمات المطلوبة:" : "Requested Services:"}
+                    {t.requestDetail.requestedServices}
                   </span>
                   <div className="flex flex-wrap gap-1.5">
                     {request.serviceType.split(",").map((s: string, i: number) => (
@@ -666,7 +502,7 @@ export function RequestDetailView({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1">
                 <span className="text-xs text-slate-400">
-                  {isRTL ? "الميزانية المتوقعة" : "Budget Range"}
+                  {t.requestDetail.budgetRange}
                 </span>
                 <div className="text-base font-bold text-slate-900 dark:text-white font-display">
                   {request.budgetRange || "—"}
@@ -675,7 +511,7 @@ export function RequestDetailView({
 
               <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1">
                 <span className="text-xs text-slate-400">
-                  {isRTL ? "الجدول الزمني المستهدف" : "Target Timeline"}
+                  {t.requestDetail.targetTimeline}
                 </span>
                 <div className="text-base font-bold text-slate-900 dark:text-white font-display">
                   {request.timeline || "—"}
@@ -688,9 +524,7 @@ export function RequestDetailView({
                 <div className="flex items-center gap-2 text-xs font-bold text-rose-600">
                   <RotateCcw className="w-4 h-4" />
                   <span>
-                    {isRTL
-                      ? "سبب الإرجاع للاستكمال:"
-                      : "Return Reason / Correction Request:"}
+                    {t.requestDetail.returnReasonCorrectionRequest}
                   </span>
                 </div>
                 <p className="text-xs leading-relaxed">{request.returnReason}</p>
@@ -702,9 +536,7 @@ export function RequestDetailView({
                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-600">
                   <Check className="w-4 h-4" />
                   <span>
-                    {isRTL
-                      ? "ملخص الحل والتسليم المعتمد:"
-                      : "Resolution Summary & Completion Notes:"}
+                    {t.requestDetail.resolutionSummaryAndCompletionNotes}
                   </span>
                 </div>
                 <p className="text-xs leading-relaxed">
@@ -720,14 +552,14 @@ export function RequestDetailView({
             <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F]">
-                  {isRTL ? "بيانات العميل" : "Client Dossier"}
+                  {t.requestDetail.clientDossier}
                 </h3>
                 {request.customerId && (
                   <Link
                     href={ROUTES.crm.customer(request.customerId)}
                     className="text-[11px] text-[#09937F] hover:underline"
                   >
-                    {isRTL ? "عرض الملف" : "View Profile"}
+                    {t.requestDetail.viewProfile}
                   </Link>
                 )}
               </div>
@@ -735,7 +567,7 @@ export function RequestDetailView({
               <div className="space-y-3 text-xs">
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {isRTL ? "الاسم" : "Full Name"}
+                    {t.requestDetail.fullName}
                   </span>
                   <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 mt-0.5">
                     <User className="w-3.5 h-3.5 text-slate-400" />
@@ -746,7 +578,7 @@ export function RequestDetailView({
                 {request.companyName && (
                   <div>
                     <span className="text-slate-400 block text-[11px]">
-                      {isRTL ? "الشركة" : "Company"}
+                      {t.requestDetail.company}
                     </span>
                     <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 mt-0.5">
                       <Building className="w-3.5 h-3.5 text-slate-400" />
@@ -757,7 +589,7 @@ export function RequestDetailView({
 
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {isRTL ? "البريد الإلكتروني" : "Email"}
+                    {t.requestDetail.email}
                   </span>
                   <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 mt-0.5 font-mono">
                     <Mail className="w-3.5 h-3.5 text-slate-400" />
@@ -773,7 +605,7 @@ export function RequestDetailView({
                 {request.phone && (
                   <div>
                     <span className="text-slate-400 block text-[11px]">
-                      {isRTL ? "الهاتف" : "Phone"}
+                      {t.requestDetail.phone}
                     </span>
                     <div
                       className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 mt-0.5 font-mono"
@@ -792,13 +624,13 @@ export function RequestDetailView({
             {/* Current Assignment Card */}
             <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F]">
-                {isRTL ? "المسؤولية الإدارية الحالية" : "Current Assignment"}
+                {t.requestDetail.currentAssignment}
               </h3>
 
               <div className="space-y-3 text-xs">
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {isRTL ? "الفريق المكلف" : "Assigned Team"}
+                    {t.requestDetail.assignedTeam}
                   </span>
                   <span className="inline-block px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/10 font-semibold text-slate-800 dark:text-slate-200 capitalize mt-1">
                     {request.team || "support"}
@@ -807,13 +639,13 @@ export function RequestDetailView({
 
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {isRTL ? "الموظف المباشر" : "Direct Assignee"}
+                    {t.requestDetail.directAssignee}
                   </span>
                   <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 mt-1">
                     <UserCheck className="w-3.5 h-3.5 text-[#09937F]" />
                     <span>
                       {request.assignedTo?.fullName ||
-                        (isRTL ? "غير مُعيّن بعد" : "Unassigned")}
+                        (t.requestDetail.unassigned)}
                     </span>
                   </div>
                   {request.assignedTo?.email && (
@@ -835,7 +667,7 @@ export function RequestDetailView({
           <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
-              <span>{isRTL ? "إضافة ملاحظة أو رد جديد" : "Post Note / Comment"}</span>
+              <span>{t.requestDetail.postNoteComment}</span>
             </h3>
 
             <form onSubmit={handlePostComment} className="space-y-3">
@@ -845,9 +677,7 @@ export function RequestDetailView({
                 value={commentBody}
                 onChange={(e) => setCommentBody(e.target.value)}
                 placeholder={
-                  isRTL
-                    ? "اكتب التوجيه الفني، تفاصيل المتابعة مع العميل، أو ملاحظات الفريق الداخلي..."
-                    : "Add progress note, client communication summary, or internal instructions..."
+                  t.requestDetail.addProgressNoteClientCommunication
                 }
                 className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
               />
@@ -861,18 +691,12 @@ export function RequestDetailView({
                     className="rounded border-slate-300 text-[#09937F] focus:ring-[#09937F]"
                   />
                   <span>
-                    {isRTL
-                      ? "مرئي للعميل (Client Visible)"
-                      : "Client Visible (External)"}
+                    {t.requestDetail.clientVisibleExternal}
                   </span>
                   <span className="text-[10px] text-slate-400">
                     {isClientVisible
-                      ? isRTL
-                        ? "(سيظهر في بوابة العميل)"
-                        : "(Visible in client portal)"
-                      : isRTL
-                        ? "(خاص بالفريق الداخلي فقط)"
-                        : "(Internal team only)"}
+                      ? t.requestDetail.visibleInClientPortal
+                      : t.requestDetail.internalTeamOnly}
                   </span>
                 </label>
 
@@ -886,12 +710,8 @@ export function RequestDetailView({
                   <Send className="w-3 h-3" />
                   <span>
                     {isPostingComment
-                      ? isRTL
-                        ? "جارٍ النشر..."
-                        : "Posting..."
-                      : isRTL
-                        ? "نشر الملاحظة"
-                        : "Post Comment"}
+                      ? t.requestDetail.posting
+                      : t.requestDetail.postComment}
                   </span>
                 </Button>
               </div>
@@ -917,7 +737,7 @@ export function RequestDetailView({
                       </div>
                       <div>
                         <span className="font-semibold text-xs text-slate-900 dark:text-white">
-                          {comment.author?.fullName || "Team Member"}
+                          {comment.author?.fullName || t.requestDetail.teamMember}
                         </span>
                         <span className="text-[10px] text-slate-400 block">
                           {new Date(comment.createdAt).toLocaleString(
@@ -931,13 +751,13 @@ export function RequestDetailView({
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
                         <Eye className="w-3 h-3 text-sky-600" />
                         <span>
-                          {isRTL ? "مرئي للعميل" : "Client Visible"}
+                          {t.requestDetail.clientVisible}
                         </span>
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400">
                         <Lock className="w-3 h-3 text-slate-400" />
-                        <span>{isRTL ? "داخلي فقط" : "Internal"}</span>
+                        <span>{t.requestDetail.internal}</span>
                       </span>
                     )}
                   </div>
@@ -951,9 +771,7 @@ export function RequestDetailView({
               <div className="text-center py-12 text-slate-400 bg-white dark:bg-[#0E1714] rounded-2xl border border-slate-200/80 dark:border-white/10">
                 <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p className="text-xs">
-                  {isRTL
-                    ? "لا توجد ملاحظات أو تعليقات مسجلة بعد"
-                    : "No comments posted yet"}
+                  {t.requestDetail.noCommentsPostedYet}
                 </p>
               </div>
             )}
@@ -967,9 +785,7 @@ export function RequestDetailView({
           <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
             <History className="w-4 h-4" />
             <span>
-              {isRTL
-                ? "سجل العمليات والتعيينات غير القابل للتعديل"
-                : "Append-Only Audit & Assignment History"}
+              {t.requestDetail.appendOnlyAuditAndAssignment}
             </span>
           </h3>
 
@@ -1001,7 +817,7 @@ export function RequestDetailView({
               ))
             ) : (
               <p className="text-xs text-slate-400">
-                {isRTL ? "لا توجد أحداث مسجلة" : "No event records found"}
+                {t.requestDetail.noEventRecordsFound}
               </p>
             )}
           </div>
@@ -1016,9 +832,7 @@ export function RequestDetailView({
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 <span>
-                  {isRTL
-                    ? "عروض الأسعار الصادرة لهذا الطلب"
-                    : "Issued Quotations"}
+                  {t.requestDetail.issuedQuotations}
                 </span>
               </h3>
               <Link
@@ -1026,7 +840,7 @@ export function RequestDetailView({
               >
                 <Button variant="outline" size="sm" className="gap-1 text-xs">
                   <Plus className="w-3 h-3" />
-                  <span>{isRTL ? "عرض سعر جديد" : "New Quotation"}</span>
+                  <span>{t.requestDetail.newQuotation}</span>
                 </Button>
               </Link>
             </div>
@@ -1053,7 +867,7 @@ export function RequestDetailView({
                       <StatusBadge status={q.status} />
                       <Link href={ROUTES.quotations.detail(q.id)}>
                         <Button variant="outline" size="sm" className="text-xs">
-                          {isRTL ? "عرض" : "View"}
+                          {t.requestDetail.view}
                         </Button>
                       </Link>
                     </div>
@@ -1062,9 +876,7 @@ export function RequestDetailView({
               </div>
             ) : (
               <p className="text-xs text-slate-400 py-4 text-center">
-                {isRTL
-                  ? "لم يتم إصدار عروض أسعار لهذا الطلب بعد"
-                  : "No quotations linked to this request"}
+                {t.requestDetail.noQuotationsLinkedToThis}
               </p>
             )}
           </div>
@@ -1072,7 +884,7 @@ export function RequestDetailView({
           {request.convertedDeal && (
             <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F]">
-                {isRTL ? "الصفقة التجارية في CRM" : "CRM Deal Conversion"}
+                {t.requestDetail.crmDealConversion}
               </h3>
               <div className="flex items-center justify-between text-xs pt-1">
                 <div>
@@ -1080,13 +892,13 @@ export function RequestDetailView({
                     {request.convertedDeal.title}
                   </span>
                   <span className="text-[11px] text-slate-400 block">
-                    {isRTL ? "المرحلة:" : "Stage:"}{" "}
+                    {t.requestDetail.stage}{" "}
                     {request.convertedDeal.dealStage}
                   </span>
                 </div>
                 <Link href={ROUTES.crm.deal(request.convertedDeal.id)}>
                   <Button variant="outline" size="sm" className="text-xs">
-                    {isRTL ? "عرض الصفقة" : "View Deal"}
+                    {t.requestDetail.viewDeal}
                   </Button>
                 </Link>
               </div>
@@ -1105,17 +917,11 @@ export function RequestDetailView({
                   <span className="w-2.5 h-2.5 rounded-full bg-[#09937F]" />
                   <span>
                     {modalType === "assign" &&
-                      (isRTL
-                        ? "تعيين أو إعادة توجيه الطلب"
-                        : "Assign or Reassign Request")}
+                      (t.requestDetail.assignOrReassignRequest)}
                     {modalType === "return" &&
-                      (isRTL
-                        ? "إرجاع الطلب مع ذكر السبب"
-                        : "Return Request with Reason")}
+                      (t.requestDetail.returnRequestWithReason)}
                     {modalType === "resolve" &&
-                      (isRTL
-                        ? "حل وإغلاق الطلب رسمياً"
-                        : "Resolve & Close Request")}
+                      (t.requestDetail.resolveAndCloseRequest)}
                   </span>
                 </h3>
                 <span className="text-xs text-slate-400">
@@ -1135,16 +941,16 @@ export function RequestDetailView({
                 <div className="space-y-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {isRTL ? "الفريق المختص" : "Assigned Team"}
+                      {t.requestDetail.assignedTeam2}
                     </label>
                     <select
                       value={modalTeam}
                       onChange={(e) => setModalTeam(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
                     >
-                      {TEAMS.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {isRTL ? t.labelAr : t.labelEn}
+                      {REQUEST_TEAMS.map((team) => (
+                        <option key={team} value={team}>
+                          {t.requestLabels.teams[team]}
                         </option>
                       ))}
                     </select>
@@ -1152,9 +958,7 @@ export function RequestDetailView({
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      {isRTL
-                        ? "الموظف المسؤول (يخضع لفحص الإجازة)"
-                        : "Assignee Person (Checked against Leave)"}
+                      {t.requestDetail.assigneePersonCheckedAgainstLeave}
                     </label>
                     <select
                       value={modalAssigneeId}
@@ -1168,9 +972,7 @@ export function RequestDetailView({
                       ))}
                     </select>
                     <span className="text-[11px] text-slate-400 mt-1 block">
-                      {isRTL
-                        ? "سيتم رفض التعيين في حال وجود إجازة معتمدة للموظف تغطي فترة العمل"
-                        : "Assignment will be rejected if the employee has an approved leave overlapping the work period"}
+                      {t.requestDetail.assignmentWillBeRejectedIf}
                     </span>
                   </div>
                 </div>
@@ -1179,16 +981,10 @@ export function RequestDetailView({
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   {modalType === "return"
-                    ? isRTL
-                      ? "سبب الإرجاع وملاحظات التصحيح *"
-                      : "Reason for Return (Required) *"
+                    ? t.requestDetail.reasonForReturnRequired
                     : modalType === "resolve"
-                      ? isRTL
-                        ? "تقرير الحل وملخص التسليم *"
-                        : "Resolution Summary & Output *"
-                      : isRTL
-                        ? "ملاحظات وتوجيهات التعيين (اختياري)"
-                        : "Assignment Directives (Optional)"}
+                      ? t.requestDetail.resolutionSummaryAndOutput
+                      : t.requestDetail.assignmentDirectivesOptional}
                 </label>
                 <textarea
                   rows={3}
@@ -1197,16 +993,10 @@ export function RequestDetailView({
                   onChange={(e) => setModalNotes(e.target.value)}
                   placeholder={
                     modalType === "return"
-                      ? isRTL
-                        ? "اكتب تفاصيل النواقص وسبب إعادة الطلب..."
-                        : "Describe reason for returning this request..."
+                      ? t.requestDetail.describeReasonForReturningThis
                       : modalType === "resolve"
-                        ? isRTL
-                          ? "اكتب تفاصيل إنجاز العمل أو تسليم الخدمة..."
-                          : "Describe how this issue/service was successfully resolved..."
-                        : isRTL
-                          ? "أي تعليمات أو ملاحظات إضافية للموظف المكلف..."
-                          : "Any instructions for the new assignee..."
+                        ? t.requestDetail.describeHowThisIssueService
+                        : t.requestDetail.anyInstructionsForTheNew
                   }
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
                 />
@@ -1220,7 +1010,7 @@ export function RequestDetailView({
                   onClick={() => setModalType(null)}
                   disabled={isActionSubmitting}
                 >
-                  {isRTL ? "إلغاء التراجع" : "Cancel"}
+                  {t.requestDetail.cancel}
                 </Button>
                 <Button
                   type="submit"
@@ -1234,12 +1024,8 @@ export function RequestDetailView({
                   }
                 >
                   {isActionSubmitting
-                    ? isRTL
-                      ? "جارٍ التنفيذ..."
-                      : "Applying..."
-                    : isRTL
-                      ? "تأكيد وتنفيذ"
-                      : "Confirm & Apply"}
+                    ? t.requestDetail.applying
+                    : t.requestDetail.confirmAndApply}
                 </Button>
               </div>
             </form>

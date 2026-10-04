@@ -257,19 +257,17 @@ export function GeneralInfoTab({
           </div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-[#014842] dark:text-[#7de0d1] border border-emerald-200 dark:border-emerald-800">
             <span className="w-2 h-2 rounded-full bg-[#09937F] animate-pulse" />
-            <span>{isRTL ? "مزامنة حية نشطة" : "Live Production Sync Active"}</span>
+            <span>{t.generalInfoTab.liveProductionSyncActive}</span>
           </span>
         </div>
 
         <div className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#282a2d] border border-[#dadce0] dark:border-[#3c4043] space-y-4">
           <div className="space-y-1">
             <div className="text-xs font-bold text-slate-900 dark:text-white">
-              {isRTL ? "رابط تقويم الإنتاج والتصوير المباشر (.ics)" : "Production & Shoot Live Feed URL (.ics)"}
+              {t.generalInfoTab.productionAndShootLiveFeed}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {isRTL
-                ? "يتم تحديث جميع مواعيد التصوير والاجتماعات وأيام الإنتاج تلقائياً في تقويم Google وتقويم Apple."
-                : "All scheduled shoots, client meetings, and call sheets sync in real time to Google Calendar and Apple Calendar."}
+              {t.generalInfoTab.allScheduledShootsClientMeetings}
             </p>
           </div>
 
@@ -290,7 +288,7 @@ export function GeneralInfoTab({
               className="gap-1.5 text-xs rounded-xl shrink-0"
             >
               {feedCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{feedCopied ? (isRTL ? "تم النسخ!" : "Copied!") : (isRTL ? "نسخ الرابط" : "Copy Feed URL")}</span>
+              <span>{feedCopied ? (t.generalInfoTab.copied) : (t.generalInfoTab.copyFeedUrl)}</span>
             </Button>
             <Button
               type="button"
@@ -304,7 +302,7 @@ export function GeneralInfoTab({
               className="gap-1.5 text-xs rounded-xl shrink-0 bg-[#09937F] text-white"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span>{isRTL ? "إضافة إلى تقويم Google" : "Add to Google Calendar"}</span>
+              <span>{t.generalInfoTab.addToGoogleCalendar}</span>
             </Button>
           </div>
         </div>

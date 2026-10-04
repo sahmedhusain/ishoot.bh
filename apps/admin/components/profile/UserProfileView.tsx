@@ -80,7 +80,7 @@ export function UserProfileView({
   const handleUpdateContact = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUpdatingContact(true);
-    const toastId = toast.loading(t.hrText.text186);
+    const toastId = toast.loading(t.userProfile.updatingContactDetails);
 
     try {
       const res = await updateMyProfileAction({
@@ -89,13 +89,13 @@ export function UserProfileView({
       });
 
       if (res.success) {
-        toast.success(t.hrText.text187, { id: toastId });
+        toast.success(t.userProfile.contactDetailsUpdatedSuccessfully, { id: toastId });
         router.refresh();
       } else {
-        toast.error(t.hrText.text188, { id: toastId });
+        toast.error(t.userProfile.failedToUpdateProfile, { id: toastId });
       }
     } catch (err: any) {
-      toast.error(err.message || "An error occurred", { id: toastId });
+      toast.error(err.message || t.userProfile.anErrorOccurred, { id: toastId });
     } finally {
       setIsUpdatingContact(false);
     }
@@ -106,12 +106,12 @@ export function UserProfileView({
     e.preventDefault();
 
     if (!proposedFullName.trim() && !proposedEmail.trim()) {
-      toast.error(t.hrText.text189);
+      toast.error(t.userProfile.pleaseSpecifyEitherANew);
       return;
     }
 
     setIsSubmittingRequest(true);
-    const toastId = toast.loading(t.hrText.text190);
+    const toastId = toast.loading(t.userProfile.submittingIdentityChangeRequest);
 
     try {
       const res = await requestIdentityChangeAction({
@@ -121,16 +121,16 @@ export function UserProfileView({
       });
 
       if (res.success) {
-        toast.success(t.hrText.text191, { id: toastId });
+        toast.success(t.userProfile.requestSubmittedSuccessfullyForManager, { id: toastId });
         setProposedFullName("");
         setProposedEmail("");
         setChangeReason("");
         router.refresh();
       } else {
-        toast.error(t.hrText.text192, { id: toastId });
+        toast.error(t.userProfile.failedToSubmitChangeRequest, { id: toastId });
       }
     } catch (err: any) {
-      toast.error(err.message || "Failed to submit change request", {
+      toast.error(err.message || t.userProfile.failedToSubmitChangeRequest2, {
         id: toastId,
       });
     } finally {
@@ -147,24 +147,24 @@ export function UserProfileView({
     setDecidingId(requestId);
     setIsSubmittingDecision(true);
     const toastId = toast.loading(
-      decision === "approved" ? t.hrText.text193 : t.hrText.text194,
+      decision === "approved" ? t.userProfile.approvingIdentityChange : t.userProfile.rejectingRequest,
     );
 
     try {
       const res = await decideProfileChangeAction(requestId, decision, notes);
       if (res.success) {
         toast.success(
-          decision === "approved" ? t.hrText.text195 : t.hrText.text196,
+          decision === "approved" ? t.userProfile.identityUpdateApprovedAndApplied : t.userProfile.identityChangeRejected,
           { id: toastId },
         );
         setRejectModalReqId(null);
         setRejectReason("");
         router.refresh();
       } else {
-        toast.error(t.hrText.text197, { id: toastId });
+        toast.error(t.userProfile.decisionCouldNotBeApplied, { id: toastId });
       }
     } catch (err: any) {
-      toast.error(err.message || "Failed to apply decision", { id: toastId });
+      toast.error(err.message || t.userProfile.failedToApplyDecision, { id: toastId });
     } finally {
       setDecidingId(null);
       setIsSubmittingDecision(false);
@@ -177,27 +177,27 @@ export function UserProfileView({
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200/50">
             <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-            <span>{t.hrText.text198}</span>
+            <span>{t.userProfile.approved}</span>
           </span>
         );
       case "pending":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border border-amber-200/50">
             <Clock className="w-3 h-3 text-amber-500" />
-            <span>{t.hrText.text199}</span>
+            <span>{t.userProfile.pendingReview}</span>
           </span>
         );
       case "rejected":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200/50">
             <XCircle className="w-3 h-3 text-rose-500" />
-            <span>{t.hrText.text200}</span>
+            <span>{t.userProfile.rejected}</span>
           </span>
         );
       case "cancelled":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400">
-            <span>{t.hrText.text201}</span>
+            <span>{t.userProfile.superseded}</span>
           </span>
         );
       default:
@@ -246,11 +246,11 @@ export function UserProfileView({
         <div className="flex items-center gap-3">
           <div className="text-end">
             <span className="text-[11px] text-slate-400 block">
-              {t.hrText.text202}
+              {t.userProfile.accountStatus}
             </span>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>{t.hrText.text203}</span>
+              <span>{t.userProfile.activeAndVerified}</span>
             </span>
           </div>
         </div>
@@ -263,10 +263,10 @@ export function UserProfileView({
             <AlertTriangle className="w-5 h-5 text-amber-600" />
             <div>
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                {t.hrText.text204}
+                {t.userProfile.pendingIdentityChangesAwaitingYour}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {t.hrText.text205}
+                {t.userProfile.asReportingManagerCorporatePolicy}
               </p>
             </div>
           </div>
@@ -298,7 +298,7 @@ export function UserProfileView({
                     {newVals.fullName && (
                       <div className="p-3 rounded-lg bg-slate-50 dark:bg-black/30 border border-slate-200/60 dark:border-white/5 space-y-1">
                         <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                          {t.hrText.text206}
+                          {t.userProfile.fullNameChange}
                         </span>
                         <div className="line-through text-slate-400 text-xs">
                           {oldVals.fullName}
@@ -313,7 +313,7 @@ export function UserProfileView({
                     {newVals.email && (
                       <div className="p-3 rounded-lg bg-slate-50 dark:bg-black/30 border border-slate-200/60 dark:border-white/5 space-y-1">
                         <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                          {t.hrText.text207}
+                          {t.userProfile.emailChange}
                         </span>
                         <div className="line-through text-slate-400 text-xs font-mono">
                           {oldVals.email}
@@ -336,7 +336,7 @@ export function UserProfileView({
                       className="gap-1 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                     >
                       <X className="w-3 h-3" />
-                      <span>{t.hrText.text98}</span>
+                      <span>{t.shared.reject}</span>
                     </Button>
                     <Button
                       variant="primary"
@@ -348,8 +348,8 @@ export function UserProfileView({
                       <Check className="w-3 h-3" />
                       <span>
                         {decidingId === req.id
-                          ? t.hrText.text208
-                          : t.hrText.text209}
+                          ? t.userProfile.approving
+                          : t.userProfile.approveAndApply}
                       </span>
                     </Button>
                   </div>
@@ -369,17 +369,17 @@ export function UserProfileView({
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
               <Phone className="w-4 h-4 text-[#09937F]" />
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                {t.hrText.text210}
+                {t.userProfile.n1ContactAndSignatureDirect}
               </h2>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {t.hrText.text211}
+              {t.userProfile.phoneNumberAndAuthorizedSignature}
             </p>
 
             <form onSubmit={handleUpdateContact} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t.hrText.text131}
+                  {t.shared.phoneNumber}
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
@@ -396,7 +396,7 @@ export function UserProfileView({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t.hrText.text212}
+                  {t.userProfile.digitalSignatureUrlClaimedPrivate}
                 </label>
                 <div className="relative">
                   <FileSignature className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
@@ -404,12 +404,12 @@ export function UserProfileView({
                     type="text"
                     value={signatureUrl}
                     onChange={(e) => setSignatureUrl(e.target.value)}
-                    placeholder={t.hrText.text213}
+                    placeholder={t.userProfile.apiFilesSignature}
                     className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F] font-mono text-start"
                   />
                 </div>
                 <span className="text-[11px] text-slate-400 mt-1 block">
-                  {t.hrText.text214}
+                  {t.userProfile.usedForStampingIssuedDocuments}
                 </span>
               </div>
 
@@ -421,7 +421,7 @@ export function UserProfileView({
                   disabled={isUpdatingContact}
                   className="bg-[#09937F] hover:bg-[#077a68] text-white text-xs font-semibold"
                 >
-                  {isUpdatingContact ? t.hrText.text215 : t.hrText.text216}
+                  {isUpdatingContact ? t.shared.saving : t.userProfile.saveContactInfo}
                 </Button>
               </div>
             </form>
@@ -432,22 +432,22 @@ export function UserProfileView({
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
               <ShieldCheck className="w-4 h-4 text-[#09937F]" />
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                {t.hrText.text217}
+                {t.userProfile.n2IdentityChangeRequestManager}
               </h2>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 text-xs text-slate-600 dark:text-slate-400 space-y-1">
               <span className="font-semibold text-slate-800 dark:text-slate-200 block">
-                {t.hrText.text218}
+                {t.userProfile.corporateGovernanceInvariant}
               </span>
-              <p className="leading-relaxed">{t.hrText.text219}</p>
+              <p className="leading-relaxed">{t.userProfile.nameAndEmailModificationsCreate}</p>
             </div>
 
             <form onSubmit={handleSubmitIdentityChange} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t.hrText.text220}
+                    {t.userProfile.proposedFullName}
                   </label>
                   <input
                     type="text"
@@ -457,14 +457,14 @@ export function UserProfileView({
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
                   />
                   <span className="text-[10px] text-slate-400 mt-1 block">
-                    {t.hrText.text221}
+                    {t.userProfile.current}
                     {user.full_name}
                   </span>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    {t.hrText.text222}
+                    {t.userProfile.proposedEmail}
                   </label>
                   <input
                     type="email"
@@ -474,7 +474,7 @@ export function UserProfileView({
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F] font-mono"
                   />
                   <span className="text-[10px] text-slate-400 mt-1 block font-mono">
-                    {t.hrText.text221}
+                    {t.userProfile.current}
                     {user.email}
                   </span>
                 </div>
@@ -482,13 +482,13 @@ export function UserProfileView({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t.hrText.text223}
+                  {t.userProfile.reasonForIdentityChange}
                 </label>
                 <textarea
                   rows={2}
                   value={changeReason}
                   onChange={(e) => setChangeReason(e.target.value)}
-                  placeholder={t.hrText.text224}
+                  placeholder={t.userProfile.eGLegalNameUpdate}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
                 />
               </div>
@@ -506,7 +506,7 @@ export function UserProfileView({
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>
-                    {isSubmittingRequest ? t.hrText.text225 : t.hrText.text226}
+                    {isSubmittingRequest ? t.shared.submitting : t.userProfile.submitForManagerReview}
                   </span>
                 </Button>
               </div>
@@ -517,7 +517,7 @@ export function UserProfileView({
           <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <Clock className="w-4 h-4 text-[#09937F]" />
-              <span>{t.hrText.text227}</span>
+              <span>{t.userProfile.n3MyIdentityChangeHistory}</span>
             </h2>
 
             {myRequests.length > 0 ? (
@@ -539,29 +539,29 @@ export function UserProfileView({
                         <div className="text-slate-700 dark:text-slate-300">
                           {newVals.fullName && (
                             <span>
-                              {t.hrText.text228}
+                              {t.userProfile.newName}
                               <strong>{newVals.fullName}</strong>{" "}
                             </span>
                           )}
                           {newVals.email && (
                             <span className="font-mono">
-                              {t.hrText.text229}
+                              {t.userProfile.newEmail}
                               <strong>{newVals.email}</strong>
                             </span>
                           )}
                         </div>
                         {req.reviewNotes && (
                           <p className="text-[11px] text-slate-400 italic">
-                            {t.hrText.text230}
+                            {t.userProfile.text}
                             {req.reviewNotes}
-                            {t.hrText.text231}
+                            {t.userProfile.text2}
                           </p>
                         )}
                       </div>
                       <div className="text-end text-[11px] text-slate-400">
                         {req.reviewedAt
-                          ? `${t.hrText.text232}${new Date(req.reviewedAt).toLocaleDateString()}`
-                          : t.hrText.text233}
+                          ? `${t.userProfile.reviewed}${new Date(req.reviewedAt).toLocaleDateString()}`
+                          : t.userProfile.awaitingAction}
                       </div>
                     </div>
                   );
@@ -569,7 +569,7 @@ export function UserProfileView({
               </div>
             ) : (
               <p className="text-xs text-slate-400 py-3 text-center">
-                {t.hrText.text234}
+                {t.userProfile.noIdentityChangeRequestsOn}
               </p>
             )}
           </div>
@@ -581,14 +581,14 @@ export function UserProfileView({
           <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
               <Users className="w-4 h-4" />
-              <span>{t.hrText.text235}</span>
+              <span>{t.userProfile.assignedReportingManager}</span>
             </h3>
 
             {manager ? (
               <div className="space-y-2 text-xs">
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {t.hrText.text236}
+                    {t.userProfile.managerName}
                   </span>
                   <div className="font-semibold text-slate-900 dark:text-white mt-0.5">
                     {manager.fullName}
@@ -596,7 +596,7 @@ export function UserProfileView({
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {t.hrText.text16}
+                    {t.shared.email}
                   </span>
                   <div className="font-mono text-slate-700 dark:text-slate-300">
                     {manager.email}
@@ -604,7 +604,7 @@ export function UserProfileView({
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {t.hrText.text237}
+                    {t.userProfile.role}
                   </span>
                   <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold capitalize mt-0.5 inline-block">
                     {manager.role.replace("_", " ")}
@@ -613,7 +613,7 @@ export function UserProfileView({
               </div>
             ) : (
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 text-xs text-slate-500">
-                {t.hrText.text238}
+                {t.userProfile.reportingDirectlyToSuperAdministration}
               </div>
             )}
           </div>
@@ -623,13 +623,13 @@ export function UserProfileView({
             <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
                 <FileText className="w-4 h-4" />
-                <span>{t.hrText.text239}</span>
+                <span>{t.userProfile.linkedHrmsEmployeeRecord}</span>
               </h3>
 
               <div className="space-y-3 text-xs">
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {t.hrText.text240}
+                    {t.userProfile.jobTitle}
                   </span>
                   <div className="font-semibold text-slate-900 dark:text-white mt-0.5">
                     {isRTL
@@ -640,7 +640,7 @@ export function UserProfileView({
 
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {t.hrText.text9}
+                    {t.shared.department}
                   </span>
                   <div className="font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
                     {employeeRecord.department?.nameEn ||
@@ -652,7 +652,7 @@ export function UserProfileView({
                 {employeeRecord.cprNumber && (
                   <div>
                     <span className="text-slate-400 block text-[11px]">
-                      {t.hrText.text241}
+                      {t.userProfile.bahrainCprId}
                     </span>
                     <div className="font-mono text-slate-700 dark:text-slate-300">
                       •••• •••• {employeeRecord.cprNumber.slice(-3)}
@@ -662,7 +662,7 @@ export function UserProfileView({
 
                 <div>
                   <span className="text-slate-400 block text-[11px]">
-                    {t.hrText.text139}
+                    {t.shared.hireDate}
                   </span>
                   <div className="font-mono text-slate-700 dark:text-slate-300">
                     {new Date(employeeRecord.hireDate).toLocaleDateString()}
@@ -679,7 +679,7 @@ export function UserProfileView({
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#0E1714] border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <h3 className="font-bold text-base text-slate-900 dark:text-white">
-              {t.hrText.text242}
+              {t.userProfile.reasonForRejection}
             </h3>
 
             <textarea
@@ -687,7 +687,7 @@ export function UserProfileView({
               required
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
-              placeholder={t.hrText.text243}
+              placeholder={t.userProfile.stateReasonForRejectingThis}
               className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
             />
 
@@ -698,7 +698,7 @@ export function UserProfileView({
                 onClick={() => setRejectModalReqId(null)}
                 disabled={isSubmittingDecision}
               >
-                {t.hrText.text23}
+                {t.shared.cancel}
               </Button>
               <Button
                 variant="primary"
@@ -709,7 +709,7 @@ export function UserProfileView({
                 }
                 className="bg-rose-600 hover:bg-rose-700 text-white"
               >
-                {isSubmittingDecision ? t.hrText.text244 : t.hrText.text112}
+                {isSubmittingDecision ? t.userProfile.rejecting : t.shared.confirmRejection}
               </Button>
             </div>
           </div>

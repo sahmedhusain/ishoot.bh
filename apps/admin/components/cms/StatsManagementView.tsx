@@ -1,4 +1,5 @@
 "use client";
+import type { StatisticItem } from "../../types/cms";
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -7,7 +8,7 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import { createStatisticAction, updateStatisticAction, deleteStatisticAction } from "../../app/actions/cms";
 import { IconPicker } from "../shared/LazyIconPicker";
 
-export function StatsManagementView({ initialStats }: { initialStats: any[] }) {
+export function StatsManagementView({ initialStats }: { initialStats: StatisticItem[] }) {
   const { t, isRTL } = useAdminLocale();
   const [stats, setStats] = React.useState(initialStats);
   const [isModalOpen, setIsModalOpen] = React.useState(false);

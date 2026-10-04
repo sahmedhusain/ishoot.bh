@@ -68,12 +68,12 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstNameEn.trim() || !lastNameEn.trim() || !jobTitleEn.trim()) {
-      toast.error(t.hrText.text113);
+      toast.error(t.newEmployeeForm.pleaseFillInAllMandatory);
       return;
     }
 
     setSubmitting(true);
-    const toastId = toast.loading(t.hrText.text114);
+    const toastId = toast.loading(t.newEmployeeForm.registeringEmployeeRecordInHrms);
     try {
       const res = await createEmployeeAction({
         firstNameEn: firstNameEn.trim(),
@@ -103,10 +103,10 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
         );
         router.push(ROUTES.hr.employee(res.employee.id));
       } else {
-        toast.error(t.hrText.text115, { id: toastId });
+        toast.error(t.newEmployeeForm.failedToOnboardEmployee, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.hrText.extra302, {
+      toast.error(err instanceof Error ? err.message : t.newEmployeeForm.errorOnboardingEmployee, {
         id: toastId,
       });
     } finally {
@@ -131,10 +131,10 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
           </Link>
           <div>
             <div className="text-xs font-mono uppercase tracking-widest text-[#09937F] font-medium">
-              {t.hrText.text116}
+              {t.newEmployeeForm.hrmsRegistry}
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {t.hrText.text117}
+              {t.newEmployeeForm.onboardNewEmployee}
             </h1>
           </div>
         </div>
@@ -144,7 +144,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
             href={ROUTES.hr.employees}
             className="px-4 py-2 text-xs font-medium rounded-md border border-[#EAEAEA] dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
           >
-            {t.hrText.text23}
+            {t.shared.cancel}
           </Link>
           <Button
             type="submit"
@@ -152,7 +152,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
             className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-5 py-2 rounded-md font-medium text-xs active:scale-[0.98] transition-all shadow-xs"
           >
             <CheckCircle2 className="w-4 h-4" />
-            <span>{submitting ? t.hrText.text215 : t.hrText.extra303}</span>
+            <span>{submitting ? t.shared.saving : t.newEmployeeForm.saveEmployeeRecord}</span>
           </Button>
         </div>
       </div>
@@ -162,91 +162,91 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
         <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2 border-b border-[#EAEAEA] dark:border-white/10 pb-3">
             <ShieldCheck className="w-4 h-4 text-[#09937F]" />
-            {t.hrText.text118}
+            {t.newEmployeeForm.personalAndStatutoryComplianceBahrain}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text119}
+                {t.newEmployeeForm.firstNameEnglish}
               </label>
               <input
                 type="text"
                 required
                 value={firstNameEn}
                 onChange={(e) => setFirstNameEn(e.target.value)}
-                placeholder={t.hrText.text120}
+                placeholder={t.newEmployeeForm.eGAhmed}
                 className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text121}
+                {t.newEmployeeForm.lastNameEnglish}
               </label>
               <input
                 type="text"
                 required
                 value={lastNameEn}
                 onChange={(e) => setLastNameEn(e.target.value)}
-                placeholder={t.hrText.text122}
+                placeholder={t.newEmployeeForm.eGAlMansoor}
                 className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text123}
+                {t.newEmployeeForm.firstNameArabic}
               </label>
               <input
                 type="text"
                 dir="rtl"
                 value={firstNameAr}
                 onChange={(e) => setFirstNameAr(e.target.value)}
-                placeholder={t.hrText.text124}
+                placeholder={t.newEmployeeForm.exampleAhmed}
                 className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text125}
+                {t.newEmployeeForm.lastNameArabic}
               </label>
               <input
                 type="text"
                 dir="rtl"
                 value={lastNameAr}
                 onChange={(e) => setLastNameAr(e.target.value)}
-                placeholder={t.hrText.text126}
+                placeholder={t.newEmployeeForm.exampleAlMansoor}
                 className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text127}
+                {t.newEmployeeForm.cprNumberBahrainId}
               </label>
               <input
                 type="text"
                 value={cprNumber}
                 onChange={(e) => setCprNumber(e.target.value)}
-                placeholder={t.hrText.text128}
+                placeholder={t.newEmployeeForm.eG950812345}
                 className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text129}
+                {t.newEmployeeForm.emailAddress}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.hrText.text130}
+                placeholder={t.newEmployeeForm.employeeIshootBh}
                 className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text131}
+                {t.shared.phoneNumber}
               </label>
               <input
                 type="tel"
@@ -263,40 +263,40 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
         <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2 border-b border-[#EAEAEA] dark:border-white/10 pb-3">
             <Building className="w-4 h-4 text-[#09937F]" />
-            {t.hrText.text132}
+            {t.newEmployeeForm.jobRoleAndOrganization}
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text7}
+                {t.shared.jobTitleEnglish}
               </label>
               <input
                 type="text"
                 required
                 value={jobTitleEn}
                 onChange={(e) => setJobTitleEn(e.target.value)}
-                placeholder={t.hrText.text133}
+                placeholder={t.newEmployeeForm.eGSeniorCinematographer}
                 className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text8}
+                {t.shared.text}
               </label>
               <input
                 type="text"
                 dir="rtl"
                 value={jobTitleAr}
                 onChange={(e) => setJobTitleAr(e.target.value)}
-                placeholder={t.hrText.text134}
+                placeholder={t.newEmployeeForm.exampleSeniorCinematographer}
                 className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text9}
+                {t.shared.department}
               </label>
               <select
                 value={departmentId}
@@ -313,22 +313,22 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
 
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text135}
+                {t.newEmployeeForm.contractType}
               </label>
               <select
                 value={contractType}
                 onChange={(e) => setContractType(e.target.value as any)}
                 className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2.5 text-slate-900 dark:text-white"
               >
-                <option value="full_time">{t.hrText.text136}</option>
-                <option value="part_time">{t.hrText.text137}</option>
-                <option value="contract">{t.hrText.text138}</option>
+                <option value="full_time">{t.newEmployeeForm.fullTimeEmployment}</option>
+                <option value="part_time">{t.newEmployeeForm.partTime}</option>
+                <option value="contract">{t.newEmployeeForm.independentRetainerContract}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text139}
+                {t.shared.hireDate}
               </label>
               <input
                 type="date"
@@ -345,19 +345,19 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
           <div className="flex items-center justify-between border-b border-[#EAEAEA] dark:border-white/10 pb-3">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-[#09937F]" />
-              {t.hrText.text140}
+              {t.newEmployeeForm.monthlyCompensationStructureBhd}
             </h2>
             <div className="text-xs font-mono font-semibold text-[#014842] dark:text-[#7de0d1]">
-              {t.hrText.text141}
+              {t.newEmployeeForm.totalMonthlyGross}
               {totalMonthlyGross.toFixed(3)}
-              {t.hrText.text33}
+              {t.shared.bhd}
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
-                {t.hrText.text142}
+                {t.newEmployeeForm.basicSalaryBhd}
               </label>
               <input
                 type="number"
@@ -370,7 +370,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
-                {t.hrText.text34}
+                {t.shared.housingAllowance}
               </label>
               <input
                 type="number"
@@ -383,7 +383,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
-                {t.hrText.text143}
+                {t.newEmployeeForm.transportAllowance}
               </label>
               <input
                 type="number"
@@ -396,7 +396,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
-                {t.hrText.text35}
+                {t.shared.otherAllowances}
               </label>
               <input
                 type="number"

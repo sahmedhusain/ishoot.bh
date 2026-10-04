@@ -76,7 +76,7 @@ export function MetaIntegrationsView({
       setWhatsappToken(draftWaToken);
       setIsWaEditing(false);
       setIsWaLinked(true);
-      setSavedMessage(isRTL ? "تم تحديث وتشفير بيانات واتساب بنجاح." : "WhatsApp credentials encrypted and saved.");
+      setSavedMessage(t.metaIntegrations.whatsappCredentialsEncryptedAndSaved);
       setTimeout(() => setSavedMessage(""), 3500);
     } catch(err) {
       console.error(err);
@@ -93,7 +93,7 @@ export function MetaIntegrationsView({
       setFacebookPageId(draftFbPage);
       setIsIgEditing(false);
       setIsIgLinked(true);
-      setSavedMessage(isRTL ? "تم تحديث ربط إنستغرام وفيسبوك بنجاح." : "Instagram & Facebook connection saved.");
+      setSavedMessage(t.metaIntegrations.instagramAndFacebookConnectionSaved);
       setTimeout(() => setSavedMessage(""), 3500);
     } catch(err) {
       console.error(err);
@@ -122,7 +122,7 @@ export function MetaIntegrationsView({
         setDraftFbPage("");
       }
       setUnlinkTarget(null);
-      setSavedMessage(isRTL ? "تم فك الارتباط بنجاح." : "Integration unlinked and keys purged.");
+      setSavedMessage(t.metaIntegrations.integrationUnlinkedAndKeysPurged);
       setTimeout(() => setSavedMessage(""), 3500);
     } catch(err) {
       console.error(err);
@@ -180,14 +180,14 @@ export function MetaIntegrationsView({
                     variant="outline"
                     className={`text-[10px] ${initialWhatsApp?.healthStatus === 'error' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}`}
                   >
-                    {initialWhatsApp?.healthStatus === 'error' ? (isRTL ? "خطأ في الاتصال" : "Connection Error") : initialWhatsApp?.healthStatus === 'healthy' ? t.integrations.connected : (isRTL ? "لم يتم التحقق من الاتصال" : "Connection unverified")}
+                    {initialWhatsApp?.healthStatus === 'error' ? (t.metaIntegrations.connectionError) : initialWhatsApp?.healthStatus === 'healthy' ? t.integrations.connected : (t.metaIntegrations.connectionUnverified)}
                   </Badge>
                 ) : (
                   <Badge
                     variant="outline"
                     className="text-rose-400 border-rose-500/30 bg-rose-500/10 text-[10px]"
                   >
-                    {isRTL ? "غير متصل" : "Disconnected"}
+                    {t.metaIntegrations.disconnected}
                   </Badge>
                 )}
               </div>
@@ -221,7 +221,7 @@ export function MetaIntegrationsView({
                   className="text-xs gap-1.5 border-white/10 text-slate-300 hover:text-white"
                 >
                   <Edit2 className="w-3.5 h-3.5 text-[#09937F]" />
-                  <span>{isRTL ? "تعديل" : "Edit"}</span>
+                  <span>{t.metaIntegrations.edit}</span>
                 </Button>
                 <Button
                   type="button"
@@ -231,7 +231,7 @@ export function MetaIntegrationsView({
                   className="text-xs gap-1.5 border-rose-500/30 text-rose-400 hover:bg-rose-500/10"
                 >
                   <Unlink className="w-3.5 h-3.5" />
-                  <span>{isRTL ? "إلغاء الربط" : "Unlink"}</span>
+                  <span>{t.metaIntegrations.unlink}</span>
                 </Button>
               </>
             )}
@@ -245,7 +245,7 @@ export function MetaIntegrationsView({
                 className="text-xs gap-1.5 bg-[#09937F] text-white"
               >
                 <Lock className="w-3.5 h-3.5" />
-                <span>{isRTL ? "ربط الحساب" : "Connect WhatsApp"}</span>
+                <span>{t.metaIntegrations.connectWhatsapp}</span>
               </Button>
             )}
 
@@ -259,7 +259,7 @@ export function MetaIntegrationsView({
                   className="text-xs border-white/10 text-slate-400"
                 >
                   <X className="w-3.5 h-3.5" />
-                  <span>{isRTL ? "إلغاء" : "Cancel"}</span>
+                  <span>{t.metaIntegrations.cancel}</span>
                 </Button>
                 <Button
                   type="button"
@@ -269,7 +269,7 @@ export function MetaIntegrationsView({
                   className="text-xs gap-1.5 bg-[#09937F] text-white"
                 >
                   <Check className="w-3.5 h-3.5" />
-                  <span>{isRTL ? "حفظ التغييرات" : "Save Changes"}</span>
+                  <span>{t.metaIntegrations.saveChanges}</span>
                 </Button>
               </div>
             )}
@@ -408,14 +408,14 @@ export function MetaIntegrationsView({
                     variant="outline"
                     className={`text-[10px] ${initialMeta?.healthStatus === 'error' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}`}
                   >
-                    {initialMeta?.healthStatus === 'error' ? (isRTL ? "خطأ في الاتصال" : "Connection Error") : initialMeta?.healthStatus === 'healthy' ? t.integrations.connected : (isRTL ? "لم يتم التحقق من الاتصال" : "Connection unverified")}
+                    {initialMeta?.healthStatus === 'error' ? (t.metaIntegrations.connectionError) : initialMeta?.healthStatus === 'healthy' ? t.integrations.connected : (t.metaIntegrations.connectionUnverified)}
                   </Badge>
                 ) : (
                   <Badge
                     variant="outline"
                     className="text-rose-400 border-rose-500/30 bg-rose-500/10 text-[10px]"
                   >
-                    {isRTL ? "غير متصل" : "Disconnected"}
+                    {t.metaIntegrations.disconnected}
                   </Badge>
                 )}
               </div>
@@ -438,7 +438,7 @@ export function MetaIntegrationsView({
                   className="text-xs gap-1.5 border-white/10 text-slate-300 hover:text-white"
                 >
                   <Edit2 className="w-3.5 h-3.5 text-[#09937F]" />
-                  <span>{isRTL ? "تعديل" : "Edit"}</span>
+                  <span>{t.metaIntegrations.edit}</span>
                 </Button>
                 <Button
                   type="button"
@@ -448,7 +448,7 @@ export function MetaIntegrationsView({
                   className="text-xs gap-1.5 border-rose-500/30 text-rose-400 hover:bg-rose-500/10"
                 >
                   <Unlink className="w-3.5 h-3.5" />
-                  <span>{isRTL ? "إلغاء الربط" : "Unlink"}</span>
+                  <span>{t.metaIntegrations.unlink}</span>
                 </Button>
               </>
             )}
@@ -462,7 +462,7 @@ export function MetaIntegrationsView({
                 className="text-xs gap-1.5 bg-[#09937F] text-white"
               >
                 <Lock className="w-3.5 h-3.5" />
-                <span>{isRTL ? "ربط الحسابات" : "Connect Accounts"}</span>
+                <span>{t.metaIntegrations.connectAccounts}</span>
               </Button>
             )}
 
@@ -476,7 +476,7 @@ export function MetaIntegrationsView({
                   className="text-xs border-white/10 text-slate-400"
                 >
                   <X className="w-3.5 h-3.5" />
-                  <span>{isRTL ? "إلغاء" : "Cancel"}</span>
+                  <span>{t.metaIntegrations.cancel}</span>
                 </Button>
                 <Button
                   type="button"
@@ -486,7 +486,7 @@ export function MetaIntegrationsView({
                   className="text-xs gap-1.5 bg-[#09937F] text-white"
                 >
                   <Check className="w-3.5 h-3.5" />
-                  <span>{isRTL ? "حفظ التغييرات" : "Save Changes"}</span>
+                  <span>{t.metaIntegrations.saveChanges}</span>
                 </Button>
               </div>
             )}
@@ -569,11 +569,9 @@ export function MetaIntegrationsView({
         isOpen={!!unlinkTarget}
         onClose={() => setUnlinkTarget(null)}
         onConfirm={confirmUnlink}
-        title={isRTL ? "تأكيد إلغاء الربط وحذف مفاتيح الدخول" : "Confirm Unlinking and Key Purge"}
+        title={t.metaIntegrations.confirmUnlinkingAndKeyPurge}
         description={
-          isRTL
-            ? "هل أنت متأكد من إلغاء الربط؟ سيتم حذف المفاتيح والتفويضات المشفرة وإيقاف الإشعارات التلقائية المرتبطة بها فوراً."
-            : "Are you sure you want to unlink? All stored authentication tokens and credentials will be purged, and automatic webhook messaging will be stopped immediately."
+          t.metaIntegrations.areYouSureYouWant
         }
       />
     </div>

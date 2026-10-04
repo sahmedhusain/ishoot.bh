@@ -21,7 +21,7 @@ export function ListControls({
   exportDomain?: string;
 }) {
   const { can } = usePermissions();
-  const { isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
   const pages = Math.max(1, Math.ceil(total / 50));
   const href = (next: number) =>
     `${path}?${new URLSearchParams({ ...(filters.dealId ? { dealId: filters.dealId } : {}), q: filters.q, status: filters.status, page: String(next) })}`;
@@ -32,11 +32,11 @@ export function ListControls({
           <input type="hidden" name="dealId" value={filters.dealId} />
         ) : null}
         <input
-          aria-label={isRTL ? "بحث في جميع السجلات" : "Search all records"}
+          aria-label={t.listControls.searchAllRecords}
           name="q"
           defaultValue={filters.q}
           maxLength={200}
-          placeholder={isRTL ? "بحث في جميع السجلات" : "Search all records"}
+          placeholder={t.listControls.searchAllRecords}
           className="rounded-lg border p-2 text-xs text-slate-900"
         />
         {!statuses.length && filters.status && filters.status !== "all" ? (
@@ -44,12 +44,12 @@ export function ListControls({
         ) : null}
         {statuses.length ? (
           <select
-            aria-label={isRTL ? "الحالة" : "Status"}
+            aria-label={t.listControls.status}
             name="status"
             defaultValue={filters.status}
             className="rounded-lg border p-2 text-xs text-slate-900"
           >
-            <option value="all">{isRTL ? "الكل" : "All"}</option>
+            <option value="all">{t.listControls.all}</option>
             {statuses.map((s) => (
               <option key={s} value={s}>
                 {s.replaceAll("_", " ")}
@@ -58,21 +58,21 @@ export function ListControls({
           </select>
         ) : null}
         <button className="rounded-lg bg-[#014842] text-white px-3 text-xs">
-          {isRTL ? "بحث" : "Search"}
+          {t.listControls.search}
         </button>
       </form>
       <nav
-        aria-label={isRTL ? "صفحات القائمة" : "List pages"}
+        aria-label={t.listControls.listPages}
         className="flex gap-3 items-center text-xs"
       >
         <span>
-          {page} / {pages} · {total} {isRTL ? "سجل" : "records"}
+          {page} / {pages} · {total} {t.listControls.records}
         </span>
         {page > 1 ? (
-          <Link href={href(page - 1)}>{isRTL ? "السابق" : "Previous"}</Link>
+          <Link href={href(page - 1)}>{t.listControls.previous}</Link>
         ) : null}
         {page < pages ? (
-          <Link href={href(page + 1)}>{isRTL ? "التالي" : "Next"}</Link>
+          <Link href={href(page + 1)}>{t.listControls.next}</Link>
         ) : null}
         {exportDomain &&
         (exportDomain === "archive"
@@ -88,7 +88,7 @@ export function ListControls({
           <a
             href={`/api/exports/${exportDomain}?${new URLSearchParams({ ...(filters.dealId ? { dealId: filters.dealId } : {}), q: filters.q, status: filters.status })}`}
           >
-            {isRTL ? "تصدير النتائج" : "Export matches"}
+            {t.listControls.exportMatches}
           </a>
         ) : null}
       </nav>

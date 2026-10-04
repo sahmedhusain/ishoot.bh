@@ -25,7 +25,7 @@ interface NewMomFormViewProps {
 
 export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
   const router = useRouter();
-  const { isRTL } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
 
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -130,7 +130,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !agenda) {
-      setError(isRTL ? "يرجى تعبئة عنوان الاجتماع وجدول الأعمال" : "Please provide a meeting title and agenda");
+      setError(t.newMomForm.pleaseProvideAMeetingTitle);
       return;
     }
 
@@ -166,7 +166,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || "Failed to create meeting minutes");
+      setError(err?.message || t.newMomForm.failedToCreateMeetingMinutes);
     } finally {
       setSaving(false);
     }
@@ -183,11 +183,11 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             className="flex items-center gap-2 text-[#9EADA9] hover:text-white mb-2 transition-colors"
           >
             {isRTL ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
-            <span>{isRTL ? "العودة إلى سجل المحاضر" : "Back to Meeting Minutes"}</span>
+            <span>{t.newMomForm.backToMeetingMinutes}</span>
           </button>
           <h1 className="text-2xl font-bold tracking-tight text-white font-display flex items-center gap-2">
             <FileSignature className="w-6 h-6 text-[#09937F]" />
-            <span>{isRTL ? "صياغة محضر اجتماع جديد" : "Compose Minutes of Meeting"}</span>
+            <span>{t.newMomForm.composeMinutesOfMeeting}</span>
           </h1>
         </div>
 
@@ -198,7 +198,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             onClick={() => router.push(ROUTES.moms.list)}
             className="border-white/10 text-[#9EADA9] hover:text-white"
           >
-            {isRTL ? "إلغاء" : "Cancel"}
+            {t.newMomForm.cancel}
           </Button>
 
           <Button
@@ -207,7 +207,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             className="bg-[#09937F] hover:bg-[#077464] text-white flex items-center gap-2 shadow-lg"
           >
             <Save className="w-4 h-4" />
-            <span>{saving ? (isRTL ? "جاري الحفظ..." : "Saving...") : isRTL ? "حفظ واعتماد المحضر" : "Save Document"}</span>
+            <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>
           </Button>
         </div>
       </div>
@@ -222,22 +222,22 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-6">
         <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-          <span>{isRTL ? "بيانات الاجتماع الأساسية" : "Meeting Overview"}</span>
+          <span>{t.newMomForm.meetingOverview}</span>
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{isRTL ? "عنوان الاجتماع (إنجليزي)" : "Meeting Title (English)"} *</label>
+            <label className="text-[#9EADA9] font-medium">{t.newMomForm.meetingTitleEnglish} *</label>
             <Input
               required
-              placeholder="e.g. Q2 Production Alignment & Camera Specs"
+              placeholder={t.newMomForm.eGQ2ProductionAlignment}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{isRTL ? "عنوان الاجتماع (عربي)" : "Meeting Title (Arabic)"}</label>
+            <label className="text-[#9EADA9] font-medium">{t.newMomForm.meetingTitleArabic}</label>
             <Input
               placeholder="مثال: اجتماع التنسيق الفني وتجهيز كاميرات الإنتاج"
               value={titleAr}
@@ -249,7 +249,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{isRTL ? "تاريخ الاجتماع" : "Date"} *</label>
+            <label className="text-[#9EADA9] font-medium">{t.newMomForm.date} *</label>
             <Input
               type="date"
               required
@@ -259,7 +259,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{isRTL ? "وقت البدء" : "Start Time"}</label>
+            <label className="text-[#9EADA9] font-medium">{t.newMomForm.startTime}</label>
             <Input
               placeholder="10:00 AM"
               value={startTime}
@@ -268,7 +268,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{isRTL ? "وقت الانتهاء" : "End Time"}</label>
+            <label className="text-[#9EADA9] font-medium">{t.newMomForm.endTime}</label>
             <Input
               placeholder="11:30 AM"
               value={endTime}
@@ -277,9 +277,9 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{isRTL ? "مكان الاجتماع" : "Location"}</label>
+            <label className="text-[#9EADA9] font-medium">{t.newMomForm.location}</label>
             <Input
-              placeholder="ishoot Studio Stage A / Zoom"
+              placeholder={t.newMomForm.ishootStudioStageAZoom}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />
@@ -288,21 +288,21 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{isRTL ? "العميل المرتبط" : "Linked Client"}</label>
+            <label className="text-[#9EADA9] font-medium">{t.newMomForm.linkedClient}</label>
             <EntityLookup domain="contacts" value={clientId} onChange={setClientId} />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{isRTL ? "المشروع أو الصفقة" : "Linked Deal"}</label>
+            <label className="text-[#9EADA9] font-medium">{t.newMomForm.linkedDeal}</label>
             <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{isRTL ? "حالة المحضر" : "Document Status"}</label>
+            <label className="text-[#9EADA9] font-medium">{t.newMomForm.documentStatus}</label>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="draft">{isRTL ? "مسودة (Draft)" : "Draft"}</option>
-              <option value="in_review">{isRTL ? "قيد المراجعة (In Review)" : "In Review"}</option>
-              <option value="approved">{isRTL ? "معتمد رسمياً (Approved)" : "Approved"}</option>
+              <option value="draft">{t.newMomForm.draft}</option>
+              <option value="in_review">{t.newMomForm.inReview}</option>
+              <option value="approved">{t.newMomForm.approved}</option>
             </Select>
           </div>
         </div>
@@ -313,7 +313,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Users className="w-4 h-4 text-[#09937F]" />
-            <span>{isRTL ? "قائمة الحضور والمشاركين" : "Meeting Attendees"}</span>
+            <span>{t.newMomForm.meetingAttendees}</span>
           </h2>
           <Button
             type="button"
@@ -321,7 +321,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             className="bg-white/5 hover:bg-white/10 text-white border border-white/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{isRTL ? "إضافة حاضر" : "Add Attendee"}</span>
+            <span>{t.newMomForm.addAttendee}</span>
           </Button>
         </div>
 
@@ -333,21 +333,21 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             >
               <div className="sm:col-span-3">
                 <Input
-                  placeholder={isRTL ? "الاسم الكامل *" : "Full Name *"}
+                  placeholder={t.newMomForm.fullName}
                   value={attendee.name}
                   onChange={(e) => updateAttendee(index, "name", e.target.value)}
                 />
               </div>
               <div className="sm:col-span-3">
                 <Input
-                  placeholder={isRTL ? "المسمى الوظيفي" : "Role / Title"}
+                  placeholder={t.newMomForm.roleTitle}
                   value={attendee.role}
                   onChange={(e) => updateAttendee(index, "role", e.target.value)}
                 />
               </div>
               <div className="sm:col-span-3">
                 <Input
-                  placeholder={isRTL ? "الجهة / المؤسسة" : "Organization"}
+                  placeholder={t.newMomForm.organization}
                   value={attendee.organization || ""}
                   onChange={(e) => updateAttendee(index, "organization", e.target.value)}
                 />
@@ -360,7 +360,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
                     onChange={(e) => updateAttendee(index, "attended", e.target.checked)}
                     className="rounded border-white/20 text-[#09937F] focus:ring-0"
                   />
-                  <span>{isRTL ? "حاضر" : "Attended"}</span>
+                  <span>{t.newMomForm.attended}</span>
                 </label>
               </div>
               <div className="sm:col-span-1 text-end">
@@ -383,7 +383,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-4">
         <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3 flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-          <span>{isRTL ? "جدول الأعمال ومحاور الاجتماع" : "Meeting Agenda"} *</span>
+          <span>{t.newMomForm.meetingAgenda} *</span>
         </h2>
 
         <div className="space-y-1.5">
@@ -391,9 +391,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             required
             rows={5}
             placeholder={
-              isRTL
-                ? "1. مراجعة تصاريح التصوير الجوي والدرون.\n2. معاينة لقطات المشهد الليلي وألوان العلامة التجارية.\n3. تحديد موعد تسليم النسخة الأولية للمونتاج."
-                : "1. Airspace drone filming clearance approval.\n2. Night sequence lighting and color grading look-and-feel.\n3. Initial rough cut timeline cutoff."
+              t.newMomForm.n1AirspaceDroneFilmingClearance
             }
             value={agenda}
             onChange={(e) => setAgenda(e.target.value)}
@@ -407,7 +405,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-            <span>{isRTL ? "النقاط المناقشة والملاحظات" : "Discussion Points"}</span>
+            <span>{t.newMomForm.discussionPoints}</span>
           </h2>
           <Button
             type="button"
@@ -415,7 +413,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             className="bg-white/5 hover:bg-white/10 text-white border border-white/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{isRTL ? "إضافة محور نقاش" : "Add Topic"}</span>
+            <span>{t.newMomForm.addTopic}</span>
           </Button>
         </div>
 
@@ -428,14 +426,14 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
               <div className="flex items-center justify-between gap-3">
                 <div className="w-full sm:w-1/2">
                   <Input
-                    placeholder={isRTL ? "الموضوع / المحور" : "Topic / Theme"}
+                    placeholder={t.newMomForm.topicTheme}
                     value={point.topic}
                     onChange={(e) => updateDiscussionPoint(index, "topic", e.target.value)}
                   />
                 </div>
                 <div className="w-full sm:w-1/3">
                   <Input
-                    placeholder={isRTL ? "المتحدث / المناقش" : "Speaker / Presenter"}
+                    placeholder={t.newMomForm.speakerPresenter}
                     value={point.speaker || ""}
                     onChange={(e) => updateDiscussionPoint(index, "speaker", e.target.value)}
                   />
@@ -452,7 +450,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
               </div>
               <textarea
                 rows={2}
-                placeholder={isRTL ? "تفاصيل ما تم نقاشه..." : "Summary of discussion..."}
+                placeholder={t.newMomForm.summaryOfDiscussion}
                 value={point.notes}
                 onChange={(e) => updateDiscussionPoint(index, "notes", e.target.value)}
                 className="w-full p-2.5 text-xs rounded-xl bg-black/40 border border-white/5 text-white placeholder:text-[#9EADA9]/60 focus:outline-none focus:border-[#09937F]"
@@ -467,7 +465,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-[#09937F]" />
-            <span>{isRTL ? "المهام وإجراءات المتابعة (Action Items)" : "Action Items & Deliverables"}</span>
+            <span>{t.newMomForm.actionItemsAndDeliverables}</span>
           </h2>
           <Button
             type="button"
@@ -475,7 +473,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             className="bg-white/5 hover:bg-white/10 text-white border border-white/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{isRTL ? "إضافة مهمة" : "Add Task"}</span>
+            <span>{t.newMomForm.addTask}</span>
           </Button>
         </div>
 
@@ -487,14 +485,14 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             >
               <div className="sm:col-span-5">
                 <Input
-                  placeholder={isRTL ? "المهمة المطلوبة *" : "Task Description *"}
+                  placeholder={t.newMomForm.taskDescription}
                   value={item.task}
                   onChange={(e) => updateActionItem(index, "task", e.target.value)}
                 />
               </div>
               <div className="sm:col-span-3">
                 <Input
-                  placeholder={isRTL ? "المسؤول عن التنفيذ" : "Assignee"}
+                  placeholder={t.newMomForm.assignee}
                   value={item.assignee}
                   onChange={(e) => updateActionItem(index, "assignee", e.target.value)}
                 />
@@ -512,9 +510,9 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
                   onChange={(e) => updateActionItem(index, "status", e.target.value)}
                   className="w-full bg-[#0B1210] border border-white/10 rounded-lg py-1 px-1.5 text-xs text-white"
                 >
-                  <option value="pending">{isRTL ? "معلق" : "Pending"}</option>
-                  <option value="in_progress">{isRTL ? "جاري" : "In Progress"}</option>
-                  <option value="completed">{isRTL ? "مكتمل" : "Done"}</option>
+                  <option value="pending">{t.newMomForm.pending}</option>
+                  <option value="in_progress">{t.newMomForm.inProgress}</option>
+                  <option value="completed">{t.newMomForm.done}</option>
                 </select>
               </div>
               <div className="sm:col-span-1 text-end">
@@ -538,7 +536,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#09937F]" />
-            <span>{isRTL ? "القرارات المعتمدة" : "Key Decisions Taken"}</span>
+            <span>{t.newMomForm.keyDecisionsTaken}</span>
           </h2>
           <Button
             type="button"
@@ -546,7 +544,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             className="bg-white/5 hover:bg-white/10 text-white border border-white/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{isRTL ? "إضافة قرار" : "Add Decision"}</span>
+            <span>{t.newMomForm.addDecision}</span>
           </Button>
         </div>
 
@@ -554,7 +552,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           {decisions.map((decision, index) => (
             <div key={index} className="flex items-center gap-2">
               <Input
-                placeholder={isRTL ? "نص القرار المعتمد..." : "Documented decision..."}
+                placeholder={t.newMomForm.documentedDecision}
                 value={decision}
                 onChange={(e) => updateDecision(index, e.target.value)}
               />
@@ -580,7 +578,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           onClick={() => router.push(ROUTES.moms.list)}
           className="border-white/10 text-[#9EADA9] hover:text-white"
         >
-          {isRTL ? "إلغاء" : "Cancel"}
+          {t.newMomForm.cancel}
         </Button>
 
         <Button
@@ -589,7 +587,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           className="bg-[#09937F] hover:bg-[#077464] text-white flex items-center gap-2 px-6 py-2.5 text-sm font-bold shadow-xl"
         >
           <Save className="w-4 h-4" />
-          <span>{saving ? (isRTL ? "جاري الحفظ..." : "Saving...") : isRTL ? "حفظ واعتماد المحضر" : "Save Document"}</span>
+          <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>
         </Button>
       </div>
     </form>

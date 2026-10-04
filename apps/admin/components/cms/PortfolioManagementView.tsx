@@ -34,7 +34,7 @@ export function PortfolioManagementView({
   initialItems,
   categories,
 }: PortfolioManagementViewProps) {
-  const { t, locale, isRTL } = useAdminLocale();
+  const {t, locale} = useAdminLocale();
   const [items, setItems] = React.useState<PortfolioItem[]>(initialItems);
   const [selectedCat, setSelectedCat] = React.useState<string>("all");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -96,7 +96,7 @@ export function PortfolioManagementView({
         ),
       );
     } catch (err) {
-      setError("Could not update project. Please try again.");
+      setError(t.portfolioManagement.couldNotUpdateProjectPlease);
     }
   };
 
@@ -105,7 +105,7 @@ export function PortfolioManagementView({
       await deletePortfolioItemAction(id);
       setItems((prev) => prev.filter((i) => i.id !== id));
     } catch (err) {
-      setError("Could not delete project. Please try again.");
+      setError(t.portfolioManagement.couldNotDeleteProjectPlease);
     }
   };
 
@@ -159,7 +159,7 @@ export function PortfolioManagementView({
       setPreviewVideoUrl("");
       setIsFeatured(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save project");
+      setError(err instanceof Error ? err.message : t.portfolioManagement.couldNotSaveProject);
     } finally {
       setSaving(false);
     }
@@ -176,9 +176,7 @@ export function PortfolioManagementView({
         href={ROUTES.cms.website}
         className="block text-sm text-[#5eead4] underline"
       >
-        {isRTL
-          ? "راجع التغييرات وانشرها من محرر الموقع"
-          : "Review and publish changes in the website editor"}
+        {t.portfolioManagement.reviewAndPublishChangesIn}
       </Link>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -451,7 +449,7 @@ export function PortfolioManagementView({
 
           <div className="grid sm:grid-cols-2 gap-4">
             <label className="text-sm">
-              Description (English)
+              {t.portfolioManagement.descriptionEnglish}
               <textarea
                 className="w-full rounded-lg bg-white/5 border border-white/20 p-3"
                 rows={3}
@@ -469,14 +467,14 @@ export function PortfolioManagementView({
               />
             </label>
             <label className="text-sm">
-              {locale === "ar" ? "الفيلم الكامل" : "Full film URL"}
+              {t.portfolioManagement.fullFilmUrl}
               <Input
                 value={fullVideo}
                 onChange={(e) => setFullVideo(e.target.value)}
               />
             </label>
             <label className="text-sm">
-              {locale === "ar" ? "ترتيب العرض" : "Display order"}
+              {t.portfolioManagement.displayOrder}
               <Input
                 type="number"
                 value={order}
@@ -484,9 +482,7 @@ export function PortfolioManagementView({
               />
             </label>
             <label className="text-sm sm:col-span-2">
-              {locale === "ar"
-                ? "صور المعرض (رابط لكل سطر)"
-                : "Gallery images (one URL per line)"}
+              {t.portfolioManagement.galleryImagesOneUrlPer}
               <textarea
                 className="w-full rounded-lg bg-white/5 border border-white/20 p-3"
                 rows={3}

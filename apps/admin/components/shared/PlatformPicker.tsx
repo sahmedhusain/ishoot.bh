@@ -1,4 +1,5 @@
 "use client";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import * as React from "react";
 import { ChevronDown } from "lucide-react";
@@ -32,6 +33,7 @@ interface PlatformPickerProps {
 }
 
 export function PlatformPicker({ platform, onPlatformChange }: PlatformPickerProps) {
+  const { t } = useAdminLocale();
   const [selectedPreset, setSelectedPreset] = React.useState<string>(() => {
     const found = PLATFORM_PRESETS.find(
       (p) => p.name.toLowerCase() === platform.toLowerCase() || p.id === platform.toLowerCase()
@@ -80,7 +82,7 @@ export function PlatformPicker({ platform, onPlatformChange }: PlatformPickerPro
 
       {selectedPreset === "custom" && (
         <Input
-          placeholder="Type custom platform name..."
+          placeholder={t.platformPicker.typeCustomPlatformName}
           value={customName}
           onChange={handleCustomTextChange}
           className="text-xs"

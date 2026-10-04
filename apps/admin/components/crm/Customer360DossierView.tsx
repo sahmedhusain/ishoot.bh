@@ -37,7 +37,7 @@ export function Customer360DossierView({
   dossier,
   actions,
 }: Customer360DossierViewProps) {
-  const { t, locale, isRTL } = useAdminLocale();
+  const {t, locale} = useAdminLocale();
   const [activeTab, setActiveTab] = React.useState<
     "overview" | "interactions" | "deals" | "finance" | "vault"
   >("overview");
@@ -59,9 +59,9 @@ export function Customer360DossierView({
             key={currency}
             className="rounded-xl border border-slate-200 p-3 text-sm"
           >
-            {currency}: {isRTL ? "المفوتر" : "Invoiced"}{" "}
-            {amounts.totalLtv.toFixed(3)} · {isRTL ? "المدفوع" : "Paid"}{" "}
-            {amounts.totalPaid.toFixed(3)} · {isRTL ? "المتبقي" : "Outstanding"}{" "}
+            {currency}: {t.customer360Dossier.invoiced}{" "}
+            {amounts.totalLtv.toFixed(3)} · {t.customer360Dossier.paid}{" "}
+            {amounts.totalPaid.toFixed(3)} · {t.customer360Dossier.outstanding}{" "}
             {amounts.totalOutstanding.toFixed(3)}
           </div>
         ))}
@@ -93,12 +93,12 @@ export function Customer360DossierView({
               </Badge>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ">
-              ID: {contact.id} • Registered{" "}
+              ID: {contact.id} {t.customer360Dossier.registered}{" "}
               <DateDisplay date={contact.created_at} locale={locale} />
               {metrics.lastActivityDate && (
                 <span>
                   {" "}
-                  • Last Active:{" "}
+                  {t.customer360Dossier.lastActive}{" "}
                   <DateDisplay
                     date={metrics.lastActivityDate}
                     locale={locale}
@@ -304,7 +304,7 @@ export function Customer360DossierView({
                   {t.customer360.companyName}
                 </span>
                 <span className="text-slate-900 dark:text-white font-bold text-sm">
-                  {contact.company || "Direct Client"}
+                  {contact.company || t.customer360Dossier.directClient}
                 </span>
               </div>
               <div>
@@ -339,7 +339,7 @@ export function Customer360DossierView({
                   href={`mailto:${contact.email}`}
                   className="text-[#09937F] hover:underline "
                 >
-                  {contact.email || "No email registered"}
+                  {contact.email || t.customer360Dossier.noEmailRegistered}
                 </a>
               </div>
               <div>
@@ -351,7 +351,7 @@ export function Customer360DossierView({
                   className="text-[#09937F] hover:underline "
                   dir="ltr"
                 >
-                  {contact.phone || "No phone registered"}
+                  {contact.phone || t.customer360Dossier.noPhoneRegistered}
                 </a>
               </div>
             </div>
@@ -493,7 +493,7 @@ export function Customer360DossierView({
                       {deal.title}
                     </Link>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400  mt-0.5">
-                      Stage: {deal.stage} • Prob: {deal.probability}%
+                      Stage: {deal.stage} {t.customer360Dossier.prob} {deal.probability}%
                     </p>
                   </div>
                   <div className=" text-end font-bold text-slate-900 dark:text-white">
@@ -618,7 +618,7 @@ export function Customer360DossierView({
                       {att.file_name}
                     </p>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 ">
-                      Uploaded{" "}
+                      {t.customer360Dossier.uploaded}{" "}
                       <DateDisplay date={att.created_at} locale={locale} />
                     </p>
                   </div>

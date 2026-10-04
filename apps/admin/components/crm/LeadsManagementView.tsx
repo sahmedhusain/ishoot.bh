@@ -20,7 +20,7 @@ export function LeadsManagementView({
   initialInquiries: Inquiry[];
   page?: number;
 }) {
-  const { locale } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
   const ar = locale === "ar";
   const router = useRouter();
   const [filter, setFilter] = React.useState("all");
@@ -70,9 +70,7 @@ export function LeadsManagementView({
       router.refresh();
     } catch {
       setError(
-        ar
-          ? "تعذر حفظ التغيير. تحقق من صلاحياتك وحاول مجدداً."
-          : "Could not save the change. Check your permissions and try again.",
+        t.leadsManagement.couldNotSaveTheChange,
       );
     } finally {
       setBusy("");
@@ -85,19 +83,17 @@ export function LeadsManagementView({
       <header className="flex flex-wrap justify-between items-end gap-4">
         <div>
           <h1 className="text-2xl font-bold">
-            {ar ? "صندوق الطلبات والملاحظات" : "Requests & feedback"}
+            {t.leadsManagement.requestsAndFeedback}
           </h1>
           <p className="text-sm text-slate-500 mt-2">
-            {ar
-              ? "تابع الاستفسارات وعروض الأسعار والشكاوى والاقتراحات."
-              : "Assign, follow up and resolve inquiries, quotes, complaints and suggestions."}
+            {t.leadsManagement.assignFollowUpAndResolve}
           </p>
         </div>
         <Link
           className="text-emerald-700 dark:text-emerald-400 underline"
           href={ROUTES.cms.reviews}
         >
-          {ar ? "تقييمات بانتظار المراجعة" : "Review moderation"}
+          {t.leadsManagement.reviewModeration}
         </Link>
       </header>
       {error && (
@@ -107,7 +103,7 @@ export function LeadsManagementView({
       )}
       <div
         className="flex flex-wrap gap-2"
-        aria-label={ar ? "تصفية الصفحة" : "Filter this page"}
+        aria-label={t.leadsManagement.filterThisPage}
       >
         {Object.entries(intents).map(([value, label]) => (
           <button
@@ -147,9 +143,9 @@ export function LeadsManagementView({
                   </p>
                 </div>
                 <label className="text-xs">
-                  {ar ? "الحالة" : "Status"}
+                  {t.leadsManagement.status}
                   <select
-                    aria-label={ar ? "الحالة" : "Status"}
+                    aria-label={t.leadsManagement.status}
                     className={`${field} block mt-1`}
                     disabled={busy === inquiry.id}
                     value={inquiry.status}
@@ -197,14 +193,14 @@ export function LeadsManagementView({
               <dl className="grid sm:grid-cols-2 gap-3 text-sm text-slate-600 dark:text-neutral-300">
                 {[
                   [
-                    ar ? "الخدمات" : "Services",
+                    t.leadsManagement.services,
                     inquiry.services_requested.join(", "),
                   ],
-                  [ar ? "الميزانية" : "Budget", inquiry.budget_range],
-                  [ar ? "الموعد" : "Timeline", inquiry.target_timeline],
-                  [ar ? "الموقع" : "Location", inquiry.location],
+                  [t.leadsManagement.budget, inquiry.budget_range],
+                  [t.leadsManagement.timeline, inquiry.target_timeline],
+                  [t.leadsManagement.location, inquiry.location],
                   [
-                    ar ? "مرجع المشروع" : "Project reference",
+                    t.leadsManagement.projectReference,
                     inquiry.project_reference,
                   ],
                 ]
@@ -216,18 +212,16 @@ export function LeadsManagementView({
                     </div>
                   ))}
               </dl>
-              {sales && inquiry.status !== "qualified" && <details className="text-sm"><summary>{ar ? "ربط العميل" : "Link customer"}</summary><EntityLookup domain="contacts" value={customerLinks[inquiry.id]||""} onChange={id=>setCustomerLinks(prev=>({...prev,[inquiry.id]:id}))}/><button disabled={!!busy || !customerLinks[inquiry.id]} onClick={()=>run(inquiry.id,()=>linkInquiryCustomerAction(inquiry.id,customerLinks[inquiry.id]))}>{ar ? "تأكيد الربط" : "Confirm customer link"}</button></details>}
+              {sales && inquiry.status !== "qualified" && <details className="text-sm"><summary>{t.leadsManagement.linkCustomer}</summary><EntityLookup domain="contacts" value={customerLinks[inquiry.id]||""} onChange={id=>setCustomerLinks(prev=>({...prev,[inquiry.id]:id}))}/><button disabled={!!busy || !customerLinks[inquiry.id]} onClick={()=>run(inquiry.id,()=>linkInquiryCustomerAction(inquiry.id,customerLinks[inquiry.id]))}>{t.leadsManagement.confirmCustomerLink}</button></details>}
               {inquiry.merge_flag && (
                 <p className="text-amber-700 text-sm">
-                  {ar
-                    ? "تعارض في بيانات العميل — راجع الربط قبل التحويل."
-                    : "Customer identity conflict — review before conversion."}
+                  {t.leadsManagement.customerIdentityConflictReviewBefore}
                 </p>
               )}
               <div className="flex flex-wrap gap-3 items-center border-t border-slate-100 dark:border-neutral-800 pt-4 text-sm">
                 <span>
-                  {ar ? "المسؤول:" : "Owner:"}{" "}
-                  {inquiry.assigned_to_name || (ar ? "غير محدد" : "Unassigned")}
+                  {t.leadsManagement.owner}{" "}
+                  {inquiry.assigned_to_name || (t.leadsManagement.unassigned)}
                 </span>
                 <button
                   disabled={!!busy}
@@ -238,11 +232,11 @@ export function LeadsManagementView({
                     )
                   }
                 >
-                  {ar ? "إسناد إليّ" : "Assign to me"}
+                  {t.leadsManagement.assignToMe}
                 </button>
                 <select
                   className={field}
-                  aria-label={ar ? "الأولوية" : "Priority"}
+                  aria-label={t.leadsManagement.priority}
                   value={inquiry.priority || "normal"}
                   disabled={!!busy}
                   onChange={(e) =>
@@ -271,19 +265,19 @@ export function LeadsManagementView({
                         )
                       }
                     >
-                      {ar ? "تحويل إلى فرصة" : "Convert to opportunity"}
+                      {t.leadsManagement.convertToOpportunity}
                     </button>
                   )}
               </div>
               <p className="text-xs text-slate-500">
-                {ar ? "تأكيد البريد:" : "Email confirmation:"}{" "}
+                {t.leadsManagement.emailConfirmation}{" "}
                 {inquiry.confirmation_status} ·{" "}
-                {ar ? "إشعار الفريق:" : "Team notification:"}{" "}
+                {t.leadsManagement.teamNotification}{" "}
                 {inquiry.notification_status}
               </p>
               <details>
                 <summary className="cursor-pointer text-sm font-semibold">
-                  {ar ? "ملاحظات داخلية" : "Internal notes"} (
+                  {t.leadsManagement.internalNotes} (
                   {inquiry.notes?.length || 0})
                 </summary>
                 <div className="mt-3 space-y-3">
@@ -314,7 +308,7 @@ export function LeadsManagementView({
                     <textarea
                       required
                       maxLength={5000}
-                      aria-label={ar ? "ملاحظة داخلية" : "Internal note"}
+                      aria-label={t.leadsManagement.internalNote}
                       className={`${field} flex-1 min-w-0`}
                       value={notes[inquiry.id] || ""}
                       onChange={(e) =>
@@ -325,7 +319,7 @@ export function LeadsManagementView({
                       }
                     />
                     <button disabled={!!busy} className={field}>
-                      {ar ? "إضافة" : "Add note"}
+                      {t.leadsManagement.addNote}
                     </button>
                   </form>
                 </div>
@@ -337,20 +331,18 @@ export function LeadsManagementView({
         (i) => filter === "all" || i.intent === filter,
       ) && (
         <p className="py-12 text-center text-slate-500">
-          {ar
-            ? "لا توجد طلبات مطابقة في هذه الصفحة."
-            : "No matching requests on this page."}
+          {t.leadsManagement.noMatchingRequestsOnThis}
         </p>
       )}
       <nav className="flex gap-4 text-sm">
         {page > 1 && (
-          <Link href={`?page=${page - 1}`}>{ar ? "السابق" : "Previous"}</Link>
+          <Link href={`?page=${page - 1}`}>{t.leadsManagement.previous}</Link>
         )}
         <span>
-          {ar ? "صفحة" : "Page"} {page}
+          {t.leadsManagement.page} {page}
         </span>
         {initialInquiries.length === 50 && (
-          <Link href={`?page=${page + 1}`}>{ar ? "التالي" : "Next"}</Link>
+          <Link href={`?page=${page + 1}`}>{t.leadsManagement.next}</Link>
         )}
       </nav>
     </div>

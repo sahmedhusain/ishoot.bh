@@ -90,11 +90,11 @@ export function ArchiveManagementView({
     setUploadError(null);
 
     if (uploadMode === "file" && !selectedFile) {
-      setUploadError("Please select a document or file to upload.");
+      setUploadError(t.archiveManagement.pleaseSelectADocumentOr);
       return;
     }
     if (uploadMode === "url" && (!fileName.trim() || !fileUrl.trim())) {
-      setUploadError("Please enter document name and storage URL.");
+      setUploadError(t.archiveManagement.pleaseEnterDocumentNameAnd);
       return;
     }
 
@@ -110,7 +110,7 @@ export function ArchiveManagementView({
         const p = payments.find((item) => item.id === resolvedEntityId);
         entityLabel = p
           ? `Receipt ${p.receipt_number} (${p.amount} BHD)`
-          : "Payment Proof";
+          : t.archiveManagement.paymentProof;
         entityLink = resolvedEntityId ? ROUTES.payments.detail(resolvedEntityId) : undefined;
       } else if (entityType === "company_setting") {
         resolvedEntityId = "company_setting";
@@ -119,17 +119,17 @@ export function ArchiveManagementView({
       } else if (entityType === "contact" || entityType === "customer_vault") {
 
         const c = contacts.find((item) => item.id === resolvedEntityId);
-        entityLabel = c ? c.company || c.full_name : "Client Document";
+        entityLabel = c ? c.company || c.full_name : t.archiveManagement.clientDocument;
         entityLink = resolvedEntityId ? ROUTES.crm.customer(resolvedEntityId) : undefined;
       } else if (entityType === "deal") {
 
         const d = deals.find((item) => item.id === resolvedEntityId);
-        entityLabel = d ? d.title : "Deal Document";
+        entityLabel = d ? d.title : t.archiveManagement.dealDocument;
         entityLink = resolvedEntityId ? ROUTES.crm.deal(resolvedEntityId) : undefined;
       } else if (entityType === "invoice") {
 
         const i = invoices.find((item) => item.id === resolvedEntityId);
-        entityLabel = i ? i.invoice_number : "Invoice Document";
+        entityLabel = i ? i.invoice_number : t.archiveManagement.invoiceDocument;
         entityLink = resolvedEntityId ? ROUTES.invoices.detail(resolvedEntityId) : undefined;
       } else {
         resolvedEntityId = "general-vault";
@@ -141,7 +141,7 @@ export function ArchiveManagementView({
         const data = await uploadFileDirectly(selectedFile, { entityType: entityType, entityId: resolvedEntityId, documentType: documentSubtype });
         const res = { ok: true }; // polyfill for following code
         if (!res.ok || !data.success) {
-          throw new Error(data.error || "Failed to upload file");
+          throw new Error(data.error || t.archiveManagement.failedToUploadFile);
         }
 
         const newEnriched: EnrichedAttachment = {
@@ -171,7 +171,7 @@ export function ArchiveManagementView({
         });
 
         if (!res.success || !res.attachment) {
-          throw new Error(res.error || "Failed to save attachment");
+          throw new Error(res.error || t.archiveManagement.failedToSaveAttachment);
         }
 
         const newEnriched: EnrichedAttachment = {
@@ -198,7 +198,7 @@ export function ArchiveManagementView({
       setEntityId("");
     } catch (err: any) {
       console.error("Failed to upload attachment:", err);
-      setUploadError(err.message || "Failed to upload attachment");
+      setUploadError(err.message || t.archiveManagement.failedToUploadAttachment);
     } finally {
       setSubmitting(false);
     }
@@ -372,7 +372,7 @@ export function ArchiveManagementView({
                       </Link>
                     ) : (
                       <span className="text-slate-500 dark:text-neutral-400">
-                        {att.entity_label || "General Repository"}
+                        {att.entity_label || t.archiveManagement.generalRepository}
                       </span>
                     )}
                   </td>
@@ -382,20 +382,20 @@ export function ArchiveManagementView({
                     {att.entity_type === "payment" ? (
                       att.file_name.toLowerCase().includes("cheque") ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px]  font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
-                          Cheque Copy
+                          {t.archiveManagement.chequeCopy}
                         </span>
                       ) : att.file_name.toLowerCase().includes("bank") || att.file_name.toLowerCase().includes("transfer") ? (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px]  font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800">
-                          Bank Transfer Slip
+                          {t.archiveManagement.bankTransferSlip}
                         </span>
                       ) : (
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px]  font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
-                          Payment Proof
+                          {t.archiveManagement.paymentProof}
                         </span>
                       )
                     ) : att.entity_type === "company_setting" ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px]  font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800">
-                        VAT & Legal
+                        {t.archiveManagement.vatAndLegal}
                       </span>
                     ) : (
                       <span className="inline-flex px-2 py-0.5 rounded-full text-[10px]  font-medium capitalize bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300">
@@ -427,14 +427,14 @@ export function ArchiveManagementView({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-800 transition-colors"
-                        title="Download / View"
+                        title={t.archiveManagement.downloadView}
                       >
                         <Download className="w-4 h-4" />
                       </a>
                       <button
                         onClick={() => setDeleteTargetId(att.id)}
                         className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-                        title="Delete Attachment"
+                        title={t.archiveManagement.deleteAttachment}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

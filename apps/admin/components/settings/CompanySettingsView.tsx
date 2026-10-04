@@ -1,4 +1,5 @@
 "use client";
+import type { AdminTranslations } from "../../lib/translations";
 
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
@@ -42,6 +43,7 @@ type TabKey = "general" | "taxVat" | "banking" | "sequences" | "brandAssets";
 function calculateDiff(
   oldSettings: CompanySettings,
   newSettings: CompanySettings,
+  t: AdminTranslations,
 ): ChangeDiff[] {
   const diffs: ChangeDiff[] = [];
 
@@ -52,10 +54,10 @@ function calculateDiff(
       labelAr: "حالة تفعيل ضريبة القيمة المضافة",
       oldValue: oldSettings.vat_enabled
         ? `Active (${oldSettings.vat_percentage}%)`
-        : "Inactive (Non-VAT)",
+        : t.companySettings.inactiveNonVat,
       newValue: newSettings.vat_enabled
         ? `Active (${newSettings.vat_percentage}%)`
-        : "Inactive (Non-VAT)",
+        : t.companySettings.inactiveNonVat,
       isVat: true,
     });
   }
@@ -213,7 +215,7 @@ export function CompanySettingsView({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const diffs = calculateDiff(originalSettings, settings);
+    const diffs = calculateDiff(originalSettings, settings, t);
     if (diffs.length > 0) {
       setSaveDiffs(diffs);
       setIsSaveConfirmOpen(true);
@@ -402,7 +404,7 @@ export function CompanySettingsView({
               disabled={saving || !isDirty}
               className="shadow-2xs rounded-full px-6 py-2.5 text-xs font-semibold"
             >
-              {saving ? (isRTL ? "جاري الحفظ..." : "Saving...") : t.actions.save}
+              {saving ? (t.companySettings.saving) : t.actions.save}
             </Button>
           </div>
         )}

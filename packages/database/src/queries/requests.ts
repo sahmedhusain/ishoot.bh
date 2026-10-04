@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
 import { canTransitionRequest } from "../constants/requests";
 import { cancelPendingApprovals } from "../services/approval-engine";
@@ -236,39 +237,48 @@ export async function addRequestEvent(
   });
 }
 
-export async function getConsolidatedRequestById(id: string): Promise<any> {
-  const request = await db.inquiry.findUnique({
-    where: { id },
+const consolidatedRequestInclude = {
+  customer: true,
+  assignedTo: { select: { id: true, fullName: true, email: true } },
+  convertedDeal: { select: { id: true, title: true, dealStage: true, dealValue: true } },
+  quotations: {
+    select: { id: true, quotationNumber: true, totalAmount: true, status: true },
+    orderBy: { createdAt: "desc" },
+  },
+  requestEvents: {
+    include: { actor: { select: { id: true, fullName: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  },
+  assignments: {
     include: {
-      customer: true,
       assignedTo: { select: { id: true, fullName: true, email: true } },
-      convertedDeal: { select: { id: true, title: true, dealStage: true, dealValue: true } },
-      quotations: {
-        select: { id: true, quotationNumber: true, totalAmount: true, status: true },
-        orderBy: { createdAt: "desc" },
-      },
-      requestEvents: {
-        include: {
-          actor: { select: { id: true, fullName: true, email: true } },
-        },
-        orderBy: { createdAt: "desc" },
-      },
-      assignments: {
-        include: {
-          assignedTo: { select: { id: true, fullName: true, email: true } },
-          assignedBy: { select: { id: true, fullName: true, email: true } },
-        },
-        orderBy: { createdAt: "desc" },
-      },
-      comments: {
-        include: {
-          author: { select: { id: true, fullName: true, email: true } },
-        },
-        orderBy: { createdAt: "asc" },
-      },
+      assignedBy: { select: { id: true, fullName: true, email: true } },
     },
-  });
+    orderBy: { createdAt: "desc" },
+  },
+  comments: {
+    include: { author: { select: { id: true, fullName: true, email: true } } },
+    orderBy: { createdAt: "asc" },
+  },
+} satisfies Prisma.InquiryInclude;
 
-  return request;
+type RawConsolidatedRequest = Prisma.InquiryGetPayload<{ include: typeof consolidatedRequestInclude }>;
+
+/** A request with everything its detail page shows. Money is converted to numbers so it can cross into client components. */
+export type ConsolidatedRequest = Omit<RawConsolidatedRequest, "convertedDeal" | "quotations"> & {
+  convertedDeal: (Omit<NonNullable<RawConsolidatedRequest["convertedDeal"]>, "dealValue"> & { dealValue: number }) | null;
+  quotations: (Omit<RawConsolidatedRequest["quotations"][number], "totalAmount"> & { totalAmount: number })[];
+};
+
+export async function getConsolidatedRequestById(id: string): Promise<ConsolidatedRequest | null> {
+  const request = await db.inquiry.findUnique({ where: { id }, include: consolidatedRequestInclude });
+  if (!request) return null;
+  return {
+    ...request,
+    convertedDeal: request.convertedDeal
+      ? { ...request.convertedDeal, dealValue: Number(request.convertedDeal.dealValue) }
+      : null,
+    quotations: request.quotations.map((quotation) => ({ ...quotation, totalAmount: Number(quotation.totalAmount) })),
+  };
 }
 

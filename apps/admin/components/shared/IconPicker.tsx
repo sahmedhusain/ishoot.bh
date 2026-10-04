@@ -1,4 +1,5 @@
 "use client";
+import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import * as React from "react";
 import { Search,ChevronDown,Sparkles } from "lucide-react";
@@ -15,6 +16,7 @@ const ALL_ICON_NAMES = Object.keys(PICKABLE_ICONS);
 const POPULAR_ICONS: readonly string[] = POPULAR_ICON_NAMES;
 
 export function IconPicker({ value, onChange, placeholder = "Select icon", initialOpen=false }: IconPickerProps) {
+  const { t } = useAdminLocale();
   const [isOpen, setIsOpen] = React.useState(initialOpen);
   const [page,setPage]=React.useState(0);
   const menuId=React.useId();
@@ -64,7 +66,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
       </button>
 
       {isOpen && (
-          <div id={menuId} role="dialog" aria-label="Select icon" onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();setIsOpen(false);}}}
+          <div id={menuId} role="dialog" aria-label={t.iconPicker.selectIcon} onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();setIsOpen(false);}}}
             className="absolute z-50 top-full left-0 right-0 mt-2 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] max-w-[90vw]"
           >
             {/* Search Header */}
@@ -73,8 +75,8 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                 <Search className="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  aria-label="Search icons"
-                  placeholder="Search icons..."
+                  aria-label={t.iconPicker.searchIcons}
+                  placeholder={t.iconPicker.searchIcons2}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   autoFocus
@@ -93,7 +95,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                         : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
-                    Popular
+                    {t.iconPicker.popular}
                   </button>
                   <button
                     type="button"
@@ -104,13 +106,13 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                         : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
-                    All Icons
+                    {t.iconPicker.allIcons}
                   </button>
                 </div>
               )}
             </div>
 
-            <nav aria-label="Icon result pages" className="flex gap-3 px-3 py-2 text-xs"><span>{matches.length} icons · {page+1}/{Math.max(1,Math.ceil(matches.length/ICON_PAGE_SIZE))}</span>{page>0?<button type="button" onClick={()=>setPage(page-1)}>Previous</button>:null}{(page+1)*ICON_PAGE_SIZE<matches.length?<button type="button" onClick={()=>setPage(page+1)}>Next</button>:null}</nav>
+            <nav aria-label={t.iconPicker.iconResultPages} className="flex gap-3 px-3 py-2 text-xs"><span>{matches.length} {t.iconPicker.icons} {page+1}/{Math.max(1,Math.ceil(matches.length/ICON_PAGE_SIZE))}</span>{page>0?<button type="button" onClick={()=>setPage(page-1)}>{t.iconPicker.previous}</button>:null}{(page+1)*ICON_PAGE_SIZE<matches.length?<button type="button" onClick={()=>setPage(page+1)}>{t.iconPicker.next}</button>:null}</nav>
             {/* Icon Grid */}
             <div className="p-3 max-h-[220px] overflow-y-auto grid grid-cols-5 gap-1.5 custom-scrollbar">
               {displayedIcons.map((iconName) => {
@@ -142,7 +144,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
 
               {displayedIcons.length === 0 && (
                 <div className="col-span-5 py-6 text-center text-xs text-slate-400">
-                  No matching icons found
+                  {t.iconPicker.noMatchingIconsFound}
                 </div>
               )}
             </div>

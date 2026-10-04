@@ -36,6 +36,7 @@ import {
 } from "../../app/actions/quotations";
 import { decideApprovalAction } from "../../app/actions/approvals";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { QuotationActionDialog } from "./QuotationActionDialog";
 import { toast } from "sonner";
 
 export interface QuotationWithRelations extends Quotation {
@@ -108,11 +109,11 @@ export function QuotationDetailView({
   // Status mapping
   const statusMeta: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
     draft: { label: "Draft", color: "bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300", icon: Clock },
-    submitted: { label: "Pending Approval", color: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300", icon: Clock },
-    approved: { label: "Approved by Super Admin", color: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300", icon: CheckCircle2 },
-    issued: { label: "Issued to Client", color: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300", icon: Send },
-    accepted: { label: "Accepted by Client", color: "bg-teal-50 text-teal-800 border border-teal-200 dark:bg-teal-950/40 dark:text-teal-300", icon: FileCheck },
-    converted: { label: "Converted to Invoice", color: "bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300", icon: Receipt },
+    submitted: { label: t.quotationDetail.pendingApproval, color: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300", icon: Clock },
+    approved: { label: t.quotationDetail.approvedBySuperAdmin, color: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300", icon: CheckCircle2 },
+    issued: { label: t.quotationDetail.issuedToClient, color: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300", icon: Send },
+    accepted: { label: t.quotationDetail.acceptedByClient, color: "bg-teal-50 text-teal-800 border border-teal-200 dark:bg-teal-950/40 dark:text-teal-300", icon: FileCheck },
+    converted: { label: t.quotationDetail.convertedToInvoice, color: "bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300", icon: Receipt },
     rejected: { label: "Rejected", color: "bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/40 dark:text-red-300", icon: XCircle },
     expired: { label: "Expired", color: "bg-stone-100 text-stone-600 dark:bg-neutral-800 dark:text-neutral-400", icon: AlertCircle },
   };
@@ -123,22 +124,22 @@ export function QuotationDetailView({
   // Handlers
   const handleSubmitForApproval = async () => {
     if (hasDiscount && !discountReason.trim()) {
-      toast.error(isRTL ? "يرجى تقديم مبرر للخصم التجاري" : "Please provide justification for the commercial discount");
+      toast.error(t.quotationDetail.pleaseProvideJustificationForThe);
       return;
     }
     setLoadingAction("submit");
-    const toastId = toast.loading("Submitting for Super Admin review...");
+    const toastId = toast.loading(t.quotationDetail.submittingForSuperAdminReview);
     try {
       const res = await submitQuotationForApprovalAction(quotation.id, discountReason.trim() || undefined);
       if (res.success) {
-        toast.success("Quotation submitted for Super Admin review", { id: toastId });
+        toast.success(t.quotationDetail.quotationSubmittedForSuperAdmin, { id: toastId });
         setShowSubmitModal(false);
         router.refresh();
       } else {
-        toast.error("Failed to submit quotation", { id: toastId });
+        toast.error(t.quotationDetail.failedToSubmitQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error submitting quotation", { id: toastId });
+      toast.error(err instanceof Error ? err.message : t.quotationDetail.errorSubmittingQuotation, { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -146,22 +147,22 @@ export function QuotationDetailView({
 
   const handleApprove = async () => {
     if (!approvalRequest) {
-      toast.error("No active approval request found for this quotation");
+      toast.error(t.quotationDetail.noActiveApprovalRequestFound);
       return;
     }
     setLoadingAction("approve");
-    const toastId = toast.loading("Recording Super Admin approval...");
+    const toastId = toast.loading(t.quotationDetail.recordingSuperAdminApproval);
     try {
       const res = await decideApprovalAction(approvalRequest.id, "approved");
       if (res.success) {
-        toast.success("Quotation approved successfully", { id: toastId });
+        toast.success(t.quotationDetail.quotationApprovedSuccessfully, { id: toastId });
         setShowApproveModal(false);
         router.refresh();
       } else {
-        toast.error("Failed to approve quotation", { id: toastId });
+        toast.error(t.quotationDetail.failedToApproveQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Approval failed", { id: toastId });
+      toast.error(err instanceof Error ? err.message : t.quotationDetail.approvalFailed, { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -169,22 +170,22 @@ export function QuotationDetailView({
 
   const handleReject = async () => {
     if (!approvalRequest) {
-      toast.error("No active approval request found");
+      toast.error(t.quotationDetail.noActiveApprovalRequestFound2);
       return;
     }
     setLoadingAction("reject");
-    const toastId = toast.loading("Recording rejection...");
+    const toastId = toast.loading(t.quotationDetail.recordingRejection);
     try {
       const res = await decideApprovalAction(approvalRequest.id, "rejected", rejectReason);
       if (res.success) {
-        toast.success("Quotation rejected", { id: toastId });
+        toast.success(t.quotationDetail.quotationRejected, { id: toastId });
         setShowRejectModal(false);
         router.refresh();
       } else {
-        toast.error("Failed to reject quotation", { id: toastId });
+        toast.error(t.quotationDetail.failedToRejectQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Rejection failed", { id: toastId });
+      toast.error(err instanceof Error ? err.message : t.quotationDetail.rejectionFailed, { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -192,7 +193,7 @@ export function QuotationDetailView({
 
   const handleIssue = async () => {
     setLoadingAction("issue");
-    const toastId = toast.loading("Issuing quotation to client...");
+    const toastId = toast.loading(t.quotationDetail.issuingQuotationToClient);
     try {
       const res = await issueQuotationAction(quotation.id, deliveryChannel);
       if (res.success) {
@@ -200,10 +201,10 @@ export function QuotationDetailView({
         setShowIssueModal(false);
         router.refresh();
       } else {
-        toast.error("Failed to issue quotation", { id: toastId });
+        toast.error(t.quotationDetail.failedToIssueQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Issuance failed", { id: toastId });
+      toast.error(err instanceof Error ? err.message : t.quotationDetail.issuanceFailed, { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -211,18 +212,18 @@ export function QuotationDetailView({
 
   const handleAccept = async () => {
     setLoadingAction("accept");
-    const toastId = toast.loading("Recording client acceptance...");
+    const toastId = toast.loading(t.quotationDetail.recordingClientAcceptance);
     try {
       const res = await acceptQuotationAction(quotation.id, acceptanceEvidence.trim() || undefined);
       if (res.success) {
-        toast.success("Quotation marked as accepted by client", { id: toastId });
+        toast.success(t.quotationDetail.quotationMarkedAsAcceptedBy, { id: toastId });
         setShowAcceptModal(false);
         router.refresh();
       } else {
-        toast.error("Failed to accept quotation", { id: toastId });
+        toast.error(t.quotationDetail.failedToAcceptQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Action failed", { id: toastId });
+      toast.error(err instanceof Error ? err.message : t.quotationDetail.actionFailed, { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -244,7 +245,7 @@ export function QuotationDetailView({
 
   const handleConvertToInvoice = async () => {
     setLoadingAction("convert");
-    const toastId = toast.loading("Converting quotation to tax invoice...");
+    const toastId = toast.loading(t.quotationDetail.convertingQuotationToTaxInvoice);
     try {
       const res = await convertQuotationToInvoiceAction(quotation.id);
       if (res.success && res.invoice) {
@@ -256,10 +257,10 @@ export function QuotationDetailView({
         );
         router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
       } else {
-        toast.error("Failed to convert quotation", { id: toastId });
+        toast.error(t.quotationDetail.failedToConvertQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Conversion failed", { id: toastId });
+      toast.error(err instanceof Error ? err.message : t.quotationDetail.conversionFailed, { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -317,7 +318,7 @@ export function QuotationDetailView({
               {isCreator ? (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 text-xs rounded-md border border-amber-200 dark:border-amber-900/50">
                   <ShieldAlert className="w-4 h-4 text-amber-600" />
-                  <span>{isRTL ? "مبدأ صانع القرار والمدقق: لقد أنشأت هذا العرض، يجب أن يعتمده مشرف عام آخر." : "Maker-Checker: You created this quotation. Another Super Admin must approve."}</span>
+                  <span>{t.quotationDetail.makerCheckerYouCreatedThis}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -420,7 +421,7 @@ export function QuotationDetailView({
             </div>
             {quotation.status === "issued" && quotation.deliveryChannel && (
               <span className="text-xs font-mono uppercase bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md border border-blue-200">
-                Via {quotation.deliveryChannel}
+                {t.quotationDetail.via} {quotation.deliveryChannel}
               </span>
             )}
           </div>
@@ -535,15 +536,15 @@ export function QuotationDetailView({
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <div className="text-xs font-mono uppercase text-slate-400 mb-1">{isRTL ? "الشروط بالإنجليزية" : "English Terms"}</div>
+                <div className="text-xs font-mono uppercase text-slate-400 mb-1">{t.quotationDetail.englishTerms}</div>
                 <div className="p-3 bg-slate-50 dark:bg-neutral-900/50 rounded-md text-xs font-mono text-slate-700 dark:text-neutral-300 whitespace-pre-line">
-                  {quotation.termsEn || (isRTL ? "لا توجد شروط محددة بالإنجليزية." : "No English terms specified.")}
+                  {quotation.termsEn || (t.quotationDetail.noEnglishTermsSpecified)}
                 </div>
               </div>
               <div>
-                <div className="text-xs font-mono uppercase text-slate-400 mb-1">{isRTL ? "الشروط بالعربية" : "Arabic Terms"}</div>
+                <div className="text-xs font-mono uppercase text-slate-400 mb-1">{t.quotationDetail.arabicTerms}</div>
                 <div className="p-3 bg-slate-50 dark:bg-neutral-900/50 rounded-md text-xs font-mono text-slate-700 dark:text-neutral-300 whitespace-pre-line" dir="rtl">
-                  {quotation.termsAr || (isRTL ? "لا توجد شروط مدخلة بالعربية." : "No Arabic terms specified.")}
+                  {quotation.termsAr || (t.quotationDetail.noArabicTermsSpecified)}
                 </div>
               </div>
             </div>
@@ -569,7 +570,7 @@ export function QuotationDetailView({
                 <div className="text-slate-500">{qdT.phone}: {quotation.client.phone}</div>
               )}
               {quotation.client?.taxNumber && (
-                <div className="text-slate-500">VAT ID: {quotation.client.taxNumber}</div>
+                <div className="text-slate-500">{t.quotationDetail.vatId} {quotation.client.taxNumber}</div>
               )}
             </div>
           </Card>
@@ -577,7 +578,7 @@ export function QuotationDetailView({
           {/* Dates & Timeline */}
           <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
             <h2 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-[#EAEAEA] dark:border-white/10 pb-2">
-              {isRTL ? "دورة حياة المستند" : "Document Lifecycle"}
+              {t.quotationDetail.documentLifecycle}
             </h2>
             <div className="space-y-3 text-xs">
               <div>
@@ -595,10 +596,10 @@ export function QuotationDetailView({
                 </div>
               </div>
               <div>
-                <span className="text-slate-400 block mb-0.5">{isRTL ? "أُعد بواسطة:" : "Prepared By:"}</span>
+                <span className="text-slate-400 block mb-0.5">{t.quotationDetail.preparedBy}</span>
                 <div className="font-medium text-slate-900 dark:text-white flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5 text-slate-400" />
-                  {quotation.createdBy?.fullName || quotation.createdBy?.email || "Unknown User"}
+                  {quotation.createdBy?.fullName || quotation.createdBy?.email || t.quotationDetail.unknownUser}
                 </div>
               </div>
             </div>
@@ -608,14 +609,14 @@ export function QuotationDetailView({
           {approvalRequest && (
             <Card className="p-6 bg-slate-50 dark:bg-neutral-900/50 border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-3">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-2">
-                <span className="text-xs font-mono uppercase text-slate-500">Governance Review</span>
+                <span className="text-xs font-mono uppercase text-slate-500">{t.quotationDetail.governanceReview}</span>
                 <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300">
                   {approvalRequest.status}
                 </span>
               </div>
               {approvalRequest.discountReason && (
                 <div className="text-xs space-y-1">
-                  <span className="text-slate-400 font-mono text-[11px]">Commercial Discount Reason:</span>
+                  <span className="text-slate-400 font-mono text-[11px]">{t.quotationDetail.commercialDiscountReason}</span>
                   <div className="p-2 bg-white dark:bg-neutral-800 rounded border border-slate-200 dark:border-white/5 font-mono text-slate-800 dark:text-neutral-200">
                     {approvalRequest.discountReason}
                   </div>
@@ -623,11 +624,11 @@ export function QuotationDetailView({
               )}
               {approvalRequest.decisions && approvalRequest.decisions.length > 0 && (
                 <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/10 text-xs">
-                  <span className="text-slate-400 font-mono text-[11px]">Decisions History:</span>
+                  <span className="text-slate-400 font-mono text-[11px]">{t.quotationDetail.decisionsHistory}</span>
                   {approvalRequest.decisions.map((dec) => (
                     <div key={dec.id} className="p-2 rounded bg-white dark:bg-neutral-800 border border-slate-200 dark:border-white/5 text-[11px]">
                       <div className="font-semibold text-slate-900 dark:text-white capitalize">
-                        {dec.decision} by {dec.decidedBy?.fullName || "Super Admin"}
+                        {dec.decision} by {dec.decidedBy?.fullName || t.quotationDetail.superAdmin}
                       </div>
                       <div className="text-slate-400 font-mono text-[10px]">
                         {new Date(dec.decidedAt).toLocaleString()}
@@ -642,213 +643,122 @@ export function QuotationDetailView({
         </div>
       </div>
 
-      {/* Modal: Submit for Approval with Discount Reason */}
-      {showSubmitModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              Commercial Discount Justification Required
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              This quotation contains a commercial discount of{" "}
-              <strong className="font-mono text-slate-900 dark:text-white">
-                {Number(quotation.discountAmount).toFixed(3)} {quotation.currency}
-              </strong>
-              . Super Admin approval policy strictly requires an explicit justification.
-            </p>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                Discount Reason & Business Justification *
-              </label>
-              <textarea
-                rows={3}
-                required
-                value={discountReason}
-                onChange={(e) => setDiscountReason(e.target.value)}
-                placeholder="e.g. Volume discount negotiated for 3-production package retainer."
-                className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-              />
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowSubmitModal(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-md"
-              >
-                Cancel
-              </button>
-              <Button
-                onClick={handleSubmitForApproval}
-                disabled={!discountReason.trim() || loadingAction === "submit"}
-                className="bg-[#014842] hover:bg-[#013833] text-white px-4 py-1.5 text-xs rounded-md"
-              >
-                Submit for Approval
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <QuotationActionDialog
+        open={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        title={t.quotationDetail.commercialDiscountJustificationRequired}
+        description={
+          <>
+            {t.quotationDetail.thisQuotationContainsACommercial}{" "}
+            <strong className="font-mono text-slate-900 dark:text-white">
+              {Number(quotation.discountAmount).toFixed(3)} {quotation.currency}
+            </strong>
+            {t.quotationDetail.superAdminApprovalPolicyStrictly}
+          </>
+        }
+        confirmLabel={t.quotationDetail.submitForApproval2}
+        confirmClassName="bg-[#014842] hover:bg-[#013833]"
+        confirmDisabled={!discountReason.trim() || loadingAction === "submit"}
+        onConfirm={handleSubmitForApproval}
+      >
+        <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+          {t.quotationDetail.discountReasonAndBusinessJustification}
+          <textarea
+            rows={3}
+            required
+            value={discountReason}
+            onChange={(e) => setDiscountReason(e.target.value)}
+            placeholder={t.quotationDetail.eGVolumeDiscountNegotiated}
+            className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+          />
+        </label>
+      </QuotationActionDialog>
 
-      {/* Modal: Issue Quotation */}
-      {showIssueModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              Issue Quotation to Client
-            </h3>
-            <p className="text-xs text-slate-500">
-              Select the delivery method. Once issued, the quotation status moves to Issued and lock inputs.
-            </p>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                Delivery Channel
-              </label>
-              <select
-                value={deliveryChannel}
-                onChange={(e) => setDeliveryChannel(e.target.value as any)}
-                className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-              >
-                <option value="email">Email Notification to Client</option>
-                <option value="portal">Publish to Client Portal</option>
-                <option value="whatsapp">Direct WhatsApp Dispatch</option>
-                <option value="manual">Manual In-Person / Printed Handover</option>
-              </select>
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowIssueModal(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-md"
-              >
-                Cancel
-              </button>
-              <Button
-                onClick={handleIssue}
-                disabled={loadingAction === "issue"}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 text-xs rounded-md"
-              >
-                Confirm Issue
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <QuotationActionDialog
+        open={showIssueModal}
+        onClose={() => setShowIssueModal(false)}
+        title={t.quotationDetail.issueQuotationToClient}
+        description={t.quotationDetail.selectTheDeliveryMethodOnce}
+        confirmLabel={t.quotationDetail.confirmIssue}
+        confirmClassName="bg-blue-600 hover:bg-blue-700"
+        confirmDisabled={loadingAction === "issue"}
+        onConfirm={handleIssue}
+      >
+        <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+          {t.quotationDetail.deliveryChannel}
+          <select
+            value={deliveryChannel}
+            onChange={(e) => setDeliveryChannel(e.target.value as typeof deliveryChannel)}
+            className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+          >
+            <option value="email">{t.quotationDetail.emailNotificationToClient}</option>
+            <option value="portal">{t.quotationDetail.publishToClientPortal}</option>
+            <option value="whatsapp">{t.quotationDetail.directWhatsappDispatch}</option>
+            <option value="manual">{t.quotationDetail.manualInPersonPrintedHandover}</option>
+          </select>
+        </label>
+      </QuotationActionDialog>
 
-      {/* Modal: Super Admin Approval */}
-      {showApproveModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              Confirm Super Admin Approval
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-neutral-400">
-              Are you sure you want to approve quotation <strong>{quotation.quotationNumber}</strong> for a total of{" "}
-              <strong>{Number(quotation.totalAmount).toFixed(3)} {quotation.currency}</strong>?
-            </p>
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowApproveModal(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-md"
-              >
-                Cancel
-              </button>
-              <Button
-                onClick={handleApprove}
-                disabled={loadingAction === "approve"}
-                className="bg-[#014842] hover:bg-[#013833] text-white px-4 py-1.5 text-xs rounded-md"
-              >
-                Confirm Approval
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <QuotationActionDialog
+        open={showApproveModal}
+        onClose={() => setShowApproveModal(false)}
+        title={t.quotationDetail.confirmSuperAdminApproval}
+        description={
+          <>
+            {t.quotationDetail.areYouSureYouWant} <strong>{quotation.quotationNumber}</strong> {t.quotationDetail.forATotalOf}{" "}
+            <strong>{Number(quotation.totalAmount).toFixed(3)} {quotation.currency}</strong>?
+          </>
+        }
+        confirmLabel={t.quotationDetail.confirmApproval}
+        confirmClassName="bg-[#014842] hover:bg-[#013833]"
+        confirmDisabled={loadingAction === "approve"}
+        onConfirm={handleApprove}
+      />
 
-      {/* Modal: Super Admin Reject */}
-      {showRejectModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              Reject Quotation
-            </h3>
-            <p className="text-xs text-slate-500">
-              Provide feedback on why this quotation was rejected so the creator can revise it.
-            </p>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                Rejection Reason *
-              </label>
-              <textarea
-                rows={3}
-                required
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="e.g. Discount exceeds allowed limit for this client tier."
-                className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-              />
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowRejectModal(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-md"
-              >
-                Cancel
-              </button>
-              <Button
-                onClick={handleReject}
-                disabled={!rejectReason.trim() || loadingAction === "reject"}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 text-xs rounded-md"
-              >
-                Confirm Rejection
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <QuotationActionDialog
+        open={showRejectModal}
+        onClose={() => setShowRejectModal(false)}
+        title={t.quotationDetail.rejectQuotation}
+        description={t.quotationDetail.provideFeedbackOnWhyThis}
+        confirmLabel={t.quotationDetail.confirmRejection}
+        confirmClassName="bg-red-600 hover:bg-red-700"
+        confirmDisabled={!rejectReason.trim() || loadingAction === "reject"}
+        onConfirm={handleReject}
+      >
+        <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+          {t.quotationDetail.rejectionReason}
+          <textarea
+            rows={3}
+            required
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            placeholder={t.quotationDetail.eGDiscountExceedsAllowed}
+            className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+          />
+        </label>
+      </QuotationActionDialog>
 
-      {/* Modal: Accept Quotation with Evidence */}
-      {showAcceptModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              Record Client Acceptance
-            </h3>
-            <p className="text-xs text-slate-500">
-              Enter reference evidence of client acceptance (such as purchase order number, signed agreement reference, or email confirmation).
-            </p>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                Acceptance Reference / Notes
-              </label>
-              <input
-                type="text"
-                value={acceptanceEvidence}
-                onChange={(e) => setAcceptanceEvidence(e.target.value)}
-                placeholder="e.g. Signed PO #PO-9912 via email"
-                className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-              />
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowAcceptModal(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 rounded-md"
-              >
-                Cancel
-              </button>
-              <Button
-                onClick={handleAccept}
-                disabled={loadingAction === "accept"}
-                className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-1.5 text-xs rounded-md"
-              >
-                Record Acceptance
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <QuotationActionDialog
+        open={showAcceptModal}
+        onClose={() => setShowAcceptModal(false)}
+        title={t.quotationDetail.recordClientAcceptance}
+        description={t.quotationDetail.enterReferenceEvidenceOfClient}
+        confirmLabel={t.quotationDetail.recordAcceptance}
+        confirmClassName="bg-teal-700 hover:bg-teal-800"
+        confirmDisabled={loadingAction === "accept"}
+        onConfirm={handleAccept}
+      >
+        <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+          {t.quotationDetail.acceptanceReferenceNotes}
+          <input
+            type="text"
+            value={acceptanceEvidence}
+            onChange={(e) => setAcceptanceEvidence(e.target.value)}
+            placeholder={t.quotationDetail.eGSignedPoPo}
+            className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+          />
+        </label>
+      </QuotationActionDialog>
     </div>
   );
 }

@@ -140,7 +140,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
                 {t.loginView.passwordLabel}
               </label>
               <button type="button" onClick={() => router.push("/login/forgot")} className="text-[11px] text-[#09937F] hover:text-white transition-colors">
-                {isRTL ? "هل نسيت كلمة المرور؟" : "Forgot password?"}
+                {t.adminLoginForm.forgotPassword}
               </button>
             </div>
             <div className="relative">
@@ -161,7 +161,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
             </div>
           </div>
 
-          {mfaRequired && <label className="block text-xs text-white">{isRTL ? "رمز المصادقة أو رمز الاسترداد" : "Authentication or recovery code"}<Input autoComplete="one-time-code" value={otp} maxLength={32} onChange={(e) => setOtp(e.target.value.trim())} required /></label>}
+          {mfaRequired && <label className="block text-xs text-white">{t.adminLoginForm.authenticationOrRecoveryCode}<Input autoComplete="one-time-code" value={otp} maxLength={32} onChange={(e) => setOtp(e.target.value.trim())} required /></label>}
 
           <Button
             type="submit"

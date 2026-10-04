@@ -271,9 +271,9 @@ export function UsersManagementView({
                 <tr>
                   <th className="p-4 text-start">{t.usersView.userHeader}</th>
                   <th className="p-4 text-start">{t.roles.department}</th>
-                  <th className="p-4 text-start">{t.hrText.text284}</th>
+                  <th className="p-4 text-start">{t.usersManagement.reportsTo}</th>
                   <th className="p-4 text-start">{t.usersView.roleHeader}</th>
-                  <th className="p-4 text-start">{t.hrText.text285}</th>
+                  <th className="p-4 text-start">{t.usersManagement.signature}</th>
                   <th className="p-4 text-start">{t.usersView.statusHeader}</th>
                   <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
                 </tr>
@@ -332,9 +332,9 @@ export function UsersManagementView({
                             handleManagerChange(u.id, e.target.value)
                           }
                           className="bg-[#050807] border border-white/10 rounded-xl px-2.5 py-1 text-xs text-[#5EEAD4] focus:outline-none focus:border-[#09937F] cursor-pointer max-w-[160px] truncate"
-                          title={t.hrText.text286}
+                          title={t.usersManagement.changeManager}
                         >
-                          <option value="">{t.hrText.text287}</option>
+                          <option value="">{t.usersManagement.noneIndependent}</option>
                           {users
                             .filter((cand) => cand.id !== u.id)
                             .map((cand) => (
@@ -631,13 +631,13 @@ export function UsersManagementView({
 
           <div className="space-y-1.5">
             <label className="text-[#9EADA9] font-medium">
-              {t.hrText.text288}
+              {t.usersManagement.reportsToManager}
             </label>
             <Select
               value={managerId}
               onChange={(e) => setManagerId(e.target.value)}
             >
-              <option value="">{t.hrText.text289}</option>
+              <option value="">{t.usersManagement.noneExecutiveLevel}</option>
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.full_name} ({u.role})

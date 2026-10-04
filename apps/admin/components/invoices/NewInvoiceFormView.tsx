@@ -12,6 +12,7 @@ import type {
   SupportedCurrency,
   DiscountType,
   ServiceItem,
+  Quotation,
 } from "@ishoot/database/types";
 import {
   Card,
@@ -43,8 +44,8 @@ interface NewInvoiceFormViewProps {
   company: CompanySettings | null;
   services?: ServiceItem[];
   preselectedClientId?: string;
-  acceptedQuotations?: any[];
-  preselectedQuotation?: any;
+  acceptedQuotations?: Quotation[];
+  preselectedQuotation?: Quotation | null;
   /** Deal this invoice bills (from a deal page link). */
   dealId?: string;
 }
@@ -160,12 +161,10 @@ export function NewInvoiceFormView({
       }
 
       toast.success(
-        isRTL
-          ? `تم استيراد بيانات عرض السعر ${q.quotationNumber}`
-          : `Imported scope and client from Quotation ${q.quotationNumber}`,
+        t.newInvoiceForm.importedFromQuotation.replace("{number}", q.quotationNumber),
       );
     },
-    [contacts, isRTL],
+    [contacts, t],
   );
 
   // Initialize from preselected quotation if given
@@ -178,24 +177,22 @@ export function NewInvoiceFormView({
   const handle1ClickConvert = async (quoteId: string) => {
     setConvertingQuoteId(quoteId);
     const toastId = toast.loading(
-      isRTL ? "جاري تحويل عرض السعر إلى فاتورة ضريبية..." : "Converting quotation to tax invoice...",
+      t.newInvoiceForm.convertingQuotationToTaxInvoice,
     );
     try {
       const res = await convertQuotationToInvoiceAction(quoteId);
       if (res.success && res.invoice) {
         toast.success(
-          isRTL
-            ? `تم إنشاء الفاتورة ${res.invoice.invoiceNumber} بنجاح`
-            : `Invoice ${res.invoice.invoiceNumber} created successfully!`,
+          t.newInvoiceForm.createdWithNumber.replace("{number}", res.invoice.invoiceNumber),
           { id: toastId },
         );
         router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
       } else {
-        toast.error(isRTL ? "فشل تحويل عرض السعر" : "Failed to convert quotation", { id: toastId });
+        toast.error(t.newInvoiceForm.failedToConvertQuotation, { id: toastId });
       }
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : isRTL ? "خطأ أثناء التحويل" : "Conversion failed",
+        err instanceof Error ? err.message : t.newInvoiceForm.conversionFailed,
         { id: toastId },
       );
     } finally {
@@ -251,11 +248,11 @@ export function NewInvoiceFormView({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedContactId || lineItems.length === 0) {
-      toast.error(isRTL ? "يرجى اختيار العميل وإضافة بند واحد على الأقل" : "Please select a client and add at least one line item");
+      toast.error(t.newInvoiceForm.pleaseSelectAClientAnd);
       return;
     }
     setSubmitting(true);
-    const toastId = toast.loading(isRTL ? "جاري إنشاء مسودة الفاتورة..." : "Creating invoice draft...");
+    const toastId = toast.loading(t.newInvoiceForm.creatingInvoiceDraft);
 
     try {
       const res = await createInvoiceAction({
@@ -283,14 +280,14 @@ export function NewInvoiceFormView({
       });
 
       if (res.invoice?.id) {
-        toast.success(isRTL ? "تم إنشاء الفاتورة بنجاح" : "Invoice created successfully", { id: toastId });
+        toast.success(t.newInvoiceForm.invoiceCreatedSuccessfully, { id: toastId });
         router.push(ROUTES.invoices.detail(res.invoice.id));
       } else {
-        toast.error(isRTL ? "فشل إنشاء الفاتورة" : "Failed to create invoice", { id: toastId });
+        toast.error(t.newInvoiceForm.failedToCreateInvoice, { id: toastId });
       }
     } catch (err: unknown) {
       console.error("Error creating invoice:", err);
-      toast.error(err instanceof Error ? err.message : isRTL ? "خطأ في إنشاء الفاتورة" : "Error creating invoice", { id: toastId });
+      toast.error(err instanceof Error ? err.message : t.newInvoiceForm.errorCreatingInvoice, { id: toastId });
     } finally {
       setSubmitting(false);
     }
@@ -327,15 +324,13 @@ export function NewInvoiceFormView({
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>{t.invoicesList.acceptedQuotesBanner || (isRTL ? "عروض أسعار مقبولة جاهزة للفوترة" : "Accepted Quotations Ready for Invoicing")}</span>
+                  <span>{t.invoicesList.acceptedQuotesBanner || (t.newInvoiceForm.acceptedQuotationsReadyForInvoicing)}</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-[#014842] dark:text-[#7de0d1]">
                     {acceptedQuotations.length}
                   </span>
                 </h3>
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  {t.invoicesList.acceptedQuotesSubtitle || (isRTL
-                    ? "يمكنك استيراد بنود العرض والعميل مباشرةً، أو تحويل العرض بنقرة واحدة."
-                    : "Select an accepted quotation to automatically populate client and line items.")}
+                  {t.invoicesList.acceptedQuotesSubtitle || (t.newInvoiceForm.selectAnAcceptedQuotationTo)}
                 </p>
               </div>
             </div>
@@ -350,7 +345,7 @@ export function NewInvoiceFormView({
                 }}
                 className="text-xs font-medium rounded-lg border border-teal-300 dark:border-teal-800 bg-white dark:bg-[#121B19] px-3 py-1.5 text-slate-900 dark:text-white"
               >
-                <option value="">{isRTL ? "-- اختر عرض سعر مقبول --" : "-- Select Accepted Quote --"}</option>
+                <option value="">{t.newInvoiceForm.selectAcceptedQuote}</option>
                 {acceptedQuotations.map((q) => (
                   <option key={q.id} value={q.id}>
                     {q.quotationNumber} - {q.client?.companyName || q.client?.firstName || "Client"} ({Number(q.totalAmount).toFixed(3)} {q.currency})
@@ -367,7 +362,7 @@ export function NewInvoiceFormView({
                   className="bg-[#014842] hover:bg-[#013833] text-white text-xs gap-1.5 active:scale-[0.98] transition-all shrink-0"
                 >
                   <Receipt className="w-3.5 h-3.5" />
-                  <span>{t.invoicesList.oneClickConvert || (isRTL ? "تحويل فوري" : "1-Click Convert")}</span>
+                  <span>{t.invoicesList.oneClickConvert || (t.newInvoiceForm.n1ClickConvert)}</span>
                 </Button>
               )}
             </div>

@@ -53,7 +53,7 @@ export function DealCard({ deal }: DealCardProps) {
                 href={ROUTES.crm.customer(deal.contact.id)}
                 className="hover:text-[#014842] dark:hover:text-[#09937F] hover:underline truncate font-medium"
                 onClick={(e) => e.stopPropagation()}
-                title="View Client Dossier"
+                title={t.dealCard.viewClientDossier}
               >
                 {deal.contact.company || deal.contact.full_name}
               </Link>

@@ -134,7 +134,7 @@ export function ClientAutocomplete({
   const handleCreateNewClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFullName.trim()) {
-      setCreateError(isRTL ? "يرجى إدخال اسم العميل" : "Customer name is required");
+      setCreateError(t.clientAutocomplete.customerNameIsRequired);
       return;
     }
 
@@ -169,11 +169,11 @@ export function ClientAutocomplete({
         setNewNotes("");
         setMode("search");
       } else {
-        setCreateError(isRTL ? "فشل إنشاء العميل، يرجى المحاولة ثانية" : "Failed to create client");
+        setCreateError(t.clientAutocomplete.failedToCreateClient);
       }
     } catch (err: unknown) {
       console.error("Error creating customer:", err);
-      setCreateError(err instanceof Error ? err.message : "Error creating customer");
+      setCreateError(err instanceof Error ? err.message : t.clientAutocomplete.errorCreatingCustomer);
     } finally {
       setCreatingClient(false);
     }
@@ -203,7 +203,7 @@ export function ClientAutocomplete({
               }`}
             >
               <Users className="w-3 h-3" />
-              <span>{isRTL ? "عميل مسجل" : "Existing Client"}</span>
+              <span>{t.clientAutocomplete.existingClient}</span>
             </button>
             <button
               type="button"
@@ -218,7 +218,7 @@ export function ClientAutocomplete({
               }`}
             >
               <UserPlus className="w-3 h-3" />
-              <span>{isRTL ? "عميل جديد" : "+ New Client"}</span>
+              <span>{t.clientAutocomplete.newClient}</span>
             </button>
           </div>
         )}
@@ -285,7 +285,7 @@ export function ClientAutocomplete({
           <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-white/10">
             <div className="flex items-center gap-2 text-xs font-bold text-[#014842] dark:text-[#7de0d1]">
               <UserPlus className="w-4 h-4" />
-              <span>{isRTL ? "إضافة عميل جديد إلى الدليل" : "Create New Customer & Add to Directory"}</span>
+              <span>{t.clientAutocomplete.createNewCustomerAndAdd}</span>
             </div>
             <button
               type="button"
@@ -295,7 +295,7 @@ export function ClientAutocomplete({
               }}
               className="text-xs text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
             >
-              {isRTL ? "إلغاء والعودة للبحث" : "Cancel & Search"}
+              {t.clientAutocomplete.cancelAndSearch}
             </button>
           </div>
 
@@ -309,25 +309,25 @@ export function ClientAutocomplete({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
-                {isRTL ? "الاسم الكامل / اسم المسؤول *" : "Full Name / Contact Person *"}
+                {t.clientAutocomplete.fullNameContactPerson}
               </label>
               <Input
                 value={newFullName}
                 onChange={(e) => setNewFullName(e.target.value)}
-                placeholder={isRTL ? "مثال: أحمد عبد الله" : "e.g. Ahmed Abdulla"}
+                placeholder={t.clientAutocomplete.eGAhmedAbdulla}
                 required
               />
             </div>
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
-                {isRTL ? "اسم الشركة / الجهة" : "Company / Organization"}
+                {t.clientAutocomplete.companyOrganization}
               </label>
               <div className="relative">
                 <Input
                   value={newCompany}
                   onChange={(e) => setNewCompany(e.target.value)}
-                  placeholder={isRTL ? "مثال: شركة التطوير الإعلامي" : "e.g. Gulf Media Co"}
+                  placeholder={t.clientAutocomplete.eGGulfMediaCo}
                   className="pl-8 rtl:pl-3 rtl:pr-8"
                 />
                 <Building className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-slate-400 pointer-events-none" />
@@ -336,7 +336,7 @@ export function ClientAutocomplete({
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
-                {isRTL ? "البريد الإلكتروني" : "Email Address"}
+                {t.clientAutocomplete.emailAddress}
               </label>
               <div className="relative">
                 <Input
@@ -352,7 +352,7 @@ export function ClientAutocomplete({
 
             <div>
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
-                {isRTL ? "رقم الهاتف / الواتساب" : "Phone / WhatsApp"}
+                {t.clientAutocomplete.phoneWhatsapp}
               </label>
               <div className="relative">
                 <Input
@@ -368,12 +368,12 @@ export function ClientAutocomplete({
 
             <div className="sm:col-span-2">
               <label className="block text-[11px] font-semibold text-slate-700 dark:text-neutral-300 mb-1">
-                {isRTL ? "المسمى الوظيفي / ملاحظات إضافية" : "Job Title / Notes"}
+                {t.clientAutocomplete.jobTitleNotes}
               </label>
               <Input
                 value={newJobTitle}
                 onChange={(e) => setNewJobTitle(e.target.value)}
-                placeholder={isRTL ? "مثال: مدير التسويق" : "e.g. Marketing Director"}
+                placeholder={t.clientAutocomplete.eGMarketingDirector}
               />
             </div>
           </div>
@@ -389,7 +389,7 @@ export function ClientAutocomplete({
               }}
               className="text-xs"
             >
-              {isRTL ? "إلغاء" : "Cancel"}
+              {t.clientAutocomplete.cancel}
             </Button>
             <Button
               type="button"
@@ -401,12 +401,12 @@ export function ClientAutocomplete({
               {creatingClient ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>{isRTL ? "جاري الحفظ..." : "Saving..."}</span>
+                  <span>{t.clientAutocomplete.saving}</span>
                 </>
               ) : (
                 <>
                   <Check className="w-3.5 h-3.5" />
-                  <span>{isRTL ? "حفظ واختيار العميل" : "Save & Select Client"}</span>
+                  <span>{t.clientAutocomplete.saveAndSelectClient}</span>
                 </>
               )}
             </Button>
@@ -448,7 +448,7 @@ export function ClientAutocomplete({
                       className="inline-flex items-center gap-1.5 text-xs text-[#014842] dark:text-[#7de0d1] font-semibold hover:underline"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
-                      <span>{isRTL ? "إضافة كعميل جديد الآن" : "+ Create as new client now"}</span>
+                      <span>{t.clientAutocomplete.createAsNewClientNow}</span>
                     </button>
                   )}
                 </div>
@@ -464,7 +464,7 @@ export function ClientAutocomplete({
                       className="w-full text-start p-3 bg-slate-50/70 dark:bg-white/[0.02] hover:bg-[#E6F5F2] dark:hover:bg-[#1D3531]/40 text-[#014842] dark:text-[#7de0d1] font-semibold text-xs flex items-center gap-2 border-b border-slate-100 dark:border-white/5 transition-colors"
                     >
                       <UserPlus className="w-3.5 h-3.5 shrink-0" />
-                      <span>{isRTL ? "+ إضافة عميل جديد غير مسجل" : "+ Create New Client Not in Directory"}</span>
+                      <span>{t.clientAutocomplete.createNewClientNotIn}</span>
                     </button>
                   )}
                   {contacts.map((contact) => (

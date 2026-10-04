@@ -3,7 +3,7 @@
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import type { FinancialSummary } from "@ishoot/database/types";
+import type { FinancialSummary, Quotation } from "@ishoot/database/types";
 import { Button,StatusBadge,CurrencyDisplay } from "@ishoot/ui";
 import { Plus, Eye, ExternalLink, FileCheck, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -13,7 +13,7 @@ import type { InvoiceListRow } from "@ishoot/database";
 interface InvoicesListViewProps {
   initialInvoices: InvoiceListRow[];
   finance: Pick<FinancialSummary, "outstanding" | "overdue" | "discountsGiven">;
-  acceptedQuotations?: any[];
+  acceptedQuotations?: Quotation[];
 }
 
 export function InvoicesListView({
@@ -58,15 +58,13 @@ export function InvoicesListView({
               </div>
               <div>
                 <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>{t.invoicesList.acceptedQuotesBanner || (isRTL ? "عروض أسعار مقبولة جاهزة للفوترة" : "Accepted Quotations Ready for Invoicing")}</span>
+                  <span>{t.invoicesList.acceptedQuotesBanner || (t.invoicesList.acceptedQuotationsReadyForInvoicing)}</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-[#014842] dark:text-[#7de0d1]">
                     {acceptedQuotations.length}
                   </span>
                 </h3>
                 <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                  {t.invoicesList.acceptedQuotesSubtitle || (isRTL
-                    ? "تم قبول هذه العروض من العملاء ويمكنك إصدار الفواتير الضريبية لها بضغطة زر."
-                    : "Clients accepted these quotes. You can create tax invoices directly from them.")}
+                  {t.invoicesList.acceptedQuotesSubtitle || (t.invoicesList.clientsAcceptedTheseQuotesYou)}
                 </p>
               </div>
             </div>
@@ -76,7 +74,7 @@ export function InvoicesListView({
                 size="sm"
                 className="text-xs text-[#014842] dark:text-[#7de0d1] hover:underline"
               >
-                <span>{isRTL ? "عرض الكل" : "View All"}</span>
+                <span>{t.invoicesList.viewAll}</span>
                 <ArrowIcon className="w-3.5 h-3.5 ml-1 rtl:mr-1" />
               </Button>
             </Link>
@@ -93,7 +91,7 @@ export function InvoicesListView({
                     {q.quotationNumber}
                   </div>
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                    {q.client?.companyName || q.client?.firstName || "Direct Client"}
+                    {q.client?.companyName || q.client?.firstName || t.invoicesList.directClient}
                   </div>
                   <div className="text-xs font-mono font-semibold text-[#014842] dark:text-[#7de0d1] mt-1">
                     {Number(q.totalAmount).toFixed(3)} {q.currency}
@@ -105,7 +103,7 @@ export function InvoicesListView({
                     size="sm"
                     className="bg-[#014842] hover:bg-[#013833] text-white text-[11px] font-semibold gap-1 px-3 py-1.5 rounded-lg active:scale-[0.98] transition-all shrink-0"
                   >
-                    <span>{t.invoicesList.createInvoiceFromQuote || (isRTL ? "إصدار فاتورة" : "Create Invoice")}</span>
+                    <span>{t.invoicesList.createInvoiceFromQuote || (t.invoicesList.createInvoice)}</span>
                     <ArrowIcon className="w-3 h-3" />
                   </Button>
                 </Link>

@@ -34,7 +34,7 @@ export function NewCompanyDocumentFormView() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titleEn || !files[0]?.file) {setError("Select a document file and enter its title"); return;}
+    if (!titleEn || !files[0]?.file) {setError(t.newCompanyDocumentForm.selectADocumentFileAnd); return;}
     setError("");
     setSaving(true);
 
@@ -55,7 +55,7 @@ export function NewCompanyDocumentFormView() {
 
       router.push(ROUTES.company.documents);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save document");
+      setError(err instanceof Error ? err.message : t.newCompanyDocumentForm.couldNotSaveDocument);
     } finally {
       setSaving(false);
     }

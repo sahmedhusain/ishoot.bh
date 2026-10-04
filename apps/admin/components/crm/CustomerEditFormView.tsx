@@ -38,13 +38,13 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
   const changes: FieldChange[] = React.useMemo(() => [
     {
       field: "full_name",
-      label: isRTL ? "الاسم الكامل" : "Full Name",
+      label: t.customerEditForm.fullName,
       oldValue: contact.full_name,
       newValue: fullName,
     },
     {
       field: "company",
-      label: isRTL ? "الشركة" : "Company",
+      label: t.customerEditForm.company,
       oldValue: contact.company || "",
       newValue: company,
     },
@@ -56,35 +56,35 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
     },
     {
       field: "email",
-      label: isRTL ? "البريد الإلكتروني" : "Email",
+      label: t.customerEditForm.email,
       oldValue: contact.email || "",
       newValue: email,
     },
     {
       field: "phone",
-      label: isRTL ? "رقم الهاتف" : "Phone",
+      label: t.customerEditForm.phone,
       oldValue: contact.phone || "",
       newValue: phone,
     },
     {
       field: "job_title",
-      label: isRTL ? "المسمى الوظيفي" : "Job Title",
+      label: t.customerEditForm.jobTitle,
       oldValue: contact.job_title || "",
       newValue: jobTitle,
     },
     {
       field: "contact_type",
-      label: isRTL ? "نوع جهة الاتصال" : "Contact Type",
+      label: t.customerEditForm.contactType,
       oldValue: contact.contact_type || "client",
       newValue: contactType,
     },
     {
       field: "notes",
-      label: isRTL ? "الملاحظات" : "Notes",
+      label: t.customerEditForm.notes,
       oldValue: contact.notes || "",
       newValue: notes,
     },
-  ], [t, contact, fullName, company, vatNumber, email, phone, jobTitle, contactType, notes, isRTL]);
+  ], [t, contact, fullName, company, vatNumber, email, phone, jobTitle, contactType, notes]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,7 +266,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
         changes={changes}
         isSaving={saving}
         title={isRTL ? `تأكيد تعديل بيانات العميل: ${contact.full_name}` : `Confirm Edit on Client: ${contact.full_name}`}
-        description={isRTL ? "راجع تفاصيل التغييرات على بيانات العميل قبل حفظها في النظام:" : "Review the updated client fields before saving changes to CRM:"}
+        description={t.customerEditForm.reviewTheUpdatedClientFields}
       />
     </div>
   );

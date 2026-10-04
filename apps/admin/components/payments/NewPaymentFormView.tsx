@@ -92,7 +92,7 @@ export function NewPaymentFormView({
       const data = await uploadFileDirectly(file, { entityType: "payment", entityId: "pending", documentType: type });
         const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Upload failed");
+        throw new Error(data.error || t.newPaymentForm.uploadFailed);
       }
 
       const fileData: UploadedDocument = {
@@ -107,7 +107,7 @@ export function NewPaymentFormView({
       else setGeneralProofFile(fileData);
     } catch (err: any) {
       console.error("Upload error:", err);
-      alert(err.message || "Failed to upload document");
+      alert(err.message || t.newPaymentForm.failedToUploadDocument);
     } finally {
       if (type === "cheque") setUploadingCheque(false);
       else if (type === "bank_receipt") setUploadingBankReceipt(false);
@@ -130,7 +130,7 @@ export function NewPaymentFormView({
       if(!invoice)throw Error("Invoice is no longer payable");
       if(version!==requestVersion.current)return;
       setInvoices([invoice]);setAmount(invoice.amount_due);
-    }catch(error){if(version!==requestVersion.current)return;setSelectedInvoiceId("");setInvoices([]);setError(error instanceof Error?error.message:"Could not load invoice");}
+    }catch(error){if(version!==requestVersion.current)return;setSelectedInvoiceId("");setInvoices([]);setError(error instanceof Error?error.message:t.newPaymentForm.couldNotLoadInvoice);}
     finally{if(version===requestVersion.current)setFetchingInvoices(false);}
   };
 
@@ -148,7 +148,7 @@ export function NewPaymentFormView({
 
     if (paymentMethod === "cheque" && (!chequeFile || !bankReceiptFile)) {
       setFormError(
-        "Cheque payments require uploading both documents: (1) Cheque Copy and (2) Bank Statement Transfer Slip before issuing a receipt.",
+        t.newPaymentForm.chequePaymentsRequireUploadingBoth,
       );
       return;
     }
@@ -178,7 +178,7 @@ export function NewPaymentFormView({
       router.push(ROUTES.payments.list);
     } catch (err: any) {
       console.error("Failed to record payment:", err);
-      setFormError(err.message || "Failed to record payment");
+      setFormError(err.message || t.newPaymentForm.failedToRecordPayment);
     } finally {
       setSaving(false);
     }

@@ -88,21 +88,21 @@ export function Sidebar() {
           },
           {
             href: ROUTES.requests.list,
-            label: t.hrText.text271,
+            label: t.sidebar.requestsAndComplaintsSrCr,
             icon: ShieldAlert,
             resource: "requests",
             moduleKey: "crm_deals",
           },
           {
             href: ROUTES.moms.list,
-            label: t.hrText.text272,
+            label: t.sidebar.minutesOfMeetingsMom,
             icon: FileSignature,
             resource: "moms",
             moduleKey: "crm_deals",
           },
           {
             href: ROUTES.crm.leads,
-            label: t.hrText.text273,
+            label: t.sidebar.requestsAndFeedback,
             icon: Inbox,
             resource: "leads",
             moduleKey: "crm_deals",
@@ -114,7 +114,7 @@ export function Sidebar() {
         items: [
           {
             href: ROUTES.quotations.list,
-            label: t.hrText.text274,
+            label: t.sidebar.quotations,
             icon: FileSignature,
             resource: "quotations",
             moduleKey: "invoicing",
@@ -148,7 +148,7 @@ export function Sidebar() {
           },
           {
             href: ROUTES.finance.reports,
-            label: t.hrText.text275,
+            label: t.sidebar.financialReports,
             icon: BarChart,
             resource: "reports",
             moduleKey: "invoicing",
@@ -163,11 +163,11 @@ export function Sidebar() {
         ],
       },
       {
-        title: t.hrText.text276,
+        title: t.sidebar.humanResources,
         items: [
           {
             href: ROUTES.hr.employees,
-            label: t.hrText.text277,
+            label: t.sidebar.employeeDirectory,
             icon: Users,
             resource: "employees",
             moduleKey: "hrms",
@@ -175,7 +175,7 @@ export function Sidebar() {
           // Leave and salary documents are self-service: every staff member files their own.
           {
             href: ROUTES.hr.leave(),
-            label: t.hrText.text278,
+            label: t.sidebar.leaveManagement,
             icon: Calendar,
             resource: "self_service",
             moduleKey: "hrms",
@@ -189,7 +189,7 @@ export function Sidebar() {
           },
           {
             href: ROUTES.hr.payroll(),
-            label: t.hrText.text279,
+            label: t.sidebar.payrollAndGosi,
             icon: CreditCard,
             resource: "payroll",
             moduleKey: "payroll",
@@ -197,16 +197,16 @@ export function Sidebar() {
         ],
       },
       {
-        title: t.hrText.text280,
+        title: t.sidebar.governance,
         items: [
           {
             href: ROUTES.approvals(),
-            label: t.hrText.text281,
+            label: t.sidebar.approvalCenter,
             icon: ShieldAlert,
           },
           {
             href: ROUTES.profile(),
-            label: t.hrText.text282,
+            label: t.sidebar.myProfile,
             icon: Users,
           },
         ],
@@ -216,7 +216,7 @@ export function Sidebar() {
         items: [
           {
             href: ROUTES.cms.website,
-            label: t.hrText.text283,
+            label: t.sidebar.websitePublishing,
             icon: Globe,
             resource: "settings",
             moduleKey: "cms",

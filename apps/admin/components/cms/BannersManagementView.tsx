@@ -38,7 +38,7 @@ interface BannersManagementViewProps {
 export function BannersManagementView({
   initialBanners,
 }: BannersManagementViewProps) {
-  const { t, locale, isRTL } = useAdminLocale();
+  const {t, locale} = useAdminLocale();
   const [banners, setBanners] = React.useState<HeroBanner[]>(initialBanners);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
@@ -84,7 +84,7 @@ export function BannersManagementView({
         prev.map((b) => (b.id === id ? { ...b, is_active: nextStatus } : b)),
       );
     } catch (err) {
-      setError("Could not update banner. Please try again.");
+      setError(t.bannersManagement.couldNotUpdateBannerPlease);
     }
   };
 
@@ -93,7 +93,7 @@ export function BannersManagementView({
       await deleteBannerAction(id);
       setBanners((prev) => prev.filter((b) => b.id !== id));
     } catch (err) {
-      setError("Could not delete banner. Please try again.");
+      setError(t.bannersManagement.couldNotDeleteBannerPlease);
     }
   };
 
@@ -136,7 +136,7 @@ export function BannersManagementView({
       setMediaUrl("");
       setPosterUrl("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save banner");
+      setError(err instanceof Error ? err.message : t.bannersManagement.couldNotSaveBanner);
     } finally {
       setSaving(false);
     }
@@ -153,9 +153,7 @@ export function BannersManagementView({
         href={ROUTES.cms.website}
         className="block text-sm text-[#5eead4] underline"
       >
-        {isRTL
-          ? "راجع التغييرات وانشرها من محرر الموقع"
-          : "Review and publish changes in the website editor"}
+        {t.bannersManagement.reviewAndPublishChangesIn}
       </Link>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -213,9 +211,7 @@ export function BannersManagementView({
                     </h3>
                     <Badge variant={banner.is_active ? "emerald" : "outline"}>
                       {banner.is_active
-                        ? isRTL
-                          ? "مضمّن في المسودة"
-                          : "Included in draft"
+                        ? t.bannersManagement.includedInDraft
                         : t.cms.hidden}
                     </Badge>
                   </div>
@@ -283,9 +279,7 @@ export function BannersManagementView({
             </p>
           )}
           <p className="text-xs text-[#9EADA9]">
-            {isRTL
-              ? "احفظ ثم انشر من محرر الموقع."
-              : "Save, then publish from the website editor."}
+            {t.bannersManagement.saveThenPublishFromThe}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -377,7 +371,7 @@ export function BannersManagementView({
 
           <div className="grid sm:grid-cols-2 gap-4">
             <label className="text-sm">
-              CTA (English)
+              {t.bannersManagement.ctaEnglish}
               <Input value={ctaEn} onChange={(e) => setCtaEn(e.target.value)} />
             </label>
             <label className="text-sm">
@@ -385,7 +379,7 @@ export function BannersManagementView({
               <Input value={ctaAr} onChange={(e) => setCtaAr(e.target.value)} />
             </label>
             <label className="text-sm">
-              {isRTL ? "رابط الزر" : "CTA destination"}
+              {t.bannersManagement.ctaDestination}
               <Input
                 value={ctaLink}
                 onChange={(e) => setCtaLink(e.target.value)}
@@ -393,7 +387,7 @@ export function BannersManagementView({
               />
             </label>
             <label className="text-sm">
-              {isRTL ? "ترتيب العرض" : "Display order"}
+              {t.bannersManagement.displayOrder}
               <Input
                 type="number"
                 value={order}

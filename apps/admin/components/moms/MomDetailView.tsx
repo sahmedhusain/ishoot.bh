@@ -57,7 +57,7 @@ export function MomDetailView({
   currentUser,
 }: MomDetailViewProps) {
   const router = useRouter();
-  const { isRTL } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
   const { can } = usePermissions();
   const [isApproving, setIsApproving] = React.useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
@@ -175,9 +175,7 @@ export function MomDetailView({
       if (res.success && res.status !== "failed") {
         setFeedbackMessage({
           type: "success",
-          text: isAr
-            ? (res.status === "accepted" ? `قبل مزود البريد الرسالة إلى ${recipientEmail}` : `تمت إضافة البريد إلى قائمة الإرسال إلى ${recipientEmail}`)
-            : (res.status === "accepted" ? `Email provider accepted the message to ${recipientEmail}` : `Email queued for ${recipientEmail}`),
+          text: (res.status === "accepted" ? t.momDetail.emailAccepted : t.momDetail.emailQueued).replace("{email}", recipientEmail),
         });
         setIsEmailModalOpen(false);
       } else {

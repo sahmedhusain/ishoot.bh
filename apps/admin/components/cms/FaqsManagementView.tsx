@@ -1,4 +1,5 @@
 "use client";
+import type { FaqItem } from "../../types/cms";
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -6,7 +7,7 @@ import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from "@ish
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { createFaqAction, updateFaqAction, deleteFaqAction } from "../../app/actions/cms";
 
-export function FaqsManagementView({ initialFaqs }: { initialFaqs: any[] }) {
+export function FaqsManagementView({ initialFaqs }: { initialFaqs: FaqItem[] }) {
   const { t, isRTL } = useAdminLocale();
   const [faqs, setFaqs] = React.useState(initialFaqs);
   const [isModalOpen, setIsModalOpen] = React.useState(false);

@@ -54,7 +54,7 @@ export function WebSettingsView({
   cmsCounts,
   socialLinks = [],
 }: WebSettingsViewProps) {
-  const { isRTL, t } = useAdminLocale();
+  const {t} = useAdminLocale();
   const [settings, setSettings] =
     React.useState<CompanySettings>(initialSettings);
   const [activeTab, setActiveTab] = React.useState<
@@ -148,9 +148,7 @@ export function WebSettingsView({
         href={ROUTES.cms.website}
         className="block rounded-xl bg-emerald-900 text-white p-5 font-semibold"
       >
-        {isRTL
-          ? "تحرير الموقع والمعاينة والنشر ←"
-          : "Website editor, preview & publishing →"}
+        {t.webSettings.websiteEditorPreviewAndPublishing}
       </Link>
       {/* Top Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -238,7 +236,7 @@ export function WebSettingsView({
           }`}
         >
           <Shield className="w-4 h-4 text-[#09937F]" />
-          <span>Terms & Privacy</span>
+          <span>{t.webSettings.termsAndPrivacy}</span>
         </button>
 
         <button
@@ -380,7 +378,7 @@ export function WebSettingsView({
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
-                {(["about_text_en","about_text_ar"] as const).map(key=><label key={key} className="text-sm">{key === "about_text_ar" ? "نبذة الاستوديو" : "Studio story"}<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar")?"rtl":"ltr"} value={settings[key]||""} onChange={e=>setSettings({...settings,[key]:e.target.value})}/></label>)}
+                {(["about_text_en","about_text_ar"] as const).map(key=><label key={key} className="text-sm">{key === "about_text_ar" ? "نبذة الاستوديو" : t.webSettings.studioStory}<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar")?"rtl":"ltr"} value={settings[key]||""} onChange={e=>setSettings({...settings,[key]:e.target.value})}/></label>)}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -547,11 +545,10 @@ export function WebSettingsView({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Terms of Conditions & Privacy & Security
+                    {t.webSettings.termsOfConditionsAndPrivacy}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-neutral-400">
-                    Manage the terms of conditions and privacy & security policies
-                    displayed on the website.
+                    {t.webSettings.manageTheTermsOfConditions}
                   </p>
                 </div>
               </div>
@@ -559,7 +556,7 @@ export function WebSettingsView({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
-                    Terms of Conditions (English)
+                    {t.webSettings.termsOfConditionsEnglish}
                   </label>
                   <Textarea
                     rows={6}
@@ -572,7 +569,7 @@ export function WebSettingsView({
 
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
-                    Terms of Conditions (Arabic)
+                    {t.webSettings.termsOfConditionsArabic}
                   </label>
                   <Textarea
                     rows={6}
@@ -586,7 +583,7 @@ export function WebSettingsView({
 
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
-                    Privacy & Security Policy (English)
+                    {t.webSettings.privacyAndSecurityPolicyEnglish}
                   </label>
                   <Textarea
                     rows={6}
@@ -599,7 +596,7 @@ export function WebSettingsView({
 
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-slate-700 dark:text-neutral-300">
-                    Privacy & Security Policy (Arabic)
+                    {t.webSettings.privacyAndSecurityPolicyArabic}
                   </label>
                   <Textarea
                     rows={6}
@@ -625,10 +622,10 @@ export function WebSettingsView({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Dynamic Social Links
+                    {t.webSettings.dynamicSocialLinks}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-neutral-400">
-                    Add and manage social media links displayed on the website.
+                    {t.webSettings.addAndManageSocialMedia}
                   </p>
                 </div>
               </div>
@@ -637,7 +634,7 @@ export function WebSettingsView({
                 <div className="flex gap-2 items-end">
                   <div className="flex-1 space-y-1">
                     <label className="text-[10px] uppercase font-bold text-slate-500">
-                      Platform
+                      {t.webSettings.platform}
                     </label>
                     <PlatformPicker
                       platform={newLink.platform}
@@ -664,12 +661,12 @@ export function WebSettingsView({
                   </div>
                   <div className="w-32 space-y-1">
                     <label className="text-[10px] uppercase font-bold text-slate-500">
-                      Icon (Optional)
+                      {t.webSettings.iconOptional}
                     </label>
                     <IconPicker
                       value={newLink.icon}
                       onChange={(val) => setNewLink({ ...newLink, icon: val })}
-                      placeholder="e.g. Instagram"
+                      placeholder={t.webSettings.eGInstagram}
                     />
                   </div>
                   <button
@@ -677,7 +674,7 @@ export function WebSettingsView({
                     onClick={handleAddSocialLink}
                     className="h-10 px-4 rounded-xl bg-[#09937F] text-white text-xs font-bold hover:bg-[#0BB49B] transition-colors"
                   >
-                    Add Link
+                    {t.webSettings.addLink}
                   </button>
                 </div>
 
@@ -685,10 +682,10 @@ export function WebSettingsView({
                   <table className="w-full text-left text-sm">
                     <thead className="bg-slate-50 dark:bg-white/5 text-xs text-slate-500">
                       <tr>
-                        <th className="px-4 py-3 font-semibold">Platform</th>
+                        <th className="px-4 py-3 font-semibold">{t.webSettings.platform}</th>
                         <th className="px-4 py-3 font-semibold">URL</th>
                         <th className="px-4 py-3 font-semibold text-right">
-                          Actions
+                          {t.webSettings.actions}
                         </th>
                       </tr>
                     </thead>
@@ -702,7 +699,7 @@ export function WebSettingsView({
                             {link.platform}
                             {!link.is_active && (
                               <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-500">
-                                Hidden
+                                {t.webSettings.hidden}
                               </span>
                             )}
                           </td>
@@ -724,7 +721,7 @@ export function WebSettingsView({
                               onClick={() => handleDeleteSocialLink(link.id)}
                               className="text-xs text-rose-500 hover:text-rose-400"
                             >
-                              Delete
+                              {t.webSettings.delete}
                             </button>
                           </td>
                         </tr>
@@ -735,7 +732,7 @@ export function WebSettingsView({
                             colSpan={3}
                             className="px-4 py-8 text-center text-slate-500 text-xs"
                           >
-                            No social links added yet.
+                            {t.webSettings.noSocialLinksAddedYet}
                           </td>
                         </tr>
                       )}
@@ -752,10 +749,10 @@ export function WebSettingsView({
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                    Contact Details
+                    {t.webSettings.contactDetails}
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-neutral-400">
-                    Phone numbers and addresses for the website contact page.
+                    {t.webSettings.phoneNumbersAndAddressesFor}
                   </p>
                 </div>
               </div>

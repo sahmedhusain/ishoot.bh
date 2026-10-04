@@ -75,7 +75,7 @@ export function EmployeeDetailView({
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    const toastId = toast.loading(t.hrText.text0);
+    const toastId = toast.loading(t.employeeDetail.updatingEmployeeProfile);
     try {
       const res = await updateEmployeeAction(employee.id, {
         jobTitleEn: jobTitleEn.trim(),
@@ -92,14 +92,14 @@ export function EmployeeDetailView({
       });
 
       if (res.success) {
-        toast.success(t.hrText.text1, { id: toastId });
+        toast.success(t.employeeDetail.employeeProfileUpdatedSuccessfully, { id: toastId });
         setIsEditing(false);
         router.refresh();
       } else {
-        toast.error(t.hrText.text2, { id: toastId });
+        toast.error(t.employeeDetail.failedToUpdateEmployee, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.hrText.extra290, {
+      toast.error(err instanceof Error ? err.message : t.employeeDetail.updateFailed, {
         id: toastId,
       });
     } finally {
@@ -153,7 +153,7 @@ export function EmployeeDetailView({
             className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <Edit2 className="w-3.5 h-3.5" />
-            <span>{t.hrText.text3}</span>
+            <span>{t.employeeDetail.editProfile}</span>
           </Button>
         )}
       </div>
@@ -163,9 +163,9 @@ export function EmployeeDetailView({
         <div className="p-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 flex items-start gap-3 text-xs text-amber-800 dark:text-amber-300">
           <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <div className="font-semibold text-sm">{t.hrText.text4}</div>
+            <div className="font-semibold text-sm">{t.employeeDetail.employeeCurrentlyOnApprovedLeave}</div>
             <p className="text-amber-700 dark:text-amber-400 leading-relaxed text-[11px]">
-              {t.hrText.text5}
+              {t.employeeDetail.governanceInvariantInEffectThe}
             </p>
           </div>
         </div>
@@ -192,13 +192,13 @@ export function EmployeeDetailView({
         <form onSubmit={handleSave} className="space-y-6">
           <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-3">
-              {t.hrText.text6}
+              {t.employeeDetail.editEmploymentAndRoleInformation}
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                  {t.hrText.text7}
+                  {t.shared.jobTitleEnglish}
                 </label>
                 <input
                   type="text"
@@ -211,7 +211,7 @@ export function EmployeeDetailView({
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                  {t.hrText.text8}
+                  {t.shared.text}
                 </label>
                 <input
                   type="text"
@@ -224,14 +224,14 @@ export function EmployeeDetailView({
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                  {t.hrText.text9}
+                  {t.shared.department}
                 </label>
                 <select
                   value={departmentId}
                   onChange={(e) => setDepartmentId(e.target.value)}
                   className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2.5 text-slate-900 dark:text-white"
                 >
-                  <option value="">{t.hrText.text10}</option>
+                  <option value="">{t.employeeDetail.noDepartmentAssigned}</option>
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.nameEn} ({d.code})
@@ -242,23 +242,23 @@ export function EmployeeDetailView({
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                  {t.hrText.text11}
+                  {t.employeeDetail.dutyStatus}
                 </label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as any)}
                   className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2.5 text-slate-900 dark:text-white"
                 >
-                  <option value="active">{t.hrText.text12}</option>
-                  <option value="on_leave">{t.hrText.text13}</option>
-                  <option value="suspended">{t.hrText.text14}</option>
-                  <option value="terminated">{t.hrText.text15}</option>
+                  <option value="active">{t.shared.activeDuty}</option>
+                  <option value="on_leave">{t.shared.onLeave}</option>
+                  <option value="suspended">{t.shared.suspended}</option>
+                  <option value="terminated">{t.shared.terminated}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                  {t.hrText.text16}
+                  {t.shared.email}
                 </label>
                 <input
                   type="email"
@@ -270,7 +270,7 @@ export function EmployeeDetailView({
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                  {t.hrText.text17}
+                  {t.employeeDetail.phone}
                 </label>
                 <input
                   type="text"
@@ -285,12 +285,12 @@ export function EmployeeDetailView({
           {/* Compensation Adjustment */}
           <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-3">
-              {t.hrText.text18}
+              {t.employeeDetail.effectiveCompensationBhd}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">
-                  {t.hrText.text19}
+                  {t.employeeDetail.basicSalary}
                 </label>
                 <input
                   type="number"
@@ -303,7 +303,7 @@ export function EmployeeDetailView({
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">
-                  {t.hrText.text20}
+                  {t.shared.housing}
                 </label>
                 <input
                   type="number"
@@ -316,7 +316,7 @@ export function EmployeeDetailView({
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">
-                  {t.hrText.text21}
+                  {t.shared.transport}
                 </label>
                 <input
                   type="number"
@@ -331,7 +331,7 @@ export function EmployeeDetailView({
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">
-                  {t.hrText.text22}
+                  {t.employeeDetail.other}
                 </label>
                 <input
                   type="number"
@@ -355,14 +355,14 @@ export function EmployeeDetailView({
               onClick={() => setIsEditing(false)}
               className="px-4 py-2 text-xs font-medium rounded-md border border-[#EAEAEA] dark:border-white/10 text-slate-600 hover:bg-slate-50"
             >
-              {t.hrText.text23}
+              {t.shared.cancel}
             </button>
             <Button
               type="submit"
               disabled={saving}
               className="bg-[#014842] hover:bg-[#013833] text-white px-5 py-2 rounded-md text-xs font-medium"
             >
-              {saving ? t.hrText.extra291 : t.hrText.extra292}
+              {saving ? t.employeeDetail.savingChanges : t.employeeDetail.saveUpdates}
             </Button>
           </div>
         </form>
@@ -375,13 +375,13 @@ export function EmployeeDetailView({
             <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-3 flex items-center gap-2">
                 <BriefcaseIcon className="w-4 h-4 text-[#09937F]" />
-                {t.hrText.text24}
+                {t.employeeDetail.jobAndOrganization}
               </h2>
 
               <div className="grid grid-cols-2 gap-4 text-xs">
                 <div>
                   <span className="text-slate-400 block mb-0.5">
-                    {t.hrText.text25}
+                    {t.employeeDetail.jobTitleEn}
                   </span>
                   <div className="font-semibold text-slate-900 dark:text-white text-sm">
                     {employee.jobTitleEn}
@@ -389,7 +389,7 @@ export function EmployeeDetailView({
                 </div>
                 <div>
                   <span className="text-slate-400 block mb-0.5">
-                    {t.hrText.text26}
+                    {t.employeeDetail.jobTitle}
                   </span>
                   <div
                     className="font-semibold text-slate-900 dark:text-white text-sm"
@@ -401,18 +401,18 @@ export function EmployeeDetailView({
 
                 <div>
                   <span className="text-slate-400 block mb-0.5">
-                    {t.hrText.text27}
+                    {t.employeeDetail.department}
                   </span>
                   <div className="text-slate-800 dark:text-neutral-200 font-medium">
                     {employee.department
                       ? `${employee.department.nameEn} (${employee.department.code})`
-                      : t.hrText.extra293}
+                      : t.employeeDetail.general}
                   </div>
                 </div>
 
                 <div>
                   <span className="text-slate-400 block mb-0.5">
-                    {t.hrText.text28}
+                    {t.employeeDetail.hireDate}
                   </span>
                   <div className="font-mono text-slate-800 dark:text-neutral-200">
                     {new Date(employee.hireDate).toLocaleDateString()}
@@ -421,19 +421,19 @@ export function EmployeeDetailView({
 
                 <div>
                   <span className="text-slate-400 block mb-0.5">
-                    {t.hrText.text29}
+                    {t.employeeDetail.bahrainCpr}
                   </span>
                   <div className="font-mono text-slate-800 dark:text-neutral-200">
-                    {employee.cprNumber || "Not recorded"}
+                    {employee.cprNumber || t.employeeDetail.notRecorded}
                   </div>
                 </div>
 
                 <div>
                   <span className="text-slate-400 block mb-0.5">
-                    {t.hrText.text30}
+                    {t.employeeDetail.contact}
                   </span>
                   <div className="text-slate-800 dark:text-neutral-200">
-                    {employee.email || "No email"}{" "}
+                    {employee.email || t.employeeDetail.noEmail}{" "}
                     {employee.phone ? `• ${employee.phone}` : ""}
                   </div>
                 </div>
@@ -445,42 +445,42 @@ export function EmployeeDetailView({
               <div className="flex items-center justify-between border-b border-[#EAEAEA] dark:border-white/10 pb-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-[#09937F]" />
-                  {t.hrText.text31}
+                  {t.employeeDetail.monthlyRemunerationAndGosiBase}
                 </h2>
                 <span className="text-xs font-mono font-bold text-[#014842] dark:text-[#7de0d1]">
-                  {t.hrText.text32}
+                  {t.employeeDetail.totalGross}
                   {totalMonthlyGross.toFixed(3)}
-                  {t.hrText.text33}
+                  {t.shared.bhd}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                 <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-[#EAEAEA] dark:border-white/5 space-y-1">
-                  <span className="text-slate-400">{t.hrText.text19}</span>
+                  <span className="text-slate-400">{t.employeeDetail.basicSalary}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
                     {basicSalary.toFixed(3)}
-                    {t.hrText.text33}
+                    {t.shared.bhd}
                   </div>
                 </div>
                 <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-[#EAEAEA] dark:border-white/5 space-y-1">
-                  <span className="text-slate-400">{t.hrText.text34}</span>
+                  <span className="text-slate-400">{t.shared.housingAllowance}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
                     {housingAllowance.toFixed(3)}
-                    {t.hrText.text33}
+                    {t.shared.bhd}
                   </div>
                 </div>
                 <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-[#EAEAEA] dark:border-white/5 space-y-1">
-                  <span className="text-slate-400">{t.hrText.text21}</span>
+                  <span className="text-slate-400">{t.shared.transport}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
                     {transportAllowance.toFixed(3)}
-                    {t.hrText.text33}
+                    {t.shared.bhd}
                   </div>
                 </div>
                 <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-[#EAEAEA] dark:border-white/5 space-y-1">
-                  <span className="text-slate-400">{t.hrText.text35}</span>
+                  <span className="text-slate-400">{t.shared.otherAllowances}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
                     {otherAllowances.toFixed(3)}
-                    {t.hrText.text33}
+                    {t.shared.bhd}
                   </div>
                 </div>
               </div>
@@ -491,27 +491,27 @@ export function EmployeeDetailView({
           <div className="space-y-6">
             <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-3">
               <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-[#EAEAEA] dark:border-white/10 pb-2">
-                {t.hrText.text36}
+                {t.employeeDetail.leaveAndStatutoryEntitlement}
               </h3>
               <div>
                 <span className="text-slate-500 text-xs">
-                  {t.hrText.text37}
+                  {t.employeeDetail.annualLeaveBalance}
                 </span>
                 <div className="text-3xl font-bold font-mono text-[#014842] dark:text-[#7de0d1] mt-1">
                   {Number(employee.leaveBalanceDays).toFixed(1)}{" "}
                   <span className="text-xs font-normal text-slate-400">
-                    {t.hrText.text38}
+                    {t.shared.days}
                   </span>
                 </div>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed pt-2 border-t border-slate-100 dark:border-white/5">
-                {t.hrText.text39}
+                {t.employeeDetail.bahrainLabourLawStandard30}
               </p>
             </Card>
 
             <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-3">
               <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-[#EAEAEA] dark:border-white/10 pb-2">
-                {t.hrText.text40}
+                {t.employeeDetail.linkedSystemLogin}
               </h3>
               {employee.user ? (
                 <div className="text-xs space-y-1">
@@ -520,12 +520,12 @@ export function EmployeeDetailView({
                   </div>
                   <div className="text-slate-500">{employee.user.email}</div>
                   <div className="font-mono text-[11px] text-[#09937F] mt-1">
-                    {t.hrText.text41}
+                    {t.employeeDetail.role}
                     {employee.user.role}
                   </div>
                 </div>
               ) : (
-                <div className="text-xs text-slate-400">{t.hrText.text42}</div>
+                <div className="text-xs text-slate-400">{t.employeeDetail.noDashboardUserLinkedEmployee}</div>
               )}
             </Card>
           </div>

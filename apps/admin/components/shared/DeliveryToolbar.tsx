@@ -133,9 +133,7 @@ export function DeliveryToolbar({
               ? t.deliveryToolbar.dispatched
               : onSendEmail
                 ? t.deliveryToolbar.sendEmail
-                : locale === "ar"
-                  ? "كتابة بريد إلكتروني"
-                  : "Compose email"}
+                : t.deliveryToolbar.composeEmail}
         </span>
       </Button>
 

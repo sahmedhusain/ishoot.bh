@@ -73,14 +73,14 @@ export function EmployeesListView({
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono uppercase tracking-widest text-[#09937F] bg-[#EDF3EC] dark:bg-[#004d40]/40 dark:text-[#7de0d1] px-2.5 py-0.5 rounded-full font-medium">
-              {t.hrText.text43}
+              {t.employeesList.humanCapitalAndOrganization}
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
-            {t.hrText.text44}
+            {t.employeesList.employeesAndTalentDirectory}
           </h1>
           <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
-            {t.hrText.text45}
+            {t.employeesList.manageOrganizationalRosterCompensationProfiles}
           </p>
         </div>
 
@@ -90,7 +90,7 @@ export function EmployeesListView({
             className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <UserPlus className="w-4 h-4" />
-            <span>{t.hrText.text46}</span>
+            <span>{t.employeesList.onboardEmployee}</span>
           </Link>
         </div>
       </div>
@@ -99,43 +99,43 @@ export function EmployeesListView({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
-            {t.hrText.text47}
+            {t.employeesList.totalStaffCount}
           </div>
           <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
             {total}
           </div>
-          <div className="text-xs text-slate-400">{t.hrText.text48}</div>
+          <div className="text-xs text-slate-400">{t.employeesList.totalRegisteredProfiles}</div>
         </div>
 
         <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
-            {t.hrText.text12}
+            {t.shared.activeDuty}
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
             {activeCount}
           </div>
-          <div className="text-xs text-slate-400">{t.hrText.text49}</div>
+          <div className="text-xs text-slate-400">{t.employeesList.availableForAssignment}</div>
         </div>
 
         <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
-            {t.hrText.text50}
+            {t.employeesList.onApprovedLeave}
           </div>
           <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 flex items-center gap-2">
             {onLeaveCount}
             {onLeaveCount > 0 && <Clock className="w-4 h-4" />}
           </div>
-          <div className="text-xs text-slate-400">{t.hrText.text51}</div>
+          <div className="text-xs text-slate-400">{t.employeesList.strictlyBlockedFromAllocation}</div>
         </div>
 
         <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
-            {t.hrText.text52}
+            {t.employeesList.departments}
           </div>
           <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
             {departments.length}
           </div>
-          <div className="text-xs text-slate-400">{t.hrText.text53}</div>
+          <div className="text-xs text-slate-400">{t.employeesList.functionalUnits}</div>
         </div>
       </div>
 
@@ -151,7 +151,7 @@ export function EmployeesListView({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t.hrText.text54}
+              placeholder={t.employeesList.searchByNameEmployeeTitle}
               className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 pl-9 pr-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
             />
           </div>
@@ -159,7 +159,7 @@ export function EmployeesListView({
             type="submit"
             className="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-xs rounded-md font-medium text-slate-700 dark:text-neutral-300"
           >
-            {t.hrText.text55}
+            {t.employeesList.search}
           </button>
         </form>
 
@@ -170,7 +170,7 @@ export function EmployeesListView({
             onChange={(e) => updateFilter(e.target.value, currentStatus)}
             className="text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 px-3 py-2 text-slate-800 dark:text-neutral-200"
           >
-            <option value="all">{t.hrText.text56}</option>
+            <option value="all">{t.employeesList.allDepartments}</option>
             {departments.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.nameEn} / {d.nameAr}
@@ -184,11 +184,11 @@ export function EmployeesListView({
             onChange={(e) => updateFilter(currentDepartment, e.target.value)}
             className="text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 px-3 py-2 text-slate-800 dark:text-neutral-200"
           >
-            <option value="all">{t.hrText.text57}</option>
-            <option value="active">{t.hrText.text12}</option>
-            <option value="on_leave">{t.hrText.text13}</option>
-            <option value="suspended">{t.hrText.text14}</option>
-            <option value="terminated">{t.hrText.text15}</option>
+            <option value="all">{t.employeesList.allStatuses}</option>
+            <option value="active">{t.shared.activeDuty}</option>
+            <option value="on_leave">{t.shared.onLeave}</option>
+            <option value="suspended">{t.shared.suspended}</option>
+            <option value="terminated">{t.shared.terminated}</option>
           </select>
         </div>
       </div>
@@ -199,12 +199,12 @@ export function EmployeesListView({
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-[#EAEAEA] dark:border-white/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
-                <th className="py-3 px-4">{t.hrText.text58}</th>
-                <th className="py-3 px-4">{t.hrText.text59}</th>
-                <th className="py-3 px-4">{t.hrText.text60}</th>
-                <th className="py-3 px-4 text-right">{t.hrText.text61}</th>
-                <th className="py-3 px-4 text-right">{t.hrText.text62}</th>
-                <th className="py-3 px-4 text-right">{t.hrText.text63}</th>
+                <th className="py-3 px-4">{t.shared.employee}</th>
+                <th className="py-3 px-4">{t.employeesList.jobTitleAndDept}</th>
+                <th className="py-3 px-4">{t.employeesList.statusAndAvailability}</th>
+                <th className="py-3 px-4 text-right">{t.employeesList.leaveBalance}</th>
+                <th className="py-3 px-4 text-right">{t.employeesList.compensation}</th>
+                <th className="py-3 px-4 text-right">{t.employeesList.action}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EAEAEA] dark:divide-white/5">
@@ -214,7 +214,7 @@ export function EmployeesListView({
                     colSpan={6}
                     className="py-12 text-center text-xs text-slate-400"
                   >
-                    {t.hrText.text64}
+                    {t.employeesList.noEmployeeRecordsFoundMatching}
                   </td>
                 </tr>
               ) : (
@@ -243,7 +243,7 @@ export function EmployeesListView({
                           <span>{emp.employeeNumber}</span>
                           {emp.cprNumber && (
                             <span>
-                              {t.hrText.text65}
+                              {t.employeesList.cpr}
                               {emp.cprNumber}
                             </span>
                           )}
@@ -257,7 +257,7 @@ export function EmployeesListView({
                         <div className="text-xs text-slate-400">
                           {emp.department
                             ? `${emp.department.nameEn} (${emp.department.code})`
-                            : t.hrText.extra294}
+                            : t.employeesList.generalOperations}
                         </div>
                       </td>
 
@@ -276,25 +276,25 @@ export function EmployeesListView({
                         </span>
                         {emp.status === "on_leave" && (
                           <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
-                            {t.hrText.text66}
+                            {t.employeesList.assignmentBlocked}
                           </div>
                         )}
                       </td>
 
                       <td className="py-3.5 px-4 text-right font-mono text-xs text-slate-700 dark:text-neutral-300">
                         {Number(emp.leaveBalanceDays).toFixed(1)}
-                        {t.hrText.text38}
+                        {t.shared.days}
                       </td>
 
                       <td className="py-3.5 px-4 text-right font-mono text-xs">
                         {totalSalary > 0 ? (
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {totalSalary.toFixed(3)}
-                            {t.hrText.text33}
+                            {t.shared.bhd}
                           </span>
                         ) : (
                           <span className="text-slate-400">
-                            {t.hrText.text67}
+                            {t.employeesList.nA}
                           </span>
                         )}
                       </td>
@@ -304,7 +304,7 @@ export function EmployeesListView({
                           href={ROUTES.hr.employee(emp.id)}
                           className="inline-flex items-center gap-1 text-xs text-[#09937F] hover:text-[#014842] dark:hover:text-[#7de0d1] font-medium"
                         >
-                          <span>{t.hrText.text68}</span>
+                          <span>{t.employeesList.profile}</span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                       </td>

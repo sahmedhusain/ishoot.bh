@@ -80,7 +80,7 @@ export function InvoiceDetailView({
               <Link
                 href={ROUTES.crm.customer(invoice.contact_id)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-[#014842] dark:bg-[#152B27] dark:text-[#7DE0D1] border border-[#09937F]/30 hover:underline transition-colors"
-                title="View Client 360 Dossier"
+                title={t.invoiceDetail.viewClient360Dossier}
               >
                 <span>Client: {clientName}</span>
                 <span className="text-[10px] opacity-70">↗</span>
@@ -152,7 +152,7 @@ export function InvoiceDetailView({
                   <Link
                     href={ROUTES.payments.detail(p.id)}
                     className=" font-bold text-[#09937F] hover:underline inline-flex items-center gap-1 group"
-                    title="View Official Receipt"
+                    title={t.invoiceDetail.viewOfficialReceipt}
                   >
                     <span>{p.receipt_number}</span>
                     <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">

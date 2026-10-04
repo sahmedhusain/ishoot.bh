@@ -20,7 +20,7 @@ interface DealEditFormViewProps {
 
 export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const {t} = useAdminLocale();
 
   const [title, setTitle] = React.useState(deal.title || "");
   const [contactId, setContactId] = React.useState(deal.contact_id || "");
@@ -53,41 +53,41 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
   const changes: FieldChange[] = React.useMemo(() => [
     {
       field: "title",
-      label: isRTL ? "عنوان الصفقة" : "Deal Title",
+      label: t.dealEditForm.dealTitle,
       oldValue: deal.title,
       newValue: title,
     },
     {
       field: "stage",
-      label: isRTL ? "مرحلة الصفقة" : "Stage",
+      label: t.dealEditForm.stage,
       oldValue: deal.stage,
       newValue: dealStage,
     },
     {
       field: "value",
-      label: isRTL ? "قيمة الصفقة" : "Deal Value",
+      label: t.dealEditForm.dealValue,
       oldValue: `${Number(deal.value || 0).toFixed(3)} BHD`,
       newValue: `${Number(dealValue || 0).toFixed(3)} BHD`,
     },
     {
       field: "probability",
-      label: isRTL ? "نسبة النجاح المتوقعة" : "Probability",
+      label: t.dealEditForm.probability,
       oldValue: `${deal.probability}%`,
       newValue: `${probability}%`,
     },
     {
       field: "shoot_date",
-      label: isRTL ? "تاريخ التصوير" : "Shoot Date",
+      label: t.dealEditForm.shootDate,
       oldValue: deal.shoot_date ? new Date(deal.shoot_date).toISOString().split("T")[0] : "—",
       newValue: shootDate || "—",
     },
     {
       field: "target_close_date",
-      label: isRTL ? "تاريخ الإغلاق المتوقع" : "Expected Close",
+      label: t.dealEditForm.expectedClose,
       oldValue: deal.target_close_date ? new Date(deal.target_close_date).toISOString().split("T")[0] : "—",
       newValue: expectedCloseDate || "—",
     },
-  ], [deal, title, dealStage, dealValue, probability, shootDate, expectedCloseDate, isRTL]);
+  ], [t, deal, title, dealStage, dealValue, probability, shootDate, expectedCloseDate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +114,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
 
       router.push(ROUTES.crm.deal(deal.id));
     } catch (err) {
-      setError(isRTL ? "تعذّر حفظ الصفقة. تحقق من الحقول وحاول مرة أخرى." : "Could not save the deal. Check the fields and try again.");
+      setError(t.dealEditForm.couldNotSaveTheDeal);
       console.error("Failed to update deal:", err);
     } finally {
       setSaving(false);
@@ -126,20 +126,20 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
     { value: "lead", label: t.stages?.lead || "Lead" },
     {
       value: "proposal_sent",
-      label: t.stages?.proposal_sent || "Proposal Sent",
+      label: t.stages?.proposal_sent || t.dealEditForm.proposalSent,
     },
     {
       value: "contract_signed",
-      label: t.stages?.contract_signed || "Contract Signed",
+      label: t.stages?.contract_signed || t.dealEditForm.contractSigned,
     },
     { value: "production", label: t.stages?.production || "Production" },
     {
       value: "post_production",
-      label: t.stages?.post_production || "Post Production",
+      label: t.stages?.post_production || t.dealEditForm.postProduction,
     },
     { value: "delivered", label: t.stages?.delivered || "Delivered" },
-    { value: "closed_won", label: t.stages?.closed_won || "Closed Won" },
-    { value: "closed_lost", label: t.stages?.closed_lost || "Closed Lost" },
+    { value: "closed_won", label: t.stages?.closed_won || t.dealEditForm.closedWon },
+    { value: "closed_lost", label: t.stages?.closed_lost || t.dealEditForm.closedLost },
   ];
 
   return (
@@ -170,14 +170,14 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
         {error && <p role="alert" className="text-red-600">{error}</p>}
         <Card className="p-6 space-y-4">
           <div>
-            <label htmlFor="deal-owner" className="block mb-2">{isRTL ? "مسؤول الصفقة" : "Deal owner"}</label>
+            <label htmlFor="deal-owner" className="block mb-2">{t.dealEditForm.dealOwner}</label>
             <select id="deal-owner" value={assignedTo} onChange={(event) => setAssignedTo(event.target.value)} className="w-full rounded border p-2 bg-white dark:bg-slate-900">
-              <option value="">{isRTL ? "غير معيّن" : "Unassigned"}</option>
+              <option value="">{t.dealEditForm.unassigned}</option>
               {owners.map((owner) => <option key={owner.id} value={owner.id}>{owner.fullName}</option>)}
             </select>
           </div>
           {dealStage === "closed_lost" && <div>
-            <label htmlFor="lost-reason" className="block mb-2">{isRTL ? "سبب خسارة الصفقة" : "Lost reason"}</label>
+            <label htmlFor="lost-reason" className="block mb-2">{t.dealEditForm.lostReason}</label>
             <Textarea id="lost-reason" required value={lostReason} onChange={(event) => setLostReason(event.target.value)} />
           </div>}
         </Card>
@@ -320,11 +320,9 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
         onConfirm={handleConfirmedSave}
-        title={isRTL ? "تأكيد تعديل الصفقة" : "Confirm Deal Update"}
+        title={t.dealEditForm.confirmDealUpdate}
         description={
-          isRTL
-            ? "يرجى مراجعة التغييرات أدناه قبل حفظ التعديلات على الصفقة."
-            : "Please review the changes below before saving updates to the deal."
+          t.dealEditForm.pleaseReviewTheChangesBelow
         }
         changes={changes}
         isSaving={saving}

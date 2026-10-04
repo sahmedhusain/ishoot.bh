@@ -79,17 +79,17 @@ export function LeaveManagementView({
       !endDate ||
       !reason.trim()
     ) {
-      toast.error(t.hrText.text69);
+      toast.error(t.leaveManagement.pleaseFillInAllRequired);
       return;
     }
 
     if (new Date(endDate) < new Date(startDate)) {
-      toast.error(t.hrText.text70);
+      toast.error(t.leaveManagement.endDateCannotBeEarlier);
       return;
     }
 
     setSubmitting(true);
-    const toastId = toast.loading(t.hrText.text71);
+    const toastId = toast.loading(t.leaveManagement.submittingLeaveRequest);
     try {
       const res = await createLeaveRequestAction({
         employeeId: targetEmployeeId,
@@ -102,15 +102,15 @@ export function LeaveManagementView({
       });
 
       if (res.success) {
-        toast.success(t.hrText.text72, { id: toastId });
+        toast.success(t.leaveManagement.leaveRequestSubmittedForManager, { id: toastId });
         setShowApplyModal(false);
         setReason("");
         router.refresh();
       } else {
-        toast.error(t.hrText.text73, { id: toastId });
+        toast.error(t.leaveManagement.failedToSubmitLeaveRequest, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.hrText.extra295, {
+      toast.error(err instanceof Error ? err.message : t.leaveManagement.errorSubmittingLeave, {
         id: toastId,
       });
     } finally {
@@ -125,7 +125,7 @@ export function LeaveManagementView({
   ) => {
     setLoadingId(requestId);
     const toastId = toast.loading(
-      decision === "approved" ? t.hrText.extra296 : t.hrText.extra297,
+      decision === "approved" ? t.leaveManagement.approvingLeaveAndCheckingConflicts : t.leaveManagement.rejectingLeave,
     );
     try {
       const res = await decideLeaveRequestAction(requestId, decision, notes);
@@ -142,19 +142,19 @@ export function LeaveManagementView({
               { id: toastId, duration: 6000 },
             );
           } else {
-            toast.success(t.hrText.text74, { id: toastId });
+            toast.success(t.leaveManagement.leaveApprovedWithZeroConflicts, { id: toastId });
           }
         } else {
-          toast.success(t.hrText.text75, { id: toastId });
+          toast.success(t.leaveManagement.leaveRequestDecisionRecorded, { id: toastId });
         }
         setRejectingRequestId(null);
         setRejectNotes("");
         router.refresh();
       } else {
-        toast.error(t.hrText.text76, { id: toastId });
+        toast.error(t.leaveManagement.failedToRecordDecision, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.hrText.extra298, {
+      toast.error(err instanceof Error ? err.message : t.leaveManagement.decisionFailed, {
         id: toastId,
       });
     } finally {
@@ -164,17 +164,17 @@ export function LeaveManagementView({
 
   const handleCancel = async (requestId: string) => {
     setLoadingId(requestId);
-    const toastId = toast.loading(t.hrText.text77);
+    const toastId = toast.loading(t.leaveManagement.cancellingLeaveRequest);
     try {
       const res = await cancelLeaveRequestAction(requestId);
       if (res.success) {
-        toast.success(t.hrText.text78, { id: toastId });
+        toast.success(t.leaveManagement.leaveRequestCancelled, { id: toastId });
         router.refresh();
       } else {
-        toast.error(t.hrText.text79, { id: toastId });
+        toast.error(t.leaveManagement.failedToCancelLeaveRequest, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.hrText.extra299, {
+      toast.error(err instanceof Error ? err.message : t.leaveManagement.cancellationFailed, {
         id: toastId,
       });
     } finally {
@@ -195,14 +195,14 @@ export function LeaveManagementView({
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono uppercase tracking-widest text-[#09937F] bg-[#EDF3EC] dark:bg-[#004d40]/40 dark:text-[#7de0d1] px-2.5 py-0.5 rounded-full font-medium">
-              {t.hrText.text80}
+              {t.leaveManagement.operationalAvailabilityAndHrms}
             </span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white mt-1">
-            {t.hrText.text81}
+            {t.leaveManagement.leaveAndAvailabilityManagement}
           </h1>
           <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
-            {t.hrText.text82}
+            {t.leaveManagement.approvedLeavesStrictlyBlockOperational}
           </p>
         </div>
 
@@ -213,7 +213,7 @@ export function LeaveManagementView({
             className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{t.hrText.text83}</span>
+            <span>{t.leaveManagement.applyForLeave}</span>
           </Button>
           )}
         </div>
@@ -226,45 +226,45 @@ export function LeaveManagementView({
         {myEmployee && (
           <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
             <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
-              {t.hrText.text84}
+              {t.leaveManagement.myAnnualLeaveBalance}
             </div>
             <div className="text-2xl font-bold font-mono text-[#014842] dark:text-[#7de0d1]">
               {Number(myEmployee.leaveBalanceDays).toFixed(1)}{" "}
               <span className="text-xs font-normal text-slate-400">
-                {t.hrText.text38}
+                {t.shared.days}
               </span>
             </div>
-            <div className="text-xs text-slate-400">{t.hrText.text85}</div>
+            <div className="text-xs text-slate-400">{t.leaveManagement.bahrainStatutoryAllowance}</div>
           </div>
         )}
 
         <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
-            {t.hrText.text86}
+            {t.leaveManagement.pendingLeaveRequests}
           </div>
           <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 flex items-center gap-2">
             {pendingCount}
             {pendingCount > 0 && <Clock className="w-4 h-4 animate-pulse" />}
           </div>
-          <div className="text-xs text-slate-400">{t.hrText.text87}</div>
+          <div className="text-xs text-slate-400">{t.leaveManagement.awaitingManagerReview}</div>
         </div>
 
         <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
-            {t.hrText.text88}
+            {t.leaveManagement.approvedLeaves}
           </div>
           <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
             {approvedCount}
           </div>
-          <div className="text-xs text-slate-400">{t.hrText.text89}</div>
+          <div className="text-xs text-slate-400">{t.leaveManagement.activeUpcomingBlockedPeriods}</div>
         </div>
       </div>
 
       {/* Status Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2 border-b border-[#EAEAEA] dark:border-white/10 pb-3">
         {[
-          { id: "all", label: "All Requests" },
-          { id: "pending", label: "Pending Review" },
+          { id: "all", label: t.leaveManagement.allRequests },
+          { id: "pending", label: t.leaveManagement.pendingReview },
           { id: "approved", label: "Approved" },
           { id: "rejected", label: "Rejected" },
           { id: "cancelled", label: "Cancelled" },
@@ -289,12 +289,12 @@ export function LeaveManagementView({
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-[#EAEAEA] dark:border-white/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
-                <th className="py-3 px-4">{t.hrText.text58}</th>
-                <th className="py-3 px-4">{t.hrText.text90}</th>
-                <th className="py-3 px-4">{t.hrText.text91}</th>
-                <th className="py-3 px-4">{t.hrText.text92}</th>
-                <th className="py-3 px-4">{t.hrText.text93}</th>
-                <th className="py-3 px-4 text-right">{t.hrText.text94}</th>
+                <th className="py-3 px-4">{t.shared.employee}</th>
+                <th className="py-3 px-4">{t.leaveManagement.leaveType}</th>
+                <th className="py-3 px-4">{t.leaveManagement.periodAndDuration}</th>
+                <th className="py-3 px-4">{t.leaveManagement.reasonNotes}</th>
+                <th className="py-3 px-4">{t.leaveManagement.statusAndInvariant}</th>
+                <th className="py-3 px-4 text-right">{t.leaveManagement.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EAEAEA] dark:divide-white/5">
@@ -304,7 +304,7 @@ export function LeaveManagementView({
                     colSpan={6}
                     className="py-12 text-center text-xs text-slate-400"
                   >
-                    {t.hrText.text95}
+                    {t.leaveManagement.noLeaveRequestsFoundMatching}
                   </td>
                 </tr>
               ) : (
@@ -331,7 +331,7 @@ export function LeaveManagementView({
 
                       <td className="py-3.5 px-4">
                         <span className="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300">
-                          {req.leaveType?.nameEn || "General Leave"}
+                          {req.leaveType?.nameEn || t.leaveManagement.generalLeave}
                         </span>
                       </td>
 
@@ -341,7 +341,7 @@ export function LeaveManagementView({
                         </div>
                         <div className="text-slate-400 text-[11px]">
                           {req.fullDay
-                            ? t.hrText.extra300
+                            ? t.leaveManagement.fullDay
                             : `${req.hours} Hours`}
                         </div>
                       </td>
@@ -352,7 +352,7 @@ export function LeaveManagementView({
                         </p>
                         {req.reviewNotes && (
                           <div className="text-[10px] text-slate-400 mt-0.5 italic">
-                            {t.hrText.text96}
+                            {t.leaveManagement.reviewNote}
                             {req.reviewNotes}
                           </div>
                         )}
@@ -372,7 +372,7 @@ export function LeaveManagementView({
                         </span>
                         {req.status === "approved" && (
                           <div className="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
-                            {t.hrText.text97}
+                            {t.leaveManagement.allocationStrictlyBlocked}
                           </div>
                         )}
                       </td>
@@ -388,14 +388,14 @@ export function LeaveManagementView({
                               disabled={loadingId === req.id}
                               className="px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded border border-red-200"
                             >
-                              {t.hrText.text98}
+                              {t.shared.reject}
                             </button>
                             <button
                               onClick={() => handleDecision(req.id, "approved")}
                               disabled={loadingId === req.id}
                               className="px-2.5 py-1 text-xs bg-[#014842] text-white hover:bg-[#013833] rounded"
                             >
-                              {t.hrText.text99}
+                              {t.leaveManagement.approve}
                             </button>
                           </div>
                         )}
@@ -406,7 +406,7 @@ export function LeaveManagementView({
                             disabled={loadingId === req.id}
                             className="px-2.5 py-1 text-xs text-slate-500 hover:text-red-600 border border-slate-200 rounded"
                           >
-                            {t.hrText.text23}
+                            {t.shared.cancel}
                           </button>
                         )}
                       </td>
@@ -427,17 +427,17 @@ export function LeaveManagementView({
             className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg max-w-lg w-full p-6 space-y-4 shadow-xl"
           >
             <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              {t.hrText.text83}
+              {t.leaveManagement.applyForLeave}
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              {t.hrText.text100}
+              {t.leaveManagement.onceApprovedYourLeaveWindow}
             </p>
 
             <div className="space-y-3">
               {canFileForOthers && (
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                    {t.hrText.text58}
+                    {t.shared.employee}
                   </label>
                   <select
                     value={targetEmployeeId}
@@ -456,7 +456,7 @@ export function LeaveManagementView({
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                  {t.hrText.text101}
+                  {t.leaveManagement.leaveType2}
                 </label>
                 <select
                   value={leaveTypeId}
@@ -466,7 +466,7 @@ export function LeaveManagementView({
                   {leaveTypes.map((lt) => (
                     <option key={lt.id} value={lt.id}>
                       {lt.nameEn} ({lt.nameAr}) - {lt.daysAllowedPerYear}
-                      {t.hrText.text102}
+                      {t.leaveManagement.daysAllowed}
                     </option>
                   ))}
                 </select>
@@ -480,11 +480,11 @@ export function LeaveManagementView({
                     onChange={(e) => setFullDay(e.target.checked)}
                     className="rounded border-slate-300 text-[#014842]"
                   />
-                  <span>{t.hrText.text103}</span>
+                  <span>{t.leaveManagement.fullDayLeave}</span>
                 </label>
                 {!fullDay && (
                   <div className="flex items-center gap-1.5 text-xs">
-                    <span className="text-slate-500">{t.hrText.text104}</span>
+                    <span className="text-slate-500">{t.leaveManagement.hours}</span>
                     <input
                       type="number"
                       min={1}
@@ -500,7 +500,7 @@ export function LeaveManagementView({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                    {t.hrText.text105}
+                    {t.leaveManagement.startDate}
                   </label>
                   <input
                     type="date"
@@ -512,7 +512,7 @@ export function LeaveManagementView({
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                    {t.hrText.text106}
+                    {t.leaveManagement.endDate}
                   </label>
                   <input
                     type="date"
@@ -526,14 +526,14 @@ export function LeaveManagementView({
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                  {t.hrText.text107}
+                  {t.leaveManagement.reasonForAbsence}
                 </label>
                 <textarea
                   rows={3}
                   required
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder={t.hrText.text108}
+                  placeholder={t.leaveManagement.eGAnnualSummerFamily}
                   className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                 />
               </div>
@@ -545,14 +545,14 @@ export function LeaveManagementView({
                 onClick={() => setShowApplyModal(false)}
                 className="px-3 py-1.5 text-xs text-slate-600 dark:text-neutral-300 hover:bg-slate-100 rounded-md"
               >
-                {t.hrText.text23}
+                {t.shared.cancel}
               </button>
               <Button
                 type="submit"
                 disabled={submitting}
                 className="bg-[#014842] hover:bg-[#013833] text-white px-4 py-1.5 text-xs rounded-md"
               >
-                {submitting ? t.hrText.text225 : t.hrText.extra301}
+                {submitting ? t.shared.submitting : t.leaveManagement.submitApplication}
               </Button>
             </div>
           </form>
@@ -564,18 +564,18 @@ export function LeaveManagementView({
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
             <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              {t.hrText.text109}
+              {t.leaveManagement.rejectLeaveApplication}
             </h3>
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.hrText.text110}
+                {t.leaveManagement.reasonForRejection}
               </label>
               <textarea
                 rows={3}
                 required
                 value={rejectNotes}
                 onChange={(e) => setRejectNotes(e.target.value)}
-                placeholder={t.hrText.text111}
+                placeholder={t.leaveManagement.eGCriticalCommercialShoot}
                 className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
@@ -585,7 +585,7 @@ export function LeaveManagementView({
                 onClick={() => setRejectingRequestId(null)}
                 className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-md"
               >
-                {t.hrText.text23}
+                {t.shared.cancel}
               </button>
               <Button
                 onClick={() =>
@@ -596,7 +596,7 @@ export function LeaveManagementView({
                 }
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 text-xs rounded-md"
               >
-                {t.hrText.text112}
+                {t.shared.confirmRejection}
               </Button>
             </div>
           </div>

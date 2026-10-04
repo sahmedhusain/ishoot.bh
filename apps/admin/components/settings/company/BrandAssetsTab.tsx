@@ -152,7 +152,7 @@ export function BrandAssetsTab({
       const data = await uploadFileDirectly(file, { entityType: "company_asset", entityId: slot.key, customName: `${slot.key}-${file.name}`, documentType: "branding_asset" });
         const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Upload failed");
+        throw new Error(data.error || t.brandAssetsTab.uploadFailed);
       }
 
       const title = (t.branding.assets[slot.titleKey] as string) || slot.key;
@@ -179,7 +179,7 @@ export function BrandAssetsTab({
         if (slot.key === "signature") setSettings((s) => ({ ...s, signature_url: data.fileUrl }));
       }
     } catch (err: any) {
-      setErrorKey((prev) => ({ ...prev, [slot.key]: err.message || "Failed to upload asset" }));
+      setErrorKey((prev) => ({ ...prev, [slot.key]: err.message || t.brandAssetsTab.failedToUploadAsset }));
     } finally {
       setUploadingKey(null);
       if (fileInputRefs.current[slot.key]) {
@@ -200,7 +200,7 @@ export function BrandAssetsTab({
       if (slotKey === "stamp") setSettings((s) => ({ ...s, stamp_url: "" }));
       if (slotKey === "signature") setSettings((s) => ({ ...s, signature_url: "" }));
     } catch (err: any) {
-      setErrorKey((prev) => ({ ...prev, [slotKey]: err.message || "Failed to remove asset" }));
+      setErrorKey((prev) => ({ ...prev, [slotKey]: err.message || t.brandAssetsTab.failedToRemoveAsset }));
     }
   };
 
@@ -226,13 +226,13 @@ export function BrandAssetsTab({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                <span>Brand Identity Pairing (Icon + Wordmark)</span>
+                <span>{t.brandAssetsTab.brandIdentityPairingIconWordmark}</span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20  lowercase">
-                  live database state
+                  {t.brandAssetsTab.liveDatabaseState}
                 </span>
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                Always ensure the Brand Icon (mark) and Brand Wordmark (text) are placed side-by-side without mixing them up.
+                {t.brandAssetsTab.alwaysEnsureTheBrandIcon}
               </p>
             </div>
           </div>
@@ -241,18 +241,18 @@ export function BrandAssetsTab({
             {/* Light Theme Surface */}
             <div className="p-6 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold border-b border-slate-100 pb-2">
-                <span>{isRTL ? "الخلفية الفاتحة (فواتير، مستندات رسمية، طباعة)" : "Light Surface (Invoices, Letters, Print)"}</span>
-                <span className="text-[10px] text-slate-400 ">Pine Green + Emerald</span>
+                <span>{t.brandAssetsTab.lightSurfaceInvoicesLettersPrint}</span>
+                <span className="text-[10px] text-slate-400 ">{t.brandAssetsTab.pineGreenEmerald}</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
                 <ContentImage
                   src={settings.icon_url || "/brand/icon-light.svg"}
-                  alt="Brand Icon Light"
+                  alt={t.brandAssetsTab.brandIconLight}
                   className="h-10 w-auto object-contain shrink-0"
                 />
                 <ContentImage
                   src={settings.logo_url || "/brand/logo-text-dark.svg"}
-                  alt="Brand Wordmark Dark Text"
+                  alt={t.brandAssetsTab.brandWordmarkDarkText}
                   className="h-7 w-auto object-contain"
                 />
               </div>
@@ -264,18 +264,18 @@ export function BrandAssetsTab({
             {/* Dark Theme Surface */}
             <div className="p-6 rounded-xl bg-[#050807] border border-white/10 shadow-xs flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between text-[11px] text-white/70 font-semibold border-b border-white/10 pb-2">
-                <span>{isRTL ? "الخلفية الداكنة (الموقع، لوحة التحكم، السينما)" : "Dark Surface (Web, Admin Portal, Cinema)"}</span>
-                <span className="text-[10px] text-emerald-400 ">Crisp White + Emerald</span>
+                <span>{t.brandAssetsTab.darkSurfaceWebAdminPortal}</span>
+                <span className="text-[10px] text-emerald-400 ">{t.brandAssetsTab.crispWhiteEmerald}</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
                 <ContentImage
                   src={settings.dark_icon_url || "/brand/icon-dark.svg"}
-                  alt="Brand Icon Dark"
+                  alt={t.brandAssetsTab.brandIconDark}
                   className="h-10 w-auto object-contain shrink-0"
                 />
                 <ContentImage
                   src={settings.dark_logo_url || "/brand/logo-text-light.svg"}
-                  alt="Brand Wordmark Light Text"
+                  alt={t.brandAssetsTab.brandWordmarkLightText}
                   className="h-7 w-auto object-contain"
                 />
               </div>
@@ -310,7 +310,7 @@ export function BrandAssetsTab({
                       </p>
                     </div>
                     {currentAsset?.fileUrl ? (
-                      <span className="p-1 rounded-full text-[#09937F] bg-emerald-50 dark:bg-emerald-950/40 shrink-0" title="Configured in Database">
+                      <span className="p-1 rounded-full text-[#09937F] bg-emerald-50 dark:bg-emerald-950/40 shrink-0" title={t.brandAssetsTab.configuredInDatabase}>
                         <CheckCircle2 className="w-4 h-4" />
                       </span>
                     ) : null}

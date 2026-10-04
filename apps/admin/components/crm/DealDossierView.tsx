@@ -63,7 +63,7 @@ export function DealDossierView({
       : "overview",
   );
 
-  const clientName = contact?.company || contact?.full_name || "Direct Client";
+  const clientName = contact?.company || contact?.full_name || t.dealDossier.directClient;
   const isWon = ["delivered", "invoiced", "closed_won"].includes(deal.stage);
   const projectedValue =
     deal.value && Number(deal.value) > 0
@@ -160,7 +160,7 @@ export function DealDossierView({
           <span className="text-[11px] text-slate-500 dark:text-slate-400 ">
             {deal.probability
               ? `${deal.probability}% Probability`
-              : "No probability set"}
+              : t.dealDossier.noProbabilitySet}
           </span>
         </Card>
 
@@ -192,7 +192,7 @@ export function DealDossierView({
           <span className="text-[11px] text-slate-500 dark:text-slate-400 ">
             {deal.probability
               ? `(${(deal.probability / 100).toFixed(1)}x Expected)`
-              : "No estimate"}
+              : t.dealDossier.noEstimate}
           </span>
         </Card>
 
@@ -269,7 +269,7 @@ export function DealDossierView({
                   <Link
                     href={ROUTES.crm.customer(contact.id)}
                     className="text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
-                    title="View Customer Dossier"
+                    title={t.dealDossier.viewCustomerDossier}
                   >
                     <span>{clientName}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -312,14 +312,14 @@ export function DealDossierView({
           <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Client & Account Info
+                {t.dealDossier.clientAndAccountInfo}
               </h2>
               {contact && (
                 <Link
                   href={ROUTES.crm.customer(contact.id)}
                   className="text-xs text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
                 >
-                  <span>360 Dossier</span>
+                  <span>{t.dealDossier.n360Dossier}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
                 </Link>
               )}
@@ -330,7 +330,7 @@ export function DealDossierView({
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3">
                   <div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                      Primary Contact
+                      {t.dealDossier.primaryContact}
                     </div>
                     <Link
                       href={ROUTES.crm.customer(contact.id)}
@@ -381,7 +381,7 @@ export function DealDossierView({
                 {contact.notes && (
                   <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10">
                     <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">
-                      Client Requirements & Notes
+                      {t.dealDossier.clientRequirementsAndNotes}
                     </div>
                     <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
                       {contact.notes}
@@ -393,7 +393,7 @@ export function DealDossierView({
               <div className="text-center py-8">
                 <User className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  No client link associated with this deal.
+                  {t.dealDossier.noClientLinkAssociatedWith}
                 </p>
               </div>
             )}
@@ -404,7 +404,7 @@ export function DealDossierView({
       {activeTab === "timeline" && (
         <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
-            Production Timeline & Log
+            {t.dealDossier.productionTimelineAndLog}
           </h2>
 
           <div className="space-y-4">
@@ -414,7 +414,7 @@ export function DealDossierView({
               </div>
               <div>
                 <div className="text-sm font-semibold text-slate-900 dark:text-white">
-                  Deal Created in Pipeline
+                  {t.dealDossier.dealCreatedInPipeline}
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   <DateDisplay date={deal.created_at} locale={locale} />
@@ -429,7 +429,7 @@ export function DealDossierView({
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Target Close Date
+                    {t.dealDossier.targetCloseDate}
                   </div>
                   <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     <DateDisplay
@@ -448,7 +448,7 @@ export function DealDossierView({
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-slate-900 dark:text-white">
-                    Scheduled Shoot Date
+                    {t.dealDossier.scheduledShootDate}
                   </div>
                   <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     <DateDisplay date={deal.shoot_date} locale={locale} />
@@ -464,7 +464,7 @@ export function DealDossierView({
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 flex-1">
                   <div className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                    Deal Brief Notes
+                    {t.dealDossier.dealBriefNotes}
                   </div>
                   <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed">
                     {deal.notes}

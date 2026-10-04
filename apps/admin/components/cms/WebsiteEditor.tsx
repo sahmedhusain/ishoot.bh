@@ -40,7 +40,7 @@ export function WebsiteEditor({
     imageUrl: string | null;
   }[];
 }) {
-  const { locale } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
   const ar = locale === "ar";
   const router = useRouter();
   const [draft, setDraft] = React.useState(config);
@@ -64,9 +64,9 @@ export function WebsiteEditor({
     try {
       await fn();
       router.refresh();
-      setMessage(ar ? "تم الحفظ." : "Saved.");
+      setMessage(t.websiteEditor.saved);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not save");
+      setError(e instanceof Error ? e.message : t.websiteEditor.couldNotSave);
     } finally {
       setBusy(false);
     }
@@ -115,19 +115,17 @@ export function WebsiteEditor({
     <div className="max-w-5xl mx-auto space-y-8 pb-16">
       <header>
         <Link className="text-sm underline" href={ROUTES.settings.web}>
-          {ar ? "إعدادات الموقع" : "Website settings"}
+          {t.websiteEditor.websiteSettings}
         </Link>
         <h1 className="text-2xl font-bold mt-3">
-          {ar ? "تحرير ونشر الموقع" : "Website publishing"}
+          {t.websiteEditor.websitePublishing}
         </h1>
         <p className="text-sm text-slate-500 mt-2">
-          {ar
-            ? "رتّب الأقسام، حرّر صفحة التواصل، واختر الخدمات العامة. انشر بعد مراجعة المعاينة."
-            : "Arrange sections, edit contact content and choose public services. Preview before publishing."}
+          {t.websiteEditor.arrangeSectionsEditContactContent}
         </p>
         {publishedAt && (
           <p className="text-xs text-slate-500 mt-2">
-            {`${ar ? "آخر نشر:" : "Last published:"} ${new Date(publishedAt).toLocaleString()}`}
+            {`${t.websiteEditor.lastPublished} ${new Date(publishedAt).toLocaleString()}`}
           </p>
         )}
         <div className="mt-3">
@@ -135,7 +133,7 @@ export function WebsiteEditor({
         </div>
         {deliveryStatus && (
           <p className="text-xs text-slate-500 mt-2">
-            {ar ? "تحديث النسخة العامة:" : "Public refresh:"}{" "}
+            {t.websiteEditor.publicRefresh}{" "}
             {ar
               ? (
                   {
@@ -158,7 +156,7 @@ export function WebsiteEditor({
       </header>
       <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-white dark:bg-neutral-900 py-3 border-b border-slate-200 dark:border-neutral-700">
         <button disabled={busy} className={button} onClick={() => run(save)}>
-          {ar ? "حفظ المسودة" : "Save draft"}
+          {t.websiteEditor.saveDraft}
           {dirty ? " *" : ""}
         </button>
         <button
@@ -171,7 +169,7 @@ export function WebsiteEditor({
             })
           }
         >
-          {ar ? "إنشاء رابط معاينة" : "Create preview link"}
+          {t.websiteEditor.createPreviewLink}
         </button>
         <button
           disabled={busy}
@@ -184,7 +182,7 @@ export function WebsiteEditor({
             })
           }
         >
-          {ar ? "نشر الموقع" : "Publish website"}
+          {t.websiteEditor.publishWebsite}
         </button>
         {canRestore && (
           <button
@@ -192,7 +190,7 @@ export function WebsiteEditor({
             className={button}
             onClick={() => run(() => restoreWebsiteAction(version))}
           >
-            {ar ? "استعادة النشر السابق" : "Restore previous publication"}
+            {t.websiteEditor.restorePreviousPublication}
           </button>
         )}
       </div>
@@ -203,9 +201,7 @@ export function WebsiteEditor({
           rel="noreferrer"
           className="block underline text-emerald-700 dark:text-emerald-400"
         >
-          {ar
-            ? "فتح المعاينة — صالح لعشر دقائق"
-            : "Open preview — valid for ten minutes"}
+          {t.websiteEditor.openPreviewValidForTen}
         </a>
       )}
       {error && (
@@ -219,24 +215,22 @@ export function WebsiteEditor({
         </p>
       )}
       <section className="space-y-4 rounded-xl border p-5">
-        <h2 className="font-bold">{ar ? "صورة الاستوديو وتاريخه" : "Studio image and history"}</h2>
-        <label className="block">{ar ? "رابط الصورة" : "Image URL"}<input className={field} value={draft.aboutImageUrl || ""} onChange={e=>change({...draft,aboutImageUrl:e.target.value})} /></label>
+        <h2 className="font-bold">{t.websiteEditor.studioImageAndHistory}</h2>
+        <label className="block">{t.websiteEditor.imageUrl}<input className={field} value={draft.aboutImageUrl || ""} onChange={e=>change({...draft,aboutImageUrl:e.target.value})} /></label>
         {(draft.pillars || []).map((entry,index)=><div key={index} className="grid gap-3 sm:grid-cols-2 border p-3 rounded">
           {(["titleEn","titleAr","textEn","textAr"] as const).map(key=><label key={key}>{key}<textarea className={field} maxLength={1500} value={entry[key]} onChange={e=>change({...draft,pillars:draft.pillars!.map((p,i)=>i===index?{...p,[key]:e.target.value}:p)})}/></label>)}
-          <button className={button} onClick={()=>change({...draft,pillars:draft.pillars!.filter((_,i)=>i!==index)})}>{ar ? "حذف" : "Remove"}</button>
+          <button className={button} onClick={()=>change({...draft,pillars:draft.pillars!.filter((_,i)=>i!==index)})}>{t.websiteEditor.remove}</button>
         </div>)}
-        <button className={button} disabled={(draft.pillars?.length || 0)>=12} onClick={()=>change({...draft,pillars:[...(draft.pillars||[]),{titleEn:"",titleAr:"",textEn:"",textAr:""}]})}>{ar ? "إضافة فقرة" : "Add history entry"}</button>
-        <p className="text-xs">{ar ? "المحتوى الفارغ لا يظهر. احفظ ثم انشر." : "Empty content stays hidden. Save, then publish."}</p>
+        <button className={button} disabled={(draft.pillars?.length || 0)>=12} onClick={()=>change({...draft,pillars:[...(draft.pillars||[]),{titleEn:"",titleAr:"",textEn:"",textAr:""}]})}>{t.websiteEditor.addHistoryEntry}</button>
+        <p className="text-xs">{t.websiteEditor.emptyContentStaysHiddenSave}</p>
       </section>
       <section className="space-y-4 rounded-xl border border-slate-200 dark:border-neutral-800 p-5 bg-slate-50/50 dark:bg-neutral-900/30">
         <div>
           <h2 className="font-bold text-lg">
-            {ar ? "إدارة ظهور صفحات الموقع" : "Public page visibility"}
+            {t.websiteEditor.publicPageVisibility}
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            {ar
-              ? "تحكم في إظهار أو إخفاء الصفحات من شريط التنقل والموقع العام (إخفاء الصفحة يحجب الرابط ويزيله من القوائم)."
-              : "Control which pages are active and accessible on the public site (hidden pages are removed from navigation and blocked)."}
+            {t.websiteEditor.controlWhichPagesAreActive}
           </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -304,7 +298,7 @@ export function WebsiteEditor({
 
       <section className="space-y-3">
         <h2 className="font-bold text-lg">
-          {ar ? "أقسام الصفحة الرئيسية" : "Homepage sections"}
+          {t.websiteEditor.homepageSections}
         </h2>
         {draft.sections.map((section, index) => (
           <div
@@ -329,7 +323,7 @@ export function WebsiteEditor({
               {labels[section.id]}
             </label>
             <button
-              aria-label={`${ar ? "أعلى" : "Move up"} ${labels[section.id]}`}
+              aria-label={`${t.websiteEditor.moveUp} ${labels[section.id]}`}
               disabled={index === 0}
               className={button}
               onClick={() => move(index, -1)}
@@ -337,7 +331,7 @@ export function WebsiteEditor({
               ↑
             </button>
             <button
-              aria-label={`${ar ? "أسفل" : "Move down"} ${labels[section.id]}`}
+              aria-label={`${t.websiteEditor.moveDown} ${labels[section.id]}`}
               disabled={index === draft.sections.length - 1}
               className={button}
               onClick={() => move(index, 1)}
@@ -349,7 +343,7 @@ export function WebsiteEditor({
       </section>
       <section className="space-y-4">
         <h2 className="font-bold text-lg">
-          {ar ? "محتوى صفحة التواصل" : "Contact page content"}
+          {t.websiteEditor.contactPageContent}
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
           {(
@@ -392,14 +386,12 @@ export function WebsiteEditor({
       </section>
       <section className="space-y-4">
         <h2 className="font-bold text-lg">
-          {ar ? "الخدمات الظاهرة في الموقع" : "Services shown on the website"}
+          {t.websiteEditor.servicesShownOnTheWebsite}
         </h2>
         <p className="text-sm text-slate-500">
-          {ar
-            ? "الأسماء والأوصاف تُدار من دليل الخدمات. لا تظهر الأسعار الداخلية في الموقع."
-            : "Names and descriptions come from the service catalogue. Internal rates are never shown publicly."}{" "}
+          {t.websiteEditor.namesAndDescriptionsComeFrom}{" "}
           <Link href={ROUTES.services} className="underline">
-            {ar ? "دليل الخدمات" : "Service catalogue"}
+            {t.websiteEditor.serviceCatalogue}
           </Link>
         </p>
         {services.map((service) => (
@@ -432,23 +424,21 @@ export function WebsiteEditor({
               name="imageUrl"
               defaultValue={service.imageUrl || ""}
               placeholder={
-                ar ? "رابط الصورة (اختياري)" : "Image URL (optional)"
+                t.websiteEditor.imageUrlOptional
               }
             />
             <button disabled={busy} className={button}>
-              {ar ? "حفظ" : "Save"}
+              {t.websiteEditor.save}
             </button>
           </form>
         ))}
       </section>
       <section className="space-y-3">
         <h2 className="font-bold">
-          {ar ? "مجموعات المحتوى" : "Content collections"}
+          {t.websiteEditor.contentCollections}
         </h2>
         <p className="text-sm text-slate-500">
-          {ar
-            ? "بعد النشر الأول، تعديلات البنرات والأعمال والشعارات والأسئلة والأرقام تنتظر النشر من هنا. اعتماد التقييمات وبيانات الشركة يبقى مباشراً."
-            : "After the first publication, banner, portfolio, logo, FAQ and statistic edits wait for publication here. Review approval and company profile changes remain immediate."}
+          {t.websiteEditor.afterTheFirstPublicationBanner}
         </p>
         <div className="flex flex-wrap gap-4">
           {(["banners", "portfolio", "clients", "faqs", "stats", "reviews"] as const).map(

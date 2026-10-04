@@ -352,12 +352,12 @@ export function ServicesManagementView({
                         {service.is_active ? (
                           <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            Active
+                            {t.servicesManagement.active}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[11px] text-slate-400 font-medium">
                             <XCircle className="w-3.5 h-3.5" />
-                            Archived
+                            {t.servicesManagement.archived}
                           </span>
                         )}
                       </td>
@@ -366,7 +366,7 @@ export function ServicesManagementView({
                           <button
                             onClick={() => openEditModal(service)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-[#09937F] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                            title="Edit Service"
+                            title={t.servicesManagement.editService}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -374,7 +374,7 @@ export function ServicesManagementView({
                             onClick={() => handleDelete(service.id)}
                             disabled={deletingId === service.id}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                            title="Delete Service"
+                            title={t.servicesManagement.deleteService}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

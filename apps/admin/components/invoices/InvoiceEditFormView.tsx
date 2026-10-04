@@ -175,59 +175,59 @@ export function InvoiceEditFormView({
   const changes: FieldChange[] = React.useMemo(() => [
     {
       field: "issue_date",
-      label: isRTL ? "تاريخ الإصدار" : "Issue Date",
+      label: t.invoiceEditForm.issueDate,
       oldValue: invoice.issue_date,
       newValue: issueDate,
     },
     {
       field: "due_date",
-      label: isRTL ? "تاريخ الاستحقاق" : "Due Date",
+      label: t.invoiceEditForm.dueDate,
       oldValue: invoice.due_date,
       newValue: dueDate,
     },
     {
       field: "vat_enabled",
-      label: isRTL ? "تفعيل الضريبة" : "VAT Status",
-      oldValue: invoice.vat_enabled ? `Enabled (${invoice.vat_percentage}%)` : "Disabled (No VAT)",
-      newValue: vatEnabled ? `Enabled (${vatPercentage}%)` : "Disabled (No VAT)",
+      label: t.invoiceEditForm.vatStatus,
+      oldValue: invoice.vat_enabled ? `Enabled (${invoice.vat_percentage}%)` : t.invoiceEditForm.disabledNoVat,
+      newValue: vatEnabled ? `Enabled (${vatPercentage}%)` : t.invoiceEditForm.disabledNoVat,
     },
     {
       field: "subtotal",
-      label: isRTL ? "المجموع الفرعي" : "Subtotal",
+      label: t.invoiceEditForm.subtotal,
       oldValue: `${Number(invoice.subtotal).toFixed(3)} ${currency}`,
       newValue: `${totals.subtotal.toFixed(3)} ${currency}`,
     },
     {
       field: "discount_amount",
-      label: isRTL ? "الخصم" : "Discount",
+      label: t.invoiceEditForm.discount,
       oldValue: `${Number(invoice.discount_amount).toFixed(3)} ${currency}`,
       newValue: `${totals.discountAmount.toFixed(3)} ${currency}`,
     },
     {
       field: "vat_amount",
-      label: isRTL ? "مبلغ الضريبة" : "VAT Amount",
+      label: t.invoiceEditForm.vatAmount,
       oldValue: `${Number(invoice.vat_amount).toFixed(3)} ${currency}`,
       newValue: `${totals.vatAmount.toFixed(3)} ${currency}`,
     },
     {
       field: "total_amount",
-      label: isRTL ? "المجموع الإجمالي" : "Total Amount",
+      label: t.invoiceEditForm.totalAmount,
       oldValue: `${Number(invoice.total_amount).toFixed(3)} ${currency}`,
       newValue: `${totals.totalAmount.toFixed(3)} ${currency}`,
     },
     {
       field: "notes_en",
-      label: isRTL ? "ملاحظات بالإنجليزية" : "English Notes",
+      label: t.invoiceEditForm.englishNotes,
       oldValue: invoice.notes_en || "",
       newValue: notesEn,
     },
     {
       field: "notes_ar",
-      label: isRTL ? "ملاحظات بالعربية" : "Arabic Notes",
+      label: t.invoiceEditForm.arabicNotes,
       oldValue: invoice.notes_ar || "",
       newValue: notesAr,
     },
-  ], [invoice, issueDate, dueDate, vatEnabled, vatPercentage, totals, currency, notesEn, notesAr, isRTL]);
+  ], [t, invoice, issueDate, dueDate, vatEnabled, vatPercentage, totals, currency, notesEn, notesAr]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -809,7 +809,7 @@ export function InvoiceEditFormView({
         changes={changes}
         isSaving={submitting}
         title={isRTL ? `تأكيد تعديل الفاتورة ${invoice.invoice_number}` : `Confirm Edit on Invoice ${invoice.invoice_number}`}
-        description={isRTL ? "راجع تفاصيل التغييرات على الفاتورة قبل اعتماد التعديل في النظام:" : "Review the updated invoice values before committing changes:"}
+        description={t.invoiceEditForm.reviewTheUpdatedInvoiceValues}
       />
     </div>
   );

@@ -102,7 +102,7 @@ export function NewQuotationFormView({
   const [lineItems, setLineItems] = React.useState<LineItemDraft[]>([
     {
       serviceId: services.length > 0 ? services[0].id : null,
-      descriptionEn: services.length > 0 ? services[0].name_en : "Production Services",
+      descriptionEn: services.length > 0 ? services[0].name_en : t.newQuotationForm.productionServices,
       descriptionAr: services.length > 0 ? services[0].name_ar : "خدمات الإنتاج والتصوير",
       quantity: 1,
       unitPrice: 150,
@@ -176,22 +176,20 @@ export function NewQuotationFormView({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedContactId) {
-      toast.error(isRTL ? "يرجى تحديد العميل أولاً" : "Please select a client first");
+      toast.error(t.newQuotationForm.pleaseSelectAClientFirst);
       return;
     }
 
     if (lineItems.length === 0 || lineItems.some((l) => !l.descriptionEn.trim())) {
       toast.error(
-        isRTL
-          ? "يرجى التأكد من إدخال وصف لجميع البنود"
-          : "Please ensure all line items have descriptions",
+        t.newQuotationForm.pleaseEnsureAllLineItems,
       );
       return;
     }
 
     setSubmitting(true);
     const toastId = toast.loading(
-      isRTL ? "جارٍ حفظ مسودة عرض السعر..." : "Saving quotation draft...",
+      t.newQuotationForm.savingQuotationDraft,
     );
 
     try {
@@ -220,17 +218,15 @@ export function NewQuotationFormView({
 
       if (res.success && res.quotation) {
         toast.success(
-          isRTL
-            ? `تم إنشاء عرض السعر بنجاح (${res.quotation.quotationNumber})`
-            : `Quotation ${res.quotation.quotationNumber} created successfully`,
+          t.newQuotationForm.createdWithNumber.replace("{number}", res.quotation.quotationNumber),
           { id: toastId },
         );
         router.push(ROUTES.quotations.detail(res.quotation.id));
       } else {
-        toast.error("Failed to create quotation", { id: toastId });
+        toast.error(t.newQuotationForm.failedToCreateQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "An unexpected error occurred";
+      const msg = err instanceof Error ? err.message : t.newQuotationForm.anUnexpectedErrorOccurred;
       toast.error(msg, { id: toastId });
     } finally {
       setSubmitting(false);
@@ -311,7 +307,7 @@ export function NewQuotationFormView({
                   </div>
                   <div>Email: {selectedContact.email || "N/A"}</div>
                   <div>Phone: {selectedContact.phone || "N/A"}</div>
-                  {selectedContact.vat_number && <div>VAT / Tax ID: {selectedContact.vat_number}</div>}
+                  {selectedContact.vat_number && <div>{t.newQuotationForm.vatTaxId} {selectedContact.vat_number}</div>}
                 </div>
               )}
             </div>
@@ -341,13 +337,13 @@ export function NewQuotationFormView({
                   className="p-4 rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50/50 dark:bg-neutral-900/30 space-y-3 relative group"
                 >
                   <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-                    <span>Item #{index + 1}</span>
+                    <span>{t.newQuotationForm.item}{index + 1}</span>
                     {lineItems.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeLineItem(index)}
                         className="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
-                        title="Remove Item"
+                        title={t.newQuotationForm.removeItem}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -357,14 +353,14 @@ export function NewQuotationFormView({
                   {services.length > 0 && (
                     <div>
                       <label className="block text-xs font-medium text-slate-500 mb-1">
-                        Pre-populate from Service Catalog
+                        {t.newQuotationForm.prePopulateFromServiceCatalog}
                       </label>
                       <select
                         value={item.serviceId || ""}
                         onChange={(e) => handleSelectService(index, e.target.value)}
                         className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-1.5 text-slate-800 dark:text-neutral-200"
                       >
-                        <option value="">-- Custom item --</option>
+                        <option value="">{t.newQuotationForm.customItem}</option>
                         {services.map((s) => (
                           <option key={s.id} value={s.id}>
                             {s.name_en} / {s.name_ar}
@@ -384,7 +380,7 @@ export function NewQuotationFormView({
                         required
                         value={item.descriptionEn}
                         onChange={(e) => updateLineItem(index, "descriptionEn", e.target.value)}
-                        placeholder="e.g. Commercial Video Production"
+                        placeholder={t.newQuotationForm.eGCommercialVideoProduction}
                         className="w-full text-sm rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
                       />
                     </div>
@@ -482,7 +478,7 @@ export function NewQuotationFormView({
           {/* Settings & Currency */}
           <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-2">
-              {isRTL ? "الإعدادات والسياسات" : "Parameters & Policy"}
+              {t.newQuotationForm.parametersAndPolicy}
             </h2>
 
             <div className="space-y-3">

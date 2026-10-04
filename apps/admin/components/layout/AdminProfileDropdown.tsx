@@ -23,7 +23,7 @@ import { ConfirmDestructiveModal } from "@ishoot/ui";
 
 export function AdminProfileDropdown() {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const {t} = useAdminLocale();
   const { resolvedTheme } = useAdminTheme();
   const [isOpen, setIsOpen] = React.useState(false);
   const [confirmSignOutOpen, setConfirmSignOutOpen] = React.useState(false);
@@ -123,7 +123,7 @@ export function AdminProfileDropdown() {
               <span>{t.profileDropdown.userProfile}</span>
             </Link>
 
-            <Link href={ROUTES.settings.security} onClick={() => setIsOpen(false)} className="block px-4 py-2 text-xs">{isRTL ? "أمان الحساب" : "Account security"}</Link>
+            <Link href={ROUTES.settings.security} onClick={() => setIsOpen(false)} className="block px-4 py-2 text-xs">{t.adminProfileDropdown.accountSecurity}</Link>
             <Link
               href={ROUTES.settings.company}
               onClick={() => setIsOpen(false)}

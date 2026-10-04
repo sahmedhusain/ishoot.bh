@@ -40,7 +40,9 @@ async function main() {
   }
   const en = require('../packages/locales/src/admin/en.json');
   const ar = require('../packages/locales/src/admin/ar.json');
-  assert.deepEqual(Object.keys(en.hrText).sort(), Object.keys(ar.hrText).sort());
+  // Every admin string exists in both languages, at every depth.
+  const paths = (node, prefix = '') => Object.entries(node).flatMap(([key, value]) => value && typeof value === 'object' ? paths(value, prefix + key + '.') : [prefix + key]);
+  assert.deepEqual(paths(en).sort(), paths(ar).sort());
   assert.deepEqual(Object.keys(en.hrExtensions).sort(), Object.keys(ar.hrExtensions).sort());
   let actor = { id: 'employee-user', role: 'producer' }, manager = false, creates = [], audit = [], submissions = [];
   const actions = load('apps/admin/app/actions/salary-documents.ts', {

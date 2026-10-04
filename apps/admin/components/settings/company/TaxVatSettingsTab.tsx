@@ -53,7 +53,7 @@ export function TaxVatSettingsTab({
       const data = await uploadFileDirectly(file, { entityType: "company_setting", entityId: "company-settings", documentType: "vat_certificate" });
         const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
-        throw new Error(data.error || "Upload failed");
+        throw new Error(data.error || t.taxVatSettingsTab.uploadFailed);
       }
 
       const updated = {
@@ -63,7 +63,7 @@ export function TaxVatSettingsTab({
       setSettings(updated);
       await updateCompanySettingsAction(updated);
     } catch (err: any) {
-      setVatUploadError(err.message || "Failed to upload certificate");
+      setVatUploadError(err.message || t.taxVatSettingsTab.failedToUploadCertificate);
     } finally {
       setVatUploading(false);
       if (vatFileInputRef.current) vatFileInputRef.current.value = "";
@@ -206,7 +206,7 @@ export function TaxVatSettingsTab({
                   </span>
                 </label>
                 <span className="text-[10px]  text-slate-500 dark:text-neutral-400">
-                  {isRTL ? "شهادة الجهاز الوطني للإيرادات (PDF / صورة)" : "NBR Official Certificate (PDF / Image)"}
+                  {t.taxVatSettingsTab.nbrOfficialCertificatePdfImage}
                 </span>
               </div>
 
@@ -227,7 +227,7 @@ export function TaxVatSettingsTab({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                          {isRTL ? "وثيقة شهادة ضريبة القيمة المضافة" : "VAT Certificate Document"}
+                          {t.taxVatSettingsTab.vatCertificateDocument}
                         </p>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-200 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
                           {t.companySettingsTabs.archivedInVault}
@@ -307,12 +307,12 @@ export function TaxVatSettingsTab({
                             <span className="text-[#014842] dark:text-[#7de0d1] underline font-bold">
                               {t.companySettingsTabs.clickToUpload}
                             </span>{" "}
-                            {isRTL ? "أو اسحب وأفلت شهادة الضريبة هنا" : "or drag and drop VAT Certificate"}
+                            {t.taxVatSettingsTab.orDragAndDropVat}
                           </>
                         )}
                       </p>
                       <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                        {isRTL ? "PDF أو PNG أو JPG بحد أقصى 25 ميجابايت. يتم حفظ الملف بأمان في الخزينة." : "PDF, PNG, or JPG up to 25MB. File is stored securely in the Vault."}
+                        {t.taxVatSettingsTab.pdfPngOrJpgUp}
                       </p>
                     </div>
                   </div>

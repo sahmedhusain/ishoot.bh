@@ -1,4 +1,5 @@
 "use client";
+import type { ReviewItem } from "../../types/cms";
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -20,7 +21,7 @@ deleteReviewAction,
 export function ReviewsManagementView({
   initialReviews,
 }: {
-  initialReviews: any[];
+  initialReviews: ReviewItem[];
 }) {
   const { t } = useAdminLocale();
   const [reviews, setReviews] = React.useState(initialReviews);
@@ -186,11 +187,10 @@ export function ReviewsManagementView({
         <Card className="p-12 text-center bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl">
           <MessageSquare className="w-10 h-10 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
           <p className="text-sm font-semibold text-slate-700 dark:text-neutral-300">
-            No reviews in this view.
+            {t.reviewsManagement.noReviewsInThisView}
           </p>
           <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1">
-            Client reviews submitted through the website will appear here for
-            your moderation.
+            {t.reviewsManagement.clientReviewsSubmittedThroughThe}
           </p>
         </Card>
       ) : (

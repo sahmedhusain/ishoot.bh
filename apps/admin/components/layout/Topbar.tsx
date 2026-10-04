@@ -48,7 +48,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
           type="button"
           onClick={toggleMobileOpen}
           className="lg:hidden w-10 h-10 rounded-full flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
-          aria-label="Toggle navigation menu"
+          aria-label={t.topbar.toggleNavigationMenu}
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -107,7 +107,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
           onClick={toggleTheme}
           className="w-9 h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
           title={`Switch to ${resolvedTheme === "dark" ? "Light" : "Dark"} Mode`}
-          aria-label="Toggle theme"
+          aria-label={t.topbar.toggleTheme}
         >
           {resolvedTheme === "dark" ? (
             <Sun className="w-4 h-4 text-amber-400" />
