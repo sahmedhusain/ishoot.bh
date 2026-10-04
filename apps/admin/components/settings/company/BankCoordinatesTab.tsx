@@ -23,9 +23,9 @@ export function BankCoordinatesTab({
 }: BankCoordinatesTabProps) {
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
-          <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-ink/15 dark:border-ink/15">
+          <div className="p-2 rounded-xl bg-accent/10 text-accent">
             <Landmark className="w-5 h-5" />
           </div>
           <div>
@@ -100,7 +100,7 @@ export function BankCoordinatesTab({
         </div>
 
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-neutral-800/40 border border-slate-200 dark:border-neutral-700/60 flex items-start gap-3">
-          <ShieldCheck className="w-4 h-4 text-[#09937F] shrink-0 mt-0.5" />
+          <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
           <p className="text-xs text-slate-600 dark:text-neutral-400 leading-relaxed">
             {t.companySettingsTabs.bankingSubtitle}
           </p>

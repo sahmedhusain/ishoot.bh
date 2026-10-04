@@ -94,14 +94,14 @@ export function PaymentDetailView({
         <div>
           <Link
             href={ROUTES.payments.list}
-            className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#09937F] dark:text-slate-400 dark:hover:text-[#09937F] transition-colors mb-2 font-medium"
+            className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-accent dark:text-slate-400 dark:hover:text-accent transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
             <span>{t.paymentDetailView.back}</span>
           </Link>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display flex items-center gap-2">
-              <Receipt className="w-6 h-6 text-[#09937F]" />
+              <Receipt className="w-6 h-6 text-accent" />
               <span>{payment.receipt_number}</span>
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -111,7 +111,7 @@ export function PaymentDetailView({
             {invoice && (
               <Link
                 href={ROUTES.invoices.detail(invoice.id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-[#09937F] border border-slate-200 dark:border-slate-700 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-accent border border-slate-200 dark:border-slate-700 transition-colors"
                 title={t.paymentDetail.viewLinkedInvoice}
               >
                 <FileText className="w-3.5 h-3.5" />
@@ -125,7 +125,7 @@ export function PaymentDetailView({
             {invoice?.contact_id && (
               <Link
                 href={ROUTES.crm.customer(invoice.contact_id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-[#014842] dark:bg-[#152B27] dark:text-[#7DE0D1] border border-[#09937F]/30 hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-primary dark:bg-[#152B27] dark:text-mint border border-accent/30 hover:underline transition-colors"
                 title={t.paymentDetail.viewClientDossierInCrm}
               >
                 <User className="w-3.5 h-3.5" />
@@ -164,10 +164,10 @@ export function PaymentDetailView({
       </div>
 
       {/* Attached Documents & Archive Integration (Screen Only) */}
-      <div className="no-print bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-5 shadow-xs space-y-4">
+      <div className="no-print bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-2xl p-5 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1]">
+            <div className="p-2 rounded-xl bg-primary/10 text-primary dark:text-mint">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
@@ -185,7 +185,7 @@ export function PaymentDetailView({
           <div className="flex items-center gap-2">
             <Link
               href={`${ROUTES.archive}?search=${encodeURIComponent(payment.receipt_number)}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#014842] dark:text-[#7de0d1] bg-[#e6f5f2] dark:bg-[#004d40]/40 border border-[#014842]/30 dark:border-[#004d40] hover:underline transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-primary dark:text-mint bg-[#e6f5f2] dark:bg-[#004d40]/40 border border-primary/30 dark:border-[#004d40] hover:underline transition-colors"
             >
               <FolderArchive className="w-3.5 h-3.5" />
               <span>{t.paymentDetailView.viewArchive}</span>
@@ -203,7 +203,7 @@ export function PaymentDetailView({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#014842] hover:bg-[#014842]/90 text-white transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-primary hover:bg-primary/90 text-white transition-colors shadow-xs"
             >
               {uploading ? (
                 <>
@@ -237,7 +237,7 @@ export function PaymentDetailView({
                   className="p-3.5 rounded-xl border border-slate-200 dark:border-neutral-700 bg-slate-50/70 dark:bg-neutral-800/40 flex items-center justify-between gap-2.5"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-[#014842] dark:text-[#7de0d1] flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-primary dark:text-mint flex items-center justify-center shrink-0">
                       {isCheque ? (
                         <FileCheck className="w-4 h-4" />
                       ) : isBankStatement ? (
@@ -287,7 +287,7 @@ export function PaymentDetailView({
       </div>
 
       {/* Official Receipt Template with Multi-Page Engine */}
-      <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-[#070C0A] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
+      <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-surface-sunken rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
         <ReceiptTemplate
           payment={payment}
           company={company}

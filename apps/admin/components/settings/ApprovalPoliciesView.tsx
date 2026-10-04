@@ -14,7 +14,7 @@ import { SettingsNavTabs } from "./SettingsNavTabs";
 type Step = ApprovalPolicyView["steps"][number];
 
 const selectClass =
-  "rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1210] px-2.5 py-1.5 text-xs";
+  "rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-surface px-2.5 py-1.5 text-xs";
 
 function PolicyCard({
   policy,
@@ -51,7 +51,7 @@ function PolicyCard({
   };
 
   return (
-    <Card className="p-5 space-y-4 dark:bg-[#111C19]">
+    <Card className="p-5 space-y-4 dark:bg-surface-raised">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-slate-900 dark:text-white">
           {t.approvals.types[draft.targetType]}
@@ -59,7 +59,7 @@ function PolicyCard({
         <label className="inline-flex items-center gap-2 text-xs">
           <input
             type="checkbox"
-            className="accent-[#09937F]"
+            className="accent-accent"
             checked={draft.enabled}
             onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })}
           />
@@ -139,7 +139,7 @@ function PolicyCard({
             <label className="inline-flex items-center gap-2">
               <input
                 type="checkbox"
-                className="accent-[#09937F]"
+                className="accent-accent"
                 checked={draft.allowSelfApproval}
                 onChange={(e) => setDraft({ ...draft, allowSelfApproval: e.target.checked })}
               />
@@ -151,7 +151,7 @@ function PolicyCard({
                 {ALL_ROLES.map((role) => {
                   const on = draft.autoApproveRoles.includes(role);
                   return (
-                    <label key={role} className={`cursor-pointer rounded-full border px-2 py-0.5 ${on ? "border-[#09937F] bg-[#09937F]/10" : "border-slate-200 dark:border-white/10"}`}>
+                    <label key={role} className={`cursor-pointer rounded-full border px-2 py-0.5 ${on ? "border-accent bg-accent/10" : "border-slate-200 dark:border-white/10"}`}>
                       <input
                         type="checkbox"
                         className="sr-only"
@@ -174,7 +174,7 @@ function PolicyCard({
       )}
 
       <div className="flex justify-end">
-        <Button type="button" size="sm" disabled={!dirty || saving} onClick={save} className="bg-[#014842] text-white">
+        <Button type="button" size="sm" disabled={!dirty || saving} onClick={save} className="bg-primary text-white">
           {p.save}
         </Button>
       </div>

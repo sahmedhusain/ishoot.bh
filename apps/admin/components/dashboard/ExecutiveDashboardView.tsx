@@ -91,7 +91,7 @@ export function ExecutiveDashboardView({
             <Button
               variant="primary"
               size="sm"
-              className="gap-1.5 bg-[#014842] hover:bg-[#014842]/90 text-white rounded-full h-8 px-3.5 text-xs font-semibold shadow-xs"
+              className="gap-1.5 bg-primary hover:bg-primary/90 text-white rounded-full h-8 px-3.5 text-xs font-semibold shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{t.actions.newInvoice}</span>
@@ -103,7 +103,7 @@ export function ExecutiveDashboardView({
               size="sm"
               className="gap-1.5 rounded-full h-8 px-3.5 text-xs font-medium"
             >
-              <CalendarIcon className="w-3.5 h-3.5 text-[#09937F]" />
+              <CalendarIcon className="w-3.5 h-3.5 text-accent" />
               <span>{t.nav.calendar}</span>
             </Button>
           </Link>)}
@@ -121,7 +121,7 @@ export function ExecutiveDashboardView({
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
-        {capabilities.finance && (<div className="p-4 space-y-1.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs">
+        {capabilities.finance && (<div className="p-4 space-y-1.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
               {t.kpi.totalRevenue}
@@ -136,24 +136,24 @@ export function ExecutiveDashboardView({
 
         </div>)}
 
-        {capabilities.finance && capabilities.deals && (<div className="p-4 space-y-1.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs">
+        {capabilities.finance && capabilities.deals && (<div className="p-4 space-y-1.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
               {t.kpi.pipelineValue}
             </span>
-            <div className="w-6 h-6 rounded-md bg-[#09937F]/10 flex items-center justify-center text-[#09937F]">
+            <div className="w-6 h-6 rounded-md bg-accent/10 flex items-center justify-center text-accent">
               <Briefcase className="w-3.5 h-3.5" />
             </div>
           </div>
           <div className="text-lg font-bold text-slate-900 dark:text-white ">
             <CurrencyDisplay amount={activePipelineValue} currency="BHD" />
           </div>
-          <div className="text-[10px] text-[#09937F]  font-medium">
+          <div className="text-[10px] text-accent  font-medium">
             {activeCount} {t.kpi.activeDealsCount}
           </div>
         </div>)}
 
-        {capabilities.finance && (<div className="p-4 space-y-1.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs">
+        {capabilities.finance && (<div className="p-4 space-y-1.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
               {t.kpi.receivables}
@@ -172,7 +172,7 @@ export function ExecutiveDashboardView({
           </div>
         </div>)}
 
-        {capabilities.finance && (<div className="p-4 space-y-1.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs">
+        {capabilities.finance && (<div className="p-4 space-y-1.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
               {t.kpi.operatingExpenses}
@@ -189,27 +189,27 @@ export function ExecutiveDashboardView({
           </div>
         </div>)}
 
-        {capabilities.finance && (<div className="p-4 space-y-1.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs">
+        {capabilities.finance && (<div className="p-4 space-y-1.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
               {t.kpi.profitMargin}
             </span>
-            <div className="w-6 h-6 rounded-md bg-[#09937F]/10 flex items-center justify-center text-[#09937F]">
+            <div className="w-6 h-6 rounded-md bg-accent/10 flex items-center justify-center text-accent">
               <span className="text-[10px]  font-bold">%</span>
             </div>
           </div>
           <div
-            className={`text-lg font-bold  ${finance.netProfit >= 0 ? "text-[#014842] dark:text-[#7de0d1]" : "text-rose-500"}`}
+            className={`text-lg font-bold  ${finance.netProfit >= 0 ? "text-primary dark:text-mint" : "text-rose-500"}`}
           >
             {finance.profitMargin.toFixed(1)}%
           </div>
-          <div className="text-[10px] text-[#09937F]  font-medium">
+          <div className="text-[10px] text-accent  font-medium">
             <CurrencyDisplay amount={finance.netProfit} currency="BHD" />{" "}
             {t.kpi.netProfit}
           </div>
         </div>)}
 
-        {capabilities.leads && (<div className="p-4 space-y-1.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs">
+        {capabilities.leads && (<div className="p-4 space-y-1.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
               {t.kpi.incomingLeads}
@@ -229,7 +229,7 @@ export function ExecutiveDashboardView({
 
       {/* Main Charts & Pipeline Grid */}
       {capabilities.finance && (<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8 p-5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs space-y-4">
+        <div className="lg:col-span-8 p-5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-neutral-800 pb-3">
             <div>
               <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
@@ -238,7 +238,7 @@ export function ExecutiveDashboardView({
             </div>
             <div className="flex items-center gap-4 text-xs ">
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-xs bg-[#09937F]" />
+                <span className="w-2.5 h-2.5 rounded-xs bg-accent" />
                 <span className="text-slate-700 dark:text-neutral-300 font-semibold">
                   {t.dashboardView.revenue}
                 </span>
@@ -257,14 +257,14 @@ export function ExecutiveDashboardView({
           </div>
         </div>
 
-        {capabilities.deals && (<div className="lg:col-span-4 p-5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs space-y-4 flex flex-col justify-between">
+        {capabilities.deals && (<div className="lg:col-span-4 p-5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs space-y-4 flex flex-col justify-between">
           <div className="border-b border-slate-100 dark:border-neutral-800 pb-3 flex items-center justify-between">
             <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.charts.pipelineByStage}
             </h2>
             <Link
               href={ROUTES.crm.deals}
-              className="text-xs text-[#014842] dark:text-[#7de0d1] hover:underline font-semibold"
+              className="text-xs text-primary dark:text-mint hover:underline font-semibold"
             >
               {t.actions.view}
             </Link>
@@ -289,7 +289,7 @@ export function ExecutiveDashboardView({
                   </div>
                   <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#09937F] rounded-full transition-all duration-500"
+                      className="h-full bg-accent rounded-full transition-all duration-500"
                       style={{
                         width: `${Math.min(100, Math.max(0, percent))}%`,
                       }}
@@ -304,7 +304,7 @@ export function ExecutiveDashboardView({
             <span className="text-slate-500 dark:text-neutral-400 font-semibold">
               {t.dashboardView.activePipeline}
             </span>
-            <span className="font-bold text-[#014842] dark:text-[#7de0d1] text-sm">
+            <span className="font-bold text-primary dark:text-mint text-sm">
               <CurrencyDisplay amount={activePipelineValue} currency="BHD" />
             </span>
           </div>
@@ -320,14 +320,14 @@ export function ExecutiveDashboardView({
             </h2>
             <Link
               href={ROUTES.crm.deals}
-              className="text-xs text-[#014842] dark:text-[#09937F] hover:underline flex items-center gap-1 transition-colors font-semibold"
+              className="text-xs text-primary dark:text-accent hover:underline flex items-center gap-1 transition-colors font-semibold"
             >
               <span>{t.dashboardView.viewKanban}</span>
               <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl overflow-hidden shadow-xs divide-y divide-[#dadce0]/70 dark:divide-[#3c4043]/70">
+          <div className="bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl overflow-hidden shadow-xs divide-y divide-[#dadce0]/70 dark:divide-[#3c4043]/70">
             {deals.slice(0, 5).map((deal) => (
               <div
                 key={deal.id}
@@ -336,7 +336,7 @@ export function ExecutiveDashboardView({
                 <div className="space-y-0.5">
                   <Link
                     href={ROUTES.crm.deal(deal.id)}
-                    className="text-xs font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors"
+                    className="text-xs font-bold text-slate-900 dark:text-white hover:text-primary dark:hover:text-mint transition-colors"
                   >
                     {deal.title}
                   </Link>
@@ -344,7 +344,7 @@ export function ExecutiveDashboardView({
                     {deal.contact ? (
                       <Link
                         href={ROUTES.crm.customer(deal.contact.id)}
-                        className="hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline font-medium inline-flex items-center gap-1"
+                        className="hover:text-primary dark:hover:text-mint hover:underline font-medium inline-flex items-center gap-1"
                         title={t.executiveDashboard.viewCustomerDossier}
                       >
                         <span>
@@ -356,7 +356,7 @@ export function ExecutiveDashboardView({
                       <span>{t.dashboardView.directLead}</span>
                     )}
                     {deal.shoot_date && (
-                      <span className=" text-[10px] text-[#09937F] bg-[#09937F]/10 px-2 py-0.5 rounded font-medium">
+                      <span className=" text-[10px] text-accent bg-accent/10 px-2 py-0.5 rounded font-medium">
                         {t.dashboardView.shootDate} {deal.shoot_date}
                       </span>
                     )}
@@ -381,18 +381,18 @@ export function ExecutiveDashboardView({
           {capabilities.calendar && (<div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                <CalendarIcon className="w-3.5 h-3.5 text-[#09937F]" />
+                <CalendarIcon className="w-3.5 h-3.5 text-accent" />
                 <span>{t.calendar.title}</span>
               </h2>
               <Link
                 href={ROUTES.calendar}
-                className="text-xs text-[#014842] dark:text-[#7de0d1] hover:underline font-semibold"
+                className="text-xs text-primary dark:text-mint hover:underline font-semibold"
               >
                 {t.actions.all}
               </Link>
             </div>
 
-            <div className="bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl p-4 space-y-2.5 shadow-xs">
+            <div className="bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl p-4 space-y-2.5 shadow-xs">
               {upcomingEvents.length > 0 ? (
                 upcomingEvents.slice(0, 3).map((event) => (
                   <div
@@ -423,7 +423,7 @@ export function ExecutiveDashboardView({
                     </div>
                     {event.location && (
                       <div className="text-[10px] text-slate-500 dark:text-neutral-400 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-[#09937F]" />
+                        <MapPin className="w-3 h-3 text-accent" />
                         <span className="truncate">{event.location}</span>
                       </div>
                     )}
@@ -437,10 +437,10 @@ export function ExecutiveDashboardView({
             </div>
           </div>)}
 
-          {capabilities.settings && (<div className="p-4 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs space-y-3">
+          {capabilities.settings && (<div className="p-4 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs space-y-3">
             <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100 dark:border-neutral-800">
-              <div className="w-8 h-8 rounded-lg bg-[#014842] border border-[#09937F]/40 flex items-center justify-center text-white">
-                <Building2 className="w-3.5 h-3.5 text-[#09937F]" />
+              <div className="w-8 h-8 rounded-lg bg-primary border border-accent/40 flex items-center justify-center text-white">
+                <Building2 className="w-3.5 h-3.5 text-accent" />
               </div>
               <div>
                 <div className="text-xs font-bold text-slate-900 dark:text-white">

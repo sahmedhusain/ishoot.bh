@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { ServiceItem,ServiceCategory } from "@ishoot/database/types";
-import { Button,Input,CurrencyDisplay } from "@ishoot/ui";
+import { Button,Input,CurrencyDisplay, useDialog } from "@ishoot/ui";
 import {
 Sparkles,
 Plus,
@@ -36,6 +36,7 @@ export function ServicesManagementView({
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const serviceDialog = useDialog(isModalOpen, () => setIsModalOpen(false));
   const [editingService, setEditingService] = React.useState<ServiceItem | null>(null);
   const [saving, setSaving] = React.useState(false);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
@@ -178,7 +179,7 @@ export function ServicesManagementView({
         <div className="flex items-center gap-3">
           <Button
             onClick={openCreateModal}
-            className="bg-[#014842] hover:bg-[#014842]/90 text-white gap-2 shadow-xs rounded-full px-4 h-8 text-xs font-semibold"
+            className="bg-primary hover:bg-primary/90 text-white gap-2 shadow-xs rounded-full px-4 h-8 text-xs font-semibold"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.servicesView.addService}</span>
@@ -188,7 +189,7 @@ export function ServicesManagementView({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] shadow-xs space-y-1">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.totalServices}</span>
             <Layers className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
@@ -198,7 +199,7 @@ export function ServicesManagementView({
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] shadow-xs space-y-1">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.activeOfferings}</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
@@ -208,7 +209,7 @@ export function ServicesManagementView({
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] shadow-xs space-y-1">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.avgRate}</span>
             <DollarSign className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
@@ -218,7 +219,7 @@ export function ServicesManagementView({
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] shadow-xs space-y-1">
+        <div className="p-3.5 rounded-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.servicesView.categoriesCount}</span>
             <Tag className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
@@ -239,14 +240,14 @@ export function ServicesManagementView({
               onClick={() => setActiveCategory(cat.value)}
               className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
                 isActive
-                  ? "bg-[#e6f5f2] text-[#014842] border border-[#014842]/30 dark:bg-[#004d40]/40 dark:text-[#7de0d1] dark:border-[#004d40] font-semibold"
+                  ? "bg-[#e6f5f2] text-primary border border-primary/30 dark:bg-[#004d40]/40 dark:text-mint dark:border-[#004d40] font-semibold"
                   : "text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
               }`}
             >
               <span>{isRTL ? cat.labelAr : cat.labelEn}</span>
               {cat.value !== "all" && (
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full  ${
-                  isActive ? "bg-[#014842]/20 dark:bg-[#7de0d1]/20" : "bg-slate-100 dark:bg-neutral-800 text-slate-500"
+                  isActive ? "bg-primary/20 dark:bg-mint/20" : "bg-slate-100 dark:bg-neutral-800 text-slate-500"
                 }`}>
                   {services.filter((s) => s.category === cat.value).length}
                 </span>
@@ -257,7 +258,7 @@ export function ServicesManagementView({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-[#1a1a1a] p-3 rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-surface-raised p-3 rounded-xl border border-ink/15 dark:border-ink/15 shadow-xs">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -265,7 +266,7 @@ export function ServicesManagementView({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={t.servicesView.searchPlaceholder}
-            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
 
@@ -274,7 +275,7 @@ export function ServicesManagementView({
           <select
             value={statusFilter}
             onChange={(e: any) => setStatusFilter(e.target.value)}
-            className="text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+            className="text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="all">{t.servicesView.filterAll}</option>
             <option value="active">{t.servicesView.filterActive}</option>
@@ -284,7 +285,7 @@ export function ServicesManagementView({
       </div>
 
       {/* Services Table */}
-      <div className="bg-white dark:bg-[#121B19] rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-surface-raised rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -365,7 +366,7 @@ export function ServicesManagementView({
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => openEditModal(service)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-[#09937F] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-accent hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             title={t.servicesManagement.editService}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -392,10 +393,10 @@ export function ServicesManagementView({
       {/* Create / Edit Service Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#121B19] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-xl w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+          <div {...serviceDialog} className="bg-white dark:bg-surface-raised rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-xl w-full p-6 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#09937F]" />
+                <Sparkles className="w-5 h-5 text-accent" />
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
                   {editingService ? t.servicesView.modalEditTitle : t.servicesView.modalNewTitle}
                 </h3>
@@ -428,7 +429,7 @@ export function ServicesManagementView({
                   <select
                     value={formCategory}
                     onChange={(e: any) => setFormCategory(e.target.value)}
-                    className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
                   >
                     <option value="production">{t.servicesView.categoryProduction}</option>
                     <option value="post_production">{t.servicesView.categoryPost}</option>
@@ -488,7 +489,7 @@ export function ServicesManagementView({
                   <select
                     value={formUnit}
                     onChange={(e: any) => setFormUnit(e.target.value)}
-                    className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
                   >
                     {SERVICE_UNITS.map((u) => (
                       <option key={u.value} value={u.value}>
@@ -508,7 +509,7 @@ export function ServicesManagementView({
                   placeholder={t.servicesView.descEnPlaceholder}
                   value={formDescEn}
                   onChange={(e) => setFormDescEn(e.target.value)}
-                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
                 />
               </div>
 
@@ -521,7 +522,7 @@ export function ServicesManagementView({
                   placeholder={t.servicesView.descArPlaceholder}
                   value={formDescAr}
                   onChange={(e) => setFormDescAr(e.target.value)}
-                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white text-right font-arabic focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white text-right font-arabic focus:outline-none focus:ring-1 focus:ring-accent"
                 />
               </div>
 
@@ -531,7 +532,7 @@ export function ServicesManagementView({
                   id="formIsActive"
                   checked={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.checked)}
-                  className="rounded text-[#09937F] focus:ring-[#09937F]"
+                  className="rounded text-accent focus:ring-accent"
                 />
                 <label htmlFor="formIsActive" className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
                   {t.servicesView.statusActive}
@@ -552,7 +553,7 @@ export function ServicesManagementView({
                   type="submit"
                   size="sm"
                   disabled={saving}
-                  className="bg-[#09937F] hover:bg-[#014842] text-white"
+                  className="bg-accent hover:bg-primary text-white"
                 >
                   {saving ? t.actions.saving : editingService ? t.actions.update : t.actions.add}
                 </Button>

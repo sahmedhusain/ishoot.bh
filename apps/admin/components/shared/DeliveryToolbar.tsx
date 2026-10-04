@@ -112,7 +112,7 @@ export function DeliveryToolbar({
   return (
     <div
       data-delivery-toolbar
-      className={`flex flex-wrap items-center gap-3 p-4 bg-[#0B1210] border border-white/10 rounded-2xl shadow-xl ${className}`}
+      className={`flex flex-wrap items-center gap-3 p-4 bg-surface border border-ink/10 rounded-2xl shadow-xl ${className}`}
     >
       <Button
         variant={emailSent ? "secondary" : "primary"}
@@ -155,7 +155,7 @@ export function DeliveryToolbar({
         onClick={handlePrint}
         className="gap-2"
       >
-        <Printer className="w-4 h-4 text-[#9EADA9]" />
+        <Printer className="w-4 h-4 text-ink-muted" />
         <span>{t.deliveryToolbar.printDocument}</span>
       </Button>
 
@@ -166,7 +166,7 @@ export function DeliveryToolbar({
         onClick={handleDownloadPdf}
         className="gap-2"
       >
-        <Download className="w-4 h-4 text-[#9EADA9]" />
+        <Download className="w-4 h-4 text-ink-muted" />
         <span>{t.deliveryToolbar.savePdf}</span>
       </Button>
     </div>

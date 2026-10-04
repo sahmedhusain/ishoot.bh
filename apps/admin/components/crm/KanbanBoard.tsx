@@ -72,7 +72,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
           <Button
             variant="primary"
             size="sm"
-            className="gap-1.5 shrink-0 bg-[#014842] hover:bg-[#014842]/90 text-white rounded-full px-4 h-8 text-xs font-semibold shadow-xs"
+            className="gap-1.5 shrink-0 bg-primary hover:bg-primary/90 text-white rounded-full px-4 h-8 text-xs font-semibold shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.actions.newDeal}</span>

@@ -71,7 +71,7 @@ export function ProofUploader({
 
       <div
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-white/15 hover:border-[#09937F]/60 bg-[#0B1210]/60 hover:bg-[#0B1210] rounded-2xl p-5 text-center cursor-pointer transition-all duration-200 group"
+        className="border-2 border-dashed border-white/15 hover:border-accent/60 bg-[#0B1210]/60 hover:bg-[#0B1210] rounded-2xl p-5 text-center cursor-pointer transition-all duration-200 group"
       >
         <input
           ref={fileInputRef}
@@ -83,12 +83,12 @@ export function ProofUploader({
         />
 
         <div className="flex flex-col items-center justify-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 group-hover:border-[#09937F] group-hover:bg-[#09937F]/10 flex items-center justify-center text-[#9EADA9] group-hover:text-[#09937F] transition-colors">
+          <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 group-hover:border-accent group-hover:bg-accent/10 flex items-center justify-center text-[#9EADA9] group-hover:text-accent transition-colors">
             <Upload className="w-5 h-5" />
           </div>
           <div>
             <p className="text-xs font-medium text-white">
-              <span className="text-[#09937F] underline font-bold">
+              <span className="text-accent underline font-bold">
                 {clickText}
               </span>{" "}
               {dropText}
@@ -111,7 +111,7 @@ export function ProofUploader({
                 className="flex items-center justify-between p-3 rounded-xl bg-[#070C0A] border border-white/10 text-xs text-white"
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[#09937F] shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-accent shrink-0">
                     {isImage ? (
                       <ImageIcon className="w-4 h-4" />
                     ) : (

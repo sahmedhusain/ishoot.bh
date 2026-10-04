@@ -33,9 +33,9 @@ export function GeneralInfoTab({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Legal & Corporate Registration Card */}
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
-          <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-ink/15 dark:border-ink/15">
+          <div className="p-2 rounded-xl bg-accent/10 text-accent">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
@@ -128,8 +128,8 @@ export function GeneralInfoTab({
       </Card>
 
       {/* Communications & Platforms Card */}
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
+      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-ink/15 dark:border-ink/15">
           <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
             <Phone className="w-5 h-5" />
           </div>
@@ -240,8 +240,8 @@ export function GeneralInfoTab({
       </Card>
 
       {/* Google Workspace & Production Calendar Live Sync */}
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center justify-between pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
+      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-5">
+        <div className="flex items-center justify-between pb-3 border-b border-ink/15 dark:border-ink/15">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
               <Calendar className="w-5 h-5" />
@@ -255,13 +255,13 @@ export function GeneralInfoTab({
               </p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-[#014842] dark:text-[#7de0d1] border border-emerald-200 dark:border-emerald-800">
-            <span className="w-2 h-2 rounded-full bg-[#09937F] animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-primary dark:text-mint border border-emerald-200 dark:border-emerald-800">
+            <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
             <span>{t.generalInfoTab.liveProductionSyncActive}</span>
           </span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#282a2d] border border-[#dadce0] dark:border-[#3c4043] space-y-4">
+        <div className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#282a2d] border border-ink/15 dark:border-ink/15 space-y-4">
           <div className="space-y-1">
             <div className="text-xs font-bold text-slate-900 dark:text-white">
               {t.generalInfoTab.productionAndShootLiveFeed}
@@ -272,7 +272,7 @@ export function GeneralInfoTab({
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <div className="flex-1 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] px-3 py-2 rounded-xl text-xs font-mono text-slate-700 dark:text-slate-300 truncate select-all">
+            <div className="flex-1 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 px-3 py-2 rounded-xl text-xs font-mono text-slate-700 dark:text-slate-300 truncate select-all">
               {typeof window !== "undefined" ? `${window.location.origin}/api/calendar/feed` : "/api/calendar/feed"}
             </div>
             <Button
@@ -299,7 +299,7 @@ export function GeneralInfoTab({
                 const gcalUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feedUrl)}`;
                 window.open(gcalUrl, "_blank");
               }}
-              className="gap-1.5 text-xs rounded-xl shrink-0 bg-[#09937F] text-white"
+              className="gap-1.5 text-xs rounded-xl shrink-0 bg-accent text-white"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span>{t.generalInfoTab.addToGoogleCalendar}</span>

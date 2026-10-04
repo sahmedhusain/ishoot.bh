@@ -62,28 +62,28 @@ export function NewCustomerFormView() {
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5 text-[#9EADA9]"
+            className="gap-1.5 text-ink-muted"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t.actions.back}</span>
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-2">
-            <UserPlus className="w-6 h-6 text-[#09937F]" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
+            <UserPlus className="w-6 h-6 text-accent" />
             <span>{t.customersNew.title}</span>
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.customersNew.subtitle}
           </p>
         </div>
       </div>
 
-      <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl">
+      <Card className="p-8 bg-surface border border-ink/10 rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.customersNew.fullNameLabel}
               </label>
               <Input
@@ -94,7 +94,7 @@ export function NewCustomerFormView() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.customersNew.companyLabel}
               </label>
               <Input
@@ -104,7 +104,7 @@ export function NewCustomerFormView() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.contactFields.vatNumber}
               </label>
               <Input
@@ -117,7 +117,7 @@ export function NewCustomerFormView() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.customersNew.emailLabel}
               </label>
               <Input
@@ -128,7 +128,7 @@ export function NewCustomerFormView() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.customersNew.phoneLabel}
               </label>
               <Input
@@ -141,7 +141,7 @@ export function NewCustomerFormView() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.customersNew.jobTitleLabel}
               </label>
               <Input
@@ -151,7 +151,7 @@ export function NewCustomerFormView() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.customersNew.classificationLabel}
               </label>
               <Select
@@ -162,7 +162,7 @@ export function NewCustomerFormView() {
                   <option
                     key={type.value}
                     value={type.value}
-                    className="bg-[#0B1210] text-white"
+                    className="bg-surface text-ink"
                   >
                     {t.crm.contactTypes[type.value as keyof typeof t.crm.contactTypes] || type.value}
                   </option>
@@ -172,7 +172,7 @@ export function NewCustomerFormView() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-white mb-1.5 block">
+            <label className="text-xs font-semibold text-ink mb-1.5 block">
               {t.customersNew.notesLabel}
             </label>
             <textarea
@@ -180,11 +180,11 @@ export function NewCustomerFormView() {
               placeholder={t.customersNew.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-[#050807] border border-white/10 rounded-xl p-3 text-xs text-white placeholder-[#9EADA9]/50 focus:outline-none focus:border-[#09937F]"
+              className="w-full bg-surface-sunken border border-ink/10 rounded-xl p-3 text-xs text-ink placeholder-ink-muted/50 focus:outline-none focus:border-accent"
             />
           </div>
 
-          <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
+          <div className="pt-6 border-t border-ink/10 flex items-center justify-end gap-4">
             <Link href={ROUTES.crm.contacts}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}

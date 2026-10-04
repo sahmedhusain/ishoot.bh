@@ -90,7 +90,7 @@ export function DealDossierView({
               <span>{deal.title}</span>
               <Badge
                 variant="outline"
-                className="text-xs uppercase  border-[#09937F]/40 text-[#09937F]"
+                className="text-xs uppercase  border-accent/40 text-accent"
               >
                 {deal.stage}
               </Badge>
@@ -108,7 +108,7 @@ export function DealDossierView({
               <Button
                 variant="primary"
                 size="sm"
-                className="gap-1.5 bg-[#014842] hover:bg-[#014842]/90 text-white"
+                className="gap-1.5 bg-primary hover:bg-primary/90 text-white"
               >
                 <Edit className="w-3.5 h-3.5" />
                 <span>{t.dealDossier.editDeal}</span>
@@ -120,7 +120,7 @@ export function DealDossierView({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 border-[#09937F]/50 text-[#014842] dark:text-[#09937F]"
+                className="gap-1.5 border-accent/50 text-primary dark:text-accent"
               >
                 <FileSignature className="w-3.5 h-3.5" />
                 <span>{t.dealDossier.createQuotation}</span>
@@ -134,7 +134,7 @@ export function DealDossierView({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 border-[#09937F]/50 text-[#014842] dark:text-[#09937F]"
+                className="gap-1.5 border-accent/50 text-primary dark:text-accent"
               >
                 <FileText className="w-3.5 h-3.5" />
                 <span>{t.dealDossier.issueInvoice}</span>
@@ -146,9 +146,9 @@ export function DealDossierView({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <Card className="p-5 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-1">
+        <Card className="p-5 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-1">
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <DollarSign className="w-3.5 h-3.5 text-[#09937F]" />
+            <DollarSign className="w-3.5 h-3.5 text-accent" />
             <span>{t.dealDossier.dealValue}</span>
           </div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white ">
@@ -164,7 +164,7 @@ export function DealDossierView({
           </span>
         </Card>
 
-        <Card className="p-5 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-1">
+        <Card className="p-5 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-1">
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
             <span>{t.dealDossier.projectedRevenue}</span>
@@ -172,12 +172,12 @@ export function DealDossierView({
           <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 ">
             <CurrencyDisplay amount={projectedValue} currency={deal.currency} />
           </div>
-          <span className="text-[11px] text-[#09937F] ">
+          <span className="text-[11px] text-accent ">
             {t.dealDossier.weightedValue}
           </span>
         </Card>
 
-        <Card className="p-5 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-1">
+        <Card className="p-5 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-1">
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Calendar className="w-3.5 h-3.5 text-amber-500" />
             <span>{t.dealDossier.targetClose}</span>
@@ -196,9 +196,9 @@ export function DealDossierView({
           </span>
         </Card>
 
-        <Card className="p-5 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-1">
+        <Card className="p-5 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-1">
           <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <Briefcase className="w-3.5 h-3.5 text-[#014842] dark:text-[#09937F]" />
+            <Briefcase className="w-3.5 h-3.5 text-primary dark:text-accent" />
             <span>{t.dealDossier.invoicesGenerated}</span>
           </div>
           <div className="text-2xl font-bold text-slate-900 dark:text-white ">
@@ -234,7 +234,7 @@ export function DealDossierView({
               onClick={() => setActiveTab(tab.id as any)}
               className={`pb-3.5 flex items-center gap-2 border-b-2 transition-colors shrink-0 ${
                 isActive
-                  ? "border-[#09937F] text-[#014842] dark:text-[#09937F]"
+                  ? "border-accent text-primary dark:text-accent"
                   : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
@@ -247,7 +247,7 @@ export function DealDossierView({
 
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
               {t.dealDossier.dealInfo}
             </h2>
@@ -268,7 +268,7 @@ export function DealDossierView({
                 {contact ? (
                   <Link
                     href={ROUTES.crm.customer(contact.id)}
-                    className="text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
+                    className="text-primary dark:text-accent hover:underline font-semibold flex items-center gap-1"
                     title={t.dealDossier.viewCustomerDossier}
                   >
                     <span>{clientName}</span>
@@ -309,7 +309,7 @@ export function DealDossierView({
             </div>
           </Card>
 
-          <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 {t.dealDossier.clientAndAccountInfo}
@@ -317,7 +317,7 @@ export function DealDossierView({
               {contact && (
                 <Link
                   href={ROUTES.crm.customer(contact.id)}
-                  className="text-xs text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
+                  className="text-xs text-primary dark:text-accent hover:underline font-semibold flex items-center gap-1"
                 >
                   <span>{t.dealDossier.n360Dossier}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -334,13 +334,13 @@ export function DealDossierView({
                     </div>
                     <Link
                       href={ROUTES.crm.customer(contact.id)}
-                      className="font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#09937F] hover:underline inline-flex items-center gap-1.5"
+                      className="font-bold text-slate-900 dark:text-white hover:text-primary dark:hover:text-accent hover:underline inline-flex items-center gap-1.5"
                     >
                       <span>{contact.full_name}</span>
                       <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
                     </Link>
                     {contact.job_title && (
-                      <div className="text-xs text-[#09937F] font-medium">
+                      <div className="text-xs text-accent font-medium">
                         {contact.job_title}
                       </div>
                     )}
@@ -348,7 +348,7 @@ export function DealDossierView({
 
                   {contact.company && (
                     <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                      <Building2 className="w-3.5 h-3.5 text-[#09937F]" />
+                      <Building2 className="w-3.5 h-3.5 text-accent" />
                       <span className="font-semibold text-slate-900 dark:text-white">
                         {contact.company}
                       </span>
@@ -361,7 +361,7 @@ export function DealDossierView({
                         href={`mailto:${contact.email}`}
                         className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                       >
-                        <Mail className="w-3.5 h-3.5 text-[#09937F]" />
+                        <Mail className="w-3.5 h-3.5 text-accent" />
                         <span>{contact.email}</span>
                       </a>
                     )}
@@ -371,7 +371,7 @@ export function DealDossierView({
                         className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white "
                         dir="ltr"
                       >
-                        <Phone className="w-3.5 h-3.5 text-[#09937F]" />
+                        <Phone className="w-3.5 h-3.5 text-accent" />
                         <span>{contact.phone}</span>
                       </a>
                     )}
@@ -402,14 +402,14 @@ export function DealDossierView({
       )}
 
       {activeTab === "timeline" && (
-        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
             {t.dealDossier.productionTimelineAndLog}
           </h2>
 
           <div className="space-y-4">
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-1 text-[#09937F]">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-1 text-accent">
                 <Briefcase className="w-4 h-4" />
               </div>
               <div>
@@ -477,7 +477,7 @@ export function DealDossierView({
       )}
 
       {activeTab === "documents" && (
-        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.dealDossier.contractsBriefs}
@@ -494,7 +494,7 @@ export function DealDossierView({
       )}
 
       {activeTab === "invoices" && (
-        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.dealDossier.linkedInvoices}
@@ -563,7 +563,7 @@ export function DealDossierView({
                       <td className="p-3">
                         <Link
                           href={ROUTES.invoices.detail(inv.id)}
-                          className=" font-bold text-[#09937F] hover:underline"
+                          className=" font-bold text-accent hover:underline"
                         >
                           {inv.invoice_number}
                         </Link>

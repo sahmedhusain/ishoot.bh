@@ -15,7 +15,7 @@ import {
   DocumentLetterhead,
   DocumentFooter,
 } from "../shared/DocumentLetterhead";
-import { Button, StatusBadge } from "@ishoot/ui";
+import { Button, StatusBadge, useDialog } from "@ishoot/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -61,6 +61,7 @@ export function MomDetailView({
   const { can } = usePermissions();
   const [isApproving, setIsApproving] = React.useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
+  const emailDialog = useDialog(isEmailModalOpen, () => setIsEmailModalOpen(false));
   const [recipientEmail, setRecipientEmail] = React.useState("");
   const [emailNote, setEmailNote] = React.useState("");
   const [isSendingEmail, setIsSendingEmail] = React.useState(false);
@@ -203,7 +204,7 @@ export function MomDetailView({
         <div>
           <Link
             href={ROUTES.moms.list}
-            className="inline-flex items-center gap-2 text-xs text-[#9EADA9] hover:text-[#09937F] transition-colors mb-2 font-medium"
+            className="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-accent transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
             <span>
@@ -220,7 +221,7 @@ export function MomDetailView({
             {mom.client_id && (
               <Link
                 href={ROUTES.crm.customer(mom.client_id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-[#014842] dark:bg-[#152B27] dark:text-[#7DE0D1] border border-[#09937F]/30 hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-primary dark:bg-[#152B27] dark:text-mint border border-accent/30 hover:underline transition-colors"
                 title="View Client 360"
               >
                 <span>{clientName}</span>
@@ -273,7 +274,7 @@ export function MomDetailView({
               size="sm"
               onClick={handleApproveAndSign}
               disabled={isApproving}
-              className="gap-1.5 bg-[#09937F] hover:bg-[#077a68] text-white shadow-lg shadow-[#09937F]/20"
+              className="gap-1.5 bg-accent hover:bg-accent-pressed text-white shadow-lg shadow-accent/20"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>
@@ -309,7 +310,7 @@ export function MomDetailView({
       )}
 
       {/* Printable Master Document Sheet (Unified Concept with Invoices & Receipts) */}
-      <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-[#070C0A] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
+      <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-surface-sunken rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
         <div
           dir={isAr ? "rtl" : "ltr"}
           data-print-target
@@ -346,7 +347,7 @@ export function MomDetailView({
           <div className="p-8 sm:p-10 space-y-8 print:p-6 print:space-y-6">
             {/* Title & Subject Block */}
             <div className="border-b-2 border-slate-900 pb-5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#09937F] block mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-accent block mb-1">
                 {isAr
                   ? "موضوع وجدول الاجتماع الرئيسي"
                   : "Session Subject & Focus"}
@@ -365,7 +366,7 @@ export function MomDetailView({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
               <div className="space-y-1">
                 <span className="text-slate-400 font-bold uppercase text-[10px] flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-[#09937F]" />
+                  <Calendar className="w-3 h-3 text-accent" />
                   <span>{isAr ? "التاريخ" : "Date"}</span>
                 </span>
                 <p className="font-semibold text-slate-800">
@@ -375,7 +376,7 @@ export function MomDetailView({
 
               <div className="space-y-1">
                 <span className="text-slate-400 font-bold uppercase text-[10px] flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-[#09937F]" />
+                  <Clock className="w-3 h-3 text-accent" />
                   <span>{isAr ? "الوقت" : "Timing"}</span>
                 </span>
                 <p className="font-semibold text-slate-800">
@@ -386,7 +387,7 @@ export function MomDetailView({
 
               <div className="space-y-1">
                 <span className="text-slate-400 font-bold uppercase text-[10px] flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-[#09937F]" />
+                  <MapPin className="w-3 h-3 text-accent" />
                   <span>{isAr ? "الموقع" : "Location"}</span>
                 </span>
                 <p
@@ -400,7 +401,7 @@ export function MomDetailView({
 
               <div className="space-y-1">
                 <span className="text-slate-400 font-bold uppercase text-[10px] flex items-center gap-1">
-                  <FileText className="w-3 h-3 text-[#09937F]" />
+                  <FileText className="w-3 h-3 text-accent" />
                   <span>{isAr ? "المعد" : "Recorded By"}</span>
                 </span>
                 <p className="font-semibold text-slate-800 truncate">
@@ -413,7 +414,7 @@ export function MomDetailView({
             {mom.attendees && mom.attendees.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-2">
-                  <Users className="w-4 h-4 text-[#09937F]" />
+                  <Users className="w-4 h-4 text-accent" />
                   <span>
                     {isAr
                       ? "سجل الحضور والمشاركين"
@@ -473,7 +474,7 @@ export function MomDetailView({
               {mom.agenda && (
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-1.5">
-                    <ListTodo className="w-3.5 h-3.5 text-[#09937F]" />
+                    <ListTodo className="w-3.5 h-3.5 text-accent" />
                     <span>{isAr ? "جدول الأعمال" : "Meeting Agenda"}</span>
                   </h3>
                   <div className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 whitespace-pre-line">
@@ -486,7 +487,7 @@ export function MomDetailView({
               {mom.notes && (
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-1.5">
-                    <FileText className="w-3.5 h-3.5 text-[#09937F]" />
+                    <FileText className="w-3.5 h-3.5 text-accent" />
                     <span>
                       {isAr ? "ملاحظات تنظيمية" : "Administrative Notes"}
                     </span>
@@ -514,7 +515,7 @@ export function MomDetailView({
                         className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 text-xs text-slate-800 leading-relaxed"
                       >
                         <div className="flex items-center gap-2 font-bold text-slate-900 mb-1">
-                          <span className="w-5 h-5 rounded-full bg-[#09937F]/10 text-[#09937F] flex items-center justify-center text-[10px] font-mono">
+                          <span className="w-5 h-5 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-mono">
                             {i + 1}
                           </span>
                           <span>{point.topic}</span>
@@ -537,8 +538,8 @@ export function MomDetailView({
             {/* Decisions Callout */}
             {mom.decisions && mom.decisions.length > 0 && (
               <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/80 border-2 border-emerald-500/30 space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#014842] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#09937F]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent" />
                   <span>
                     {isAr
                       ? "القرارات المعتمدة في الجلسة"
@@ -548,7 +549,7 @@ export function MomDetailView({
                 <ul className="space-y-2 text-xs text-slate-900 font-medium">
                   {mom.decisions.map((dec: string, i: number) => (
                     <li key={i} className="flex items-start gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#09937F] mt-1.5 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent mt-1.5 shrink-0" />
                       <span>{dec}</span>
                     </li>
                   ))}
@@ -658,10 +659,10 @@ export function MomDetailView({
       {/* Share Via Email Modal */}
       {isEmailModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
-          <div className="bg-white dark:bg-[#0E1714] border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div {...emailDialog} className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#09937F]" />
+                <Mail className="w-4 h-4 text-accent" />
                 <span>
                   {isAr
                     ? "إرسال محضر الاجتماع عبر البريد"
@@ -687,7 +688,7 @@ export function MomDetailView({
                   value={recipientEmail}
                   onChange={(e) => setRecipientEmail(e.target.value)}
                   placeholder="partner@client.com"
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 
@@ -706,7 +707,7 @@ export function MomDetailView({
                       ? "يرجى الاطلاع على محضر الاجتماع المرفق والتواصل معنا لأي ملاحظات."
                       : "Please find attached the official MOM for your review."
                   }
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 
@@ -724,7 +725,7 @@ export function MomDetailView({
                   variant="primary"
                   size="sm"
                   disabled={isSendingEmail}
-                  className="bg-[#09937F] hover:bg-[#077a68] text-white"
+                  className="bg-accent hover:bg-accent-pressed text-white"
                 >
                   {isSendingEmail
                     ? isAr

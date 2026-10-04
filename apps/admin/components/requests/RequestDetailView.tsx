@@ -26,7 +26,7 @@ import {
   Plus,
   Send,
 } from "lucide-react";
-import { Button, StatusBadge } from "@ishoot/ui";
+import { Button, StatusBadge, useDialog } from "@ishoot/ui";
 import type { ConsolidatedRequest } from "@ishoot/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -75,6 +75,7 @@ export function RequestDetailView({
   const [modalType, setModalType] = React.useState<
     "assign" | "return" | "resolve" | null
   >(null);
+  const actionDialog = useDialog(!!modalType, () => setModalType(null));
   const [modalAssigneeId, setModalAssigneeId] = React.useState<string>(
     request.assignedToId || users[0]?.id || "",
   );
@@ -278,7 +279,7 @@ export function RequestDetailView({
       </div>
 
       {/* Main Dossier Header Card */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+      <div className="p-6 rounded-3xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
@@ -340,7 +341,7 @@ export function RequestDetailView({
                 variant="primary"
                 size="sm"
                 onClick={handleSubmitForApproval}
-                className="gap-1.5 text-xs bg-[#014842] hover:bg-[#013833] text-white"
+                className="gap-1.5 text-xs bg-primary hover:bg-primary-hover text-white"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>{t.requestWorkflow.submitForApproval}</span>
@@ -353,7 +354,7 @@ export function RequestDetailView({
                   variant="primary"
                   size="sm"
                   onClick={handleApprove}
-                  className="gap-1.5 text-xs bg-[#09937F] hover:bg-[#077a68] text-white"
+                  className="gap-1.5 text-xs bg-accent hover:bg-accent-pressed text-white"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>{t.requestWorkflow.approve}</span>
@@ -445,7 +446,7 @@ export function RequestDetailView({
               onClick={() => setActiveTab(tab.id as any)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 ${
                 activeTab === tab.id
-                  ? "bg-[#09937F] text-white shadow-sm shadow-[#09937F]/20"
+                  ? "bg-accent text-white shadow-sm shadow-accent/20"
                   : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
@@ -471,8 +472,8 @@ export function RequestDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left 2 Cols: Description & Details */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 space-y-4 shadow-sm">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F]">
+            <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 space-y-4 shadow-sm">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-accent">
                 {t.requestDetail.technicalScopeAndRequirements}
               </h3>
               <div className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line bg-slate-50 dark:bg-black/30 p-4 rounded-xl border border-slate-200/50 dark:border-white/5">
@@ -500,7 +501,7 @@ export function RequestDetailView({
 
             {/* Commercial & Operational Parameters */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1">
+              <div className="p-5 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1">
                 <span className="text-xs text-slate-400">
                   {t.requestDetail.budgetRange}
                 </span>
@@ -509,7 +510,7 @@ export function RequestDetailView({
                 </div>
               </div>
 
-              <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1">
+              <div className="p-5 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-1">
                 <span className="text-xs text-slate-400">
                   {t.requestDetail.targetTimeline}
                 </span>
@@ -549,15 +550,15 @@ export function RequestDetailView({
           {/* Right Col: Client & Assignment Info */}
           <div className="space-y-6">
             {/* Client Card */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+            <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F]">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-accent">
                   {t.requestDetail.clientDossier}
                 </h3>
                 {request.customerId && (
                   <Link
                     href={ROUTES.crm.customer(request.customerId)}
-                    className="text-[11px] text-[#09937F] hover:underline"
+                    className="text-[11px] text-accent hover:underline"
                   >
                     {t.requestDetail.viewProfile}
                   </Link>
@@ -622,8 +623,8 @@ export function RequestDetailView({
             </div>
 
             {/* Current Assignment Card */}
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F]">
+            <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-accent">
                 {t.requestDetail.currentAssignment}
               </h3>
 
@@ -642,7 +643,7 @@ export function RequestDetailView({
                     {t.requestDetail.directAssignee}
                   </span>
                   <div className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 mt-1">
-                    <UserCheck className="w-3.5 h-3.5 text-[#09937F]" />
+                    <UserCheck className="w-3.5 h-3.5 text-accent" />
                     <span>
                       {request.assignedTo?.fullName ||
                         (t.requestDetail.unassigned)}
@@ -664,8 +665,8 @@ export function RequestDetailView({
       {activeTab === "comments" && (
         <div className="space-y-6">
           {/* Post Comment Box */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
+          <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
               <span>{t.requestDetail.postNoteComment}</span>
             </h3>
@@ -679,7 +680,7 @@ export function RequestDetailView({
                 placeholder={
                   t.requestDetail.addProgressNoteClientCommunication
                 }
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
               />
 
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
@@ -688,7 +689,7 @@ export function RequestDetailView({
                     type="checkbox"
                     checked={isClientVisible}
                     onChange={(e) => setIsClientVisible(e.target.checked)}
-                    className="rounded border-slate-300 text-[#09937F] focus:ring-[#09937F]"
+                    className="rounded border-slate-300 text-accent focus:ring-accent"
                   />
                   <span>
                     {t.requestDetail.clientVisibleExternal}
@@ -705,7 +706,7 @@ export function RequestDetailView({
                   variant="primary"
                   size="sm"
                   disabled={isPostingComment || !commentBody.trim()}
-                  className="bg-[#09937F] hover:bg-[#077a68] text-white gap-1.5"
+                  className="bg-accent hover:bg-accent-pressed text-white gap-1.5"
                 >
                   <Send className="w-3 h-3" />
                   <span>
@@ -727,7 +728,7 @@ export function RequestDetailView({
                   className={`p-4 rounded-2xl border transition-all ${
                     comment.isClientVisible
                       ? "bg-sky-50/50 dark:bg-sky-950/20 border-sky-200/60 dark:border-sky-900/30"
-                      : "bg-white dark:bg-[#0E1714] border-slate-200/80 dark:border-white/10"
+                      : "bg-white dark:bg-surface-raised border-slate-200/80 dark:border-white/10"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -768,7 +769,7 @@ export function RequestDetailView({
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 text-slate-400 bg-white dark:bg-[#0E1714] rounded-2xl border border-slate-200/80 dark:border-white/10">
+              <div className="text-center py-12 text-slate-400 bg-white dark:bg-surface-raised rounded-2xl border border-slate-200/80 dark:border-white/10">
                 <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p className="text-xs">
                   {t.requestDetail.noCommentsPostedYet}
@@ -781,8 +782,8 @@ export function RequestDetailView({
 
       {/* Tab 3: Timeline & Audit History */}
       {activeTab === "timeline" && (
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-6">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
+        <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-6">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
             <History className="w-4 h-4" />
             <span>
               {t.requestDetail.appendOnlyAuditAndAssignment}
@@ -793,7 +794,7 @@ export function RequestDetailView({
             {request.requestEvents && request.requestEvents.length > 0 ? (
               request.requestEvents.map((ev: any) => (
                 <div key={ev.id} className="relative space-y-1 text-xs">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#09937F] absolute -left-[21px] rtl:-right-[21px] top-1" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-accent absolute -left-[21px] rtl:-right-[21px] top-1" />
                   <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
                     <span className="capitalize font-mono text-[11px] px-2 py-0.5 rounded bg-slate-100 dark:bg-white/10">
                       {ev.eventType}
@@ -827,9 +828,9 @@ export function RequestDetailView({
       {/* Tab 4: Linked Documents */}
       {activeTab === "related" && (
         <div className="space-y-4">
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 <span>
                   {t.requestDetail.issuedQuotations}
@@ -855,7 +856,7 @@ export function RequestDetailView({
                     <div className="space-y-0.5">
                       <Link
                         href={ROUTES.quotations.detail(q.id)}
-                        className="font-mono font-bold text-slate-900 dark:text-white hover:text-[#09937F] transition-colors"
+                        className="font-mono font-bold text-slate-900 dark:text-white hover:text-accent transition-colors"
                       >
                         {q.quotationNumber}
                       </Link>
@@ -882,8 +883,8 @@ export function RequestDetailView({
           </div>
 
           {request.convertedDeal && (
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F]">
+            <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-accent">
                 {t.requestDetail.crmDealConversion}
               </h3>
               <div className="flex items-center justify-between text-xs pt-1">
@@ -910,11 +911,11 @@ export function RequestDetailView({
       {/* Action Modals */}
       {modalType && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0E1714] border border-slate-200 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+          <div {...actionDialog} className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <div className="space-y-0.5">
                 <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#09937F]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-accent" />
                   <span>
                     {modalType === "assign" &&
                       (t.requestDetail.assignOrReassignRequest)}
@@ -946,7 +947,7 @@ export function RequestDetailView({
                     <select
                       value={modalTeam}
                       onChange={(e) => setModalTeam(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       {REQUEST_TEAMS.map((team) => (
                         <option key={team} value={team}>
@@ -963,7 +964,7 @@ export function RequestDetailView({
                     <select
                       value={modalAssigneeId}
                       onChange={(e) => setModalAssigneeId(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       {users.map((u) => (
                         <option key={u.id} value={u.id}>
@@ -998,7 +999,7 @@ export function RequestDetailView({
                         ? t.requestDetail.describeHowThisIssueService
                         : t.requestDetail.anyInstructionsForTheNew
                   }
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 
@@ -1020,7 +1021,7 @@ export function RequestDetailView({
                   className={
                     modalType === "return"
                       ? "bg-rose-600 hover:bg-rose-700 text-white"
-                      : "bg-[#09937F] hover:bg-[#077a68] text-white"
+                      : "bg-accent hover:bg-accent-pressed text-white"
                   }
                 >
                   {isActionSubmitting

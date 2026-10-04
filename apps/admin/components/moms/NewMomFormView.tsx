@@ -175,18 +175,18 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl mx-auto pb-24 text-xs">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink/10 pb-6">
         <div>
           <button
             type="button"
             onClick={() => router.push(ROUTES.moms.list)}
-            className="flex items-center gap-2 text-[#9EADA9] hover:text-white mb-2 transition-colors"
+            className="flex items-center gap-2 text-ink-muted hover:text-ink mb-2 transition-colors"
           >
             {isRTL ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
             <span>{t.newMomForm.backToMeetingMinutes}</span>
           </button>
-          <h1 className="text-2xl font-bold tracking-tight text-white font-display flex items-center gap-2">
-            <FileSignature className="w-6 h-6 text-[#09937F]" />
+          <h1 className="text-2xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
+            <FileSignature className="w-6 h-6 text-accent" />
             <span>{t.newMomForm.composeMinutesOfMeeting}</span>
           </h1>
         </div>
@@ -196,7 +196,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             type="button"
             variant="outline"
             onClick={() => router.push(ROUTES.moms.list)}
-            className="border-white/10 text-[#9EADA9] hover:text-white"
+            className="border-ink/10 text-ink-muted hover:text-ink"
           >
             {t.newMomForm.cancel}
           </Button>
@@ -204,7 +204,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           <Button
             type="submit"
             disabled={saving}
-            className="bg-[#09937F] hover:bg-[#077464] text-white flex items-center gap-2 shadow-lg"
+            className="bg-accent hover:bg-[#077464] text-white flex items-center gap-2 shadow-lg"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>
@@ -219,15 +219,15 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       )}
 
       {/* Main Details Card */}
-      <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-6">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#09937F]" />
+      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-6">
+        <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-ink/10 pb-3 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-accent" />
           <span>{t.newMomForm.meetingOverview}</span>
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{t.newMomForm.meetingTitleEnglish} *</label>
+            <label className="text-ink-muted font-medium">{t.newMomForm.meetingTitleEnglish} *</label>
             <Input
               required
               placeholder={t.newMomForm.eGQ2ProductionAlignment}
@@ -237,7 +237,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{t.newMomForm.meetingTitleArabic}</label>
+            <label className="text-ink-muted font-medium">{t.newMomForm.meetingTitleArabic}</label>
             <Input
               placeholder="مثال: اجتماع التنسيق الفني وتجهيز كاميرات الإنتاج"
               value={titleAr}
@@ -249,7 +249,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{t.newMomForm.date} *</label>
+            <label className="text-ink-muted font-medium">{t.newMomForm.date} *</label>
             <Input
               type="date"
               required
@@ -259,7 +259,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{t.newMomForm.startTime}</label>
+            <label className="text-ink-muted font-medium">{t.newMomForm.startTime}</label>
             <Input
               placeholder="10:00 AM"
               value={startTime}
@@ -268,7 +268,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{t.newMomForm.endTime}</label>
+            <label className="text-ink-muted font-medium">{t.newMomForm.endTime}</label>
             <Input
               placeholder="11:30 AM"
               value={endTime}
@@ -277,7 +277,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{t.newMomForm.location}</label>
+            <label className="text-ink-muted font-medium">{t.newMomForm.location}</label>
             <Input
               placeholder={t.newMomForm.ishootStudioStageAZoom}
               value={location}
@@ -288,17 +288,17 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{t.newMomForm.linkedClient}</label>
+            <label className="text-ink-muted font-medium">{t.newMomForm.linkedClient}</label>
             <EntityLookup domain="contacts" value={clientId} onChange={setClientId} />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{t.newMomForm.linkedDeal}</label>
+            <label className="text-ink-muted font-medium">{t.newMomForm.linkedDeal}</label>
             <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">{t.newMomForm.documentStatus}</label>
+            <label className="text-ink-muted font-medium">{t.newMomForm.documentStatus}</label>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="draft">{t.newMomForm.draft}</option>
               <option value="in_review">{t.newMomForm.inReview}</option>
@@ -309,16 +309,16 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       </Card>
 
       {/* Attendees Card */}
-      <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#09937F]" />
+      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+          <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+            <Users className="w-4 h-4 text-accent" />
             <span>{t.newMomForm.meetingAttendees}</span>
           </h2>
           <Button
             type="button"
             onClick={addAttendee}
-            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
+            className="bg-ink/5 hover:bg-ink/10 text-ink border border-ink/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.newMomForm.addAttendee}</span>
@@ -329,7 +329,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           {attendees.map((attendee, index) => (
             <div
               key={index}
-              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-3 rounded-xl bg-[#050807] border border-white/5"
+              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-3 rounded-xl bg-surface-sunken border border-ink/5"
             >
               <div className="sm:col-span-3">
                 <Input
@@ -353,12 +353,12 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
                 />
               </div>
               <div className="sm:col-span-2 flex items-center gap-2">
-                <label className="flex items-center gap-1.5 cursor-pointer text-[#9EADA9] hover:text-white">
+                <label className="flex items-center gap-1.5 cursor-pointer text-ink-muted hover:text-ink">
                   <input
                     type="checkbox"
                     checked={attendee.attended}
                     onChange={(e) => updateAttendee(index, "attended", e.target.checked)}
-                    className="rounded border-white/20 text-[#09937F] focus:ring-0"
+                    className="rounded border-ink/20 text-accent focus:ring-0"
                   />
                   <span>{t.newMomForm.attended}</span>
                 </label>
@@ -380,9 +380,9 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       </Card>
 
       {/* Agenda & Notes */}
-      <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-4">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#09937F]" />
+      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
+        <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-ink/10 pb-3 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-accent" />
           <span>{t.newMomForm.meetingAgenda} *</span>
         </h2>
 
@@ -395,22 +395,22 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
             }
             value={agenda}
             onChange={(e) => setAgenda(e.target.value)}
-            className="w-full p-3.5 text-xs rounded-xl bg-[#050807] border border-white/10 text-white placeholder:text-[#9EADA9]/60 focus:outline-none focus:border-[#09937F] font-sans leading-relaxed"
+            className="w-full p-3.5 text-xs rounded-xl bg-surface-sunken border border-ink/10 text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent font-sans leading-relaxed"
           />
         </div>
       </Card>
 
       {/* Discussion Points Card */}
-      <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#09937F]" />
+      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+          <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-accent" />
             <span>{t.newMomForm.discussionPoints}</span>
           </h2>
           <Button
             type="button"
             onClick={addDiscussionPoint}
-            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
+            className="bg-ink/5 hover:bg-ink/10 text-ink border border-ink/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.newMomForm.addTopic}</span>
@@ -421,7 +421,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           {discussionPoints.map((point, index) => (
             <div
               key={index}
-              className="p-4 rounded-xl bg-[#050807] border border-white/5 space-y-3"
+              className="p-4 rounded-xl bg-surface-sunken border border-ink/5 space-y-3"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="w-full sm:w-1/2">
@@ -453,7 +453,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
                 placeholder={t.newMomForm.summaryOfDiscussion}
                 value={point.notes}
                 onChange={(e) => updateDiscussionPoint(index, "notes", e.target.value)}
-                className="w-full p-2.5 text-xs rounded-xl bg-black/40 border border-white/5 text-white placeholder:text-[#9EADA9]/60 focus:outline-none focus:border-[#09937F]"
+                className="w-full p-2.5 text-xs rounded-xl bg-black/40 border border-ink/5 text-white placeholder:text-ink-muted/60 focus:outline-none focus:border-accent"
               />
             </div>
           ))}
@@ -461,16 +461,16 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       </Card>
 
       {/* Action Items & Deadlines Card */}
-      <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-[#09937F]" />
+      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+          <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-accent" />
             <span>{t.newMomForm.actionItemsAndDeliverables}</span>
           </h2>
           <Button
             type="button"
             onClick={addActionItem}
-            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
+            className="bg-ink/5 hover:bg-ink/10 text-ink border border-ink/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.newMomForm.addTask}</span>
@@ -481,7 +481,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           {actionItems.map((item, index) => (
             <div
               key={index}
-              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-3 rounded-xl bg-[#050807] border border-white/5"
+              className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center p-3 rounded-xl bg-surface-sunken border border-ink/5"
             >
               <div className="sm:col-span-5">
                 <Input
@@ -508,7 +508,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
                 <select
                   value={item.status}
                   onChange={(e) => updateActionItem(index, "status", e.target.value)}
-                  className="w-full bg-[#0B1210] border border-white/10 rounded-lg py-1 px-1.5 text-xs text-white"
+                  className="w-full bg-surface border border-ink/10 rounded-lg py-1 px-1.5 text-xs text-ink"
                 >
                   <option value="pending">{t.newMomForm.pending}</option>
                   <option value="in_progress">{t.newMomForm.inProgress}</option>
@@ -532,16 +532,16 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       </Card>
 
       {/* Decisions & Approvals */}
-      <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#09937F]" />
+      <Card className="p-6 bg-surface border border-ink/10 rounded-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-ink/10 pb-3">
+          <h2 className="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-accent" />
             <span>{t.newMomForm.keyDecisionsTaken}</span>
           </h2>
           <Button
             type="button"
             onClick={addDecision}
-            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
+            className="bg-ink/5 hover:bg-ink/10 text-ink border border-ink/10 text-[11px] px-3 py-1 flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.newMomForm.addDecision}</span>
@@ -571,12 +571,12 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       </Card>
 
       {/* Footer Submit */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-ink/10">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push(ROUTES.moms.list)}
-          className="border-white/10 text-[#9EADA9] hover:text-white"
+          className="border-ink/10 text-ink-muted hover:text-ink"
         >
           {t.newMomForm.cancel}
         </Button>
@@ -584,7 +584,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
         <Button
           type="submit"
           disabled={saving}
-          className="bg-[#09937F] hover:bg-[#077464] text-white flex items-center gap-2 px-6 py-2.5 text-sm font-bold shadow-xl"
+          className="bg-accent hover:bg-[#077464] text-white flex items-center gap-2 px-6 py-2.5 text-sm font-bold shadow-xl"
         >
           <Save className="w-4 h-4" />
           <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>

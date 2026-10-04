@@ -44,7 +44,7 @@ export function SettingsNavTabs() {
   ];
 
   return (
-    <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#0B1210] border border-white/10 w-fit overflow-x-auto max-w-full">
+    <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-surface border border-ink/10 w-fit overflow-x-auto max-w-full">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = pathname === tab.href;
@@ -55,12 +55,12 @@ export function SettingsNavTabs() {
             href={tab.href}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
               isActive
-                ? "bg-[#014842] text-white shadow-md border border-[#09937F]/40"
-                : "text-[#9EADA9] hover:text-white hover:bg-white/5"
+                ? "bg-primary text-white shadow-md border border-accent/40"
+                : "text-ink-muted hover:text-ink hover:bg-ink/5"
             }`}
           >
             <Icon
-              className={`w-3.5 h-3.5 ${isActive ? "text-[#09937F]" : "text-[#9EADA9]"}`}
+              className={`w-3.5 h-3.5 ${isActive ? "text-accent" : "text-ink-muted"}`}
             />
             <span>{tab.label}</span>
           </Link>

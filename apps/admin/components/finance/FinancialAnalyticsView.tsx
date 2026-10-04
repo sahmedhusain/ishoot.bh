@@ -44,21 +44,21 @@ export function FinancialAnalyticsView({
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
           {t.charts.pnlStatement}
         </h1>
-        <p className="text-xs text-[#9EADA9] mt-1">{t.charts.pnlSubtitle}</p>
+        <p className="text-xs text-ink-muted mt-1">{t.charts.pnlSubtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.kpi.totalRevenue}</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-[#10B981]">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white ">
+          <div className="text-2xl sm:text-3xl font-bold text-ink ">
             <CurrencyDisplay amount={finance.revenue} currency="BHD" />
           </div>
           <div className="text-[11px] text-emerald-400 ">
@@ -66,59 +66,59 @@ export function FinancialAnalyticsView({
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.kpi.operatingExpenses}</span>
             <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400">
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white ">
+          <div className="text-2xl sm:text-3xl font-bold text-ink ">
             <CurrencyDisplay amount={finance.expenses} currency="BHD" />
           </div>
-          <div className="text-[11px] text-[#9EADA9]">{t.kpi.expensesDesc}</div>
+          <div className="text-[11px] text-ink-muted">{t.kpi.expensesDesc}</div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.kpi.netProfit}</span>
-            <div className="w-8 h-8 rounded-lg bg-[#09937F]/10 flex items-center justify-center text-[#09937F]">
+            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div
-            className={`text-2xl sm:text-3xl font-bold  ${finance.netProfit >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
+            className={`text-2xl sm:text-3xl font-bold  ${finance.netProfit >= 0 ? "text-accent" : "text-rose-400"}`}
           >
             <CurrencyDisplay amount={finance.netProfit} currency="BHD" />
           </div>
-          <div className="text-[11px] text-[#09937F] ">
+          <div className="text-[11px] text-accent ">
             {t.financialView.revenueMinusExpenses}
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.kpi.profitMargin}</span>
-            <div className="w-8 h-8 rounded-lg bg-[#09937F]/10 flex items-center justify-center text-[#09937F]">
+            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
               <Percent className="w-4 h-4" />
             </div>
           </div>
           <div
-            className={`text-2xl sm:text-3xl font-bold  ${finance.profitMargin >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
+            className={`text-2xl sm:text-3xl font-bold  ${finance.profitMargin >= 0 ? "text-accent" : "text-rose-400"}`}
           >
             {finance.profitMargin.toFixed(1)}%
           </div>
-          <div className="text-[11px] text-[#9EADA9]">
+          <div className="text-[11px] text-ink-muted">
             {t.financialView.acrossContracts}
           </div>
         </Card>
       </div>
 
-      <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 rounded-3xl space-y-6">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-6">
+        <div className="flex items-center justify-between border-b border-ink/10 pb-4">
           <div className="flex items-center gap-2.5">
-            <TrendingUp className="w-5 h-5 text-[#09937F]" />
-            <h2 className="text-base font-bold text-white uppercase tracking-wider">
+            <TrendingUp className="w-5 h-5 text-accent" />
+            <h2 className="text-base font-bold text-ink uppercase tracking-wider">
               {t.kpi.totalRevenue} vs {t.kpi.operatingExpenses}
             </h2>
           </div>
@@ -128,26 +128,26 @@ export function FinancialAnalyticsView({
         </div>
       </Card>
 
-      <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 rounded-3xl shadow-xl space-y-6">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl shadow-xl space-y-6">
+        <div className="flex items-center justify-between border-b border-ink/10 pb-4">
           <div className="flex items-center gap-2.5">
-            <PieChart className="w-5 h-5 text-[#09937F]" />
-            <h2 className="text-base font-bold text-white uppercase tracking-wider">
+            <PieChart className="w-5 h-5 text-accent" />
+            <h2 className="text-base font-bold text-ink uppercase tracking-wider">
               {t.charts.pnlStatement}
             </h2>
           </div>
-          <span className="text-xs  px-3 py-1 rounded-full bg-white/5 text-[#9EADA9]">
+          <span className="text-xs  px-3 py-1 rounded-full bg-ink/5 text-ink-muted">
             {t.financialView.fiscalYear}
           </span>
         </div>
 
-        <div className="divide-y divide-white/5 text-sm">
+        <div className="divide-y divide-ink/5 text-sm">
           <div className="py-3.5 flex items-center justify-between">
             <div className="space-y-0.5">
-              <span className="font-bold text-white">
+              <span className="font-bold text-ink">
                 {t.charts.grossRevenue}
               </span>
-              <p className="text-xs text-[#9EADA9]">
+              <p className="text-xs text-ink-muted">
                 {t.financialView.depositedViaBank}
               </p>
             </div>
@@ -158,10 +158,10 @@ export function FinancialAnalyticsView({
 
           <div className="py-3.5 flex items-center justify-between">
             <div className="space-y-0.5">
-              <span className="text-white font-medium">
+              <span className="text-ink font-medium">
                 {t.charts.discountsGiven}
               </span>
-              <p className="text-xs text-[#9EADA9]">
+              <p className="text-xs text-ink-muted">
                 {t.financialView.approvedDiscounts}
               </p>
             </div>
@@ -173,10 +173,10 @@ export function FinancialAnalyticsView({
 
           <div className="py-3.5 flex items-center justify-between">
             <div className="space-y-0.5">
-              <span className="font-bold text-white">
+              <span className="font-bold text-ink">
                 {t.charts.operatingCosts}
               </span>
-              <p className="text-xs text-[#9EADA9]">
+              <p className="text-xs text-ink-muted">
                 {t.financialView.productionCostsDesc}
               </p>
             </div>
@@ -185,12 +185,12 @@ export function FinancialAnalyticsView({
             </span>
           </div>
 
-          <div className="py-4 flex items-center justify-between bg-[#050807] px-4 rounded-xl my-2">
-            <span className="font-bold text-white">
+          <div className="py-4 flex items-center justify-between bg-surface-sunken px-4 rounded-xl my-2">
+            <span className="font-bold text-ink">
               {t.charts.bottomLineProfit}
             </span>
             <span
-              className={` font-bold text-lg ${finance.netProfit >= 0 ? "text-[#09937F]" : "text-rose-400"}`}
+              className={` font-bold text-lg ${finance.netProfit >= 0 ? "text-accent" : "text-rose-400"}`}
             >
               <CurrencyDisplay amount={finance.netProfit} currency="BHD" />
             </span>
@@ -198,8 +198,8 @@ export function FinancialAnalyticsView({
         </div>
       </Card>
 
-      <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
-        <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
+      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-4">
+        <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-ink/10 pb-3">
           {t.charts.expensesByCategory}
         </h2>
 
@@ -211,20 +211,20 @@ export function FinancialAnalyticsView({
             return (
               <div
                 key={c.id}
-                className="p-4 rounded-2xl bg-[#050807] border border-white/5 space-y-2"
+                className="p-4 rounded-2xl bg-surface-sunken border border-ink/5 space-y-2"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-white">
+                  <span className="text-xs font-semibold text-ink">
                     {locale === "ar" ? c.name_ar : c.name_en}
                   </span>
-                  <span className="text-[11px]  text-[#9EADA9]">
+                  <span className="text-[11px]  text-ink-muted">
                     {percentage.toFixed(0)}%
                   </span>
                 </div>
-                <div className="text-base font-bold text-white ">
+                <div className="text-base font-bold text-ink ">
                   <CurrencyDisplay amount={sum} currency="BHD" />
                 </div>
-                <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-ink/5 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all"
                     style={{

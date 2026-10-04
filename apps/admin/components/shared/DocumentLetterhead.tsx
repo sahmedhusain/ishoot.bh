@@ -65,7 +65,7 @@ export function DocumentLetterhead({
       return "text-rose-300 bg-rose-950/40 border-rose-500/30";
     }
     if (s.includes("sent") || s.includes("issued") || s.includes("pending")) {
-      return "text-[#09937F] bg-[#09937F]/10 border-[#09937F]/30";
+      return "text-accent bg-accent/10 border-accent/30";
     }
     return "text-amber-300 bg-amber-950/40 border-amber-500/30";
   };
@@ -73,7 +73,7 @@ export function DocumentLetterhead({
   return (
     <div className="w-full">
       {/* Official Header Banner */}
-      <div className="bg-[#014842] text-white p-6 sm:p-8 border-b-4 border-[#09937F] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative overflow-hidden">
+      <div className="bg-primary text-white p-6 sm:p-8 border-b-4 border-accent flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative overflow-hidden">
         {/* Subtle background geometry inspired by camera aperture */}
         <div className="absolute right-0 top-0 w-96 h-96 bg-white/[0.02] rounded-full pointer-events-none -mr-20 -mt-20 blur-2xl" />
 
@@ -128,7 +128,7 @@ export function DocumentLetterhead({
           <div className="text-2xl sm:text-3xl font-extrabold tracking-wider uppercase font-display text-white">
             {isAr ? titleAr : titleEn}
           </div>
-          <div className="text-sm  text-[#09937F] font-bold tracking-wide">
+          <div className="text-sm  text-accent font-bold tracking-wide">
             {documentNumber}
           </div>
           <div className="inline-block">
@@ -155,11 +155,11 @@ export function DocumentLetterhead({
             {client.id ? (
               <Link
                 href={ROUTES.crm.customer(client.id)}
-                className="hover:text-[#014842] hover:underline inline-flex items-center gap-1 print:no-underline print:text-black group"
+                className="hover:text-primary hover:underline inline-flex items-center gap-1 print:no-underline print:text-black group"
                 title="View Client Dossier in CRM"
               >
                 <span>{client.company || client.name}</span>
-                <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#014842] print:hidden" />
+                <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-primary print:hidden" />
               </Link>
             ) : (
               <span>{client.company || client.name}</span>
@@ -205,7 +205,7 @@ export function DocumentLetterhead({
               <span className="text-gray-400 font-bold uppercase text-[10px]">
                 {secondaryDateLabel}
               </span>
-              <span className=" font-bold text-[#014842]">{secondaryDate}</span>
+              <span className=" font-bold text-primary">{secondaryDate}</span>
             </div>
           )}
 
@@ -323,7 +323,7 @@ export function DocumentFooter({
               }
               target="_blank"
               rel="noreferrer"
-              className="hover:text-[#014842]"
+              className="hover:text-primary"
             >
               {company.website}
             </a>
@@ -333,7 +333,7 @@ export function DocumentFooter({
               <span>•</span>
               <a
                 href={`mailto:${company.email}`}
-                className="hover:text-[#014842]"
+                className="hover:text-primary"
               >
                 {company.email}
               </a>

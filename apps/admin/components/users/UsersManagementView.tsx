@@ -196,21 +196,21 @@ export function UsersManagementView({
       </label>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white font-display flex items-center gap-2">
-            <Shield className="w-6 h-6 text-[#09937F]" />
+          <h1 className="text-2xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
+            <Shield className="w-6 h-6 text-accent" />
             <span>{t.roles.privilegesMatrix}</span>
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">{t.usersView.subtitle}</p>
+          <p className="text-xs text-ink-muted mt-1">{t.usersView.subtitle}</p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-[#0B1210] p-1 rounded-xl border border-white/10 text-xs font-semibold">
+          <div className="flex items-center bg-surface p-1 rounded-xl border border-ink/10 text-xs font-semibold">
             <button
               onClick={() => setActiveTab("users")}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === "users"
-                  ? "bg-[#09937F] text-white shadow-sm"
-                  : "text-[#9EADA9] hover:text-white"
+                  ? "bg-accent text-white shadow-sm"
+                  : "text-ink-muted hover:text-ink"
               }`}
             >
               {t.nav.users} ({users.length})
@@ -219,8 +219,8 @@ export function UsersManagementView({
               onClick={() => setActiveTab("matrix")}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === "matrix"
-                  ? "bg-[#09937F] text-white shadow-sm"
-                  : "text-[#9EADA9] hover:text-white"
+                  ? "bg-accent text-white shadow-sm"
+                  : "text-ink-muted hover:text-ink"
               }`}
             >
               {t.usersView.permissionsMatrix}
@@ -232,7 +232,7 @@ export function UsersManagementView({
             size="sm"
             disabled={!canWrite}
             onClick={() => setShowCreateModal(true)}
-            className="gap-2 shadow-lg shadow-[#09937F]/20"
+            className="gap-2 shadow-lg shadow-accent/20"
           >
             <UserPlus className="w-4 h-4" />
             <span>{t.actions.addUser}</span>
@@ -241,33 +241,33 @@ export function UsersManagementView({
       </div>
 
       {successMsg && (
-        <div className="p-4 rounded-2xl bg-[#09937F]/15 border border-[#09937F]/40 text-[#09937F] flex items-center gap-3 text-xs font-medium">
+        <div className="p-4 rounded-2xl bg-accent/15 border border-accent/40 text-accent flex items-center gap-3 text-xs font-medium">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {activeTab === "users" && (
-        <Card className="p-0 bg-[#0B1210] border border-white/10 rounded-3xl shadow-xl overflow-hidden">
-          <div className="p-4 border-b border-white/10 flex items-center justify-between">
+        <Card className="p-0 bg-surface border border-ink/10 rounded-3xl shadow-xl overflow-hidden">
+          <div className="p-4 border-b border-ink/10 flex items-center justify-between">
             <div className="relative max-w-sm w-full">
-              <Search className="w-4 h-4 text-[#9EADA9] absolute start-3 top-2.5" />
+              <Search className="w-4 h-4 text-ink-muted absolute start-3 top-2.5" />
               <input
                 type="text"
                 placeholder={t.actions.search}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-[#050807] border border-white/10 text-white placeholder:text-[#9EADA9]/60 focus:outline-none focus:border-[#09937F]"
+                className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-surface-sunken border border-ink/10 text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent"
               />
             </div>
-            <div className="text-xs  text-[#9EADA9]">
+            <div className="text-xs  text-ink-muted">
               {filteredUsers.length} {t.roles.userCount}
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-start text-xs">
-              <thead className="bg-[#070C0A] text-[#9EADA9] uppercase text-[11px] border-b border-white/10">
+              <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-ink/10">
                 <tr>
                   <th className="p-4 text-start">{t.usersView.userHeader}</th>
                   <th className="p-4 text-start">{t.roles.department}</th>
@@ -278,23 +278,23 @@ export function UsersManagementView({
                   <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-white">
+              <tbody className="divide-y divide-ink/5 text-ink">
                 {filteredUsers.map((u) => {
                   return (
                     <tr
                       key={u.id}
-                      className="hover:bg-white/[0.02] transition-colors"
+                      className="hover:bg-ink/[0.02] transition-colors"
                     >
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-[#014842] border border-[#09937F]/40 flex items-center justify-center font-bold text-white text-xs">
+                          <div className="w-9 h-9 rounded-xl bg-primary border border-accent/40 flex items-center justify-center font-bold text-white text-xs">
                             {u.full_name.charAt(0)}
                           </div>
                           <div>
-                            <div className="font-bold text-white text-sm">
+                            <div className="font-bold text-ink text-sm">
                               {u.full_name}
                             </div>
-                            <div className="text-[#9EADA9] text-[11px]">
+                            <div className="text-ink-muted text-[11px]">
                               {u.email}
                             </div>
                             {!u.employee_id && (
@@ -312,8 +312,8 @@ export function UsersManagementView({
                       </td>
 
                       <td className="p-4">
-                        <div className="flex items-center gap-1.5 text-[#9EADA9]">
-                          <Building className="w-3.5 h-3.5 text-[#09937F]" />
+                        <div className="flex items-center gap-1.5 text-ink-muted">
+                          <Building className="w-3.5 h-3.5 text-accent" />
                           <span className="capitalize">
                             {(u.department &&
                               (t.usersView.departments as any)[u.department]) ||
@@ -331,7 +331,7 @@ export function UsersManagementView({
                           onChange={(e) =>
                             handleManagerChange(u.id, e.target.value)
                           }
-                          className="bg-[#050807] border border-white/10 rounded-xl px-2.5 py-1 text-xs text-[#5EEAD4] focus:outline-none focus:border-[#09937F] cursor-pointer max-w-[160px] truncate"
+                          className="bg-surface-sunken border border-ink/10 rounded-xl px-2.5 py-1 text-xs text-[#5EEAD4] focus:outline-none focus:border-accent cursor-pointer max-w-[160px] truncate"
                           title={t.usersManagement.changeManager}
                         >
                           <option value="">{t.usersManagement.noneIndependent}</option>
@@ -352,7 +352,7 @@ export function UsersManagementView({
                           onChange={(e) =>
                             handleRoleChange(u.id, e.target.value as UserRole)
                           }
-                          className="bg-[#050807] border border-white/10 rounded-xl px-3 py-1 text-xs text-white focus:outline-none focus:border-[#09937F] cursor-pointer"
+                          className="bg-surface-sunken border border-ink/10 rounded-xl px-3 py-1 text-xs text-ink focus:outline-none focus:border-accent cursor-pointer"
                         >
                           {allRoles.map((r) => (
                             <option key={r.key} value={r.key}>
@@ -366,7 +366,7 @@ export function UsersManagementView({
                       <td className="p-4">
                         <div className="flex items-center gap-2">
                           <div
-                            className="h-8 w-20 px-2 py-0.5 rounded-lg bg-white/95 border border-white/20 flex items-center justify-center overflow-hidden shadow-sm"
+                            className="h-8 w-20 px-2 py-0.5 rounded-lg bg-ink/95 border border-ink/20 flex items-center justify-center overflow-hidden shadow-sm"
                             title={u.full_name}
                           >
                             <ContentImage
@@ -444,21 +444,21 @@ export function UsersManagementView({
       )}
 
       {activeTab === "matrix" && (
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl shadow-xl overflow-x-auto space-y-4">
-          <div className="border-b border-white/10 pb-3 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+        <Card className="p-6 bg-surface border border-ink/10 rounded-3xl shadow-xl overflow-x-auto space-y-4">
+          <div className="border-b border-ink/10 pb-3 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-ink uppercase tracking-wider">
               {t.usersView.matrixTitle}
             </h2>
             <div className="flex items-center gap-3 text-[11px] ">
               <span className="text-emerald-400">{t.usersView.rwLegend}</span>
               <span className="text-blue-400">{t.usersView.rLegend}</span>
-              <span className="text-[#9EADA9]/40">{t.usersView.naLegend}</span>
+              <span className="text-ink-muted/40">{t.usersView.naLegend}</span>
             </div>
           </div>
 
           <table className="w-full text-xs ">
             <thead>
-              <tr className="border-b border-white/10 text-[#9EADA9] text-start">
+              <tr className="border-b border-ink/10 text-ink-muted text-start">
                 <th className="py-2.5 text-start font-sans font-bold">
                   {t.usersView.moduleHeader}
                 </th>
@@ -469,10 +469,10 @@ export function UsersManagementView({
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-ink/5">
               {resources.map((resource) => (
-                <tr key={resource} className="hover:bg-white/[0.02]">
-                  <td className="py-3 text-white font-sans font-semibold">
+                <tr key={resource} className="hover:bg-ink/[0.02]">
+                  <td className="py-3 text-ink font-sans font-semibold">
                     {resource}
                   </td>
                   {allRoles.map((r) => (
@@ -495,7 +495,7 @@ export function UsersManagementView({
         </Card>
       )}
 
-      <Modal
+      <Modal closeLabel={t.actions.close}
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         title={t.actions.addUser}
@@ -535,7 +535,7 @@ export function UsersManagementView({
           </Link>
           {error && <p role="alert">{error}</p>}
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">
+            <label className="text-ink-muted font-medium">
               {t.usersView.fullName}
             </label>
             <Input
@@ -547,7 +547,7 @@ export function UsersManagementView({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">
+            <label className="text-ink-muted font-medium">
               {t.usersView.email}
             </label>
             <Input
@@ -560,7 +560,7 @@ export function UsersManagementView({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">
+            <label className="text-ink-muted font-medium">
               {t.usersView.initialPassword}
             </label>
             <Input
@@ -574,7 +574,7 @@ export function UsersManagementView({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[#9EADA9] font-medium">
+              <label className="text-ink-muted font-medium">
                 {t.usersView.userRole}
               </label>
               <Select
@@ -590,7 +590,7 @@ export function UsersManagementView({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[#9EADA9] font-medium">
+              <label className="text-ink-muted font-medium">
                 {t.usersView.department}
               </label>
               <Select
@@ -617,7 +617,7 @@ export function UsersManagementView({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">
+            <label className="text-ink-muted font-medium">
               {t.usersView.phone}
             </label>
             <Input
@@ -630,7 +630,7 @@ export function UsersManagementView({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">
+            <label className="text-ink-muted font-medium">
               {t.usersManagement.reportsToManager}
             </label>
             <Select
@@ -646,7 +646,7 @@ export function UsersManagementView({
             </Select>
           </div>
 
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
+          <div className="pt-4 flex items-center justify-end gap-3 border-t border-ink/10">
             <Button
               type="button"
               variant="ghost"

@@ -236,7 +236,7 @@ export function NewQuotationFormView({
   return (
     <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-8 pb-16">
       {/* Top Breadcrumb & Action bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAEAEA] dark:border-white/10 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink/10 pb-5">
         <div className="flex items-center gap-3">
           <Link
             href={ROUTES.quotations.list}
@@ -245,7 +245,7 @@ export function NewQuotationFormView({
             {isRTL ? <ArrowRight className="w-5 h-5" /> : <ArrowLeft className="w-5 h-5" />}
           </Link>
           <div>
-            <div className="text-xs font-mono uppercase tracking-widest text-[#09937F] font-medium">
+            <div className="text-xs font-mono uppercase tracking-widest text-accent font-medium">
               {qfT.commercialEngine}
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -257,14 +257,14 @@ export function NewQuotationFormView({
         <div className="flex items-center gap-3">
           <Link
             href={ROUTES.quotations.list}
-            className="px-4 py-2 text-sm font-medium rounded-md border border-[#EAEAEA] dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md border border-ink/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-neutral-800 transition-colors"
           >
             {qfT.cancel}
           </Link>
           <Button
             type="submit"
             disabled={submitting}
-            className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-5 py-2 rounded-md font-medium text-sm active:scale-[0.98] transition-all shadow-xs"
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-md font-medium text-sm active:scale-[0.98] transition-all shadow-xs"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>{submitting ? qfT.saving : qfT.saveDraft}</span>
@@ -276,10 +276,10 @@ export function NewQuotationFormView({
         {/* Left 2 Cols: Form Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Client Selection Card */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <div className="flex items-center justify-between border-b border-[#EAEAEA] dark:border-white/10 pb-3">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <div className="flex items-center justify-between border-b border-ink/10 pb-3">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#09937F]" />
+                <Layers className="w-4 h-4 text-accent" />
                 {qfT.clientLabel}
               </h2>
             </div>
@@ -301,7 +301,7 @@ export function NewQuotationFormView({
               />
 
               {selectedContact && (
-                <div className="p-4 bg-slate-50 dark:bg-neutral-900/50 rounded-md border border-[#EAEAEA] dark:border-white/10 text-xs space-y-1 text-slate-600 dark:text-neutral-400">
+                <div className="p-4 bg-slate-50 dark:bg-neutral-900/50 rounded-md border border-ink/10 text-xs space-y-1 text-slate-600 dark:text-neutral-400">
                   <div className="font-semibold text-slate-900 dark:text-white text-sm">
                     {selectedContact.company || selectedContact.full_name}
                   </div>
@@ -314,16 +314,16 @@ export function NewQuotationFormView({
           </Card>
 
           {/* Line Items Card */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <div className="flex items-center justify-between border-b border-[#EAEAEA] dark:border-white/10 pb-3">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <div className="flex items-center justify-between border-b border-ink/10 pb-3">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
-                <Calculator className="w-4 h-4 text-[#09937F]" />
+                <Calculator className="w-4 h-4 text-accent" />
                 {qfT.scopeTitle}
               </h2>
               <button
                 type="button"
                 onClick={addLineItem}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-[#09937F] hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-accent hover:text-primary dark:hover:text-mint transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 {qfT.addItem}
@@ -334,7 +334,7 @@ export function NewQuotationFormView({
               {lineItems.map((item, index) => (
                 <div
                   key={index}
-                  className="p-4 rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50/50 dark:bg-neutral-900/30 space-y-3 relative group"
+                  className="p-4 rounded-md border border-ink/10 bg-slate-50/50 dark:bg-neutral-900/30 space-y-3 relative group"
                 >
                   <div className="flex items-center justify-between text-xs font-mono text-slate-400">
                     <span>{t.newQuotationForm.item}{index + 1}</span>
@@ -358,7 +358,7 @@ export function NewQuotationFormView({
                       <select
                         value={item.serviceId || ""}
                         onChange={(e) => handleSelectService(index, e.target.value)}
-                        className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-1.5 text-slate-800 dark:text-neutral-200"
+                        className="w-full text-xs rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-1.5 text-slate-800 dark:text-neutral-200"
                       >
                         <option value="">{t.newQuotationForm.customItem}</option>
                         {services.map((s) => (
@@ -381,7 +381,7 @@ export function NewQuotationFormView({
                         value={item.descriptionEn}
                         onChange={(e) => updateLineItem(index, "descriptionEn", e.target.value)}
                         placeholder={t.newQuotationForm.eGCommercialVideoProduction}
-                        className="w-full text-sm rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                        className="w-full text-sm rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
                       />
                     </div>
                     <div>
@@ -394,7 +394,7 @@ export function NewQuotationFormView({
                         value={item.descriptionAr}
                         onChange={(e) => updateLineItem(index, "descriptionAr", e.target.value)}
                         placeholder="مثال: تصوير وإنتاج إعلان تجاري"
-                        className="w-full text-sm rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                        className="w-full text-sm rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
                       />
                     </div>
                   </div>
@@ -410,7 +410,7 @@ export function NewQuotationFormView({
                         step="1"
                         value={item.quantity}
                         onChange={(e) => updateLineItem(index, "quantity", Math.max(1, Number(e.target.value)))}
-                        className="w-full text-sm font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-1.5 text-slate-900 dark:text-white"
+                        className="w-full text-sm font-mono rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-1.5 text-slate-900 dark:text-white"
                       />
                     </div>
                     <div>
@@ -423,7 +423,7 @@ export function NewQuotationFormView({
                         step="0.001"
                         value={item.unitPrice}
                         onChange={(e) => updateLineItem(index, "unitPrice", Number(e.target.value))}
-                        className="w-full text-sm font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-1.5 text-slate-900 dark:text-white"
+                        className="w-full text-sm font-mono rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-1.5 text-slate-900 dark:text-white"
                       />
                     </div>
                     <div>
@@ -441,7 +441,7 @@ export function NewQuotationFormView({
           </Card>
 
           {/* Terms & Conditions */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono">
               {qfT.termsTitle}
             </h2>
@@ -454,7 +454,7 @@ export function NewQuotationFormView({
                   rows={4}
                   value={termsEn}
                   onChange={(e) => setTermsEn(e.target.value)}
-                  className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] p-3 text-slate-800 dark:text-neutral-200"
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-white dark:bg-surface-raised p-3 text-slate-800 dark:text-neutral-200"
                 />
               </div>
               <div>
@@ -466,7 +466,7 @@ export function NewQuotationFormView({
                   dir="rtl"
                   value={termsAr}
                   onChange={(e) => setTermsAr(e.target.value)}
-                  className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] p-3 text-slate-800 dark:text-neutral-200"
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-white dark:bg-surface-raised p-3 text-slate-800 dark:text-neutral-200"
                 />
               </div>
             </div>
@@ -476,8 +476,8 @@ export function NewQuotationFormView({
         {/* Right 1 Col: Financial Parameters & FX Breakdown */}
         <div className="space-y-6">
           {/* Settings & Currency */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-2">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-2">
               {t.newQuotationForm.parametersAndPolicy}
             </h2>
 
@@ -489,7 +489,7 @@ export function NewQuotationFormView({
                 <select
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}
-                  className="w-full text-sm font-medium rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-2 text-slate-900 dark:text-white"
+                  className="w-full text-sm font-medium rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-2 text-slate-900 dark:text-white"
                 >
                   {["BHD", ...Object.keys(fxRates)].map((code) => (
                     <option key={code} value={code}>
@@ -510,7 +510,7 @@ export function NewQuotationFormView({
                     max="180"
                     value={validUntilDays}
                     onChange={(e) => setValidUntilDays(Number(e.target.value))}
-                    className="w-24 text-sm font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-1.5 text-slate-900 dark:text-white"
+                    className="w-24 text-sm font-mono rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-1.5 text-slate-900 dark:text-white"
                   />
                   <span className="text-xs text-slate-500">{qfT.days}</span>
                 </div>
@@ -523,7 +523,7 @@ export function NewQuotationFormView({
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value as "en" | "ar")}
-                  className="w-full text-sm rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-3 py-2 text-slate-900 dark:text-white"
+                  className="w-full text-sm rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-2 text-slate-900 dark:text-white"
                 >
                   <option value="ar">العربية (Arabic Primary)</option>
                   <option value="en">English (English Primary)</option>
@@ -551,8 +551,8 @@ export function NewQuotationFormView({
           </Card>
 
           {/* VAT & Discounts */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-2">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-2">
               {qfT.discountsTaxesTitle}
             </h2>
 
@@ -566,7 +566,7 @@ export function NewQuotationFormView({
                   type="checkbox"
                   checked={vatEnabled}
                   onChange={(e) => setVatEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#09937F] focus:ring-[#09937F]"
+                  className="w-4 h-4 rounded text-accent focus:ring-accent"
                 />
               </div>
 
@@ -578,7 +578,7 @@ export function NewQuotationFormView({
                   <select
                     value={discountType}
                     onChange={(e) => setDiscountType(e.target.value as DiscountType)}
-                    className="text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-2 py-1.5 text-slate-800 dark:text-neutral-200"
+                    className="text-xs rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-2 py-1.5 text-slate-800 dark:text-neutral-200"
                   >
                     <option value="none">{qfT.noDiscount}</option>
                     <option value="percentage">{qfT.pctDiscount}</option>
@@ -592,7 +592,7 @@ export function NewQuotationFormView({
                       value={discountValue}
                       onChange={(e) => setDiscountValue(Number(e.target.value))}
                       placeholder={discountType === "percentage" ? qfT.discountPctLabel : qfT.discountAmtLabel}
-                      className="text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-white dark:bg-[#111] px-2 py-1.5 text-slate-800 dark:text-neutral-200"
+                      className="text-xs font-mono rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-2 py-1.5 text-slate-800 dark:text-neutral-200"
                     />
                   )}
                 </div>
@@ -606,8 +606,8 @@ export function NewQuotationFormView({
           </Card>
 
           {/* Real-time Summary Card */}
-          <Card className="p-6 bg-[#014842] text-white rounded-lg space-y-4 shadow-sm">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-[#7de0d1]">
+          <Card className="p-6 bg-primary text-white rounded-lg space-y-4 shadow-sm">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-mint">
               {qfT.summaryTitle}
             </h2>
 
@@ -632,7 +632,7 @@ export function NewQuotationFormView({
 
             <div className="flex items-baseline justify-between pt-1">
               <span className="text-sm font-semibold">{qfT.total}</span>
-              <span className="text-xl font-bold font-mono text-[#7de0d1]">
+              <span className="text-xl font-bold font-mono text-mint">
                 {totalAmount.toFixed(3)} {currency}
               </span>
             </div>

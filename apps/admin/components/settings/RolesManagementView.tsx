@@ -101,7 +101,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
           </h1>
           <p className="text-xs text-slate-500 mt-1">{t.rolesView.subtitle}</p>
         </div>
-        <Button onClick={() => openEditor(null)} className="bg-[#09937F] text-white">
+        <Button onClick={() => openEditor(null)} className="bg-accent text-white">
           <Plus className="w-4 h-4 me-2" />
           {t.rolesView.newRole}
         </Button>
@@ -109,7 +109,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {roles.map((role) => (
-          <Card key={role.id} className="p-5 flex flex-col justify-between dark:bg-[#111C19]">
+          <Card key={role.id} className="p-5 flex flex-col justify-between dark:bg-surface-raised">
             <div>
               <div className="flex items-start justify-between">
                 <div>
@@ -139,7 +139,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
         ))}
       </div>
 
-      <Modal
+      <Modal closeLabel={t.actions.close}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingRole ? t.rolesView.editRole : t.rolesView.newRole}
@@ -163,7 +163,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
 
           <div className="border rounded-xl overflow-auto max-h-[55vh] dark:border-white/10">
             <table className="w-full text-xs">
-              <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-[#050807] text-slate-500">
+              <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-surface-sunken text-slate-500">
                 <tr>
                   <th scope="col" className="px-3 py-2 text-start font-bold">{t.rolesView.thModule}</th>
                   {MATRIX_ACTIONS.map((action) => (
@@ -181,7 +181,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
                     </th>
                   </tr>
                   {group.resources.map((resource) => (
-                    <tr key={resource} className="dark:bg-[#111C19]">
+                    <tr key={resource} className="dark:bg-surface-raised">
                       <th scope="row" className="px-3 py-2 text-start font-medium whitespace-nowrap">
                         {labels.resources[resource]}
                       </th>
@@ -195,7 +195,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
                               checked={isSuperAdmin || grants[key] === true}
                               disabled={isSuperAdmin}
                               onChange={() => toggle(key)}
-                              className="accent-[#09937F]"
+                              className="accent-accent"
                             />
                           </td>
                         );
@@ -220,7 +220,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
             </div>
             <div className="flex gap-2">
               <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>{t.rolesView.cancel}</Button>
-              <Button type="submit" disabled={saving} className="bg-[#09937F] text-white">{t.rolesView.saveRole}</Button>
+              <Button type="submit" disabled={saving} className="bg-accent text-white">{t.rolesView.saveRole}</Button>
             </div>
           </div>
         </form>

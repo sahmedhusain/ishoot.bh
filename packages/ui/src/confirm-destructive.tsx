@@ -59,7 +59,7 @@ export function ConfirmDestructiveModal({
   const isDanger = variant === "danger";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title}>
+    <Modal isOpen={isOpen} onClose={onClose} title={title} closeLabel={cancelLabel}>
       <div className="space-y-4 text-sm text-[#9EADA9]">
         <div
           className={`p-3.5 rounded-xl border ${

@@ -84,11 +84,11 @@ export function CompanyDocumentsClientView({
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-2">
-            <Building2 className="w-7 h-7 text-[#09937F]" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
+            <Building2 className="w-7 h-7 text-accent" />
             <span>{t.companyDocumentsView.title}</span>
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.companyDocumentsView.subtitle}
           </p>
         </div>
@@ -112,8 +112,8 @@ export function CompanyDocumentsClientView({
             onClick={() => setSelectedCat(cat.id)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
               selectedCat === cat.id
-                ? "bg-[#014842] text-white border border-[#09937F]"
-                : "bg-[#0B1210] text-[#9EADA9] hover:text-white border border-white/10"
+                ? "bg-primary text-white border border-accent"
+                : "bg-surface text-ink-muted hover:text-ink border border-ink/10"
             }`}
           >
             {cat.label}
@@ -122,12 +122,12 @@ export function CompanyDocumentsClientView({
       </div>
 
       {filtered.length === 0 ? (
-        <Card className="p-12 text-center bg-[#0B1210] border border-white/10 rounded-3xl space-y-3">
-          <FileText className="w-12 h-12 text-[#9EADA9]/40 mx-auto" />
-          <p className="text-sm font-semibold text-white">
+        <Card className="p-12 text-center bg-surface border border-ink/10 rounded-3xl space-y-3">
+          <FileText className="w-12 h-12 text-ink-muted/40 mx-auto" />
+          <p className="text-sm font-semibold text-ink">
             {t.companyDocumentsView.noAssetsFound}
           </p>
-          <p className="text-xs text-[#9EADA9]">
+          <p className="text-xs text-ink-muted">
             {t.companyDocumentsView.noAssetsHint}
           </p>
           <Link href={ROUTES.company.newDocument}>
@@ -141,39 +141,39 @@ export function CompanyDocumentsClientView({
           {filtered.map((doc) => (
             <Card
               key={doc.id}
-              className="p-5 bg-[#0B1210] border border-white/10 rounded-3xl flex flex-col justify-between hover:border-[#09937F]/50 transition-all space-y-4"
+              className="p-5 bg-surface border border-ink/10 rounded-3xl flex flex-col justify-between hover:border-accent/50 transition-all space-y-4"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="w-10 h-10 rounded-2xl bg-[#09937F]/10 border border-[#09937F]/30 flex items-center justify-center text-[#09937F] shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-accent/10 border border-accent/30 flex items-center justify-center text-accent shrink-0">
                     <FileText className="w-5 h-5" />
                   </div>
                   <Badge
                     variant="outline"
-                    className="text-[10px] uppercase  border-white/20"
+                    className="text-[10px] uppercase  border-ink/20"
                   >
                     {getCategoryLabel(doc.category)}
                   </Badge>
                 </div>
 
                 <div>
-                  <h3 className="font-bold text-white text-sm line-clamp-1">
+                  <h3 className="font-bold text-ink text-sm line-clamp-1">
                     {locale === "ar" && doc.title_ar ? doc.title_ar : doc.title_en}
                   </h3>
                   {doc.document_number && (
-                    <p className="text-[11px]  text-[#09937F] mt-0.5">
+                    <p className="text-[11px]  text-accent mt-0.5">
                       {t.companyDocumentsView.docNumberPrefix}{doc.document_number}
                     </p>
                   )}
                 </div>
 
                 {doc.notes && (
-                  <p className="text-xs text-[#9EADA9] line-clamp-2 bg-[#050807] p-2.5 rounded-xl border border-white/5">
+                  <p className="text-xs text-ink-muted line-clamp-2 bg-surface-sunken p-2.5 rounded-xl border border-ink/5">
                     {doc.notes}
                   </p>
                 )}
 
-                <div className="text-[11px] text-[#9EADA9] space-y-1  pt-2 border-t border-white/5">
+                <div className="text-[11px] text-ink-muted space-y-1  pt-2 border-t border-ink/5">
                   {doc.valid_until && (
                     <div className="flex items-center gap-1.5 text-amber-400">
                       <Calendar className="w-3.5 h-3.5" />
@@ -187,7 +187,7 @@ export function CompanyDocumentsClientView({
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-white/10 flex items-center justify-between">
+              <div className="pt-3 border-t border-ink/10 flex items-center justify-between">
                 <a
                   href={doc.file_url}
                   target="_blank"

@@ -96,7 +96,7 @@ export function ReceiptTemplate({
             <span className="text-xs font-bold uppercase tracking-wider text-gray-600">
               {rcpt.linkedInvoice}
             </span>
-            <span className=" font-bold text-[#014842]">
+            <span className=" font-bold text-primary">
               {invoice?.invoice_number || rcpt.directPayment}
             </span>
           </div>
@@ -135,14 +135,14 @@ export function ReceiptTemplate({
 
         <div className="bg-[#10B981]/10 border-2 border-[#10B981] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-[#014842]">
+            <div className="text-xs font-bold uppercase tracking-wider text-primary">
               {rcpt.netReceived}
             </div>
             <div className="text-xs text-gray-600 mt-0.5">
               {rcpt.fundsVerified}
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-black  text-[#014842]">
+          <div className="text-3xl sm:text-4xl font-black  text-primary">
             {formatCurrencyValue(payment.amount, currency, isAr)}
           </div>
         </div>

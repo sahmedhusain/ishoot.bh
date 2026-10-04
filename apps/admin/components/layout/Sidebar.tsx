@@ -366,14 +366,14 @@ export function Sidebar() {
                   onClick={() => setIsMobileOpen(false)}
                   className={`flex items-center gap-3 mx-2 px-3 h-9 rounded-full text-[13px] font-medium transition-colors ${
                     isActive
-                      ? "bg-[#e6f5f2] text-[#014842] dark:bg-[#004d40]/40 dark:text-[#7de0d1] font-semibold"
+                      ? "bg-[#e6f5f2] text-primary dark:bg-[#004d40]/40 dark:text-mint font-semibold"
                       : "text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
                   }`}
                 >
                   <Icon
                     className={`w-4 h-4 shrink-0 transition-colors ${
                       isActive
-                        ? "text-[#014842] dark:text-[#7de0d1]"
+                        ? "text-primary dark:text-mint"
                         : "text-slate-500 dark:text-neutral-400"
                     }`}
                   />
@@ -390,7 +390,7 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop Fixed Google Navigation Drawer (w-60, 240px) */}
-      <aside className="hidden lg:block shrink-0 h-full w-60 bg-white dark:bg-[#1a1a1a] border-e border-[#dadce0] dark:border-[#3c4043] z-20">
+      <aside className="hidden lg:block shrink-0 h-full w-60 bg-white dark:bg-surface-raised border-e border-ink/15 dark:border-ink/15 z-20">
         {navContent}
       </aside>
 
@@ -401,7 +401,7 @@ export function Sidebar() {
             className="fixed inset-0 top-14 bg-black/50 backdrop-blur-xs animate-fade-in"
             onClick={() => setIsMobileOpen(false)}
           />
-          <div className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-[#1a1a1a] border-e border-[#dadce0] dark:border-[#3c4043] shadow-xl flex flex-col z-10 animate-in slide-in-from-start duration-150">
+          <div className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-surface-raised border-e border-ink/15 dark:border-ink/15 shadow-xl flex flex-col z-10 animate-in slide-in-from-start duration-150">
             {navContent}
           </div>
         </div>

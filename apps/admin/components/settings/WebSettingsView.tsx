@@ -155,7 +155,7 @@ export function WebSettingsView({
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <span>{t.webSettingsView.title}</span>
-            <span className="text-xs font-bold text-[#09937F] font-sans">
+            <span className="text-xs font-bold text-accent font-sans">
               &lt;&lt; {t.webSettingsView.badge} &gt;&gt;
             </span>
           </h1>
@@ -169,11 +169,11 @@ export function WebSettingsView({
             type="button"
             disabled={isRevalidating}
             onClick={handleRevalidate}
-            className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:text-[#09937F] inline-flex items-center gap-2 transition-all shadow-2xs"
+            className="px-3.5 py-2 rounded-xl bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 hover:border-accent/40 text-xs font-semibold text-slate-700 dark:text-neutral-200 hover:text-accent inline-flex items-center gap-2 transition-all shadow-2xs"
             title={t.webSettingsView.purgeTooltip}
           >
             <RefreshCw
-              className={`w-3.5 h-3.5 ${isRevalidating ? "animate-spin text-[#09937F]" : ""}`}
+              className={`w-3.5 h-3.5 ${isRevalidating ? "animate-spin text-accent" : ""}`}
             />
             <span>
               {revalidateSuccess
@@ -186,7 +186,7 @@ export function WebSettingsView({
             href={webUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 rounded-xl bg-[#014842] hover:bg-[#014842]/90 text-white text-xs font-bold inline-flex items-center gap-2 transition-all shadow-sm"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold inline-flex items-center gap-2 transition-all shadow-sm"
           >
             <Globe className="w-3.5 h-3.5 text-[#5EEAD4]" />
             <span>{t.webSettingsView.viewLiveWebsite}</span>
@@ -205,11 +205,11 @@ export function WebSettingsView({
           onClick={() => setActiveTab("hero")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === "hero"
-              ? "bg-[#014842] text-white shadow-xs"
+              ? "bg-primary text-white shadow-xs"
               : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
           }`}
         >
-          <Film className="w-4 h-4 text-[#09937F]" />
+          <Film className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabHero}</span>
         </button>
 
@@ -218,11 +218,11 @@ export function WebSettingsView({
           onClick={() => setActiveTab("narrative")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === "narrative"
-              ? "bg-[#014842] text-white shadow-xs"
+              ? "bg-primary text-white shadow-xs"
               : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
           }`}
         >
-          <Building2 className="w-4 h-4 text-[#09937F]" />
+          <Building2 className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabNarrative}</span>
         </button>
 
@@ -231,11 +231,11 @@ export function WebSettingsView({
           onClick={() => setActiveTab("legal")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === "legal"
-              ? "bg-[#014842] text-white shadow-xs"
+              ? "bg-primary text-white shadow-xs"
               : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
           }`}
         >
-          <Shield className="w-4 h-4 text-[#09937F]" />
+          <Shield className="w-4 h-4 text-accent" />
           <span>{t.webSettings.termsAndPrivacy}</span>
         </button>
 
@@ -244,11 +244,11 @@ export function WebSettingsView({
           onClick={() => setActiveTab("social")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === "social"
-              ? "bg-[#014842] text-white shadow-xs"
+              ? "bg-primary text-white shadow-xs"
               : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
           }`}
         >
-          <Share2 className="w-4 h-4 text-[#09937F]" />
+          <Share2 className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabSocial}</span>
         </button>
 
@@ -257,11 +257,11 @@ export function WebSettingsView({
           onClick={() => setActiveTab("cms")}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
             activeTab === "cms"
-              ? "bg-[#014842] text-white shadow-xs"
+              ? "bg-primary text-white shadow-xs"
               : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
           }`}
         >
-          <Layers className="w-4 h-4 text-[#09937F]" />
+          <Layers className="w-4 h-4 text-accent" />
           <span>{t.webSettingsView.tabCms}</span>
           {cmsCounts.pendingReviews > 0 && (
             <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
@@ -275,10 +275,10 @@ export function WebSettingsView({
         {/* TAB 1: Hero & Media Showcase */}
         {activeTab === "hero" && (
           <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl space-y-5">
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/10">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+                  <div className="p-2 rounded-xl bg-accent/10 text-accent">
                     <Film className="w-4 h-4" />
                   </div>
                   <div>
@@ -349,7 +349,7 @@ export function WebSettingsView({
                 </div>
                 <Link
                   href={ROUTES.settings.company}
-                  className="text-xs font-bold text-[#09937F] hover:underline flex items-center gap-1"
+                  className="text-xs font-bold text-accent hover:underline flex items-center gap-1"
                 >
                   <span>{t.webSettingsView.brandPortal}</span>
                   <ExternalLink className="w-3 h-3" />
@@ -362,9 +362,9 @@ export function WebSettingsView({
         {/* TAB 2: Brand Story, CEO & About */}
         {activeTab === "narrative" && (
           <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
-                <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+                <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <User className="w-4 h-4" />
                 </div>
                 <div>
@@ -538,9 +538,9 @@ export function WebSettingsView({
         {/* TAB 2.5: Legal & Rules */}
         {activeTab === "legal" && (
           <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
-                <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+                <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Shield className="w-4 h-4" />
                 </div>
                 <div>
@@ -615,9 +615,9 @@ export function WebSettingsView({
         {/* TAB 3: Contact & Social Channels */}
         {activeTab === "social" && (
           <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
-                <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+                <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Share2 className="w-4 h-4" />
                 </div>
                 <div>
@@ -672,7 +672,7 @@ export function WebSettingsView({
                   <button
                     type="button"
                     onClick={handleAddSocialLink}
-                    className="h-10 px-4 rounded-xl bg-[#09937F] text-white text-xs font-bold hover:bg-[#0BB49B] transition-colors"
+                    className="h-10 px-4 rounded-xl bg-accent text-white text-xs font-bold hover:bg-accent-hover transition-colors"
                   >
                     {t.webSettings.addLink}
                   </button>
@@ -693,7 +693,7 @@ export function WebSettingsView({
                       {links.map((link) => (
                         <tr
                           key={link.id}
-                          className="bg-white dark:bg-[#0B1210]"
+                          className="bg-white dark:bg-surface"
                         >
                           <td className="px-4 py-3 font-medium flex items-center gap-2">
                             {link.platform}
@@ -742,9 +742,9 @@ export function WebSettingsView({
               </div>
             </Card>
 
-            <Card className="p-6 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
-                <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+                <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
@@ -838,9 +838,9 @@ export function WebSettingsView({
         {/* TAB 4: CMS Content Hub & Live Stats */}
         {activeTab === "cms" && (
           <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl space-y-6">
               <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-white/10">
-                <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+                <div className="p-2 rounded-xl bg-accent/10 text-accent">
                   <Layers className="w-4 h-4" />
                 </div>
                 <div>
@@ -856,14 +856,14 @@ export function WebSettingsView({
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Link
                   href={ROUTES.cms.banners}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-[#014842] text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-white">
                       <Film className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
+                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageShowcaseBanners}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
@@ -874,19 +874,19 @@ export function WebSettingsView({
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-[#09937F]" />
+                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.portfolio}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-[#014842] text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-white">
                       <FolderOpen className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
+                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
                         {t.webSettingsView.managePortfolio}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
@@ -897,19 +897,19 @@ export function WebSettingsView({
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-[#09937F]" />
+                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.clients}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-[#014842] text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-white">
                       <Users className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
+                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageClients}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
@@ -920,19 +920,19 @@ export function WebSettingsView({
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-[#09937F]" />
+                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.equipment}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-[#014842] text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-white">
                       <Camera className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
+                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageEquipment}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
@@ -943,19 +943,19 @@ export function WebSettingsView({
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-[#09937F]" />
+                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.reviews}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-[#014842] text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-white">
                       <Star className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors flex items-center gap-1.5">
+                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors flex items-center gap-1.5">
                         <span>{t.webSettingsView.manageReviews}</span>
                         {cmsCounts.pendingReviews > 0 && (
                           <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white">
@@ -974,19 +974,19 @@ export function WebSettingsView({
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-[#09937F]" />
+                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
                 </Link>
 
                 <Link
                   href={ROUTES.cms.faqs}
-                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-[#09937F]/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
+                  className="p-4 rounded-xl border border-slate-200 dark:border-white/10 hover:border-accent/40 bg-slate-50/50 dark:bg-white/[0.02] flex items-center justify-between group transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-[#014842] text-white">
+                    <div className="p-2.5 rounded-xl bg-primary text-white">
                       <HelpCircle className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#09937F] transition-colors">
+                      <div className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-accent transition-colors">
                         {t.webSettingsView.manageFaqs}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
@@ -997,7 +997,7 @@ export function WebSettingsView({
                       </div>
                     </div>
                   </div>
-                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-[#09937F]" />
+                  <ExternalLink className="w-4 h-4 text-slate-300 dark:text-neutral-600 group-hover:text-accent" />
                 </Link>
               </div>
             </Card>
@@ -1005,7 +1005,7 @@ export function WebSettingsView({
         )}
 
         {/* Save Bar */}
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 shadow-xs">
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 shadow-xs">
           <div className="text-xs text-slate-500 dark:text-neutral-400 flex items-center gap-2">
             {saveSuccess ? (
               <span className="text-emerald-500 dark:text-emerald-400 font-bold flex items-center gap-1.5">
@@ -1020,7 +1020,7 @@ export function WebSettingsView({
           <button
             type="submit"
             disabled={isSaving}
-            className="px-6 py-2.5 rounded-xl bg-[#014842] hover:bg-[#014842]/90 text-white text-xs font-bold inline-flex items-center gap-2 transition-all border border-[#09937F]/40 shadow-sm disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold inline-flex items-center gap-2 transition-all border border-accent/40 shadow-sm disabled:opacity-50"
           >
             {isSaving ? (
               <>

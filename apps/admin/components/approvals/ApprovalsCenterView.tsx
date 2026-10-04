@@ -107,7 +107,7 @@ export function ApprovalsCenterView({
             onClick={() => navigate({ scope: tab.id, status: "all" })}
             className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
               scope === tab.id
-                ? "bg-[#014842] text-white"
+                ? "bg-primary text-white"
                 : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-neutral-300 dark:hover:bg-white/10"
             }`}
           >
@@ -126,7 +126,7 @@ export function ApprovalsCenterView({
           aria-label={a.types.all}
           value={targetType}
           onChange={(event) => navigate({ type: event.target.value })}
-          className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1210] px-3 py-1.5 text-sm"
+          className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-surface px-3 py-1.5 text-sm"
         >
           <option value="all">{a.types.all}</option>
           {APPROVAL_TARGET_TYPES.map((type) => (
@@ -138,7 +138,7 @@ export function ApprovalsCenterView({
             aria-label={a.status.all}
             value={status}
             onChange={(event) => navigate({ status: event.target.value })}
-            className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0B1210] px-3 py-1.5 text-sm"
+            className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-surface px-3 py-1.5 text-sm"
           >
             {STATUS_FILTERS.map((value) => (
               <option key={value} value={value}>{a.status[value]}</option>
@@ -159,7 +159,7 @@ export function ApprovalsCenterView({
             const isOwn = item.requestedById === currentUserId;
             return (
               <li key={item.id}>
-                <Card className="p-5 dark:bg-[#111C19] flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <Card className="p-5 dark:bg-surface-raised flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-2 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-semibold text-slate-900 dark:text-white">{typeLabel(item.targetType)}</span>
@@ -196,7 +196,7 @@ export function ApprovalsCenterView({
                   </div>
 
                   <div className="flex flex-col items-stretch sm:items-end gap-2 shrink-0">
-                    <Link href={item.href} className="inline-flex items-center gap-1 text-xs font-medium text-[#09937F] hover:underline">
+                    <Link href={item.href} className="inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline">
                       {a.openRecord}
                       <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                     </Link>
@@ -207,7 +207,7 @@ export function ApprovalsCenterView({
                             <XCircle className="w-3.5 h-3.5 me-1" aria-hidden="true" />
                             {a.reject}
                           </Button>
-                          <Button size="sm" disabled={loadingId === item.id} onClick={() => decide(item, "approved")} className="bg-[#014842] text-white">
+                          <Button size="sm" disabled={loadingId === item.id} onClick={() => decide(item, "approved")} className="bg-primary text-white">
                             <CheckCircle2 className="w-3.5 h-3.5 me-1" aria-hidden="true" />
                             {a.approve}
                           </Button>
@@ -234,7 +234,7 @@ export function ApprovalsCenterView({
         </nav>
       )}
 
-      <Modal isOpen={!!rejecting} onClose={() => setRejecting(null)} title={a.rejectTitle}>
+      <Modal closeLabel={t.actions.close} isOpen={!!rejecting} onClose={() => setRejecting(null)} title={a.rejectTitle}>
         <form
           onSubmit={(event) => {
             event.preventDefault();

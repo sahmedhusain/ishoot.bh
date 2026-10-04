@@ -63,7 +63,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
       dir={isRTL ? "rtl" : "ltr"}
       className="min-h-screen flex items-center justify-center p-6 bg-[#050807] relative overflow-hidden"
     >
-      <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-[#014842]/30 via-[#09937F]/10 to-transparent blur-3xl pointer-events-none" />
+      <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-primary/30 via-accent/10 to-transparent blur-3xl pointer-events-none" />
 
       <div className="absolute top-6 end-6 z-20">
         <button
@@ -71,12 +71,12 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
           onClick={handleToggleLocale}
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-[#9EADA9] hover:text-white transition-all backdrop-blur-md"
         >
-          <Globe className="w-3.5 h-3.5 text-[#09937F]" />
+          <Globe className="w-3.5 h-3.5 text-accent" />
           <span>{t.loginView.switchLanguage}</span>
         </button>
       </div>
 
-      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-[#09937F]/30 shadow-2xl rounded-3xl space-y-8">
+      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-accent/30 shadow-2xl rounded-3xl space-y-8">
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3">
             <ContentImage
@@ -139,7 +139,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
               <label className="text-xs font-medium text-[#9EADA9]">
                 {t.loginView.passwordLabel}
               </label>
-              <button type="button" onClick={() => router.push("/login/forgot")} className="text-[11px] text-[#09937F] hover:text-white transition-colors">
+              <button type="button" onClick={() => router.push("/login/forgot")} className="text-[11px] text-accent hover:text-white transition-colors">
                 {t.adminLoginForm.forgotPassword}
               </button>
             </div>

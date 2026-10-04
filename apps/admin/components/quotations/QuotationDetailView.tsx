@@ -269,7 +269,7 @@ export function QuotationDetailView({
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EAEAEA] dark:border-white/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-ink/10 pb-6">
         <div className="flex items-center gap-3">
           <Link
             href={ROUTES.quotations.list}
@@ -279,7 +279,7 @@ export function QuotationDetailView({
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <span className="text-xs font-mono uppercase tracking-widest text-[#09937F] font-medium">
+              <span className="text-xs font-mono uppercase tracking-widest text-accent font-medium">
                 {qdT.commercialQuotation}
               </span>
               <span className="text-xs font-mono bg-slate-100 dark:bg-neutral-800 px-2 py-0.5 rounded text-slate-600 dark:text-neutral-400">
@@ -305,7 +305,7 @@ export function QuotationDetailView({
                 }
               }}
               disabled={loadingAction === "submit"}
-              className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
             >
               <Send className="w-4 h-4" />
               <span>{qdT.submitForApproval}</span>
@@ -333,7 +333,7 @@ export function QuotationDetailView({
                   <Button
                     onClick={() => setShowApproveModal(true)}
                     disabled={!!loadingAction}
-                    className="bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-xs font-medium shadow-xs"
+                    className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium shadow-xs"
                   >
                     <CheckCircle2 className="w-4 h-4 mr-1 inline" />
                     {qdT.approveBtn}
@@ -382,7 +382,7 @@ export function QuotationDetailView({
             <Button
               onClick={handleConvertToInvoice}
               disabled={loadingAction === "convert"}
-              className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
             >
               <Receipt className="w-4 h-4" />
               <span>{qdT.convertToInvoice}</span>
@@ -407,7 +407,7 @@ export function QuotationDetailView({
         {/* Main Content: Left 2 Cols */}
         <div className="lg:col-span-2 space-y-6">
           {/* Status Banner */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10">
+          <div className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-surface-raised border border-ink/10">
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-full ${currentStatusMeta.color}`}>
                 <StatusIcon className="w-5 h-5" />
@@ -460,16 +460,16 @@ export function QuotationDetailView({
           )}
 
           {/* Line Items Table */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2 border-b border-[#EAEAEA] dark:border-white/10 pb-3">
-              <FileText className="w-4 h-4 text-[#09937F]" />
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2 border-b border-ink/10 pb-3">
+              <FileText className="w-4 h-4 text-accent" />
               {qdT.scopeTitle}
             </h2>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left rtl:text-right text-sm">
                 <thead>
-                  <tr className="border-b border-[#EAEAEA] dark:border-white/10 text-xs font-mono uppercase text-slate-400">
+                  <tr className="border-b border-ink/10 text-xs font-mono uppercase text-slate-400">
                     <th className="py-2.5 px-3">{qdT.colNum}</th>
                     <th className="py-2.5 px-3">{qdT.colDesc}</th>
                     <th className="py-2.5 px-3 text-right rtl:text-left">{qdT.colQty}</th>
@@ -477,7 +477,7 @@ export function QuotationDetailView({
                     <th className="py-2.5 px-3 text-right rtl:text-left">{qdT.colTotal} ({quotation.currency})</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EAEAEA] dark:divide-white/5">
+                <tbody className="divide-y divide-ink/10 dark:divide-white/5">
                   {quotation.lineItems?.map((item, idx) => (
                     <tr key={item.id || idx} className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]">
                       <td className="py-3 px-3 text-xs font-mono text-slate-400">{idx + 1}</td>
@@ -501,7 +501,7 @@ export function QuotationDetailView({
             </div>
 
             {/* Calculations Breakdown */}
-            <div className="pt-4 border-t border-[#EAEAEA] dark:border-white/10 flex justify-end">
+            <div className="pt-4 border-t border-ink/10 flex justify-end">
               <div className="w-72 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-600 dark:text-neutral-400">
                   <span>{qdT.subtotal}</span>
@@ -519,9 +519,9 @@ export function QuotationDetailView({
                     <span className="font-mono font-medium">+{Number(quotation.vatAmount).toFixed(3)} {quotation.currency}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-white border-t border-[#EAEAEA] dark:border-white/10 pt-2">
+                <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-white border-t border-ink/10 pt-2">
                   <span>{qdT.totalPayable}</span>
-                  <span className="font-mono text-[#014842] dark:text-[#7de0d1]">
+                  <span className="font-mono text-primary dark:text-mint">
                     {Number(quotation.totalAmount).toFixed(3)} {quotation.currency}
                   </span>
                 </div>
@@ -530,8 +530,8 @@ export function QuotationDetailView({
           </Card>
 
           {/* Bilingual Terms */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-3">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-3">
               {qdT.termsTitle}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -554,13 +554,13 @@ export function QuotationDetailView({
         {/* Right 1 Col: Metadata & Audit Box */}
         <div className="space-y-6">
           {/* Client Card */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-[#EAEAEA] dark:border-white/10 pb-2">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-ink/10 pb-2">
               {qdT.particularsTitle}
             </h2>
             <div className="space-y-2 text-xs">
               <div className="font-semibold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
-                <Building className="w-4 h-4 text-[#09937F]" />
+                <Building className="w-4 h-4 text-accent" />
                 {quotation.client?.companyName || `${quotation.client?.firstName || ""} ${quotation.client?.lastName || ""}`}
               </div>
               {quotation.client?.email && (
@@ -576,8 +576,8 @@ export function QuotationDetailView({
           </Card>
 
           {/* Dates & Timeline */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-[#EAEAEA] dark:border-white/10 pb-2">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <h2 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-ink/10 pb-2">
               {t.quotationDetail.documentLifecycle}
             </h2>
             <div className="space-y-3 text-xs">
@@ -607,7 +607,7 @@ export function QuotationDetailView({
 
           {/* Super Admin Approval Box */}
           {approvalRequest && (
-            <Card className="p-6 bg-slate-50 dark:bg-neutral-900/50 border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-3">
+            <Card className="p-6 bg-slate-50 dark:bg-neutral-900/50 border border-ink/10 rounded-lg space-y-3">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-2">
                 <span className="text-xs font-mono uppercase text-slate-500">{t.quotationDetail.governanceReview}</span>
                 <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-200 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300">
@@ -657,7 +657,7 @@ export function QuotationDetailView({
           </>
         }
         confirmLabel={t.quotationDetail.submitForApproval2}
-        confirmClassName="bg-[#014842] hover:bg-[#013833]"
+        confirmClassName="bg-primary hover:bg-primary-hover"
         confirmDisabled={!discountReason.trim() || loadingAction === "submit"}
         onConfirm={handleSubmitForApproval}
       >
@@ -669,7 +669,7 @@ export function QuotationDetailView({
             value={discountReason}
             onChange={(e) => setDiscountReason(e.target.value)}
             placeholder={t.quotationDetail.eGVolumeDiscountNegotiated}
-            className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+            className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
           />
         </label>
       </QuotationActionDialog>
@@ -689,7 +689,7 @@ export function QuotationDetailView({
           <select
             value={deliveryChannel}
             onChange={(e) => setDeliveryChannel(e.target.value as typeof deliveryChannel)}
-            className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+            className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
           >
             <option value="email">{t.quotationDetail.emailNotificationToClient}</option>
             <option value="portal">{t.quotationDetail.publishToClientPortal}</option>
@@ -710,7 +710,7 @@ export function QuotationDetailView({
           </>
         }
         confirmLabel={t.quotationDetail.confirmApproval}
-        confirmClassName="bg-[#014842] hover:bg-[#013833]"
+        confirmClassName="bg-primary hover:bg-primary-hover"
         confirmDisabled={loadingAction === "approve"}
         onConfirm={handleApprove}
       />
@@ -733,7 +733,7 @@ export function QuotationDetailView({
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             placeholder={t.quotationDetail.eGDiscountExceedsAllowed}
-            className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+            className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
           />
         </label>
       </QuotationActionDialog>
@@ -755,7 +755,7 @@ export function QuotationDetailView({
             value={acceptanceEvidence}
             onChange={(e) => setAcceptanceEvidence(e.target.value)}
             placeholder={t.quotationDetail.eGSignedPoPo}
-            className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
+            className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white mt-1"
           />
         </label>
       </QuotationActionDialog>

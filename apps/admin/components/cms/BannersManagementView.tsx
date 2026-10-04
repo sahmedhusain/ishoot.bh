@@ -157,10 +157,10 @@ export function BannersManagementView({
       </Link>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.cms.bannersTitle}
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.bannersView.subtitle}
           </p>
         </div>
@@ -178,17 +178,17 @@ export function BannersManagementView({
 
       <div className="grid grid-cols-1 gap-4">
         {banners.length === 0 ? (
-          <div className="p-12 text-center rounded-3xl bg-[#0B1210] border border-white/10 text-[#9EADA9]">
+          <div className="p-12 text-center rounded-3xl bg-surface border border-ink/10 text-ink-muted">
             {t.bannersView.emptyState}
           </div>
         ) : (
           banners.map((banner) => (
             <Card
               key={banner.id}
-              className="p-5 bg-[#0B1210] border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-white/20 transition-all rounded-3xl"
+              className="p-5 bg-surface border border-ink/10 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-ink/20 transition-all rounded-3xl"
             >
               <div className="flex items-center gap-4">
-                <div className="relative w-36 aspect-video rounded-xl overflow-hidden bg-black border border-white/10 shrink-0">
+                <div className="relative w-36 aspect-video rounded-xl overflow-hidden bg-black border border-ink/10 shrink-0">
                   <ContentImage
                     src={banner.poster_url || banner.media_url}
                     alt={locale === "ar" ? banner.title_ar : banner.title_en}
@@ -206,7 +206,7 @@ export function BannersManagementView({
 
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold text-white">
+                    <h3 className="text-base font-bold text-ink">
                       {locale === "ar" ? banner.title_ar : banner.title_en}
                     </h3>
                     <Badge variant={banner.is_active ? "emerald" : "outline"}>
@@ -215,10 +215,10 @@ export function BannersManagementView({
                         : t.cms.hidden}
                     </Badge>
                   </div>
-                  <div className="text-xs text-[#09937F] ">
+                  <div className="text-xs text-accent ">
                     {locale === "ar" ? banner.title_en : banner.title_ar}
                   </div>
-                  <div className="text-xs text-[#9EADA9] max-w-lg line-clamp-1">
+                  <div className="text-xs text-ink-muted max-w-lg line-clamp-1">
                     {locale === "ar"
                       ? banner.subtitle_ar || banner.subtitle_en
                       : banner.subtitle_en || banner.subtitle_ar}
@@ -267,7 +267,7 @@ export function BannersManagementView({
         )}
       </div>
 
-      <Modal
+      <Modal closeLabel={t.actions.close}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? t.actions.edit : t.actions.addBanner}
@@ -278,12 +278,12 @@ export function BannersManagementView({
               {error}
             </p>
           )}
-          <p className="text-xs text-[#9EADA9]">
+          <p className="text-xs text-ink-muted">
             {t.bannersManagement.saveThenPublishFromThe}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.titleArLabel}
               </label>
               <Input
@@ -294,7 +294,7 @@ export function BannersManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.titleEnLabel}
               </label>
               <Input
@@ -308,7 +308,7 @@ export function BannersManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.subtitleArLabel}
               </label>
               <Input
@@ -318,7 +318,7 @@ export function BannersManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.subtitleEnLabel}
               </label>
               <Input
@@ -331,23 +331,23 @@ export function BannersManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.mediaType}
               </label>
               <Select
                 value={mediaType}
                 onChange={(e) => setMediaType(e.target.value as any)}
               >
-                <option value="video" className="bg-[#0B1210] text-white">
+                <option value="video" className="bg-surface text-ink">
                   {t.bannersView.videoReel}
                 </option>
-                <option value="image" className="bg-[#0B1210] text-white">
+                <option value="image" className="bg-surface text-ink">
                   {t.bannersView.highResImage}
                 </option>
               </Select>
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.mediaUrl}
               </label>
               <Input
@@ -358,7 +358,7 @@ export function BannersManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.posterUrl}
               </label>
               <Input
@@ -395,7 +395,7 @@ export function BannersManagementView({
               />
             </label>
           </div>
-          <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
             <Button
               type="button"
               variant="outline"

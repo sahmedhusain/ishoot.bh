@@ -110,7 +110,7 @@ export function EmployeeDetailView({
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-16">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EAEAEA] dark:border-white/10 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink/10 pb-5">
         <div className="flex items-center gap-3">
           <Link
             href={ROUTES.hr.employees}
@@ -124,7 +124,7 @@ export function EmployeeDetailView({
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <span className="text-xs font-mono uppercase tracking-widest text-[#09937F] font-medium">
+              <span className="text-xs font-mono uppercase tracking-widest text-accent font-medium">
                 {employee.employeeNumber}
               </span>
               <span
@@ -150,7 +150,7 @@ export function EmployeeDetailView({
         {canEdit && !isEditing && (
           <Button
             onClick={() => setIsEditing(true)}
-            className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <Edit2 className="w-3.5 h-3.5" />
             <span>{t.employeeDetail.editProfile}</span>
@@ -190,8 +190,8 @@ export function EmployeeDetailView({
       {isEditing ? (
         /* Edit Form */
         <form onSubmit={handleSave} className="space-y-6">
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-3">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-3">
               {t.employeeDetail.editEmploymentAndRoleInformation}
             </h2>
 
@@ -205,7 +205,7 @@ export function EmployeeDetailView({
                   required
                   value={jobTitleEn}
                   onChange={(e) => setJobTitleEn(e.target.value)}
-                  className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                  className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -218,7 +218,7 @@ export function EmployeeDetailView({
                   dir="rtl"
                   value={jobTitleAr}
                   onChange={(e) => setJobTitleAr(e.target.value)}
-                  className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                  className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -229,7 +229,7 @@ export function EmployeeDetailView({
                 <select
                   value={departmentId}
                   onChange={(e) => setDepartmentId(e.target.value)}
-                  className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2.5 text-slate-900 dark:text-white"
+                  className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2.5 text-slate-900 dark:text-white"
                 >
                   <option value="">{t.employeeDetail.noDepartmentAssigned}</option>
                   {departments.map((d) => (
@@ -247,7 +247,7 @@ export function EmployeeDetailView({
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2.5 text-slate-900 dark:text-white"
+                  className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2.5 text-slate-900 dark:text-white"
                 >
                   <option value="active">{t.shared.activeDuty}</option>
                   <option value="on_leave">{t.shared.onLeave}</option>
@@ -264,7 +264,7 @@ export function EmployeeDetailView({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                  className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -276,15 +276,15 @@ export function EmployeeDetailView({
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                  className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
           </Card>
 
           {/* Compensation Adjustment */}
-          <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-3">
+          <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-3">
               {t.employeeDetail.effectiveCompensationBhd}
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -298,7 +298,7 @@ export function EmployeeDetailView({
                   step="1"
                   value={basicSalary}
                   onChange={(e) => setBasicSalary(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2"
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
                 />
               </div>
               <div>
@@ -311,7 +311,7 @@ export function EmployeeDetailView({
                   step="1"
                   value={housingAllowance}
                   onChange={(e) => setHousingAllowance(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2"
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
                 />
               </div>
               <div>
@@ -326,7 +326,7 @@ export function EmployeeDetailView({
                   onChange={(e) =>
                     setTransportAllowance(Number(e.target.value))
                   }
-                  className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2"
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
                 />
               </div>
               <div>
@@ -339,7 +339,7 @@ export function EmployeeDetailView({
                   step="1"
                   value={otherAllowances}
                   onChange={(e) => setOtherAllowances(Number(e.target.value))}
-                  className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2"
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2"
                 />
               </div>
             </div>
@@ -353,14 +353,14 @@ export function EmployeeDetailView({
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="px-4 py-2 text-xs font-medium rounded-md border border-[#EAEAEA] dark:border-white/10 text-slate-600 hover:bg-slate-50"
+              className="px-4 py-2 text-xs font-medium rounded-md border border-ink/10 text-slate-600 hover:bg-slate-50"
             >
               {t.shared.cancel}
             </button>
             <Button
               type="submit"
               disabled={saving}
-              className="bg-[#014842] hover:bg-[#013833] text-white px-5 py-2 rounded-md text-xs font-medium"
+              className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-md text-xs font-medium"
             >
               {saving ? t.employeeDetail.savingChanges : t.employeeDetail.saveUpdates}
             </Button>
@@ -372,9 +372,9 @@ export function EmployeeDetailView({
           {/* Main 2 Cols */}
           <div className="md:col-span-2 space-y-6">
             {/* Core Employment Details */}
-            <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-[#EAEAEA] dark:border-white/10 pb-3 flex items-center gap-2">
-                <BriefcaseIcon className="w-4 h-4 text-[#09937F]" />
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-3 flex items-center gap-2">
+                <BriefcaseIcon className="w-4 h-4 text-accent" />
                 {t.employeeDetail.jobAndOrganization}
               </h2>
 
@@ -441,13 +441,13 @@ export function EmployeeDetailView({
             </Card>
 
             {/* Compensation Structure */}
-            <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-4">
-              <div className="flex items-center justify-between border-b border-[#EAEAEA] dark:border-white/10 pb-3">
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+              <div className="flex items-center justify-between border-b border-ink/10 pb-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-[#09937F]" />
+                  <DollarSign className="w-4 h-4 text-accent" />
                   {t.employeeDetail.monthlyRemunerationAndGosiBase}
                 </h2>
-                <span className="text-xs font-mono font-bold text-[#014842] dark:text-[#7de0d1]">
+                <span className="text-xs font-mono font-bold text-primary dark:text-mint">
                   {t.employeeDetail.totalGross}
                   {totalMonthlyGross.toFixed(3)}
                   {t.shared.bhd}
@@ -455,28 +455,28 @@ export function EmployeeDetailView({
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-[#EAEAEA] dark:border-white/5 space-y-1">
+                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
                   <span className="text-slate-400">{t.employeeDetail.basicSalary}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
                     {basicSalary.toFixed(3)}
                     {t.shared.bhd}
                   </div>
                 </div>
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-[#EAEAEA] dark:border-white/5 space-y-1">
+                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
                   <span className="text-slate-400">{t.shared.housingAllowance}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
                     {housingAllowance.toFixed(3)}
                     {t.shared.bhd}
                   </div>
                 </div>
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-[#EAEAEA] dark:border-white/5 space-y-1">
+                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
                   <span className="text-slate-400">{t.shared.transport}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
                     {transportAllowance.toFixed(3)}
                     {t.shared.bhd}
                   </div>
                 </div>
-                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-[#EAEAEA] dark:border-white/5 space-y-1">
+                <div className="p-3 bg-slate-50 dark:bg-neutral-900/40 rounded border border-ink/10 dark:border-white/5 space-y-1">
                   <span className="text-slate-400">{t.shared.otherAllowances}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white text-sm">
                     {otherAllowances.toFixed(3)}
@@ -489,15 +489,15 @@ export function EmployeeDetailView({
 
           {/* Right Column: Leave Balance & User Link */}
           <div className="space-y-6">
-            <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-3">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-[#EAEAEA] dark:border-white/10 pb-2">
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-3">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-ink/10 pb-2">
                 {t.employeeDetail.leaveAndStatutoryEntitlement}
               </h3>
               <div>
                 <span className="text-slate-500 text-xs">
                   {t.employeeDetail.annualLeaveBalance}
                 </span>
-                <div className="text-3xl font-bold font-mono text-[#014842] dark:text-[#7de0d1] mt-1">
+                <div className="text-3xl font-bold font-mono text-primary dark:text-mint mt-1">
                   {Number(employee.leaveBalanceDays).toFixed(1)}{" "}
                   <span className="text-xs font-normal text-slate-400">
                     {t.shared.days}
@@ -509,8 +509,8 @@ export function EmployeeDetailView({
               </p>
             </Card>
 
-            <Card className="p-6 bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg space-y-3">
-              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-[#EAEAEA] dark:border-white/10 pb-2">
+            <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-3">
+              <h3 className="text-xs font-mono uppercase tracking-widest text-slate-400 border-b border-ink/10 pb-2">
                 {t.employeeDetail.linkedSystemLogin}
               </h3>
               {employee.user ? (
@@ -519,7 +519,7 @@ export function EmployeeDetailView({
                     {employee.user.fullName}
                   </div>
                   <div className="text-slate-500">{employee.user.email}</div>
-                  <div className="font-mono text-[11px] text-[#09937F] mt-1">
+                  <div className="font-mono text-[11px] text-accent mt-1">
                     {t.employeeDetail.role}
                     {employee.user.role}
                   </div>

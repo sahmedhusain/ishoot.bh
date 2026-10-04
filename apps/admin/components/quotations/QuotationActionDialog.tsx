@@ -28,7 +28,7 @@ export function QuotationActionDialog({
 }) {
   const { t } = useAdminLocale();
   return (
-    <Modal isOpen={open} onClose={onClose} title={title} className="max-w-md">
+    <Modal closeLabel={t.actions.close} isOpen={open} onClose={onClose} title={title} className="max-w-md">
       <div className="space-y-4">
         {description && <div className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">{description}</div>}
         {children}

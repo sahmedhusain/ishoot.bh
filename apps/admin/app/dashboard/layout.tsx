@@ -33,7 +33,7 @@ export default async function DashboardLayout({
     >
       <FeatureTogglesProvider initialFeatures={toggles}>
         <SidebarProvider>
-          <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#F8FAF9] text-slate-800 dark:bg-[#080E0D] dark:text-[#F2F6F5] transition-colors duration-200">
+          <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#F8FAF9] text-slate-800 dark:bg-[#080E0D] dark:text-ink transition-colors duration-200">
             {/* Fixed Topbar spanning full width with Logo at start */}
             <Topbar
               company={{

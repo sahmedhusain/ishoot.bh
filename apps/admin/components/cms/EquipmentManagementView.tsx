@@ -104,10 +104,10 @@ export function EquipmentManagementView({
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.cms.equipmentTitle}
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.equipmentView.subtitle}
           </p>
         </div>
@@ -124,15 +124,15 @@ export function EquipmentManagementView({
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-        <Filter className="w-4 h-4 text-[#9EADA9] shrink-0" />
+        <Filter className="w-4 h-4 text-ink-muted shrink-0" />
         {categories.map((c) => (
           <button
             key={c.value}
             onClick={() => setSelectedCategory(c.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               selectedCategory === c.value
-                ? "bg-[#09937F] text-white shadow-lg shadow-[#09937F]/20"
-                : "bg-[#0B1210] border border-white/10 text-[#9EADA9] hover:text-white hover:border-white/20"
+                ? "bg-accent text-white shadow-lg shadow-accent/20"
+                : "bg-surface border border-ink/10 text-ink-muted hover:text-ink hover:border-ink/20"
             }`}
           >
             {c.label}
@@ -140,9 +140,9 @@ export function EquipmentManagementView({
         ))}
       </div>
 
-      <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-surface border border-ink/10 rounded-3xl overflow-hidden shadow-xl">
         <table className="w-full text-start text-xs">
-          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase  tracking-wider">
+          <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.equipmentView.category}</th>
               <th className="p-4 text-start">{t.equipmentView.modelName}</th>
@@ -152,34 +152,34 @@ export function EquipmentManagementView({
               <th className="p-4 text-end">{t.equipmentView.actions}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-ink/5">
             {filteredItems.map((eq) => (
               <tr
                 key={eq.id}
-                className="hover:bg-white/[0.02] transition-colors"
+                className="hover:bg-ink/[0.02] transition-colors"
               >
                 <td className="p-4">
                   <Badge variant="emerald">{eq.category.toUpperCase()}</Badge>
                 </td>
                 <td className="p-4">
-                  <div className="font-bold text-white text-sm">
+                  <div className="font-bold text-ink text-sm">
                     {locale === "ar"
                       ? eq.name_ar || eq.model_name
                       : eq.model_name}
                   </div>
                   {eq.brand && (
-                    <div className="text-[11px]  text-[#09937F]">
+                    <div className="text-[11px]  text-accent">
                       {eq.brand}
                     </div>
                   )}
                 </td>
-                <td className="p-4 text-[#9EADA9] max-w-xs truncate">
+                <td className="p-4 text-ink-muted max-w-xs truncate">
                   {eq.specification || "—"}
                 </td>
-                <td className="p-4 text-center  text-white">
+                <td className="p-4 text-center  text-ink">
                   {eq.quantity || 1}
                 </td>
-                <td className="p-4 text-end  font-bold text-[#09937F]">
+                <td className="p-4 text-end  font-bold text-accent">
                   {eq.daily_rate_bhd ? (
                     <CurrencyDisplay
                       amount={eq.daily_rate_bhd}
@@ -204,7 +204,7 @@ export function EquipmentManagementView({
         </table>
       </div>
 
-      <Modal
+      <Modal closeLabel={t.actions.close}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={t.actions.addEquipment}
@@ -212,7 +212,7 @@ export function EquipmentManagementView({
         <form onSubmit={handleCreate} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.modelNameEnLabel}
               </label>
               <Input
@@ -223,7 +223,7 @@ export function EquipmentManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.itemNameArLabel}
               </label>
               <Input
@@ -236,35 +236,35 @@ export function EquipmentManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.category}
               </label>
               <Select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
               >
-                <option value="cameras" className="bg-[#0B1210] text-white">
+                <option value="cameras" className="bg-surface text-ink">
                   {t.equipmentView.categories.cameras}
                 </option>
-                <option value="lenses" className="bg-[#0B1210] text-white">
+                <option value="lenses" className="bg-surface text-ink">
                   {t.equipmentView.categories.lenses}
                 </option>
-                <option value="lighting" className="bg-[#0B1210] text-white">
+                <option value="lighting" className="bg-surface text-ink">
                   {t.equipmentView.categories.lighting}
                 </option>
-                <option value="audio" className="bg-[#0B1210] text-white">
+                <option value="audio" className="bg-surface text-ink">
                   {t.equipmentView.categories.audio}
                 </option>
-                <option value="grip" className="bg-[#0B1210] text-white">
+                <option value="grip" className="bg-surface text-ink">
                   {t.equipmentView.categories.grip}
                 </option>
-                <option value="drones" className="bg-[#0B1210] text-white">
+                <option value="drones" className="bg-surface text-ink">
                   {t.equipmentView.categories.drones}
                 </option>
               </Select>
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.brand}
               </label>
               <Input
@@ -276,7 +276,7 @@ export function EquipmentManagementView({
           </div>
 
           <div>
-            <label className="text-xs text-white mb-1.5 block">
+            <label className="text-xs text-ink mb-1.5 block">
               {t.equipmentView.specs}
             </label>
             <Input
@@ -288,7 +288,7 @@ export function EquipmentManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.dailyRateBhd}
               </label>
               <Input
@@ -300,7 +300,7 @@ export function EquipmentManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.availableQty}
               </label>
               <Input
@@ -313,7 +313,7 @@ export function EquipmentManagementView({
             </div>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
             <Button
               type="button"
               variant="outline"

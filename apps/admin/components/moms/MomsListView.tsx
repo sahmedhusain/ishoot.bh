@@ -73,7 +73,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-white/70 border border-white/15">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-ink/10 text-ink/70 border border-ink/15">
             {t.momsList.draft}
           </span>
         );
@@ -85,17 +85,17 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white font-display flex items-center gap-2">
-            <FileSignature className="w-6 h-6 text-[#09937F]" />
+          <h1 className="text-2xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
+            <FileSignature className="w-6 h-6 text-accent" />
             <span>{t.momsList.minutesOfMeetingsMom}</span>
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.momsList.officialCorporateMeetingMinutesWith}
           </p>
         </div>
 
         <Link href={ROUTES.moms.create}>
-          <Button className="bg-[#09937F] hover:bg-[#077464] text-white flex items-center gap-2 text-xs">
+          <Button className="bg-accent hover:bg-[#077464] text-white flex items-center gap-2 text-xs">
             <Plus className="w-4 h-4" />
             <span>{t.momsList.newMeetingMinutes}</span>
           </Button>
@@ -103,15 +103,15 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
       </div>
 
       {/* Filter and Search Bar */}
-      <Card className="p-4 bg-[#0B1210] border border-white/10 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+      <Card className="p-4 bg-surface border border-ink/10 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-[#9EADA9] absolute start-3 top-2.5" />
+          <Search className="w-4 h-4 text-ink-muted absolute start-3 top-2.5" />
           <input
             type="text"
             placeholder={t.momsList.searchMinutesOrClients}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-[#050807] border border-white/10 text-white placeholder:text-[#9EADA9]/60 focus:outline-none focus:border-[#09937F]"
+            className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-surface-sunken border border-ink/10 text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent"
           />
         </div>
 
@@ -122,8 +122,8 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
               onClick={() => setStatusFilter(st)}
               className={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
                 statusFilter === st
-                  ? "bg-[#09937F] text-white"
-                  : "bg-white/5 text-[#9EADA9] hover:text-white"
+                  ? "bg-accent text-white"
+                  : "bg-ink/5 text-ink-muted hover:text-ink"
               }`}
             >
               {st === "all"
@@ -141,10 +141,10 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
       </Card>
 
       {/* MOM Table */}
-      <Card className="bg-[#0B1210] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+      <Card className="bg-surface border border-ink/10 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-xs">
-            <thead className="bg-[#070C0A] text-[#9EADA9] uppercase text-[11px] border-b border-white/10">
+            <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-ink/10">
               <tr>
                 <th className="p-4 text-start">{t.momsList.mom}</th>
                 <th className="p-4 text-start">{t.momsList.meetingTitle}</th>
@@ -155,16 +155,16 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                 <th className="p-4 text-end">{t.momsList.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 text-white">
+            <tbody className="divide-y divide-ink/5 text-ink">
               {filteredMoms.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-xs text-[#9EADA9]">
+                  <td colSpan={7} className="p-8 text-center text-xs text-ink-muted">
                     {t.momsList.noMeetingMinutesFound}
                   </td>
                 </tr>
               ) : (
                 filteredMoms.map((mom) => (
-                  <tr key={mom.id} className="hover:bg-white/[0.02] transition-colors">
+                  <tr key={mom.id} className="hover:bg-ink/[0.02] transition-colors">
                     <td className="p-4 font-mono font-bold text-[#5EEAD4]">
                       <Link
                         href={ROUTES.moms.detail(mom.id)}
@@ -175,38 +175,38 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                     </td>
 
                     <td className="p-4 max-w-xs">
-                      <div className="font-bold text-white text-sm truncate">
+                      <div className="font-bold text-ink text-sm truncate">
                         {isRTL && mom.title_ar ? mom.title_ar : mom.title}
                       </div>
-                      <div className="text-[11px] text-[#9EADA9] truncate">
+                      <div className="text-[11px] text-ink-muted truncate">
                         {mom.location || t.momsList.ishootHq}
                       </div>
                     </td>
 
                     <td className="p-4">
-                      <div className="text-white font-medium">
+                      <div className="text-ink font-medium">
                         {mom.client_name || "—"}
                       </div>
-                      <div className="text-[11px] text-[#09937F] truncate">
+                      <div className="text-[11px] text-accent truncate">
                         {mom.deal_title || "—"}
                       </div>
                     </td>
 
                     <td className="p-4">
-                      <div className="flex items-center gap-1.5 text-white">
-                        <Calendar className="w-3.5 h-3.5 text-[#09937F]" />
+                      <div className="flex items-center gap-1.5 text-ink">
+                        <Calendar className="w-3.5 h-3.5 text-accent" />
                         <span>{mom.meeting_date}</span>
                       </div>
                       {mom.start_time && (
-                        <div className="text-[11px] text-[#9EADA9]">
+                        <div className="text-[11px] text-ink-muted">
                           {mom.start_time} - {mom.end_time || ""}
                         </div>
                       )}
                     </td>
 
                     <td className="p-4">
-                      <div className="flex items-center gap-1 text-[#9EADA9]">
-                        <Users className="w-3.5 h-3.5 text-[#09937F]" />
+                      <div className="flex items-center gap-1 text-ink-muted">
+                        <Users className="w-3.5 h-3.5 text-accent" />
                         <span>{mom.attendees.length} {t.momsList.attendees2}</span>
                       </div>
                     </td>
@@ -219,7 +219,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={ROUTES.moms.detail(mom.id)}
-                          className="p-1.5 rounded-lg bg-white/5 hover:bg-[#09937F]/20 text-[#5EEAD4] border border-white/10 hover:border-[#09937F]/40 transition-all"
+                          className="p-1.5 rounded-lg bg-ink/5 hover:bg-accent/20 text-[#5EEAD4] border border-ink/10 hover:border-accent/40 transition-all"
                           title={t.momsList.viewOfficialDocument}
                         >
                           <ExternalLink className="w-4 h-4" />

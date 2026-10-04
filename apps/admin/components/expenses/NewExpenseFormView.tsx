@@ -68,29 +68,29 @@ export function NewExpenseFormView() {
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5 text-[#9EADA9]"
+            className="gap-1.5 text-ink-muted"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t.actions.back}</span>
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-2">
-            <Receipt className="w-6 h-6 text-[#09937F]" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
+            <Receipt className="w-6 h-6 text-accent" />
             <span>{t.expensesNew.title}</span>
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.expensesNew.subtitle}
           </p>
         </div>
       </div>
 
-      <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl">
+      <Card className="p-8 bg-surface border border-ink/10 rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error ? <p role="alert">{error}</p> : null}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.expensesNew.descriptionEnLabel}
               </label>
               <Input
@@ -101,7 +101,7 @@ export function NewExpenseFormView() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.expensesNew.amountLabel}
               </label>
               <Input
@@ -118,7 +118,7 @@ export function NewExpenseFormView() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.expensesNew.inputVatLabel}
               </label>
               <Input
@@ -130,15 +130,15 @@ export function NewExpenseFormView() {
               />
               <p className="text-[11px] text-slate-400 mt-1">{t.expensesNew.inputVatHint}</p>
             </div>
-            <label className="flex items-center gap-2 text-xs text-white self-center">
-              <input type="checkbox" className="accent-[#09937F]" checked={vatRecoverable} onChange={(e) => setVatRecoverable(e.target.checked)} />
+            <label className="flex items-center gap-2 text-xs text-ink self-center">
+              <input type="checkbox" className="accent-accent" checked={vatRecoverable} onChange={(e) => setVatRecoverable(e.target.checked)} />
               {t.expensesNew.vatRecoverable}
             </label>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.expensesNew.vendorLabel}
               </label>
               <Input
@@ -148,7 +148,7 @@ export function NewExpenseFormView() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.expensesNew.dateLabel}
               </label>
               <Input
@@ -169,7 +169,7 @@ export function NewExpenseFormView() {
             maxFiles={1}
           />
 
-          <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
+          <div className="pt-6 border-t border-ink/10 flex items-center justify-end gap-4">
             <Link href={ROUTES.expenses.list()}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}

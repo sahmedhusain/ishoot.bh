@@ -201,7 +201,7 @@ export function NewPaymentFormView({
         </Link>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
-            <CreditCard className="w-6 h-6 text-[#09937F]" />
+            <CreditCard className="w-6 h-6 text-accent" />
             <span>{t.paymentsNew.title}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -238,7 +238,7 @@ export function NewPaymentFormView({
               <div className="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
                 <label>{t.newPaymentView.selectInvoiceLabel} *</label>
                 {fetchingInvoices && (
-                  <span className="text-[10px] text-[#09937F]  animate-pulse">
+                  <span className="text-[10px] text-accent  animate-pulse">
                     {t.newPaymentView.refreshingInvoices}
                   </span>
                 )}
@@ -256,7 +256,7 @@ export function NewPaymentFormView({
                 <Link
                   href={ROUTES.invoices.detail(selectedInvoice.id)}
                   target="_blank"
-                  className=" font-bold text-[#09937F] hover:underline flex items-center gap-1"
+                  className=" font-bold text-accent hover:underline flex items-center gap-1"
                 >
                   <span>{selectedInvoice.invoice_number}</span>
                   <ExternalLink className="w-3 h-3" />
@@ -312,7 +312,7 @@ export function NewPaymentFormView({
                 placeholder="0.000"
                 value={amount || ""}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                className=" text-lg font-bold text-[#09937F]"
+                className=" text-lg font-bold text-accent"
               />
             </div>
 
@@ -373,7 +373,7 @@ export function NewPaymentFormView({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#014842] dark:text-[#7de0d1]" />
+                    <ShieldCheck className="w-4 h-4 text-primary dark:text-mint" />
                     <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                       {t.newPaymentView.chequeSettlementDocsTitle}
                     </h3>
@@ -388,7 +388,7 @@ export function NewPaymentFormView({
                   <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-[#152B27]/20 border border-slate-200 dark:border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
-                        <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
+                        <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
                         <span>{t.newPaymentView.chequeCopyLabel} *</span>
                       </label>
                       <span className="text-[10px] text-rose-500 font-bold">{t.newPaymentView.required}</span>
@@ -441,10 +441,10 @@ export function NewPaymentFormView({
                     ) : (
                       <div
                         onClick={() => !uploadingCheque && chequeInputRef.current?.click()}
-                        className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-[#014842] dark:hover:border-[#7de0d1] rounded-xl p-4 text-center cursor-pointer transition-colors"
+                        className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
                       >
                         <div className="flex flex-col items-center justify-center space-y-1.5">
-                          <div className="w-8 h-8 rounded-full bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1] flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
                             {uploadingCheque ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
@@ -464,7 +464,7 @@ export function NewPaymentFormView({
                   <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-[#152B27]/20 border border-slate-200 dark:border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
-                        <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
+                        <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
                         <span>{t.newPaymentView.bankSlipLabel} *</span>
                       </label>
                       <span className="text-[10px] text-rose-500 font-bold">{t.newPaymentView.required}</span>
@@ -517,10 +517,10 @@ export function NewPaymentFormView({
                     ) : (
                       <div
                         onClick={() => !uploadingBankReceipt && bankReceiptInputRef.current?.click()}
-                        className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-[#014842] dark:hover:border-[#7de0d1] rounded-xl p-4 text-center cursor-pointer transition-colors"
+                        className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
                       >
                         <div className="flex flex-col items-center justify-center space-y-1.5">
-                          <div className="w-8 h-8 rounded-full bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1] flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
                             {uploadingBankReceipt ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
@@ -541,7 +541,7 @@ export function NewPaymentFormView({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
-                    <FileCheck className="w-3.5 h-3.5 text-[#014842] dark:text-[#7de0d1]" />
+                    <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
                     <span>{t.newPaymentView.proofOptionalTitle}</span>
                   </label>
                   <span className="text-[10px] text-slate-400 ">{t.newPaymentView.savedToVault}</span>
@@ -594,10 +594,10 @@ export function NewPaymentFormView({
                 ) : (
                   <div
                     onClick={() => !uploadingProof && proofInputRef.current?.click()}
-                    className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-[#014842] dark:hover:border-[#7de0d1] rounded-xl p-4 text-center cursor-pointer transition-colors"
+                    className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
                   >
                     <div className="flex flex-col items-center justify-center space-y-1">
-                      <div className="w-8 h-8 rounded-full bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1] flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
                         {uploadingProof ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (

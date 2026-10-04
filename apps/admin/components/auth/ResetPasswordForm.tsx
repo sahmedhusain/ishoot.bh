@@ -55,7 +55,7 @@ export function ResetPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandin
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-[#050807] relative overflow-hidden">
-      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-[#09937F]/30 shadow-2xl rounded-3xl space-y-8">
+      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-accent/30 shadow-2xl rounded-3xl space-y-8">
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3">
             <ContentImage width={40} height={40} src={iconUrl ?? undefined} alt={companyName} className="h-10 w-auto object-contain shrink-0 filter drop-shadow-[0_0_12px_rgba(9,147,127,0.3)]" />
@@ -68,7 +68,7 @@ export function ResetPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandin
         </div>
 
         {error && <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300"><AlertCircle className="w-4 h-4 shrink-0 mt-0.5" /><span>{error}</span></div>}
-        {message && <div className="p-3.5 rounded-xl bg-[#09937F]/15 border border-[#09937F]/30 flex items-start gap-2.5 text-xs text-[#09937F]"><CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /><span>{message}</span></div>}
+        {message && <div className="p-3.5 rounded-xl bg-accent/15 border border-accent/30 flex items-start gap-2.5 text-xs text-accent"><CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /><span>{message}</span></div>}
 
         {!message && !error && (
           <form onSubmit={handleSubmit} className="space-y-5">

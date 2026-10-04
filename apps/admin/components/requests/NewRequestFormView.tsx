@@ -183,9 +183,9 @@ export function NewRequestFormView({
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1: Ticket Classification */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
+        <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
-            <Sparkles className="w-4 h-4 text-[#09937F]" />
+            <Sparkles className="w-4 h-4 text-accent" />
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.newRequestForm.n1RequestClassificationAndSla}
             </h2>
@@ -231,7 +231,7 @@ export function NewRequestFormView({
                   onClick={() => setRequestType(tab.id as any)}
                   className={`p-4 rounded-xl text-start border transition-all ${
                     isSelected
-                      ? "border-[#09937F] bg-[#09937F]/5 ring-2 ring-[#09937F]/20"
+                      ? "border-accent bg-accent/5 ring-2 ring-accent/20"
                       : "border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50/50 dark:bg-white/[0.01]"
                   }`}
                 >
@@ -242,7 +242,7 @@ export function NewRequestFormView({
                       <Icon className="w-4 h-4" />
                     </div>
                     {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-[#09937F]" />
+                      <CheckCircle2 className="w-4 h-4 text-accent" />
                     )}
                   </div>
                   <div className="font-semibold text-xs text-slate-900 dark:text-white">
@@ -264,7 +264,7 @@ export function NewRequestFormView({
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="low">
                   {t.newRequestForm.lowPriority}
@@ -290,7 +290,7 @@ export function NewRequestFormView({
                   type="date"
                   value={slaDueDate}
                   onChange={(e) => setSlaDueDate(e.target.value)}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
             </div>
@@ -298,10 +298,10 @@ export function NewRequestFormView({
         </div>
 
         {/* Section 2: Requester / CRM Contact */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
+        <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
             <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-[#09937F]" />
+              <User className="w-4 h-4 text-accent" />
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 {t.newRequestForm.n2ClientAndRequesterDetails}
               </h2>
@@ -340,7 +340,7 @@ export function NewRequestFormView({
                   placeholder={
                     t.newRequestForm.eGAliMohammed
                   }
-                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
             </div>
@@ -358,7 +358,7 @@ export function NewRequestFormView({
                   placeholder={
                     t.newRequestForm.eGGulfMediaW
                   }
-                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
             </div>
@@ -375,7 +375,7 @@ export function NewRequestFormView({
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="client@company.com"
-                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F] font-mono"
+                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono"
                 />
               </div>
             </div>
@@ -392,7 +392,7 @@ export function NewRequestFormView({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+973 39000000"
-                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F] font-mono text-start"
+                  className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono text-start"
                 />
               </div>
             </div>
@@ -400,9 +400,9 @@ export function NewRequestFormView({
         </div>
 
         {/* Section 3: Scope, Services & Details */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
+        <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
-            <Layers className="w-4 h-4 text-[#09937F]" />
+            <Layers className="w-4 h-4 text-accent" />
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.newRequestForm.n3ScopeOfServicesAnd}
             </h2>
@@ -424,7 +424,7 @@ export function NewRequestFormView({
                       onClick={() => handleToggleService(svc.name_en)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
                         isChecked
-                          ? "bg-[#09937F] text-white border-[#09937F] shadow-sm shadow-[#09937F]/20"
+                          ? "bg-accent text-white border-accent shadow-sm shadow-accent/20"
                           : "border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-700 dark:text-slate-300 hover:border-slate-300"
                       }`}
                     >
@@ -446,7 +446,7 @@ export function NewRequestFormView({
                 value={budgetRange}
                 onChange={(e) => setBudgetRange(e.target.value)}
                 placeholder={t.newRequestForm.eG5001500Bhd}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
 
@@ -461,7 +461,7 @@ export function NewRequestFormView({
                 placeholder={
                   t.newRequestForm.eGWithin2Weeks
                 }
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
           </div>
@@ -478,15 +478,15 @@ export function NewRequestFormView({
               placeholder={
                 t.newRequestForm.provideCompleteTechnicalSpecificationsShoot
               }
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
         </div>
 
         {/* Section 4: Operational Assignment & Routing */}
-        <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
+        <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 space-y-6 shadow-sm">
           <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
-            <Clock className="w-4 h-4 text-[#09937F]" />
+            <Clock className="w-4 h-4 text-accent" />
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.newRequestForm.n4DepartmentRoutingAndAssignee}
             </h2>
@@ -500,7 +500,7 @@ export function NewRequestFormView({
               <select
                 value={team}
                 onChange={(e) => setTeam(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="production">
                   {t.newRequestForm.productionTeam}
@@ -527,7 +527,7 @@ export function NewRequestFormView({
               <select
                 value={assignedToId}
                 onChange={(e) => setAssignedToId(e.target.value)}
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
               >
                 <option value="">
                   {t.newRequestForm.keepUnassigned}
@@ -556,7 +556,7 @@ export function NewRequestFormView({
             type="submit"
             variant="primary"
             disabled={isSubmitting}
-            className="bg-[#09937F] hover:bg-[#077a68] text-white px-6 font-semibold shadow-sm"
+            className="bg-accent hover:bg-accent-pressed text-white px-6 font-semibold shadow-sm"
           >
             {isSubmitting
               ? t.newRequestForm.creating

@@ -57,7 +57,7 @@ export function ListControls({
             ))}
           </select>
         ) : null}
-        <button className="rounded-lg bg-[#014842] text-white px-3 text-xs">
+        <button className="rounded-lg bg-primary text-white px-3 text-xs">
           {t.listControls.search}
         </button>
       </form>

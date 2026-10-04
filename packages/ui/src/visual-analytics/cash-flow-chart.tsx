@@ -28,7 +28,7 @@ export function CashFlowChart({
     <div className="w-full space-y-4">
       <div className="flex items-center justify-end gap-5 text-xs font-mono">
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-sm bg-[#09937F]" />
+          <span className="w-3 h-3 rounded-sm bg-accent" />
           <span className="text-[#9EADA9]">{inflowLabel}</span>
         </div>
         <div className="flex items-center gap-2">

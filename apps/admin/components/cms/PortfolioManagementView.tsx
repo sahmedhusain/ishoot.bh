@@ -180,10 +180,10 @@ export function PortfolioManagementView({
       </Link>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.cms.portfolioTitle}
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.portfolioView.subtitle}
           </p>
         </div>
@@ -200,13 +200,13 @@ export function PortfolioManagementView({
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-        <Filter className="w-4 h-4 text-[#9EADA9] shrink-0" />
+        <Filter className="w-4 h-4 text-ink-muted shrink-0" />
         <button
           onClick={() => setSelectedCat("all")}
           className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
             selectedCat === "all"
-              ? "bg-[#09937F] text-white shadow-lg shadow-[#09937F]/20"
-              : "bg-[#0B1210] border border-white/10 text-[#9EADA9] hover:text-white"
+              ? "bg-accent text-white shadow-lg shadow-accent/20"
+              : "bg-surface border border-ink/10 text-ink-muted hover:text-ink"
           }`}
         >
           {t.actions.all}
@@ -217,8 +217,8 @@ export function PortfolioManagementView({
             onClick={() => setSelectedCat(c.id)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               selectedCat === c.id
-                ? "bg-[#09937F] text-white shadow-lg shadow-[#09937F]/20"
-                : "bg-[#0B1210] border border-white/10 text-[#9EADA9] hover:text-white"
+                ? "bg-accent text-white shadow-lg shadow-accent/20"
+                : "bg-surface border border-ink/10 text-ink-muted hover:text-ink"
             }`}
           >
             {locale === "ar" ? c.name_ar : c.name_en}
@@ -226,9 +226,9 @@ export function PortfolioManagementView({
         ))}
       </div>
 
-      <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-surface border border-ink/10 rounded-3xl overflow-hidden shadow-xl">
         <table className="w-full text-start text-xs">
-          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase  tracking-wider">
+          <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">
                 {t.portfolioView.projectClient}
@@ -239,33 +239,33 @@ export function PortfolioManagementView({
               <th className="p-4 text-end">{t.equipmentView.actions}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-ink/5">
             {filteredItems.map((item) => (
               <tr
                 key={item.id}
-                className="hover:bg-white/[0.02] transition-colors"
+                className="hover:bg-ink/[0.02] transition-colors"
               >
                 <td className="p-4">
                   <div className="flex items-center gap-3">
                     <ContentImage
                       src={item.thumbnail_url}
                       alt={locale === "ar" ? item.title_ar : item.title_en}
-                      className="w-16 h-10 rounded-xl object-cover bg-black shrink-0 border border-white/10"
+                      className="w-16 h-10 rounded-xl object-cover bg-black shrink-0 border border-ink/10"
                     />
                     <div>
-                      <div className="font-bold text-white text-sm">
+                      <div className="font-bold text-ink text-sm">
                         {locale === "ar" ? item.title_ar : item.title_en}
                       </div>
-                      <div className="text-[#09937F]  text-[11px]">
+                      <div className="text-accent  text-[11px]">
                         {item.client_name}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="p-4  text-[#9EADA9]">
+                <td className="p-4  text-ink-muted">
                   <Badge variant="outline">{item.aspect_ratio}</Badge>
                 </td>
-                <td className="p-4  text-white">{item.year}</td>
+                <td className="p-4  text-ink">{item.year}</td>
                 <td className="p-4 text-center">
                   <button
                     onClick={() =>
@@ -274,7 +274,7 @@ export function PortfolioManagementView({
                     className={`p-1.5 rounded-lg transition-colors ${
                       item.is_featured
                         ? "bg-amber-500/20 text-amber-400"
-                        : "bg-white/5 text-[#9EADA9]/40 hover:text-[#9EADA9]"
+                        : "bg-ink/5 text-ink-muted/40 hover:text-ink-muted"
                     }`}
                     title={
                       item.is_featured
@@ -306,7 +306,7 @@ export function PortfolioManagementView({
         </table>
       </div>
 
-      <Modal
+      <Modal closeLabel={t.actions.close}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? t.actions.edit : t.actions.newProject}
@@ -319,7 +319,7 @@ export function PortfolioManagementView({
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.titleArLabel}
               </label>
               <Input
@@ -330,7 +330,7 @@ export function PortfolioManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.titleEnLabel}
               </label>
               <Input
@@ -344,7 +344,7 @@ export function PortfolioManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.clientName}
               </label>
               <Input
@@ -355,21 +355,21 @@ export function PortfolioManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.category}
               </label>
               <Select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
               >
-                <option value="" className="bg-[#0B1210] text-white">
+                <option value="" className="bg-surface text-ink">
                   {t.portfolioView.selectCategory}
                 </option>
                 {categories.map((c) => (
                   <option
                     key={c.id}
                     value={c.id}
-                    className="bg-[#0B1210] text-white"
+                    className="bg-surface text-ink"
                   >
                     {locale === "ar" ? c.name_ar : c.name_en}
                   </option>
@@ -380,29 +380,29 @@ export function PortfolioManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.aspectRatio}
               </label>
               <Select
                 value={aspectRatio}
                 onChange={(e) => setAspectRatio(e.target.value)}
               >
-                <option value="16:9" className="bg-[#0B1210] text-white">
+                <option value="16:9" className="bg-surface text-ink">
                   16:9 (Standard UHD)
                 </option>
-                <option value="2.39:1" className="bg-[#0B1210] text-white">
+                <option value="2.39:1" className="bg-surface text-ink">
                   2.39:1 (Anamorphic Scope)
                 </option>
-                <option value="9:16" className="bg-[#0B1210] text-white">
+                <option value="9:16" className="bg-surface text-ink">
                   9:16 (Vertical Social)
                 </option>
-                <option value="4:3" className="bg-[#0B1210] text-white">
+                <option value="4:3" className="bg-surface text-ink">
                   4:3 (Academy)
                 </option>
               </Select>
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.productionYear}
               </label>
               <Input
@@ -412,7 +412,7 @@ export function PortfolioManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.slug}
               </label>
               <Input
@@ -425,7 +425,7 @@ export function PortfolioManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.thumbnailUrl}
               </label>
               <Input
@@ -436,7 +436,7 @@ export function PortfolioManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.previewVideoUrl}
               </label>
               <Input
@@ -451,7 +451,7 @@ export function PortfolioManagementView({
             <label className="text-sm">
               {t.portfolioManagement.descriptionEnglish}
               <textarea
-                className="w-full rounded-lg bg-white/5 border border-white/20 p-3"
+                className="w-full rounded-lg bg-ink/5 border border-ink/20 p-3"
                 rows={3}
                 value={descriptionEn}
                 onChange={(e) => setDescriptionEn(e.target.value)}
@@ -460,7 +460,7 @@ export function PortfolioManagementView({
             <label className="text-sm">
               الوصف (عربي)
               <textarea
-                className="w-full rounded-lg bg-white/5 border border-white/20 p-3"
+                className="w-full rounded-lg bg-ink/5 border border-ink/20 p-3"
                 rows={3}
                 value={descriptionAr}
                 onChange={(e) => setDescriptionAr(e.target.value)}
@@ -484,7 +484,7 @@ export function PortfolioManagementView({
             <label className="text-sm sm:col-span-2">
               {t.portfolioManagement.galleryImagesOneUrlPer}
               <textarea
-                className="w-full rounded-lg bg-white/5 border border-white/20 p-3"
+                className="w-full rounded-lg bg-ink/5 border border-ink/20 p-3"
                 rows={3}
                 value={gallery}
                 onChange={(e) => setGallery(e.target.value)}
@@ -497,14 +497,14 @@ export function PortfolioManagementView({
               id="isFeatured"
               checked={isFeatured}
               onChange={(e) => setIsFeatured(e.target.checked)}
-              className="w-4 h-4 rounded text-[#09937F] bg-white/5 border-white/10"
+              className="w-4 h-4 rounded text-accent bg-ink/5 border-ink/10"
             />
-            <label htmlFor="isFeatured" className="text-xs text-white">
+            <label htmlFor="isFeatured" className="text-xs text-ink">
               {t.cms.featured}
             </label>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
             <Button
               type="button"
               variant="outline"

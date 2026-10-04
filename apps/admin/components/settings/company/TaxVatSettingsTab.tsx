@@ -4,7 +4,7 @@ import { uploadFileDirectly } from "../../../lib/upload-client";
 
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
-import { Card, Input } from "@ishoot/ui";
+import { Card, Input, useDialog } from "@ishoot/ui";
 import {
   Percent,
   CheckCircle2,
@@ -41,6 +41,7 @@ export function TaxVatSettingsTab({
   const [vatUploadError, setVatUploadError] = React.useState<string | null>(null);
   const vatFileInputRef = React.useRef<HTMLInputElement>(null);
   const [pendingVatToggle, setPendingVatToggle] = React.useState<boolean | null>(null);
+  const vatDialog = useDialog(pendingVatToggle !== null, () => setPendingVatToggle(null));
 
   const handleVatFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,13 +73,13 @@ export function TaxVatSettingsTab({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] shadow-xs rounded-2xl space-y-6">
-        <div className="flex items-center justify-between pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
+      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-6">
+        <div className="flex items-center justify-between pb-3 border-b border-ink/15 dark:border-ink/15">
           <div className="flex items-center gap-3">
             <div
               className={`p-2 rounded-xl transition-colors ${
                 settings.vat_enabled
-                  ? "bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1]"
+                  ? "bg-primary/10 text-primary dark:text-mint"
                   : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
               }`}
             >
@@ -95,7 +96,7 @@ export function TaxVatSettingsTab({
           </div>
 
           {settings.vat_enabled ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-[#014842] dark:text-[#7de0d1] border border-emerald-200 dark:border-emerald-800 animate-fade-in">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-primary dark:text-mint border border-emerald-200 dark:border-emerald-800 animate-fade-in">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{t.companySettingsView.vatActiveBadge}</span>
             </span>
@@ -110,7 +111,7 @@ export function TaxVatSettingsTab({
         <div
           className={`p-4 rounded-xl border transition-colors flex items-center justify-between gap-4 ${
             settings.vat_enabled
-              ? "bg-[#014842]/5 border-[#014842]/30 dark:bg-[#014842]/10 dark:border-[#00897b]/40"
+              ? "bg-primary/5 border-primary/30 dark:bg-primary/10 dark:border-[#00897b]/40"
               : "bg-slate-50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-700"
           }`}
         >
@@ -145,7 +146,7 @@ export function TaxVatSettingsTab({
             onClick={() => setPendingVatToggle(!settings.vat_enabled)}
             className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 ${
               settings.vat_enabled
-                ? "bg-[#014842] dark:bg-[#00897b]"
+                ? "bg-primary dark:bg-[#00897b]"
                 : "bg-slate-300 dark:bg-slate-700"
             }`}
           >
@@ -200,7 +201,7 @@ export function TaxVatSettingsTab({
             <div className="space-y-2 sm:col-span-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
-                  <FileCheck className="w-4 h-4 text-[#014842] dark:text-[#7de0d1]" />
+                  <FileCheck className="w-4 h-4 text-primary dark:text-mint" />
                   <span>
                     {t.companySettingsTabs.certificateTitle}
                   </span>
@@ -244,7 +245,7 @@ export function TaxVatSettingsTab({
                       href={settings.vat_certificate_url}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-800 dark:text-neutral-200 hover:text-[#014842] dark:hover:text-[#7de0d1] text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
+                      className="px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-800 dark:text-neutral-200 hover:text-primary dark:hover:text-mint text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
                       <span>{t.actions.view}</span>
@@ -253,7 +254,7 @@ export function TaxVatSettingsTab({
                       type="button"
                       onClick={() => vatFileInputRef.current?.click()}
                       disabled={vatUploading}
-                      className="px-3 py-1.5 rounded-lg bg-[#014842] hover:bg-[#014842]/90 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
+                      className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
                     >
                       {vatUploading ? (
                         <>
@@ -286,12 +287,12 @@ export function TaxVatSettingsTab({
                   onClick={() => !vatUploading && vatFileInputRef.current?.click()}
                   className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all duration-200 ${
                     vatUploading
-                      ? "border-[#014842] bg-[#014842]/5"
-                      : "border-slate-300 dark:border-neutral-700 hover:border-[#014842] dark:hover:border-[#7de0d1] bg-slate-50/70 hover:bg-slate-50 dark:bg-neutral-800/40 dark:hover:bg-neutral-800/70"
+                      ? "border-primary bg-primary/5"
+                      : "border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint bg-slate-50/70 hover:bg-slate-50 dark:bg-neutral-800/40 dark:hover:bg-neutral-800/70"
                   }`}
                 >
                   <div className="flex flex-col items-center justify-center space-y-2">
-                    <div className="w-10 h-10 rounded-full bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1] flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
                       {vatUploading ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
@@ -304,7 +305,7 @@ export function TaxVatSettingsTab({
                           t.companySettingsTabs.uploading
                         ) : (
                           <>
-                            <span className="text-[#014842] dark:text-[#7de0d1] underline font-bold">
+                            <span className="text-primary dark:text-mint underline font-bold">
                               {t.companySettingsTabs.clickToUpload}
                             </span>{" "}
                             {t.taxVatSettingsTab.orDragAndDropVat}
@@ -332,7 +333,7 @@ export function TaxVatSettingsTab({
                 <a
                   href={ROUTES.archive}
                   target="_blank"
-                  className="inline-flex items-center gap-1 text-[#014842] dark:text-[#7de0d1] hover:underline font-semibold"
+                  className="inline-flex items-center gap-1 text-primary dark:text-mint hover:underline font-semibold"
                 >
                   <FolderArchive className="w-3.5 h-3.5" />
                   <span>{t.companySettingsTabs.viewInVault}</span>
@@ -346,9 +347,9 @@ export function TaxVatSettingsTab({
       {/* VAT Status Confirmation Modal */}
       {pendingVatToggle !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-lg bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-2xl overflow-hidden">
+          <div {...vatDialog} className="relative w-full max-w-lg bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-2xl shadow-2xl overflow-hidden">
             <div
-              className={`p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between ${
+              className={`p-4 border-b border-ink/15 dark:border-ink/15 flex items-center justify-between ${
                 pendingVatToggle
                   ? "bg-emerald-50/60 dark:bg-emerald-950/20"
                   : "bg-amber-50/60 dark:bg-amber-950/20"
@@ -358,7 +359,7 @@ export function TaxVatSettingsTab({
                 <div
                   className={`p-2 rounded-xl ${
                     pendingVatToggle
-                      ? "bg-emerald-100 dark:bg-emerald-900/60 text-[#014842] dark:text-[#7de0d1]"
+                      ? "bg-emerald-100 dark:bg-emerald-900/60 text-primary dark:text-mint"
                       : "bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300"
                   }`}
                 >
@@ -419,7 +420,7 @@ export function TaxVatSettingsTab({
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#dadce0] dark:border-[#3c4043]">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-ink/15 dark:border-ink/15">
                 <button
                   type="button"
                   onClick={() => setPendingVatToggle(null)}
@@ -436,7 +437,7 @@ export function TaxVatSettingsTab({
                   }}
                   className={`px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-xs transition-colors ${
                     pendingVatToggle
-                      ? "bg-[#014842] hover:bg-[#014842]/90"
+                      ? "bg-primary hover:bg-primary/90"
                       : "bg-amber-600 hover:bg-amber-700"
                   }`}
                 >

@@ -140,17 +140,17 @@ export function MetaIntegrationsView({
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.integrations.title}
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.integrations.subtitle}
           </p>
         </div>
       </div>
 
       {savedMessage && (
-        <div className="p-4 rounded-2xl bg-[#09937F]/15 border border-[#09937F]/40 flex items-center gap-3 text-[#09937F] text-xs font-semibold animate-fade-in">
+        <div className="p-4 rounded-2xl bg-accent/15 border border-accent/40 flex items-center gap-3 text-accent text-xs font-semibold animate-fade-in">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{savedMessage}</span>
         </div>
@@ -164,15 +164,15 @@ export function MetaIntegrationsView({
       )}
 
       {/* WhatsApp Cloud API */}
-      <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 shadow-2xl rounded-3xl space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 shadow-2xl rounded-3xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-ink/10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
               <MessageSquare className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-white">
+                <h2 className="text-base font-bold text-ink">
                   WhatsApp Cloud API (Meta Official)
                 </h2>
                 {isWaLinked ? (
@@ -191,7 +191,7 @@ export function MetaIntegrationsView({
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-[#9EADA9]">{t.integrations.waDesc}</p>
+              <p className="text-xs text-ink-muted">{t.integrations.waDesc}</p>
             </div>
           </div>
 
@@ -203,7 +203,7 @@ export function MetaIntegrationsView({
                   variant="outline"
                   size="sm"
                   onClick={handleTestWhatsApp}
-                  className="text-xs gap-1.5 border-white/10 text-[#9EADA9] hover:text-white"
+                  className="text-xs gap-1.5 border-ink/10 text-ink-muted hover:text-ink"
                 >
                   <Send className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{t.integrations.sendTest}</span>
@@ -218,9 +218,9 @@ export function MetaIntegrationsView({
                     setDraftWaToken(whatsappToken);
                     setIsWaEditing(true);
                   }}
-                  className="text-xs gap-1.5 border-white/10 text-slate-300 hover:text-white"
+                  className="text-xs gap-1.5 border-ink/10 text-slate-300 hover:text-ink"
                 >
-                  <Edit2 className="w-3.5 h-3.5 text-[#09937F]" />
+                  <Edit2 className="w-3.5 h-3.5 text-accent" />
                   <span>{t.metaIntegrations.edit}</span>
                 </Button>
                 <Button
@@ -242,7 +242,7 @@ export function MetaIntegrationsView({
                 variant="primary"
                 size="sm"
                 onClick={() => setIsWaEditing(true)}
-                className="text-xs gap-1.5 bg-[#09937F] text-white"
+                className="text-xs gap-1.5 bg-accent text-white"
               >
                 <Lock className="w-3.5 h-3.5" />
                 <span>{t.metaIntegrations.connectWhatsapp}</span>
@@ -256,7 +256,7 @@ export function MetaIntegrationsView({
                   variant="outline"
                   size="sm"
                   onClick={() => setIsWaEditing(false)}
-                  className="text-xs border-white/10 text-slate-400"
+                  className="text-xs border-ink/10 text-slate-400"
                 >
                   <X className="w-3.5 h-3.5" />
                   <span>{t.metaIntegrations.cancel}</span>
@@ -266,7 +266,7 @@ export function MetaIntegrationsView({
                   variant="primary"
                   size="sm"
                   onClick={handleSaveWa}
-                  className="text-xs gap-1.5 bg-[#09937F] text-white"
+                  className="text-xs gap-1.5 bg-accent text-white"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>{t.metaIntegrations.saveChanges}</span>
@@ -279,28 +279,28 @@ export function MetaIntegrationsView({
         {/* Credentials Display or Form */}
         {!isWaEditing ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
-              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+            <div className="p-4 rounded-xl bg-surface-sunken border border-ink/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-ink-muted font-bold">
                 {t.integrations.phoneId}
               </span>
-              <div className="text-sm font-mono text-white flex items-center gap-2">
+              <div className="text-sm font-mono text-ink flex items-center gap-2">
                 <Lock className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{isWaLinked ? maskValue(whatsappPhoneId) : "—"}</span>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
-              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+            <div className="p-4 rounded-xl bg-surface-sunken border border-ink/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-ink-muted font-bold">
                 {t.integrations.wabaId}
               </span>
-              <div className="text-sm font-mono text-white flex items-center gap-2">
+              <div className="text-sm font-mono text-ink flex items-center gap-2">
                 <Lock className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{isWaLinked ? maskValue(whatsappBusinessId) : "—"}</span>
               </div>
             </div>
 
-            <div className="sm:col-span-2 p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
-              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+            <div className="sm:col-span-2 p-4 rounded-xl bg-surface-sunken border border-ink/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-ink-muted font-bold">
                 {t.integrations.token} (System User Access Token)
               </span>
               <div className="text-sm font-mono text-emerald-400/90 flex items-center gap-2">
@@ -312,31 +312,31 @@ export function MetaIntegrationsView({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
             <div>
-              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+              <label className="text-xs font-bold text-ink-muted block mb-1.5">
                 {t.integrations.phoneId} *
               </label>
               <Input
                 value={draftWaPhoneId}
                 onChange={(e) => setDraftWaPhoneId(e.target.value)}
                 placeholder="e.g. 109827364512938"
-                className="bg-[#050807] border-white/10 text-xs text-white"
+                className="bg-surface-sunken border-ink/10 text-xs text-ink"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+              <label className="text-xs font-bold text-ink-muted block mb-1.5">
                 {t.integrations.wabaId} *
               </label>
               <Input
                 value={draftWaBusinessId}
                 onChange={(e) => setDraftWaBusinessId(e.target.value)}
                 placeholder="e.g. 782910394857201"
-                className="bg-[#050807] border-white/10 text-xs text-white"
+                className="bg-surface-sunken border-ink/10 text-xs text-ink"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+              <label className="text-xs font-bold text-ink-muted block mb-1.5">
                 {t.integrations.token} *
               </label>
               <Input
@@ -344,22 +344,22 @@ export function MetaIntegrationsView({
                 value={draftWaToken}
                 onChange={(e) => setDraftWaToken(e.target.value)}
                 placeholder="EAAG8ZCK..."
-                className="bg-[#050807] border-white/10 text-xs text-white font-mono"
+                className="bg-surface-sunken border-ink/10 text-xs text-ink font-mono"
               />
             </div>
           </div>
         )}
 
-        <div className="p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-3">
+        <div className="p-4 rounded-2xl bg-surface-sunken border border-ink/10 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white">
+            <span className="text-xs font-bold text-ink">
               {t.integrations.autoInvoices}
             </span>
             <button
               type="button"
               onClick={() => setAutoSendInvoices(!autoSendInvoices)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                autoSendInvoices ? "bg-[#09937F]" : "bg-white/20"
+                autoSendInvoices ? "bg-accent" : "bg-ink/20"
               }`}
             >
               <span
@@ -370,15 +370,15 @@ export function MetaIntegrationsView({
             </button>
           </div>
 
-          <div className="flex items-center justify-between pt-2 border-t border-white/5">
-            <span className="text-xs font-bold text-white">
+          <div className="flex items-center justify-between pt-2 border-t border-ink/5">
+            <span className="text-xs font-bold text-ink">
               {t.integrations.autoReceipts}
             </span>
             <button
               type="button"
               onClick={() => setAutoSendReceipts(!autoSendReceipts)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                autoSendReceipts ? "bg-[#09937F]" : "bg-white/20"
+                autoSendReceipts ? "bg-accent" : "bg-ink/20"
               }`}
             >
               <span
@@ -392,15 +392,15 @@ export function MetaIntegrationsView({
       </Card>
 
       {/* Instagram & Facebook */}
-      <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 shadow-2xl rounded-3xl space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 shadow-2xl rounded-3xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-ink/10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 shrink-0">
               <Instagram className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-white">
+                <h2 className="text-base font-bold text-ink">
                   {t.integrations.igFbTitle}
                 </h2>
                 {isIgLinked ? (
@@ -419,7 +419,7 @@ export function MetaIntegrationsView({
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-[#9EADA9]">{t.integrations.igFbDesc}</p>
+              <p className="text-xs text-ink-muted">{t.integrations.igFbDesc}</p>
             </div>
           </div>
 
@@ -435,9 +435,9 @@ export function MetaIntegrationsView({
                     setDraftFbPage(facebookPageId);
                     setIsIgEditing(true);
                   }}
-                  className="text-xs gap-1.5 border-white/10 text-slate-300 hover:text-white"
+                  className="text-xs gap-1.5 border-ink/10 text-slate-300 hover:text-ink"
                 >
-                  <Edit2 className="w-3.5 h-3.5 text-[#09937F]" />
+                  <Edit2 className="w-3.5 h-3.5 text-accent" />
                   <span>{t.metaIntegrations.edit}</span>
                 </Button>
                 <Button
@@ -459,7 +459,7 @@ export function MetaIntegrationsView({
                 variant="primary"
                 size="sm"
                 onClick={() => setIsIgEditing(true)}
-                className="text-xs gap-1.5 bg-[#09937F] text-white"
+                className="text-xs gap-1.5 bg-accent text-white"
               >
                 <Lock className="w-3.5 h-3.5" />
                 <span>{t.metaIntegrations.connectAccounts}</span>
@@ -473,7 +473,7 @@ export function MetaIntegrationsView({
                   variant="outline"
                   size="sm"
                   onClick={() => setIsIgEditing(false)}
-                  className="text-xs border-white/10 text-slate-400"
+                  className="text-xs border-ink/10 text-slate-400"
                 >
                   <X className="w-3.5 h-3.5" />
                   <span>{t.metaIntegrations.cancel}</span>
@@ -483,7 +483,7 @@ export function MetaIntegrationsView({
                   variant="primary"
                   size="sm"
                   onClick={handleSaveIg}
-                  className="text-xs gap-1.5 bg-[#09937F] text-white"
+                  className="text-xs gap-1.5 bg-accent text-white"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>{t.metaIntegrations.saveChanges}</span>
@@ -495,20 +495,20 @@ export function MetaIntegrationsView({
 
         {!isIgEditing ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
-              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+            <div className="p-4 rounded-xl bg-surface-sunken border border-ink/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-ink-muted font-bold">
                 {t.integrations.igHandle}
               </span>
-              <div className="text-sm font-mono text-white flex items-center gap-2">
+              <div className="text-sm font-mono text-ink flex items-center gap-2">
                 <span>{isIgLinked ? instagramAccountId : "—"}</span>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#050807] border border-white/10 space-y-1">
-              <span className="text-[11px] uppercase tracking-wider text-[#9EADA9] font-bold">
+            <div className="p-4 rounded-xl bg-surface-sunken border border-ink/10 space-y-1">
+              <span className="text-[11px] uppercase tracking-wider text-ink-muted font-bold">
                 {t.integrations.fbPageId}
               </span>
-              <div className="text-sm font-mono text-white flex items-center gap-2">
+              <div className="text-sm font-mono text-ink flex items-center gap-2">
                 <Lock className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{isIgLinked ? maskValue(facebookPageId) : "—"}</span>
               </div>
@@ -517,41 +517,41 @@ export function MetaIntegrationsView({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in">
             <div>
-              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+              <label className="text-xs font-bold text-ink-muted block mb-1.5">
                 {t.integrations.igHandle} *
               </label>
               <Input
                 value={draftIgAccount}
                 onChange={(e) => setDraftIgAccount(e.target.value)}
                 placeholder="ishoot.bh"
-                className="bg-[#050807] border-white/10 text-xs text-white"
+                className="bg-surface-sunken border-ink/10 text-xs text-ink"
               />
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#9EADA9] block mb-1.5">
+              <label className="text-xs font-bold text-ink-muted block mb-1.5">
                 {t.integrations.fbPageId} *
               </label>
               <Input
                 value={draftFbPage}
                 onChange={(e) => setDraftFbPage(e.target.value)}
                 placeholder="102938475610293"
-                className="bg-[#050807] border-white/10 text-xs text-white"
+                className="bg-surface-sunken border-ink/10 text-xs text-ink"
               />
             </div>
           </div>
         )}
 
-        <div className="p-4 rounded-2xl bg-[#050807] border border-white/10 space-y-3">
+        <div className="p-4 rounded-2xl bg-surface-sunken border border-ink/10 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-white">
+            <span className="text-xs font-bold text-ink">
               {t.integrations.autoFbLeads}
             </span>
             <button
               type="button"
               onClick={() => setSyncFacebookLeads(!syncFacebookLeads)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                syncFacebookLeads ? "bg-[#09937F]" : "bg-white/20"
+                syncFacebookLeads ? "bg-accent" : "bg-ink/20"
               }`}
             >
               <span

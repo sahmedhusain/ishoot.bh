@@ -24,9 +24,9 @@ export function InvoiceReceiptSequencesTab({
 }: InvoiceReceiptSequencesTabProps) {
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] shadow-xs rounded-2xl space-y-6">
-        <div className="flex items-center gap-3 pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
-          <div className="p-2 rounded-xl bg-[#014842]/10 text-[#014842] dark:text-[#7de0d1]">
+      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-6">
+        <div className="flex items-center gap-3 pb-3 border-b border-ink/15 dark:border-ink/15">
+          <div className="p-2 rounded-xl bg-primary/10 text-primary dark:text-mint">
             <Hash className="w-5 h-5" />
           </div>
           <div>
@@ -43,7 +43,7 @@ export function InvoiceReceiptSequencesTab({
           {/* Invoice Sequence */}
           <div className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/30 space-y-4">
             <div className="flex items-center gap-2 font-bold text-xs text-slate-800 dark:text-neutral-200">
-              <FileText className="w-4 h-4 text-[#014842] dark:text-[#7de0d1]" />
+              <FileText className="w-4 h-4 text-primary dark:text-mint" />
               <span>
                 {t.companySettingsTabs.invoiceSeqTitle}
               </span>
@@ -85,7 +85,7 @@ export function InvoiceReceiptSequencesTab({
               <span className="text-slate-500 dark:text-neutral-400">
                 {t.companySettingsTabs.nextInvoicePreview}
               </span>
-              <span className=" font-bold text-[#014842] dark:text-[#7de0d1]">
+              <span className=" font-bold text-primary dark:text-mint">
                 {formatDocumentNumber(settings.invoice_prefix || "INV", new Date().getFullYear(), settings.invoice_next_number || 1)}
               </span>
             </div>
@@ -94,7 +94,7 @@ export function InvoiceReceiptSequencesTab({
           {/* Receipt Sequence */}
           <div className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/30 space-y-4">
             <div className="flex items-center gap-2 font-bold text-xs text-slate-800 dark:text-neutral-200">
-              <Receipt className="w-4 h-4 text-[#09937F]" />
+              <Receipt className="w-4 h-4 text-accent" />
               <span>
                 {t.companySettingsTabs.receiptSeqTitle}
               </span>
@@ -136,7 +136,7 @@ export function InvoiceReceiptSequencesTab({
               <span className="text-slate-500 dark:text-neutral-400">
                 {t.companySettingsTabs.nextReceiptPreview}
               </span>
-              <span className=" font-bold text-[#09937F]">
+              <span className=" font-bold text-accent">
                 {formatDocumentNumber(settings.receipt_prefix || "RCT", new Date().getFullYear(), settings.receipt_next_number || 1)}
               </span>
             </div>

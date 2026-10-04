@@ -123,7 +123,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
           {/* Left Column: Terms & Conditions and Bank Coordinates */}
           <div className="space-y-4">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] mb-1.5 flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-accent mb-1.5 flex items-center justify-between">
                 <span>{adminTranslations.en.documentLetterhead.termsNotes}</span>
                 <span className="text-[10px] text-slate-400 font-arabic">{adminTranslations.ar.documentLetterhead.termsNotes}</span>
               </h3>
@@ -196,7 +196,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
               </div>
             )}
 
-            <div className="flex justify-between py-3 border-t-2 border-slate-900 text-base font-extrabold text-[#014842]">
+            <div className="flex justify-between py-3 border-t-2 border-slate-900 text-base font-extrabold text-primary">
               <span className="font-sans">{inv.totalAmount}</span>
               <span>
                 {formatCurrencyValue(invoice.total_amount, currency, isAr)}

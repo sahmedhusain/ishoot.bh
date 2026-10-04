@@ -76,10 +76,10 @@ export function ClientsManagementView({
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.cms.clientsTitle}
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.clientsView.subtitle}
           </p>
         </div>
@@ -96,7 +96,7 @@ export function ClientsManagementView({
       </div>
 
       {logos.length === 0 ? (
-        <div className="p-12 text-center rounded-3xl bg-[#0B1210] border border-white/10 text-[#9EADA9]">
+        <div className="p-12 text-center rounded-3xl bg-surface border border-ink/10 text-ink-muted">
           {t.clientsView.emptyState}
         </div>
       ) : (
@@ -104,7 +104,7 @@ export function ClientsManagementView({
           {logos.map((logo) => (
             <Card
               key={logo.id}
-              className="p-6 text-center space-y-4 bg-[#0B1210] border border-white/10 hover:border-[#09937F]/40 transition-all rounded-3xl relative group"
+              className="p-6 text-center space-y-4 bg-surface border border-ink/10 hover:border-accent/40 transition-all rounded-3xl relative group"
             >
               <button
                 onClick={() => setDeleteTargetId(logo.id)}
@@ -114,7 +114,7 @@ export function ClientsManagementView({
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
 
-              <div className="w-16 h-16 rounded-2xl mx-auto bg-white/5 border border-white/10 flex items-center justify-center p-3">
+              <div className="w-16 h-16 rounded-2xl mx-auto bg-ink/5 border border-ink/10 flex items-center justify-center p-3">
                 {logo.logo_svg_url.startsWith("http") ||
                 logo.logo_svg_url.startsWith("/") ? (
                   <ContentImage
@@ -126,12 +126,12 @@ export function ClientsManagementView({
                     }}
                   />
                 ) : (
-                  <span className="w-4 h-4 rounded-full bg-[#09937F]" />
+                  <span className="w-4 h-4 rounded-full bg-accent" />
                 )}
               </div>
 
               <div className="space-y-1">
-                <div className="font-bold text-white text-sm">
+                <div className="font-bold text-ink text-sm">
                   {logo.client_name}
                 </div>
                 {logo.website_url && (
@@ -139,7 +139,7 @@ export function ClientsManagementView({
                     href={logo.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] text-[#09937F] hover:underline "
+                    className="inline-flex items-center gap-1 text-[11px] text-accent hover:underline "
                   >
                     <Globe className="w-3 h-3" />
                     <span>{t.clientsView.website}</span>
@@ -155,14 +155,14 @@ export function ClientsManagementView({
         </div>
       )}
 
-      <Modal
+      <Modal closeLabel={t.actions.close}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={t.actions.addClient}
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="text-xs text-white mb-1.5 block">
+            <label className="text-xs text-ink mb-1.5 block">
               {t.clientsView.clientBrandName}
             </label>
             <Input
@@ -174,7 +174,7 @@ export function ClientsManagementView({
           </div>
 
           <div>
-            <label className="text-xs text-white mb-1.5 block">
+            <label className="text-xs text-ink mb-1.5 block">
               {t.clientsView.logoVectorUrl}
             </label>
             <Input
@@ -186,7 +186,7 @@ export function ClientsManagementView({
           </div>
 
           <div>
-            <label className="text-xs text-white mb-1.5 block">
+            <label className="text-xs text-ink mb-1.5 block">
               {t.clientsView.officialWebsiteUrl}
             </label>
             <Input
@@ -196,7 +196,7 @@ export function ClientsManagementView({
             />
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
             <Button
               type="button"
               variant="outline"

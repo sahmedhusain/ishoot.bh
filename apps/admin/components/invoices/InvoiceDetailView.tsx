@@ -66,7 +66,7 @@ export function InvoiceDetailView({
         <div>
           <Link
             href={ROUTES.invoices.list}
-            className="inline-flex items-center gap-2 text-xs text-[#9EADA9] hover:text-[#09937F] transition-colors mb-2 font-medium"
+            className="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-accent transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
             <span>{t.actions.backToInvoices}</span>
@@ -79,7 +79,7 @@ export function InvoiceDetailView({
             {invoice.contact_id && (
               <Link
                 href={ROUTES.crm.customer(invoice.contact_id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-[#014842] dark:bg-[#152B27] dark:text-[#7DE0D1] border border-[#09937F]/30 hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-primary dark:bg-[#152B27] dark:text-mint border border-accent/30 hover:underline transition-colors"
                 title={t.invoiceDetail.viewClient360Dossier}
               >
                 <span>Client: {clientName}</span>
@@ -110,7 +110,7 @@ export function InvoiceDetailView({
               variant="primary"
               size="md"
               onClick={() => setRecordModalOpen(true)}
-              className="gap-2 shadow-lg shadow-[#09937F]/20"
+              className="gap-2 shadow-lg shadow-accent/20"
             >
               <CreditCard className="w-4 h-4" />
               <span>{t.finance.recordPayment}</span>
@@ -131,14 +131,14 @@ export function InvoiceDetailView({
         />
       </div>
 
-      <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-[#070C0A] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
+      <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-surface-sunken rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
         <InvoiceTemplate invoice={invoice} company={company} />
       </div>
 
       {payments.length > 0 && (
-        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl space-y-4 no-print shadow-sm">
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl space-y-4 no-print shadow-sm">
           <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-            <Receipt className="w-4 h-4 text-[#09937F]" />
+            <Receipt className="w-4 h-4 text-accent" />
             <span>{t.actions.associatedReceipts}</span>
           </div>
 
@@ -151,7 +151,7 @@ export function InvoiceDetailView({
                 <div>
                   <Link
                     href={ROUTES.payments.detail(p.id)}
-                    className=" font-bold text-[#09937F] hover:underline inline-flex items-center gap-1 group"
+                    className=" font-bold text-accent hover:underline inline-flex items-center gap-1 group"
                     title={t.invoiceDetail.viewOfficialReceipt}
                   >
                     <span>{p.receipt_number}</span>

@@ -69,10 +69,10 @@ export function PlatformPicker({ platform, onPlatformChange }: PlatformPickerPro
         <select
           value={selectedPreset}
           onChange={handleSelectChange}
-          className="w-full appearance-none px-3.5 py-2.5 bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:border-[#09937F] focus:outline-none focus:ring-2 focus:ring-[#09937F]/30 transition-all cursor-pointer shadow-2xs pr-8"
+          className="w-full appearance-none px-3.5 py-2.5 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-neutral-200 hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all cursor-pointer shadow-2xs pr-8"
         >
           {PLATFORM_PRESETS.map((preset) => (
-            <option key={preset.id} value={preset.id} className="bg-white dark:bg-[#111C19] text-slate-800 dark:text-white">
+            <option key={preset.id} value={preset.id} className="bg-white dark:bg-surface-raised text-slate-800 dark:text-white">
               {preset.name}
             </option>
           ))}

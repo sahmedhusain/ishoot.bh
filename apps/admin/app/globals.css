@@ -156,6 +156,24 @@
   --ishoot-amber: #fbbf24;
 }
 
+/* Theme-aware UI tokens (RGB channels so Tailwind opacity modifiers work): surface, ink. */
+:root,
+html.dark {
+  --ui-surface: 11 18 16;
+  --ui-surface-raised: 18 27 25;
+  --ui-surface-sunken: 5 8 7;
+  --ui-ink: 242 246 245;
+  --ui-ink-muted: 158 173 169;
+}
+
+html.light {
+  --ui-surface: 255 255 255;
+  --ui-surface-raised: 248 250 252;
+  --ui-surface-sunken: 241 245 249;
+  --ui-ink: 15 23 42;
+  --ui-ink-muted: 100 116 139;
+}
+
 html.dark,
 body.dark {
   background-color: #050807;

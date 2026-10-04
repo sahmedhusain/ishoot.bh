@@ -57,7 +57,7 @@ export function ContactsManagementView({
           <Button
             variant="primary"
             size="sm"
-            className="gap-1.5 bg-[#014842] hover:bg-[#014842]/90 text-white rounded-full px-4 h-8 text-xs font-semibold self-start sm:self-auto shadow-xs"
+            className="gap-1.5 bg-primary hover:bg-primary/90 text-white rounded-full px-4 h-8 text-xs font-semibold self-start sm:self-auto shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.actions.newContact}</span>
@@ -70,22 +70,22 @@ export function ContactsManagementView({
         {filtered.map((c) => (
           <div
             key={c.id}
-            className="p-4 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] hover:border-slate-300 dark:hover:border-neutral-600 transition-colors rounded-xl shadow-xs space-y-3.5 flex flex-col justify-between"
+            className="p-4 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 hover:border-slate-300 dark:hover:border-neutral-600 transition-colors rounded-xl shadow-xs space-y-3.5 flex flex-col justify-between"
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-[#014842] text-white flex items-center justify-center font-bold text-xs  shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center font-bold text-xs  shrink-0">
                     {c.full_name.charAt(0)}
                   </div>
                   <div className="min-w-0">
                     <Link
                       href={ROUTES.crm.customer(c.id)}
-                      className="text-xs font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline flex items-center gap-1 truncate"
+                      className="text-xs font-bold text-slate-900 dark:text-white hover:text-primary dark:hover:text-mint hover:underline flex items-center gap-1 truncate"
                     >
                       <span className="truncate">{c.full_name}</span>
                     </Link>
-                    <div className="text-[11px] text-[#014842] dark:text-[#7de0d1] font-medium truncate">
+                    <div className="text-[11px] text-primary dark:text-mint font-medium truncate">
                       {c.job_title || t.contactsView.clientPartner}
                     </div>
                   </div>
@@ -103,7 +103,7 @@ export function ContactsManagementView({
               <div className="space-y-1.5 text-xs text-slate-600 dark:text-neutral-400 pt-2 border-t border-slate-100 dark:border-neutral-800">
                 {c.company && (
                   <div className="flex items-center gap-2 text-slate-900 dark:text-white">
-                    <Building className="w-3.5 h-3.5 text-[#09937F] shrink-0" />
+                    <Building className="w-3.5 h-3.5 text-accent shrink-0" />
                     <span className="font-semibold truncate">{c.company}</span>
                   </div>
                 )}
@@ -112,7 +112,7 @@ export function ContactsManagementView({
                     <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <a
                       href={`mailto:${c.email}`}
-                      className="hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors truncate"
+                      className="hover:text-primary dark:hover:text-mint transition-colors truncate"
                     >
                       {c.email}
                     </a>
@@ -123,7 +123,7 @@ export function ContactsManagementView({
                     <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <a
                       href={`tel:${c.phone}`}
-                      className="hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors"
+                      className="hover:text-primary dark:hover:text-mint transition-colors"
                     >
                       {c.phone}
                     </a>
@@ -136,7 +136,7 @@ export function ContactsManagementView({
               <Link href={ROUTES.crm.customer(c.id)} className="block">
                 <button
                   type="button"
-                  className="w-full h-7 px-3 rounded-lg border border-[#dadce0] dark:border-[#3c4043] hover:bg-slate-50 dark:hover:bg-neutral-800 text-[11px] font-semibold text-[#014842] dark:text-[#7de0d1] flex items-center justify-center gap-1.5 transition-colors"
+                  className="w-full h-7 px-3 rounded-lg border border-ink/15 dark:border-ink/15 hover:bg-slate-50 dark:hover:bg-neutral-800 text-[11px] font-semibold text-primary dark:text-mint flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
                   <span>{t.contactsView.clientDossier360}</span>

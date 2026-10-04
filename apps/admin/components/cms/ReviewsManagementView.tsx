@@ -82,7 +82,7 @@ export function ReviewsManagementView({
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <span>{t.reviewsView.title}</span>
-            <span className="text-xs font-bold text-[#09937F] font-sans">
+            <span className="text-xs font-bold text-accent font-sans">
               &lt;&lt; {t.reviewsView.badge} &gt;&gt;
             </span>
           </h1>
@@ -94,7 +94,7 @@ export function ReviewsManagementView({
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 flex items-center justify-between">
+        <Card className="p-4 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 flex items-center justify-between">
           <div>
             <div className="text-[11px]  text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
               {t.reviewsView.pendingApproval}
@@ -108,7 +108,7 @@ export function ReviewsManagementView({
           </div>
         </Card>
 
-        <Card className="p-4 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 flex items-center justify-between">
+        <Card className="p-4 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 flex items-center justify-between">
           <div>
             <div className="text-[11px]  text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
               {t.reviewsView.liveOnWebsite}
@@ -122,7 +122,7 @@ export function ReviewsManagementView({
           </div>
         </Card>
 
-        <Card className="p-4 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 flex items-center justify-between">
+        <Card className="p-4 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 flex items-center justify-between">
           <div>
             <div className="text-[11px]  text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
               {t.reviewsView.avgRating}
@@ -134,7 +134,7 @@ export function ReviewsManagementView({
               </span>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#09937F]/10 border border-[#09937F]/20 text-[#09937F] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 text-accent flex items-center justify-center">
             <Star className="w-5 h-5 fill-current" />
           </div>
         </Card>
@@ -147,7 +147,7 @@ export function ReviewsManagementView({
           onClick={() => setFilter("all")}
           className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
             filter === "all"
-              ? "bg-[#014842] text-white shadow-xs"
+              ? "bg-primary text-white shadow-xs"
               : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
           }`}
         >
@@ -184,7 +184,7 @@ export function ReviewsManagementView({
 
       {/* Review List */}
       {filteredReviews.length === 0 ? (
-        <Card className="p-12 text-center bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl">
+        <Card className="p-12 text-center bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl">
           <MessageSquare className="w-10 h-10 text-slate-300 dark:text-neutral-600 mx-auto mb-3" />
           <p className="text-sm font-semibold text-slate-700 dark:text-neutral-300">
             {t.reviewsManagement.noReviewsInThisView}
@@ -200,7 +200,7 @@ export function ReviewsManagementView({
               key={rev.id}
               className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${
                 rev.isApproved
-                  ? "bg-white dark:bg-[#111C19] border-slate-200 dark:border-white/10"
+                  ? "bg-white dark:bg-surface-raised border-slate-200 dark:border-white/10"
                   : "bg-amber-50/40 dark:bg-amber-950/20 border-amber-300 dark:border-amber-500/30"
               }`}
             >
@@ -244,7 +244,7 @@ export function ReviewsManagementView({
                 <div className="flex items-center justify-between text-xs">
                   <div className="space-y-0.5">
                     <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-[#09937F]" />
+                      <User className="w-3.5 h-3.5 text-accent" />
                       <span>{rev.authorEn || rev.authorAr}</span>
                     </div>
                     {(rev.companyEn || rev.companyAr) && (

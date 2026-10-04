@@ -48,12 +48,12 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
         aria-controls={menuId}
         aria-haspopup="dialog"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 rounded-xl text-xs hover:border-[#09937F] focus:outline-none focus:ring-2 focus:ring-[#09937F]/30 transition-all cursor-pointer shadow-2xs group"
+        className="w-full flex items-center justify-between px-3.5 py-2.5 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-xl text-xs hover:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30 transition-all cursor-pointer shadow-2xs group"
       >
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 group-hover:border-[#09937F]/50 transition-colors">
+          <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 group-hover:border-accent/50 transition-colors">
             {SelectedIcon ? (
-              <SelectedIcon className="w-4 h-4 text-[#09937F]" />
+              <SelectedIcon className="w-4 h-4 text-accent" />
             ) : (
               <Sparkles className="w-4 h-4 text-slate-400" />
             )}
@@ -62,12 +62,12 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
             {value || placeholder}
           </span>
         </div>
-        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#09937F]" : ""}`} />
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-accent" : ""}`} />
       </button>
 
       {isOpen && (
           <div id={menuId} role="dialog" aria-label={t.iconPicker.selectIcon} onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();setIsOpen(false);}}}
-            className="absolute z-50 top-full left-0 right-0 mt-2 bg-white dark:bg-[#111C19] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] max-w-[90vw]"
+            className="absolute z-50 top-full left-0 right-0 mt-2 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] max-w-[90vw]"
           >
             {/* Search Header */}
             <div className="p-3 border-b border-slate-100 dark:border-white/10 space-y-2 bg-slate-50/50 dark:bg-black/20">
@@ -80,7 +80,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   autoFocus
-                  className="w-full pl-8 pr-3 py-1.5 bg-white dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 rounded-lg text-xs outline-none focus:border-[#09937F] text-slate-900 dark:text-white"
+                  className="w-full pl-8 pr-3 py-1.5 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg text-xs outline-none focus:border-accent text-slate-900 dark:text-white"
                 />
               </div>
 
@@ -91,7 +91,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                     onClick={() => setTab("popular")}
                     className={`flex-1 py-1 rounded-md text-[11px] font-bold transition-all ${
                       tab === "popular"
-                        ? "bg-white dark:bg-[#014842] text-slate-900 dark:text-white shadow-2xs"
+                        ? "bg-white dark:bg-primary text-slate-900 dark:text-white shadow-2xs"
                         : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
@@ -102,7 +102,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                     onClick={() => setTab("all")}
                     className={`flex-1 py-1 rounded-md text-[11px] font-bold transition-all ${
                       tab === "all"
-                        ? "bg-white dark:bg-[#014842] text-slate-900 dark:text-white shadow-2xs"
+                        ? "bg-white dark:bg-primary text-slate-900 dark:text-white shadow-2xs"
                         : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
@@ -132,7 +132,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                     }}
                     className={`p-2.5 flex flex-col items-center justify-center rounded-xl border transition-all group/btn ${
                       isSelected
-                        ? "bg-[#014842] border-[#09937F] text-white shadow-md"
+                        ? "bg-primary border-accent text-white shadow-md"
                         : "border-transparent hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-neutral-300 hover:border-slate-200 dark:hover:border-white/10"
                     }`}
                     title={iconName}

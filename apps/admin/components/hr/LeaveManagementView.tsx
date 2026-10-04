@@ -6,7 +6,7 @@ import { NoEmployeeProfile } from "./NoEmployeeProfile";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import type { LeaveRequest, LeaveType, Employee } from "@ishoot/database/types";
-import { Card, Button } from "@ishoot/ui";
+import { Card, Button, useDialog } from "@ishoot/ui";
 import { Clock, Plus } from "lucide-react";
 import {
   createLeaveRequestAction,
@@ -46,6 +46,7 @@ export function LeaveManagementView({
 
   // Apply Modal state
   const [showApplyModal, setShowApplyModal] = React.useState(false);
+  const applyDialog = useDialog(showApplyModal, () => setShowApplyModal(false));
   const [submitting, setSubmitting] = React.useState(false);
   const [targetEmployeeId, setTargetEmployeeId] = React.useState(
     myEmployee?.id || "",
@@ -65,6 +66,7 @@ export function LeaveManagementView({
   const [rejectingRequestId, setRejectingRequestId] = React.useState<
     string | null
   >(null);
+  const rejectDialog = useDialog(!!rejectingRequestId, () => setRejectingRequestId(null));
   const [rejectNotes, setRejectNotes] = React.useState("");
 
   const pendingCount = requests.filter((r) => r.status === "pending").length;
@@ -191,10 +193,10 @@ export function LeaveManagementView({
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EAEAEA] dark:border-white/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-ink/10 pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-[#09937F] bg-[#EDF3EC] dark:bg-[#004d40]/40 dark:text-[#7de0d1] px-2.5 py-0.5 rounded-full font-medium">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-[#EDF3EC] dark:bg-[#004d40]/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
               {t.leaveManagement.operationalAvailabilityAndHrms}
             </span>
           </div>
@@ -210,7 +212,7 @@ export function LeaveManagementView({
           {(myEmployee || canFileForOthers) && (
           <Button
             onClick={() => setShowApplyModal(true)}
-            className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.leaveManagement.applyForLeave}</span>
@@ -224,11 +226,11 @@ export function LeaveManagementView({
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {myEmployee && (
-          <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
+          <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
             <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
               {t.leaveManagement.myAnnualLeaveBalance}
             </div>
-            <div className="text-2xl font-bold font-mono text-[#014842] dark:text-[#7de0d1]">
+            <div className="text-2xl font-bold font-mono text-primary dark:text-mint">
               {Number(myEmployee.leaveBalanceDays).toFixed(1)}{" "}
               <span className="text-xs font-normal text-slate-400">
                 {t.shared.days}
@@ -238,7 +240,7 @@ export function LeaveManagementView({
           </div>
         )}
 
-        <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
+        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
             {t.leaveManagement.pendingLeaveRequests}
           </div>
@@ -249,7 +251,7 @@ export function LeaveManagementView({
           <div className="text-xs text-slate-400">{t.leaveManagement.awaitingManagerReview}</div>
         </div>
 
-        <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
+        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
             {t.leaveManagement.approvedLeaves}
           </div>
@@ -261,7 +263,7 @@ export function LeaveManagementView({
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[#EAEAEA] dark:border-white/10 pb-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-ink/10 pb-3">
         {[
           { id: "all", label: t.leaveManagement.allRequests },
           { id: "pending", label: t.leaveManagement.pendingReview },
@@ -274,7 +276,7 @@ export function LeaveManagementView({
             onClick={() => updateStatusFilter(tab.id)}
             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               currentStatus === tab.id
-                ? "bg-[#014842] text-white"
+                ? "bg-primary text-white"
                 : "bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 hover:bg-slate-200 dark:hover:bg-neutral-700"
             }`}
           >
@@ -284,11 +286,11 @@ export function LeaveManagementView({
       </div>
 
       {/* Leave Requests Table */}
-      <Card className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg overflow-hidden">
+      <Card className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#EAEAEA] dark:border-white/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
+              <tr className="border-b border-ink/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
                 <th className="py-3 px-4">{t.shared.employee}</th>
                 <th className="py-3 px-4">{t.leaveManagement.leaveType}</th>
                 <th className="py-3 px-4">{t.leaveManagement.periodAndDuration}</th>
@@ -297,7 +299,7 @@ export function LeaveManagementView({
                 <th className="py-3 px-4 text-right">{t.leaveManagement.actions}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EAEAEA] dark:divide-white/5">
+            <tbody className="divide-y divide-ink/10 dark:divide-white/5">
               {requests.length === 0 ? (
                 <tr>
                   <td
@@ -393,7 +395,7 @@ export function LeaveManagementView({
                             <button
                               onClick={() => handleDecision(req.id, "approved")}
                               disabled={loadingId === req.id}
-                              className="px-2.5 py-1 text-xs bg-[#014842] text-white hover:bg-[#013833] rounded"
+                              className="px-2.5 py-1 text-xs bg-primary text-white hover:bg-primary-hover rounded"
                             >
                               {t.leaveManagement.approve}
                             </button>
@@ -422,9 +424,9 @@ export function LeaveManagementView({
       {/* Apply for Leave Modal */}
       {showApplyModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <form
+          <form {...applyDialog}
             onSubmit={handleApply}
-            className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg max-w-lg w-full p-6 space-y-4 shadow-xl"
+            className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg max-w-lg w-full p-6 space-y-4 shadow-xl"
           >
             <h3 className="text-base font-semibold text-slate-900 dark:text-white">
               {t.leaveManagement.applyForLeave}
@@ -442,7 +444,7 @@ export function LeaveManagementView({
                   <select
                     value={targetEmployeeId}
                     onChange={(e) => setTargetEmployeeId(e.target.value)}
-                    className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                    className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                   >
                     {!targetEmployeeId && <option value="" disabled>—</option>}
                     {allEmployees.map((e) => (
@@ -461,7 +463,7 @@ export function LeaveManagementView({
                 <select
                   value={leaveTypeId}
                   onChange={(e) => setLeaveTypeId(e.target.value)}
-                  className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                  className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                 >
                   {leaveTypes.map((lt) => (
                     <option key={lt.id} value={lt.id}>
@@ -478,7 +480,7 @@ export function LeaveManagementView({
                     type="checkbox"
                     checked={fullDay}
                     onChange={(e) => setFullDay(e.target.checked)}
-                    className="rounded border-slate-300 text-[#014842]"
+                    className="rounded border-slate-300 text-primary"
                   />
                   <span>{t.leaveManagement.fullDayLeave}</span>
                 </label>
@@ -491,7 +493,7 @@ export function LeaveManagementView({
                       max={12}
                       value={hours}
                       onChange={(e) => setHours(Number(e.target.value))}
-                      className="w-16 text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 p-1"
+                      className="w-16 text-xs font-mono rounded-md border border-ink/10 p-1"
                     />
                   </div>
                 )}
@@ -507,7 +509,7 @@ export function LeaveManagementView({
                     required
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                    className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -519,7 +521,7 @@ export function LeaveManagementView({
                     required
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                    className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -534,7 +536,7 @@ export function LeaveManagementView({
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder={t.leaveManagement.eGAnnualSummerFamily}
-                  className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                  className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                 />
               </div>
             </div>
@@ -550,7 +552,7 @@ export function LeaveManagementView({
               <Button
                 type="submit"
                 disabled={submitting}
-                className="bg-[#014842] hover:bg-[#013833] text-white px-4 py-1.5 text-xs rounded-md"
+                className="bg-primary hover:bg-primary-hover text-white px-4 py-1.5 text-xs rounded-md"
               >
                 {submitting ? t.shared.submitting : t.leaveManagement.submitApplication}
               </Button>
@@ -562,7 +564,7 @@ export function LeaveManagementView({
       {/* Reject Modal */}
       {rejectingRequestId && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
+          <div {...rejectDialog} className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
             <h3 className="text-base font-semibold text-slate-900 dark:text-white">
               {t.leaveManagement.rejectLeaveApplication}
             </h3>
@@ -576,7 +578,7 @@ export function LeaveManagementView({
                 value={rejectNotes}
                 onChange={(e) => setRejectNotes(e.target.value)}
                 placeholder={t.leaveManagement.eGCriticalCommercialShoot}
-                className="w-full text-xs font-mono rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
+                className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>
             <div className="flex justify-end gap-3 pt-2">

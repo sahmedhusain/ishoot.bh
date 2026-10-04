@@ -65,27 +65,27 @@ export function PaymentRecorder({
   const modalTitle = `${t.paymentRecorder.modalTitle}: ${invoice.invoice_number}`;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={modalTitle}>
+    <Modal closeLabel={t.actions.close} isOpen={isOpen} onClose={onClose} title={modalTitle}>
       {success ? (
         <div className="py-8 text-center space-y-3">
           <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
             <CheckCircle2 className="w-6 h-6" />
           </div>
-          <h4 className="text-lg font-bold text-white">
+          <h4 className="text-lg font-bold text-ink">
             {t.paymentRecorder.recordedSuccess}
           </h4>
-          <p className="text-xs text-[#9EADA9]">
+          <p className="text-xs text-ink-muted">
             {t.paymentRecorder.reconciledDesc}
           </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="p-4 rounded-xl bg-[#050807] border border-white/10 flex justify-between items-center text-xs">
+          <div className="p-4 rounded-xl bg-surface-sunken border border-ink/10 flex justify-between items-center text-xs">
             <div>
-              <span className="text-[#9EADA9] block">
+              <span className="text-ink-muted block">
                 {t.paymentRecorder.totalDue}
               </span>
-              <span className="text-base font-bold text-white ">
+              <span className="text-base font-bold text-ink ">
                 <CurrencyDisplay
                   amount={invoice.amount_due}
                   currency={invoice.currency}
@@ -93,17 +93,17 @@ export function PaymentRecorder({
               </span>
             </div>
             <div className="text-end">
-              <span className="text-[#9EADA9] block">
+              <span className="text-ink-muted block">
                 {t.paymentRecorder.client}
               </span>
-              <span className="font-semibold text-[#09937F]">
+              <span className="font-semibold text-accent">
                 {invoice.contact?.company || invoice.contact?.full_name}
               </span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#9EADA9]">
+            <label className="text-xs font-medium text-ink-muted">
               {t.paymentRecorder.paymentAmount}
             </label>
             <Input
@@ -113,16 +113,16 @@ export function PaymentRecorder({
               required
               value={amount}
               onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-              className=" text-base font-bold text-[#09937F]"
+              className=" text-base font-bold text-accent"
             />
-            <span className="text-[11px] text-[#9EADA9]">
+            <span className="text-[11px] text-ink-muted">
               {t.paymentRecorder.paymentAmountHint}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">
+              <label className="text-xs font-medium text-ink-muted">
                 {t.paymentRecorder.paymentMethod}
               </label>
               <Select
@@ -140,7 +140,7 @@ export function PaymentRecorder({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">
+              <label className="text-xs font-medium text-ink-muted">
                 {t.paymentRecorder.paymentDate}
               </label>
               <Input
@@ -153,7 +153,7 @@ export function PaymentRecorder({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#9EADA9]">
+            <label className="text-xs font-medium text-ink-muted">
               {t.paymentRecorder.refNumber}
             </label>
             <Input
@@ -164,7 +164,7 @@ export function PaymentRecorder({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#9EADA9]">
+            <label className="text-xs font-medium text-ink-muted">
               {t.paymentRecorder.notes}
             </label>
             <Input

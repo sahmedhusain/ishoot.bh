@@ -5,7 +5,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Inquiry } from "@ishoot/database";
-import { Button } from "@ishoot/ui";
+import { Button, useDialog } from "@ishoot/ui";
 import {
   MessageSquare,
   AlertTriangle,
@@ -99,6 +99,8 @@ export function RequestsManagementView({
   const [activeModal, setActiveModal] = React.useState<
     "assign" | "reassign" | "return" | "approve" | "confirm" | "resolve" | null
   >(null);
+  const actionDialog = useDialog(!!activeModal && !!selectedRequest, () => setActiveModal(null));
+  const previewDialog = useDialog(!!selectedRequest && !activeModal, () => setSelectedRequest(null));
 
   // Modal Form Inputs
   const [modalUserId, setModalUserId] = React.useState<string>("");
@@ -264,7 +266,7 @@ export function RequestsManagementView({
             <Button
               variant="primary"
               size="sm"
-              className="bg-[#09937F] hover:bg-[#077a68] text-white gap-2 text-xs font-semibold shadow-sm"
+              className="bg-accent hover:bg-accent-pressed text-white gap-2 text-xs font-semibold shadow-sm"
             >
               <Plus className="w-4 h-4" />
               <span>{t.requestsManagement.newRequestTicket}</span>
@@ -275,7 +277,7 @@ export function RequestsManagementView({
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm flex items-center justify-between">
+        <div className="p-5 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs text-slate-500 font-medium block">
               {t.requestsManagement.totalRequestsSrCr}
@@ -285,11 +287,11 @@ export function RequestsManagementView({
             </div>
           </div>
           <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 flex items-center justify-center">
-            <Layers className="w-6 h-6 text-[#09937F]" />
+            <Layers className="w-6 h-6 text-accent" />
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm flex items-center justify-between">
+        <div className="p-5 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs text-rose-600 dark:text-rose-400 font-medium block">
               {t.requestsManagement.activeComplaintsCr}
@@ -303,7 +305,7 @@ export function RequestsManagementView({
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm flex items-center justify-between">
+        <div className="p-5 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium block">
               {t.requestsManagement.servicesAndQuotesSr}
@@ -317,7 +319,7 @@ export function RequestsManagementView({
           </div>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm flex items-center justify-between">
+        <div className="p-5 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <span className="text-xs text-amber-600 dark:text-amber-400 font-medium block">
               {t.requestsManagement.assignedAndInApproval}
@@ -359,7 +361,7 @@ export function RequestsManagementView({
       )}
 
       {/* Filter Navigation Bar */}
-      <div className="bg-white dark:bg-[#0E1714] p-4 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-4 shadow-sm">
+      <div className="bg-white dark:bg-surface-raised p-4 rounded-2xl border border-slate-200/80 dark:border-white/10 space-y-4 shadow-sm">
         {/* Type Category Tabs */}
         <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 dark:border-white/10 pb-3">
           {[
@@ -383,7 +385,7 @@ export function RequestsManagementView({
               onClick={() => setTypeFilter(tab.id)}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
                 typeFilter === tab.id
-                  ? "bg-[#09937F] text-white shadow-md shadow-[#09937F]/20"
+                  ? "bg-accent text-white shadow-md shadow-accent/20"
                   : "bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
@@ -397,11 +399,11 @@ export function RequestsManagementView({
           <div className="flex flex-wrap items-center gap-2">
             {/* Team Dropdown */}
             <div className="flex items-center gap-1.5 text-xs text-slate-500">
-              <Filter className="w-3.5 h-3.5 text-[#09937F]" />
+              <Filter className="w-3.5 h-3.5 text-accent" />
               <select
                 value={teamFilter}
                 onChange={(e) => setTeamFilter(e.target.value)}
-                className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-accent"
               >
                 {(["all", ...REQUEST_TEAMS] as const).map((team) => (
                   <option key={team} value={team}>
@@ -415,7 +417,7 @@ export function RequestsManagementView({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+              className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-accent"
             >
               <option value="all">
                 {t.requestsManagement.allWorkflowStates}
@@ -448,14 +450,14 @@ export function RequestsManagementView({
               placeholder={
                 t.requestsManagement.searchByNameEmailTopic
               }
-              className="w-full pl-9 pr-4 rtl:pr-9 rtl:pl-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+              className="w-full pl-9 pr-4 rtl:pr-9 rtl:pl-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
         </div>
       </div>
 
       {/* Requests Table */}
-      <div className="bg-white dark:bg-[#0E1714] rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-surface-raised rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-xs border-collapse">
             <thead>
@@ -551,7 +553,7 @@ export function RequestsManagementView({
                           {req.team || "support"}
                         </span>
                         <div className="flex items-center gap-1.5 text-xs text-slate-800 dark:text-slate-200 font-medium">
-                          <User className="w-3.5 h-3.5 text-[#09937F]" />
+                          <User className="w-3.5 h-3.5 text-accent" />
                           <span>
                             {req.assigned_to_name ||
                               (t.requestsManagement.unassigned)}
@@ -575,7 +577,7 @@ export function RequestsManagementView({
                       <div className="flex flex-wrap items-center justify-end gap-1.5">
                         <Link
                           href={ROUTES.requests.detail(req.id)}
-                          className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-[#09937F]/40 text-[#09937F] hover:bg-[#09937F]/10 transition-colors inline-flex items-center gap-1"
+                          className="px-2.5 py-1 text-[11px] font-medium rounded-lg border border-accent/40 text-accent hover:bg-accent/10 transition-colors inline-flex items-center gap-1"
                           title={t.requestsManagement.openFullDossier}
                         >
                           <FileText className="w-3 h-3" />
@@ -605,7 +607,7 @@ export function RequestsManagementView({
                         {canTransitionRequest(req.workflow_status, "submit") && (
                           <button
                             onClick={() => openActionModal(req, "approve")}
-                            className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-[#09937F] hover:bg-[#077a68] text-white transition-colors inline-flex items-center gap-1 shadow-sm"
+                            className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-accent hover:bg-accent-pressed text-white transition-colors inline-flex items-center gap-1 shadow-sm"
                           >
                             <CheckCircle2 className="w-3 h-3" />
                             <span>{t.requestWorkflow.submitForApproval}</span>
@@ -658,9 +660,9 @@ export function RequestsManagementView({
       {/* Detail Drawer (Right Side on LTR, Left on RTL) */}
       {selectedRequest && !activeModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex justify-end p-0">
-          <div className="bg-white dark:bg-[#0E1714] border-l rtl:border-r rtl:border-l-0 border-slate-200 dark:border-white/10 w-full max-w-xl h-full flex flex-col shadow-2xl overflow-y-auto">
+          <div {...previewDialog} className="bg-white dark:bg-surface-raised border-l rtl:border-r rtl:border-l-0 border-slate-200 dark:border-white/10 w-full max-w-xl h-full flex flex-col shadow-2xl overflow-y-auto">
             {/* Drawer Header */}
-            <div className="p-6 border-b border-slate-100 dark:border-white/10 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-[#0E1714]/95 backdrop-blur z-10">
+            <div className="p-6 border-b border-slate-100 dark:border-white/10 flex items-center justify-between sticky top-0 bg-white/95 dark:bg-surface-raised/95 backdrop-blur z-10">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <RequestTypeBadge type={selectedRequest.type} size="sm" />
@@ -685,7 +687,7 @@ export function RequestsManagementView({
             <div className="p-6 space-y-6 flex-1">
               {/* Client Info */}
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#09937F]">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-accent">
                   {t.requestsManagement.clientInformation}
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-xs">
@@ -773,7 +775,7 @@ export function RequestsManagementView({
               {/* Custom Assignment & Routing Audit Timeline */}
               <div className="space-y-3">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-                  <History className="w-4 h-4 text-[#09937F]" />
+                  <History className="w-4 h-4 text-accent" />
                   <span>
                     {t.requestsManagement.assignmentAndWorkflowAuditHistory}
                   </span>
@@ -785,7 +787,7 @@ export function RequestsManagementView({
                       (item: any, i: number) => (
                         <div key={i} className="relative space-y-1 text-xs">
                           <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
-                            <span className="w-2 h-2 rounded-full bg-[#09937F] absolute -left-[17px] rtl:-right-[17px] top-1.5" />
+                            <span className="w-2 h-2 rounded-full bg-accent absolute -left-[17px] rtl:-right-[17px] top-1.5" />
                             <span className="capitalize">
                               {item.action || "Update"}
                             </span>
@@ -816,7 +818,7 @@ export function RequestsManagementView({
             </div>
 
             {/* Drawer Footer Actions */}
-            <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-[#070C0A] flex flex-wrap gap-2 justify-end">
+            <div className="p-4 border-t border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-surface-sunken flex flex-wrap gap-2 justify-end">
               <Button
                 variant="outline"
                 size="sm"
@@ -844,12 +846,12 @@ export function RequestsManagementView({
       {/* Confirmation Modal with Detailed Changed Diff */}
       {activeModal && selectedRequest && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0E1714] border border-slate-200 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+          <div {...actionDialog} className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
             {/* Modal Title */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <div className="space-y-0.5">
                 <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#09937F]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-accent" />
                   <span>
                     {activeModal === "assign" &&
                       (t.requestsManagement.assignRequestToTeam)}
@@ -970,7 +972,7 @@ export function RequestsManagementView({
                     <select
                       value={modalTeam}
                       onChange={(e) => setModalTeam(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       {REQUEST_TEAMS.map((team) => (
                         <option key={team} value={team}>
@@ -987,7 +989,7 @@ export function RequestsManagementView({
                     <select
                       value={modalUserId}
                       onChange={(e) => setModalUserId(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                     >
                       {users.map((u) => (
                         <option key={u.id} value={u.id}>
@@ -1021,7 +1023,7 @@ export function RequestsManagementView({
                         ? t.requestsManagement.describeHowThisIssueService
                         : t.requestsManagement.addAnyInstructionsOrRemarks
                   }
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 
@@ -1046,7 +1048,7 @@ export function RequestsManagementView({
                       ? "bg-rose-600 hover:bg-rose-700 text-white"
                       : activeModal === "confirm"
                         ? "bg-purple-600 hover:bg-purple-700 text-white"
-                        : "bg-[#09937F] hover:bg-[#077a68] text-white"
+                        : "bg-accent hover:bg-accent-pressed text-white"
                   }
                 >
                   {isSubmitting

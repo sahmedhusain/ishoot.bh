@@ -7,7 +7,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 export function PaymentsManagementView({ initialPayments, totals, receiptCount, invoiceCount }: { initialPayments: PaymentListRow[]; totals: { currency: string; amount: number }[]; receiptCount: number; invoiceCount: number }) {
   const { t, locale } = useAdminLocale();
   return <div className="space-y-6 max-w-7xl mx-auto pb-16">
-    <div className="flex items-center justify-between"><h1 className="text-2xl font-bold">{t.nav.payments}</h1><Link className="rounded-full bg-[#014842] text-white px-4 py-2 text-xs" href={ROUTES.payments.create()}>{t.finance.recordPayment}</Link></div>
+    <div className="flex items-center justify-between"><h1 className="text-2xl font-bold">{t.nav.payments}</h1><Link className="rounded-full bg-primary text-white px-4 py-2 text-xs" href={ROUTES.payments.create()}>{t.finance.recordPayment}</Link></div>
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
       <div className="rounded-xl border p-5"><p className="text-xs">{t.kpi.totalRevenue}</p>{totals.map((v) => <div key={v.currency} className="text-xl font-bold"><CurrencyDisplay amount={v.amount} currency={v.currency as any} /></div>)}</div>
       <div className="rounded-xl border p-5"><p className="text-xs">{t.paymentsView.issuedReceipts}</p><p className="text-xl font-bold">{receiptCount}</p></div>

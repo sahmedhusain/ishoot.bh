@@ -87,7 +87,7 @@ export function Customer360DossierView({
               </h1>
               <Badge
                 variant="outline"
-                className="text-xs uppercase  border-[#09937F]/40 text-[#09937F] bg-[#E6F5F2] dark:bg-[#09937F]/10"
+                className="text-xs uppercase  border-accent/40 text-accent bg-[#E6F5F2] dark:bg-accent/10"
               >
                 {contact.contact_type || "Client"}
               </Badge>
@@ -164,12 +164,12 @@ export function Customer360DossierView({
         <Card className="p-5 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>{t.customer360.ltv}</span>
-            <DollarSign className="w-4 h-4 text-[#09937F]" />
+            <DollarSign className="w-4 h-4 text-accent" />
           </div>
           <div className="text-2xl font-bold  text-slate-900 dark:text-white">
             <CurrencyDisplay amount={metrics.totalLtv} currency="BHD" />
           </div>
-          <div className="text-[11px] text-[#09937F]  flex items-center justify-between">
+          <div className="text-[11px] text-accent  flex items-center justify-between">
             <span>
               {metrics.invoicesCount} {t.customer360.invoicesBilled}
             </span>
@@ -180,7 +180,7 @@ export function Customer360DossierView({
           {/* Progress bar */}
           <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
             <div
-              className="h-full bg-[#09937F] rounded-full transition-all duration-500"
+              className="h-full bg-accent rounded-full transition-all duration-500"
               style={{ width: `${collectionRate}%` }}
             />
           </div>
@@ -278,7 +278,7 @@ export function Customer360DossierView({
               onClick={() => setActiveTab(tab.id as any)}
               className={`pb-3.5 flex items-center gap-2 border-b-2 transition-colors shrink-0 ${
                 isActive
-                  ? "border-[#09937F] text-[#09937F]"
+                  ? "border-accent text-accent"
                   : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
               }`}
             >
@@ -294,7 +294,7 @@ export function Customer360DossierView({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="p-6 space-y-4 md:col-span-2">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <User className="w-4 h-4 text-[#09937F]" />
+              <User className="w-4 h-4 text-accent" />
               <span>{t.customer360.primaryContact}</span>
             </h3>
 
@@ -337,7 +337,7 @@ export function Customer360DossierView({
                 </span>
                 <a
                   href={`mailto:${contact.email}`}
-                  className="text-[#09937F] hover:underline "
+                  className="text-accent hover:underline "
                 >
                   {contact.email || t.customer360Dossier.noEmailRegistered}
                 </a>
@@ -348,7 +348,7 @@ export function Customer360DossierView({
                 </span>
                 <a
                   href={`tel:${contact.phone}`}
-                  className="text-[#09937F] hover:underline "
+                  className="text-accent hover:underline "
                   dir="ltr"
                 >
                   {contact.phone || t.customer360Dossier.noPhoneRegistered}
@@ -370,7 +370,7 @@ export function Customer360DossierView({
 
           <Card className="p-6 space-y-4">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#09937F]" />
+              <ShieldCheck className="w-4 h-4 text-accent" />
               <span>{t.customer360.accountSummary}</span>
             </h3>
 
@@ -424,7 +424,7 @@ export function Customer360DossierView({
       {activeTab === "interactions" && (
         <Card className="p-6 space-y-6">
           <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Mail className="w-4 h-4 text-[#09937F]" />
+            <Mail className="w-4 h-4 text-accent" />
             <span>{t.customer360.inboundInquiries}</span>
           </h3>
 
@@ -462,7 +462,7 @@ export function Customer360DossierView({
         <Card className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Briefcase className="w-4 h-4 text-[#09937F]" />
+              <Briefcase className="w-4 h-4 text-accent" />
               <span>{t.customer360.commercialDeals}</span>
             </h3>
             {actions.createDeal && (
@@ -488,7 +488,7 @@ export function Customer360DossierView({
                   <div>
                     <Link
                       href={ROUTES.crm.deal(deal.id)}
-                      className="font-bold text-[#09937F] hover:underline"
+                      className="font-bold text-accent hover:underline"
                     >
                       {deal.title}
                     </Link>
@@ -514,7 +514,7 @@ export function Customer360DossierView({
         <Card className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-[#09937F]" />
+              <CreditCard className="w-4 h-4 text-accent" />
               <span>{t.customer360.financialLedger}</span>
             </h3>
             <div className="flex items-center gap-2">
@@ -553,7 +553,7 @@ export function Customer360DossierView({
                     key={inv.id}
                     className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]"
                   >
-                    <td className="p-3  font-bold text-[#09937F]">
+                    <td className="p-3  font-bold text-accent">
                       <Link
                         href={ROUTES.invoices.detail(inv.id)}
                         className="hover:underline flex items-center gap-1"
@@ -598,7 +598,7 @@ export function Customer360DossierView({
       {activeTab === "vault" && (
         <Card className="p-6 space-y-6">
           <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <FolderLock className="w-4 h-4 text-[#09937F]" />
+            <FolderLock className="w-4 h-4 text-accent" />
             <span>{t.customer360.legalRepo}</span>
           </h3>
 

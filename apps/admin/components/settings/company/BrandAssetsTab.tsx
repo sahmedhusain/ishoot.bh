@@ -206,9 +206,9 @@ export function BrandAssetsTab({
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] shadow-xs rounded-2xl space-y-6">
-        <div className="flex items-center gap-3 pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
-          <div className="p-2 rounded-xl bg-[#09937F]/10 text-[#09937F]">
+      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-6">
+        <div className="flex items-center gap-3 pb-3 border-b border-ink/15 dark:border-ink/15">
+          <div className="p-2 rounded-xl bg-accent/10 text-accent">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
@@ -262,8 +262,8 @@ export function BrandAssetsTab({
             </div>
 
             {/* Dark Theme Surface */}
-            <div className="p-6 rounded-xl bg-[#050807] border border-white/10 shadow-xs flex flex-col justify-between space-y-4">
-              <div className="flex items-center justify-between text-[11px] text-white/70 font-semibold border-b border-white/10 pb-2">
+            <div className="p-6 rounded-xl bg-surface-sunken border border-ink/10 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="flex items-center justify-between text-[11px] text-ink/70 font-semibold border-b border-ink/10 pb-2">
                 <span>{t.brandAssetsTab.darkSurfaceWebAdminPortal}</span>
                 <span className="text-[10px] text-emerald-400 ">{t.brandAssetsTab.crispWhiteEmerald}</span>
               </div>
@@ -279,7 +279,7 @@ export function BrandAssetsTab({
                   className="h-7 w-auto object-contain"
                 />
               </div>
-              <div className="text-[10px] text-white/40 text-center ">
+              <div className="text-[10px] text-ink/40 text-center ">
                 icon_dark (mark) + logo_dark (light text)
               </div>
             </div>
@@ -297,7 +297,7 @@ export function BrandAssetsTab({
             return (
               <div
                 key={slot.key}
-                className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/30 flex flex-col justify-between space-y-4 hover:border-[#09937F]/40 transition-colors"
+                className="p-4 rounded-xl border border-slate-200 dark:border-neutral-800 bg-slate-50/50 dark:bg-neutral-900/30 flex flex-col justify-between space-y-4 hover:border-accent/40 transition-colors"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
@@ -310,7 +310,7 @@ export function BrandAssetsTab({
                       </p>
                     </div>
                     {currentAsset?.fileUrl ? (
-                      <span className="p-1 rounded-full text-[#09937F] bg-emerald-50 dark:bg-emerald-950/40 shrink-0" title={t.brandAssetsTab.configuredInDatabase}>
+                      <span className="p-1 rounded-full text-accent bg-emerald-50 dark:bg-emerald-950/40 shrink-0" title={t.brandAssetsTab.configuredInDatabase}>
                         <CheckCircle2 className="w-4 h-4" />
                       </span>
                     ) : null}
@@ -319,7 +319,7 @@ export function BrandAssetsTab({
                   {/* Preview Display Box */}
                   <div className="mt-3 relative h-28 w-full rounded-lg border border-slate-200 dark:border-neutral-700/80 overflow-hidden flex items-center justify-center">
                     {slot.themeContext === "dark" ? (
-                      <div className="absolute inset-0 bg-[#0B1210]" />
+                      <div className="absolute inset-0 bg-surface" />
                     ) : (
                       <div className="absolute inset-0 bg-white" />
                     )}
@@ -370,7 +370,7 @@ export function BrandAssetsTab({
                       type="button"
                       disabled={isUploading}
                       onClick={() => fileInputRefs.current[slot.key]?.click()}
-                      className="flex-1 px-3 py-1.5 rounded-lg bg-[#014842] hover:bg-[#014842]/90 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors shadow-2xs disabled:opacity-60"
+                      className="flex-1 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors shadow-2xs disabled:opacity-60"
                     >
                       {isUploading ? (
                         <>
@@ -395,7 +395,7 @@ export function BrandAssetsTab({
                           href={currentAsset.fileUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 hover:text-[#014842] dark:hover:text-[#7de0d1] hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+                          className="p-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-neutral-300 hover:text-primary dark:hover:text-mint hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
                           title={t.actions.view}
                         >
                           <ExternalLink className="w-4 h-4" />

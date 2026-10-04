@@ -4,7 +4,7 @@ import type { AdminTranslations } from "../../lib/translations";
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
 import type { CompanyAssetItem } from "@ishoot/database";
-import { Button } from "@ishoot/ui";
+import { Button, useDialog } from "@ishoot/ui";
 import {
 Building2,
 Percent,
@@ -207,6 +207,7 @@ export function CompanySettingsView({
   const [saving, setSaving] = React.useState(false);
 
   const [isSaveConfirmOpen, setIsSaveConfirmOpen] = React.useState(false);
+  const saveDialog = useDialog(isSaveConfirmOpen, () => setIsSaveConfirmOpen(false));
   const [saveDiffs, setSaveDiffs] = React.useState<ChangeDiff[]>([]);
 
   const isDirty = React.useMemo(() => {
@@ -314,7 +315,7 @@ export function CompanySettingsView({
       <SettingsNavTabs />
 
       {/* Sub-Tabs for Company Settings */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[#f1f3f4] dark:bg-[#1a1a1a] border border-slate-200 dark:border-neutral-800 overflow-x-auto">
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[#f1f3f4] dark:bg-surface-raised border border-slate-200 dark:border-neutral-800 overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -326,13 +327,13 @@ export function CompanySettingsView({
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 ${
                 isActive
-                  ? "bg-white dark:bg-[#282a2d] text-[#014842] dark:text-[#7de0d1] shadow-xs border border-slate-200/80 dark:border-neutral-700"
+                  ? "bg-white dark:bg-[#282a2d] text-primary dark:text-mint shadow-xs border border-slate-200/80 dark:border-neutral-700"
                   : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               <Icon
                 className={`w-3.5 h-3.5 ${
-                  isActive ? "text-[#09937F]" : "text-slate-400 dark:text-neutral-500"
+                  isActive ? "text-accent" : "text-slate-400 dark:text-neutral-500"
                 }`}
               />
               <span>{tab.label}</span>
@@ -413,10 +414,10 @@ export function CompanySettingsView({
       {/* Save Confirmation Modal with Diff Summary */}
       {isSaveConfirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="relative w-full max-w-xl bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-2xl overflow-hidden">
-            <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between bg-slate-50/70 dark:bg-neutral-900/40">
+          <div {...saveDialog} className="relative w-full max-w-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="p-4 border-b border-ink/15 dark:border-ink/15 flex items-center justify-between bg-slate-50/70 dark:bg-neutral-900/40">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-[#014842]/10 dark:bg-[#7de0d1]/10 text-[#014842] dark:text-[#7de0d1]">
+                <div className="p-2 rounded-xl bg-primary/10 dark:bg-mint/10 text-primary dark:text-mint">
                   <AlertTriangle className="w-5 h-5" />
                 </div>
                 <div>
@@ -490,7 +491,7 @@ export function CompanySettingsView({
               </div>
             </div>
 
-            <div className="p-4 border-t border-[#dadce0] dark:border-[#3c4043] bg-slate-50/50 dark:bg-neutral-900/30 flex items-center justify-end gap-3">
+            <div className="p-4 border-t border-ink/15 dark:border-ink/15 bg-slate-50/50 dark:bg-neutral-900/30 flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setIsSaveConfirmOpen(false)}
@@ -503,7 +504,7 @@ export function CompanySettingsView({
                 type="button"
                 disabled={saving}
                 onClick={executeSave}
-                className="px-5 py-2 rounded-xl text-xs font-semibold bg-[#014842] hover:bg-[#014842]/90 text-white shadow-2xs inline-flex items-center gap-1.5 transition-colors disabled:opacity-60"
+                className="px-5 py-2 rounded-xl text-xs font-semibold bg-primary hover:bg-primary/90 text-white shadow-2xs inline-flex items-center gap-1.5 transition-colors disabled:opacity-60"
               >
                 <Check className="w-4 h-4" />
                 <span>{t.companySettingsView.confirmChanges}</span>

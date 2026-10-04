@@ -300,7 +300,7 @@ export function NewInvoiceFormView({
       <div>
         <Link
           href={ROUTES.invoices.list}
-          className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-[#09937F] dark:text-slate-400 dark:hover:text-[#09937F] transition-colors font-medium active:scale-[0.98]"
+          className="inline-flex items-center gap-2 text-xs text-slate-500 hover:text-accent dark:text-slate-400 dark:hover:text-accent transition-colors font-medium active:scale-[0.98]"
         >
           <BackIcon className="w-4 h-4" />
           <span>{t.actions.backToInvoices}</span>
@@ -319,13 +319,13 @@ export function NewInvoiceFormView({
         <Card className="p-5 bg-gradient-to-r from-teal-50/60 to-emerald-50/60 dark:from-teal-950/20 dark:to-emerald-950/20 border border-teal-200/80 dark:border-teal-900/40 rounded-2xl space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-[#014842] text-white">
+              <div className="p-2 rounded-xl bg-primary text-white">
                 <FileCheck className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>{t.invoicesList.acceptedQuotesBanner || (t.newInvoiceForm.acceptedQuotationsReadyForInvoicing)}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-[#014842] dark:text-[#7de0d1]">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-primary dark:text-mint">
                     {acceptedQuotations.length}
                   </span>
                 </h3>
@@ -343,7 +343,7 @@ export function NewInvoiceFormView({
                   if (q) applyQuotation(q);
                   else setSelectedQuotationId("");
                 }}
-                className="text-xs font-medium rounded-lg border border-teal-300 dark:border-teal-800 bg-white dark:bg-[#121B19] px-3 py-1.5 text-slate-900 dark:text-white"
+                className="text-xs font-medium rounded-lg border border-teal-300 dark:border-teal-800 bg-white dark:bg-surface-raised px-3 py-1.5 text-slate-900 dark:text-white"
               >
                 <option value="">{t.newInvoiceForm.selectAcceptedQuote}</option>
                 {acceptedQuotations.map((q) => (
@@ -359,7 +359,7 @@ export function NewInvoiceFormView({
                   size="sm"
                   disabled={convertingQuoteId === selectedQuotationId}
                   onClick={() => handle1ClickConvert(selectedQuotationId)}
-                  className="bg-[#014842] hover:bg-[#013833] text-white text-xs gap-1.5 active:scale-[0.98] transition-all shrink-0"
+                  className="bg-primary hover:bg-primary-hover text-white text-xs gap-1.5 active:scale-[0.98] transition-all shrink-0"
                 >
                   <Receipt className="w-3.5 h-3.5" />
                   <span>{t.invoicesList.oneClickConvert || (t.newInvoiceForm.n1ClickConvert)}</span>
@@ -375,14 +375,14 @@ export function NewInvoiceFormView({
         <Card className="p-6 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#09937F]" />
+              <Layers className="w-4 h-4 text-accent" />
               <span>{t.invoiceForm.particulars}</span>
             </h2>
             {selectedContact && (
               <Link
                 href={ROUTES.crm.customer(selectedContact.id)}
                 target="_blank"
-                className="text-xs text-[#09937F] hover:underline flex items-center gap-1 font-semibold"
+                className="text-xs text-accent hover:underline flex items-center gap-1 font-semibold"
               >
                 <span>{t.invoiceForm.clientProfile}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -466,7 +466,7 @@ export function NewInvoiceFormView({
         <Card className="p-6 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Calculator className="w-4 h-4 text-[#09937F]" />
+              <Calculator className="w-4 h-4 text-accent" />
               <span>{t.invoiceForm.deliverables}</span>
             </h2>
             <Button
@@ -679,7 +679,7 @@ export function NewInvoiceFormView({
                   type="checkbox"
                   checked={vatEnabled}
                   onChange={(e) => setVatEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-[#09937F] focus:ring-[#09937F]"
+                  className="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent"
                 />
               </div>
             </div>
@@ -721,7 +721,7 @@ export function NewInvoiceFormView({
 
                 <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex justify-between text-base font-bold text-slate-900 dark:text-white">
                   <span>{t.finance.totalAmount}</span>
-                  <span className="font-mono text-[#014842] dark:text-[#7de0d1]">
+                  <span className="font-mono text-primary dark:text-mint">
                     {totals.totalAmount.toFixed(3)} {currency}
                   </span>
                 </div>
@@ -732,7 +732,7 @@ export function NewInvoiceFormView({
               <Button
                 type="submit"
                 disabled={submitting}
-                className="w-full gap-2 bg-[#014842] hover:bg-[#013833] text-white py-2.5 rounded-xl font-semibold shadow-xs active:scale-[0.98] transition-all"
+                className="w-full gap-2 bg-primary hover:bg-primary-hover text-white py-2.5 rounded-xl font-semibold shadow-xs active:scale-[0.98] transition-all"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>{submitting ? t.actions.saving : t.actions.save}</span>

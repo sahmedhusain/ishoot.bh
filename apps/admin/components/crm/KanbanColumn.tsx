@@ -31,7 +31,7 @@ export function KanbanColumn({
       ref={setNodeRef}
       className={`w-72 shrink-0 bg-slate-100/70 dark:bg-[#0E1513] rounded-2xl border flex flex-col max-h-[calc(100vh-210px)] transition-colors shadow-sm ${
         isOver
-          ? "border-[#09937F] bg-[#09937F]/5"
+          ? "border-accent bg-accent/5"
           : "border-slate-200/80 dark:border-white/10"
       }`}
     >

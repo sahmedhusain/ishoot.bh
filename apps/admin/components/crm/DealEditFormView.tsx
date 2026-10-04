@@ -157,7 +157,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
         </Link>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
-            <Briefcase className="w-6 h-6 text-[#09937F]" />
+            <Briefcase className="w-6 h-6 text-accent" />
             <span>{t.dealEdit.title}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -181,7 +181,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
             <Textarea id="lost-reason" required value={lostReason} onChange={(event) => setLostReason(event.target.value)} />
           </div>}
         </Card>
-        <Card className="p-8 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
+        <Card className="p-8 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
@@ -203,7 +203,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
                 {selectedContact && (
                   <Link
                     href={ROUTES.crm.customer(selectedContact.id)}
-                    className="text-[11px] text-[#014842] dark:text-[#09937F] hover:underline font-semibold flex items-center gap-1"
+                    className="text-[11px] text-primary dark:text-accent hover:underline font-semibold flex items-center gap-1"
                     target="_blank"
                   >
                     <span>{t.crm.customerDossier}</span>
@@ -241,7 +241,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
                 step="0.001"
                 value={dealValue}
                 onChange={(e) => setDealValue(parseFloat(e.target.value) || 0)}
-                className=" text-[#014842] dark:text-[#09937F] font-bold"
+                className=" text-primary dark:text-accent font-bold"
               />
             </div>
           </div>
@@ -308,7 +308,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
             variant="primary"
             size="sm"
             disabled={saving}
-            className="gap-2 bg-[#014842] hover:bg-[#014842]/90 text-white"
+            className="gap-2 bg-primary hover:bg-primary/90 text-white"
           >
             <CheckCircle2 className="w-4 h-4" />
             <span>{saving ? t.dealEdit.saving : t.dealEdit.save}</span>

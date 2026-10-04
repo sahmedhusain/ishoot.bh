@@ -59,8 +59,8 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
             key={toggle.id}
             className={`p-5 transition-all ${
               toggle.isEnabled
-                ? "bg-white dark:bg-[#111C19] border-slate-200 dark:border-[#09937F]/30"
-                : "bg-slate-50 dark:bg-[#050807] border-slate-200 dark:border-white/10 opacity-70"
+                ? "bg-white dark:bg-surface-raised border-slate-200 dark:border-accent/30"
+                : "bg-slate-50 dark:bg-surface-sunken border-slate-200 dark:border-white/10 opacity-70"
             }`}
           >
             <div className="flex items-start justify-between gap-4">
@@ -68,7 +68,7 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
                 <h3 className="font-bold text-slate-900 dark:text-white">
                   {isRTL ? toggle.nameAr : toggle.nameEn}
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-[#9EADA9]  mt-1">
+                <p className="text-xs text-slate-500 dark:text-ink-muted  mt-1">
                   ID: {toggle.moduleKey}
                 </p>
                 {toggle.description && (
@@ -83,7 +83,7 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
                 disabled={loadingId === toggle.moduleKey}
                 className={`p-1 -m-1 transition-colors ${
                   toggle.isEnabled
-                    ? "text-[#09937F] hover:text-[#014842]"
+                    ? "text-accent hover:text-primary"
                     : "text-slate-300 dark:text-slate-600 hover:text-slate-400 dark:hover:text-slate-500"
                 }`}
               >

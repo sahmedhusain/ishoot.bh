@@ -21,7 +21,7 @@ import {
   X,
   FileText,
 } from "lucide-react";
-import { Button, Card, StatusBadge } from "@ishoot/ui";
+import { Button, Card, StatusBadge, useDialog } from "@ishoot/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateMyProfileAction,
@@ -73,6 +73,7 @@ export function UserProfileView({
   const [rejectModalReqId, setRejectModalReqId] = React.useState<string | null>(
     null,
   );
+  const rejectDialog = useDialog(!!rejectModalReqId, () => setRejectModalReqId(null));
   const [rejectReason, setRejectReason] = React.useState("");
   const [isSubmittingDecision, setIsSubmittingDecision] = React.useState(false);
 
@@ -208,9 +209,9 @@ export function UserProfileView({
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-24">
       {/* Profile Header Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+      <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#09937F]/10 border border-[#09937F]/20 text-[#09937F] font-bold text-2xl flex items-center justify-center font-display">
+          <div className="w-16 h-16 rounded-2xl bg-accent/10 border border-accent/20 text-accent font-bold text-2xl flex items-center justify-center font-display">
             {user.full_name ? user.full_name.charAt(0).toUpperCase() : "U"}
           </div>
           <div className="space-y-1">
@@ -278,11 +279,11 @@ export function UserProfileView({
               return (
                 <div
                   key={req.id}
-                  className="p-4 rounded-xl bg-white dark:bg-[#0E1714] border border-amber-200 dark:border-white/10 space-y-3"
+                  className="p-4 rounded-xl bg-white dark:bg-surface-raised border border-amber-200 dark:border-white/10 space-y-3"
                 >
                   <div className="flex items-center justify-between text-xs">
                     <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                      <User className="w-4 h-4 text-[#09937F]" />
+                      <User className="w-4 h-4 text-accent" />
                       <span>{req.user?.fullName || "Employee"}</span>
                       <span className="text-slate-400 font-normal">
                         ({req.user?.email})
@@ -343,7 +344,7 @@ export function UserProfileView({
                       size="sm"
                       onClick={() => handleDecide(req.id, "approved")}
                       disabled={isSubmittingDecision}
-                      className="gap-1 text-xs bg-[#09937F] hover:bg-[#077a68] text-white"
+                      className="gap-1 text-xs bg-accent hover:bg-accent-pressed text-white"
                     >
                       <Check className="w-3 h-3" />
                       <span>
@@ -365,9 +366,9 @@ export function UserProfileView({
         {/* Left 2 Cols: Self-Service Forms */}
         <div className="lg:col-span-2 space-y-6">
           {/* Section 1: Immediate Contact & Signature Update */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
-              <Phone className="w-4 h-4 text-[#09937F]" />
+              <Phone className="w-4 h-4 text-accent" />
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 {t.userProfile.n1ContactAndSignatureDirect}
               </h2>
@@ -389,7 +390,7 @@ export function UserProfileView({
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+973 39000000"
-                    className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F] font-mono text-start"
+                    className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono text-start"
                   />
                 </div>
               </div>
@@ -405,7 +406,7 @@ export function UserProfileView({
                     value={signatureUrl}
                     onChange={(e) => setSignatureUrl(e.target.value)}
                     placeholder={t.userProfile.apiFilesSignature}
-                    className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F] font-mono text-start"
+                    className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono text-start"
                   />
                 </div>
                 <span className="text-[11px] text-slate-400 mt-1 block">
@@ -419,7 +420,7 @@ export function UserProfileView({
                   variant="primary"
                   size="sm"
                   disabled={isUpdatingContact}
-                  className="bg-[#09937F] hover:bg-[#077a68] text-white text-xs font-semibold"
+                  className="bg-accent hover:bg-accent-pressed text-white text-xs font-semibold"
                 >
                   {isUpdatingContact ? t.shared.saving : t.userProfile.saveContactInfo}
                 </Button>
@@ -428,9 +429,9 @@ export function UserProfileView({
           </div>
 
           {/* Section 2: Identity Change Request (Manager Approved) */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
-              <ShieldCheck className="w-4 h-4 text-[#09937F]" />
+              <ShieldCheck className="w-4 h-4 text-accent" />
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 {t.userProfile.n2IdentityChangeRequestManager}
               </h2>
@@ -454,7 +455,7 @@ export function UserProfileView({
                     value={proposedFullName}
                     onChange={(e) => setProposedFullName(e.target.value)}
                     placeholder={user.full_name}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                   <span className="text-[10px] text-slate-400 mt-1 block">
                     {t.userProfile.current}
@@ -471,7 +472,7 @@ export function UserProfileView({
                     value={proposedEmail}
                     onChange={(e) => setProposedEmail(e.target.value)}
                     placeholder={user.email}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F] font-mono"
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono"
                   />
                   <span className="text-[10px] text-slate-400 mt-1 block font-mono">
                     {t.userProfile.current}
@@ -489,7 +490,7 @@ export function UserProfileView({
                   value={changeReason}
                   onChange={(e) => setChangeReason(e.target.value)}
                   placeholder={t.userProfile.eGLegalNameUpdate}
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
 
@@ -502,7 +503,7 @@ export function UserProfileView({
                     isSubmittingRequest ||
                     (!proposedFullName.trim() && !proposedEmail.trim())
                   }
-                  className="bg-[#09937F] hover:bg-[#077a68] text-white text-xs font-semibold gap-1.5"
+                  className="bg-accent hover:bg-accent-pressed text-white text-xs font-semibold gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>
@@ -514,9 +515,9 @@ export function UserProfileView({
           </div>
 
           {/* Section 3: My Change Requests History */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+          <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#09937F]" />
+              <Clock className="w-4 h-4 text-accent" />
               <span>{t.userProfile.n3MyIdentityChangeHistory}</span>
             </h2>
 
@@ -578,8 +579,8 @@ export function UserProfileView({
         {/* Right Col: Reporting Line & Employee Profile */}
         <div className="space-y-6">
           {/* Manager Card */}
-          <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
+          <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
               <Users className="w-4 h-4" />
               <span>{t.userProfile.assignedReportingManager}</span>
             </h3>
@@ -620,8 +621,8 @@ export function UserProfileView({
 
           {/* Linked Employee Record Card */}
           {employeeRecord && (
-            <div className="p-6 rounded-2xl bg-white dark:bg-[#0E1714] border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#09937F] flex items-center gap-2">
+            <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-accent flex items-center gap-2">
                 <FileText className="w-4 h-4" />
                 <span>{t.userProfile.linkedHrmsEmployeeRecord}</span>
               </h3>
@@ -677,7 +678,7 @@ export function UserProfileView({
       {/* Reject Modal */}
       {rejectModalReqId && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0E1714] border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div {...rejectDialog} className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <h3 className="font-bold text-base text-slate-900 dark:text-white">
               {t.userProfile.reasonForRejection}
             </h3>
@@ -688,7 +689,7 @@ export function UserProfileView({
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder={t.userProfile.stateReasonForRejectingThis}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#09937F]"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
             />
 
             <div className="flex justify-end gap-2 pt-2">

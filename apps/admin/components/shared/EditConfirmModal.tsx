@@ -45,7 +45,7 @@ export function EditConfirmModal({
   );
 
   return (
-    <Modal
+    <Modal closeLabel={t.actions.close}
       isOpen={isOpen}
       onClose={onClose}
       title={
@@ -55,7 +55,7 @@ export function EditConfirmModal({
       className="max-w-xl"
     >
       <div className="space-y-5">
-        <p className="text-xs text-slate-500 dark:text-[#9EADA9]">
+        <p className="text-xs text-slate-500 dark:text-ink-muted">
           {description ||
             (t.editConfirmModal.pleaseReviewTheModifiedFields)}
         </p>
@@ -65,9 +65,9 @@ export function EditConfirmModal({
             {filteredChanges.map((change, idx) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#0B1210] border border-slate-200 dark:border-white/10 space-y-1.5"
+                className="p-3.5 rounded-2xl bg-slate-50 dark:bg-surface border border-slate-200 dark:border-white/10 space-y-1.5"
               >
-                <div className="text-[11px] font-bold text-slate-700 dark:text-[#9EADA9] uppercase tracking-wider">
+                <div className="text-[11px] font-bold text-slate-700 dark:text-ink-muted uppercase tracking-wider">
                   {change.label}
                 </div>
 
@@ -112,7 +112,7 @@ export function EditConfirmModal({
             variant="primary"
             onClick={onConfirm}
             disabled={isSaving}
-            className="gap-2 bg-[#09937F] text-white text-xs shadow-lg shadow-[#09937F]/20"
+            className="gap-2 bg-accent text-white text-xs shadow-lg shadow-accent/20"
           >
             {isSaving ? (
               <Loader2 className="w-4 h-4 animate-spin" />

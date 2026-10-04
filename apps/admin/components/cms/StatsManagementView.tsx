@@ -74,16 +74,16 @@ export function StatsManagementView({ initialStats }: { initialStats: StatisticI
           </h1>
           <p className="text-xs text-slate-500 mt-1">{t.statsView.subtitle}</p>
         </div>
-        <Button onClick={handleOpenNew} className="bg-[#09937F] text-white">
+        <Button onClick={handleOpenNew} className="bg-accent text-white">
           <Plus className="w-4 h-4 mr-2" /> {t.statsView.newStat}
         </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
-          <Card key={stat.id} className="p-5 dark:bg-[#111C19] flex flex-col justify-between">
+          <Card key={stat.id} className="p-5 dark:bg-surface-raised flex flex-col justify-between">
             <div>
-              <div className="text-2xl  font-bold text-[#09937F] mb-2">{stat.value}</div>
+              <div className="text-2xl  font-bold text-accent mb-2">{stat.value}</div>
               <h3 className="font-bold text-sm dark:text-white">
                 {isRTL && stat.labelAr ? stat.labelAr : stat.labelEn}
               </h3>
@@ -101,7 +101,7 @@ export function StatsManagementView({ initialStats }: { initialStats: StatisticI
         ))}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? t.statsView.editStat : t.statsView.newStat}>
+      <Modal closeLabel={t.actions.close} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? t.statsView.editStat : t.statsView.newStat}>
         <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 sm:col-span-1">
@@ -120,7 +120,7 @@ export function StatsManagementView({ initialStats }: { initialStats: StatisticI
           <div><label className="text-xs font-bold block mb-1">{t.statsView.sortOrder}</label><Input type="number" value={sortOrder} onChange={e=>setSortOrder(Number(e.target.value))} /></div>
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t.statsView.cancel}</Button>
-            <Button type="submit" className="bg-[#09937F] text-white">{t.statsView.saveStat}</Button>
+            <Button type="submit" className="bg-accent text-white">{t.statsView.saveStat}</Button>
           </div>
         </form>
       </Modal>

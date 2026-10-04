@@ -73,14 +73,14 @@ export function FaqsManagementView({ initialFaqs }: { initialFaqs: FaqItem[] }) 
           </h1>
           <p className="text-xs text-slate-500 mt-1">{t.faqsView.subtitle}</p>
         </div>
-        <Button onClick={handleOpenNew} className="bg-[#09937F] text-white">
+        <Button onClick={handleOpenNew} className="bg-accent text-white">
           <Plus className="w-4 h-4 mr-2" /> {t.faqsView.newFaq}
         </Button>
       </div>
 
       <div className="space-y-3">
         {faqs.map((faq) => (
-          <Card key={faq.id} className="p-4 dark:bg-[#111C19] flex justify-between items-start gap-4">
+          <Card key={faq.id} className="p-4 dark:bg-surface-raised flex justify-between items-start gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Badge variant={faq.isPublished ? "emerald" : "default"}>
@@ -105,7 +105,7 @@ export function FaqsManagementView({ initialFaqs }: { initialFaqs: FaqItem[] }) 
         ))}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? t.faqsView.editFaq : t.faqsView.newFaq}>
+      <Modal closeLabel={t.actions.close} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? t.faqsView.editFaq : t.faqsView.newFaq}>
         <form onSubmit={handleSave} className="space-y-4">
           <div><label className="text-xs font-bold block mb-1">{t.faqsView.questionEn}</label><Input value={questionEn} onChange={e=>setQuestionEn(e.target.value)} required /></div>
           <div><label className="text-xs font-bold block mb-1">{t.faqsView.questionAr}</label><Input value={questionAr} onChange={e=>setQuestionAr(e.target.value)} required /></div>
@@ -120,7 +120,7 @@ export function FaqsManagementView({ initialFaqs }: { initialFaqs: FaqItem[] }) 
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t.faqsView.cancel}</Button>
-            <Button type="submit" className="bg-[#09937F] text-white">{t.faqsView.saveFaq}</Button>
+            <Button type="submit" className="bg-accent text-white">{t.faqsView.saveFaq}</Button>
           </div>
         </form>
       </Modal>

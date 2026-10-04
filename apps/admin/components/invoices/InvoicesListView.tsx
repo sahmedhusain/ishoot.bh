@@ -40,7 +40,7 @@ export function InvoicesListView({
           <Button
             variant="primary"
             size="sm"
-            className="gap-1.5 bg-[#014842] hover:bg-[#014842]/90 text-white rounded-full px-4 h-8 text-xs font-semibold shadow-xs"
+            className="gap-1.5 bg-primary hover:bg-primary/90 text-white rounded-full px-4 h-8 text-xs font-semibold shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.actions.newInvoice}</span>
@@ -53,13 +53,13 @@ export function InvoicesListView({
         <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200/80 dark:bg-teal-950/20 dark:border-teal-900/40 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
-              <div className="p-1.5 rounded-lg bg-[#014842] text-white">
+              <div className="p-1.5 rounded-lg bg-primary text-white">
                 <FileCheck className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>{t.invoicesList.acceptedQuotesBanner || (t.invoicesList.acceptedQuotationsReadyForInvoicing)}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-[#014842] dark:text-[#7de0d1]">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-primary dark:text-mint">
                     {acceptedQuotations.length}
                   </span>
                 </h3>
@@ -72,7 +72,7 @@ export function InvoicesListView({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-xs text-[#014842] dark:text-[#7de0d1] hover:underline"
+                className="text-xs text-primary dark:text-mint hover:underline"
               >
                 <span>{t.invoicesList.viewAll}</span>
                 <ArrowIcon className="w-3.5 h-3.5 ml-1 rtl:mr-1" />
@@ -84,7 +84,7 @@ export function InvoicesListView({
             {acceptedQuotations.slice(0, 3).map((q) => (
               <div
                 key={q.id}
-                className="p-3 bg-white dark:bg-[#121B19] rounded-xl border border-teal-100 dark:border-teal-900/30 flex items-center justify-between gap-3 shadow-xs hover:border-teal-300 dark:hover:border-teal-700 transition-colors"
+                className="p-3 bg-white dark:bg-surface-raised rounded-xl border border-teal-100 dark:border-teal-900/30 flex items-center justify-between gap-3 shadow-xs hover:border-teal-300 dark:hover:border-teal-700 transition-colors"
               >
                 <div className="min-w-0">
                   <div className="font-mono font-bold text-xs text-slate-900 dark:text-white">
@@ -93,7 +93,7 @@ export function InvoicesListView({
                   <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                     {q.client?.companyName || q.client?.firstName || t.invoicesList.directClient}
                   </div>
-                  <div className="text-xs font-mono font-semibold text-[#014842] dark:text-[#7de0d1] mt-1">
+                  <div className="text-xs font-mono font-semibold text-primary dark:text-mint mt-1">
                     {Number(q.totalAmount).toFixed(3)} {q.currency}
                   </div>
                 </div>
@@ -101,7 +101,7 @@ export function InvoicesListView({
                 <Link href={ROUTES.invoices.create({ quotationId: q.id })}>
                   <Button
                     size="sm"
-                    className="bg-[#014842] hover:bg-[#013833] text-white text-[11px] font-semibold gap-1 px-3 py-1.5 rounded-lg active:scale-[0.98] transition-all shrink-0"
+                    className="bg-primary hover:bg-primary-hover text-white text-[11px] font-semibold gap-1 px-3 py-1.5 rounded-lg active:scale-[0.98] transition-all shrink-0"
                   >
                     <span>{t.invoicesList.createInvoiceFromQuote || (t.invoicesList.createInvoice)}</span>
                     <ArrowIcon className="w-3 h-3" />
@@ -115,7 +115,7 @@ export function InvoicesListView({
 
       {/* KPI Chips */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-4 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs space-y-1">
+        <div className="p-4 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs space-y-1">
           <div className="text-xs font-medium text-slate-500 dark:text-neutral-400">
             {t.kpi.receivables}
           </div>
@@ -124,7 +124,7 @@ export function InvoicesListView({
           </div>
         </div>
 
-        <div className="p-4 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs space-y-1">
+        <div className="p-4 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs space-y-1">
           <div className="text-xs font-medium text-slate-500 dark:text-neutral-400">
             {t.kpi.overdueAlert}
           </div>
@@ -139,21 +139,21 @@ export function InvoicesListView({
           </div>
         </div>
 
-        <div className="p-4 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl shadow-xs space-y-1">
+        <div className="p-4 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl shadow-xs space-y-1">
           <div className="text-xs font-medium text-slate-500 dark:text-neutral-400">
             {t.charts.discountsGiven}
           </div>
-          <div className="text-xl font-bold text-[#014842] dark:text-[#7de0d1] ">
+          <div className="text-xl font-bold text-primary dark:text-mint ">
             <CurrencyDisplay amount={finance.discountsGiven} currency="BHD" />
           </div>
         </div>
       </div>
 
       {/* Search & Filter Toolbar + Table */}
-      <div className="bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl overflow-hidden shadow-xs">
+      <div className="bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-xs">
-            <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-slate-600 dark:text-neutral-400 uppercase  tracking-wider text-[11px]">
+            <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-ink/15 dark:border-ink/15 text-slate-600 dark:text-neutral-400 uppercase  tracking-wider text-[11px]">
               <tr>
                 <th className="p-3.5 text-start font-semibold">{t.finance.invoiceNumber}</th>
                 <th className="p-3.5 text-start font-semibold">{t.finance.client}</th>
@@ -173,7 +173,7 @@ export function InvoicesListView({
                   <td className="p-3.5  font-bold text-slate-900 dark:text-white">
                     <Link
                       href={ROUTES.invoices.detail(inv.id)}
-                      className="hover:text-[#014842] dark:hover:text-[#7de0d1] transition-colors"
+                      className="hover:text-primary dark:hover:text-mint transition-colors"
                     >
                       {inv.invoice_number}
                     </Link>
@@ -182,7 +182,7 @@ export function InvoicesListView({
                     {inv.contact_id ? (
                       <Link
                         href={ROUTES.crm.customer(inv.contact_id)}
-                        className="font-medium text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline transition-colors inline-flex items-center gap-1"
+                        className="font-medium text-slate-900 dark:text-white hover:text-primary dark:hover:text-mint hover:underline transition-colors inline-flex items-center gap-1"
                       >
                         <span>
                           {inv.contact?.company ||

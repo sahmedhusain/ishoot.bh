@@ -130,7 +130,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
         </Link>
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
-            <UserCog className="w-6 h-6 text-[#09937F]" />
+            <UserCog className="w-6 h-6 text-accent" />
             <span>{t.customerEdit.title}</span>
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -139,7 +139,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
         </div>
       </div>
 
-      <Card className="p-8 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm">
+      <Card className="p-8 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
@@ -235,7 +235,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               placeholder={t.customerEdit.notesPlaceholder}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#09937F]"
+              className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent"
             />
           </div>
 
@@ -250,7 +250,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
               variant="primary"
               size="sm"
               disabled={saving}
-              className="gap-2 bg-[#014842] hover:bg-[#014842]/90 text-white"
+              className="gap-2 bg-primary hover:bg-primary/90 text-white"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>{saving ? t.customerEdit.saving : t.customerEdit.save}</span>

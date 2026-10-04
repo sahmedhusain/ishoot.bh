@@ -68,29 +68,29 @@ export function NewCompanyDocumentFormView() {
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5 text-[#9EADA9]"
+            className="gap-1.5 text-ink-muted"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t.actions.back}</span>
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-[#09937F]" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
+            <Building2 className="w-6 h-6 text-accent" />
             <span>{t.companyDocumentsNew.title}</span>
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.companyDocumentsNew.subtitle}
           </p>
         </div>
       </div>
 
-      <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl">
+      <Card className="p-8 bg-surface border border-ink/10 rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error ? <p role="alert">{error}</p> : null}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.titleEnLabel}
               </label>
               <Input
@@ -101,7 +101,7 @@ export function NewCompanyDocumentFormView() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.titleArLabel}
               </label>
               <Input
@@ -114,41 +114,41 @@ export function NewCompanyDocumentFormView() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.categoryLabel}
               </label>
               <Select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as any)}
               >
-                <option value="cr_license" className="bg-[#0B1210] text-white">
+                <option value="cr_license" className="bg-surface text-ink">
                   {t.companyDocumentsView.categoryCrLicense}
                 </option>
                 <option
                   value="vat_certificate"
-                  className="bg-[#0B1210] text-white"
+                  className="bg-surface text-ink"
                 >
                   {t.companyDocumentsView.categoryVatCertificate}
                 </option>
                 <option
                   value="company_profile"
-                  className="bg-[#0B1210] text-white"
+                  className="bg-surface text-ink"
                 >
                   {t.companyDocumentsView.categoryCompanyProfile}
                 </option>
-                <option value="bylaws" className="bg-[#0B1210] text-white">
+                <option value="bylaws" className="bg-surface text-ink">
                   {t.companyDocumentsView.categoryBylaws}
                 </option>
                 <option
                   value="standard_contract"
-                  className="bg-[#0B1210] text-white"
+                  className="bg-surface text-ink"
                 >
                   {t.companyDocumentsView.categoryStandardContract}
                 </option>
               </Select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.docNumberLabel}
               </label>
               <Input
@@ -162,7 +162,7 @@ export function NewCompanyDocumentFormView() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.validFromLabel}
               </label>
               <Input
@@ -173,7 +173,7 @@ export function NewCompanyDocumentFormView() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.companyDocumentsNew.validUntilLabel}
               </label>
               <Input
@@ -194,7 +194,7 @@ export function NewCompanyDocumentFormView() {
           />
 
           <div>
-            <label className="text-xs font-semibold text-white mb-1.5 block">
+            <label className="text-xs font-semibold text-ink mb-1.5 block">
               {t.companyDocumentsNew.notesLabel}
             </label>
             <Input
@@ -204,7 +204,7 @@ export function NewCompanyDocumentFormView() {
             />
           </div>
 
-          <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
+          <div className="pt-6 border-t border-ink/10 flex items-center justify-end gap-4">
             <Link href={ROUTES.company.documents}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}

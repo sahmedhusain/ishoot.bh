@@ -327,7 +327,7 @@ export function InvoiceEditFormView({
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Section 1: Client Selection & Auto-fetch */}
-        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-white/10 pb-4">
             <div>
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
@@ -340,7 +340,7 @@ export function InvoiceEditFormView({
             {selectedContact && (
               <Link
                 href={ROUTES.crm.customer(selectedContact.id)}
-                className="text-xs text-[#09937F] hover:underline inline-flex items-center gap-1 font-semibold"
+                className="text-xs text-accent hover:underline inline-flex items-center gap-1 font-semibold"
               >
                 <span>{t.invoiceEdit.viewDossier}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -373,14 +373,14 @@ export function InvoiceEditFormView({
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Building className="w-4 h-4 text-[#09937F]" />
+                    <Building className="w-4 h-4 text-accent" />
                     <span className="font-bold text-sm text-slate-900 dark:text-white">
                       {selectedContact.company || selectedContact.full_name}
                     </span>
                   </div>
                   <Link
                     href={ROUTES.crm.customer(selectedContact.id)}
-                    className="text-xs text-[#014842] dark:text-[#09937F] hover:underline inline-flex items-center gap-1"
+                    className="text-xs text-primary dark:text-accent hover:underline inline-flex items-center gap-1"
                   >
                     <span>{t.invoiceEdit.viewDossier}</span>
                     <ExternalLink className="w-3 h-3" />
@@ -472,7 +472,7 @@ export function InvoiceEditFormView({
         </Card>
 
         {/* Section 2: Line Items */}
-        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
               {t.invoiceEdit.lineItems}
@@ -483,7 +483,7 @@ export function InvoiceEditFormView({
                 variant="outline"
                 size="sm"
                 onClick={addLineItem}
-                className="gap-1.5 text-xs text-[#09937F] border-[#09937F]/30 hover:bg-[#09937F]/10"
+                className="gap-1.5 text-xs text-accent border-accent/30 hover:bg-accent/10"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{t.invoiceEdit.addDeliverable}</span>
@@ -500,10 +500,10 @@ export function InvoiceEditFormView({
                 {/* Standard Service Quick Selector */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200/60 dark:border-white/10">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    <Sparkles className="w-3.5 h-3.5 text-[#09937F]" />
+                    <Sparkles className="w-3.5 h-3.5 text-accent" />
                     <span>{t.invoiceEdit.itemNumber} #{idx + 1}</span>
                     {item.service_id && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-[#09937F] border border-teal-200 dark:border-teal-800 ">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-accent border border-teal-200 dark:border-teal-800 ">
                         {t.invoiceEdit.catalogLinked}
                       </span>
                     )}
@@ -538,7 +538,7 @@ export function InvoiceEditFormView({
                             });
                           }
                         }}
-                        className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+                        className="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-accent"
                       >
                         <option value="">{t.invoiceEdit.customItemNone}</option>
                         {services.map((srv) => (
@@ -641,7 +641,7 @@ export function InvoiceEditFormView({
         </Card>
 
         {/* Section 3: Discounts & Tax Adjustments */}
-        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
             {t.invoiceEdit.discountTaxAdjustments}
           </h2>
@@ -687,7 +687,7 @@ export function InvoiceEditFormView({
                   checked={vatEnabled}
                   onChange={(e) => setVatEnabled(e.target.checked)}
                   disabled={isLocked}
-                  className="w-4 h-4 rounded text-[#014842] focus:ring-[#09937F]"
+                  className="w-4 h-4 rounded text-primary focus:ring-accent"
                 />
                 <span>{t.invoiceEdit.enableVat} ({vatPercentage}%)</span>
               </label>
@@ -696,7 +696,7 @@ export function InvoiceEditFormView({
         </Card>
 
         {/* Section 4: Terms & Notes */}
-        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-4">
           <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-100 dark:border-white/10 pb-3">
             {t.invoiceEdit.invoiceTermsNotes}
           </h2>
@@ -712,7 +712,7 @@ export function InvoiceEditFormView({
                 value={notesEn}
                 onChange={(e) => setNotesEn(e.target.value)}
                 disabled={isLocked}
-                className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#09937F]"
+                className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent"
               />
             </div>
 
@@ -726,14 +726,14 @@ export function InvoiceEditFormView({
                 value={notesAr}
                 onChange={(e) => setNotesAr(e.target.value)}
                 disabled={isLocked}
-                className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-[#09937F]"
+                className="w-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl p-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-accent"
               />
             </div>
           </div>
         </Card>
 
         {/* Section 5: Totals Summary */}
-        <Card className="p-6 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-3">
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm space-y-3">
           <div className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
             <span className="text-slate-500 dark:text-slate-400">{t.invoiceEdit.subtotal}</span>
             <span className=" font-bold text-slate-900 dark:text-white">
@@ -755,15 +755,15 @@ export function InvoiceEditFormView({
               <span className="text-slate-500 dark:text-slate-400">
                 {t.invoiceEdit.vatRate} ({vatPercentage}%)
               </span>
-              <span className=" font-bold text-[#09937F]">
+              <span className=" font-bold text-accent">
                 +{totals.vatAmount.toFixed(3)} {currency}
               </span>
             </div>
           )}
 
-          <div className="flex items-center justify-between text-sm border-t-2 border-[#09937F]/40 pt-3">
+          <div className="flex items-center justify-between text-sm border-t-2 border-accent/40 pt-3">
             <span className="font-bold text-slate-900 dark:text-white">{t.invoiceEdit.totalAmount}</span>
-            <span className=" font-bold text-2xl text-[#014842] dark:text-[#09937F]">
+            <span className=" font-bold text-2xl text-primary dark:text-accent">
               {totals.totalAmount.toFixed(3)} {currency}
             </span>
           </div>
@@ -782,7 +782,7 @@ export function InvoiceEditFormView({
               variant="primary"
               size="sm"
               disabled={submitting}
-              className="gap-2 bg-[#014842] hover:bg-[#014842]/90 text-white"
+              className="gap-2 bg-primary hover:bg-primary/90 text-white"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>

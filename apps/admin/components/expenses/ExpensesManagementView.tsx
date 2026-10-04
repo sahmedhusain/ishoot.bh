@@ -110,10 +110,10 @@ export function ExpensesManagementView({
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
             {t.nav.expenses}
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">
+          <p className="text-xs text-ink-muted mt-1">
             {t.expensesView.subtitle}
           </p>
         </div>
@@ -130,29 +130,29 @@ export function ExpensesManagementView({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.kpi.operatingExpenses}</span>
             <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400">
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white ">
+          <div className="text-2xl sm:text-3xl font-bold text-ink ">
             {totals.map((v) => <div key={v.currency}><CurrencyDisplay amount={v.amount} currency={v.currency as any} /></div>)}
           </div>
-          <div className="text-[11px] text-[#9EADA9]">
+          <div className="text-[11px] text-ink-muted">
             {count} {t.expensesView.loggedItems}
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.expensesView.costCenters}</span>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-[#10B981]">
               <Tag className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white ">
+          <div className="text-2xl sm:text-3xl font-bold text-ink ">
             {categories.length}
           </div>
           <div className="text-[11px] text-emerald-400">
@@ -160,25 +160,25 @@ export function ExpensesManagementView({
           </div>
         </Card>
 
-        <Card className="p-6 bg-[#0B1210] border border-white/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-[#9EADA9]">
+        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+          <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.expensesView.linkedProjects}</span>
-            <div className="w-8 h-8 rounded-lg bg-[#09937F]/10 flex items-center justify-center text-[#09937F]">
+            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
               <Receipt className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white ">
+          <div className="text-2xl sm:text-3xl font-bold text-ink ">
             {deals.length}
           </div>
-          <div className="text-[11px] text-[#09937F]">
+          <div className="text-[11px] text-accent">
             {t.expensesView.activeContracts}
           </div>
         </Card>
       </div>
 
-      <div className="bg-[#0B1210] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-surface border border-ink/10 rounded-3xl overflow-hidden shadow-xl">
         <table className="w-full text-start text-xs">
-          <thead className="bg-[#050807] border-b border-white/10 text-[#9EADA9] uppercase  tracking-wider">
+          <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.expensesView.desc}</th>
               <th className="p-4 text-start">{t.expensesView.category}</th>
@@ -189,14 +189,14 @@ export function ExpensesManagementView({
               <th className="p-4 text-end">{t.expensesView.actions}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/5">
+          <tbody className="divide-y divide-ink/5">
             {expenses.map((expense) => (
               <tr
                 key={expense.id}
-                className="hover:bg-white/[0.02] transition-colors"
+                className="hover:bg-ink/[0.02] transition-colors"
               >
                 <td className="p-4">
-                  <div className="font-bold text-white text-sm">
+                  <div className="font-bold text-ink text-sm">
                     {locale === "ar"
                       ? expense.description_ar || expense.description_en
                       : expense.description_en}
@@ -216,13 +216,13 @@ export function ExpensesManagementView({
                       : "—"}
                   </Badge>
                 </td>
-                <td className="p-4 text-[#9EADA9] ">
+                <td className="p-4 text-ink-muted ">
                   {expense.vendor_name || "—"}
                 </td>
-                <td className="p-4 text-[#09937F] ">
+                <td className="p-4 text-accent ">
                   {expense.deal?.title || "—"}
                 </td>
-                <td className="p-4 text-[#9EADA9] ">
+                <td className="p-4 text-ink-muted ">
                   <DateDisplay date={expense.expense_date} locale={locale} />
                 </td>
                 <td className="p-4 text-end  font-bold text-rose-400">
@@ -247,7 +247,7 @@ export function ExpensesManagementView({
         </table>
       </div>
 
-      <Modal
+      <Modal closeLabel={t.actions.close}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         title={t.actions.addExpense}
@@ -255,7 +255,7 @@ export function ExpensesManagementView({
         <form onSubmit={handleAddExpense} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.expensesView.descArLabel}
               </label>
               <Input
@@ -265,7 +265,7 @@ export function ExpensesManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.expensesView.descEnLabel}
               </label>
               <Input
@@ -279,7 +279,7 @@ export function ExpensesManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.expensesView.amountBhd}
               </label>
               <Input
@@ -292,7 +292,7 @@ export function ExpensesManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.expensesView.category}
               </label>
               <Select
@@ -303,7 +303,7 @@ export function ExpensesManagementView({
                   <option
                     key={c.id}
                     value={c.id}
-                    className="bg-[#0B1210] text-white"
+                    className="bg-surface text-ink"
                   >
                     {locale === "ar" ? c.name_ar : c.name_en}
                   </option>
@@ -314,7 +314,7 @@ export function ExpensesManagementView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.expensesView.vendorName}
               </label>
               <Input
@@ -324,7 +324,7 @@ export function ExpensesManagementView({
               />
             </div>
             <div>
-              <label className="text-xs text-white mb-1.5 block">
+              <label className="text-xs text-ink mb-1.5 block">
                 {t.expensesView.linkedDeal}
               </label>
               <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
@@ -332,7 +332,7 @@ export function ExpensesManagementView({
           </div>
 
           <div>
-            <label className="text-xs text-white mb-1.5 block">
+            <label className="text-xs text-ink mb-1.5 block">
               {t.expensesView.expenseDate}
             </label>
             <Input
@@ -342,7 +342,7 @@ export function ExpensesManagementView({
             />
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
             <Button
               type="button"
               variant="outline"

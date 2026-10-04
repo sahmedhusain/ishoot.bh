@@ -98,7 +98,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "customers":
-        return <Users className="w-4 h-4 text-[#09937F]" />;
+        return <Users className="w-4 h-4 text-accent" />;
       case "invoices":
         return <FileText className="w-4 h-4 text-amber-500" />;
       case "deals":
@@ -133,7 +133,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/60 backdrop-blur-sm animate-fade-in">
           <div className="fixed inset-0" onClick={() => setIsOpen(false)} />
 
-          <div className="relative w-full max-w-xl bg-white dark:bg-[#121B19] rounded-2xl border border-slate-200 dark:border-white/15 shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+          <div className="relative w-full max-w-xl bg-white dark:bg-surface-raised rounded-2xl border border-slate-200 dark:border-white/15 shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
             {/* Input Header */}
             <div className="p-4 border-b border-slate-100 dark:border-white/10 flex items-center gap-3">
               <Search className="w-5 h-5 text-slate-400 shrink-0" />
@@ -147,7 +147,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                 className="w-full bg-transparent text-sm sm:text-base text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none"
               />
               {loading && (
-                <Loader2 className="w-4 h-4 text-[#09937F] animate-spin shrink-0" />
+                <Loader2 className="w-4 h-4 text-accent animate-spin shrink-0" />
               )}
               <button
                 type="button"
@@ -184,7 +184,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`p-3 rounded-xl cursor-pointer flex items-center justify-between gap-3 text-xs transition-colors ${
                       isSelected
-                        ? "bg-[#E6F5F2] text-[#014842] dark:bg-[#192F2B] dark:text-white"
+                        ? "bg-[#E6F5F2] text-primary dark:bg-[#192F2B] dark:text-white"
                         : "hover:bg-slate-50 text-slate-700 dark:hover:bg-white/5 dark:text-slate-200"
                     }`}
                   >
@@ -237,7 +237,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                   {t.actions.cancel}
                 </span>
               </span>
-              <span className=" text-[10px] text-[#09937F] font-semibold">
+              <span className=" text-[10px] text-accent font-semibold">
                 {t.quickJump.universalSearch}
               </span>
             </div>

@@ -66,24 +66,24 @@ export function NewUserFormView({
           <Button
             variant="outline"
             size="sm"
-            className="gap-1.5 text-[#9EADA9]"
+            className="gap-1.5 text-ink-muted"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>{t.actions.back}</span>
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white font-display flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-[#09937F]" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display flex items-center gap-2">
+            <ShieldCheck className="w-6 h-6 text-accent" />
             <span>{t.usersNew.title}</span>
           </h1>
-          <p className="text-xs text-[#9EADA9] mt-1">{t.usersNew.subtitle}</p>
+          <p className="text-xs text-ink-muted mt-1">{t.usersNew.subtitle}</p>
         </div>
       </div>
 
-      <Card className="p-8 bg-[#0B1210] border border-white/10 rounded-3xl">
+      <Card className="p-8 bg-surface border border-ink/10 rounded-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <label className="block text-white">
+          <label className="block text-ink">
             {t.hrExtensions.employeeFirst}
             <Select
               required
@@ -118,7 +118,7 @@ export function NewUserFormView({
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.usersNew.nameLabel}
               </label>
               <Input
@@ -129,7 +129,7 @@ export function NewUserFormView({
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.usersNew.emailLabel}
               </label>
               <Input
@@ -144,7 +144,7 @@ export function NewUserFormView({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.usersNew.passwordLabel}
               </label>
               <Input
@@ -158,7 +158,7 @@ export function NewUserFormView({
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-white mb-1.5 block">
+              <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.usersNew.roleLabel}
               </label>
               <Select
@@ -169,7 +169,7 @@ export function NewUserFormView({
                   <option
                     key={r.id}
                     value={r.id}
-                    className="bg-[#0B1210] text-white"
+                    className="bg-surface text-ink"
                   >
                     {isRTL ? r.nameAr : r.nameEn}
                   </option>
@@ -178,7 +178,7 @@ export function NewUserFormView({
             </div>
           </div>
 
-          <div className="pt-6 border-t border-white/10 flex items-center justify-end gap-4">
+          <div className="pt-6 border-t border-ink/10 flex items-center justify-end gap-4">
             <Link href={ROUTES.users.list}>
               <Button type="button" variant="outline" size="sm">
                 {t.actions.cancel}

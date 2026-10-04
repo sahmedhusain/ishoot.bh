@@ -196,31 +196,31 @@ export function OdooCalendarView({
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0B1210] p-6 rounded-3xl border border-white/10 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface p-6 rounded-3xl border border-ink/10 shadow-xl">
         <div>
           <div className="flex items-center gap-2">
-            <CalendarIcon className="w-5 h-5 text-[#09937F]" />
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-display">
+            <CalendarIcon className="w-5 h-5 text-accent" />
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-ink font-display">
               {t.calendar.title}
             </h1>
           </div>
-          <p className="text-xs text-[#9EADA9] mt-1">{t.calendar.subtitle}</p>
+          <p className="text-xs text-ink-muted mt-1">{t.calendar.subtitle}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5 bg-[#050807] p-1 rounded-xl border border-white/10">
+          <div className="flex items-center gap-1.5 bg-surface-sunken p-1 rounded-xl border border-ink/10">
             <button
               onClick={isRTL ? nextMonth : prevMonth}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-[#9EADA9] hover:text-white transition-colors"
+              className="p-1.5 rounded-lg hover:bg-ink/10 text-ink-muted hover:text-ink transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="font-bold text-white text-xs px-2 min-w-[110px] text-center">
+            <span className="font-bold text-ink text-xs px-2 min-w-[110px] text-center">
               {monthNames[month]} {year}
             </span>
             <button
               onClick={isRTL ? prevMonth : nextMonth}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-[#9EADA9] hover:text-white transition-colors"
+              className="p-1.5 rounded-lg hover:bg-ink/10 text-ink-muted hover:text-ink transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -235,15 +235,15 @@ export function OdooCalendarView({
             {t.calendar.today}
           </Button>
 
-          <div className="flex items-center bg-[#050807] p-1 rounded-xl border border-white/10 text-xs font-semibold">
+          <div className="flex items-center bg-surface-sunken p-1 rounded-xl border border-ink/10 text-xs font-semibold">
             {(["month", "week", "day"] as const).map((m) => (
               <button
                 key={m}
                 onClick={() => setViewMode(m)}
                 className={`px-3 py-1 rounded-lg transition-all ${
                   viewMode === m
-                    ? "bg-[#09937F] text-white shadow-sm"
-                    : "text-[#9EADA9] hover:text-white"
+                    ? "bg-accent text-white shadow-sm"
+                    : "text-ink-muted hover:text-ink"
                 }`}
               >
                 {(t.calendar as any)[`${m}View`]}
@@ -255,7 +255,7 @@ export function OdooCalendarView({
             variant="primary"
             size="sm"
             onClick={openCreate}
-            className="gap-1.5 shadow-lg shadow-[#09937F]/20"
+            className="gap-1.5 shadow-lg shadow-accent/20"
           >
             <Plus className="w-4 h-4" />
             <span>{t.actions.newEvent}</span>
@@ -264,8 +264,8 @@ export function OdooCalendarView({
       </div>
 
       {viewMode === "month" && (
-        <Card className="p-4 sm:p-6 bg-[#0B1210] border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
-          <div className="grid grid-cols-7 gap-1 text-center  text-xs text-[#9EADA9] uppercase pb-3 border-b border-white/10 font-bold">
+        <Card className="p-4 sm:p-6 bg-surface border border-ink/10 rounded-3xl shadow-2xl overflow-hidden">
+          <div className="grid grid-cols-7 gap-1 text-center  text-xs text-ink-muted uppercase pb-3 border-b border-ink/10 font-bold">
             {weekDayNames.map((d) => (
               <div key={d} className="py-1">
                 {d}
@@ -277,7 +277,7 @@ export function OdooCalendarView({
             {Array.from({ length: firstDayIndex }).map((_, i) => (
               <div
                 key={`blank-${i}`}
-                className="min-h-[90px] sm:min-h-[110px] rounded-2xl bg-white/[0.01] border border-white/[0.03]"
+                className="min-h-[90px] sm:min-h-[110px] rounded-2xl bg-ink/[0.01] border border-ink/[0.03]"
               />
             ))}
 
@@ -305,20 +305,20 @@ export function OdooCalendarView({
                   }}
                   className={`min-h-[90px] sm:min-h-[110px] p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                     isToday
-                      ? "bg-[#014842]/20 border-[#09937F] shadow-lg shadow-[#09937F]/10"
-                      : "bg-[#050807] border-white/5 hover:border-white/20"
+                      ? "bg-primary/20 border-accent shadow-lg shadow-accent/10"
+                      : "bg-surface-sunken border-ink/5 hover:border-ink/20"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span
                       className={`text-xs  font-bold w-6 h-6 rounded-full flex items-center justify-center ${
-                        isToday ? "bg-[#09937F] text-white" : "text-[#9EADA9]"
+                        isToday ? "bg-accent text-white" : "text-ink-muted"
                       }`}
                     >
                       {dayNum}
                     </span>
                     {dayEvents.length > 0 && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#09937F]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                     )}
                   </div>
 
@@ -343,7 +343,7 @@ export function OdooCalendarView({
                       </div>
                     ))}
                     {dayEvents.length > 2 && (
-                      <div className="text-[9px]  text-[#9EADA9] text-center">
+                      <div className="text-[9px]  text-ink-muted text-center">
                         +{dayEvents.length - 2} {t.calendarView.more}
                       </div>
                     )}
@@ -356,17 +356,17 @@ export function OdooCalendarView({
       )}
 
       {(viewMode === "week" || viewMode === "day") && (
-        <Card className="p-6 bg-[#0B1210] border border-white/10 rounded-3xl space-y-4">
-          <div className="text-sm font-bold text-white uppercase tracking-wider border-b border-white/10 pb-3">
+        <Card className="p-6 bg-surface border border-ink/10 rounded-3xl space-y-4">
+          <div className="text-sm font-bold text-ink uppercase tracking-wider border-b border-ink/10 pb-3">
             {t.calendarView.upcomingAgenda}
           </div>
 
-          <div className="divide-y divide-white/5 space-y-2">
+          <div className="divide-y divide-ink/5 space-y-2">
             {events.map((ev) => (
               <div
                 key={ev.id}
                 onClick={() => setSelectedEvent(ev)}
-                className="p-4 rounded-2xl bg-[#050807] border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#09937F]/50 transition-all cursor-pointer"
+                className="p-4 rounded-2xl bg-surface-sunken border border-ink/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-accent/50 transition-all cursor-pointer"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -379,14 +379,14 @@ export function OdooCalendarView({
                     >
                       {(t.calendarView as any)[ev.event_type] || ev.event_type}
                     </span>
-                    <h3 className="text-sm font-bold text-white">
+                    <h3 className="text-sm font-bold text-ink">
                       {locale === "ar" && ev.title_ar ? ev.title_ar : ev.title}
                     </h3>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-[#9EADA9]">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-ink-muted">
                     <span className="flex items-center gap-1 ">
-                      <Clock className="w-3.5 h-3.5 text-[#09937F]" />
+                      <Clock className="w-3.5 h-3.5 text-accent" />
                       <span>
                         {new Date(ev.start_date).toLocaleString(
                           locale === "ar" ? "ar-BH" : "en-US",
@@ -395,7 +395,7 @@ export function OdooCalendarView({
                     </span>
                     {ev.location && (
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-[#09937F]" />
+                        <MapPin className="w-3.5 h-3.5 text-accent" />
                         <span>{ev.location}</span>
                       </span>
                     )}
@@ -410,7 +410,7 @@ export function OdooCalendarView({
                       e.stopPropagation();
                       openGoogleCalendarExport(ev);
                     }}
-                    className="gap-1.5 text-xs text-[#09937F] border-[#09937F]/40"
+                    className="gap-1.5 text-xs text-accent border-accent/40"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>{t.calendarView.googleCalendar}</span>
@@ -423,7 +423,7 @@ export function OdooCalendarView({
       )}
 
       {selectedEvent && (
-        <Modal
+        <Modal closeLabel={t.actions.close}
           isOpen={true}
           onClose={() => setSelectedEvent(null)}
           title={
@@ -433,29 +433,29 @@ export function OdooCalendarView({
           }
         >
           <div className="space-y-4 text-xs">
-            <div className="space-y-2 bg-[#050807] p-4 rounded-2xl border border-white/10">
+            <div className="space-y-2 bg-surface-sunken p-4 rounded-2xl border border-ink/10">
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">
+                <span className="text-ink-muted">
                   {t.calendarView.eventType}
                 </span>
-                <span className="font-bold text-[#09937F] uppercase">
+                <span className="font-bold text-accent uppercase">
                   {(t.calendarView as any)[selectedEvent.event_type] ||
                     selectedEvent.event_type}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">
+                <span className="text-ink-muted">
                   {t.calendarView.startTime}
                 </span>
-                <span className="text-white ">
+                <span className="text-ink ">
                   {new Date(selectedEvent.start_date).toLocaleString(
                     locale === "ar" ? "ar-BH" : "en-US",
                   )}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#9EADA9]">{t.calendarView.endTime}</span>
-                <span className="text-white ">
+                <span className="text-ink-muted">{t.calendarView.endTime}</span>
+                <span className="text-ink ">
                   {new Date(selectedEvent.end_date).toLocaleString(
                     locale === "ar" ? "ar-BH" : "en-US",
                   )}
@@ -463,18 +463,18 @@ export function OdooCalendarView({
               </div>
               {selectedEvent.location && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[#9EADA9]">
+                  <span className="text-ink-muted">
                     {t.calendarView.location}
                   </span>
-                  <span className="text-white">{selectedEvent.location}</span>
+                  <span className="text-ink">{selectedEvent.location}</span>
                 </div>
               )}
               {selectedEvent.deal && (
                 <div className="flex items-center justify-between">
-                  <span className="text-[#9EADA9]">
+                  <span className="text-ink-muted">
                     {t.calendarView.linkedDeal}
                   </span>
-                  <span className="text-[#09937F] font-bold">
+                  <span className="text-accent font-bold">
                     {selectedEvent.deal.title}
                   </span>
                 </div>
@@ -482,17 +482,17 @@ export function OdooCalendarView({
             </div>
 
             {selectedEvent.description && (
-              <p className="text-sm text-[#9EADA9] bg-[#050807] p-4 rounded-xl border border-white/5">
+              <p className="text-sm text-ink-muted bg-surface-sunken p-4 rounded-xl border border-ink/5">
                 {selectedEvent.description}
               </p>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/10">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-ink/10">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => openGoogleCalendarExport(selectedEvent)}
-                className="gap-2 text-[#09937F] border-[#09937F]/40"
+                className="gap-2 text-accent border-accent/40"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span>{t.actions.syncGoogle}</span>
@@ -528,14 +528,14 @@ export function OdooCalendarView({
         </Modal>
       )}
 
-      <Modal
+      <Modal closeLabel={t.actions.close}
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         title={editingId ? t.calendarView.editEvent : t.actions.newEvent}
       >
         <form onSubmit={handleSaveEvent} className="space-y-4 text-xs">
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">
+            <label className="text-ink-muted font-medium">
               {t.calendarView.eventTitleEnLabel}
             </label>
             <Input
@@ -547,7 +547,7 @@ export function OdooCalendarView({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">
+            <label className="text-ink-muted font-medium">
               {t.calendarView.eventTitleArLabel}
             </label>
             <Input
@@ -560,7 +560,7 @@ export function OdooCalendarView({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[#9EADA9] font-medium">
+              <label className="text-ink-muted font-medium">
                 {t.calendarView.startDateTime}
               </label>
               <Input
@@ -573,7 +573,7 @@ export function OdooCalendarView({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[#9EADA9] font-medium">
+              <label className="text-ink-muted font-medium">
                 {t.calendarView.endDateTime}
               </label>
               <Input
@@ -588,7 +588,7 @@ export function OdooCalendarView({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[#9EADA9] font-medium">
+              <label className="text-ink-muted font-medium">
                 {t.calendarView.eventTypeLabel}
               </label>
               <Select
@@ -603,7 +603,7 @@ export function OdooCalendarView({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[#9EADA9] font-medium">
+              <label className="text-ink-muted font-medium">
                 {t.calendarView.linkDeal}
               </label>
               <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
@@ -611,7 +611,7 @@ export function OdooCalendarView({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[#9EADA9] font-medium">
+            <label className="text-ink-muted font-medium">
               {t.calendarView.locationAddress}
             </label>
             <Input
@@ -621,7 +621,7 @@ export function OdooCalendarView({
             />
           </div>
 
-          <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
+          <div className="pt-4 flex items-center justify-end gap-3 border-t border-ink/10">
             <Button
               type="button"
               variant="ghost"

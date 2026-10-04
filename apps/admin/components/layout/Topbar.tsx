@@ -40,7 +40,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
   return (
     <header
       data-topbar
-      className="h-14 w-full fixed top-0 left-0 right-0 z-40 bg-white dark:bg-[#1f1f1f] border-b border-[#dadce0] dark:border-[#3c4043] px-3 sm:px-4 flex items-center justify-between select-none shadow-[0_1px_2px_0_rgba(60,64,67,0.08)] dark:shadow-none transition-colors duration-150"
+      className="h-14 w-full fixed top-0 left-0 right-0 z-40 bg-white dark:bg-[#1f1f1f] border-b border-ink/15 dark:border-ink/15 px-3 sm:px-4 flex items-center justify-between select-none shadow-[0_1px_2px_0_rgba(60,64,67,0.08)] dark:shadow-none transition-colors duration-150"
     >
       {/* Start: Hamburger Menu + Dynamic Brand Lockup */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -86,7 +86,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
 
       {/* Center: Google Cloud Style Minimalist Search Bar */}
       <div className="flex-1 max-w-xs sm:max-w-md lg:max-w-xl mx-2 sm:mx-6 flex justify-center">
-        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg bg-[#f1f3f4] hover:bg-[#e8eaed] dark:bg-[#282a2d] dark:hover:bg-[#35373a] text-slate-500 dark:text-neutral-400 text-xs transition-colors border border-transparent focus-within:border-[#09937F] focus-within:bg-white dark:focus-within:bg-[#1f1f1f] focus-within:shadow-sm justify-between cursor-pointer" />
+        <GlobalQuickJump className="w-full flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg bg-[#f1f3f4] hover:bg-[#e8eaed] dark:bg-[#282a2d] dark:hover:bg-[#35373a] text-slate-500 dark:text-neutral-400 text-xs transition-colors border border-transparent focus-within:border-accent focus-within:bg-white dark:focus-within:bg-[#1f1f1f] focus-within:shadow-sm justify-between cursor-pointer" />
       </div>
 
       {/* End: Action Cluster */}
@@ -112,7 +112,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
           {resolvedTheme === "dark" ? (
             <Sun className="w-4 h-4 text-amber-400" />
           ) : (
-            <Moon className="w-4 h-4 text-[#014842]" />
+            <Moon className="w-4 h-4 text-primary" />
           )}
         </button>
 

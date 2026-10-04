@@ -6,7 +6,7 @@ import * as React from "react";
 import Link from "next/link";
 import type { EnrichedAttachment } from "@ishoot/database";
 import type { CRMContact,CRMDeal,Invoice,Payment } from "@ishoot/database";
-import { Button,ConfirmDestructiveModal } from "@ishoot/ui";
+import { Button,ConfirmDestructiveModal, useDialog } from "@ishoot/ui";
 import {
 FolderOpen,
 Plus,FileText,Image as ImageIcon,
@@ -53,6 +53,7 @@ export function ArchiveManagementView({
   const [attachments, setAttachments] =
     React.useState<EnrichedAttachment[]>(initialAttachments);
   const [isUploadOpen, setIsUploadOpen] = React.useState(false);
+  const uploadDialog = useDialog(isUploadOpen, () => setIsUploadOpen(false));
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
 
   // Upload Form State
@@ -235,7 +236,7 @@ export function ArchiveManagementView({
     if (mime?.includes("video") || name.match(/\.(mp4|mov|mkv)$/i)) {
       return <Film className="w-4 h-4 text-purple-500" />;
     }
-    return <File className="w-4 h-4 text-[#09937F]" />;
+    return <File className="w-4 h-4 text-accent" />;
   };
 
   const formatFileSize = (bytes?: number) => {
@@ -265,7 +266,7 @@ export function ArchiveManagementView({
             setSelectedFile(null);
             setUploadError(null);
           }}
-          className="bg-[#014842] hover:bg-[#014842]/90 text-white gap-2 rounded-full px-4 h-9 text-xs font-semibold self-start sm:self-auto shadow-sm"
+          className="bg-primary hover:bg-primary/90 text-white gap-2 rounded-full px-4 h-9 text-xs font-semibold self-start sm:self-auto shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>{t.archiveView.uploadFile}</span>
@@ -274,43 +275,43 @@ export function ArchiveManagementView({
 
       {/* KPI Cards / Google Cloud Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
+        <div className="p-3.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.totalDocuments}</div>
           <div className="text-lg font-bold text-slate-900 dark:text-white  mt-0.5">
             {Object.values(counts).reduce((sum, n) => sum + n, 0)}
           </div>
         </div>
-        <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
+        <div className="p-3.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.filterPayments}</div>
           <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400  mt-0.5">
             {counts.payment || 0}
           </div>
         </div>
-        <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
+        <div className="p-3.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.filterLegal}</div>
           <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400  mt-0.5">
             {counts.company_setting || 0}
           </div>
         </div>
-        <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
+        <div className="p-3.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.invoicePdfs}</div>
           <div className="text-lg font-bold text-slate-900 dark:text-white  mt-0.5">
             {counts.invoice || 0}
           </div>
         </div>
-        <div className="p-3.5 bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
+        <div className="p-3.5 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl">
           <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">{t.archiveView.clientVaults}</div>
-          <div className="text-lg font-bold text-[#014842] dark:text-[#7de0d1]  mt-0.5">
+          <div className="text-lg font-bold text-primary dark:text-mint  mt-0.5">
             {(counts.contact || 0) + (counts.customer_vault || 0)}
           </div>
         </div>
       </div>
 
       {/* Main Attachments Table */}
-      <div className="bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-xl overflow-hidden shadow-xs">
+      <div className="bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-start text-xs">
-            <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-slate-600 dark:text-neutral-400 uppercase  tracking-wider text-[11px]">
+            <thead className="bg-[#f8fafd] dark:bg-[#202124] border-b border-ink/15 dark:border-ink/15 text-slate-600 dark:text-neutral-400 uppercase  tracking-wider text-[11px]">
               <tr>
                 <th className="p-3.5 text-start font-semibold">{t.archiveView.tableDocName}</th>
                 <th className="p-3.5 text-start font-semibold">{t.archiveView.tableLinkedEntity}</th>
@@ -337,7 +338,7 @@ export function ArchiveManagementView({
                           href={att.file_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-medium text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline transition-colors truncate block max-w-xs"
+                          className="font-medium text-slate-900 dark:text-white hover:text-primary dark:hover:text-mint hover:underline transition-colors truncate block max-w-xs"
                           title={att.file_name}
                         >
                           {att.file_name}
@@ -354,14 +355,14 @@ export function ArchiveManagementView({
                     {att.entity_link ? (
                       <Link
                         href={att.entity_link}
-                        className="inline-flex items-center gap-1.5 text-slate-800 dark:text-neutral-200 hover:text-[#014842] dark:hover:text-[#7de0d1] hover:underline font-medium"
+                        className="inline-flex items-center gap-1.5 text-slate-800 dark:text-neutral-200 hover:text-primary dark:hover:text-mint hover:underline font-medium"
                       >
                         {att.entity_type === "payment" ? (
                           <Landmark className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                         ) : att.entity_type === "company_setting" ? (
                           <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                         ) : att.entity_type === "contact" || att.entity_type === "customer_vault" ? (
-                          <Building2 className="w-3.5 h-3.5 text-[#09937F] shrink-0" />
+                          <Building2 className="w-3.5 h-3.5 text-accent shrink-0" />
                         ) : att.entity_type === "deal" ? (
                           <Briefcase className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                         ) : (
@@ -459,10 +460,10 @@ export function ArchiveManagementView({
       {/* Upload File Modal */}
       {isUploadOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="relative w-full max-w-lg bg-white dark:bg-[#1a1a1a] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-[#dadce0] dark:border-[#3c4043]">
+          <div {...uploadDialog} className="relative w-full max-w-lg bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-ink/15 dark:border-ink/15">
               <div className="flex items-center gap-2">
-                <UploadCloud className="w-5 h-5 text-[#014842] dark:text-[#7de0d1]" />
+                <UploadCloud className="w-5 h-5 text-primary dark:text-mint" />
                 <h2 className="text-sm font-bold text-slate-900 dark:text-white">
                   {t.archiveView.uploadModalTitle}
                 </h2>
@@ -490,7 +491,7 @@ export function ArchiveManagementView({
                   onClick={() => setUploadMode("file")}
                   className={`flex-1 py-1.5 rounded-md font-medium text-center transition-all ${
                     uploadMode === "file"
-                      ? "bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white shadow-xs font-semibold"
+                      ? "bg-white dark:bg-surface-raised text-slate-900 dark:text-white shadow-xs font-semibold"
                       : "text-slate-500 hover:text-slate-900 dark:text-neutral-400"
                   }`}
                 >
@@ -501,7 +502,7 @@ export function ArchiveManagementView({
                   onClick={() => setUploadMode("url")}
                   className={`flex-1 py-1.5 rounded-md font-medium text-center transition-all ${
                     uploadMode === "url"
-                      ? "bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white shadow-xs font-semibold"
+                      ? "bg-white dark:bg-surface-raised text-slate-900 dark:text-white shadow-xs font-semibold"
                       : "text-slate-500 hover:text-slate-900 dark:text-neutral-400"
                   }`}
                 >
@@ -535,7 +536,7 @@ export function ArchiveManagementView({
                     onClick={() => fileInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all ${
                       dragActive
-                        ? "border-[#014842] bg-[#014842]/5 dark:border-[#7de0d1] dark:bg-[#7de0d1]/5"
+                        ? "border-primary bg-primary/5 dark:border-mint dark:bg-mint/5"
                         : selectedFile
                           ? "border-emerald-400 bg-emerald-50/40 dark:border-emerald-800 dark:bg-emerald-950/20"
                           : "border-slate-300 dark:border-neutral-700 hover:border-slate-400 dark:hover:border-neutral-600 bg-slate-50/50 dark:bg-neutral-800/40"
@@ -605,7 +606,7 @@ export function ArchiveManagementView({
                     placeholder={t.archiveView.fieldFileUrlPlaceholder}
                     value={fileUrl}
                     onChange={(e) => setFileUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-accent"
                   />
                 </div>
               )}
@@ -621,7 +622,7 @@ export function ArchiveManagementView({
                   placeholder={t.archiveView.fieldDocNamePlaceholder}
                   value={fileName}
                   onChange={(e) => setFileName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-accent"
                 />
               </div>
 
@@ -638,7 +639,7 @@ export function ArchiveManagementView({
                       setEntityType(val);
                       setEntityId("");
                     }}
-                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
+                    className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-accent"
                   >
                     <option value="payment">{t.archiveView.catPayment}</option>
                     <option value="company_setting">{t.archiveView.catCompany}</option>
@@ -657,7 +658,7 @@ export function ArchiveManagementView({
                     <select
                       value={documentSubtype}
                       onChange={(e) => setDocumentSubtype(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-accent"
                     >
                       <option value="cheque_copy">{t.archiveView.proofCheque}</option>
                       <option value="bank_slip">{t.archiveView.proofBankSlip}</option>
@@ -673,7 +674,7 @@ export function ArchiveManagementView({
                     <select
                       value={mimeType}
                       onChange={(e) => setMimeType(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-[#09937F]"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 dark:bg-neutral-800 dark:border-neutral-700 dark:text-white focus:outline-none focus:border-accent"
                     >
                       <option value="application/pdf">{t.archiveView.mimePdf}</option>
                       <option value="image/png">{t.archiveView.mimePng}</option>
@@ -686,7 +687,7 @@ export function ArchiveManagementView({
 
               {/* Fetch only matching target records; never preload whole business tables. */}
               {["payment", "contact", "customer_vault", "deal", "invoice"].includes(entityType) && <EntityLookup key={entityType} domain={entityType === "customer_vault" ? "contacts" : entityType + "s"} value={entityId} onChange={setEntityId} />}
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#dadce0] dark:border-[#3c4043]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-ink/15 dark:border-ink/15">
                 <Button
                   type="button"
                   variant="ghost"
@@ -698,7 +699,7 @@ export function ArchiveManagementView({
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="bg-[#014842] hover:bg-[#014842]/90 text-white rounded-full px-5 text-xs font-semibold gap-2"
+                  className="bg-primary hover:bg-primary/90 text-white rounded-full px-5 text-xs font-semibold gap-2"
                 >
                   {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>{submitting ? t.archiveView.uploading : t.archiveView.saveVault}</span>

@@ -36,10 +36,10 @@ export function DealCard({ deal }: DealCardProps) {
         isDragging ? "opacity-50 z-50 shadow-2xl scale-105" : ""
       }`}
     >
-      <Card className="p-4 bg-white dark:bg-[#121B19] border border-slate-200/80 dark:border-white/10 hover:border-[#09937F]/50 transition-all rounded-xl shadow-sm space-y-3">
+      <Card className="p-4 bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 hover:border-accent/50 transition-all rounded-xl shadow-sm space-y-3">
         <Link
           href={ROUTES.crm.deal(deal.id)}
-          className="text-sm font-bold text-slate-900 dark:text-white hover:text-[#014842] dark:hover:text-[#09937F] leading-snug line-clamp-2 block transition-colors"
+          className="text-sm font-bold text-slate-900 dark:text-white hover:text-primary dark:hover:text-accent leading-snug line-clamp-2 block transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
           {deal.title}
@@ -47,11 +47,11 @@ export function DealCard({ deal }: DealCardProps) {
 
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 truncate">
-            <User className="w-3.5 h-3.5 text-[#09937F] shrink-0" />
+            <User className="w-3.5 h-3.5 text-accent shrink-0" />
             {deal.contact ? (
               <Link
                 href={ROUTES.crm.customer(deal.contact.id)}
-                className="hover:text-[#014842] dark:hover:text-[#09937F] hover:underline truncate font-medium"
+                className="hover:text-primary dark:hover:text-accent hover:underline truncate font-medium"
                 onClick={(e) => e.stopPropagation()}
                 title={t.dealCard.viewClientDossier}
               >
@@ -77,7 +77,7 @@ export function DealCard({ deal }: DealCardProps) {
           <span className="text-slate-500 dark:text-slate-400 ">
             {t.deals.dealValue}
           </span>
-          <span className=" font-bold text-[#014842] dark:text-[#09937F]">
+          <span className=" font-bold text-primary dark:text-accent">
             <CurrencyDisplay amount={deal.value} currency={deal.currency} />
           </span>
         </div>

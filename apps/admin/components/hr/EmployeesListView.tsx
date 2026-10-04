@@ -69,10 +69,10 @@ export function EmployeesListView({
   return (
     <div className="max-w-6xl mx-auto space-y-8 pb-16">
       {/* Editorial Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#EAEAEA] dark:border-white/10 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-ink/10 pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-[#09937F] bg-[#EDF3EC] dark:bg-[#004d40]/40 dark:text-[#7de0d1] px-2.5 py-0.5 rounded-full font-medium">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-[#EDF3EC] dark:bg-[#004d40]/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
               {t.employeesList.humanCapitalAndOrganization}
             </span>
           </div>
@@ -87,7 +87,7 @@ export function EmployeesListView({
         <div className="flex items-center gap-3">
           <Link
             href={ROUTES.hr.newEmployee()}
-            className="inline-flex items-center gap-2 bg-[#014842] hover:bg-[#013833] text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all shadow-xs"
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <UserPlus className="w-4 h-4" />
             <span>{t.employeesList.onboardEmployee}</span>
@@ -97,7 +97,7 @@ export function EmployeesListView({
 
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
+        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
             {t.employeesList.totalStaffCount}
           </div>
@@ -107,7 +107,7 @@ export function EmployeesListView({
           <div className="text-xs text-slate-400">{t.employeesList.totalRegisteredProfiles}</div>
         </div>
 
-        <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
+        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
             {t.shared.activeDuty}
           </div>
@@ -117,7 +117,7 @@ export function EmployeesListView({
           <div className="text-xs text-slate-400">{t.employeesList.availableForAssignment}</div>
         </div>
 
-        <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
+        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
             {t.employeesList.onApprovedLeave}
           </div>
@@ -128,7 +128,7 @@ export function EmployeesListView({
           <div className="text-xs text-slate-400">{t.employeesList.strictlyBlockedFromAllocation}</div>
         </div>
 
-        <div className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 p-5 rounded-lg space-y-1">
+        <div className="bg-white dark:bg-surface-raised border border-ink/10 p-5 rounded-lg space-y-1">
           <div className="text-xs text-slate-500 dark:text-neutral-400 uppercase tracking-wider font-mono">
             {t.employeesList.departments}
           </div>
@@ -140,7 +140,7 @@ export function EmployeesListView({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-white dark:bg-surface-raised border border-ink/10">
         <form
           onSubmit={handleSearch}
           className="flex items-center gap-2 w-full sm:w-80"
@@ -152,7 +152,7 @@ export function EmployeesListView({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t.employeesList.searchByNameEmployeeTitle}
-              className="w-full text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 pl-9 pr-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-[#09937F]"
+              className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 pl-9 pr-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
           <button
@@ -168,7 +168,7 @@ export function EmployeesListView({
           <select
             value={currentDepartment}
             onChange={(e) => updateFilter(e.target.value, currentStatus)}
-            className="text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 px-3 py-2 text-slate-800 dark:text-neutral-200"
+            className="text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 px-3 py-2 text-slate-800 dark:text-neutral-200"
           >
             <option value="all">{t.employeesList.allDepartments}</option>
             {departments.map((d) => (
@@ -182,7 +182,7 @@ export function EmployeesListView({
           <select
             value={currentStatus}
             onChange={(e) => updateFilter(currentDepartment, e.target.value)}
-            className="text-xs rounded-md border border-[#EAEAEA] dark:border-white/10 bg-slate-50 dark:bg-neutral-900 px-3 py-2 text-slate-800 dark:text-neutral-200"
+            className="text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 px-3 py-2 text-slate-800 dark:text-neutral-200"
           >
             <option value="all">{t.employeesList.allStatuses}</option>
             <option value="active">{t.shared.activeDuty}</option>
@@ -194,11 +194,11 @@ export function EmployeesListView({
       </div>
 
       {/* Employees Table */}
-      <Card className="bg-white dark:bg-[#1a1a1a] border border-[#EAEAEA] dark:border-white/10 rounded-lg overflow-hidden">
+      <Card className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-[#EAEAEA] dark:border-white/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
+              <tr className="border-b border-ink/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
                 <th className="py-3 px-4">{t.shared.employee}</th>
                 <th className="py-3 px-4">{t.employeesList.jobTitleAndDept}</th>
                 <th className="py-3 px-4">{t.employeesList.statusAndAvailability}</th>
@@ -207,7 +207,7 @@ export function EmployeesListView({
                 <th className="py-3 px-4 text-right">{t.employeesList.action}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EAEAEA] dark:divide-white/5">
+            <tbody className="divide-y divide-ink/10 dark:divide-white/5">
               {employees.length === 0 ? (
                 <tr>
                   <td
@@ -302,7 +302,7 @@ export function EmployeesListView({
                       <td className="py-3.5 px-4 text-right">
                         <Link
                           href={ROUTES.hr.employee(emp.id)}
-                          className="inline-flex items-center gap-1 text-xs text-[#09937F] hover:text-[#014842] dark:hover:text-[#7de0d1] font-medium"
+                          className="inline-flex items-center gap-1 text-xs text-accent hover:text-primary dark:hover:text-mint font-medium"
                         >
                           <span>{t.employeesList.profile}</span>
                           <ArrowRight className="w-3.5 h-3.5" />

@@ -45,27 +45,27 @@ export function PreferencesView() {
       <SettingsNavTabs />
 
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
           {t.preferences.title}
         </h1>
-        <p className="text-xs text-[#9EADA9] mt-1">{t.preferences.subtitle}</p>
+        <p className="text-xs text-ink-muted mt-1">{t.preferences.subtitle}</p>
       </div>
 
       {savedNotification && (
-        <div className="p-4 rounded-2xl bg-[#09937F]/15 border border-[#09937F]/40 flex items-center gap-3 text-[#09937F] text-xs font-semibold animate-fade-in">
+        <div className="p-4 rounded-2xl bg-accent/15 border border-accent/40 flex items-center gap-3 text-accent text-xs font-semibold animate-fade-in">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{savedNotification}</span>
         </div>
       )}
 
-      <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 shadow-2xl rounded-3xl space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-          <Globe className="w-5 h-5 text-[#09937F]" />
+      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 shadow-2xl rounded-3xl space-y-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
+          <Globe className="w-5 h-5 text-accent" />
           <div>
-            <h2 className="text-base font-bold text-white">
+            <h2 className="text-base font-bold text-ink">
               {t.preferences.sysLangTitle}
             </h2>
-            <p className="text-xs text-[#9EADA9]">
+            <p className="text-xs text-ink-muted">
               {t.preferences.sysLangSubtitle}
             </p>
           </div>
@@ -76,22 +76,22 @@ export function PreferencesView() {
             onClick={() => handleLanguageChange("ar")}
             className={`p-5 rounded-2xl border cursor-pointer transition-all ${
               locale === "ar"
-                ? "bg-[#014842]/20 border-[#09937F] shadow-lg shadow-[#09937F]/10"
-                : "bg-[#050807] border-white/10 hover:border-white/20"
+                ? "bg-primary/20 border-accent shadow-lg shadow-accent/10"
+                : "bg-surface-sunken border-ink/10 hover:border-ink/20"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-white">
+              <span className="text-sm font-bold text-ink">
                 {t.preferences.arabicLabel}
               </span>
               {locale === "ar" && (
-                <CheckCircle2 className="w-5 h-5 text-[#09937F]" />
+                <CheckCircle2 className="w-5 h-5 text-accent" />
               )}
             </div>
-            <p className="text-xs text-[#9EADA9] mt-2 leading-relaxed">
+            <p className="text-xs text-ink-muted mt-2 leading-relaxed">
               {t.preferences.arabicDesc}
             </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px]  font-bold bg-white/5 text-[#9EADA9]">
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px]  font-bold bg-ink/5 text-ink-muted">
               <span>RTL</span>
               <span>•</span>
               <span>IBM Plex Sans Arabic</span>
@@ -102,22 +102,22 @@ export function PreferencesView() {
             onClick={() => handleLanguageChange("en")}
             className={`p-5 rounded-2xl border cursor-pointer transition-all ${
               locale === "en"
-                ? "bg-[#014842]/20 border-[#09937F] shadow-lg shadow-[#09937F]/10"
-                : "bg-[#050807] border-white/10 hover:border-white/20"
+                ? "bg-primary/20 border-accent shadow-lg shadow-accent/10"
+                : "bg-surface-sunken border-ink/10 hover:border-ink/20"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-white">
+              <span className="text-sm font-bold text-ink">
                 {t.preferences.englishLabel}
               </span>
               {locale === "en" && (
-                <CheckCircle2 className="w-5 h-5 text-[#09937F]" />
+                <CheckCircle2 className="w-5 h-5 text-accent" />
               )}
             </div>
-            <p className="text-xs text-[#9EADA9] mt-2 leading-relaxed">
+            <p className="text-xs text-ink-muted mt-2 leading-relaxed">
               {t.preferences.englishDesc}
             </p>
-            <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px]  font-bold bg-white/5 text-[#9EADA9]">
+            <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px]  font-bold bg-ink/5 text-ink-muted">
               <span>LTR</span>
               <span>•</span>
               <span>Inter Sans</span>
@@ -126,14 +126,14 @@ export function PreferencesView() {
         </div>
       </Card>
 
-      <Card className="p-6 sm:p-8 bg-[#0B1210] border border-white/10 shadow-2xl rounded-3xl space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-          <Sparkles className="w-5 h-5 text-[#09937F]" />
+      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 shadow-2xl rounded-3xl space-y-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
+          <Sparkles className="w-5 h-5 text-accent" />
           <div>
-            <h2 className="text-base font-bold text-white">
+            <h2 className="text-base font-bold text-ink">
               {t.preferences.themeTitle}
             </h2>
-            <p className="text-xs text-[#9EADA9]">
+            <p className="text-xs text-ink-muted">
               {t.preferences.themeSubtitle}
             </p>
           </div>
@@ -144,31 +144,31 @@ export function PreferencesView() {
             onClick={() => handleThemeChange("dark")}
             className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
               theme === "dark"
-                ? "bg-[#014842]/20 border-[#09937F] shadow-lg shadow-[#09937F]/10"
-                : "bg-[#050807] border-white/10 hover:border-white/20"
+                ? "bg-primary/20 border-accent shadow-lg shadow-accent/10"
+                : "bg-surface-sunken border-ink/10 hover:border-ink/20"
             }`}
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-[#09937F]">
+                <div className="w-9 h-9 rounded-xl bg-ink/5 flex items-center justify-center text-accent">
                   <Moon className="w-4 h-4" />
                 </div>
                 {theme === "dark" && (
-                  <CheckCircle2 className="w-5 h-5 text-[#09937F]" />
+                  <CheckCircle2 className="w-5 h-5 text-accent" />
                 )}
               </div>
-              <div className="text-sm font-bold text-white">
+              <div className="text-sm font-bold text-ink">
                 {t.preferences.darkTitle}
               </div>
-              <p className="text-xs text-[#9EADA9] mt-1.5 leading-relaxed">
+              <p className="text-xs text-ink-muted mt-1.5 leading-relaxed">
                 {t.preferences.darkDesc}
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded-full bg-[#050807] border border-white/30" />
-              <span className="w-3 h-3 rounded-full bg-[#014842]" />
-              <span className="w-3 h-3 rounded-full bg-[#09937F]" />
-              <span className="text-[10px] text-[#9EADA9] ms-auto ">
+            <div className="mt-4 pt-3 border-t border-ink/10 flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-surface-sunken border border-ink/30" />
+              <span className="w-3 h-3 rounded-full bg-primary" />
+              <span className="w-3 h-3 rounded-full bg-accent" />
+              <span className="text-[10px] text-ink-muted ms-auto ">
                 #050807
               </span>
             </div>
@@ -178,31 +178,31 @@ export function PreferencesView() {
             onClick={() => handleThemeChange("light")}
             className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
               theme === "light"
-                ? "bg-[#014842]/20 border-[#09937F] shadow-lg shadow-[#09937F]/10"
-                : "bg-[#050807] border-white/10 hover:border-white/20"
+                ? "bg-primary/20 border-accent shadow-lg shadow-accent/10"
+                : "bg-surface-sunken border-ink/10 hover:border-ink/20"
             }`}
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-amber-400">
+                <div className="w-9 h-9 rounded-xl bg-ink/5 flex items-center justify-center text-amber-400">
                   <Sun className="w-4 h-4" />
                 </div>
                 {theme === "light" && (
-                  <CheckCircle2 className="w-5 h-5 text-[#09937F]" />
+                  <CheckCircle2 className="w-5 h-5 text-accent" />
                 )}
               </div>
-              <div className="text-sm font-bold text-white">
+              <div className="text-sm font-bold text-ink">
                 {t.preferences.lightTitle}
               </div>
-              <p className="text-xs text-[#9EADA9] mt-1.5 leading-relaxed">
+              <p className="text-xs text-ink-muted mt-1.5 leading-relaxed">
                 {t.preferences.lightDesc}
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5">
+            <div className="mt-4 pt-3 border-t border-ink/10 flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full bg-[#F8FAFC] border border-black/20" />
               <span className="w-3 h-3 rounded-full bg-[#FFFFFF] border border-black/20" />
-              <span className="w-3 h-3 rounded-full bg-[#09937F]" />
-              <span className="text-[10px] text-[#9EADA9] ms-auto ">
+              <span className="w-3 h-3 rounded-full bg-accent" />
+              <span className="text-[10px] text-ink-muted ms-auto ">
                 #F8FAFC
               </span>
             </div>
@@ -212,27 +212,27 @@ export function PreferencesView() {
             onClick={() => handleThemeChange("system")}
             className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
               theme === "system"
-                ? "bg-[#014842]/20 border-[#09937F] shadow-lg shadow-[#09937F]/10"
-                : "bg-[#050807] border-white/10 hover:border-white/20"
+                ? "bg-primary/20 border-accent shadow-lg shadow-accent/10"
+                : "bg-surface-sunken border-ink/10 hover:border-ink/20"
             }`}
           >
             <div>
               <div className="flex items-center justify-between mb-3">
-                <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center text-[#9EADA9]">
+                <div className="w-9 h-9 rounded-xl bg-ink/5 flex items-center justify-center text-ink-muted">
                   <Laptop className="w-4 h-4" />
                 </div>
                 {theme === "system" && (
-                  <CheckCircle2 className="w-5 h-5 text-[#09937F]" />
+                  <CheckCircle2 className="w-5 h-5 text-accent" />
                 )}
               </div>
-              <div className="text-sm font-bold text-white">
+              <div className="text-sm font-bold text-ink">
                 {t.preferences.systemTitle}
               </div>
-              <p className="text-xs text-[#9EADA9] mt-1.5 leading-relaxed">
+              <p className="text-xs text-ink-muted mt-1.5 leading-relaxed">
                 {t.preferences.systemDesc}
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-white/10 text-[10px] text-[#09937F] ">
+            <div className="mt-4 pt-3 border-t border-ink/10 text-[10px] text-accent ">
               {t.preferences.activePrefix}
               {resolvedTheme === "dark"
                 ? t.preferences.darkWord
@@ -242,13 +242,13 @@ export function PreferencesView() {
         </div>
       </Card>
 
-      <div className="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-start gap-3">
-        <Info className="w-5 h-5 text-[#09937F] shrink-0 mt-0.5" />
+      <div className="p-4 rounded-2xl bg-ink/5 border border-ink/10 flex items-start gap-3">
+        <Info className="w-5 h-5 text-accent shrink-0 mt-0.5" />
         <div className="text-xs space-y-1">
-          <div className="font-bold text-white">
+          <div className="font-bold text-ink">
             {t.preferences.numeralsTitle}
           </div>
-          <p className="text-[#9EADA9] leading-relaxed">
+          <p className="text-ink-muted leading-relaxed">
             {t.preferences.numeralsDesc}
           </p>
         </div>
