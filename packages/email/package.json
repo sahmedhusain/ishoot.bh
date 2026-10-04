@@ -5,11 +5,14 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@ishoot/database": "workspace:*",
     "@ishoot/locales": "workspace:*",
     "resend": "^4.1.2"
   },
   "devDependencies": {
+    "@types/node": "^22.20.4",
     "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
   }
 }

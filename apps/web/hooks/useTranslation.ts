@@ -2,9 +2,8 @@
 
 import { useLocale } from "./useLocale";
 import {
-  getTranslations,
-  getNestedTranslation,
-  type TranslationKeys,
+getTranslations,
+getNestedTranslation
 } from "@ishoot/locales";
 
 export function useTranslation() {

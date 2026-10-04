@@ -1,8 +1,10 @@
 "use server";
-import { db, measureOperation } from "@ishoot/database";
+import { validateActionArguments } from "../../lib/action-input";
+import { db,measureOperation } from "@ishoot/database";
 import { requirePermission } from "../../lib/auth";
 
 export async function fetchSocialMetrics() {
+  validateActionArguments("fetchSocialMetrics", {  });
   return measureOperation("action:fetchSocialMetrics", async () => {
     await requirePermission("settings", "read");
 

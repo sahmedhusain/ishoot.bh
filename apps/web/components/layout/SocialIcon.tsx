@@ -1,18 +1,17 @@
-import * as React from "react";
 import {
-  Instagram,
-  Youtube,
-  Twitter,
-  Facebook,
-  Linkedin,
-  Github,
-  Globe,
-  Mail,
-  Phone,
-  MessageCircle,
-  Send,
-  Link as LinkIcon,
-  type LucideIcon,
+Instagram,
+Youtube,
+Twitter,
+Facebook,
+Linkedin,
+Github,
+Globe,
+Mail,
+Phone,
+MessageCircle,
+Send,
+Link as LinkIcon,
+type LucideIcon,
 } from "lucide-react";
 
 const SOCIAL_ICON_MAP: Record<string, LucideIcon> = {

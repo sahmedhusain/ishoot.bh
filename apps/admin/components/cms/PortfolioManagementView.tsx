@@ -1,33 +1,27 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 import Link from "next/link";
 
 import * as React from "react";
-import type { PortfolioItem, PortfolioCategory } from "@ishoot/database/types";
+import type { PortfolioItem,PortfolioCategory } from "@ishoot/database/types";
 import {
-  Button,
-  Card,
-  Badge,
-  Modal,
-  Input,
-  Select,
-  ConfirmDestructiveModal,
+Button,Badge,
+Modal,
+Input,
+Select,
+ConfirmDestructiveModal
 } from "@ishoot/ui";
 import {
-  Plus,
-  Eye,
-  Trash2,
-  Star,
-  CheckCircle2,
-  Film,
-  Filter,
+Plus,Trash2,
+Star,
+CheckCircle2,Filter
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
-  togglePortfolioFeaturedAction,
-  deletePortfolioItemAction,
-  createPortfolioItemAction,
-  updatePortfolioContentAction,
+togglePortfolioFeaturedAction,
+deletePortfolioItemAction,
+createPortfolioItemAction,
+updatePortfolioContentAction,
 } from "../../app/actions/cms";
 
 interface PortfolioManagementViewProps {

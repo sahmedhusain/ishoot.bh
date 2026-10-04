@@ -56,7 +56,7 @@ export async function createUser(data: {
   full_name: string;
   email: string;
   password: string;
-  role: UserRole;
+  role: string;
   phone?: string;
   department?: string;
   signature_url?: string;

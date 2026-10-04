@@ -4,36 +4,28 @@ import { uploadFileDirectly } from "../../lib/upload-client";
 import * as React from "react";
 import Link from "next/link";
 import type { EnrichedAttachment } from "@ishoot/database";
-import type { CRMContact, CRMDeal, Invoice, Payment } from "@ishoot/database";
-import { Card, Button, Input, Select, ConfirmDestructiveModal } from "@ishoot/ui";
+import type { CRMContact,CRMDeal,Invoice,Payment } from "@ishoot/database";
+import { Button,ConfirmDestructiveModal } from "@ishoot/ui";
 import {
-  FolderOpen,
-  Plus,
-  Search,
-  FileText,
-  FileCode,
-  Image as ImageIcon,
-  Film,
-  Download,
-  Trash2,
-  ExternalLink,
-  Building2,
-  Briefcase,
-  Receipt,
-  File,
-  X,
-  UploadCloud,
-  CheckCircle2,
-  Landmark,
-  ShieldCheck,
-  CreditCard,
-  FileCheck,
-  Loader2,
-  AlertCircle,
+FolderOpen,
+Plus,FileText,Image as ImageIcon,
+Film,
+Download,
+Trash2,
+ExternalLink,
+Building2,
+Briefcase,
+Receipt,
+File,
+X,
+UploadCloud,Landmark,
+ShieldCheck,FileCheck,
+Loader2,
+AlertCircle
 } from "lucide-react";
 import {
-  createAttachmentAction,
-  deleteAttachmentAction,
+createAttachmentAction,
+deleteAttachmentAction,
 } from "../../app/actions/attachments";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -56,7 +48,7 @@ export function ArchiveManagementView({
   invoices = [],
   payments = [],
 }: ArchiveManagementViewProps) {
-  const { isRTL, locale, t } = useAdminLocale();
+  const { t } = useAdminLocale();
   const [attachments, setAttachments] =
     React.useState<EnrichedAttachment[]>(initialAttachments);
   const [isUploadOpen, setIsUploadOpen] = React.useState(false);

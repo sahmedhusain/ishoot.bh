@@ -8,7 +8,6 @@ const ts = require("typescript");
 function load(file, mocks) {
   if (mocks["@ishoot/database"]) { mocks["@ishoot/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@ishoot/database"].memoizeOperation ??= async(_key,fn)=>fn(); mocks["@ishoot/database"].requireFeatureEnabled ??= async()=>{}; mocks["@ishoot/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@ishoot/database"].db) mocks["@ishoot/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
-  mocks["../../../lib/upload-input"] ??= require("../apps/admin/lib/upload-input.ts");
   mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };
   if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
 
@@ -228,13 +227,13 @@ async function main() {
   const response = {
     json: (body, options) => ({ body, status: options?.status || 200 }),
   };
-  const upload = load("apps/admin/app/api/upload/route.ts", {
+  const upload = load("apps/admin/app/api/upload/init/route.ts", {
     "next/server": { NextResponse: response },
     "fs/promises": {},
     path: require("node:path"),
     crypto: require("node:crypto"),
-    "../../../lib/auth": { getCurrentUser: async () => null },
-    "../../../lib/attachment-access": {},
+    "../../../../lib/auth": { getCurrentUser: async () => null },
+    "../../../../lib/attachment-access": {},
     "@ishoot/database": {},
     "@ishoot/locales": { getTranslations: () => ({ api: { upload: {} } }) },
     "next/cache": {},

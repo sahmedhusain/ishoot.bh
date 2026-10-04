@@ -1,10 +1,9 @@
 import { Reveal } from "../../../components/shared/Reveal";
-import { getWebsite, isWebsitePreview } from "../../../lib/website";
-import * as React from "react";
+import { getWebsite,isWebsitePreview } from "../../../lib/website";
 import { notFound } from "next/navigation";
 import { PortfolioGrid } from "../../../components/portfolio/PortfolioGrid";
 import { SectionBadge } from "../../../components/shared/SectionBadge";
-import { getTranslations, Locale } from "@ishoot/locales";
+import { getTranslations,Locale } from "@ishoot/locales";
 
 export default async function WorksPage({
   params,

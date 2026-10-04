@@ -1,17 +1,17 @@
 "use client";
-import { uploadFileDirectly } from "../../lib/upload-client";
 
+import { uploadFileDirectly } from "../../lib/upload-client";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Card,
-  Button,
-  Input,
-  ProofUploader,
-  ProofFile,
+Card,
+Button,
+Input,
+ProofUploader,
+ProofFile,
 } from "@ishoot/ui";
-import { ArrowLeft, CheckCircle2, Receipt } from "lucide-react";
+import { ArrowLeft,CheckCircle2,Receipt } from "lucide-react";
 import { createExpenseAction } from "../../app/actions/finance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -37,7 +37,10 @@ export function NewExpenseFormView() {
 
     try {
       let receipt_url: string | undefined;
-      if(proofFiles[0]?.file){const body=new FormData();body.set("file",proofFiles[0].file);body.set("entityType","expense");body.set("entityId","pending");const response=await fetch("/api/upload",{method:"POST",body});const result=await response.json();if(!response.ok||!result.success)throw new Error(result.error||"Upload failed");receipt_url=result.fileUrl;}
+      if (proofFiles[0]?.file) {
+        const uploaded = await uploadFileDirectly(proofFiles[0].file, { entityType: "expense", entityId: "pending" });
+        receipt_url = uploaded.fileUrl;
+      }
       await createExpenseAction({
         receipt_url,
         description_en: descriptionEn,

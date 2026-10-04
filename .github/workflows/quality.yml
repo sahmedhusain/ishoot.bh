@@ -35,6 +35,7 @@ jobs:
       - run: pnpm exec prisma generate --schema packages/database/prisma/schema.prisma
       - run: pnpm exec prisma migrate deploy --schema packages/database/prisma/schema.prisma
       - run: pnpm lint
+      - run: pnpm audit:unused && pnpm test:uploads
       - run: pnpm test:action-schemas && pnpm test:platform && pnpm test:audit-security
       - run: pnpm test:audit-db && pnpm test:followup-db && pnpm test:open-items-db
       - run: node scripts/check-website.cjs

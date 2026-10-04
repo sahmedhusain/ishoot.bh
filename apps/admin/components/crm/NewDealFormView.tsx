@@ -3,8 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input, Select } from "@ishoot/ui";
-import { ArrowLeft, CheckCircle2, Kanban } from "lucide-react";
+import { Card,Button,Input,Select } from "@ishoot/ui";
+import { ArrowLeft,CheckCircle2,Kanban } from "lucide-react";
 import { DEAL_STAGES } from "@ishoot/config/constants";
 import { createCRMDealAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -16,7 +16,7 @@ export function NewDealFormView({ defaultCurrency }: { defaultCurrency: string }
   const [title, setTitle] = React.useState("");
   const [value, setValue] = React.useState<number>(0);
   const [stage, setStage] = React.useState<any>("lead");
-  const [contactId, setContactId] = React.useState("");
+  const [contactId] = React.useState("");
   const [shootDate, setShootDate] = React.useState("");
   const [notes, setNotes] = React.useState("");
   const [saving, setSaving] = React.useState(false);

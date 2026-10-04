@@ -1,5 +1,4 @@
 import { requirePermission } from "../../../../lib/auth";
-import * as React from "react";
 import { getAllEquipment } from "@ishoot/database";
 import { EquipmentManagementView } from "../../../../components/cms/EquipmentManagementView";
 

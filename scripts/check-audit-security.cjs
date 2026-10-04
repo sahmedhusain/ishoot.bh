@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 function load(file, mocks) {
-  if (mocks["@ishoot/database"]) { mocks["@ishoot/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@ishoot/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@ishoot/database"].db) mocks["@ishoot/database"].db.$queryRaw ??= async () => []; }
+  if (mocks["@ishoot/database"]) { mocks["@ishoot/database"].requireFeatureEnabled ??= async () => {}; mocks["@ishoot/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@ishoot/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@ishoot/database"].db) mocks["@ishoot/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
   mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };
   if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
@@ -298,30 +298,19 @@ async function main() {
       .includes("<strong onclick"),
     false,
   );
-  const assetRoot = require("node:path").resolve(process.cwd(), "public");
   const asset = load("apps/admin/lib/pdf/configured-asset.ts", {
-    fs: {
-      realpathSync: (file) =>
-        file.endsWith("escape.png") ? "/tmp/escape.png" : file,
-      statSync: () => ({ isFile: () => true }),
+    sharp: () => { throw Error("PNG assets should not require conversion"); },
+    "fs/promises": {
+      realpath: async (file) => file.endsWith("escape.png") ? "/tmp/escape.png" : file,
+      stat: async () => ({ isFile: () => true }),
+      readFile: async () => Buffer.from("configured image"),
     },
     path: require("node:path"),
     "@ishoot/database": { uploadRoot: () => "/unused" },
   });
-  assert.equal(asset.resolveConfiguredPdfAsset(null), undefined);
-  assert.equal(
-    asset.resolveConfiguredPdfAsset("https://external.invalid/stamp.png"),
-    undefined,
-  );
-  assert.equal(
-    asset.resolveConfiguredPdfAsset("/brand/../../secret.png"),
-    undefined,
-  );
-  assert.equal(asset.resolveConfiguredPdfAsset("/brand/escape.png"), undefined);
-  assert.equal(
-    asset.resolveConfiguredPdfAsset("/brand/configured.svg"),
-    assetRoot + "/brand/configured.png",
-  );
+  for (const url of [null, "https://external.invalid/stamp.png", "/brand/../../secret.png", "/brand/escape.png"])
+    assert.equal(await asset.resolveConfiguredPdfAsset(url), undefined);
+  assert.equal((await asset.resolveConfiguredPdfAsset("/brand/configured.svg")).toString(), "configured image");
   const brokenReads = load("packages/database/src/queries/banners.ts", {
     "../db": {
       db: {

@@ -1,14 +1,13 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sliders, Building2, History, Share2, Globe } from "lucide-react";
+import { Sliders,Building2,History,Share2,Globe } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function SettingsNavTabs() {
   const pathname = usePathname();
-  const { t, isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
 
   const tabs = [
     {

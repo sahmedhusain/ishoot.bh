@@ -1,10 +1,9 @@
 import { requirePermission } from "../../../lib/auth";
-import * as React from "react";
 import {
-  getFinancialSummary,
-  getMonthlyCashflow,
-  getExpenseCategoryTotals,
-  getExpenseCategories,
+getFinancialSummary,
+getMonthlyCashflow,
+getExpenseCategoryTotals,
+getExpenseCategories,
 } from "@ishoot/database";
 import { FinancialAnalyticsView } from "../../../components/finance/FinancialAnalyticsView";
 

@@ -52,7 +52,7 @@ export async function saveCompanyAssetAction(
   return measureOperation("action:saveCompanyAssetAction", async () => {
     const user = await requirePermission("settings", "write");
     validateActionArguments("saveCompanyAssetAction", { assetKey, data });
-    const { asset, syncMap } = await runAtomicMutation(async () => {
+    const { asset } = await runAtomicMutation(async () => {
       let verified = data;
       if (data.fileUrl.startsWith("/api/files/")) {
         const upload = await db.uploadObject.findUnique({
@@ -128,7 +128,7 @@ export async function deleteCompanyAssetAction(assetKey: string) {
   return measureOperation("action:deleteCompanyAssetAction", async () => {
     const user = await requirePermission("settings", "write");
     validateActionArguments("deleteCompanyAssetAction", { assetKey });
-    const { deleted, syncMap } = await runAtomicMutation(async () => {
+    const { deleted } = await runAtomicMutation(async () => {
       const deleted = await deleteCompanyAsset(assetKey);
       const syncMap: Record<string, keyof CompanySettings> = {
         logo_light: "logo_url",

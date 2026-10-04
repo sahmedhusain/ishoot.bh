@@ -1,11 +1,10 @@
-import {ContentImage} from "../../../../components/shared/ContentImage";
+import { ContentImage } from "../../../../components/shared/ContentImage";
 import { Reveal } from "../../../../components/shared/Reveal";
 import { getWebsite } from "../../../../lib/website";
-import * as React from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getTranslations, Locale } from "@ishoot/locales";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { getTranslations,Locale } from "@ishoot/locales";
+import { ArrowLeft,ArrowRight } from "lucide-react";
 
 export default async function ProjectDetailPage({
   params,

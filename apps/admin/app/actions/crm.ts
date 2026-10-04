@@ -4,25 +4,23 @@ import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
-  updateDealStage,
-  createCRMDeal,
-  updateCRMDeal,
-  createCRMContact,
-  updateCRMContact,
-  deleteCRMContact,
-  updateInquiryStatus,
-  deleteInquiry,
-  createActivityLog,
-  lookupCRMContactByEmailOrPhone,
-  searchCRMContacts,
-  globalAdminSearch,
-  hasPermission,
-  DealStage,
-  InquiryStatus,
+updateDealStage,
+createCRMDeal,
+updateCRMDeal,
+createCRMContact,
+updateCRMContact,
+deleteCRMContact,
+updateInquiryStatus,createActivityLog,
+lookupCRMContactByEmailOrPhone,
+searchCRMContacts,
+globalAdminSearch,
+hasPermission,
+DealStage,
+InquiryStatus
 } from "@ishoot/database";
 import { requireInquiryAccess } from "../../lib/inquiry-access";
 import { revalidatePath } from "next/cache";
-import { requireAuth, requirePermission } from "../../lib/auth";
+import { requireAuth,requirePermission } from "../../lib/auth";
 import { requireFeatureEnabled } from "@ishoot/database";
 
 export async function updateDealStageAction(id: string, stage: DealStage) {
@@ -291,28 +289,6 @@ export async function updateInquiryStatusAction(
   });
 }
 
-export async function deleteInquiryAction(id: string) {
-  return measureOperation("action:deleteInquiryAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requireInquiryAccess(id, "delete");
-    validateActionArguments("deleteInquiryAction", { id });
-    await runAtomicMutation(async () => {
-      if (!(await deleteInquiry(id)))
-        throw new Error("Could not delete request");
-      await createActivityLog({
-        user_id: user.id,
-        action: "delete",
-        entity_type: "lead",
-        entity_id: id,
-      });
-      return {};
-    });
-
-    revalidatePath("/dashboard/crm/leads");
-    revalidatePath("/dashboard");
-    return { success: true };
-  });
-}
-
 export async function convertInquiryToClientAction(inquiryId: string) {
   return measureOperation("action:convertInquiryToClientAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requireInquiryAccess(inquiryId, "write");
@@ -568,51 +544,6 @@ export async function linkInquiryCustomerAction(
       });
     });
     revalidatePath("/dashboard/crm/leads");
-    return { success: true };
-  });
-}
-
-export async function mergeContactsAction(primaryId: string, duplicateIds: string[]) {
-  return measureOperation("action:mergeContactsAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("contacts", "write");
-    validateActionArguments("mergeContactsAction", { primaryId, duplicateIds });
-    await requirePermission("deals", "write");
-    await requirePermission("invoices", "write");
-    await requirePermission("moms", "write");
-    
-    if (!duplicateIds.length) throw new Error("No duplicate contacts specified");
-    if (duplicateIds.includes(primaryId)) throw new Error("Primary contact cannot be in duplicates array");
-
-    const { db } = await import("@ishoot/database");
-    await db.$transaction(async (tx) => {
-      const primary = await tx.crmContact.findUnique({ where: { id: primaryId } });
-      if (!primary) throw new Error("Primary contact not found");
-
-      for (const dupId of duplicateIds) {
-        const dup = await tx.crmContact.findUnique({ where: { id: dupId } });
-        if (!dup) throw new Error(`Duplicate contact ${dupId} not found`);
-
-        await tx.crmDeal.updateMany({ where: { contactId: dupId }, data: { contactId: primaryId } });
-        await tx.invoice.updateMany({ where: { clientId: dupId }, data: { clientId: primaryId } });
-        
-        await tx.inquiry.updateMany({ where: { customerId: dupId }, data: { customerId: primaryId } });
-        await tx.minuteOfMeeting.updateMany({ where: { clientId: dupId }, data: { clientId: primaryId } });
-        await tx.crmContact.delete({ where: { id: dupId } });
-
-        await tx.activityLog.create({
-          data: {
-            userId: user.id,
-            action: "merge",
-            entityType: "contact",
-            entityId: primaryId,
-            details: { mergedContactId: dupId, mergedName: `${dup.firstName} ${dup.lastName}` },
-          },
-        });
-      }
-    });
-
-    revalidatePath("/dashboard/crm/contacts");
-    revalidatePath(`/dashboard/crm/customers/${primaryId}`);
     return { success: true };
   });
 }

@@ -1,5 +1,4 @@
 import { requirePermission } from "../../../lib/auth";
-import * as React from "react";
 import { getCalendarEvents } from "@ishoot/database";
 import { OdooCalendarView } from "../../../components/calendar/OdooCalendarView";
 

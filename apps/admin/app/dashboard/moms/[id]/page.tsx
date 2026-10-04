@@ -1,7 +1,6 @@
-import { requirePermission, getCurrentUser } from "../../../../lib/auth";
-import * as React from "react";
+import { requirePermission,getCurrentUser } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { getMinuteOfMeetingById, getCompanySettings } from "@ishoot/database";
+import { getMinuteOfMeetingById,getCompanySettings } from "@ishoot/database";
 import { MomDetailView } from "../../../../components/moms/MomDetailView";
 
 export const dynamic = "force-dynamic";

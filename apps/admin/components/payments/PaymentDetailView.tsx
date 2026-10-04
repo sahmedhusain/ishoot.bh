@@ -3,27 +3,24 @@ import { uploadFileDirectly } from "../../lib/upload-client";
 
 import * as React from "react";
 import Link from "next/link";
-import type { Payment, CompanySettings } from "@ishoot/database/types";
+import type { Payment,CompanySettings } from "@ishoot/database/types";
 import { ReceiptTemplate } from "./ReceiptTemplate";
 import { DeliveryToolbar } from "../shared/DeliveryToolbar";
 import { Button } from "@ishoot/ui";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Receipt,
-  FileText,
-  User,
-  Download,
-  ExternalLink,
-  ShieldCheck,
-  FileCheck,
-  FolderArchive,
-  UploadCloud,
-  Loader2,
-  Landmark,
+ArrowLeft,
+ArrowRight,
+Receipt,
+FileText,
+User,ExternalLink,
+ShieldCheck,
+FileCheck,
+FolderArchive,
+UploadCloud,
+Loader2,
+Landmark
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { deleteAttachmentAction } from "../../app/actions/attachments";
 
 interface PaymentDetailViewProps {
   payment: Payment;

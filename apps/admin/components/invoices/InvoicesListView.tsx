@@ -3,8 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import type { FinancialSummary } from "@ishoot/database/types";
-import { Button, StatusBadge, CurrencyDisplay } from "@ishoot/ui";
-import { Plus, Eye, Search, ExternalLink } from "lucide-react";
+import { Button,StatusBadge,CurrencyDisplay } from "@ishoot/ui";
+import { Plus,Eye,ExternalLink } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import type { InvoiceListRow } from "@ishoot/database";
@@ -18,7 +18,7 @@ export function InvoicesListView({
   initialInvoices,
   finance,
 }: InvoicesListViewProps) {
-  const { t, locale } = useAdminLocale();
+  const { t } = useAdminLocale();
   const [invoices] = React.useState<InvoiceListRow[]>(initialInvoices);
   const filteredInvoices = invoices;
 

@@ -5,30 +5,28 @@ import type { InvoiceListRow } from "@ishoot/database";
 import * as React from "react";
 import Link from "next/link";
 import {
-  Card,
-  Button,
-  Badge,
-  StatusBadge,
-  DateDisplay,
-  CurrencyDisplay,
+Card,
+Button,
+Badge,
+StatusBadge,
+DateDisplay,
+CurrencyDisplay,
 } from "@ishoot/ui";
 import {
-  User,
-  Building2,
-  Briefcase,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  Clock,
-  Mail,
-  Phone,
-  FileText,
-  Download,
-  ExternalLink,
-  ArrowLeft,
-  Edit,
+User,
+Building2,
+Briefcase,
+Calendar,
+DollarSign,
+TrendingUp,
+Clock,
+Mail,
+Phone,
+FileText,ExternalLink,
+ArrowLeft,
+Edit
 } from "lucide-react";
-import type { CRMDeal, CRMContact, Invoice } from "@ishoot/database/types";
+import type { CRMDeal,CRMContact } from "@ishoot/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface DealDossierViewProps {

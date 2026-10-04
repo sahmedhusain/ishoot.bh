@@ -4,39 +4,34 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type {
-  CRMContact,
-  CompanySettings,
-  InvoiceLineItem,
-  SupportedCurrency,
-  DiscountType,
-  ServiceItem,
+CRMContact,
+CompanySettings,
+InvoiceLineItem,
+SupportedCurrency,
+DiscountType,
+ServiceItem,
 } from "@ishoot/database/types";
 import {
-  Card,
-  Button,
-  Input,
-  Select,
+Card,
+Button,
+Input,
+Select,
 } from "@ishoot/ui";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Plus,
-  Trash2,
-  Calculator,
-  CheckCircle2,
-  Search,
-  Loader2,
-  Building,
-  User,
-  Mail,
-  Phone,
-  ExternalLink,
-  Sparkles,
+ArrowLeft,
+ArrowRight,
+Plus,
+Trash2,
+Calculator,
+CheckCircle2,
+Search,
+Loader2,ExternalLink,
+Sparkles
 } from "lucide-react";
 import { createInvoiceAction } from "../../app/actions/finance";
 import { lookupClientAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { CURRENCY_CONFIGS, calculateInvoiceTotals } from "@ishoot/database/types";
+import { CURRENCY_CONFIGS,calculateInvoiceTotals } from "@ishoot/database/types";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 
 interface NewInvoiceFormViewProps {
@@ -110,10 +105,10 @@ export function NewInvoiceFormView({
       .toISOString()
       .split("T")[0],
   );
-  const [notesEn, setNotesEn] = React.useState(
+  const [notesEn] = React.useState(
     company?.default_invoice_notes_en || "",
   );
-  const [notesAr, setNotesAr] = React.useState(
+  const [notesAr] = React.useState(
     company?.default_invoice_notes_ar || "",
   );
 
@@ -122,7 +117,7 @@ export function NewInvoiceFormView({
   const [vatEnabled, setVatEnabled] = React.useState<boolean>(
     company?.vat_enabled ?? false,
   );
-  const [vatPercentage, setVatPercentage] = React.useState<number>(
+  const [vatPercentage] = React.useState<number>(
     company?.vat_percentage ? Number(company.vat_percentage) : 10,
   );
 

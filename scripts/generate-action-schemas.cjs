@@ -33,6 +33,7 @@ function schema(node) {
   if (ts.isImportTypeNode(node)) { const d=declarations.get(node.qualifier.text); if(!d) throw Error("Unresolved import "+node.qualifier.text); return ts.isInterfaceDeclaration(d)?members(d.members):schema(d.type); }
   if (ts.isTypeReferenceNode(node)) {
     const name = node.typeName.getText();
+    if (name === 'Record') return { kind: 'record', element: schema(node.typeArguments[1]) };
     if (name === 'Array') return { kind:'array', element:schema(node.typeArguments[0]) };
     if (name === 'Partial') { const result = schema(node.typeArguments[0]); return { ...result, fields: Object.fromEntries(Object.entries(result.fields).map(([key,value])=>[key,{...value,optional:true}])) }; }
     if (name === 'Pick' || name === 'Omit') { const result=schema(node.typeArguments[0]); const keySchema=schema(node.typeArguments[1]); const keys=(keySchema.variants || [keySchema]).map(v=>v.value); return {...result,fields:Object.fromEntries(Object.entries(result.fields).filter(([key])=>name === 'Pick' ? keys.includes(key) : !keys.includes(key)))}; }

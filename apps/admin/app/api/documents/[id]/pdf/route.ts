@@ -1,16 +1,16 @@
 import { measureOperation } from "@ishoot/database";
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser, requirePermission } from "../../../../../lib/auth";
+import { NextRequest,NextResponse } from "next/server";
+import { getCurrentUser } from "../../../../../lib/auth";
 import {
-  getInvoiceByIdOrNumber,
-  getPaymentByIdOrNumber,
-  getCompanySettings,
-  hasPermission,
+getInvoiceByIdOrNumber,
+getPaymentByIdOrNumber,
+getCompanySettings,
+hasPermission,
 } from "@ishoot/database";
 import { getTranslations } from "@ishoot/locales";
 import {
-  generateInvoicePdfBuffer,
-  generateReceiptPdfBuffer,
+generateInvoicePdfBuffer,
+generateReceiptPdfBuffer,
 } from "../../../../../lib/pdf/generate";
 
 export async function GET(

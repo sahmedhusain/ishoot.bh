@@ -1,31 +1,27 @@
 "use client";
 import { uploadFileDirectly } from "../../lib/upload-client";
-import {EntityLookup} from "../shared/EntityLookup";
+import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CRMContact, Invoice } from "@ishoot/database/types";
-import { Card, Button, Input, Select, CurrencyDisplay } from "@ishoot/ui";
+import type { CRMContact,Invoice } from "@ishoot/database/types";
+import { Card,Button,Input,Select,CurrencyDisplay } from "@ishoot/ui";
 import {
-  ArrowLeft,
-  ArrowRight,
-  CreditCard,
-  CheckCircle2,
-  Receipt,
-  FileText,
-  AlertCircle,
-  ExternalLink,
-  UploadCloud,
-  Loader2,
-  Trash2,
-  ShieldCheck,
-  FileCheck,
-  FolderArchive,
+ArrowLeft,
+ArrowRight,
+CreditCard,
+CheckCircle2,FileText,
+AlertCircle,
+ExternalLink,
+UploadCloud,
+Loader2,
+Trash2,
+ShieldCheck,
+FileCheck
 } from "lucide-react";
 import {
-  createPaymentAction,
-  getUnpaidInvoicesByClientAction,
+createPaymentAction
 } from "../../app/actions/finance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";

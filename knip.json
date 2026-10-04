@@ -1,0 +1,31 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "scripts/*.cjs"
+      ],
+      "project": [
+        "scripts/*.cjs"
+      ]
+    },
+    "apps/*": {
+      "entry": [
+        "app/**/{page,layout,route,loading,error,not-found}.tsx",
+        "app/**/route.ts"
+      ],
+      "project": [
+        "**/*.{ts,tsx,mjs,css}"
+      ]
+    }
+  },
+  "ignoreDependencies": [
+    "eslint-config-next",
+    "@prisma/client"
+  ],
+  "ignoreIssues": {
+    "apps/admin/app/actions/mom.ts": [
+      "exports"
+    ]
+  }
+}

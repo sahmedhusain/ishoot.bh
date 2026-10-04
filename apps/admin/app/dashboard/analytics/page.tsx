@@ -1,4 +1,3 @@
-import React from "react";
 import { fetchSocialMetrics } from "../../actions/social-metrics";
 
 export default async function AnalyticsDashboard() {

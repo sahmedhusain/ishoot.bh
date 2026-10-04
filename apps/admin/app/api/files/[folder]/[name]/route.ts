@@ -1,11 +1,11 @@
 import { measureOperation } from "@ishoot/database";
-import { NextRequest, NextResponse } from "next/server";
-import { realpath, stat } from "node:fs/promises";
+import { NextRequest,NextResponse } from "next/server";
+import { realpath,stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import path from "node:path";
-import { db, uploadRoot } from "@ishoot/database";
-import { requirePermission, getCurrentUser } from "../../../../../lib/auth";
+import { db,uploadRoot,generateDownloadUrl,uploadStorageLocation } from "@ishoot/database";
+import { requirePermission,getCurrentUser } from "../../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../../lib/attachment-access";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ folder: string; name: string }> }) {
   return measureOperation("admin:files/[folder]/[name]:GET", async () => {
@@ -21,6 +21,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ fold
       if (attachment) await requireAttachmentAccess(attachment.entityType, attachment.entityId, "read");
       else if (await db.companyDocument.findFirst({where:{fileUrl},select:{id:true}})) await requirePermission("settings", "read");
       else if (!upload || upload.ownerId !== user.id || upload.expiresAt <= new Date() || upload.claimedAt) return new NextResponse(null, { status: 403 });
+    }
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && upload) {
+      const location = uploadStorageLocation(`/api/files/${folder}/${name}`, upload.isPublic);
+      const url = await generateDownloadUrl(location.bucket, location.path);
+      // Never cache redirects beyond the short lifetime of their signed URL.
+      return new NextResponse(null, { status: 307, headers: { Location: url, "Cache-Control": "private, no-store" } });
     }
     let root = uploadRoot();
     let filePath: string;

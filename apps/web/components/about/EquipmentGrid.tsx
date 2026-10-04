@@ -5,14 +5,13 @@ import { StudioEquipment } from "@ishoot/database";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import {
-  Camera,
-  Aperture,
-  Sun,
-  Sliders,
-  Warehouse,
-  ShieldCheck,
+Camera,
+Aperture,
+Sun,
+Sliders,
+Warehouse
 } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion,AnimatePresence,useReducedMotion } from "framer-motion";
 
 interface EquipmentGridProps {
   equipment: StudioEquipment[];

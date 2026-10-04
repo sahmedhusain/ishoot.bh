@@ -4,36 +4,23 @@ import { RelatedListControls } from "../shared/RelatedListControls";
 import * as React from "react";
 import Link from "next/link";
 import {
-  Card,
-  Button,
-  Badge,
-  CurrencyDisplay,
-  DateDisplay,
-  StatusBadge,
+Card,
+Button,
+Badge,
+CurrencyDisplay,
+DateDisplay,
+StatusBadge,
 } from "@ishoot/ui";
 import {
-  User,
-  Building2,
-  Mail,
-  Phone,
-  Briefcase,
-  FileText,
-  CreditCard,
-  FolderLock,
-  ArrowLeft,
-  Edit,
-  ExternalLink,
-  Download,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  Clock,
-  ShieldCheck,
-  CheckCircle2,
-  Plus,
-  Percent,
-  Receipt,
-  AlertCircle,
+User,Mail,Briefcase,CreditCard,
+FolderLock,
+ArrowLeft,
+Edit,
+ExternalLink,
+Download,DollarSign,
+TrendingUp,ShieldCheck,
+CheckCircle2,
+Plus,AlertCircle
 } from "lucide-react";
 import type { CustomerDossier } from "@ishoot/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -50,17 +37,7 @@ export function Customer360DossierView({
     "overview" | "interactions" | "deals" | "finance" | "vault"
   >("overview");
 
-  const {
-    contact,
-    inquiries,
-    deals,
-    invoices,
-    payments,
-    contracts,
-    attachments,
-    activities,
-    metrics,
-  } = dossier;
+  const { contact, inquiries, deals, invoices, payments, contracts, attachments, metrics } = dossier;
 
   const collectionRate =
     metrics.totalLtv > 0

@@ -13,6 +13,19 @@ const prisma = new PrismaClient();
 
 async function main() {
   if (process.env.NODE_ENV === "production") throw new Error("Demo seed is disabled in production; use pnpm db:bootstrap for initial real accounts and configuration.");
+  // Demo fixtures must never replace existing business records.
+  const existing = await Promise.all([
+    prisma.invoice.count(), prisma.payment.count(), prisma.attachment.count(),
+    prisma.crmContact.count(), prisma.crmDeal.count(), prisma.expense.count(),
+    prisma.inquiry.count(), prisma.statistic.count(), prisma.faq.count(), prisma.review.count(),
+    prisma.companyAsset.count(), prisma.heroBanner.count(), prisma.portfolioCategory.count(),
+    prisma.portfolioItem.count(), prisma.clientLogo.count(), prisma.studioEquipment.count(),
+    prisma.websiteContent.count(), prisma.expenseCategory.count(), prisma.calendarEvent.count(),
+    prisma.documentTemplate.count(), prisma.contract.count(), prisma.minuteOfMeeting.count(),
+    prisma.generatedDocument.count(), prisma.companyDocument.count(), prisma.service.count(),
+    prisma.socialLink.count(), prisma.quotation.count(), prisma.uploadObject.count(),
+  ]);
+  if (existing.some((count) => count > 0)) throw new Error("Demo seed requires an empty business database. Existing records were preserved. Use pnpm db:bootstrap for initial accounts/settings without replacing data.");
   console.log("🌱 Starting dynamic enterprise database seed...");
 
   const configPath = path.resolve(__dirname, "initial-company-config.json");
@@ -25,6 +38,10 @@ async function main() {
     throw new Error(
       "SECURITY CONFIGURATION REQUISITE: SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD must be strictly defined in environment (.env). Fallback credentials or '||' operators are strictly prohibited for database bootstrapping.",
     );
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(superAdminEmail) || superAdminPassword.length < 12 || Buffer.byteLength(superAdminPassword, "utf8") > 72) {
+    throw new Error("Set a valid SUPER_ADMIN_EMAIL and a SUPER_ADMIN_PASSWORD of at least 12 characters and at most 72 UTF-8 bytes.");
   }
 
   const superAdminName = process.env.SUPER_ADMIN_NAME ?? "Super Admin";
@@ -2585,7 +2602,7 @@ async function main() {
       timeline: "October 2026",
       message: "طلب إنتاج سلسلة مقابلات وثائقية ملهمة لرواد الأعمال البحرينيين.",
       status: "contacted",
-      intent: "service_request",
+      intent: "quote_request",
       team: "production",
       workflowStatus: "pending_approval",
       assignedToId: createdUsers.producer?.id,
@@ -2605,7 +2622,7 @@ async function main() {
       timeline: "November 2026",
       message: "Supercar desert reveal film and studio lighting setup in Bahrain.",
       status: "qualified",
-      intent: "service_request",
+      intent: "quote_request",
       team: "production",
       workflowStatus: "confirmed",
       assignedToId: createdUsers.production_manager?.id,
@@ -2655,7 +2672,7 @@ async function main() {
       timeline: "This Week",
       message: "طلب تزويدنا بالتسجيلات الصوتية المنفصلة (Stems) وموسيقى الخلفية لحملة موسم الصيف.",
       status: "qualified",
-      intent: "service_request",
+      intent: "quote_request",
       team: "post_production",
       workflowStatus: "resolved",
       assignedToId: createdUsers.editor?.id,

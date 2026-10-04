@@ -1,6 +1,5 @@
-import { getCurrentPermissions, requirePermission } from "../../../../../lib/auth";
-import * as React from "react";
-import { getCustomerDossier, hasPermission } from "@ishoot/database";
+import { getCurrentPermissions,requirePermission } from "../../../../../lib/auth";
+import { getCustomerDossier } from "@ishoot/database";
 import { notFound } from "next/navigation";
 import { Customer360DossierView } from "../../../../../components/crm/Customer360DossierView";
 
@@ -13,7 +12,7 @@ export default async function CustomerDossierPage({
   params,
   searchParams,
 }: CustomerDossierPageProps) {
-  const user = await requirePermission("contacts", "read");
+  await requirePermission("contacts", "read");
   const { id } = await params;
   const grants = await getCurrentPermissions();
   const can = (resource:string)=>grants[`${resource}:read`] === true;

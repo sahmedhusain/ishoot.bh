@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 
 export interface CashFlowDataPoint {
   month: string;

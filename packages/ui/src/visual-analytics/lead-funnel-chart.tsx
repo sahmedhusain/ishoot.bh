@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 
 export interface FunnelStage {
   label: string;

@@ -1,32 +1,28 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
-import type { Profile, UserRole } from "@ishoot/database/types";
+import type { Profile,UserRole } from "@ishoot/database/types";
 import {
-  createUserAction,
-  updateUserRoleAction,
-  updateUserAction,
-  deleteUserAction,
+createUserAction,
+updateUserRoleAction,
+updateUserAction,
+deleteUserAction,
 } from "../../app/actions/users";
 import {
-  Card,
-  Button,
-  Modal,
-  Input,
-  Select,
-  Badge,
-  ConfirmDestructiveModal,
+Card,
+Button,
+Modal,
+Input,
+Select,ConfirmDestructiveModal
 } from "@ishoot/ui";
 import {
-  UserPlus,
-  Shield,
-  Trash2,
-  Search,
-  Building,
-  CheckCircle2,
-  FileSignature,
-  Network,
+UserPlus,
+Shield,
+Trash2,
+Search,
+Building,
+CheckCircle2
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -43,7 +39,7 @@ export function UsersManagementView({
   resources,
   rolePermissions,
 }: UsersManagementViewProps) {
-  const { t, locale, isRTL } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
 
   const [users, setUsers] = React.useState<Profile[]>(initialUsers);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -239,11 +235,7 @@ export function UsersManagementView({
               </thead>
               <tbody className="divide-y divide-white/5 text-white">
                 {filteredUsers.map((u) => {
-                  const roleConfig = allRoles.find((r) => r.key === u.role) || {
-                    key: u.role,
-                    name: u.role,
-                    color: "#9EADA9",
-                  };
+
                   return (
                     <tr
                       key={u.id}

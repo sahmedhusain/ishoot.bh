@@ -1,16 +1,15 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 
-import * as React from "react";
 import Link from "next/link";
-import { Calendar, Sun, Moon, Menu, Search } from "lucide-react";
+import { Calendar,Sun,Moon,Menu } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useAdminTheme } from "../../hooks/useAdminTheme";
 import { NotificationCenter } from "./NotificationCenter";
 import { AdminProfileDropdown } from "./AdminProfileDropdown";
 import { GlobalQuickJump } from "./GlobalQuickJump";
 import { useSidebar } from "./SidebarContext";
-import type { CRMContact, CompanySettings } from "@ishoot/database/types";
+import type { CRMContact,CompanySettings } from "@ishoot/database/types";
 
 interface TopbarProps {
   contacts?: CRMContact[];

@@ -1,11 +1,10 @@
 "use client";
 
-import * as React from "react";
 import { useDraggable } from "@dnd-kit/core";
 import type { CRMDeal } from "@ishoot/database/types";
-import { Card, CurrencyDisplay } from "@ishoot/ui";
+import { Card,CurrencyDisplay } from "@ishoot/ui";
 import Link from "next/link";
-import { Calendar, User, ExternalLink } from "lucide-react";
+import { Calendar,User } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface DealCardProps {

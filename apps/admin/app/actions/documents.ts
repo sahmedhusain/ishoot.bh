@@ -4,11 +4,10 @@ import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
-  getCompanyDocuments,
-  createCompanyDocument,
-  deleteCompanyDocument,
-  createActivityLog,
-  DocumentCategory,
+createCompanyDocument,
+deleteCompanyDocument,
+createActivityLog,
+DocumentCategory
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";

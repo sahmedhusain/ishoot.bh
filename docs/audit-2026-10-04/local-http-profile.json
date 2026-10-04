@@ -1,0 +1,72 @@
+{
+  "environment": "Disposable local PostgreSQL; mostly empty bootstrap dataset; warm single-instance servers",
+  "samplesPerRoute": 10,
+  "concurrentRequests": 4,
+  "productionValidated": false,
+  "results": [
+    {
+      "route": "/dashboard",
+      "htmlBytes": 59102,
+      "rscBytes": 12008,
+      "medianMs": 14.44,
+      "sampleP95Ms": 27.42,
+      "fourConcurrentMaxMs": 41.88
+    },
+    {
+      "route": "/dashboard/crm/contacts",
+      "htmlBytes": 44420,
+      "rscBytes": 10851,
+      "medianMs": 11.76,
+      "sampleP95Ms": 25.52,
+      "fourConcurrentMaxMs": 22.16
+    },
+    {
+      "route": "/dashboard/crm/deals",
+      "htmlBytes": 56466,
+      "rscBytes": 11040,
+      "medianMs": 13.54,
+      "sampleP95Ms": 16.91,
+      "fourConcurrentMaxMs": 24.38
+    },
+    {
+      "route": "/dashboard/invoices",
+      "htmlBytes": 46575,
+      "rscBytes": 10578,
+      "medianMs": 10.63,
+      "sampleP95Ms": 65.9,
+      "fourConcurrentMaxMs": 24.24
+    },
+    {
+      "route": "/dashboard/payments",
+      "htmlBytes": 44160,
+      "rscBytes": 10484,
+      "medianMs": 10.42,
+      "sampleP95Ms": 12.71,
+      "fourConcurrentMaxMs": 21.4
+    },
+    {
+      "route": "/dashboard/expenses",
+      "htmlBytes": 47780,
+      "rscBytes": 10533,
+      "medianMs": 10.14,
+      "sampleP95Ms": 11.43,
+      "fourConcurrentMaxMs": 23.15
+    },
+    {
+      "route": "/dashboard/archive",
+      "htmlBytes": 47704,
+      "rscBytes": 10568,
+      "medianMs": 10.99,
+      "sampleP95Ms": 12.81,
+      "fourConcurrentMaxMs": 29.64
+    },
+    {
+      "route": "/",
+      "htmlBytes": 50952,
+      "rscBytes": 16740,
+      "medianMs": 11.07,
+      "sampleP95Ms": 11.9,
+      "fourConcurrentMaxMs": 21.92
+    }
+  ]
+}

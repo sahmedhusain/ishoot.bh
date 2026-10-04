@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import type { Statistic } from "@ishoot/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Reveal } from "../shared/Reveal";

@@ -5,17 +5,14 @@ import type { CompanySettings } from "@ishoot/database/types";
 import type { CompanyAssetItem } from "@ishoot/database";
 import { Button } from "@ishoot/ui";
 import {
-  Building2,
-  Percent,
-  Landmark,
-  CheckCircle2,
-  Hash,
-  Sparkles,
-  AlertTriangle,
-  X,
-  ArrowRight,
-  ArrowLeft,
-  Check,
+Building2,
+Percent,
+Landmark,
+CheckCircle2,
+Hash,
+Sparkles,
+AlertTriangle,
+X,Check
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateCompanySettingsAction } from "../../app/actions/settings";

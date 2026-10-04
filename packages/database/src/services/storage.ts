@@ -9,7 +9,13 @@ export function getStorageClient() {
   if (!url || !key) {
     throw new Error('Supabase Storage is not configured. Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.');
   }
-  supabase = createClient(url, key, { auth: { persistSession: false } });
+  supabase = createClient(url, key, {
+    auth: { persistSession: false },
+    global: { fetch: (input, init) => fetch(input, {
+      ...init,
+      signal: init?.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(10000)]) : AbortSignal.timeout(10000),
+    }) },
+  });
   return supabase;
 }
 
@@ -27,15 +33,23 @@ export async function generateDownloadUrl(bucket: string, path: string, expiresI
   return data.signedUrl;
 }
 
+// Metadata lookup avoids downloading the complete object into the application heap.
 export async function getObjectMetadata(bucket: string, path: string) {
-  const client = getStorageClient();
-  // Supabase storage metadata can be retrieved or we can just download the file to verify size/content
-  const { data, error } = await client.storage.from(bucket).download(path);
-  if (error) throw new Error(`Object not found or download failed: ${error.message}`);
-  const buffer = await data.arrayBuffer();
-  return {
-    size: buffer.byteLength,
-    type: data.type,
-    buffer: Buffer.from(buffer)
-  };
+  const { data, error } = await getStorageClient().storage.from(bucket).info(path);
+  if (error) throw new Error(`Object metadata unavailable: ${error.message}`);
+  return { size: data.size, type: data.contentType };
+}
+
+export function uploadStorageLocation(fileUrl: string, isPublic: boolean) {
+  if (!/^\/api\/files\/(payments|invoices|certificates|vault|deals|general|brand)\/[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(fileUrl))
+    throw new Error("Invalid upload path");
+  return { bucket: isPublic ? "public-assets" : "private-assets", path: fileUrl.slice("/api/files/".length) };
+}
+
+export async function verifyStoredUpload(upload: { fileUrl: string; isPublic: boolean; fileSize: number; mimeType: string }) {
+  const location = uploadStorageLocation(upload.fileUrl, upload.isPublic);
+  const metadata = await getObjectMetadata(location.bucket, location.path);
+  if (!Number.isInteger(metadata.size) || metadata.size !== upload.fileSize || metadata.size! <= 0 || metadata.size! > 10 * 1024 * 1024 || metadata.type !== upload.mimeType)
+    throw new Error("Uploaded object does not match the registered size and type");
+  return metadata;
 }

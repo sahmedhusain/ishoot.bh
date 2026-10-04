@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import * as LucideIcons from "lucide-react";
-import { Search, Check, ChevronDown, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Search,ChevronDown,Sparkles } from "lucide-react";
+import { motion,AnimatePresence } from "framer-motion";
 
 interface IconPickerProps {
   value: string;

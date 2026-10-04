@@ -3,9 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import type { CRMContact } from "@ishoot/database/types";
-import { Input, Button } from "@ishoot/ui";
-import { Search, User, Building, Mail, Phone, ExternalLink, Check, Loader2, X } from "lucide-react";
-import { searchContactsAction, lookupClientAction } from "../../app/actions/crm";
+import { Input } from "@ishoot/ui";
+import { Search,Mail,Phone,ExternalLink,Check,Loader2,X } from "lucide-react";
+import { searchContactsAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export interface ClientAutocompleteProps {

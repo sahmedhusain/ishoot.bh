@@ -1,4 +1,3 @@
-import * as React from "react";
 import { cn } from "./utils";
 
 export function Separator({ className }: { className?: string }) {

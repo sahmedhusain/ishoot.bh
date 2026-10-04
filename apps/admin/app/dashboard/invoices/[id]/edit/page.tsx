@@ -1,11 +1,10 @@
 import { requirePermission } from "../../../../../lib/auth";
-import * as React from "react";
 import { notFound } from "next/navigation";
 import {
-  getInvoiceById,
-  getCRMContactById,
-  getCompanySettings,
-  getAllServices,
+getInvoiceById,
+getCRMContactById,
+getCompanySettings,
+getAllServices,
 } from "@ishoot/database";
 import { InvoiceEditFormView } from "../../../../../components/invoices/InvoiceEditFormView";
 

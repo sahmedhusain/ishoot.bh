@@ -1,16 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, Globe, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Input } from "@ishoot/ui";
 
-export interface PlatformOption {
+interface PlatformOption {
   id: string;
   name: string;
   defaultIcon: string;
 }
 
-export const PLATFORM_PRESETS: PlatformOption[] = [
+const PLATFORM_PRESETS: PlatformOption[] = [
   { id: "instagram", name: "Instagram", defaultIcon: "Instagram" },
   { id: "linkedin", name: "LinkedIn", defaultIcon: "Linkedin" },
   { id: "youtube", name: "YouTube", defaultIcon: "Youtube" },

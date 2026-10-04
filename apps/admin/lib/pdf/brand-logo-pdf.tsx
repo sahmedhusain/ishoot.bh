@@ -1,5 +1,4 @@
-import React from "react";
-import { View, Image as PdfImage, Text } from "@react-pdf/renderer";
+import { View,Image as PdfImage,Text } from "@react-pdf/renderer";
 import type { CompanySettings } from "@ishoot/database/types";
 
 interface PdfBrandLogoProps {

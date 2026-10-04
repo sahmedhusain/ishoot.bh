@@ -4,35 +4,26 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  User,
-  Shield,
-  Building2,
-  Sliders,
-  History,
-  LogOut,
-  ChevronDown,
-  Database,
-  Globe,
-  ExternalLink,
+User,
+Shield,
+Building2,
+Sliders,
+History,
+LogOut,
+ChevronDown,Globe,
+ExternalLink
 } from "lucide-react";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useAdminTheme } from "../../hooks/useAdminTheme";
 import { ConfirmDestructiveModal } from "@ishoot/ui";
 
-interface CurrentUser {
-  id: string;
-  fullName: string;
-  email: string;
-  role: string;
-  department?: string;
-  avatarUrl?: string;
-}
+
 
 export function AdminProfileDropdown() {
   const router = useRouter();
   const { t, isRTL } = useAdminLocale();
-  const { theme, resolvedTheme } = useAdminTheme();
+  const { resolvedTheme } = useAdminTheme();
   const [isOpen, setIsOpen] = React.useState(false);
   const [confirmSignOutOpen, setConfirmSignOutOpen] = React.useState(false);
   const { user: currentUser } = usePermissions();
@@ -71,14 +62,7 @@ export function AdminProfileDropdown() {
   const displayRole = currentUser?.role
     ? currentUser.role.replace("_", " ").toUpperCase()
     : "";
-  const initials =
-    displayName
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase() || "IS";
+
 
   return (
     <div className="relative" ref={dropdownRef}>

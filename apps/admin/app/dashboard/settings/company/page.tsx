@@ -1,6 +1,5 @@
 import { requirePermission } from "../../../../lib/auth";
-import * as React from "react";
-import { getCompanySettings, getCompanyAssets } from "@ishoot/database";
+import { getCompanySettings,getCompanyAssets } from "@ishoot/database";
 import { CompanySettingsView } from "../../../../components/settings/CompanySettingsView";
 
 export const dynamic = "force-dynamic";

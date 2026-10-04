@@ -1,15 +1,14 @@
-import * as React from "react";
 import { requirePermission } from "../../../../lib/auth";
 import {
-  getCompanySettings,
-  getAllBanners,
-  getPortfolioItems,
-  getAllClientLogos,
-  getStudioEquipment,
-  getReviews,
-  getFaqs,
-  getStatistics,
-  getSocialLinks,
+getCompanySettings,
+getAllBanners,
+getPortfolioItems,
+getAllClientLogos,
+getStudioEquipment,
+getReviews,
+getFaqs,
+getStatistics,
+getSocialLinks,
 } from "@ishoot/database";
 import { WebSettingsView } from "../../../../components/settings/WebSettingsView";
 

@@ -1,12 +1,11 @@
-import { getCurrentPermissions, requireAuth } from "../../lib/auth";
-import * as React from "react";
+import { getCurrentPermissions,requireAuth } from "../../lib/auth";
 import {
-  getFinancialSummary,
-  getMonthlyCashflow,
-  getCRMDealOverview,
-  db,
-  getCompanySettings,
-  getCalendarEvents,
+getFinancialSummary,
+getMonthlyCashflow,
+getCRMDealOverview,
+db,
+getCompanySettings,
+getCalendarEvents,
 } from "@ishoot/database";
 import { ExecutiveDashboardView } from "../../components/dashboard/ExecutiveDashboardView";
 

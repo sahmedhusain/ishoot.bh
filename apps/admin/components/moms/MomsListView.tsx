@@ -3,20 +3,17 @@
 import * as React from "react";
 import Link from "next/link";
 import { MinuteOfMeetingItem } from "@ishoot/database";
-import { Card, Button, Input, Badge, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Card,Button,ConfirmDestructiveModal } from "@ishoot/ui";
 import {
-  FileSignature,
-  Plus,
-  Search,
-  Calendar,
-  Clock,
-  MapPin,
-  Trash2,
-  ExternalLink,
-  Users,
-  CheckCircle,
-  Clock4,
-  Share2,
+FileSignature,
+Plus,
+Search,
+Calendar,Trash2,
+ExternalLink,
+Users,
+CheckCircle,
+Clock4,
+Share2
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { deleteMomAction } from "../../app/actions/mom";
@@ -26,7 +23,7 @@ interface MomsListViewProps {
 }
 
 export function MomsListView({ initialMoms }: MomsListViewProps) {
-  const { t, isRTL } = useAdminLocale();
+  const { isRTL } = useAdminLocale();
   const [moms, setMoms] = React.useState<MinuteOfMeetingItem[]>(initialMoms);
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("all");

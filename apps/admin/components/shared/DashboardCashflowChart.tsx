@@ -1,13 +1,12 @@
 "use client";
 import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  Legend,
+ResponsiveContainer,
+BarChart,
+Bar,
+XAxis,
+YAxis,
+Tooltip,
+CartesianGrid
 } from "recharts";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 export default function DashboardCashflowChart({ data: cashflowData }: { data: Array<{ month?: string; name?: string; revenue: number; expenses: number }> }) {

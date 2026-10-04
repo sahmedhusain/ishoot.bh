@@ -1,4 +1,3 @@
-import * as React from "react";
 import { requirePermission } from "../../../../lib/auth";
 import { db } from "@ishoot/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";

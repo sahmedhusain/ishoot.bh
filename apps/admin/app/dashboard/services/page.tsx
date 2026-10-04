@@ -1,5 +1,4 @@
 import { requirePermission } from "../../../lib/auth";
-import * as React from "react";
 import { getAllServices } from "@ishoot/database";
 import { ServicesManagementView } from "../../../components/services/ServicesManagementView";
 

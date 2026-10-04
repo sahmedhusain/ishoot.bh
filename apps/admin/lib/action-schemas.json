@@ -430,120 +430,6 @@
       }
     }
   },
-  "createReviewAction": {
-    "kind": "object",
-    "fields": {
-      "data": {
-        "kind": "object",
-        "fields": {
-          "authorEn": {
-            "kind": "string",
-            "optional": false
-          },
-          "authorAr": {
-            "kind": "string",
-            "optional": false
-          },
-          "companyEn": {
-            "kind": "string",
-            "optional": true
-          },
-          "companyAr": {
-            "kind": "string",
-            "optional": true
-          },
-          "quoteEn": {
-            "kind": "string",
-            "optional": false
-          },
-          "quoteAr": {
-            "kind": "string",
-            "optional": false
-          },
-          "rating": {
-            "kind": "number",
-            "optional": true
-          },
-          "year": {
-            "kind": "string",
-            "optional": true
-          },
-          "clientId": {
-            "kind": "string",
-            "optional": true
-          },
-          "isApproved": {
-            "kind": "boolean",
-            "optional": true
-          },
-          "originalLocale": {
-            "kind": "string",
-            "optional": true
-          }
-        },
-        "optional": false
-      }
-    }
-  },
-  "updateReviewAction": {
-    "kind": "object",
-    "fields": {
-      "id": {
-        "kind": "string",
-        "optional": false
-      },
-      "data": {
-        "kind": "object",
-        "fields": {
-          "authorEn": {
-            "kind": "string",
-            "optional": true
-          },
-          "authorAr": {
-            "kind": "string",
-            "optional": true
-          },
-          "companyEn": {
-            "kind": "string",
-            "optional": true
-          },
-          "companyAr": {
-            "kind": "string",
-            "optional": true
-          },
-          "quoteEn": {
-            "kind": "string",
-            "optional": true
-          },
-          "quoteAr": {
-            "kind": "string",
-            "optional": true
-          },
-          "rating": {
-            "kind": "number",
-            "optional": true
-          },
-          "year": {
-            "kind": "string",
-            "optional": true
-          },
-          "clientId": {
-            "kind": "string",
-            "optional": true
-          },
-          "isApproved": {
-            "kind": "boolean",
-            "optional": true
-          },
-          "originalLocale": {
-            "kind": "string",
-            "optional": true
-          }
-        },
-        "optional": false
-      }
-    }
-  },
   "toggleReviewApprovalAction": {
     "kind": "object",
     "fields": {
@@ -1375,15 +1261,6 @@
       }
     }
   },
-  "deleteInquiryAction": {
-    "kind": "object",
-    "fields": {
-      "id": {
-        "kind": "string",
-        "optional": false
-      }
-    }
-  },
   "convertInquiryToClientAction": {
     "kind": "object",
     "fields": {
@@ -1429,22 +1306,6 @@
       },
       "customerId": {
         "kind": "string",
-        "optional": false
-      }
-    }
-  },
-  "mergeContactsAction": {
-    "kind": "object",
-    "fields": {
-      "primaryId": {
-        "kind": "string",
-        "optional": false
-      },
-      "duplicateIds": {
-        "kind": "array",
-        "element": {
-          "kind": "string"
-        },
         "optional": false
       }
     }
@@ -2028,10 +1889,37 @@
       }
     }
   },
-  "getUnpaidInvoicesByClientAction": {
+  "saveIntegration": {
     "kind": "object",
     "fields": {
-      "clientId": {
+      "provider": {
+        "kind": "string",
+        "optional": false
+      },
+      "isActive": {
+        "kind": "boolean",
+        "optional": false
+      },
+      "credentials": {
+        "kind": "record",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      },
+      "config": {
+        "kind": "record",
+        "element": {
+          "kind": "unknown"
+        },
+        "optional": true
+      }
+    }
+  },
+  "unlinkIntegration": {
+    "kind": "object",
+    "fields": {
+      "provider": {
         "kind": "string",
         "optional": false
       }
@@ -3368,6 +3256,10 @@
         "optional": false
       }
     }
+  },
+  "fetchSocialMetrics": {
+    "kind": "object",
+    "fields": {}
   },
   "createUserAction": {
     "kind": "object",

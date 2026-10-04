@@ -1,12 +1,11 @@
 "use client";
 
-import * as React from "react";
-import type { Invoice, CompanySettings } from "@ishoot/database/types";
+import type { Invoice,CompanySettings } from "@ishoot/database/types";
 import { formatCurrencyValue } from "@ishoot/ui";
 import { adminTranslations } from "../../lib/translations";
 import {
-  DocumentLetterhead,
-  DocumentFooter,
+DocumentLetterhead,
+DocumentFooter,
 } from "../shared/DocumentLetterhead";
 
 interface InvoiceTemplateProps {

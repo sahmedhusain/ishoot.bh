@@ -4,48 +4,48 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type {
-  Invoice,
-  CRMContact,
-  CompanySettings,
-  InvoiceLineItem,
-  DiscountType,
-  SupportedCurrency,
-  ServiceItem,
+Invoice,
+CRMContact,
+CompanySettings,
+InvoiceLineItem,
+DiscountType,
+SupportedCurrency,
+ServiceItem,
 } from "@ishoot/database/types";
 import {
-  CURRENCY_CONFIGS,
-  calculateInvoiceTotals,
+CURRENCY_CONFIGS,
+calculateInvoiceTotals,
 } from "@ishoot/database/types";
 import {
-  Card,
-  Input,
-  Select,
-  Button,
-  ConfirmDestructiveModal,
+Card,
+Input,
+Select,
+Button,
+ConfirmDestructiveModal,
 } from "@ishoot/ui";
 import {
-  Plus,
-  Trash2,
-  ArrowLeft,
-  AlertTriangle,
-  CheckCircle2,
-  Search,
-  Loader2,
-  Building,
-  User,
-  Mail,
-  Phone,
-  ExternalLink,
-  Sparkles,
+Plus,
+Trash2,
+ArrowLeft,
+AlertTriangle,
+CheckCircle2,
+Search,
+Loader2,
+Building,
+User,
+Mail,
+Phone,
+ExternalLink,
+Sparkles,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
-  updateInvoiceAction,
-  voidInvoiceAction,
+updateInvoiceAction,
+voidInvoiceAction,
 } from "../../app/actions/finance";
 import { lookupClientAction } from "../../app/actions/crm";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
-import { EditConfirmModal, type FieldChange } from "../shared/EditConfirmModal";
+import { EditConfirmModal,type FieldChange } from "../shared/EditConfirmModal";
 
 interface InvoiceEditFormViewProps {
   invoice: Invoice;
@@ -61,7 +61,7 @@ export function InvoiceEditFormView({
   services = [],
 }: InvoiceEditFormViewProps) {
   const router = useRouter();
-  const { t, locale, isRTL } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
@@ -148,7 +148,7 @@ export function InvoiceEditFormView({
   const [vatEnabled, setVatEnabled] = React.useState<boolean>(
     invoice.vat_enabled ?? (invoice.vat_amount > 0),
   );
-  const [vatPercentage, setVatPercentage] = React.useState<number>(
+  const [vatPercentage] = React.useState<number>(
     invoice.vat_percentage || company?.vat_percentage || 10,
   );
 

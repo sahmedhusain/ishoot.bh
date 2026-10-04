@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { PortfolioCategory } from "@ishoot/database";
 import { useTranslation } from "../../hooks/useTranslation";
 

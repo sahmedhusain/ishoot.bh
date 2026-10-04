@@ -1,4 +1,3 @@
-import * as React from "react";
 import { requirePermission } from "../../../../lib/auth";
 import { getFeatureToggles } from "@ishoot/database";
 import { ModulesManagementView } from "../../../../components/settings/ModulesManagementView";

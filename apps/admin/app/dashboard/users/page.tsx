@@ -1,6 +1,5 @@
 import { requirePermission } from "../../../lib/auth";
-import * as React from "react";
-import { getAllUsers, db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
+import { getAllUsers,db,ALL_RESOURCES,ALL_ACTIONS } from "@ishoot/database";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
 
 export const dynamic = "force-dynamic";

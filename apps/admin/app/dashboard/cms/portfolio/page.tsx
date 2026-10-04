@@ -1,6 +1,5 @@
 import { requirePermission } from "../../../../lib/auth";
-import * as React from "react";
-import { getPortfolioItems, getPortfolioCategories } from "@ishoot/database";
+import { getPortfolioItems,getPortfolioCategories } from "@ishoot/database";
 import { PortfolioManagementView } from "../../../../components/cms/PortfolioManagementView";
 
 export const dynamic = "force-dynamic";

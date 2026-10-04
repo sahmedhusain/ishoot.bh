@@ -1,4 +1,3 @@
-import * as React from "react";
 import { requirePermission } from "../../../../lib/auth";
 import { getReviews } from "@ishoot/database";
 import { ReviewsManagementView } from "../../../../components/cms/ReviewsManagementView";

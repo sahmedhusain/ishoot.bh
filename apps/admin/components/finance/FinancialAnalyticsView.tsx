@@ -1,15 +1,14 @@
 "use client";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
 
-import * as React from "react";
-import type { FinancialSummary, ExpenseCategory } from "@ishoot/database/types";
-import { Card, CurrencyDisplay } from "@ishoot/ui";
+import type { FinancialSummary,ExpenseCategory } from "@ishoot/database/types";
+import { Card,CurrencyDisplay } from "@ishoot/ui";
 import {
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  PieChart,
-  Percent,
+TrendingUp,
+TrendingDown,
+DollarSign,
+PieChart,
+Percent,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

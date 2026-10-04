@@ -2,43 +2,31 @@
 
 import * as React from "react";
 import Link from "next/link";
-import type { CompanySettings, SocialLink } from "@ishoot/database/types";
-import { Card, Input, Textarea } from "@ishoot/ui";
+import type { CompanySettings,SocialLink } from "@ishoot/database/types";
+import { Card,Input,Textarea } from "@ishoot/ui";
 import {
-  Globe,
-  ExternalLink,
-  RefreshCw,
-  Sparkles,
-  CheckCircle2,
-  Film,
-  Building2,
-  Share2,
-  FileText,
-  User,
-  Instagram,
-  Linkedin,
-  Youtube,
-  Phone,
-  Mail,
-  MapPin,
-  Sliders,
-  Layers,
-  Star,
-  HelpCircle,
-  BarChart3,
-  Camera,
-  FolderOpen,
-  Users,
-  Shield,
-  Save,
-  Loader2,
+Globe,
+ExternalLink,
+RefreshCw,CheckCircle2,
+Film,
+Building2,
+Share2,User,Phone,
+Mail,
+MapPin,Layers,
+Star,
+HelpCircle,Camera,
+FolderOpen,
+Users,
+Shield,
+Save,
+Loader2
 } from "lucide-react";
 import {
-  updateWebSettingsAction,
-  revalidateEntireSiteAction,
-  createSocialLinkAction,
-  updateSocialLinkAction,
-  deleteSocialLinkAction,
+updateWebSettingsAction,
+revalidateEntireSiteAction,
+createSocialLinkAction,
+updateSocialLinkAction,
+deleteSocialLinkAction,
 } from "../../app/actions/settings";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";

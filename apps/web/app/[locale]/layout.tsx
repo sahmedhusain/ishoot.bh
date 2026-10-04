@@ -1,17 +1,17 @@
-import { isWebsitePreview, getWebsite } from "../../lib/website";
+import { isWebsitePreview,getWebsite } from "../../lib/website";
 import { getPublicCompanySettings } from "../../lib/company";
-// Database content must not be frozen into empty pages when the build database is unavailable.
-export const dynamic = "force-dynamic";
 import * as React from "react";
 import { getTranslations } from "@ishoot/locales";
 import { notFound } from "next/navigation";
-import { locales, Locale, isValidLocale } from "../../lib/i18n";
+import { isValidLocale } from "../../lib/i18n";
 import { Navbar } from "../../components/layout/Navbar";
 import { Footer } from "../../components/layout/Footer";
 import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
 import { BackToTop } from "../../components/layout/BackToTop";
 import { getSocialLinks } from "@ishoot/database";
+// Database content must not be frozen into empty pages when the build database is unavailable.
+export const dynamic = "force-dynamic";
 
 export default async function LocaleLayout({
   children,

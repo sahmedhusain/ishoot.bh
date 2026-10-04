@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-04",
+  "lint": "passed, zero warnings",
+  "typeChecks": {
+    "passed": 7,
+    "cached": 0,
+    "noUnusedLocals": true
+  },
+  "unusedScan": "passed with documented exceptions",
+  "regressionSuites": [
+    "test:platform",
+    "test:audit-security",
+    "test:action-schemas",
+    "test:uploads"
+  ],
+  "databaseSuites": [
+    "test:audit-db",
+    "test:followup-db",
+    "test:open-items-db",
+    "scripts/check-website.cjs"
+  ],
+  "database": "disposable PostgreSQL 15; all 17 migrations applied; schema drift empty",
+  "http": [
+    "hashed sessions",
+    "PDF export and permission denial",
+    "calendar grants",
+    "cache invalidation and signed preview",
+    "five submission paths and review moderation"
+  ],
+  "build": {
+    "applications": 2,
+    "passed": true,
+    "seconds": 59.928,
+    "cache": false
+  },
+  "removedBuildMiB": 6479.1,
+  "productionValidated": false
+}

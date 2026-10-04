@@ -4,16 +4,16 @@ import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
-  getUserById,
-  claimUpload,
-  getEffectivePermissions,
-  db,
-  createUser,
-  updateUserRole,
-  updateUser,
-  deleteUser,
-  createActivityLog,
-  UserRole,
+getUserById,
+claimUpload,
+getEffectivePermissions,
+db,
+createUser,
+updateUserRole,
+updateUser,
+deleteUser,
+createActivityLog,
+UserRole,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
@@ -88,7 +88,7 @@ export async function createUserAction(data: {
   email: string;
   password?: string;
   full_name: string;
-  role: any;
+  role: string;
   phone?: string;
   department?: string;
   manager_id?: string;

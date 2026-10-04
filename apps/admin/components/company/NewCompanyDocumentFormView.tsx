@@ -1,18 +1,18 @@
 "use client";
-import { uploadFileDirectly } from "../../lib/upload-client";
 
+import { uploadFileDirectly } from "../../lib/upload-client";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Card,
-  Button,
-  Input,
-  Select,
-  ProofUploader,
-  ProofFile,
+Card,
+Button,
+Input,
+Select,
+ProofUploader,
+ProofFile,
 } from "@ishoot/ui";
-import { ArrowLeft, CheckCircle2, Building2 } from "lucide-react";
+import { ArrowLeft,CheckCircle2,Building2 } from "lucide-react";
 import { createCompanyDocumentAction } from "../../app/actions/documents";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -38,9 +38,7 @@ export function NewCompanyDocumentFormView() {
     setSaving(true);
 
     try {
-      const body = new FormData(); body.set("file",files[0].file); body.set("entityType","company_document"); body.set("entityId","pending");
-      const response = await fetch("/api/upload",{method:"POST",body}); const uploaded = await response.json();
-      if(!response.ok || !uploaded.success) throw new Error(uploaded.error || "Upload failed");
+      const uploaded = await uploadFileDirectly(files[0].file, { entityType: "company_document", entityId: "pending" });
       const fileUrl = uploaded.fileUrl;
 
       await createCompanyDocumentAction({

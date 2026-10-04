@@ -1,21 +1,21 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
 import type { ClientLogo } from "@ishoot/database/types";
 import {
-  Button,
-  Card,
-  Badge,
-  Modal,
-  Input,
-  ConfirmDestructiveModal,
+Button,
+Card,
+Badge,
+Modal,
+Input,
+ConfirmDestructiveModal,
 } from "@ishoot/ui";
-import { Plus, Trash2, Globe, CheckCircle2 } from "lucide-react";
+import { Plus,Trash2,Globe,CheckCircle2 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
-  deleteClientLogoAction,
-  createClientLogoAction,
+deleteClientLogoAction,
+createClientLogoAction,
 } from "../../app/actions/cms";
 
 interface ClientsManagementViewProps {
@@ -25,7 +25,7 @@ interface ClientsManagementViewProps {
 export function ClientsManagementView({
   initialLogos,
 }: ClientsManagementViewProps) {
-  const { t, locale } = useAdminLocale();
+  const { t } = useAdminLocale();
   const [logos, setLogos] = React.useState<ClientLogo[]>(initialLogos);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(

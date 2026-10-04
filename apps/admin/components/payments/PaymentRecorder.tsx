@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { Invoice, PaymentMethod } from "@ishoot/database/types";
-import { Modal, Input, Select, Button, CurrencyDisplay } from "@ishoot/ui";
+import type { Invoice,PaymentMethod } from "@ishoot/database/types";
+import { Modal,Input,Select,Button,CurrencyDisplay } from "@ishoot/ui";
 import { CheckCircle2 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createPaymentAction } from "../../app/actions/finance";
@@ -20,7 +20,7 @@ export function PaymentRecorder({
   invoice,
   onSuccess,
 }: PaymentRecorderProps) {
-  const { t, locale } = useAdminLocale();
+  const { t } = useAdminLocale();
   const [amount, setAmount] = React.useState<number>(invoice.amount_due);
   const [method, setMethod] = React.useState<PaymentMethod>("bank_transfer");
   const [reference, setReference] = React.useState("");

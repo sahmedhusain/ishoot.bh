@@ -1,16 +1,16 @@
 "use client";
 import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
+ResponsiveContainer,
+AreaChart,
+Area,
+XAxis,
+YAxis,
+Tooltip,
+CartesianGrid,
 } from "recharts";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 export default function FinanceCashflowChart({ data: chartData }: { data: Array<{ month?: string; name?: string; revenue: number; expenses: number }> }) {
-  const { t } = useAdminLocale();
+  useAdminLocale();
   return (<ResponsiveContainer width="100%" height="100%">
             <AreaChart accessibilityLayer
               data={chartData}

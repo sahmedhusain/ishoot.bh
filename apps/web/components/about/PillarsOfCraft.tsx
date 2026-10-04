@@ -1,9 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion,useReducedMotion } from "framer-motion";
 
 export function PillarsOfCraft({pillars=[]}:{pillars?:import("@ishoot/database/website-config").WebsitePillar[]}) {
   const reduced = useReducedMotion();

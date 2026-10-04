@@ -3,11 +3,10 @@ import { Sidebar } from "../../components/layout/Sidebar";
 import { Topbar } from "../../components/layout/Topbar";
 import { SidebarProvider } from "../../components/layout/SidebarContext";
 import {
-  getCompanySettings,
-  getFeatureToggles,
-  getEffectivePermissions,
+getCompanySettings,
+getFeatureToggles
 } from "@ishoot/database";
-import { getCurrentPermissions, requireAuth } from "../../lib/auth";
+import { getCurrentPermissions,requireAuth } from "../../lib/auth";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
 

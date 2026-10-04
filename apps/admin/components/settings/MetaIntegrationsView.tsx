@@ -1,24 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { Card, Input, Button, Badge, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Card,Input,Button,Badge,ConfirmDestructiveModal } from "@ishoot/ui";
 import {
-  CheckCircle2,
-  MessageSquare,
-  Instagram,
-  Send,
-  Lock,
-  Unlock,
-  Unlink,
-  Edit2,
-  ShieldCheck,
-  AlertCircle,
-  X,
-  Check,
+CheckCircle2,
+MessageSquare,
+Instagram,
+Send,
+Lock,Unlink,
+Edit2,
+ShieldCheck,X,
+Check
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
-import { saveIntegration, unlinkIntegration } from "../../app/actions/integrations";
+import { saveIntegration,unlinkIntegration } from "../../app/actions/integrations";
 
 function maskValue(val: string, visibleChars = 4): string {
   if (!val) return "—";
@@ -184,7 +180,7 @@ export function MetaIntegrationsView({
                     variant="outline"
                     className={`text-[10px] ${initialWhatsApp?.healthStatus === 'error' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}`}
                   >
-                    {initialWhatsApp?.healthStatus === 'error' ? (isRTL ? "خطأ في الاتصال" : "Connection Error") : t.integrations.connected}
+                    {initialWhatsApp?.healthStatus === 'error' ? (isRTL ? "خطأ في الاتصال" : "Connection Error") : initialWhatsApp?.healthStatus === 'healthy' ? t.integrations.connected : (isRTL ? "لم يتم التحقق من الاتصال" : "Connection unverified")}
                   </Badge>
                 ) : (
                   <Badge
@@ -412,7 +408,7 @@ export function MetaIntegrationsView({
                     variant="outline"
                     className={`text-[10px] ${initialMeta?.healthStatus === 'error' ? 'text-amber-400 border-amber-500/30 bg-amber-500/10' : 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'}`}
                   >
-                    {initialMeta?.healthStatus === 'error' ? (isRTL ? "خطأ في الاتصال" : "Connection Error") : t.integrations.connected}
+                    {initialMeta?.healthStatus === 'error' ? (isRTL ? "خطأ في الاتصال" : "Connection Error") : initialMeta?.healthStatus === 'healthy' ? t.integrations.connected : (isRTL ? "لم يتم التحقق من الاتصال" : "Connection unverified")}
                   </Badge>
                 ) : (
                   <Badge

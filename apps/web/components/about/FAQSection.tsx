@@ -4,8 +4,8 @@ import * as React from "react";
 import type { Faq } from "@ishoot/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
-import { ChevronDown, HelpCircle } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+import { motion,AnimatePresence,useReducedMotion } from "framer-motion";
 
 export function FAQSection({ faqs }: { faqs: Faq[] }) {
   const { t, isRTL: ar } = useTranslation();

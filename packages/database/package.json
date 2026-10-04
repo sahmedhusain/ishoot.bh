@@ -13,7 +13,8 @@
   "scripts": {
     "db:generate": "prisma generate --schema=prisma/schema.prisma",
     "db:push": "prisma db push --schema=prisma/schema.prisma",
-    "db:seed": "ts-node prisma/seed.ts"
+    "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
+    "type-check": "tsc --noEmit && tsc --project tsconfig.seed.json --noEmit"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",
@@ -22,6 +23,7 @@
     "libphonenumber-js": "^1.13.14"
   },
   "devDependencies": {
+    "@types/node": "^22.20.4",
     "prisma": "5.22.0",
     "typescript": "^5.7.3"
   }

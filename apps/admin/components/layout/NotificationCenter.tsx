@@ -3,22 +3,22 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  Bell,
-  CheckCircle2,
-  AlertTriangle,
-  Info,
-  Calendar,
-  CreditCard,
-  Inbox,
-  Check,
-  ExternalLink,
+Bell,
+CheckCircle2,
+AlertTriangle,
+Info,
+Calendar,
+CreditCard,
+Inbox,
+Check,
+ExternalLink,
 } from "lucide-react";
 import type { Notification } from "@ishoot/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
-  getNotificationsAction,
-  markNotificationReadAction,
-  markAllNotificationsReadAction,
+getNotificationsAction,
+markNotificationReadAction,
+markAllNotificationsReadAction,
 } from "../../app/actions/notifications";
 import { formatDate } from "@ishoot/ui";
 
@@ -26,7 +26,7 @@ export function NotificationCenter() {
   const { t, locale } = useAdminLocale();
   const [isOpen, setIsOpen] = React.useState(false);
   const [notifications, setNotifications] = React.useState<Notification[]>([]);
-  const [loading, setLoading] = React.useState(false);
+  React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const fetchNotifications = React.useCallback(async () => {

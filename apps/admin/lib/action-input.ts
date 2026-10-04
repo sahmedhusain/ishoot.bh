@@ -26,6 +26,12 @@ function valid(
       value.length <= 200 &&
       value.every((v) => valid(v, schema.element!, key, depth + 1))
     );
+  if (schema.kind === "record") {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const entries = Object.entries(value);
+    return entries.length <= 200 && entries.every(([field, entry]) =>
+      !["__proto__", "constructor", "prototype"].includes(field) && valid(entry, schema.element!, field, depth + 1));
+  }
   if (schema.kind === "object") {
     if (
       !value ||

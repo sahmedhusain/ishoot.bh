@@ -1,7 +1,6 @@
-import React from "react";
 
-import { Document, Page, Text, View, Image as PdfImage } from "@react-pdf/renderer";
-import type { Payment, CompanySettings } from "@ishoot/database/types";
+import { Document,Page,Text,View,Image as PdfImage } from "@react-pdf/renderer";
+import type { Payment,CompanySettings } from "@ishoot/database/types";
 import { pdfStyles } from "./shared-styles";
 import { PdfBrandLogo } from "./brand-logo-pdf";
 import { adminTranslations } from "../translations";
@@ -40,7 +39,7 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
   const clientEmail = invoice?.contact?.email || "";
   const clientPhone = invoice?.contact?.phone || "";
 
-  const totalInvoice = invoice ? Number(invoice.total_amount) : 0;
+
   const totalPaidAfterThis = invoice
     ? Number(invoice.amount_paid)
     : payment.amount;

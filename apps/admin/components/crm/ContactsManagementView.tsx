@@ -2,15 +2,13 @@
 
 import * as React from "react";
 import type { CRMContact } from "@ishoot/database/types";
-import { Button, Input, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Button,ConfirmDestructiveModal } from "@ishoot/ui";
 import {
-  Plus,
-  Search,
-  Building,
-  Mail,
-  Phone,
-  Trash2,
-  ExternalLink,
+Plus,Building,
+Mail,
+Phone,
+Trash2,
+ExternalLink
 } from "lucide-react";
 import Link from "next/link";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

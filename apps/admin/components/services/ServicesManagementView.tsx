@@ -1,32 +1,25 @@
 "use client";
 
 import * as React from "react";
-import type { ServiceItem, ServiceCategory } from "@ishoot/database/types";
-import { Card, Button, Input, Select, CurrencyDisplay } from "@ishoot/ui";
+import type { ServiceItem,ServiceCategory } from "@ishoot/database/types";
+import { Button,Input,CurrencyDisplay } from "@ishoot/ui";
 import {
-  Sparkles,
-  Plus,
-  Search,
-  Filter,
-  Edit2,
-  Trash2,
-  CheckCircle2,
-  XCircle,
-  Tag,
-  Clock,
-  Layers,
-  DollarSign,
-  AlertCircle,
-  X,
-  SlidersHorizontal,
+Sparkles,
+Plus,
+Search,Edit2,
+Trash2,
+CheckCircle2,
+XCircle,
+Tag,Layers,
+DollarSign,X
 } from "lucide-react";
 import {
-  createServiceAction,
-  updateServiceAction,
-  deleteServiceAction,
+createServiceAction,
+updateServiceAction,
+deleteServiceAction,
 } from "../../app/actions/services";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { SERVICE_CATEGORIES, SERVICE_UNITS } from "@ishoot/config/constants";
+import { SERVICE_CATEGORIES,SERVICE_UNITS } from "@ishoot/config/constants";
 
 interface ServicesManagementViewProps {
   initialServices: ServiceItem[];
@@ -35,7 +28,7 @@ interface ServicesManagementViewProps {
 export function ServicesManagementView({
   initialServices,
 }: ServicesManagementViewProps) {
-  const { isRTL, locale, t } = useAdminLocale();
+  const { isRTL, t } = useAdminLocale();
   const [services, setServices] = React.useState<ServiceItem[]>(initialServices);
   const [activeCategory, setActiveCategory] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");

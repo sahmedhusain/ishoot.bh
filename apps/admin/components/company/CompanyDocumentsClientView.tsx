@@ -3,20 +3,18 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  Card,
-  Button,
-  Badge,
-  DateDisplay,
-  ConfirmDestructiveModal,
+Card,
+Button,
+Badge,
+DateDisplay,
+ConfirmDestructiveModal,
 } from "@ishoot/ui";
 import {
-  Building2,
-  Plus,
-  Download,
-  FileText,
-  Trash2,
-  ShieldCheck,
-  Calendar,
+Building2,
+Plus,
+Download,
+FileText,
+Trash2,Calendar
 } from "lucide-react";
 import type { CompanyDocument } from "@ishoot/database";
 import { deleteCompanyDocumentAction } from "../../app/actions/documents";

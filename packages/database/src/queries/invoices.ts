@@ -1,11 +1,9 @@
 import { db } from "../db";
 import {
   Invoice,
-  InvoiceLineItem,
   DiscountType,
   SupportedCurrency,
   InvoiceStatus,
-  CURRENCY_CONFIGS,
   calculateInvoiceTotals,
 } from "../types";
 

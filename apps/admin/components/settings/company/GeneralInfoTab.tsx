@@ -2,16 +2,13 @@
 
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
-import { Card, Input, Button } from "@ishoot/ui";
+import { Card,Input,Button } from "@ishoot/ui";
 import {
-  Building2,
-  Phone,
-  Globe,
-  Share2,
-  Calendar,
-  Copy,
-  ExternalLink,
-  Check,
+Building2,
+Phone,Calendar,
+Copy,
+ExternalLink,
+Check
 } from "lucide-react";
 import type { Translations } from "../../../lib/translations";
 
@@ -30,7 +27,7 @@ export function GeneralInfoTab({
   locale,
   isRTL,
 }: GeneralInfoTabProps) {
-  const [googleConnected, setGoogleConnected] = React.useState(true);
+  React.useState(true);
   const [feedCopied, setFeedCopied] = React.useState(false);
 
   return (
@@ -270,7 +267,7 @@ export function GeneralInfoTab({
               {isRTL ? "رابط تقويم الإنتاج والتصوير المباشر (.ics)" : "Production & Shoot Live Feed URL (.ics)"}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {isRTL 
+              {isRTL
                 ? "يتم تحديث جميع مواعيد التصوير والاجتماعات وأيام الإنتاج تلقائياً في تقويم Google وتقويم Apple."
                 : "All scheduled shoots, client meetings, and call sheets sync in real time to Google Calendar and Apple Calendar."}
             </p>

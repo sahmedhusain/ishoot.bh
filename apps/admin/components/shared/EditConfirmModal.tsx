@@ -1,8 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { Modal, Button } from "@ishoot/ui";
-import { ArrowRight, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { Modal,Button } from "@ishoot/ui";
+import { ArrowRight,CheckCircle2,AlertCircle,Loader2 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export interface FieldChange {
@@ -38,7 +37,7 @@ export function EditConfirmModal({
   changes,
   isSaving = false,
 }: EditConfirmModalProps) {
-  const { t, isRTL } = useAdminLocale();
+  const { isRTL } = useAdminLocale();
 
   const filteredChanges = changes.filter(
     (c) => formatValue(c.oldValue) !== formatValue(c.newValue)

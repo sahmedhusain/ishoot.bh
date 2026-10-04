@@ -1,10 +1,9 @@
 import { requirePermission } from "../../../../lib/auth";
-import * as React from "react";
 import { notFound } from "next/navigation";
 import {
-  getInvoiceById,
-  getCompanySettings,
-  getAllPayments,
+getInvoiceById,
+getCompanySettings,
+getAllPayments,
 } from "@ishoot/database";
 import { InvoiceDetailView } from "../../../../components/invoices/InvoiceDetailView";
 

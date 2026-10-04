@@ -1,5 +1,4 @@
 import { requirePermission } from "../../../../lib/auth";
-import * as React from "react";
 import { getActivityLogs } from "@ishoot/database";
 import { AuditSessionsView } from "../../../../components/settings/AuditSessionsView";
 

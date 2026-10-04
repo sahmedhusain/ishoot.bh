@@ -3,14 +3,12 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  Search,
-  Command,
-  Users,
-  FileText,
-  Briefcase,
-  ArrowRight,
-  Loader2,
-  X,
+Search,Users,
+FileText,
+Briefcase,
+ArrowRight,
+Loader2,
+X
 } from "lucide-react";
 import { globalSearchAction } from "../../app/actions/crm";
 import type { GlobalSearchResult } from "@ishoot/database";

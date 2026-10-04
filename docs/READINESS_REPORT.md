@@ -1,25 +1,13 @@
-# Deployment Readiness Verification
+# Deployment readiness
 
-## 1. Security & Authentication
-- **TOTP MFA & Session Revocation**: Implemented robust `mfa` boundaries. Password resets now strictly revoke all existing sessions to prevent compromised access.
-- **Role-Based Access (RBAC)**: All server actions are guarded by `requirePermission` verifying exact resources (e.g. `invoices`, `settings`) and intent (`read`, `write`).
-- **Encrypted Integrations**: WhatsApp and Social integration credentials are now stored using AES-256-GCM authenticated encryption at rest rather than plaintext.
+The repository passes source, build and disposable-database checks recorded in [the October 4 audit](audit-2026-10-04/REPORT.md). These checks do not certify the configured environment or a production deployment.
 
-## 2. Infrastructure & Quotas (Vercel + Supabase)
-- **Files & Storage**: Removed local disk writes. Storage is now entirely managed via Supabase Object Storage using secure, short-lived presigned upload URLs (bypassing Vercel's 4.5MB function limit).
-- **Database Concurrency**: Supabase connection pooling (PgBouncer/Supavisor) configured to handle scale, completely removing the reliance on infinite background worker loops that drain connections.
-- **Email/Resend Limits**: The system respects Resend's free tier (100 emails/day). The `CommunicationMessage` schema queues messages and prevents outbound spam loops or uncontrolled quota exhaustion. 
+Run `pnpm check:deployment` with the intended server environment before deploying. The audit environment currently fails database pool limits, MFA encryption key, server storage URL, integration encryption key, cron secret, webhook signing secret and email-provider configuration checks.
 
-## 3. Reliability & Idempotency
-- **Idempotent Invoicing**: The `convertQuotationToInvoice` function strictly relies on a Postgres `FOR UPDATE` row lock and enforces uniqueness via the `invoiceId` mapping, eliminating the risk of duplicating financial invoices under concurrent requests.
-- **Webhooks Deduplication**: The Resend webhook handler for delivery events guarantees that identical webhooks are identified through the `deliveryLog` JSON block and are deduplicated.
+New uploads use Supabase signed uploads, server-verified metadata and authenticated finalization. Private downloads require application authorization before issuing short-lived signed URLs. Both maintenance entry points remove expired private objects before removing their database rows. Legacy disk readers remain for installations that have not configured cloud storage; existing disk objects require an explicit migration.
 
-## 4. Accessibility & UI
-- **PDF Generation**: Migrated PDF generation (Receipts, Quotations, Invoices) to a backend `@react-pdf/renderer` implementation using bundled fonts (`IBM Plex Sans Arabic`), ensuring absolute visual consistency without browser dependency.
-- **Bilingual UI**: The data layer fully supports `descriptionEn` and `descriptionAr` for exact translation in commercial documents.
+Set up `private-assets` as a private bucket and `public-assets` for public branding only. Enforce a 10 MiB file limit and allowed MIME types at the bucket level. Configure `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` on the server. Set `CRON_SECRET` and schedule the authenticated maintenance route, or run the standalone workers on a durable host. Bucket policy, scheduler execution and provider delivery were not exercised against live services.
 
-## 5. Backup & Restore Procedures
-- **Supabase**: Rely on Supabase's built-in Point-in-Time Recovery (PITR) for DB backups and physical bucket replication for Storage.
-- **Retention**: Defined clear policies in `RETENTION_POLICY.md` for expiring old logs to keep database size beneath Supabase's 500MB free limit.
+Set a separate 32-byte UTF-8 `ENCRYPTION_KEY` for integration credentials and a `RESEND_WEBHOOK_SECRET` for delivery webhooks. Saved credentials are not proof of provider connectivity. Resend delivery events are signature-verified; inbound email ingestion is not implemented. Outbound meeting email uses the existing retry outbox, whose failure and concurrency behavior is covered by integration tests.
 
-**Conclusion**: The architecture satisfies the Vercel Hobby environment constraints and the business security needs, providing documented evidence that the applications (`apps/web` and `apps/admin`) are ready for initial cloud deployment.
+Configure provider-supported database pooling, TLS, backups and storage durability; test restore procedures. Production latency, field Core Web Vitals, quotas and mail-domain verification remain operational checks. Current plan limits and backup capabilities must be verified with the deployed provider and subscription.

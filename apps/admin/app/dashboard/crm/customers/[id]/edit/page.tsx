@@ -1,5 +1,4 @@
 import { requirePermission } from "../../../../../../lib/auth";
-import * as React from "react";
 import { getCRMContactById } from "@ishoot/database";
 import { notFound } from "next/navigation";
 import { CustomerEditFormView } from "../../../../../../components/crm/CustomerEditFormView";

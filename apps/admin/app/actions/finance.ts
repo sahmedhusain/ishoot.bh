@@ -4,16 +4,14 @@ import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
-  createExpense,
-  deleteExpense,
-  createPayment,
-  createInvoice,
-  updateInvoice,
-  updateInvoiceStatus,
-  getUnpaidInvoicesByClientId,
-  createActivityLog,
-  PaymentMethod,
-  SupportedCurrency,
+createExpense,
+deleteExpense,
+createPayment,
+createInvoice,
+updateInvoice,
+updateInvoiceStatus,createActivityLog,
+PaymentMethod,
+SupportedCurrency
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
@@ -251,16 +249,4 @@ export async function voidInvoiceAction(id: string) {
     revalidatePath("/dashboard");
     return { success: true };
   });
-}
-
-export async function getUnpaidInvoicesByClientAction(clientId: string) {
-  return measureOperation(
-    "action:getUnpaidInvoicesByClientAction",
-    async () => {
-      await requirePermission("invoices", "read");
-      validateActionArguments("getUnpaidInvoicesByClientAction", { clientId });
-      const invoices = await getUnpaidInvoicesByClientId(clientId);
-      return { success: true, invoices };
-    },
-  );
 }

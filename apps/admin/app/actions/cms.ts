@@ -4,21 +4,18 @@ import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
-  createBanner,
-  updateBanner,
-  deleteBanner,
-  createClientLogo,
-  deleteClientLogo,
-  createEquipment,
-  deleteEquipment,
-  createPortfolioItem,
-  updatePortfolioItem,
-  deletePortfolioItem,
-  createActivityLog,
-  HeroBanner,
-  ClientLogo,
-  StudioEquipment,
-  PortfolioItem,
+createBanner,
+updateBanner,
+deleteBanner,
+createClientLogo,
+deleteClientLogo,
+createEquipment,
+deleteEquipment,
+createPortfolioItem,
+updatePortfolioItem,
+deletePortfolioItem,
+createActivityLog,StudioEquipment,
+PortfolioItem
 } from "@ishoot/database";
 import { safeWebsiteUrl } from "@ishoot/database/website-config";
 import { revalidatePath } from "next/cache";
@@ -305,61 +302,15 @@ export async function createPortfolioItemAction(data: {
 }
 
 import {
-  createReview,
-  updateReview,
-  deleteReview,
-  createFaq,
-  updateFaq,
-  deleteFaq,
-  createStatistic,
-  updateStatistic,
-  deleteStatistic,
+updateReview,
+deleteReview,
+createFaq,
+updateFaq,
+deleteFaq,
+createStatistic,
+updateStatistic,
+deleteStatistic
 } from "@ishoot/database";
-
-export async function createReviewAction(
-  data: Parameters<typeof createReview>[0],
-) {
-  return measureOperation("action:createReviewAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("reviews", "write");
-    validateActionArguments("createReviewAction", { data });
-    const review = await runAtomicMutation(async () => {
-      const review = await createReview(data);
-      await createActivityLog({
-        user_id: user.id,
-        action: "create",
-        entity_type: "review",
-        entity_id: review.id,
-      });
-      return review;
-    });
-    revalidatePublicSite(["reviews"]);
-    revalidatePath("/dashboard/cms/reviews");
-    return { success: true, review };
-  });
-}
-
-export async function updateReviewAction(
-  id: string,
-  data: Partial<Parameters<typeof createReview>[0]>,
-) {
-  return measureOperation("action:updateReviewAction", async () => {
-    await requireFeatureEnabled("cms"); const user = await requirePermission("reviews", "write");
-    validateActionArguments("updateReviewAction", { id, data });
-    const review = await runAtomicMutation(async () => {
-      const review = await updateReview(id, data);
-      await createActivityLog({
-        user_id: user.id,
-        action: "update",
-        entity_type: "review",
-        entity_id: review.id,
-      });
-      return review;
-    });
-    revalidatePublicSite(["reviews"]);
-    revalidatePath("/dashboard/cms/reviews");
-    return { success: true, review };
-  });
-}
 
 export async function toggleReviewApprovalAction(
   id: string,

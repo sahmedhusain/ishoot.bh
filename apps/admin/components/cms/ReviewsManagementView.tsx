@@ -2,23 +2,19 @@
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { Card, Badge, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Card,Badge,ConfirmDestructiveModal } from "@ishoot/ui";
 import {
-  Star,
-  CheckCircle2,
-  XCircle,
-  Trash2,
-  Clock,
-  Sparkles,
-  Eye,
-  EyeOff,
-  Building2,
-  User,
-  MessageSquare,
+Star,
+CheckCircle2,Trash2,
+Clock,Eye,
+EyeOff,
+Building2,
+User,
+MessageSquare
 } from "lucide-react";
 import {
-  toggleReviewApprovalAction,
-  deleteReviewAction,
+toggleReviewApprovalAction,
+deleteReviewAction,
 } from "../../app/actions/cms";
 
 export function ReviewsManagementView({
@@ -26,7 +22,7 @@ export function ReviewsManagementView({
 }: {
   initialReviews: any[];
 }) {
-  const { t, isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
   const [reviews, setReviews] = React.useState(initialReviews);
   const [filter, setFilter] = React.useState<"all" | "pending" | "published">(
     "all",

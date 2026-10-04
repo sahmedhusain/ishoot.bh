@@ -54,9 +54,11 @@ ishoot.bh/
 | `pnpm lint`       | Run ESLint checks across all apps and packages                                   |
 | `pnpm format`     | Auto-format codebase using Prettier (`prettier --write "**/*.{ts,tsx,md,json}"`) |
 | `pnpm db:push`    | Sync Prisma schema directly with the PostgreSQL database                         |
-| `pnpm db:seed`    | Seed initial admin users, settings, and database entities                        |
+| `pnpm db:seed`    | Populate an empty development database with demo records                        |
 
 ### Database & Prisma Commands
+
+For paste-safe initialization and local Supabase setup, follow [the DevOps guide](docs/DEVOPS.md). Interactive zsh treats pasted comments as commands unless `setopt interactivecomments` is enabled. Use `pnpm db:bootstrap` for initial accounts/settings; demo seeding requires an empty business database.
 
 ```bash
 # Generate Prisma Client (after modifying schema.prisma)
@@ -461,18 +463,26 @@ ADMIN_URL="http://localhost:3001"
    pnpm install
    ```
 
-3. **Start PostgreSQL database container**:
+3. **Configure `.env` and start local Supabase** (Docker must be running):
+
+   Set `SUPER_ADMIN_EMAIL`, a `SUPER_ADMIN_PASSWORD` of at least 12 characters, and the application secrets. This repository includes the local Supabase configuration.
 
    ```bash
-   docker compose up -d
+   pnpm dlx supabase start -x studio,postgres-meta,logflare,vector,supavisor,edge-runtime,realtime,imgproxy,mailpit
+   pnpm dlx supabase status
    ```
 
-4. **Sync database schema and seed data**:
+   Copy the local database URL into both `DATABASE_URL` and `DIRECT_URL`. Set the Supabase URLs and keys using the local stack values as described in [the DevOps guide](docs/DEVOPS.md).
+
+4. **Apply migrations and create the initial administrator**:
 
    ```bash
-   pnpm db:push
-   pnpm db:seed
+   pnpm --filter @ishoot/database db:generate
+   pnpm exec prisma migrate deploy --schema packages/database/prisma/schema.prisma
+   pnpm db:bootstrap
    ```
+
+   Optionally run `pnpm db:seed` on a new, empty development database for demo CMS and business records.
 
 5. **Start applications in development mode**:
    ```bash

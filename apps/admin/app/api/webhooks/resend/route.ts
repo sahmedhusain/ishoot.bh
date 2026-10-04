@@ -1,94 +1,34 @@
 import { NextResponse } from "next/server";
-import { db } from "@ishoot/database";
-import crypto from "crypto";
+import { db,type Prisma } from "@ishoot/database";
+import { verifyResendWebhook } from "../../../../lib/resend-webhook";
 
-// Example webhook for Resend
 export async function POST(req: Request) {
   try {
-    const rawBody = await req.text();
-    const signature = req.headers.get("svix-signature");
-    
-    // Verify signature logic would go here
-    // ...
-
-    const event = JSON.parse(rawBody);
-    
-    if (event.type === "email.delivered" || event.type === "email.bounced" || event.type === "email.complained") {
-      const emailId = event.data?.email_id;
-      if (!emailId) return NextResponse.json({ success: true });
-      
-      const statusMap: Record<string, string> = {
-        "email.delivered": "delivered",
-        "email.bounced": "bounced",
-        "email.complained": "failed"
-      };
-
-      const message = await db.communicationMessage.findUnique({ where: { messageId: emailId } });
-      if (message) {
-        // Deduplicate using deliveryLog
-        const currentLog: any[] = Array.isArray(message.deliveryLog) ? message.deliveryLog : [];
-        const isDuplicate = currentLog.some(log => log.id === event.data?.id);
-        
-        if (!isDuplicate) {
-          await db.communicationMessage.update({
-            where: { id: message.id },
-            data: {
-              status: statusMap[event.type] || message.status,
-              deliveryLog: [...currentLog, event]
-            }
-          });
-        }
-      }
-    } else if (event.type === "email.inbound") {
-      // Inbound email processing
-      const from = event.data?.from;
-      const to = event.data?.to;
-      const subject = event.data?.subject;
-      const text = event.data?.text;
-      const messageId = event.data?.messageId;
-      const inReplyTo = event.data?.inReplyTo;
-
-      // Find thread by inReplyTo
-      let threadId: string | undefined;
-      
-      if (inReplyTo) {
-        const parentMessage = await db.communicationMessage.findUnique({
-          where: { messageId: inReplyTo }
-        });
-        if (parentMessage && parentMessage.threadId) {
-          threadId = parentMessage.threadId;
-        }
-      }
-
-      if (!threadId) {
-        // Create new thread
-        const thread = await db.communicationThread.create({
-          data: {
-            subject: subject || "No Subject",
-            status: "open"
-          }
-        });
-        threadId = thread.id;
-      }
-
-      await db.communicationMessage.create({
-        data: {
-          threadId,
-          messageId,
-          inReplyTo,
-          direction: "inbound",
-          fromEmail: from,
-          toEmail: to,
-          subject: subject || "No Subject",
-          bodyText: text,
-          status: "delivered"
-        }
+    const { id, event } = verifyResendWebhook(await req.text(), req.headers);
+    const statuses: Record<string, string> = { "email.delivered": "delivered", "email.bounced": "bounced", "email.complained": "failed" };
+    const status = statuses[event.type];
+    const emailId = event.data?.email_id;
+    if (status && typeof emailId === "string") {
+      await db.$transaction(async (tx) => {
+        // Serialize retries and simultaneous delivery events for the same message.
+        await tx.$queryRaw`SELECT id FROM "CommunicationMessage" WHERE "messageId"=${emailId} FOR UPDATE`;
+        const message = await tx.communicationMessage.findUnique({ where: { messageId: emailId } });
+        if (!message) return;
+        const log = Array.isArray(message.deliveryLog) ? message.deliveryLog : [];
+        if (log.some((entry) => entry && typeof entry === "object" && !Array.isArray(entry) && entry.id === id)) return;
+        await tx.communicationMessage.update({ where: { id: message.id }, data: {
+          status,
+          // Bound stored evidence; use the signed Svix event ID, not data.id (often absent).
+          deliveryLog: [...log.slice(-99), { id, type: event.type, data: { email_id: emailId } }] as Prisma.InputJsonValue,
+        } });
       });
     }
-
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Webhook processing error", error);
+    const message = error instanceof Error ? error.message : "";
+    if (message === "WEBHOOK_NOT_CONFIGURED") return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
+    if (message === "INVALID_SIGNATURE") return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
+    console.error("Webhook processing failed");
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

@@ -1,14 +1,13 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
+import { ContentImage } from "../shared/ContentImage";
 
-import * as React from "react";
 import Link from "next/link";
 import type { PublicService } from "@ishoot/database/website-config";
 import { safeWebsiteUrl } from "@ishoot/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ArrowUpRight } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion,useReducedMotion } from "framer-motion";
 
 export function ServicesSection({
   services = [],

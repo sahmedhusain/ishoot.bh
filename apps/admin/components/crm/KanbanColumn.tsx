@@ -1,8 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { useDroppable } from "@dnd-kit/core";
-import type { CRMDeal, DealStage } from "@ishoot/database/types";
+import type { CRMDeal,DealStage } from "@ishoot/database/types";
 import { DealCard } from "./DealCard";
 import { CurrencyDisplay } from "@ishoot/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

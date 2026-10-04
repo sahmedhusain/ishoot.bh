@@ -3,20 +3,18 @@
 import * as React from "react";
 import type { StudioEquipment } from "@ishoot/database/types";
 import {
-  Button,
-  Card,
-  Badge,
-  Modal,
-  Input,
-  Select,
-  CurrencyDisplay,
-  ConfirmDestructiveModal,
+Button,Badge,
+Modal,
+Input,
+Select,
+CurrencyDisplay,
+ConfirmDestructiveModal
 } from "@ishoot/ui";
-import { Plus, Trash2, Camera, CheckCircle2, Filter } from "lucide-react";
+import { Plus,Trash2,CheckCircle2,Filter } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
-  deleteEquipmentAction,
-  createEquipmentAction,
+deleteEquipmentAction,
+createEquipmentAction,
 } from "../../app/actions/cms";
 
 interface EquipmentManagementViewProps {

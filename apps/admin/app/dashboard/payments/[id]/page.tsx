@@ -1,7 +1,6 @@
 import { requirePermission } from "../../../../lib/auth";
-import * as React from "react";
 import { notFound } from "next/navigation";
-import { getPaymentById, getCompanySettings } from "@ishoot/database";
+import { getPaymentById,getCompanySettings } from "@ishoot/database";
 import { PaymentDetailView } from "../../../../components/payments/PaymentDetailView";
 
 export const dynamic = "force-dynamic";

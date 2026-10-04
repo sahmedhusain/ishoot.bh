@@ -1,38 +1,28 @@
 "use client";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
 
-import * as React from "react";
 import Link from "next/link";
 import type {
-  FinancialSummary,
-  CRMDeal,
-  Inquiry,
-  CompanySettings,
-  CalendarEvent,
-  MonthlyCashflowPoint,
+FinancialSummary,CompanySettings,
+CalendarEvent,
+MonthlyCashflowPoint
 } from "@ishoot/database";
 import {
-  Card,
-  Button,
-  CurrencyDisplay,
-  DateDisplay,
-  StatusBadge,
+Button,
+CurrencyDisplay,
+DateDisplay,
+StatusBadge
 } from "@ishoot/ui";
 import {
-  DollarSign,
-  Briefcase,
-  TrendingUp,
-  Inbox,
-  Plus,
-  ArrowUpRight,
-  Building2,
-  Calendar as CalendarIcon,
-  TrendingDown,
-  Clock,
-  MapPin,
-  CheckCircle2,
-  AlertTriangle,
-  ExternalLink,
+DollarSign,
+Briefcase,
+TrendingUp,
+Inbox,
+Plus,
+ArrowUpRight,
+Building2,
+Calendar as CalendarIcon,
+TrendingDown,MapPin,ExternalLink
 } from "lucide-react";
 
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -56,7 +46,7 @@ export function ExecutiveDashboardView({
   company,
   upcomingEvents,
 }: ExecutiveDashboardViewProps) {
-  const { t, isRTL, locale } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
 
   const {
     recent: deals,

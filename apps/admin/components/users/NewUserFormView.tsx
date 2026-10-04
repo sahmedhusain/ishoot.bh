@@ -3,8 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input, Select } from "@ishoot/ui";
-import { ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Card,Button,Input,Select } from "@ishoot/ui";
+import { ArrowLeft,CheckCircle2,ShieldCheck } from "lucide-react";
 import { createUserAction } from "../../app/actions/users";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -20,8 +20,8 @@ export function NewUserFormView({
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [role, setRole] = React.useState<any>("producer");
-  const [department, setDepartment] = React.useState("production");
-  const [phone, setPhone] = React.useState("");
+  const [department] = React.useState("production");
+  const [phone] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {

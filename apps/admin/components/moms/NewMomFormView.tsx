@@ -1,25 +1,21 @@
 "use client";
-import {EntityLookup} from "../shared/EntityLookup";
+import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input, Select } from "@ishoot/ui";
+import { Card,Button,Input,Select } from "@ishoot/ui";
 import {
-  FileSignature,
-  Plus,
-  Trash2,
-  Calendar,
-  Clock,
-  MapPin,
-  Users,
-  CheckCircle,
-  Save,
-  ArrowLeft,
-  ArrowRight,
+FileSignature,
+Plus,
+Trash2,Users,
+CheckCircle,
+Save,
+ArrowLeft,
+ArrowRight
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createMomAction } from "../../app/actions/mom";
-import { MomAttendee, MomDiscussionPoint, MomActionItem } from "@ishoot/database";
+import { MomAttendee,MomDiscussionPoint,MomActionItem } from "@ishoot/database";
 
 interface NewMomFormViewProps {
   clients: Array<{ id: string; name: string; company?: string | null }>;
@@ -28,7 +24,7 @@ interface NewMomFormViewProps {
 
 export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { isRTL } = useAdminLocale();
 
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -68,7 +64,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
   const [decisions, setDecisions] = React.useState<string[]>([""]);
 
   // Notes
-  const [notes, setNotes] = React.useState("");
+  const [notes] = React.useState("");
 
   // Attendees Helpers
   const addAttendee = () => {

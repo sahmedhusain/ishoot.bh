@@ -1,10 +1,10 @@
 import { measureOperation } from "@ishoot/database";
-import { NextRequest, NextResponse } from "next/server";
-import { realpath, stat } from "node:fs/promises";
+import { NextRequest,NextResponse } from "next/server";
+import { realpath,stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import path from "node:path";
-import { db, uploadRoot } from "@ishoot/database";
+import { db,uploadRoot,generateDownloadUrl,uploadStorageLocation } from "@ishoot/database";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ folder: string; name: string }> }) {
   return measureOperation("web:files/[folder]/[name]:GET", async () => {
   const { folder, name } = await params;
@@ -12,6 +12,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ fold
   const upload = await db.uploadObject.findUnique({ where: { fileUrl: `/api/files/${folder}/${name}` }, select: { isPublic: true, mimeType: true } });
   if (!upload?.isPublic) return new NextResponse(null, { status: 404 });
   try {
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && upload) {
+      const location = uploadStorageLocation(`/api/files/${folder}/${name}`, upload.isPublic);
+      const url = await generateDownloadUrl(location.bucket, location.path);
+      // Never cache redirects beyond the short lifetime of their signed URL.
+      return new NextResponse(null, { status: 307, headers: { Location: url, "Cache-Control": "private, no-store" } });
+    }
     const root = await realpath(uploadRoot());
     const target = await realpath(path.join(root, folder, name));
     if (!target.startsWith(root + path.sep)) return new NextResponse(null, { status: 404 });

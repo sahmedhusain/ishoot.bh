@@ -1,12 +1,11 @@
 import {
-  getCurrentPermissions,
-  requirePermission,
+getCurrentPermissions,
+requirePermission,
 } from "../../../../../lib/auth";
-import * as React from "react";
 import {
-  getCRMDealById,
-  getCRMContactById,
-  getInvoicesPage,
+getCRMDealById,
+getCRMContactById,
+getInvoicesPage,
 } from "@ishoot/database";
 import { notFound } from "next/navigation";
 import { DealDossierView } from "../../../../../components/crm/DealDossierView";

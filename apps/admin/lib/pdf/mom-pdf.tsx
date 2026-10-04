@@ -1,6 +1,5 @@
-import React from "react";
-import { Document, Page, Text, View, Image as PdfImage, renderToBuffer } from "@react-pdf/renderer";
-import type { CompanySettings, MinuteOfMeetingItem } from "@ishoot/database/types";
+import { Document,Page,Text,View,Image as PdfImage,renderToBuffer } from "@react-pdf/renderer";
+import type { CompanySettings,MinuteOfMeetingItem } from "@ishoot/database/types";
 import { pdfStyles } from "./shared-styles";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 export async function generateMomPdf(mom: MinuteOfMeetingItem, company: CompanySettings) {

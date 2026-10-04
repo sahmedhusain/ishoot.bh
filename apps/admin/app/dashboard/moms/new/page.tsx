@@ -1,5 +1,4 @@
 import { requirePermission } from "../../../../lib/auth";
-import * as React from "react";
 
 import { NewMomFormView } from "../../../../components/moms/NewMomFormView";
 

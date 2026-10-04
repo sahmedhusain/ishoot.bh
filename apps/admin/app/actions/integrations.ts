@@ -1,91 +1,38 @@
 "use server";
+import type { Prisma } from "@ishoot/database";
+import { validateActionArguments } from "../../lib/action-input";
 
-import { measureOperation, db } from "@ishoot/database";
-import { getCurrentUser } from "../../lib/auth";
+import { measureOperation,db } from "@ishoot/database";
+import { requirePermission } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
-import crypto from "crypto";
+import { encryptIntegrationCredentials } from "../../lib/integration-credentials";
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "01234567890123456789012345678901"; // 32 bytes
-
-function encrypt(text: string): string {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv("aes-256-gcm", Buffer.from(ENCRYPTION_KEY), iv);
-  let encrypted = cipher.update(text, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  const authTag = cipher.getAuthTag().toString("hex");
-  return `${iv.toString("hex")}:${authTag}:${encrypted}`;
-}
-
-function decrypt(text: string): string | null {
-  try {
-    const [ivHex, authTagHex, encryptedHex] = text.split(":");
-    if (!ivHex || !authTagHex || !encryptedHex) return null;
-    const decipher = crypto.createDecipheriv(
-      "aes-256-gcm", 
-      Buffer.from(ENCRYPTION_KEY), 
-      Buffer.from(ivHex, "hex")
-    );
-    decipher.setAuthTag(Buffer.from(authTagHex, "hex"));
-    let decrypted = decipher.update(encryptedHex, "hex", "utf8");
-    decrypted += decipher.final("utf8");
-    return decrypted;
-  } catch (err) {
-    console.error("Decryption error", err);
-    return null;
-  }
-}
-
-export async function getIntegration(provider: string) {
-  return measureOperation(`admin:getIntegration:${provider}`, async () => {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "admin") throw new Error("Unauthorized");
-    
-    const record = await db.integrationSetting.findUnique({ where: { provider } });
-    if (!record) return null;
-
-    let credentials = null;
-    if (record.credentials) {
-      const dec = decrypt(record.credentials);
-      if (dec) credentials = JSON.parse(dec);
-    }
-
-    return {
-      isActive: record.isActive,
-      credentials,
-      config: record.config as Record<string, any> | null,
-      healthStatus: record.healthStatus,
-      lastCheckedAt: record.lastCheckedAt
-    };
-  });
-}
-
-export async function saveIntegration(provider: string, isActive: boolean, credentials: Record<string, string>, config: Record<string, any> = {}) {
+export async function saveIntegration(provider: string, isActive: boolean, credentials: Record<string, string>, config: Record<string, unknown> = {}) {
+  validateActionArguments("saveIntegration", { provider, isActive, credentials, config });
   return measureOperation(`admin:saveIntegration:${provider}`, async () => {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "admin") throw new Error("Unauthorized");
+    const user = await requirePermission("settings", "write");
 
-    const encryptedCredentials = encrypt(JSON.stringify(credentials));
+    const encryptedCredentials = encryptIntegrationCredentials(credentials);
 
-    // Simple truthy health check simulation
-    const isHealthy = Object.keys(credentials).length > 0;
+    // Saving credentials does not prove provider connectivity.
 
     await db.integrationSetting.upsert({
       where: { provider },
       update: {
         isActive,
         credentials: encryptedCredentials,
-        config,
+        config: JSON.parse(JSON.stringify(config)) as Prisma.InputJsonObject,
         updatedById: user.id,
-        healthStatus: isHealthy ? "healthy" : "error",
+        healthStatus: "unknown",
         lastCheckedAt: new Date(),
       },
       create: {
         provider,
         isActive,
         credentials: encryptedCredentials,
-        config,
+        config: JSON.parse(JSON.stringify(config)) as Prisma.InputJsonObject,
         updatedById: user.id,
-        healthStatus: isHealthy ? "healthy" : "error",
+        healthStatus: "unknown",
         lastCheckedAt: new Date(),
       }
     });
@@ -96,9 +43,9 @@ export async function saveIntegration(provider: string, isActive: boolean, crede
 }
 
 export async function unlinkIntegration(provider: string) {
+  validateActionArguments("unlinkIntegration", { provider });
   return measureOperation(`admin:unlinkIntegration:${provider}`, async () => {
-    const user = await getCurrentUser();
-    if (!user || user.role !== "admin") throw new Error("Unauthorized");
+    const user = await requirePermission("settings", "write");
 
     await db.integrationSetting.update({
       where: { provider },
