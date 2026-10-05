@@ -38,6 +38,8 @@ function mapSettings(s: any): CompanySettings {
     linkedin_url: s.linkedinUrl || undefined,
     youtube_url: s.youtubeUrl || undefined,
     payment_terms_days: s.paymentTermsDays,
+    default_discount_limit_percent: Number(s.defaultDiscountLimitPercent ?? 0),
+    quotations_always_need_approval: Boolean(s.quotationsAlwaysNeedApproval),
     invoice_prefix: s.invoicePrefix,
     invoice_next_number: s.invoiceNextNumber,
     receipt_prefix: s.receiptPrefix,
@@ -77,6 +79,8 @@ export async function updateCompanySettings(
   if (updates.company_name_en !== undefined && !updates.company_name_en.trim()) throw new Error("Company English name is required");
   if (updates.company_name_ar !== undefined && !updates.company_name_ar.trim()) throw new Error("Company Arabic name is required");
   if (updates.default_currency !== undefined) assertSupportedCurrency(updates.default_currency);
+  if (updates.default_discount_limit_percent !== undefined && !(updates.default_discount_limit_percent >= 0 && updates.default_discount_limit_percent <= 100))
+    throw new Error("The discount limit must be between 0 and 100%");
   const current = await getCompanySettings();
   // Moving a counter backwards would reissue numbers that already exist.
   for (const field of ["invoice_next_number", "receipt_next_number"] as const) {
@@ -128,6 +132,8 @@ export async function updateCompanySettings(
       stampUrl: updates.stamp_url,
       signatureUrl: updates.signature_url,
       paymentTermsDays: updates.payment_terms_days,
+      defaultDiscountLimitPercent: updates.default_discount_limit_percent,
+      quotationsAlwaysNeedApproval: updates.quotations_always_need_approval,
       invoicePrefix: updates.invoice_prefix,
       invoiceNextNumber: updates.invoice_next_number,
       receiptPrefix: updates.receipt_prefix,

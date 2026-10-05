@@ -65,6 +65,22 @@ async function main() {
       await tx.expense.update({ where: { id: expense.id }, data: { status: "approved" } });
       const after = await getFinancialSummaryReport({ basis: "accrual" });
       assert.equal(Math.round((after.expensesNet - before.expensesNet) * 1000) / 1000, 100, "net expense, not zero and not VAT-inclusive");
+      // Discounts within the issuer's limit are approved on submit; above it a reason is required and it waits.
+      const { submitQuotationForApproval } = require("../packages/database/src/queries/quotations.ts");
+      await tx.companySetting.updateMany({ data: { defaultDiscountLimitPercent: 5, quotationsAlwaysNeedApproval: false } });
+      const seller = await tx.user.create({ data: { email: `seller-${Date.now()}@finance.test`, fullName: "Seller", passwordHash: "x", role: "sales" } });
+      const small = await createQuotation({ clientId: contact.id, validUntilDate: new Date(Date.now() + 7 * 86400000), discountType: "percentage", discountValue: 4, lineItems: [{ descriptionEn: "Shoot", quantity: 1, unitPrice: 200 }] }, seller.id);
+      await submitQuotationForApproval(small.id, seller.id);
+      assert.equal((await tx.quotation.findUniqueOrThrow({ where: { id: small.id } })).status, "approved", "a 4% discount within the 5% default is approved on submit");
+      const big = await createQuotation({ clientId: contact.id, validUntilDate: new Date(Date.now() + 7 * 86400000), discountType: "percentage", discountValue: 12, lineItems: [{ descriptionEn: "Shoot", quantity: 1, unitPrice: 200 }] }, seller.id);
+      await assert.rejects(submitQuotationForApproval(big.id, seller.id), /above your 5% limit/);
+      await submitQuotationForApproval(big.id, seller.id, "Long-term client, volume deal");
+      assert.equal((await tx.quotation.findUniqueOrThrow({ where: { id: big.id } })).status, "submitted", "a 12% discount waits for approval");
+      await tx.user.update({ where: { id: seller.id }, data: { discountLimitPercent: 15 } });
+      const personal = await createQuotation({ clientId: contact.id, validUntilDate: new Date(Date.now() + 7 * 86400000), discountType: "percentage", discountValue: 12, lineItems: [{ descriptionEn: "Shoot", quantity: 1, unitPrice: 200 }] }, seller.id);
+      await submitQuotationForApproval(personal.id, seller.id);
+      assert.equal((await tx.quotation.findUniqueOrThrow({ where: { id: personal.id } })).status, "approved", "a personal 15% limit overrides the company default");
+
       // The detailed report reconciles with the summary on both bases.
       for (const basis of ["accrual", "cash"]) {
         const [summary, detail] = await Promise.all([getFinancialSummaryReport({ basis }), getFinancialReportDetail({ basis })]);
@@ -81,7 +97,7 @@ async function main() {
   } catch (error) {
     if (error !== rollback) throw error;
   }
-  console.log("Finance database checks passed and rolled back: one invoice counter for manual and converted invoices, quotation double-billing blocked, due-date validation, draft payments blocked, minor-unit settlement, status transitions, overdue sweep, net expenses in reports, detailed report reconciles with the summary.");
+  console.log("Finance database checks passed and rolled back: one invoice counter for manual and converted invoices, quotation double-billing blocked, due-date validation, draft payments blocked, minor-unit settlement, status transitions, overdue sweep, net expenses in reports, detailed report reconciles with the summary, per-user discount limits.");
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; }).finally(() => db.$disconnect());

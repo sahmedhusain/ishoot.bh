@@ -9,6 +9,7 @@ import {
   createUserAction,
   updateUserRoleAction,
   updateUserAction,
+  updateUserDiscountLimitAction,
   deleteUserAction,
   suspendUserAction,
   reactivateUserAction,
@@ -273,6 +274,7 @@ export function UsersManagementView({
                   <th className="p-4 text-start">{t.roles.department}</th>
                   <th className="p-4 text-start">{t.usersManagement.reportsTo}</th>
                   <th className="p-4 text-start">{t.usersView.roleHeader}</th>
+                  <th className="p-4 text-start">{t.usersManagement.discountLimit}</th>
                   <th className="p-4 text-start">{t.usersManagement.signature}</th>
                   <th className="p-4 text-start">{t.usersView.statusHeader}</th>
                   <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
@@ -360,6 +362,20 @@ export function UsersManagementView({
                             </option>
                           ))}
                         </select>
+                      </td>
+
+                      <td className="p-4">
+                        {u.role === "super_admin" ? (
+                          <span className="text-[11px] text-ink-muted">{t.usersManagement.unlimited}</span>
+                        ) : (
+                          <DiscountLimitInput
+                            userId={u.id}
+                            value={u.discount_limit_percent ?? null}
+                            disabled={!canWrite}
+                            placeholder={t.usersManagement.companyDefault}
+                            label={t.usersManagement.discountLimit}
+                          />
+                        )}
                       </td>
 
                       {/* Digital Signature Preview */}
@@ -676,6 +692,45 @@ export function UsersManagementView({
         confirmLabel={t.actions.delete}
         cancelLabel={t.actions.cancel}
       />
+    </div>
+  );
+}
+
+function DiscountLimitInput({ userId, value, disabled, placeholder, label }: { userId: string; value: number | null; disabled: boolean; placeholder: string; label: string }) {
+  const [draft, setDraft] = React.useState(value === null ? "" : String(value));
+  const [state, setState] = React.useState<"idle" | "saving" | "saved" | "error">("idle");
+  const save = async () => {
+    const next = draft.trim() === "" ? null : Number(draft);
+    if (next === value || (next !== null && !Number.isFinite(next))) return;
+    setState("saving");
+    try {
+      await updateUserDiscountLimitAction(userId, next);
+      setState("saved");
+    } catch {
+      setState("error");
+    }
+  };
+  return (
+    <div className="flex items-center gap-1">
+      <input
+        type="number"
+        min={0}
+        max={100}
+        step="0.5"
+        aria-label={label}
+        disabled={disabled}
+        value={draft}
+        placeholder={placeholder}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          setState("idle");
+        }}
+        onBlur={save}
+        onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+        className={`w-20 bg-surface-sunken border rounded-xl px-2.5 py-1 text-xs text-ink focus:outline-none focus:border-accent ${state === "error" ? "border-rose-500" : "border-ink/10"}`}
+      />
+      <span className="text-[11px] text-ink-muted">%</span>
+      {state === "saved" && <span className="text-[10px] text-emerald-500">✓</span>}
     </div>
   );
 }

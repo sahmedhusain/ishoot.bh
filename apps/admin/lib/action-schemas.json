@@ -4856,6 +4856,14 @@
             "kind": "number",
             "optional": false
           },
+          "default_discount_limit_percent": {
+            "kind": "number",
+            "optional": true
+          },
+          "quotations_always_need_approval": {
+            "kind": "boolean",
+            "optional": true
+          },
           "invoice_prefix": {
             "kind": "string",
             "optional": false
@@ -5355,6 +5363,28 @@
     "fields": {
       "id": {
         "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateUserDiscountLimitAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "limit": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "number"
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
         "optional": false
       }
     }

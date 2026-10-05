@@ -25,6 +25,8 @@ export interface Profile {
   phone?: string;
   department?: string;
   signature_url?: string;
+  /** Discount limit (% of subtotal) without approval; null uses the company default. */
+  discount_limit_percent?: number | null;
   manager_id?: string;
   manager_name?: string;
   is_active?: boolean;
@@ -97,6 +99,8 @@ export interface CompanySettings {
   stamp_url?: string;
   signature_url?: string;
   payment_terms_days: number;
+  default_discount_limit_percent?: number;
+  quotations_always_need_approval?: boolean;
   invoice_prefix: string;
   invoice_next_number: number;
   receipt_prefix: string;

@@ -51,6 +51,10 @@ interface NewQuotationFormViewProps {
   inquiryId?: string;
   /** Units of each quotable currency per 1 BHD, with the rate source. */
   fxBoard: FxBoardRow[];
+  /** The issuer's discount limit in % (null = unlimited). */
+  discountLimit?: number | null;
+  /** The company sends every quotation for approval regardless of discount. */
+  alwaysNeedsApproval?: boolean;
 }
 
 export function NewQuotationFormView({
@@ -61,6 +65,8 @@ export function NewQuotationFormView({
   dealId,
   inquiryId,
   fxBoard: initialFxBoard,
+  discountLimit = null,
+  alwaysNeedsApproval = false,
 }: NewQuotationFormViewProps) {
   const router = useRouter();
   const { isRTL, t } = useAdminLocale();
@@ -639,11 +645,19 @@ export function NewQuotationFormView({
                     />
                   )}
                 </div>
-                {discountType !== "none" && discountValue > 0 && (
-                  <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
-                    {qfT.discountThresholdWarning}
-                  </p>
-                )}
+                {(() => {
+                  const pct = subtotal > 0 ? Math.round((discountAmount / subtotal) * 10000) / 100 : 0;
+                  const over = discountLimit !== null && pct > discountLimit + 1e-9;
+                  if (alwaysNeedsApproval && !over) return <p className="text-[11px] text-ink-muted mt-1">{qfT.approvalAlways}</p>;
+                  if (pct <= 0) return null;
+                  return (
+                    <p className={`text-[11px] mt-1 ${over ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                      {(over ? qfT.discountOverLimit : discountLimit === null ? qfT.discountUnlimited : qfT.discountWithinLimit)
+                        .replace("{pct}", String(pct))
+                        .replace("{limit}", String(discountLimit ?? ""))}
+                    </p>
+                  );
+                })()}
               </div>
             </div>
           </Card>

@@ -453,7 +453,6 @@
     "fixedDiscount": "مبلغ ثابت",
     "discountPctLabel": "نسبة الخصم المئوية (%)",
     "discountAmtLabel": "مبلغ الخصم",
-    "discountThresholdWarning": "⚠️ الخصومات التي تتجاوز 10% تتطلب اعتماداً إلزامياً من المشرف العام قبل إرسال العرض للعميل.",
     "vatTitle": "ضريبة القيمة المضافة 10% (VAT)",
     "vatEnabled": "مشمول بالضريبة (10%)",
     "vatDisabled": "غير خاضع للضريبة (0%)",
@@ -469,7 +468,11 @@
     "fxRefreshed": "تم تحديث أسعار الصرف المباشرة",
     "fxRefreshFailed": "الأسعار المباشرة غير متاحة الآن؛ يُستخدم آخر سعر محفوظ",
     "fxSource": "السعر: {provider}، {date}",
-    "fxSourceFallback": "سعر احتياطي: {provider}، {date}"
+    "fxSourceFallback": "سعر احتياطي: {provider}، {date}",
+    "discountWithinLimit": "خصم {pct}% ضمن حدك البالغ {limit}%: لا يحتاج اعتماداً.",
+    "discountOverLimit": "خصم {pct}% يتجاوز حدك البالغ {limit}%: يحتاج اعتماداً وسبباً عند الإرسال.",
+    "discountUnlimited": "خصم {pct}%: لا ينطبق عليك حد.",
+    "approvalAlways": "تُراجع كل عروض الأسعار قبل إصدارها."
   },
   "quotationDetail": {
     "backToQuotes": "العودة إلى عروض الأسعار",
@@ -3291,7 +3294,10 @@
     "changeManager": "تغيير المسؤول المباشر",
     "noneIndependent": "لا يوجد (مستقل)",
     "reportsToManager": "المسؤول المباشر (Reports To)",
-    "noneExecutiveLevel": "لا يوجد (مستوى قيادي تنفيذي)"
+    "noneExecutiveLevel": "لا يوجد (مستوى قيادي تنفيذي)",
+    "discountLimit": "حد الخصم",
+    "companyDefault": "افتراضي",
+    "unlimited": "غير محدود"
   },
   "requestLabels": {
     "types": {
@@ -3748,5 +3754,16 @@
     "invoicedSales": "المبيعات المفوترة",
     "cashReceipts": "المقبوضات النقدية",
     "exporting": "جارٍ التصدير…"
+  },
+  "salesDiscounts": {
+    "tab": "المبيعات والخصومات",
+    "title": "اعتماد الخصومات",
+    "subtitle": "الخصومات حتى هامش معين تُصدر دون اعتماد؛ وما يزيد عنه يُراجع.",
+    "defaultLimit": "حد الخصم الافتراضي",
+    "defaultLimitHint": "نسبة من المجموع الفرعي يمكن لأي شخص منحها دون اعتماد ما لم يكن له حد خاص.",
+    "alwaysApprove": "مراجعة كل عروض الأسعار",
+    "alwaysApproveHint": "إرسال جميع عروض الأسعار للاعتماد حتى دون خصم.",
+    "perUserHint": "حدد حداً مختلفاً لشخص من عمود حد الخصم في صفحة المستخدمين.",
+    "openUsers": "فتح المستخدمين"
   }
 }

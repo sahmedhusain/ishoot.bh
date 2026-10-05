@@ -138,6 +138,7 @@ const RULES: Rule[] = [
         WHEN 'leave_request' THEN EXISTS (SELECT 1 FROM "LeaveRequest" t WHERE t.id = a."targetId" AND t.status = 'pending')
         WHEN 'payroll_run' THEN EXISTS (SELECT 1 FROM "PayrollRun" t WHERE t.id = a."targetId" AND t.status = 'submitted')
         WHEN 'expense' THEN EXISTS (SELECT 1 FROM "Expense" t WHERE t.id = a."targetId" AND t.status = 'pending')
+        WHEN 'expense_claim' THEN EXISTS (SELECT 1 FROM "ExpenseClaim" t WHERE t.id = a."targetId" AND t.status = 'submitted')
         WHEN 'service_request' THEN EXISTS (SELECT 1 FROM "Inquiry" t WHERE t.id = a."targetId" AND t."workflowStatus" = 'pending_approval')
         WHEN 'profile_change' THEN EXISTS (SELECT 1 FROM "ProfileChangeRequest" t WHERE t.id = a."targetId" AND t.status = 'pending')
         WHEN 'salary_document' THEN EXISTS (SELECT 1 FROM "SalaryDocument" t WHERE t.id = a."targetId" AND t.status = 'pending')

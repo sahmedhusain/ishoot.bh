@@ -193,6 +193,8 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   }
   const allStaff = [...Object.values(u).filter((x) => x.role !== "viewer"), ...staffUsers];
   const salesTeam = allStaff.filter((x) => ["sales", "super_admin", "admin"].includes(x.role));
+  // Sales staff may give up to 7.5% without approval; everyone else uses the 5% company default.
+  await prisma.user.updateMany({ where: { role: "sales" }, data: { discountLimitPercent: 7.5 } });
   const productionTeam = allStaff.filter((x) => ["producer", "production_manager", "editor"].includes(x.role) && x.id !== u.editor?.id);
 
   // ============================================================ 2. customers
@@ -272,16 +274,18 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
 
     const submitted = await submitQuotationForApproval(quotation.id, owner_.id, discount ? `Agreed ${discount.value}% for ${pick(["repeat client", "multi-film package", "annual retainer", "early confirmation"])}` : undefined);
     const pending = await prisma.approvalRequest.findUniqueOrThrow({ where: { id: submitted.approvalRequestId } });
-    if (pending.status !== "pending") continue;
-    const approvers = await approverIdsFor(prisma, pending.id);
-    if (issueDate > daysAgo(21) && chance(0.45)) continue; // waiting in the Approvals Center
-    const rejected = chance(0.1);
-    await decideFully({ approvalRequestId: pending.id, status: "pending", finalized: false, approverIds: approvers },
-      rejected ? "rejected" : "approved", rejected ? "Margin below the minimum for this scope; revise crew days." : "Pricing and scope approved.");
-    if (rejected) {
-      if (created < daysAgo(45)) await updateCRMDeal(deal.id, { stage: "closed_lost", lost_reason: "Quotation rejected internally; client chose another vendor", probability: 0 }), bump("dealsLost");
-      continue;
-    }
+    // Discounts within the issuer's limit are approved on submit; larger ones wait for a decision.
+    if (pending.status === "pending") {
+      const approvers = await approverIdsFor(prisma, pending.id);
+      if (issueDate > daysAgo(21) && chance(0.45)) continue; // waiting in the Approvals Center
+      const rejected = chance(0.1);
+      await decideFully({ approvalRequestId: pending.id, status: "pending", finalized: false, approverIds: approvers },
+        rejected ? "rejected" : "approved", rejected ? "Margin below the minimum for this scope; revise crew days." : "Pricing and scope approved.");
+      if (rejected) {
+        if (created < daysAgo(45)) await updateCRMDeal(deal.id, { stage: "closed_lost", lost_reason: "Quotation rejected internally; client chose another vendor", probability: 0 }), bump("dealsLost");
+        continue;
+      }
+    } else if (pending.status !== "approved") continue;
     const validUntil = addDays(issueDate, 30);
     if (chance(0.08)) continue; // approved, not yet sent
     await issueQuotation(quotation.id, owner_.id, pick(["email", "whatsapp", "manual"]));

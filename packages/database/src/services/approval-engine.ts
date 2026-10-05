@@ -212,6 +212,8 @@ export interface SubmitForApprovalInput {
   policySnapshot?: Record<string, unknown>;
   diffPayload?: Record<string, unknown> | null;
   discountReason?: string | null;
+  /** Approve on submit with this recorded reason (e.g. a discount within the issuer's limit). */
+  autoApproveReason?: string | null;
 }
 
 export interface ApprovalOutcome {
@@ -246,7 +248,7 @@ export async function submitForApproval(input: SubmitForApprovalInput): Promise<
 
     // Super Admin is the final authority: their own requests never wait on a lower approver.
     const superAdmin = requester.role === "super_admin";
-    const autoApprove = superAdmin || (!!policy && (!policy.enabled || policy.autoApproveRoles.includes(requester.role)));
+    const autoApprove = superAdmin || !!input.autoApproveReason || (!!policy && (!policy.enabled || policy.autoApproveRoles.includes(requester.role)));
     const allowSelf = policy?.allowSelfApproval ?? false;
     // A missing policy falls back to the admin pool rather than silently approving.
     const route = autoApprove ? null : await nextApprovers(policy?.steps ?? [], 1, requester, allowSelf, new Set());
@@ -272,7 +274,7 @@ export async function submitForApproval(input: SubmitForApprovalInput): Promise<
     });
 
     if (autoApprove || selfApproved) {
-      const reason = superAdmin ? "super_admin" : autoApprove ? "policy_auto" : "no_alternate_approver";
+      const reason = superAdmin ? "super_admin" : input.autoApproveReason ? input.autoApproveReason : autoApprove ? "policy_auto" : "no_alternate_approver";
       await db.approvalDecision.create({
         data: { approvalRequestId: created.id, decision: "approved", decidedById: requester.id, reason, step: created.currentStep },
       });

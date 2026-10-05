@@ -57,6 +57,8 @@ model User {
   expenseClaims              ExpenseClaim[]      @relation("ExpenseClaimClaimant")
   expenseClaimsScheduled     ExpenseClaim[]      @relation("ExpenseClaimScheduler")
   expenseClaimsPaid          ExpenseClaim[]      @relation("ExpenseClaimPayer")
+  /// Largest discount (% of subtotal) this user may give without approval; null uses the company default.
+  discountLimitPercent       Decimal?            @db.Decimal(5, 2)
   @@index([role])
   authChallenges AuthChallenge[]
   quotations Quotation[] @relation("QuotationCreator")
@@ -138,6 +140,10 @@ model CompanySetting {
   rulesAr String? @db.Text
 
   updatedAt DateTime @updatedAt
+  /// Discounts up to this % of the subtotal need no approval unless a user has their own limit.
+  defaultDiscountLimitPercent Decimal @default(5.00) @db.Decimal(5, 2)
+  /// When on, every quotation goes through approval even without a discount.
+  quotationsAlwaysNeedApproval Boolean @default(false)
 }
 
 model CompanyAsset {

@@ -13,7 +13,8 @@ CheckCircle2,
 Hash,
 Sparkles,
 AlertTriangle,
-X,Check
+X,Check,
+  BadgePercent,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateCompanySettingsAction } from "../../app/actions/settings";
@@ -23,6 +24,7 @@ import { TaxVatSettingsTab } from "./company/TaxVatSettingsTab";
 import { BankCoordinatesTab } from "./company/BankCoordinatesTab";
 import { InvoiceReceiptSequencesTab } from "./company/InvoiceReceiptSequencesTab";
 import { BrandAssetsTab } from "./company/BrandAssetsTab";
+import { SalesDiscountsTab } from "./company/SalesDiscountsTab";
 
 interface CompanySettingsViewProps {
   initialSettings: CompanySettings;
@@ -38,7 +40,7 @@ interface ChangeDiff {
   isVat?: boolean;
 }
 
-type TabKey = "general" | "taxVat" | "banking" | "sequences" | "brandAssets";
+type TabKey = "general" | "taxVat" | "banking" | "sequences" | "sales" | "brandAssets";
 
 function calculateDiff(
   oldSettings: CompanySettings,
@@ -265,6 +267,11 @@ export function CompanySettingsView({
       icon: Hash,
     },
     {
+      key: "sales",
+      label: t.salesDiscounts.tab,
+      icon: BadgePercent,
+    },
+    {
       key: "brandAssets",
       label: t.companySettingsTabs.brandAssets,
       icon: Sparkles,
@@ -383,6 +390,8 @@ export function CompanySettingsView({
             isRTL={isRTL}
           />
         )}
+
+        {activeTab === "sales" && <SalesDiscountsTab settings={settings} setSettings={setSettings} t={t} />}
 
         {activeTab === "brandAssets" && (
           <BrandAssetsTab

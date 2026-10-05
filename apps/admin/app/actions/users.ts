@@ -14,6 +14,7 @@ import {
   updateUser,
   deleteUser,
   createActivityLog,
+  setUserDiscountLimit,
   UserRole,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
@@ -490,5 +491,27 @@ export async function deleteUserAction(id: string) {
 
     revalidatePath(ROUTES.users.list);
     return { success: true };
+  });
+}
+
+/** Per-user discount margin: discounts up to this % of the subtotal need no approval. Null = company default. */
+export async function updateUserDiscountLimitAction(id: string, limit: number | null) {
+  return measureOperation("action:updateUserDiscountLimitAction", async () => {
+    const actor = await requirePermission("users", "write");
+    validateActionArguments("updateUserDiscountLimitAction", { id, limit });
+    const result = await runAtomicMutation(async () => {
+      const before = await db.user.findUniqueOrThrow({ where: { id }, select: { discountLimitPercent: true } });
+      const result = await setUserDiscountLimit(id, limit);
+      await createActivityLog({
+        user_id: actor.id,
+        action: "update",
+        entity_type: "user",
+        entity_id: id,
+        details: { discountLimitPercent: { from: before.discountLimitPercent == null ? null : Number(before.discountLimitPercent), to: result.discount_limit_percent } },
+      });
+      return result;
+    });
+    revalidatePath(ROUTES.users.list);
+    return { success: true, ...result };
   });
 }

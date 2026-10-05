@@ -3,6 +3,7 @@ import { Quotation, calculateInvoiceTotals } from "../types";
 import { getNextSequenceNumber } from "./sequence";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { lineTotal, roundMoney } from "../finance/money";
+import { discountDecision } from "../finance/discount-policy";
 import { OPEN_QUOTATION_STATUSES, assertSupportedCurrency } from "../constants/finance";
 import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
@@ -269,10 +270,13 @@ export async function submitQuotationForApproval(
     throw new Error(`Quotation cannot be submitted: status is ${quotation.status}`);
   }
 
-  // Nonzero discount triggers explicit approval reason
+  // Discounts within the issuer's limit need no approval; above it the issuer must explain why.
+  const discount = await discountDecision(actorId, Number(quotation.subtotal), Number(quotation.discountAmount));
+  if (!discount.withinLimit && !customDiscountReason?.trim())
+    throw new Error(`This ${discount.percent}% discount is above your ${discount.limit}% limit; explain it for the approver`);
   const hasDiscount = Number(quotation.discountAmount) > 0;
-  const discountReason = customDiscountReason || (hasDiscount
-    ? `Quotation #${quotation.quotationNumber} includes a ${quotation.discountType} discount of ${quotation.discountValue} (${quotation.discountAmount} ${quotation.currency}).`
+  const discountReason = customDiscountReason?.trim() || (hasDiscount
+    ? `Quotation #${quotation.quotationNumber} includes a ${discount.percent}% discount (${quotation.discountAmount} ${quotation.currency}), within the ${discount.limit ?? "unlimited"}% limit.`
     : null);
 
   await db.quotation.update({ where: { id }, data: { status: "submitted" } });
@@ -285,6 +289,8 @@ export async function submitQuotationForApproval(
       subtotal: Number(quotation.subtotal),
       currency: quotation.currency,
       discountAmount: Number(quotation.discountAmount),
+      discountPercent: discount.percent,
+      discountLimit: discount.limit,
       vatAmount: Number(quotation.vatAmount),
       clientName: quotation.client?.companyName || quotation.client?.firstName,
       rawRate: quotation.rawRate ? Number(quotation.rawRate) : null,
@@ -298,6 +304,7 @@ export async function submitQuotationForApproval(
       lineItemsCount: quotation.lineItems.length,
     },
     discountReason,
+    autoApproveReason: discount.needsApproval ? null : hasDiscount ? "within_discount_limit" : "no_discount",
     contentData: {
       total: quotation.totalAmount,
       currency: quotation.currency,

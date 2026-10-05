@@ -453,7 +453,6 @@
     "fixedDiscount": "Fixed Amount",
     "discountPctLabel": "Discount Percentage (%)",
     "discountAmtLabel": "Discount Amount",
-    "discountThresholdWarning": "⚠️ Discounts >10% require mandatory Super Admin maker-checker approval before quotation can be issued to client.",
     "vatTitle": "10% Value Added Tax (VAT)",
     "vatEnabled": "VAT Active (10%)",
     "vatDisabled": "Non-VAT / Exempt (0%)",
@@ -469,7 +468,11 @@
     "fxRefreshed": "Live exchange rates updated",
     "fxRefreshFailed": "Live rates are unavailable right now; the latest stored rate is used",
     "fxSource": "Rate: {provider}, {date}",
-    "fxSourceFallback": "Fallback rate: {provider}, {date}"
+    "fxSourceFallback": "Fallback rate: {provider}, {date}",
+    "discountWithinLimit": "{pct}% discount is within your {limit}% limit: no approval needed.",
+    "discountOverLimit": "{pct}% discount is above your {limit}% limit: it needs approval and a reason when you submit.",
+    "discountUnlimited": "{pct}% discount: no limit applies to you.",
+    "approvalAlways": "Every quotation is reviewed before it can be issued."
   },
   "quotationDetail": {
     "backToQuotes": "Back to Quotations",
@@ -3291,7 +3294,10 @@
     "changeManager": "Change Manager",
     "noneIndependent": "None (Independent)",
     "reportsToManager": "Reports To (Manager)",
-    "noneExecutiveLevel": "None (Executive Level)"
+    "noneExecutiveLevel": "None (Executive Level)",
+    "discountLimit": "Discount limit",
+    "companyDefault": "Default",
+    "unlimited": "Unlimited"
   },
   "requestLabels": {
     "types": {
@@ -3748,5 +3754,16 @@
     "invoicedSales": "Invoiced sales",
     "cashReceipts": "Cash received",
     "exporting": "Exporting…"
+  },
+  "salesDiscounts": {
+    "tab": "Sales & discounts",
+    "title": "Discount approval",
+    "subtitle": "Discounts up to a margin go out without approval; anything above it is reviewed.",
+    "defaultLimit": "Default discount limit",
+    "defaultLimitHint": "Percentage of the subtotal anyone may give without approval, unless they have their own limit.",
+    "alwaysApprove": "Review every quotation",
+    "alwaysApproveHint": "Send all quotations for approval, even without a discount.",
+    "perUserHint": "Set a different limit for a person in the Discount limit column on the Users page.",
+    "openUsers": "Open Users"
   }
 }

@@ -293,6 +293,9 @@ async function runTests() {
     },
     "./crm": { advanceDealForEvent: async () => false },
     "../finance/vat": { companyVat: async () => ({ vatEnabled: true, vatPercentage: 10 }) },
+    "../finance/discount-policy": {
+      discountDecision: async () => ({ percent: 0, limit: 5, limitSource: "company", withinLimit: true, needsApproval: false }),
+    },
   });
 
   // First conversion

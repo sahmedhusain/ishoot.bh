@@ -12,6 +12,7 @@ function mapUser(u: any): Profile {
     role: u.role as UserRole,
     avatar_url: u.avatarUrl || undefined,
     signature_url: u.signatureUrl || undefined,
+    discount_limit_percent: u.discountLimitPercent == null ? null : Number(u.discountLimitPercent),
     phone: u.phone || undefined,
     department: u.department || undefined,
     manager_id: u.managerId || undefined,
@@ -218,4 +219,15 @@ async function validateManager(managerId: string, userId?: string) {
     const cycle = await db.$queryRaw<Array<{ id: string }>>`WITH RECURSIVE chain AS (SELECT id,"managerId" FROM "User" WHERE id=${managerId} UNION SELECT u.id,u."managerId" FROM "User" u JOIN chain c ON u.id=c."managerId") SELECT id FROM chain WHERE id=${userId}`;
     if (cycle.length) throw new Error("Manager assignment would create a cycle");
   }
+}
+
+/** Sets how much discount (% of subtotal) a user may give without approval; null falls back to the company default. */
+export async function setUserDiscountLimit(userId: string, limit: number | null) {
+  if (limit !== null && !(Number.isFinite(limit) && limit >= 0 && limit <= 100)) throw new Error("The discount limit must be between 0 and 100%");
+  const updated = await db.user.update({
+    where: { id: userId },
+    data: { discountLimitPercent: limit === null ? null : Math.round(limit * 100) / 100 },
+    select: { id: true, discountLimitPercent: true },
+  });
+  return { id: updated.id, discount_limit_percent: updated.discountLimitPercent == null ? null : Number(updated.discountLimitPercent) };
 }
