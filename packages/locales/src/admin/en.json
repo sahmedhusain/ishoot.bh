@@ -1686,7 +1686,11 @@
     "thankYou": "Thank you for partnering with {companyName}.",
     "defaultClient": "Client",
     "crPrefix": "CR:",
-    "country": "Kingdom of Bahrain"
+    "country": "Kingdom of Bahrain",
+    "quotationTitle": "Quotation",
+    "quotationDetails": "Quotation Details",
+    "validUntil": "Valid Until",
+    "quotationTotal": "Total Quoted Amount:"
   },
   "pdfReceipt": {
     "title": "Official Payment Receipt Voucher",
@@ -3563,5 +3567,11 @@
     "hint": "Upload a PNG, JPG or WebP (max 10 MB), or paste an https:// or site-relative URL.",
     "uploadFailed": "Upload failed",
     "invalidUrl": "Use an https:// URL or a site path starting with /"
+  },
+  "pdfActions": {
+    "print": "Print",
+    "download": "Download PDF",
+    "preparing": "Preparing…",
+    "failed": "Could not prepare the PDF"
   }
 }

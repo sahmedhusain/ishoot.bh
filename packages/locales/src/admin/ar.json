@@ -1686,7 +1686,11 @@
     "thankYou": "شكراً لتعاملكم مع {companyName}.",
     "defaultClient": "العميل",
     "crPrefix": "سجل تجاري:",
-    "country": "مملكة البحرين"
+    "country": "مملكة البحرين",
+    "quotationTitle": "عرض سعر",
+    "quotationDetails": "تفاصيل عرض السعر",
+    "validUntil": "صالح حتى",
+    "quotationTotal": "إجمالي المبلغ المعروض:"
   },
   "pdfReceipt": {
     "title": "سند قبض رسمي",
@@ -3563,5 +3567,11 @@
     "hint": "ارفع ملف PNG أو JPG أو WebP (بحد أقصى 10 ميغابايت)، أو الصق رابطاً يبدأ بـ https:// أو مساراً داخل الموقع.",
     "uploadFailed": "فشل الرفع",
     "invalidUrl": "استخدم رابطاً يبدأ بـ https:// أو مساراً يبدأ بـ /"
+  },
+  "pdfActions": {
+    "print": "طباعة",
+    "download": "تنزيل PDF",
+    "preparing": "جارٍ التحضير…",
+    "failed": "تعذّر تجهيز ملف PDF"
   }
 }

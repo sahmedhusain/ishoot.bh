@@ -4,6 +4,7 @@ import { getCurrentUser } from "../../../../../lib/auth";
 import {
 getInvoiceByIdOrNumber,
 getPaymentByIdOrNumber,
+getQuotationById,
 getCompanySettings,
 hasPermission,
 } from "@ishoot/database";
@@ -11,6 +12,7 @@ import { getTranslations } from "@ishoot/locales";
 import {
 generateInvoicePdfBuffer,
 generateReceiptPdfBuffer,
+generateQuotationPdfBuffer,
 } from "../../../../../lib/pdf/generate";
 
 export async function GET(
@@ -27,12 +29,12 @@ export async function GET(
     const { id } = await context.params;
     const url = new URL(request.url);
     const docType = url.searchParams.get("type") || "invoice";
-    if (!["invoice", "receipt"].includes(docType))
+    if (!["invoice", "receipt", "quotation"].includes(docType))
       return NextResponse.json(
         { error: "Invalid document type" },
         { status: 400 },
       );
-    const resource = docType === "receipt" ? "payments" : "invoices";
+    const resource = docType === "receipt" ? "payments" : docType === "quotation" ? "quotations" : "invoices";
     const isDownload = url.searchParams.get("download") === "true";
     if (
       !(await hasPermission(user.role, resource, "read", user.permissions)) ||
@@ -42,6 +44,21 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const company = await getCompanySettings();
+
+    if (docType === "quotation") {
+      const quotation = await getQuotationById(id);
+      if (!quotation)
+        return NextResponse.json({ error: trans.api.pdf.quotationNotFound }, { status: 404 });
+      const buffer = await generateQuotationPdfBuffer(quotation, company);
+      const fileName = `Quotation-${quotation.quotationNumber}.pdf`;
+      return new NextResponse(new Uint8Array(buffer), {
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `${isDownload ? "attachment" : "inline"}; filename="${fileName}"`,
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+      });
+    }
 
     if (docType === "receipt") {
       const payment = await getPaymentByIdOrNumber(id);

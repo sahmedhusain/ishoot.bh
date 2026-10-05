@@ -5,6 +5,8 @@ import { Button } from "@ishoot/ui";
 import { Mail, MessageCircle, Printer, Download, Check } from "lucide-react";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { downloadDocumentPdf, printDocumentPdf } from "../../lib/pdf-print";
+import { toast } from "sonner";
 
 interface DeliveryToolbarProps {
   documentType: "invoice" | "receipt";
@@ -37,6 +39,7 @@ export function DeliveryToolbar({
   );
   const [emailSending, setEmailSending] = React.useState(false);
   const [emailSent, setEmailSent] = React.useState(false);
+  const [printing, setPrinting] = React.useState(false);
 
   const handleEmail = async () => {
     if (!canExport) return;
@@ -94,19 +97,21 @@ export function DeliveryToolbar({
     window.open(waUrl, "_blank");
   };
 
-  const handlePrint = () => {
-    if (canExport) window.print();
+  const handlePrint = async () => {
+    if (!canExport) return;
+    setPrinting(true);
+    try {
+      await printDocumentPdf(documentType, documentNumber, locale);
+    } catch {
+      toast.error(t.pdfActions.failed);
+    } finally {
+      setPrinting(false);
+    }
   };
 
   const handleDownloadPdf = () => {
     if (!canExport) return;
-    const downloadUrl = `/api/documents/${encodeURIComponent(documentNumber)}/pdf?type=${documentType}&download=true&locale=${locale}`;
-    const link = document.createElement("a");
-    link.href = downloadUrl;
-    link.download = `${documentType}-${documentNumber}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadDocumentPdf(documentType, documentNumber, documentNumber, locale);
   };
 
   return (
@@ -151,12 +156,12 @@ export function DeliveryToolbar({
       <Button
         variant="secondary"
         size="sm"
-        disabled={!canExport}
+        disabled={!canExport || printing}
         onClick={handlePrint}
         className="gap-2"
       >
         <Printer className="w-4 h-4 text-ink-muted" />
-        <span>{t.deliveryToolbar.printDocument}</span>
+        <span>{printing ? t.pdfActions.preparing : t.deliveryToolbar.printDocument}</span>
       </Button>
 
       <Button

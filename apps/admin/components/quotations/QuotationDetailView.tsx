@@ -26,7 +26,10 @@ import {
   User,
   Check,
   AlertCircle,
+  Printer,
+  Download,
 } from "lucide-react";
+import { downloadDocumentPdf, printDocumentPdf } from "../../lib/pdf-print";
 import {
   submitQuotationForApprovalAction,
   issueQuotationAction,
@@ -82,7 +85,8 @@ export function QuotationDetailView({
   canEdit = false,
 }: QuotationDetailViewProps) {
   const router = useRouter();
-  const { isRTL, t } = useAdminLocale();
+  const { isRTL, t, locale } = useAdminLocale();
+  const [printing, setPrinting] = React.useState(false);
   const qdT = t.quotationDetail;
   const qListT = t.quotationsList;
 
@@ -294,6 +298,36 @@ export function QuotationDetailView({
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={printing}
+            onClick={async () => {
+              setPrinting(true);
+              try {
+                await printDocumentPdf("quotation", quotation.id, locale);
+              } catch {
+                toast.error(t.pdfActions.failed);
+              } finally {
+                setPrinting(false);
+              }
+            }}
+            className="gap-2"
+          >
+            <Printer className="w-4 h-4" />
+            <span>{printing ? t.pdfActions.preparing : t.pdfActions.print}</span>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => downloadDocumentPdf("quotation", quotation.id, quotation.quotationNumber, locale)}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            <span>{t.pdfActions.download}</span>
+          </Button>
           {/* Status: Draft -> Submit */}
           {quotation.status === "draft" && (
             <Button

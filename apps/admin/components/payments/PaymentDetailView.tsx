@@ -21,6 +21,8 @@ UploadCloud,
 Loader2,
 Landmark
 } from "lucide-react";
+import { printDocumentPdf } from "../../lib/pdf-print";
+import { toast } from "sonner";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface PaymentDetailViewProps {
@@ -142,7 +144,9 @@ export function PaymentDetailView({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.print()}
+            onClick={() =>
+              printDocumentPdf("receipt", payment.receipt_number, locale).catch(() => toast.error(t.pdfActions.failed))
+            }
             className="gap-2 text-xs font-semibold"
           >
             <span>{t.paymentDetailView.printReceipt}</span>

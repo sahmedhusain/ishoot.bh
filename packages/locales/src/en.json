@@ -687,7 +687,8 @@
     "pdf": {
       "receiptNotFound": "Receipt not found.",
       "invoiceNotFound": "Invoice not found.",
-      "generationError": "Error generating PDF."
+      "generationError": "Error generating PDF.",
+      "quotationNotFound": "Quotation not found."
     },
     "reviews": {
       "requiredFields": "Author name and review quote are required.",

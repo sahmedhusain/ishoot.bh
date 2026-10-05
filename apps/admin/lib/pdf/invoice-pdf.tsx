@@ -9,6 +9,10 @@ import { adminTranslations } from "../translations-bilingual";
 interface InvoicePDFProps {
   invoice: Invoice;
   company: CompanySettings;
+  /** A quotation renders through the same layout so print, download and email stay identical. */
+  variant?: "invoice" | "quotation";
+  /** Quotation terms in the document language. */
+  quotationTerms?: string | null;
 }
 
 function formatDate(dateStr: string) {
@@ -28,7 +32,8 @@ function formatAmount(amount: number, decimals: number = 3) {
   });
 }
 
-function InvoicePDF({ invoice, company }: InvoicePDFProps) {
+function InvoicePDF({ invoice, company, variant = "invoice", quotationTerms }: InvoicePDFProps) {
+  const isQuote = variant === "quotation";
   // VAT on an invoice is immutable: depends strictly on the invoice's own issued snapshot
   const isVatActive = Boolean(
     invoice.vat_enabled && Number(invoice.vat_amount) > 0,
@@ -53,11 +58,11 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
   const companyDisplayName = isAr ? compNameAr : compNameEn;
 
   const labels = {
-    title: isVatActive ? t.taxInvoiceTitle : t.standardInvoiceTitle,
+    title: isQuote ? t.quotationTitle : isVatActive ? t.taxInvoiceTitle : t.standardInvoiceTitle,
     billedTo: t.clientDetails,
-    invoiceDetails: t.invoiceDetails,
+    invoiceDetails: isQuote ? t.quotationDetails : t.invoiceDetails,
     issueDate: t.issueDate,
-    dueDate: t.dueDate,
+    dueDate: isQuote ? t.validUntil : t.dueDate,
     status: t.status,
     currencyLabel: t.currency,
     description: t.description,
@@ -67,7 +72,7 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
     subtotal: t.subtotal,
     discount: t.discount,
     vat: `${t.vat} (${invoice.vat_percentage}%):`,
-    totalFinal: t.totalAmount,
+    totalFinal: isQuote ? t.quotationTotal : t.totalAmount,
     amountPaid: t.amountPaid,
     balanceDue: t.balanceDue,
     bankDetails: t.bankDetails,
@@ -85,7 +90,7 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
   };
 
   return (
-    <Document title={`Invoice ${invoice.invoice_number} - ${compNameEn}`}>
+    <Document title={`${isQuote ? "Quotation" : "Invoice"} ${invoice.invoice_number} - ${compNameEn}`}>
       <Page size="A4" style={pdfStyles.page}>
         {/* Official Header Banner */}
         <View style={pdfStyles.headerBanner}>
@@ -148,10 +153,12 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
             <Text style={pdfStyles.metaSub}>
               {labels.dueDate}: {formatDate(invoice.due_date)}
             </Text>
-            <Text style={pdfStyles.metaSub}>
-              {labels.status}:{" "}
-              {(invoice.status || "draft").replace("_", " ").toUpperCase()}
-            </Text>
+            {!isQuote && (
+              <Text style={pdfStyles.metaSub}>
+                {labels.status}:{" "}
+                {(invoice.status || "draft").replace("_", " ").toUpperCase()}
+              </Text>
+            )}
             <Text style={pdfStyles.metaSub}>
               {labels.currencyLabel}: {currency}
             </Text>
@@ -219,12 +226,20 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
                 borderTopColor: "#E5E7EB",
               }}
             >
-              <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.3 }}>
-                {labels.terms}
-              </Text>
-              <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.3 }}>
-                {labels.wireRef}
-              </Text>
+              {isQuote ? (
+                quotationTerms ? (
+                  <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.4 }}>{quotationTerms}</Text>
+                ) : null
+              ) : (
+                <>
+                  <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.3 }}>
+                    {labels.terms}
+                  </Text>
+                  <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.3 }}>
+                    {labels.wireRef}
+                  </Text>
+                </>
+              )}
               {invoice.notes_en ? (
                 <Text
                   style={{
@@ -278,7 +293,7 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
               </Text>
             </View>
 
-            {invoice.amount_paid > 0 && (
+            {!isQuote && invoice.amount_paid > 0 && (
               <View style={pdfStyles.paidRow}>
                 <Text>{labels.amountPaid}</Text>
                 <Text>
@@ -287,12 +302,14 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
               </View>
             )}
 
-            <View style={pdfStyles.dueRow}>
-              <Text>{labels.balanceDue}</Text>
-              <Text>
-                {currency} {formatAmount(invoice.amount_due, decimals)}
-              </Text>
-            </View>
+            {!isQuote && (
+              <View style={pdfStyles.dueRow}>
+                <Text>{labels.balanceDue}</Text>
+                <Text>
+                  {currency} {formatAmount(invoice.amount_due, decimals)}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
