@@ -2028,7 +2028,8 @@
     "cancelled": "ملغى",
     "certificateParagraph": "نشهد بأن السيد/ة {name}، الرقم الوظيفي {number}، يعمل لدى {company} منذ {hireDate} بوظيفة {title}، ويتقاضى راتباً شهرياً إجمالياً قدره {gross} دينار بحريني.",
     "certificateClosing": "أعطيت هذه الشهادة بناءً على طلب الموظف دون أدنى مسؤولية على الشركة.",
-    "toWhom": "إلى من يهمه الأمر"
+    "toWhom": "إلى من يهمه الأمر",
+    "bonus": "مكافأة / حافز"
   },
   "auditDetails": {
     "before": "قبل التعديل",
@@ -2079,7 +2080,8 @@
       "company_settings": "إعدادات الشركة",
       "expense_claim": "مطالبة مصروف",
       "expense_category": "فئة مصروف",
-      "commission_payout": "صرف عمولة"
+      "commission_payout": "صرف عمولة",
+      "payroll_item": "بند رواتب"
     },
     "fields": {
       "name": "الاسم",
@@ -3804,5 +3806,21 @@
     "recordedOn": "سُجلت {date}",
     "failed": "تعذّر تسجيل العمولة",
     "monthOpen": "الشهر لم ينتهِ"
+  },
+  "payrollEdit": {
+    "edit": "تعديل بند الراتب",
+    "saved": "تم تحديث بند الراتب",
+    "failed": "تعذّر تحديث بند الراتب",
+    "note": "ملاحظة التعديل",
+    "notePlaceholder": "السبب (مثال: مكافأة مشروع، إجازة غير مدفوعة)",
+    "employerShare": "حصة صاحب العمل / الدعم",
+    "fields": {
+      "basicSalary": "الأساسي",
+      "housingAllowance": "السكن",
+      "transportAllowance": "المواصلات",
+      "otherAllowances": "بدلات أخرى",
+      "bonus": "مكافأة / حافز",
+      "otherDeductions": "الاستقطاعات"
+    }
   }
 }

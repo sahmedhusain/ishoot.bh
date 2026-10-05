@@ -3563,6 +3563,58 @@
       }
     }
   },
+  "updatePayrollItemAction": {
+    "kind": "object",
+    "fields": {
+      "itemId": {
+        "kind": "string",
+        "optional": false
+      },
+      "patch": {
+        "kind": "object",
+        "fields": {
+          "basicSalary": {
+            "kind": "number",
+            "optional": true
+          },
+          "housingAllowance": {
+            "kind": "number",
+            "optional": true
+          },
+          "transportAllowance": {
+            "kind": "number",
+            "optional": true
+          },
+          "otherAllowances": {
+            "kind": "number",
+            "optional": true
+          },
+          "bonus": {
+            "kind": "number",
+            "optional": true
+          },
+          "otherDeductions": {
+            "kind": "number",
+            "optional": true
+          },
+          "adjustmentNote": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "updateMyProfileAction": {
     "kind": "object",
     "fields": {

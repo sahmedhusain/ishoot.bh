@@ -22,17 +22,21 @@ import {
   markPayrollRunPaidAction,
 } from "../../app/actions/payroll";
 import { toast } from "sonner";
+import { PayrollItemRow } from "./PayrollItemRow";
 
 interface PayrollManagementViewProps {
   runs: PayrollRun[];
   currentUserId: string;
   /** Runs the current user may approve under the payroll approval policy. */
   decidableRunIds: string[];
+  /** May adjust individual salary lines before submission. */
+  canEdit?: boolean;
 }
 
 export function PayrollManagementView({
   runs,
   decidableRunIds,
+  canEdit = false,
 }: PayrollManagementViewProps) {
   const { t, locale } = useAdminLocale();
   const router = useRouter();
@@ -387,86 +391,26 @@ export function PayrollManagementView({
                     </h3>
 
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
+                      <table className="w-full text-start text-xs min-w-[1100px]">
                         <thead>
                           <tr className="border-b border-ink/10 font-mono uppercase text-slate-400">
-                            <th className="py-2.5 px-3">{t.shared.employee}</th>
-                            <th className="py-2.5 px-3 text-right">
-                              {t.payrollManagement.basic}
-                            </th>
-                            <th className="py-2.5 px-3 text-right">
-                              {t.shared.housing}
-                            </th>
-                            <th className="py-2.5 px-3 text-right">
-                              {t.shared.transport}
-                            </th>
-                            <th className="py-2.5 px-3 text-right">
-                              {t.payrollManagement.grossSalary}
-                            </th>
-                            <th className="py-2.5 px-3 text-right text-amber-600">
-                              {t.payrollManagement.gosiEmployee}
-                            </th>
-                            <th className="py-2.5 px-3 text-right font-bold text-primary dark:text-mint">
-                              {t.payrollManagement.netSalary}
-                            </th>
-                            <th className="py-2.5 px-3 text-right">
-                              {t.payrollManagement.gosiEmployer}
-                            </th>
-                            <th className="py-2.5 px-3 text-right">
-                              {t.hrExtensions.externalSupport}
-                            </th>
-                            <th className="py-2.5 px-3 text-right">
-                              {t.payrollManagement.totalEmployerCost}
-                            </th>
+                            <th className="py-2.5 px-3 text-start">{t.shared.employee}</th>
+                            <th className="py-2.5 px-3 text-end">{t.payrollManagement.basic}</th>
+                            <th className="py-2.5 px-3 text-end">{t.shared.housing}</th>
+                            <th className="py-2.5 px-3 text-end">{t.shared.transport}</th>
+                            <th className="py-2.5 px-3 text-end">{t.payrollEdit.fields.otherAllowances}</th>
+                            <th className="py-2.5 px-3 text-end">{t.payrollEdit.fields.bonus}</th>
+                            <th className="py-2.5 px-3 text-end">{t.payrollEdit.fields.otherDeductions}</th>
+                            <th className="py-2.5 px-3 text-end">{t.payrollManagement.grossSalary}</th>
+                            <th className="py-2.5 px-3 text-end text-amber-600">{t.payrollManagement.gosiEmployee}</th>
+                            <th className="py-2.5 px-3 text-end font-bold text-primary dark:text-mint">{t.payrollManagement.netSalary}</th>
+                            <th className="py-2.5 px-3 text-end">{t.payrollEdit.employerShare}</th>
+                            <th className="py-2.5 px-3 text-end">{t.payrollManagement.totalEmployerCost}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-ink/10 dark:divide-white/5">
                           {run.items?.map((item) => (
-                            <tr
-                              key={item.id}
-                              className="hover:bg-slate-50/50 dark:hover:bg-white/[0.02]"
-                            >
-                              <td className="py-3 px-3">
-                                <div className="font-semibold text-slate-900 dark:text-white">
-                                  {item.employee?.firstNameEn}{" "}
-                                  {item.employee?.lastNameEn}
-                                </div>
-                                <div className="text-[10px] font-mono text-slate-400">
-                                  {item.employee?.employeeNumber}
-                                </div>
-                              </td>
-                              <td className="py-3 px-3 text-right font-mono">
-                                {Number(item.basicSalary).toFixed(3)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-mono">
-                                {Number(item.housingAllowance).toFixed(3)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-mono">
-                                {Number(item.transportAllowance).toFixed(3)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-mono font-semibold">
-                                {Number(item.grossSalary).toFixed(3)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-mono text-amber-600">
-                                -{Number(item.gosiEmployee).toFixed(3)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-mono font-bold text-primary dark:text-mint">
-                                {Number(item.netSalary).toFixed(3)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-mono text-slate-500">
-                                +{Number(item.gosiEmployer).toFixed(3)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-mono text-emerald-600">
-                                {Number(item.externalSupport || 0).toFixed(3)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-mono font-semibold text-slate-900 dark:text-white">
-                                {(
-                                  Number(item.grossSalary) +
-                                  Number(item.gosiEmployer) -
-                                  Number(item.externalSupport || 0)
-                                ).toFixed(3)}
-                              </td>
-                            </tr>
+                            <PayrollItemRow key={item.id} item={item} editable={canEdit && (run.status === "calculated" || run.status === "draft")} />
                           ))}
                         </tbody>
                       </table>

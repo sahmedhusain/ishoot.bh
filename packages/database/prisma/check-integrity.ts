@@ -188,8 +188,8 @@ const RULES: Rule[] = [
       WHERE a.status = 'approved' AND b.status = 'approved' AND a."startDate" <= b."endDate" AND b."startDate" <= a."endDate"` },
   { area: "hr", name: "decided leave records who decided it",
     sql: `SELECT id FROM "LeaveRequest" WHERE status IN ('approved','rejected') AND ("approvedById" IS NULL OR "approvedAt" IS NULL)` },
-  { area: "hr", name: "payroll item gross = components and net = gross − employee contribution − other deductions",
-    sql: `SELECT id FROM "PayrollItem" WHERE "grossSalary" <> "basicSalary" + "housingAllowance" + "transportAllowance" + "otherAllowances"
+  { area: "hr", name: "payroll item gross = components + bonus and net = gross − employee contribution − other deductions",
+    sql: `SELECT id FROM "PayrollItem" WHERE "grossSalary" <> "basicSalary" + "housingAllowance" + "transportAllowance" + "otherAllowances" + "bonus"
       OR "netSalary" <> "grossSalary" - "gosiEmployee" - "otherDeductions"` },
   { area: "hr", name: "payroll run totals equal the sum of its items",
     sql: `SELECT r.year, r.month FROM "PayrollRun" r JOIN "PayrollItem" i ON i."payrollRunId" = r.id GROUP BY r.id

@@ -2028,7 +2028,8 @@
     "cancelled": "Cancelled",
     "certificateParagraph": "This is to certify that {name}, employee number {number}, has been employed by {company} since {hireDate} in the position of {title}, and receives a total gross monthly salary of {gross} Bahraini Dinars.",
     "certificateClosing": "This certificate was issued at the employee's request, without any liability on the company.",
-    "toWhom": "To whom it may concern"
+    "toWhom": "To whom it may concern",
+    "bonus": "Bonus / incentive"
   },
   "auditDetails": {
     "before": "Before",
@@ -2079,7 +2080,8 @@
       "company_settings": "Company settings",
       "expense_claim": "Expense claim",
       "expense_category": "Expense category",
-      "commission_payout": "Commission payout"
+      "commission_payout": "Commission payout",
+      "payroll_item": "Payroll line"
     },
     "fields": {
       "name": "Name",
@@ -3804,5 +3806,21 @@
     "recordedOn": "Recorded {date}",
     "failed": "Could not record the commission",
     "monthOpen": "Month still open"
+  },
+  "payrollEdit": {
+    "edit": "Edit this salary line",
+    "saved": "Salary line updated",
+    "failed": "Could not update the salary line",
+    "note": "Adjustment note",
+    "notePlaceholder": "Why (e.g. project bonus, unpaid leave)",
+    "employerShare": "Employer GOSI / support",
+    "fields": {
+      "basicSalary": "Basic",
+      "housingAllowance": "Housing",
+      "transportAllowance": "Transport",
+      "otherAllowances": "Other allowances",
+      "bonus": "Bonus / incentive",
+      "otherDeductions": "Deductions"
+    }
   }
 }

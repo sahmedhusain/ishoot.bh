@@ -9,6 +9,7 @@ import {
   decideApprovalRequest,
   markPayrollAsPaid,
   createActivityLog,
+  updatePayrollItem,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
@@ -109,5 +110,36 @@ export async function markPayrollRunPaidAction(runId: string) {
 
     revalidatePath(ROUTES.hr.payroll());
     return { success: true, payrollRun };
+  });
+}
+
+/** Edit one employee's salary line (pay, bonus, deductions, note) before the run is submitted. */
+export async function updatePayrollItemAction(
+  itemId: string,
+  patch: {
+    basicSalary?: number;
+    housingAllowance?: number;
+    transportAllowance?: number;
+    otherAllowances?: number;
+    bonus?: number;
+    otherDeductions?: number;
+    adjustmentNote?: string | null;
+  },
+) {
+  return measureOperation("action:updatePayrollItemAction", async () => {
+    const actor = await requirePermission("payroll", "edit");
+    validateActionArguments("updatePayrollItemAction", { itemId, patch });
+    const { item } = await runAtomicMutation(async () => {
+      const { item, before } = await updatePayrollItem(itemId, patch, actor.id);
+      const changed = Object.fromEntries(
+        (["basicSalary", "housingAllowance", "transportAllowance", "otherAllowances", "bonus", "otherDeductions", "adjustmentNote"] as const)
+          .filter((key) => patch[key] !== undefined && before[key] !== item[key])
+          .map((key) => [key, { from: before[key], to: item[key] }]),
+      );
+      await createActivityLog({ user_id: actor.id, action: "update", entity_type: "payroll_item", entity_id: itemId, details: { payrollRunId: item.payrollRunId, employeeId: item.employeeId, changed } });
+      return { item };
+    });
+    revalidatePath(ROUTES.hr.payroll());
+    return { success: true, item };
   });
 }

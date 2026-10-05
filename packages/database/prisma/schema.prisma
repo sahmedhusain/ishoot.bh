@@ -1485,6 +1485,11 @@ model PayrollItem {
   externalSupport    Decimal    @default(0.000) @db.Decimal(12, 3)
   calculationSnapshot Json?
   otherDeductions    Decimal    @default(0.000) @db.Decimal(12, 3)
+  /// One-off incentives and bonuses for the month (not subject to GOSI).
+  bonus              Decimal    @default(0.000) @db.Decimal(12, 3)
+  adjustmentNote     String?
+  editedById         String?
+  editedAt           DateTime?
   netSalary          Decimal    @default(0.000) @db.Decimal(12, 3)
   paymentStatus      String     @default("pending") // "pending", "paid"
   payslip            Payslip?

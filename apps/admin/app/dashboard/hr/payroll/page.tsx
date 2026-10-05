@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { hasPermission, requirePermission } from "../../../../lib/auth";
 import { listPayrollRuns, db, canDecideApproval } from "@ishoot/database";
 import { PayrollManagementView } from "../../../../components/hr/PayrollManagementView";
 
@@ -17,5 +17,6 @@ export default async function PayrollPage() {
     : [];
   const decidableRunIds = pending.filter((request) => canDecideApproval(request, user)).map((request) => request.targetId);
 
-  return <PayrollManagementView runs={runs} currentUserId={user.id} decidableRunIds={decidableRunIds} />;
+  const canEdit = await hasPermission("payroll", "edit");
+  return <PayrollManagementView runs={runs} currentUserId={user.id} decidableRunIds={decidableRunIds} canEdit={canEdit} />;
 }

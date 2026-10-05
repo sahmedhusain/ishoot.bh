@@ -36,7 +36,20 @@ async function main() {
       assert.equal(run.totalNet, 1035);
       assert.equal(run.totalEmployerCost, 682.5);
       assert.equal(Number((await tx.payrollItem.findFirstOrThrow({ where: { payrollRunId: run.id } })).externalSupport), 562.5);
+      // A salary line can be adjusted before submission: bonus on top of gross (no GOSI), deductions off net.
+      const { updatePayrollItem } = require('../packages/database/src/queries/payroll.ts');
+      const line = run.items[0];
+      const edited = await updatePayrollItem(line.id, { bonus: 100, otherDeductions: 25, adjustmentNote: 'Project bonus; late return' }, actor.id);
+      assert.equal(edited.item.grossSalary, 1225, 'bonus raises gross');
+      assert.equal(edited.item.gosiEmployee, Number(line.gosiEmployee), 'GOSI stays on fixed pay');
+      assert.equal(edited.item.netSalary, Number(line.netSalary) + 100 - 25);
+      const totals = await tx.payrollRun.findUniqueOrThrow({ where: { id: run.id } });
+      assert.equal(Number(totals.totalGross), 1225, 'run totals follow the edit');
+      await assert.rejects(updatePayrollItem(line.id, { otherDeductions: 99999 }, actor.id), /Deductions cannot exceed/);
+      await assert.rejects(updatePayrollItem(line.id, { bonus: -1 }, actor.id), /must be zero or more/);
+      await updatePayrollItem(line.id, { bonus: 0, otherDeductions: 0, adjustmentNote: null }, actor.id);
       const approval = await submitPayrollRunForApproval(run.id, actor.id);
+      await assert.rejects(updatePayrollItem(line.id, { bonus: 5 }, actor.id), /only be changed before it is submitted/);
       const pending = await tx.approvalRequest.findUniqueOrThrow({ where: { id: approval.approvalRequestId } });
       if (pending.status === 'pending') {
         // The submitter never approves their own payroll; someone the policy names does.
@@ -59,6 +72,6 @@ async function main() {
       throw rollback;
     }), { timeout: 20000 });
   } catch (error) { if (error !== rollback) throw error; }
-  console.log('HRMS database checks passed and rolled back: employee-first creation, compensation history, support snapshots, on-leave payroll, policy-routed payroll approval (no self-approval), salary month validation and leave balance.');
+  console.log('HRMS database checks passed and rolled back: employee-first creation, compensation history, support snapshots, on-leave payroll, policy-routed payroll approval (no self-approval), salary month validation, leave balance and per-employee payroll edits.');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; }).finally(() => db.$disconnect());

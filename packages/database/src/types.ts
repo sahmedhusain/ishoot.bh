@@ -1260,6 +1260,10 @@ export interface PayrollItem {
   gosiEmployer: number;
   externalSupport?: number;
   otherDeductions: number;
+  /** One-off incentives and bonuses for the month. */
+  bonus?: number;
+  adjustmentNote?: string | null;
+  editedAt?: string | null;
   netSalary: number;
   paymentStatus: "pending" | "paid" | string;
   payslip?: Payslip;

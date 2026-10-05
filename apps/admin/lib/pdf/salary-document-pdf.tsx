@@ -79,6 +79,7 @@ export async function generateSalaryDocumentPdf(
     "housingAllowance",
     "transportAllowance",
     "otherAllowances",
+    "bonus",
     "grossSalary",
     "gosiEmployee",
     "otherDeductions",
@@ -163,7 +164,7 @@ export async function generateSalaryDocumentPdf(
             </View>
           ) : (
           <View style={styles.table}>
-            {labels.map((key) => (
+            {labels.filter((key) => key !== "bonus" || Number(row.bonus || 0) > 0).map((key) => (
               <View key={key} style={styles.tableRow}>
                 <Text style={styles.colDesc}>{h[key as keyof typeof h]}</Text>
                 <Text style={styles.colTotal}>

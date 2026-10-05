@@ -6,6 +6,120 @@ import { db } from "../db";
 import { PayrollRun } from "../types";
 import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
+import type { EmployeePayrollSettings } from "../types";
+
+function mapPayrollItem(it: any) {
+  return {
+    ...it,
+    basicSalary: Number(it.basicSalary),
+    housingAllowance: Number(it.housingAllowance),
+    transportAllowance: Number(it.transportAllowance),
+    otherAllowances: Number(it.otherAllowances),
+    grossSalary: Number(it.grossSalary),
+    gosiEmployee: Number(it.gosiEmployee),
+    gosiEmployer: Number(it.gosiEmployer),
+    externalSupport: Number(it.externalSupport),
+    otherDeductions: Number(it.otherDeductions),
+    bonus: Number(it.bonus ?? 0),
+    netSalary: Number(it.netSalary),
+    createdAt: it.createdAt.toISOString(),
+    editedAt: it.editedAt ? it.editedAt.toISOString() : null,
+  };
+}
+
+const r3 = (value: number) => Math.round(value * 1000) / 1000;
+
+export interface PayrollLineInput {
+  basicSalary: number;
+  housingAllowance: number;
+  transportAllowance: number;
+  otherAllowances: number;
+  bonus?: number;
+  otherDeductions?: number;
+}
+
+/**
+ * One employee's month: contributions and support are worked out on the fixed pay (basic and
+ * allowances); bonuses are added to gross on top, and other deductions come off net.
+ */
+export function computePayrollLine(input: PayrollLineInput, settings: EmployeePayrollSettings | null, month: string) {
+  for (const [key, value] of Object.entries(input))
+    if (value !== undefined && !(Number.isFinite(value) && value >= 0)) throw new Error(`${key} must be zero or more`);
+  const fixed = r3(input.basicSalary + input.housingAllowance + input.transportAllowance + input.otherAllowances);
+  const bonus = r3(input.bonus ?? 0);
+  const otherDeductions = r3(input.otherDeductions ?? 0);
+  const calculated = calculateContributions(fixed, settings, month);
+  const gross = r3(fixed + bonus);
+  const net = r3(gross - calculated.employee - otherDeductions);
+  if (net < 0) throw new Error("Deductions cannot exceed the month's pay");
+  return {
+    grossSalary: gross,
+    gosiEmployee: calculated.employee,
+    gosiEmployer: calculated.employer,
+    externalSupport: calculated.support,
+    netSalary: net,
+    employerCost: r3(gross + calculated.employer - calculated.support),
+    deductions: r3(calculated.employee + otherDeductions),
+  };
+}
+
+async function refreshPayrollTotals(runId: string) {
+  const items = await db.payrollItem.findMany({ where: { payrollRunId: runId } });
+  const sum = (pick: (i: (typeof items)[number]) => number) => r3(items.reduce((acc, i) => acc + pick(i), 0));
+  await db.payrollRun.update({
+    where: { id: runId },
+    data: {
+      totalGross: sum((i) => Number(i.grossSalary)),
+      totalDeductions: sum((i) => Number(i.gosiEmployee) + Number(i.otherDeductions)),
+      totalNet: sum((i) => Number(i.netSalary)),
+      totalEmployerCost: sum((i) => Number(i.grossSalary) + Number(i.gosiEmployer) - Number(i.externalSupport)),
+    },
+  });
+}
+
+/** Adjust one employee's line while the run is still being prepared; totals follow. */
+export async function updatePayrollItem(
+  itemId: string,
+  patch: Partial<PayrollLineInput> & { adjustmentNote?: string | null },
+  actorId: string,
+) {
+  const item = await db.payrollItem.findUniqueOrThrow({ where: { id: itemId }, include: { payrollRun: { select: { id: true, status: true, year: true, month: true } } } });
+  if (!["draft", "calculated"].includes(item.payrollRun.status))
+    throw new Error(`Payroll is ${item.payrollRun.status}; lines can only be changed before it is submitted`);
+  const next: PayrollLineInput = {
+    basicSalary: patch.basicSalary ?? Number(item.basicSalary),
+    housingAllowance: patch.housingAllowance ?? Number(item.housingAllowance),
+    transportAllowance: patch.transportAllowance ?? Number(item.transportAllowance),
+    otherAllowances: patch.otherAllowances ?? Number(item.otherAllowances),
+    bonus: patch.bonus ?? Number(item.bonus),
+    otherDeductions: patch.otherDeductions ?? Number(item.otherDeductions),
+  };
+  const settings = parsePayrollSettings(item.calculationSnapshot);
+  const month = `${item.payrollRun.year}-${String(item.payrollRun.month).padStart(2, "0")}`;
+  const line = computePayrollLine(next, settings, month);
+  const note = patch.adjustmentNote === undefined ? item.adjustmentNote : patch.adjustmentNote?.trim().slice(0, 500) || null;
+  const updated = await db.payrollItem.update({
+    where: { id: itemId },
+    data: {
+      basicSalary: r3(next.basicSalary),
+      housingAllowance: r3(next.housingAllowance),
+      transportAllowance: r3(next.transportAllowance),
+      otherAllowances: r3(next.otherAllowances),
+      bonus: r3(next.bonus ?? 0),
+      otherDeductions: r3(next.otherDeductions ?? 0),
+      grossSalary: line.grossSalary,
+      gosiEmployee: line.gosiEmployee,
+      gosiEmployer: line.gosiEmployer,
+      externalSupport: line.externalSupport,
+      netSalary: line.netSalary,
+      adjustmentNote: note,
+      editedById: actorId,
+      editedAt: new Date(),
+    },
+  });
+  await refreshPayrollTotals(item.payrollRun.id);
+  return { item: mapPayrollItem(updated), before: mapPayrollItem(item) };
+}
 
 export async function createPayrollRun(
   month: number,
@@ -62,18 +176,7 @@ export async function createPayrollRun(
       approvedAt: existing.approvedAt?.toISOString() || null,
       paidAt: existing.paidAt?.toISOString() || null,
       items: existing.items.map((it) => ({
-        ...it,
-        basicSalary: Number(it.basicSalary),
-        housingAllowance: Number(it.housingAllowance),
-        transportAllowance: Number(it.transportAllowance),
-        otherAllowances: Number(it.otherAllowances),
-        grossSalary: Number(it.grossSalary),
-        gosiEmployee: Number(it.gosiEmployee),
-        gosiEmployer: Number(it.gosiEmployer),
-        externalSupport: Number(it.externalSupport),
-        otherDeductions: Number(it.otherDeductions),
-        netSalary: Number(it.netSalary),
-        createdAt: it.createdAt.toISOString(),
+        ...mapPayrollItem(it),
       })),
     };
   }
@@ -108,26 +211,22 @@ export async function createPayrollRun(
     const transport = record ? Number(record.transportAllowance) : 0;
     const otherAllowances = record ? Number(record.otherAllowances) : 0;
 
-    const gross =
-      Math.round((basic + housing + transport + otherAllowances) * 1000) / 1000;
-
     const settings = parsePayrollSettings(record?.payrollSettings);
-    const calculated = calculateContributions(
-      gross,
+    const line = computePayrollLine(
+      { basicSalary: basic, housingAllowance: housing, transportAllowance: transport, otherAllowances },
       settings,
       `${year}-${String(month).padStart(2, "0")}`,
     );
-    const gosiEmployee = calculated.employee;
-    const gosiEmployer = calculated.employer;
+    const gross = line.grossSalary;
+    const gosiEmployee = line.gosiEmployee;
+    const gosiEmployer = line.gosiEmployer;
     const otherDeductions = 0;
-    const deductions = gosiEmployee;
-    const net = calculated.net;
-    const employerCost = calculated.employerCost;
+    const net = line.netSalary;
 
     totalGross += gross;
-    totalDeductions += deductions;
+    totalDeductions += line.deductions;
     totalNet += net;
-    totalEmployerCost += employerCost;
+    totalEmployerCost += line.employerCost;
 
     return {
       employeeId: emp.id,
@@ -138,7 +237,7 @@ export async function createPayrollRun(
       grossSalary: gross,
       gosiEmployee,
       gosiEmployer,
-      externalSupport: calculated.support,
+      externalSupport: line.externalSupport,
       calculationSnapshot: JSON.parse(JSON.stringify(settings)),
       otherDeductions,
       netSalary: net,
@@ -190,18 +289,7 @@ export async function createPayrollRun(
     approvedAt: run.approvedAt?.toISOString() || null,
     paidAt: run.paidAt?.toISOString() || null,
     items: run.items.map((it) => ({
-      ...it,
-      basicSalary: Number(it.basicSalary),
-      housingAllowance: Number(it.housingAllowance),
-      transportAllowance: Number(it.transportAllowance),
-      otherAllowances: Number(it.otherAllowances),
-      grossSalary: Number(it.grossSalary),
-      gosiEmployee: Number(it.gosiEmployee),
-      gosiEmployer: Number(it.gosiEmployer),
-      externalSupport: Number(it.externalSupport),
-      otherDeductions: Number(it.otherDeductions),
-      netSalary: Number(it.netSalary),
-      createdAt: it.createdAt.toISOString(),
+      ...mapPayrollItem(it),
     })),
   };
 }
@@ -324,18 +412,7 @@ export async function markPayrollAsPaid(
     approvedAt: updated.approvedAt?.toISOString() || null,
     paidAt: updated.paidAt?.toISOString() || null,
     items: updated.items.map((it) => ({
-      ...it,
-      basicSalary: Number(it.basicSalary),
-      housingAllowance: Number(it.housingAllowance),
-      transportAllowance: Number(it.transportAllowance),
-      otherAllowances: Number(it.otherAllowances),
-      grossSalary: Number(it.grossSalary),
-      gosiEmployee: Number(it.gosiEmployee),
-      gosiEmployer: Number(it.gosiEmployer),
-      externalSupport: Number(it.externalSupport),
-      otherDeductions: Number(it.otherDeductions),
-      netSalary: Number(it.netSalary),
-      createdAt: it.createdAt.toISOString(),
+      ...mapPayrollItem(it),
     })),
   };
 }
@@ -372,18 +449,7 @@ export async function listPayrollRuns(): Promise<PayrollRun[]> {
     approvedAt: r.approvedAt?.toISOString() || null,
     paidAt: r.paidAt?.toISOString() || null,
     items: r.items.map((it) => ({
-      ...it,
-      basicSalary: Number(it.basicSalary),
-      housingAllowance: Number(it.housingAllowance),
-      transportAllowance: Number(it.transportAllowance),
-      otherAllowances: Number(it.otherAllowances),
-      grossSalary: Number(it.grossSalary),
-      gosiEmployee: Number(it.gosiEmployee),
-      gosiEmployer: Number(it.gosiEmployer),
-      externalSupport: Number(it.externalSupport),
-      otherDeductions: Number(it.otherDeductions),
-      netSalary: Number(it.netSalary),
-      createdAt: it.createdAt.toISOString(),
+      ...mapPayrollItem(it),
     })),
   }));
 }
