@@ -172,7 +172,8 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
                   title={link.platform}
                 >
                   <SocialIcon
-                    name={link.icon || link.platform}
+                    name={link.platform}
+                    hint={link.icon}
                     className="w-4 h-4"
                   />
                   <span>{link.platform}</span>

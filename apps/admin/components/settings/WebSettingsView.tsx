@@ -32,7 +32,7 @@ deleteSocialLinkAction,
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
 import { IconPicker } from "../shared/LazyIconPicker";
-import { PlatformPicker } from "../shared/PlatformPicker";
+import { PlatformPicker, SocialBrandIcon } from "../shared/PlatformPicker";
 
 interface WebSettingsViewProps {
   initialSettings: CompanySettings;
@@ -679,12 +679,12 @@ export function WebSettingsView({
                 </div>
 
                 <div className="border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden">
-                  <table className="w-full text-left text-sm">
+                  <table className="w-full text-start text-sm">
                     <thead className="bg-slate-50 dark:bg-white/5 text-xs text-slate-500">
                       <tr>
                         <th className="px-4 py-3 font-semibold">{t.webSettings.platform}</th>
                         <th className="px-4 py-3 font-semibold">URL</th>
-                        <th className="px-4 py-3 font-semibold text-right">
+                        <th className="px-4 py-3 font-semibold text-end">
                           {t.webSettings.actions}
                         </th>
                       </tr>
@@ -696,6 +696,7 @@ export function WebSettingsView({
                           className="bg-white dark:bg-surface"
                         >
                           <td className="px-4 py-3 font-medium flex items-center gap-2">
+                            <SocialBrandIcon name={link.platform} hint={link.icon} className="w-4 h-4 text-accent" />
                             {link.platform}
                             {!link.is_active && (
                               <span className="px-1.5 py-0.5 rounded text-[10px] bg-rose-500/10 text-rose-500">
@@ -706,15 +707,15 @@ export function WebSettingsView({
                           <td className="px-4 py-3 text-slate-500 truncate max-w-[200px]">
                             {link.url}
                           </td>
-                          <td className="px-4 py-3 text-right space-x-2">
+                          <td className="px-4 py-3 text-end space-x-2 rtl:space-x-reverse">
                             <button
                               type="button"
                               onClick={() =>
                                 handleToggleSocialLink(link.id, link.is_active)
                               }
-                              className="text-xs text-slate-500 hover:text-white"
+                              className="text-xs text-slate-500 hover:text-accent"
                             >
-                              {link.is_active ? "Hide" : "Show"}
+                              {link.is_active ? t.webSettings.hideLink : t.webSettings.showLink}
                             </button>
                             <button
                               type="button"

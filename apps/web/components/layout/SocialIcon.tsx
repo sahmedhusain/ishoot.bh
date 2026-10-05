@@ -1,41 +1,23 @@
-import {
-Instagram,
-Youtube,
-Twitter,
-Facebook,
-Linkedin,
-Github,
-Globe,
-Mail,
-Phone,
-MessageCircle,
-Send,
-Link as LinkIcon,
-type LucideIcon,
-} from "lucide-react";
+import { Globe, Mail, Phone, Link as LinkIcon, type LucideIcon } from "lucide-react";
+import { findSocialPlatform } from "@ishoot/database/constants/social";
 
-const SOCIAL_ICON_MAP: Record<string, LucideIcon> = {
-  instagram: Instagram,
-  youtube: Youtube,
-  twitter: Twitter,
-  x: Twitter,
-  facebook: Facebook,
-  linkedin: Linkedin,
-  github: Github,
+const GENERIC_ICONS: Record<string, LucideIcon> = {
   globe: Globe,
   website: Globe,
   mail: Mail,
   email: Mail,
   phone: Phone,
-  whatsapp: MessageCircle,
-  telegram: Send,
 };
 
-export function SocialIcon({ name, className }: { name?: string; className?: string }) {
-  if (!name) return <LinkIcon className={className} />;
-
-  const key = name.toLowerCase().trim();
-  const IconComponent = SOCIAL_ICON_MAP[key] || LinkIcon;
-
-  return <IconComponent className={className} />;
+/** `name` is the platform ("Instagram"); `hint` is the stored icon name, tried when the platform is custom. */
+export function SocialIcon({ name, hint, className }: { name?: string; hint?: string; className?: string }) {
+  const platform = findSocialPlatform(name) ?? findSocialPlatform(hint);
+  if (platform)
+    return (
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className={className}>
+        <path d={platform.path} />
+      </svg>
+    );
+  const Icon = GENERIC_ICONS[(hint || name || "").toLowerCase().trim()] || LinkIcon;
+  return <Icon className={className} />;
 }

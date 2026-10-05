@@ -197,45 +197,6 @@ export function GeneralInfoTab({
               className=" rounded-lg"
             />
           </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              {t.companySettingsTabs.instagram}
-            </label>
-            <Input
-              value={settings.instagram_url || ""}
-              onChange={(e) =>
-                setSettings({ ...settings, instagram_url: e.target.value })
-              }
-              className=" rounded-lg"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              {t.companySettingsTabs.linkedin}
-            </label>
-            <Input
-              value={settings.linkedin_url || ""}
-              onChange={(e) =>
-                setSettings({ ...settings, linkedin_url: e.target.value })
-              }
-              className=" rounded-lg"
-            />
-          </div>
-
-          <div className="space-y-1.5 sm:col-span-2">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              {t.companySettingsTabs.youtube}
-            </label>
-            <Input
-              value={settings.youtube_url || ""}
-              onChange={(e) =>
-                setSettings({ ...settings, youtube_url: e.target.value })
-              }
-              className=" rounded-lg"
-            />
-          </div>
         </div>
       </Card>
 
