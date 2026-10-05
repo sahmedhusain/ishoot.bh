@@ -2015,7 +2015,10 @@
     "approved": "معتمد",
     "paid": "مدفوع",
     "closed": "مغلق",
-    "cancelled": "ملغى"
+    "cancelled": "ملغى",
+    "certificateParagraph": "نشهد بأن السيد/ة {name}، الرقم الوظيفي {number}، يعمل لدى {company} منذ {hireDate} بوظيفة {title}، ويتقاضى راتباً شهرياً إجمالياً قدره {gross} دينار بحريني.",
+    "certificateClosing": "أعطيت هذه الشهادة بناءً على طلب الموظف دون أدنى مسؤولية على الشركة.",
+    "toWhom": "إلى من يهمه الأمر"
   },
   "auditDetails": {
     "before": "قبل التعديل",

@@ -80,9 +80,9 @@ export async function generateSalaryDocumentPdf(
     "transportAllowance",
     "otherAllowances",
     "grossSalary",
-    ...(document.kind === "payslip"
-      ? ["gosiEmployee", "otherDeductions", "netSalary"]
-      : []),
+    "gosiEmployee",
+    "otherDeductions",
+    "netSalary",
   ] as const;
   const element = (
     <Document>
@@ -146,9 +146,22 @@ export async function generateSalaryDocumentPdf(
               )}
             </View>
           </View>
-          {document.kind === "salary_certificate" && (
-            <Text style={{ marginBottom: 18 }}>{h.certificateBody}</Text>
-          )}
+          {document.kind === "salary_certificate" ? (
+            // A certificate states the total gross salary only — no breakdown.
+            <View style={{ marginTop: 12, marginBottom: 24 }}>
+              <Text style={{ fontWeight: 700, marginBottom: 14 }}>{h.toWhom}</Text>
+              <Text style={{ lineHeight: 1.7, marginBottom: 14 }}>
+                {h.certificateParagraph
+                  .replace("{name}", name)
+                  .replace("{number}", employee.employeeNumber)
+                  .replace("{company}", locale === "ar" ? company.company_name_ar : company.company_name_en)
+                  .replace("{hireDate}", employee.hireDate.slice(0, 10))
+                  .replace("{title}", locale === "ar" ? employee.jobTitleAr : employee.jobTitleEn)
+                  .replace("{gross}", Number(row.grossSalary || 0).toFixed(3))}
+              </Text>
+              <Text style={{ lineHeight: 1.7 }}>{h.certificateClosing}</Text>
+            </View>
+          ) : (
           <View style={styles.table}>
             {labels.map((key) => (
               <View key={key} style={styles.tableRow}>
@@ -159,6 +172,7 @@ export async function generateSalaryDocumentPdf(
               </View>
             ))}
           </View>
+          )}
           <View style={styles.signatureContainer}>
             {signature && (
               <Image src={signature} style={styles.signatureImage} />
