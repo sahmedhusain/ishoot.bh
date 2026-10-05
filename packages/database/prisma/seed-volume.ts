@@ -359,12 +359,23 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   // ============================================================ 4. expenses (with approvals)
   const categories = Object.fromEntries((await prisma.expenseCategory.findMany()).map((c) => [c.slug, c.id]));
   const VATABLE = new Set(["gear_rental", "travel_logistics", "studio_overhead"]);
-  const expenseSpecs: Array<{ slug: string; en: string; ar: string; amount: number; vendor: string; date: Date; dealId?: string; recurring?: string }> = [];
+  const expenseSpecs: Array<{ slug: string; en: string; ar: string; amount: number; vendor: string; date: Date; dealId?: string; clientId?: string; recurring?: string }> = [];
   for (let m = 14; m >= 0; m--) {
     const first = new Date(Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() - m, 1));
     if (first > TODAY) continue;
     expenseSpecs.push({ slug: "studio_overhead", en: "Studio lease & utilities", ar: "إيجار الاستوديو والخدمات", amount: 1375, vendor: "Seef Commercial Real Estate", date: first, recurring: "monthly" });
     expenseSpecs.push({ slug: "software_licenses", en: "Editing suite & cloud storage subscriptions", ar: "اشتراكات برامج المونتاج والتخزين السحابي", amount: 280, vendor: "Blackmagic Cloud / LucidLink", date: addDays(first, 2), recurring: "monthly" });
+    expenseSpecs.push({ slug: "telecom", en: "Fibre internet & mobile lines", ar: "الإنترنت والخطوط المتنقلة", amount: 145, vendor: "Batelco", date: addDays(first, 4), recurring: "monthly" });
+    expenseSpecs.push({ slug: "fuel_transport", en: "Production van fuel", ar: "وقود سيارة الإنتاج", amount: int(60, 140), vendor: "Bapco", date: addDays(first, int(5, 20)) });
+    if (chance(0.5)) expenseSpecs.push({ slug: "office_supplies", en: "Office supplies & printing", ar: "قرطاسية وطباعة", amount: int(25, 120), vendor: "Jashanmal Office", date: addDays(first, int(6, 25)) });
+    if (chance(0.4)) expenseSpecs.push({ slug: "advertising", en: "Instagram & LinkedIn paid campaigns", ar: "حملات إعلانية مدفوعة على إنستغرام ولينكدإن", amount: int(150, 600), vendor: "Meta Ads / LinkedIn", date: addDays(first, int(3, 20)) });
+    if (chance(0.25)) expenseSpecs.push({ slug: "maintenance", en: "Camera sensor cleaning & servicing", ar: "تنظيف وصيانة حساسات الكاميرات", amount: int(40, 220), vendor: "Gulf Camera Service Centre", date: addDays(first, int(5, 25)) });
+    expenseSpecs.push({ slug: "bank_charges", en: "Bank transfer & card charges", ar: "رسوم التحويلات والبطاقات", amount: int(8, 35), vendor: "National Bank of Bahrain", date: addDays(first, 27) });
+    if (first.getUTCMonth() % 12 === 0) {
+      expenseSpecs.push({ slug: "insurance", en: "Annual equipment insurance", ar: "تأمين المعدات السنوي", amount: 1850, vendor: "Bahrain National Insurance", date: addDays(first, 10) });
+      expenseSpecs.push({ slug: "government_fees", en: "CR renewal & municipal licence", ar: "تجديد السجل التجاري والرخصة البلدية", amount: 240, vendor: "MOIC Sijilat", date: addDays(first, 12) });
+    }
+    if (m % 4 === 2) expenseSpecs.push({ slug: "training", en: "DaVinci Resolve colour grading course", ar: "دورة تصحيح الألوان في دافنشي", amount: int(180, 450), vendor: "Online Academy", date: addDays(first, int(8, 20)) });
   }
   const PROJECT_COSTS = [
     ["gear_rental", "Camera & lens package rental", "استئجار باقة كاميرا وعدسات", [300, 1600], "Gulf Camera Gear Rentals"],
@@ -374,6 +385,12 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     ["travel_logistics", "Location permits & transport", "تصاريح المواقع والنقل", [80, 450], "Manama Logistics"],
     ["travel_logistics", "Crew catering", "ضيافة طاقم التصوير", [90, 380], "Manama Gourmet Catering"],
     ["marketing_pr", "Festival submission & showreel promotion", "رسوم المهرجانات والترويج", [100, 400], "Festival submissions"],
+    ["freelancers", "Freelance editor & colourist", "محرر ومصحح ألوان مستقل", [250, 1100], "Freelance post team"],
+    ["location_permits", "Location booking & municipality permit", "حجز الموقع وتصريح البلدية", [60, 500], "Bahrain Municipality"],
+    ["props_set", "Set dressing, props & wardrobe", "تجهيز الديكور والإكسسوارات والأزياء", [80, 650], "Manama Props House"],
+    ["catering", "Shoot day catering", "وجبات يوم التصوير", [70, 320], "Manama Gourmet Catering"],
+    ["post_production", "Outsourced VFX & motion graphics", "مؤثرات بصرية وموشن جرافيك خارجية", [300, 1500], "Pixel Gulf Studio"],
+    ["music_licensing", "Licensed music & stock footage", "موسيقى مرخصة ولقطات جاهزة", [40, 300], "Artlist / Envato"],
   ] as const;
   for (const deal of deals) {
     if (deal.shootDate > TODAY || chance(0.35)) continue;
@@ -382,13 +399,24 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
       expenseSpecs.push({ slug, en, ar, amount: int(lo, hi), vendor, date: minDate(addDays(deal.shootDate, int(-3, 3)), TODAY), dealId: deal.id });
     }
   }
+  // Client costs outside a deal: pitches and account hospitality, filed under the client.
+  for (let i = 0; i < 18; i++) {
+    const client = pick(contacts);
+    const [en, ar, vendor, slug] = pick([
+      ["Pitch mock-up shoot", "تصوير نموذج للعرض التقديمي", "In-house", "props_set"],
+      ["Client meeting hospitality", "ضيافة اجتماع العميل", "Café Lilou", "catering"],
+      ["Courier of hard drives to client", "توصيل الأقراص الصلبة للعميل", "Aramex", "fuel_transport"],
+    ] as const);
+    expenseSpecs.push({ slug, en, ar, amount: int(15, 220), vendor, date: daysAgo(int(5, 420)), clientId: client.id });
+  }
   expenseSpecs.sort((a, b) => a.date.getTime() - b.date.getTime());
   const spenders = [prodManager, finance, ...productionTeam.slice(0, 4)];
   for (const spec of expenseSpecs) {
     const vat = VATABLE.has(spec.slug) ? round3(spec.amount * 10 / 110) : 0;
     const creator = spec.recurring ? finance : pick(spenders);
     const expense = await createExpense({
-      category_id: categories[spec.slug], deal_id: spec.dealId, description_en: spec.en, description_ar: spec.ar, amount: spec.amount,
+      category_id: categories[spec.slug], deal_id: spec.dealId, client_id: spec.clientId,
+      scope: spec.dealId ? "deal" : spec.clientId ? "client" : "internal", description_en: spec.en, description_ar: spec.ar, amount: spec.amount,
       currency: "BHD", expense_date: iso(spec.date), vendor_name: spec.vendor, is_recurring: !!spec.recurring,
       recurrence_interval: spec.recurring, is_billable: !!spec.dealId && chance(0.3),
       input_vat_amount: vat, is_vat_recoverable: vatEnabled && vat > 0,

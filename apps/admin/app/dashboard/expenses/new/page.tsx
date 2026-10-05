@@ -1,12 +1,23 @@
-import { requirePermission } from "../../../../lib/auth";
+import { getCurrentPermissions, requirePermission } from "../../../../lib/auth";
 import { Metadata } from "next";
+import { getExpenseCategories } from "@ishoot/database";
+import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewExpenseFormView } from "@/components/expenses/NewExpenseFormView";
 
 export const metadata: Metadata = {
-  title: "Log Expense | Finance",
+  title: "New expense | Finance",
 };
 
-export default async function NewExpensePage() {
+export default async function NewExpensePage({ searchParams }: { searchParams: Promise<{ dealId?: string; clientId?: string }> }) {
   await requirePermission("expenses", "write");
-  return <NewExpenseFormView />;
+  const [params, categories, company, grants] = await Promise.all([searchParams, getExpenseCategories(), getCachedCompanySettings(), getCurrentPermissions()]);
+  return (
+    <NewExpenseFormView
+      categories={categories}
+      defaultCurrency={company?.default_currency ?? "BHD"}
+      dealId={params.dealId}
+      clientId={params.clientId}
+      canManageCategories={grants["expenses:write"] === true}
+    />
+  );
 }

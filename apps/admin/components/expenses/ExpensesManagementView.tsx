@@ -1,101 +1,28 @@
 "use client";
 
 import * as React from "react";
-import type { Expense, ExpenseCategory, CRMDeal } from "@ishoot/database/types";
-import {
-  Card,
-  Button,
-  Input,
-  Select,
-  Modal,
-  CurrencyDisplay,
-  DateDisplay,
-  Badge,
-  ConfirmDestructiveModal,
-  StatusBadge,
-} from "@ishoot/ui";
-import {
-  Plus,
-  Receipt,
-  Tag,
-  TrendingDown,
-  Trash2,
-  CheckCircle2,
-} from "lucide-react";
+import Link from "next/link";
+import type { Expense, ExpenseCategory } from "@ishoot/database/types";
+import { Card, CurrencyDisplay, DateDisplay, ConfirmDestructiveModal, StatusBadge } from "@ishoot/ui";
+import { Plus, Receipt, Tag, TrendingDown, Trash2, Briefcase, UserRound, Building2, Paperclip, Settings2 } from "lucide-react";
+import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import {
-  createExpenseAction,
-  deleteExpenseAction,
-} from "../../app/actions/finance";
-
-import { EntityLookup } from "../shared/EntityLookup";
+import { usePermissions } from "../../hooks/usePermissions";
+import { deleteExpenseAction } from "../../app/actions/finance";
 
 interface ExpensesManagementViewProps {
   totals: { currency: string; amount: number }[];
   count: number;
+  scopeCounts?: Record<string, number>;
   initialExpenses: Expense[];
   categories: ExpenseCategory[];
-  deals?: CRMDeal[];
 }
 
-export function ExpensesManagementView({
-  initialExpenses,
-  categories,
-  deals = [],
-  totals,
-  count,
-}: ExpensesManagementViewProps) {
+export function ExpensesManagementView({ initialExpenses, categories, totals, count, scopeCounts = {} }: ExpensesManagementViewProps) {
   const { t, locale } = useAdminLocale();
-
+  const { can } = usePermissions();
   const [expenses, setExpenses] = React.useState<Expense[]>(initialExpenses);
-  const [modalOpen, setModalOpen] = React.useState(false);
-  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
-    null,
-  );
-
-  const [categoryId, setCategoryId] = React.useState(categories[0]?.id || "");
-  const [dealId, setDealId] = React.useState("");
-  const [description, setDescription] = React.useState("");
-  const [descriptionAr, setDescriptionAr] = React.useState("");
-  const [amount, setAmount] = React.useState<number>(0);
-  const [vendorName, setVendorName] = React.useState("");
-  const [expenseDate, setExpenseDate] = React.useState(
-    new Date().toISOString().split("T")[0],
-  );
-  const [saving, setSaving] = React.useState(false);
-
-
-
-  const handleAddExpense = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!description || amount <= 0) return;
-    setSaving(true);
-
-    try {
-      const res = await createExpenseAction({
-        category_id: categoryId || undefined,
-        deal_id: dealId || undefined,
-        amount: Number(amount),
-        description_en: description,
-        description_ar: descriptionAr || description,
-        vendor_name: vendorName || undefined,
-        expense_date: new Date(expenseDate).toISOString(),
-      });
-
-      if (res.expense) {
-        setExpenses((prev) => [res.expense, ...prev]);
-      }
-      setModalOpen(false);
-      setDescription("");
-      setDescriptionAr("");
-      setAmount(0);
-      setVendorName("");
-    } catch (err) {
-      console.error("Failed to create expense:", err);
-    } finally {
-      setSaving(false);
-    }
-  };
+  const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
 
   const handleDeleteExpense = async (id: string) => {
     setExpenses((prev) => prev.filter((e) => e.id !== id));
@@ -106,27 +33,50 @@ export function ExpensesManagementView({
     }
   };
 
+  const recordedAgainst = (expense: Expense) => {
+    if (expense.scope === "deal" && expense.deal_id)
+      return (
+        <Link href={ROUTES.crm.deal(expense.deal_id)} className="inline-flex items-center gap-1.5 text-accent hover:underline">
+          <Briefcase className="w-3.5 h-3.5" />
+          {expense.deal_title || t.expenseMeta.scopes.deal}
+        </Link>
+      );
+    if (expense.scope === "client" && expense.client_id)
+      return (
+        <Link href={ROUTES.crm.customer(expense.client_id)} className="inline-flex items-center gap-1.5 text-accent hover:underline">
+          <UserRound className="w-3.5 h-3.5" />
+          {expense.client_name || t.expenseMeta.scopes.client}
+        </Link>
+      );
+    return (
+      <span className="inline-flex items-center gap-1.5 text-ink-muted">
+        <Building2 className="w-3.5 h-3.5" />
+        {t.expenseMeta.scopes.internal}
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
-            {t.nav.expenses}
-          </h1>
-          <p className="text-xs text-ink-muted mt-1">
-            {t.expensesView.subtitle}
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">{t.nav.expenses}</h1>
+          <p className="text-xs text-ink-muted mt-1">{t.expensesView.subtitle}</p>
         </div>
-
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => setModalOpen(true)}
-          className="gap-1.5 self-start sm:self-auto"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>{t.actions.addExpense}</span>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {can("expenses", "write") && (
+            <Link href={ROUTES.expenses.categories} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-ink/15 text-xs font-semibold text-ink hover:bg-ink/5">
+              <Settings2 className="w-3.5 h-3.5" />
+              {t.expensesNew.manageCategories}
+            </Link>
+          )}
+          {can("expenses", "write") && (
+            <Link href={ROUTES.expenses.create} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-white text-xs font-semibold hover:bg-accent-hover">
+              <Plus className="w-3.5 h-3.5" />
+              {t.actions.addExpense}
+            </Link>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -137,8 +87,12 @@ export function ExpensesManagementView({
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-ink ">
-            {totals.map((v) => <div key={v.currency}><CurrencyDisplay amount={v.amount} currency={v.currency as any} /></div>)}
+          <div className="text-2xl sm:text-3xl font-bold text-ink">
+            {totals.map((v) => (
+              <div key={v.currency}>
+                <CurrencyDisplay amount={v.amount} currency={v.currency as never} />
+              </div>
+            ))}
           </div>
           <div className="text-[11px] text-ink-muted">
             {count} {t.expensesView.loggedItems}
@@ -148,42 +102,38 @@ export function ExpensesManagementView({
         <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-ink-muted">
             <span>{t.expensesView.costCenters}</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-[#10B981]">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
               <Tag className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-ink ">
-            {categories.length}
-          </div>
-          <div className="text-[11px] text-emerald-400">
-            {t.expensesView.overheadSubtitle}
-          </div>
+          <div className="text-2xl sm:text-3xl font-bold text-ink">{categories.length}</div>
+          <div className="text-[11px] text-ink-muted">{t.expensesView.overheadSubtitle}</div>
         </Card>
 
-        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
+        <Card className="p-6 bg-surface border border-ink/10 space-y-3 rounded-3xl">
           <div className="flex items-center justify-between text-xs text-ink-muted">
-            <span>{t.expensesView.linkedProjects}</span>
+            <span>{t.expensesNew.scopeLabel}</span>
             <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
               <Receipt className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-ink ">
-            {deals.length}
-          </div>
-          <div className="text-[11px] text-accent">
-            {t.expensesView.activeContracts}
-          </div>
+          {(["deal", "client", "internal"] as const).map((scope) => (
+            <div key={scope} className="flex items-center justify-between text-sm">
+              <span className="text-ink-muted">{t.expenseMeta.scopes[scope]}</span>
+              <span className="font-bold text-ink">{scopeCounts[scope] ?? 0}</span>
+            </div>
+          ))}
         </Card>
       </div>
 
-      <div className="bg-surface border border-ink/10 rounded-3xl overflow-hidden shadow-xl">
-        <table className="w-full text-start text-xs">
-          <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase  tracking-wider">
+      <div className="bg-surface border border-ink/10 rounded-3xl overflow-x-auto">
+        <table className="w-full text-start text-xs min-w-[860px]">
+          <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase tracking-wider">
             <tr>
               <th className="p-4 text-start">{t.expensesView.desc}</th>
               <th className="p-4 text-start">{t.expensesView.category}</th>
+              <th className="p-4 text-start">{t.expensesNew.scopeLabel}</th>
               <th className="p-4 text-start">{t.expensesView.vendor}</th>
-              <th className="p-4 text-start">{t.expensesView.deal}</th>
               <th className="p-4 text-start">{t.expensesView.date}</th>
               <th className="p-4 text-end">{t.expensesView.amount}</th>
               <th className="p-4 text-end">{t.expensesView.actions}</th>
@@ -191,15 +141,15 @@ export function ExpensesManagementView({
           </thead>
           <tbody className="divide-y divide-ink/5">
             {expenses.map((expense) => (
-              <tr
-                key={expense.id}
-                className="hover:bg-ink/[0.02] transition-colors"
-              >
+              <tr key={expense.id} id={expense.id} className="hover:bg-ink/[0.02] transition-colors">
                 <td className="p-4">
-                  <div className="font-bold text-ink text-sm">
-                    {locale === "ar"
-                      ? expense.description_ar || expense.description_en
-                      : expense.description_en}
+                  <div className="font-bold text-ink text-sm flex items-center gap-1.5">
+                    {locale === "ar" ? expense.description_ar || expense.description_en : expense.description_en}
+                    {expense.receipt_url && (
+                      <a href={expense.receipt_url} target="_blank" rel="noreferrer" title={t.expensesNew.proofLabel} className="text-ink-muted hover:text-accent">
+                        <Paperclip className="w-3.5 h-3.5" />
+                      </a>
+                    )}
                   </div>
                   {expense.status !== "approved" && (
                     <div className="mt-1">
@@ -208,162 +158,40 @@ export function ExpensesManagementView({
                   )}
                 </td>
                 <td className="p-4">
-                  <Badge variant="outline">
-                    {expense.category
-                      ? locale === "ar"
-                        ? expense.category.name_ar
-                        : expense.category.name_en
-                      : "—"}
-                  </Badge>
+                  {expense.category ? (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-ink/5 text-ink">
+                      <span className="w-2 h-2 rounded-full" style={{ background: expense.category.color }} />
+                      {locale === "ar" ? expense.category.name_ar : expense.category.name_en}
+                    </span>
+                  ) : (
+                    "—"
+                  )}
                 </td>
-                <td className="p-4 text-ink-muted ">
-                  {expense.vendor_name || "—"}
-                </td>
-                <td className="p-4 text-accent ">
-                  {expense.deal?.title || "—"}
-                </td>
-                <td className="p-4 text-ink-muted ">
+                <td className="p-4">{recordedAgainst(expense)}</td>
+                <td className="p-4 text-ink-muted">{expense.vendor_name || "—"}</td>
+                <td className="p-4 text-ink-muted">
                   <DateDisplay date={expense.expense_date} locale={locale} />
                 </td>
-                <td className="p-4 text-end  font-bold text-rose-400">
-                  -
-                  <CurrencyDisplay
-                    amount={Number(expense.amount)}
-                    currency={expense.currency}
-                  />
+                <td className="p-4 text-end font-bold text-rose-500 whitespace-nowrap">
+                  <CurrencyDisplay amount={Number(expense.amount)} currency={expense.currency} />
                 </td>
                 <td className="p-4 text-end">
-                  <button
-                    onClick={() => setDeleteTargetId(expense.id)}
-                    className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors inline-flex"
-                    title={t.actions.delete}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  {can("expenses", "delete") && (
+                    <button
+                      onClick={() => setDeleteTargetId(expense.id)}
+                      className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors inline-flex"
+                      title={t.actions.delete}
+                      aria-label={t.actions.delete}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-
-      <Modal closeLabel={t.actions.close}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={t.actions.addExpense}
-      >
-        <form onSubmit={handleAddExpense} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.expensesView.descArLabel}
-              </label>
-              <Input
-                value={descriptionAr}
-                onChange={(e) => setDescriptionAr(e.target.value)}
-                placeholder={t.expensesView.descArPlaceholder}
-              />
-            </div>
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.expensesView.descEnLabel}
-              </label>
-              <Input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={t.expensesView.descEnPlaceholder}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.expensesView.amountBhd}
-              </label>
-              <Input
-                type="number"
-                step="0.001"
-                value={amount || ""}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                placeholder="0.000"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.expensesView.category}
-              </label>
-              <Select
-                value={categoryId}
-                onChange={(e) => setCategoryId(e.target.value)}
-              >
-                {categories.map((c) => (
-                  <option
-                    key={c.id}
-                    value={c.id}
-                    className="bg-surface text-ink"
-                  >
-                    {locale === "ar" ? c.name_ar : c.name_en}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.expensesView.vendorName}
-              </label>
-              <Input
-                value={vendorName}
-                onChange={(e) => setVendorName(e.target.value)}
-                placeholder={t.expensesView.vendorPlaceholder}
-              />
-            </div>
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.expensesView.linkedDeal}
-              </label>
-              <EntityLookup domain="deals" value={dealId} onChange={setDealId} />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs text-ink mb-1.5 block">
-              {t.expensesView.expenseDate}
-            </label>
-            <Input
-              type="date"
-              value={expenseDate}
-              onChange={(e) => setExpenseDate(e.target.value)}
-            />
-          </div>
-
-          <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setModalOpen(false)}
-            >
-              {t.actions.cancel}
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={saving}
-              className="gap-1.5"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{t.actions.save}</span>
-            </Button>
-          </div>
-        </form>
-      </Modal>
 
       <ConfirmDestructiveModal
         isOpen={!!deleteTargetId}

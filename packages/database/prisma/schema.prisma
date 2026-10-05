@@ -325,6 +325,7 @@ model CrmContact {
   invoices          Invoice[]
   reviews           Review[]
   minutesOfMeetings MinuteOfMeeting[]
+  expenses          Expense[]
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
@@ -460,6 +461,11 @@ model ExpenseCategory {
   nameAr       String
   color        String    @default("#9EADA9")
   displayOrder Int       @default(0)
+  /// "cost_of_sales" (project costs), "operating" (overheads) or "payroll".
+  kind         String    @default("operating")
+  /// Built-in categories can be renamed or hidden but never deleted.
+  isSystem     Boolean   @default(false)
+  isActive     Boolean   @default(true)
   expenses     Expense[]
 }
 
@@ -469,6 +475,12 @@ model Expense {
   category           ExpenseCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   dealId             String?
   deal               CrmDeal?         @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  /// Client the cost was incurred for; set from the deal when a deal is chosen.
+  clientId           String?
+  client             CrmContact?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  /// "deal" | "client" | "internal"
+  scope              String           @default("internal")
+  paymentMethod      String?
   descriptionEn      String
   descriptionAr      String?
   amount             Decimal          @db.Decimal(12, 3)
@@ -491,6 +503,7 @@ model Expense {
   createdAt          DateTime         @default(now())
 
   @@index([dealId])
+  @@index([clientId])
   @@index([categoryId])
   @@index([currency, expenseDate])
   @@index([status])

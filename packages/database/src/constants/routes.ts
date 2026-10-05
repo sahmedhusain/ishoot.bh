@@ -61,6 +61,7 @@ export const ROUTES = {
   expenses: {
     list: (query?: HighlightQuery) => withQuery("/dashboard/expenses", query),
     create: "/dashboard/expenses/new",
+    categories: "/dashboard/expenses/categories",
   },
   finance: {
     overview: "/dashboard/finance",

@@ -43,3 +43,13 @@ export const INVOICE_STATUS_TRANSITIONS: Record<string, readonly string[]> = {
   paid: [],
   void: [],
 };
+
+/** How an expense was paid; also used for staff claim reimbursements. */
+export const EXPENSE_PAYMENT_METHODS = ["bank_transfer", "company_card", "cash", "cheque", "benefit_pay", "staff_reimbursement"] as const;
+export type ExpensePaymentMethod = (typeof EXPENSE_PAYMENT_METHODS)[number];
+
+export const EXPENSE_SCOPES = ["deal", "client", "internal"] as const;
+export type ExpenseScope = (typeof EXPENSE_SCOPES)[number];
+
+export const EXPENSE_CATEGORY_KINDS = ["cost_of_sales", "operating", "payroll"] as const;
+export type ExpenseCategoryKind = (typeof EXPENSE_CATEGORY_KINDS)[number];

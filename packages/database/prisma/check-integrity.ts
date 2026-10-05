@@ -67,6 +67,13 @@ const RULES: Rule[] = [
     sql: `SELECT i."invoiceNumber" FROM "Invoice" i JOIN "CrmDeal" d ON d.id = i."dealId" WHERE i."clientId" IS DISTINCT FROM d."contactId"` },
   { area: "finance", name: "expense gross = net + input VAT",
     sql: `SELECT id, amount, "netAmount", "inputVatAmount" FROM "Expense" WHERE amount <> "netAmount" + "inputVatAmount" OR amount <= 0` },
+  { area: "finance", name: "expense scope matches its deal/client link",
+    sql: `SELECT e.id, e.scope FROM "Expense" e LEFT JOIN "CrmDeal" d ON d.id = e."dealId"
+      WHERE (e.scope = 'deal' AND (e."dealId" IS NULL OR e."clientId" IS DISTINCT FROM d."contactId"))
+         OR (e.scope = 'client' AND (e."clientId" IS NULL OR e."dealId" IS NOT NULL))
+         OR (e.scope = 'internal' AND (e."dealId" IS NOT NULL OR e."clientId" IS NOT NULL))` },
+  { area: "finance", name: "every expense has an active-or-used category",
+    sql: `SELECT id FROM "Expense" WHERE "categoryId" IS NULL` },
   { area: "finance", name: "quotation line total = quantity × unit price",
     sql: `SELECT id, "quotationId" FROM "QuotationLineItem" WHERE "lineTotal" <> ROUND(quantity * "unitPrice", 3)` },
   { area: "finance", name: "quotation subtotal/discount/VAT/total agree with its lines", sql: totalsRule("Quotation", "QuotationLineItem", "quotationId") },

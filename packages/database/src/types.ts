@@ -597,12 +597,20 @@ export interface ExpenseCategory {
   name_ar: string;
   color: string;
   display_order: number;
+  kind: "cost_of_sales" | "operating" | "payroll";
+  is_system: boolean;
+  is_active: boolean;
 }
 
 export interface Expense {
   id: string;
   category_id: string;
   deal_id?: string;
+  deal_title?: string;
+  client_id?: string;
+  client_name?: string;
+  scope: "deal" | "client" | "internal";
+  payment_method?: string;
   description_en: string;
   description_ar?: string;
   amount: number;

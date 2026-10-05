@@ -1,5 +1,6 @@
 import { getCurrentPermissions,requirePermission } from "../../../../../lib/auth";
-import { getCustomerDossier } from "@ishoot/database";
+import { getCustomerDossier, getRelatedExpenses } from "@ishoot/database";
+import { RelatedExpensesPanel } from "../../../../../components/expenses/RelatedExpensesPanel";
 import { notFound } from "next/navigation";
 import type { DossierActions } from "../../../../../types/crm";
 import { Customer360DossierView } from "../../../../../components/crm/Customer360DossierView";
@@ -65,5 +66,11 @@ export default async function CustomerDossierPage({
     createDeal: grants["deals:write"] === true,
     editRecord: grants["contacts:write"] === true,
   };
-  return <Customer360DossierView dossier={dossier} actions={actions} />;
+  const expenses = grants["expenses:read"] === true ? await getRelatedExpenses({ clientId: id }) : null;
+  return (
+    <>
+      <Customer360DossierView dossier={dossier} actions={actions} />
+      {expenses && <RelatedExpensesPanel clientId={id} items={expenses.items} totals={expenses.totals} canWrite={grants["expenses:write"] === true} />}
+    </>
+  );
 }

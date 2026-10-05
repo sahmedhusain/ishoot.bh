@@ -1167,10 +1167,10 @@
     "notesPlaceholder": "Notes on usage, signees, renewal dates..."
   },
   "expensesNew": {
-    "title": "Log New Operational Expense",
-    "subtitle": "Record equipment rental, location permits, crew fees, or studio overheads",
+    "title": "New expense",
+    "subtitle": "Record a project cost against a deal or client, or an internal business expense.",
     "categoryLabel": "Expense Category *",
-    "amountLabel": "Expense Amount (BHD) *",
+    "amountLabel": "Amount (incl. VAT) *",
     "descriptionEnLabel": "Description (English) *",
     "descriptionArLabel": "Description (Arabic)",
     "vendorLabel": "Vendor / Recipient Name",
@@ -1186,7 +1186,23 @@
     "inputVatLabel": "VAT included in the amount",
     "inputVatHint": "Leave 0 if the supplier charged no VAT.",
     "vatRecoverable": "VAT is recoverable (claimable on the VAT return)",
-    "saveError": "Could not save expense"
+    "saveError": "Could not save expense",
+    "scopeLabel": "Recorded against",
+    "scopeDeal": "A deal",
+    "scopeClient": "A client",
+    "scopeInternal": "Internal (company)",
+    "scopeDealHint": "Filed in the deal and its client's file and counted in deal profitability.",
+    "scopeClientHint": "Filed in the client's file (pitches, hospitality, couriers).",
+    "scopeInternalHint": "Company overhead: rent, software, salaries, utilities.",
+    "dealLabel": "Deal *",
+    "clientLabel": "Client *",
+    "currencyLabel": "Currency",
+    "paymentMethodLabel": "Paid by",
+    "billableLabel": "Re-bill this cost to the client",
+    "manageCategories": "Manage categories",
+    "chooseCategory": "Choose a category",
+    "descriptionArPlaceholder": "Optional Arabic description",
+    "notesPlaceholder": "Anything finance should know"
   },
   "paymentsNew": {
     "title": "Record Payment Receipt",
@@ -3573,5 +3589,48 @@
     "download": "Download PDF",
     "preparing": "Preparing…",
     "failed": "Could not prepare the PDF"
+  },
+  "expenseMeta": {
+    "kinds": {
+      "cost_of_sales": "Project costs",
+      "operating": "Operating expenses",
+      "payroll": "Payroll & people"
+    },
+    "scopes": {
+      "deal": "Deal",
+      "client": "Client",
+      "internal": "Internal"
+    },
+    "methods": {
+      "bank_transfer": "Bank transfer",
+      "company_card": "Company card",
+      "cash": "Cash",
+      "cheque": "Cheque",
+      "benefit_pay": "BenefitPay",
+      "staff_reimbursement": "Staff reimbursement"
+    }
+  },
+  "expenseCategories": {
+    "title": "Expense categories",
+    "subtitle": "Built-in categories cover project costs, overheads and payroll. Add your own, rename, recolour or hide any of them.",
+    "nameEn": "Name (English)",
+    "nameAr": "Name (Arabic)",
+    "kind": "Type",
+    "color": "Colour",
+    "add": "Add category",
+    "created": "Category added",
+    "saved": "Category saved",
+    "deleted": "Category deleted",
+    "hiddenInUse": "The category has expenses, so it was hidden instead",
+    "saveFailed": "Could not save the category",
+    "hide": "Hide from new expenses",
+    "show": "Show in new expenses",
+    "system": "Built-in",
+    "systemHint": "Built-in categories can be renamed or hidden but not deleted"
+  },
+  "relatedExpenses": {
+    "title": "Expenses",
+    "approvedTotal": "Approved",
+    "empty": "No expenses recorded yet."
   }
 }

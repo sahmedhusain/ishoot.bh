@@ -1722,6 +1722,36 @@
             "kind": "string",
             "optional": true
           },
+          "client_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "scope": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "deal"
+              },
+              {
+                "kind": "literal",
+                "value": "client"
+              },
+              {
+                "kind": "literal",
+                "value": "internal"
+              }
+            ],
+            "optional": true
+          },
+          "payment_method": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          },
           "vendor_name": {
             "kind": "string",
             "optional": true
@@ -2282,6 +2312,77 @@
   "refreshExchangeRatesAction": {
     "kind": "object",
     "fields": {}
+  },
+  "createExpenseCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "color": {
+            "kind": "string",
+            "optional": true
+          },
+          "kind": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateExpenseCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "name_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "color": {
+            "kind": "string",
+            "optional": true
+          },
+          "kind": {
+            "kind": "string",
+            "optional": true
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteExpenseCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
   },
   "createEmployeeAction": {
     "kind": "object",

@@ -567,6 +567,8 @@ export async function getExpensesPage(
               { descriptionEn: contains(f.q) },
               { descriptionAr: contains(f.q) },
               { vendorName: contains(f.q) },
+              { client: { companyName: contains(f.q) } },
+              { deal: { title: contains(f.q) } },
             ],
           }
         : {}),
@@ -578,6 +580,14 @@ export async function getExpensesPage(
         id: true,
         categoryId: true,
         dealId: true,
+        clientId: true,
+        scope: true,
+        status: true,
+        paymentMethod: true,
+        receiptUrl: true,
+        inputVatAmount: true,
+        client: { select: { firstName: true, lastName: true, companyName: true } },
+        deal: { select: { title: true } },
         descriptionEn: true,
         descriptionAr: true,
         amount: true,
@@ -595,20 +605,25 @@ export async function getExpensesPage(
             nameAr: true,
             color: true,
             displayOrder: true,
+            kind: true,
+            isSystem: true,
+            isActive: true,
           },
         },
       } satisfies Prisma.ExpenseSelect,
       f.page,
       batch,
     );
-    const [totals, count] = batch
-      ? [[], 0]
+    const [totals, count, byScope] = batch
+      ? [[], 0, []]
       : await Promise.all([
           db.expense.groupBy({ by: ["currency"], _sum: { amount: true } }),
           db.expense.count(),
+          db.expense.groupBy({ by: ["scope"], _count: { _all: true } }),
         ]);
     return {
       ...result,
+      scopeCounts: Object.fromEntries(byScope.map((g) => [g.scope, g._count._all])) as Record<string, number>,
       items: result.rows.map(mapExpense),
       rows: undefined,
       filters: f,

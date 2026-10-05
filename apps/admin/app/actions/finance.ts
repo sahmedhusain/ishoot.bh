@@ -7,6 +7,9 @@ import { validateActionArguments } from "../../lib/action-input";
 import {
 createExpense,
 deleteExpense,
+createExpenseCategory,
+updateExpenseCategory,
+deleteExpenseCategory,
 createPayment,
 createInvoice,
 updateInvoice,
@@ -24,6 +27,10 @@ export async function createExpenseAction(data: {
   amount: number;
   category_id?: string;
   deal_id?: string;
+  client_id?: string;
+  scope?: "deal" | "client" | "internal";
+  payment_method?: string;
+  notes?: string;
   vendor_name?: string;
   description_en: string;
   description_ar?: string;
@@ -56,6 +63,8 @@ export async function createExpenseAction(data: {
       return { expense };
     });
 
+    if (expense.deal_id) revalidatePath(ROUTES.crm.deal(expense.deal_id));
+    if (expense.client_id) revalidatePath(ROUTES.crm.customer(expense.client_id));
     revalidatePath(ROUTES.expenses.list());
     revalidatePath(ROUTES.finance.overview);
     revalidatePath(ROUTES.home);
@@ -316,5 +325,50 @@ export async function refreshExchangeRatesAction() {
     const live = await refreshExchangeRates({ force: true });
     revalidatePath(ROUTES.quotations.create());
     return { success: true, live, board: await getFxBoard() };
+  });
+}
+
+export async function createExpenseCategoryAction(data: { name_en: string; name_ar?: string; color?: string; kind?: string }) {
+  return measureOperation("action:createExpenseCategoryAction", async () => {
+    await requireFeatureEnabled("invoicing"); const user = await requirePermission("expenses", "write");
+    validateActionArguments("createExpenseCategoryAction", { data });
+    const category = await runAtomicMutation(async () => {
+      const category = await createExpenseCategory(data);
+      await createActivityLog({ user_id: user.id, action: "create", entity_type: "expense_category", entity_id: category.id, details: { name: category.name_en } });
+      return category;
+    });
+    revalidatePath(ROUTES.expenses.categories);
+    return { success: true, category };
+  });
+}
+
+export async function updateExpenseCategoryAction(
+  id: string,
+  data: { name_en?: string; name_ar?: string; color?: string; kind?: string; is_active?: boolean },
+) {
+  return measureOperation("action:updateExpenseCategoryAction", async () => {
+    await requireFeatureEnabled("invoicing"); const user = await requirePermission("expenses", "write");
+    validateActionArguments("updateExpenseCategoryAction", { id, data });
+    const category = await runAtomicMutation(async () => {
+      const category = await updateExpenseCategory(id, data);
+      await createActivityLog({ user_id: user.id, action: "update", entity_type: "expense_category", entity_id: id, details: data });
+      return category;
+    });
+    revalidatePath(ROUTES.expenses.categories);
+    return { success: true, category };
+  });
+}
+
+export async function deleteExpenseCategoryAction(id: string) {
+  return measureOperation("action:deleteExpenseCategoryAction", async () => {
+    await requireFeatureEnabled("invoicing"); const user = await requirePermission("expenses", "delete");
+    validateActionArguments("deleteExpenseCategoryAction", { id });
+    const outcome = await runAtomicMutation(async () => {
+      const outcome = await deleteExpenseCategory(id);
+      await createActivityLog({ user_id: user.id, action: outcome === "deleted" ? "delete" : "update", entity_type: "expense_category", entity_id: id, details: { outcome } });
+      return outcome;
+    });
+    revalidatePath(ROUTES.expenses.categories);
+    return { success: true, outcome };
   });
 }

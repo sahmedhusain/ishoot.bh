@@ -6,7 +6,9 @@ import {
 getCRMDealById,
 getCRMContactById,
 getInvoicesPage,
+getRelatedExpenses,
 } from "@ishoot/database";
+import { RelatedExpensesPanel } from "../../../../../components/expenses/RelatedExpensesPanel";
 import { notFound } from "next/navigation";
 import { DealDossierView } from "../../../../../components/crm/DealDossierView";
 
@@ -33,16 +35,18 @@ export default async function DealDetailPage({
   const canContacts = grants["contacts:read"] === true;
   const canInvoices = grants["invoices:read"] === true;
   if (!canContacts) deal.contact = undefined;
-  const [contact, invoices] = await Promise.all([
+  const [contact, invoices, expenses] = await Promise.all([
     canContacts && deal.contact_id
       ? getCRMContactById(deal.contact_id)
       : Promise.resolve(null),
     canInvoices
       ? getInvoicesPage({ ...(await searchParams), dealId: id })
       : Promise.resolve(null),
+    grants["expenses:read"] === true ? getRelatedExpenses({ dealId: id }) : Promise.resolve(null),
   ]);
 
   return (
+    <>
     <DealDossierView
       deal={deal}
       contact={contact}
@@ -56,5 +60,7 @@ export default async function DealDetailPage({
         editRecord: grants["deals:write"] === true,
       }}
     />
+    {expenses && <RelatedExpensesPanel dealId={id} items={expenses.items} totals={expenses.totals} canWrite={grants["expenses:write"] === true} />}
+    </>
   );
 }

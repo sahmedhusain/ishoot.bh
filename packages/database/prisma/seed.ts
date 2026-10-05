@@ -27,7 +27,7 @@ async function main() {
     prisma.inquiry.count(), prisma.statistic.count(), prisma.faq.count(), prisma.review.count(),
     prisma.companyAsset.count(), prisma.heroBanner.count(), prisma.portfolioCategory.count(),
     prisma.portfolioItem.count(), prisma.clientLogo.count(), prisma.studioEquipment.count(),
-    prisma.websiteContent.count(), prisma.expenseCategory.count(), prisma.calendarEvent.count(),
+    prisma.websiteContent.count(), prisma.calendarEvent.count(),
     prisma.documentTemplate.count(), prisma.contract.count(), prisma.minuteOfMeeting.count(),
     prisma.generatedDocument.count(), prisma.companyDocument.count(), prisma.service.count(),
     prisma.socialLink.count(), prisma.quotation.count(), prisma.uploadObject.count(),
@@ -2263,12 +2263,34 @@ async function main() {
   // 6. EXPENSES & PRODUCTION OVERHEAD
   // ==========================================
   const expenseCats = [
-    { id: "expcat-01", slug: "gear_rental", nameEn: "Equipment & Gear Rentals", nameAr: "استئجار معدات وكاميرات", color: "#09937F", displayOrder: 1 },
-    { id: "expcat-02", slug: "crew_wages", nameEn: "Crew & Talent Wages", nameAr: "أجور الطواقم والممثلين", color: "#3B82F6", displayOrder: 2 },
-    { id: "expcat-03", slug: "travel_logistics", nameEn: "Travel & Location Logistics", nameAr: "سفر ونقل وإعاشة", color: "#F59E0B", displayOrder: 3 },
-    { id: "expcat-04", slug: "studio_overhead", nameEn: "Studio Lease & Utilities", nameAr: "إيجار ومصاريف الاستوديو", color: "#8B5CF6", displayOrder: 4 },
-    { id: "expcat-05", slug: "software_licenses", nameEn: "Software, Storage & Cloud", nameAr: "برمجيات واشتراكات وسحابة", color: "#EC4899", displayOrder: 5 },
-    { id: "expcat-06", slug: "marketing_pr", nameEn: "Marketing & Festival Submissions", nameAr: "تسويق ومشاركات مهرجانات", color: "#10B981", displayOrder: 6 },
+    { id: "expcat-01", slug: "gear_rental", nameEn: "Equipment & Gear Rentals", nameAr: "استئجار معدات وكاميرات", color: "#09937F", displayOrder: 1, kind: "cost_of_sales", isSystem: true },
+    { id: "expcat-02", slug: "crew_wages", nameEn: "Crew & Talent Wages", nameAr: "أجور الطواقم والممثلين", color: "#3B82F6", displayOrder: 2, kind: "cost_of_sales", isSystem: true },
+    { id: "expcat-03", slug: "travel_logistics", nameEn: "Travel & Location Logistics", nameAr: "سفر ونقل وإعاشة", color: "#F59E0B", displayOrder: 3, kind: "cost_of_sales", isSystem: true },
+    { id: "expcat-04", slug: "studio_overhead", nameEn: "Studio Lease & Utilities", nameAr: "إيجار ومصاريف الاستوديو", color: "#8B5CF6", displayOrder: 4, kind: "operating", isSystem: true },
+    { id: "expcat-05", slug: "software_licenses", nameEn: "Software, Storage & Cloud", nameAr: "برمجيات واشتراكات وسحابة", color: "#EC4899", displayOrder: 5, kind: "operating", isSystem: true },
+    { id: "expcat-06", slug: "marketing_pr", nameEn: "Marketing & Festival Submissions", nameAr: "تسويق ومشاركات مهرجانات", color: "#10B981", displayOrder: 6, kind: "operating", isSystem: true },
+    { id: "expcat-07", slug: "salaries", nameEn: "Salaries & Wages", nameAr: "الرواتب والأجور", color: "#0EA5E9", displayOrder: 7, kind: "payroll", isSystem: true },
+    { id: "expcat-08", slug: "gosi", nameEn: "GOSI & Social Insurance", nameAr: "التأمينات الاجتماعية", color: "#0284C7", displayOrder: 8, kind: "payroll", isSystem: true },
+    { id: "expcat-09", slug: "staff_benefits", nameEn: "Staff Benefits & Allowances", nameAr: "مزايا وبدلات الموظفين", color: "#38BDF8", displayOrder: 9, kind: "payroll", isSystem: true },
+    { id: "expcat-10", slug: "commissions", nameEn: "Sales Commissions & Incentives", nameAr: "عمولات وحوافز المبيعات", color: "#6366F1", displayOrder: 10, kind: "payroll", isSystem: true },
+    { id: "expcat-11", slug: "freelancers", nameEn: "Freelancers & Contractors", nameAr: "المستقلون والمتعاقدون", color: "#2563EB", displayOrder: 11, kind: "cost_of_sales", isSystem: true },
+    { id: "expcat-12", slug: "location_permits", nameEn: "Location Fees & Permits", nameAr: "رسوم المواقع والتصاريح", color: "#D97706", displayOrder: 12, kind: "cost_of_sales", isSystem: true },
+    { id: "expcat-13", slug: "props_set", nameEn: "Props, Set & Wardrobe", nameAr: "الديكور والإكسسوارات والأزياء", color: "#B45309", displayOrder: 13, kind: "cost_of_sales", isSystem: true },
+    { id: "expcat-14", slug: "post_production", nameEn: "Post-production Outsourcing", nameAr: "خدمات ما بعد الإنتاج الخارجية", color: "#7C3AED", displayOrder: 14, kind: "cost_of_sales", isSystem: true },
+    { id: "expcat-15", slug: "music_licensing", nameEn: "Music, Stock & Licensing", nameAr: "الموسيقى والمواد والتراخيص", color: "#C026D3", displayOrder: 15, kind: "cost_of_sales", isSystem: true },
+    { id: "expcat-16", slug: "catering", nameEn: "Catering & Hospitality", nameAr: "الضيافة والوجبات", color: "#EA580C", displayOrder: 16, kind: "cost_of_sales", isSystem: true },
+    { id: "expcat-17", slug: "fuel_transport", nameEn: "Fuel & Local Transport", nameAr: "الوقود والمواصلات", color: "#CA8A04", displayOrder: 17, kind: "operating", isSystem: true },
+    { id: "expcat-18", slug: "equipment_purchase", nameEn: "Equipment Purchases", nameAr: "شراء المعدات", color: "#059669", displayOrder: 18, kind: "operating", isSystem: true },
+    { id: "expcat-19", slug: "maintenance", nameEn: "Maintenance & Repairs", nameAr: "الصيانة والإصلاحات", color: "#65A30D", displayOrder: 19, kind: "operating", isSystem: true },
+    { id: "expcat-20", slug: "telecom", nameEn: "Telecom & Internet", nameAr: "الاتصالات والإنترنت", color: "#0891B2", displayOrder: 20, kind: "operating", isSystem: true },
+    { id: "expcat-21", slug: "office_supplies", nameEn: "Office Supplies & Printing", nameAr: "القرطاسية والطباعة", color: "#64748B", displayOrder: 21, kind: "operating", isSystem: true },
+    { id: "expcat-22", slug: "professional_fees", nameEn: "Legal & Professional Fees", nameAr: "الرسوم القانونية والمهنية", color: "#475569", displayOrder: 22, kind: "operating", isSystem: true },
+    { id: "expcat-23", slug: "government_fees", nameEn: "Government Fees & Licences", nameAr: "الرسوم الحكومية والتراخيص", color: "#334155", displayOrder: 23, kind: "operating", isSystem: true },
+    { id: "expcat-24", slug: "insurance", nameEn: "Insurance", nameAr: "التأمين", color: "#0F766E", displayOrder: 24, kind: "operating", isSystem: true },
+    { id: "expcat-25", slug: "bank_charges", nameEn: "Bank Charges", nameAr: "الرسوم البنكية", color: "#71717A", displayOrder: 25, kind: "operating", isSystem: true },
+    { id: "expcat-26", slug: "training", nameEn: "Training & Development", nameAr: "التدريب والتطوير", color: "#DB2777", displayOrder: 26, kind: "operating", isSystem: true },
+    { id: "expcat-27", slug: "advertising", nameEn: "Advertising & Paid Media", nameAr: "الإعلانات المدفوعة", color: "#16A34A", displayOrder: 27, kind: "operating", isSystem: true },
+    { id: "expcat-28", slug: "other", nameEn: "Other Expenses", nameAr: "مصروفات أخرى", color: "#9EADA9", displayOrder: 28, kind: "operating", isSystem: true },
   ];
 
   for (const ec of expenseCats) {
@@ -2297,7 +2319,9 @@ async function main() {
   const VATABLE_CATEGORIES = new Set(["expcat-01", "expcat-03", "expcat-04"]);
   for (const e of expenses) {
     const inputVatAmount = VATABLE_CATEGORIES.has(e.categoryId) ? Math.round((e.amount * 10 / 110) * 1000) / 1000 : 0;
-    const row = { ...e, inputVatAmount, netAmount: Math.round((e.amount - inputVatAmount) * 1000) / 1000, status: "approved" };
+    const dealId = (e as { dealId?: string }).dealId;
+    const deal = dealId ? await prisma.crmDeal.findUnique({ where: { id: dealId }, select: { contactId: true } }) : null;
+    const row = { ...e, inputVatAmount, netAmount: Math.round((e.amount - inputVatAmount) * 1000) / 1000, status: "approved", scope: dealId ? "deal" : "internal", clientId: deal?.contactId ?? null };
     await prisma.expense.upsert({
       where: { id: e.id },
       update: row,
