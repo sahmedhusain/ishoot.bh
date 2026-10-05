@@ -12,6 +12,7 @@ export const APPROVAL_TARGET_TYPES = [
   "payroll_run",
   "expense",
   "invoice",
+  "expense_claim",
 ] as const;
 export type ApprovalTargetType = (typeof APPROVAL_TARGET_TYPES)[number];
 
@@ -34,6 +35,7 @@ export const APPROVAL_TARGET_ROUTES: Record<ApprovalTargetType, (id: string) => 
   payroll_run: (id) => ROUTES.hr.payroll({ highlight: id }),
   expense: (id) => ROUTES.expenses.list({ highlight: id }),
   invoice: ROUTES.invoices.detail,
+  expense_claim: (id) => ROUTES.claims.list({ highlight: id }),
 };
 
 export const approvalTargetUrl = (targetType: string, targetId: string) =>

@@ -72,6 +72,13 @@ const RULES: Rule[] = [
       WHERE (e.scope = 'deal' AND (e."dealId" IS NULL OR e."clientId" IS DISTINCT FROM d."contactId"))
          OR (e.scope = 'client' AND (e."clientId" IS NULL OR e."dealId" IS NOT NULL))
          OR (e.scope = 'internal' AND (e."dealId" IS NOT NULL OR e."clientId" IS NOT NULL))` },
+  { area: "finance", name: "paid claims booked exactly one matching expense",
+    sql: `SELECT c.id, c.status FROM "ExpenseClaim" c LEFT JOIN "Expense" e ON e.id = c."expenseId"
+      WHERE (c.status = 'paid' AND (e.id IS NULL OR e.amount <> c.amount OR e.currency <> c.currency OR e.status <> 'approved'))
+         OR (c.status <> 'paid' AND c."expenseId" IS NOT NULL)` },
+  { area: "finance", name: "claims awaiting approval have a pending approval request",
+    sql: `SELECT c.id FROM "ExpenseClaim" c WHERE c.status = 'submitted'
+      AND NOT EXISTS (SELECT 1 FROM "ApprovalRequest" a WHERE a."targetType" = 'expense_claim' AND a."targetId" = c.id AND a.status = 'pending')` },
   { area: "finance", name: "every expense has an active-or-used category",
     sql: `SELECT id FROM "Expense" WHERE "categoryId" IS NULL` },
   { area: "finance", name: "quotation line total = quantity × unit price",

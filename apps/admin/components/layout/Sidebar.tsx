@@ -27,6 +27,7 @@ import {
   FileSignature,
   ShieldAlert,
   TrendingUp,
+  HandCoins,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -178,6 +179,12 @@ export function Sidebar() {
             icon: FileText,
             resource: "self_service",
             moduleKey: "hrms",
+          },
+          {
+            href: ROUTES.claims.list(),
+            label: t.claims.title,
+            icon: HandCoins,
+            resource: "self_service",
           },
           {
             href: ROUTES.hr.payroll(),

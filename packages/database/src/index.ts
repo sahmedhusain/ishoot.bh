@@ -9,6 +9,7 @@ export * from "./queries/crm";
 export * from "./queries/invoices";
 export * from "./queries/payments";
 export * from "./queries/expenses";
+export * from "./queries/expense-claims";
 export * from "./queries/company-settings";
 export * from "./queries/finance";
 export * from "./queries/calendar";

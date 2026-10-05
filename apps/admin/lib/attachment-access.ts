@@ -3,7 +3,7 @@ import {
   type PermissionAction,
   type PermissionResource,
 } from "@ishoot/database";
-import { requirePermission } from "./auth";
+import { getCurrentUser, requirePermission } from "./auth";
 
 const resources: Record<string, PermissionResource> = {
   employee: "employees",
@@ -29,6 +29,15 @@ export async function requireAttachmentAccess(
   action: PermissionAction,
 ) {
   if (entityType === "employee" && (!entityId || entityId === "pending")) throw new Error("Create the employee before attaching documents");
+  if (entityType === "expense_claim") {
+    // Every staff member files claims; receipts are visible to the claimant and to finance.
+    if (action !== "read") return requirePermission("self_service", "create");
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Unauthorized");
+    const claim = entityId && entityId !== "pending" ? await db.expenseClaim.findUnique({ where: { id: entityId }, select: { claimantId: true } }) : null;
+    if (claim?.claimantId === user.id) return user;
+    return requirePermission("expenses", "read");
+  }
   if (entityType === "cms_asset") {
     const resource = CMS_ASSET_RESOURCES.find((r) => r === entityId);
     if (!resource) throw new Error("Unsupported attachment type");

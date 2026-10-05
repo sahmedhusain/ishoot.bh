@@ -77,6 +77,18 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
     reject: async (id, _decider, reason) =>
       void (await db.expense.update({ where: { id }, data: { status: "rejected", reviewNotes: reason || null } })),
   },
+  expense_claim: {
+    async approve(id, _decider, reason) {
+      const claim = await db.expenseClaim.findUniqueOrThrow({ where: { id }, select: { status: true } });
+      if (claim.status !== "submitted") throw new Error(`Claim is ${claim.status}; it can no longer be approved`);
+      await db.expenseClaim.update({ where: { id }, data: { status: "approved", reviewNotes: reason || null } });
+    },
+    async reject(id, _decider, reason) {
+      const claim = await db.expenseClaim.findUniqueOrThrow({ where: { id }, select: { status: true } });
+      if (claim.status !== "submitted") throw new Error(`Claim is ${claim.status}; it can no longer be rejected`);
+      await db.expenseClaim.update({ where: { id }, data: { status: "rejected", reviewNotes: reason || null } });
+    },
+  },
   quotation: {
     approve: async (id) => void (await db.quotation.update({ where: { id }, data: { status: "approved" } })),
     reject: async (id) => void (await db.quotation.update({ where: { id }, data: { status: "draft" } })),

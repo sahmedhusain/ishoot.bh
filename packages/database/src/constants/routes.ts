@@ -58,6 +58,10 @@ export const ROUTES = {
     newDeal: (query?: NewDealQuery) => withQuery("/dashboard/crm/deals/new", query),
     leads: "/dashboard/crm/leads",
   },
+  claims: {
+    list: (query?: HighlightQuery & { view?: "mine" | "finance" }) => withQuery("/dashboard/claims", query),
+    create: "/dashboard/claims/new",
+  },
   expenses: {
     list: (query?: HighlightQuery) => withQuery("/dashboard/expenses", query),
     create: "/dashboard/expenses/new",
@@ -137,6 +141,7 @@ export const ENTITY_ROUTES: Record<string, (id: string) => string> = {
   service_request: ROUTES.requests.detail,
   employee: ROUTES.hr.employee,
   expense: (id) => ROUTES.expenses.list({ highlight: id }),
+  expense_claim: (id) => ROUTES.claims.list({ highlight: id }),
   user_signature: () => ROUTES.profile(),
   company_document: () => ROUTES.company.documents,
   company_asset: () => ROUTES.company.documents,

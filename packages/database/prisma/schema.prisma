@@ -54,6 +54,9 @@ model User {
   emailJobs          EmailJob[]
   momsCreated        MinuteOfMeeting[]   @relation("MomCreator")
   momsApproved       MinuteOfMeeting[]   @relation("MomApprover")
+  expenseClaims              ExpenseClaim[]      @relation("ExpenseClaimClaimant")
+  expenseClaimsScheduled     ExpenseClaim[]      @relation("ExpenseClaimScheduler")
+  expenseClaimsPaid          ExpenseClaim[]      @relation("ExpenseClaimPayer")
   @@index([role])
   authChallenges AuthChallenge[]
   quotations Quotation[] @relation("QuotationCreator")
@@ -360,6 +363,7 @@ model CrmDeal {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime        @updatedAt
 
+  expenseClaims     ExpenseClaim[]
   @@index([contactId])
   @@index([dealStage])
   @@index([assignedTo])
@@ -402,6 +406,7 @@ model Invoice {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
+  expenseClaims     ExpenseClaim[]
   @@index([clientId])
   @@index([dealId])
   @@index([status])
@@ -467,6 +472,7 @@ model ExpenseCategory {
   isSystem     Boolean   @default(false)
   isActive     Boolean   @default(true)
   expenses     Expense[]
+  claims       ExpenseClaim[]
 }
 
 model Expense {
@@ -502,6 +508,7 @@ model Expense {
   createdBy          User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
   createdAt          DateTime         @default(now())
 
+  claim              ExpenseClaim?
   @@index([dealId])
   @@index([clientId])
   @@index([categoryId])
@@ -532,6 +539,7 @@ model CalendarEvent {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
+  expenseClaims    ExpenseClaim[]
   @@index([dealId])
   @@index([startDate])
 }
@@ -1493,5 +1501,46 @@ model SalaryDocument {
   issuedAt DateTime?
   updatedAt DateTime @updatedAt
   @@index([employeeId, createdAt])
+  @@index([status])
+}
+
+/// A staff member's out-of-pocket spend: submitted → approved (policy) → scheduled by finance → paid.
+/// Paying a claim records the matching Expense so it reaches the financials.
+model ExpenseClaim {
+  id               String           @id @default(uuid())
+  claimNumber      String           @unique
+  claimantId       String
+  claimant         User             @relation("ExpenseClaimClaimant", fields: [claimantId], references: [id], onDelete: Restrict)
+  amount           Decimal          @db.Decimal(12, 3)
+  currency         String           @default("BHD")
+  expenseDate      DateTime         @db.Date
+  reason           String
+  categoryId       String?
+  category         ExpenseCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  dealId           String?
+  deal             CrmDeal?         @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  invoiceId        String?
+  invoice          Invoice?         @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  calendarEventId  String?
+  calendarEvent    CalendarEvent?   @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
+  receiptUrl       String
+  /// submitted | approved | rejected | scheduled | paid | cancelled
+  status           String           @default("submitted")
+  reviewNotes      String?
+  scheduledAt      DateTime?
+  scheduledForDate DateTime?        @db.Date
+  scheduledById    String?
+  scheduledBy      User?            @relation("ExpenseClaimScheduler", fields: [scheduledById], references: [id], onDelete: SetNull)
+  paidAt           DateTime?
+  paidById         String?
+  paidBy           User?            @relation("ExpenseClaimPayer", fields: [paidById], references: [id], onDelete: SetNull)
+  paymentMethod    String?
+  paymentReference String?
+  expenseId        String?          @unique
+  expense          Expense?         @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([claimantId])
   @@index([status])
 }

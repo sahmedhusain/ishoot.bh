@@ -11,6 +11,7 @@ import { createQuotation, submitQuotationForApproval, issueQuotation, acceptQuot
 import { createInvoice, updateInvoiceStatus, markOverdueInvoices } from "../src/queries/invoices";
 import { createPayment } from "../src/queries/payments";
 import { createExpense } from "../src/queries/expenses";
+import { createExpenseClaim, scheduleExpenseClaim, payExpenseClaim, cancelExpenseClaim } from "../src/queries/expense-claims";
 import { createConsolidatedRequest } from "../src/queries/requests";
 import { assignRequest, submitRequestForApproval, confirmRequest, resolveRequest, returnRequest } from "../src/queries/inquiries";
 import { createLeaveRequest } from "../src/queries/leave";
@@ -554,6 +555,55 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     });
     bump("moms");
     if (meetingDate < daysAgo(5) && chance(0.7) && owner.signatureUrl) await approveAndSignMom(mom.id, owner.id, owner.signatureUrl);
+  }
+
+  // ============================================================ 8b. staff expense claims (approve → schedule → pay)
+  {
+    const claimCategories = ["fuel_transport", "catering", "office_supplies", "location_permits", "props_set", "telecom"].map((slug) => categories[slug]).filter(Boolean);
+    const meetings = await prisma.calendarEvent.findMany({ where: { startDate: { lte: TODAY, gte: daysAgo(150) } }, select: { id: true, startDate: true }, take: 80 });
+    const invoicesForClaims = await prisma.invoice.findMany({ where: { status: { not: "draft" } }, select: { id: true }, take: 40 });
+    const CLAIM_REASONS = [
+      "Taxi to and from the shoot location",
+      "Parking at the client's office",
+      "Lunch for the crew on an overrun shoot day",
+      "Batteries and gaffer tape bought on set",
+      "Courier of drives to the client",
+      "Printing call sheets and release forms",
+      "Prepaid data for live-stream upload",
+      "Coffee for the client review meeting",
+    ];
+    const claimants = allStaff.filter((x) => x.role !== "super_admin");
+    for (let i = 0; i < 46; i++) {
+      const claimant = pick(claimants);
+      const paidOn = daysAgo(int(2, 140));
+      const deal = chance(0.5) ? pick(deals) : null;
+      const meeting = !deal && meetings.length && chance(0.35) ? pick(meetings) : null;
+      const fileUrl = `/api/files/general/seed_claim_${i}_${claimant.id.slice(0, 8)}.jpg`;
+      await prisma.uploadObject.create({ data: { fileUrl, ownerId: claimant.id, fileName: `receipt-${i + 1}.jpg`, fileSize: 48000 + i, mimeType: "image/jpeg", expiresAt: new Date(Date.now() + 86400000) } });
+      const claim = await createExpenseClaim({
+        amount: round3(int(3, 95) + rand()),
+        expenseDate: iso(paidOn),
+        reason: pick(CLAIM_REASONS),
+        categoryId: chance(0.8) ? pick(claimCategories) : null,
+        dealId: deal?.id ?? null,
+        invoiceId: deal && invoicesForClaims.length && chance(0.2) ? pick(invoicesForClaims).id : null,
+        calendarEventId: meeting?.id ?? null,
+        receiptUrl: fileUrl,
+      }, claimant.id);
+      bump("expenseClaims");
+      const outcome = await submit("expense_claim", claim.id, claimant.id, { amount: claim.amount, currency: claim.currency });
+      const roll = rand();
+      if (outcome.status === "pending" && paidOn > daysAgo(14) && roll < 0.35) {
+        if (roll < 0.06) await cancelExpenseClaim(claim.id, claimant.id);
+        continue; // awaiting approval (or withdrawn)
+      }
+      if (outcome.status === "pending" && roll > 0.93) { await decideFully(outcome, "rejected", "Personal expense, not reimbursable."); continue; }
+      if (outcome.status === "pending") await decideFully(outcome, "approved", "Reasonable and receipted.");
+      if (paidOn > daysAgo(10) && chance(0.5)) continue; // approved, waiting for finance
+      if (paidOn > daysAgo(25) && chance(0.5)) { await scheduleExpenseClaim(claim.id, finance.id, iso(addDays(TODAY, int(1, 7)))); continue; }
+      await payExpenseClaim(claim.id, finance.id, { method: pick(["bank_transfer", "bank_transfer", "cash", "benefit_pay"]), reference: `TRF-${int(10000, 99999)}`, categoryId: claim.categoryId ?? pick(claimCategories) });
+      bump("expenseClaimsPaid");
+    }
   }
 
   // ============================================================ 9. social analytics (daily, 120 days)

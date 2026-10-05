@@ -12,6 +12,7 @@ const READ_ACCESS: Array<[string, Parameters<typeof hasPermission>]> = [
   ["quotation", ["quotations", "read"]],
   ["invoice", ["invoices", "read"]],
   ["expense", ["expenses", "read"]],
+  ["expense_claim", ["expenses", "read"]],
   ["payroll_run", ["payroll", "read"]],
   ["salary_document", ["payroll", "issue_send"]],
   ["leave_request", ["employees", "read"]],
