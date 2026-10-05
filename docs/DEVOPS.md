@@ -15,6 +15,18 @@ Run from the repository root. The commands below contain no shell comments, so t
 For local Supabase, initialize configuration once with `pnpm dlx supabase init` (already initialized in this repository), then start Docker and run:
 
 ```sh
+# 1. Check this is your LOCAL database (expect 127.0.0.1 / localhost)
+grep DATABASE_URL .env
+
+# 2. Drop everything and re-apply all migrations (deletes ALL data in that database)
+pnpm --filter @ishoot/database exec prisma migrate reset --force --skip-seed
+
+# 3. Seed and verify
+pnpm db:seed
+pnpm db:check-integrity
+```
+
+```sh
 pnpm dlx supabase start -x studio,postgres-meta,logflare,vector,supavisor,edge-runtime,realtime,imgproxy,mailpit
 pnpm install
 pnpm --filter @ishoot/database db:generate
