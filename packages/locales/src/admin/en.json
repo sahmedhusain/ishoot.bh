@@ -1709,7 +1709,9 @@
     "quotationTitle": "Quotation",
     "quotationDetails": "Quotation Details",
     "validUntil": "Valid Until",
-    "quotationTotal": "Total Quoted Amount:"
+    "quotationTotal": "Total Quoted Amount:",
+    "awaitingSignature": "Awaiting approval and signature",
+    "signedOn": "signed"
   },
   "pdfReceipt": {
     "title": "Official Payment Receipt Voucher",
@@ -1735,7 +1737,9 @@
     "footer": "Official Payment Receipt Voucher • {companyName}",
     "defaultClient": "Client",
     "crPrefix": "CR:",
-    "country": "Kingdom of Bahrain"
+    "country": "Kingdom of Bahrain",
+    "awaitingSignature": "Awaiting signature",
+    "signedOn": "signed"
   },
   "documentLetterhead": {
     "issuedBy": "Issued By",
@@ -3918,5 +3922,24 @@
       "rejected": "Rejected",
       "cancelled": "Withdrawn"
     }
+  },
+  "signing": {
+    "title": "Approval, signature & stamp",
+    "approved": "Approved",
+    "recorded": "Recorded",
+    "signedStamped": "Signed & stamped",
+    "readyToSend": "Ready to send",
+    "signedBy": "Signed and stamped by {name}",
+    "needsApproval": "Needs approval before it can be signed and stamped.",
+    "awaitingApproval": "Waiting for approval.",
+    "requestApproval": "Request approval",
+    "approvalRequested": "Approval requested",
+    "signAndStamp": "Sign & stamp",
+    "signedToast": "Signed and stamped",
+    "noSignature": "You need an approved signature before you can sign.",
+    "openProfile": "Draw your signature",
+    "waitingForSigner": "Approved. Waiting for the salesperson to sign and stamp it.",
+    "failed": "Could not update the document",
+    "signBeforeSending": "Approve, sign and stamp before sending to the client"
   }
 }

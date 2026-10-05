@@ -337,6 +337,7 @@ export async function issueQuotation(
   if (quotation.status !== "approved") {
     throw new Error("Quotation delivery blocked: Super Admin approval is strictly required before issuing to the customer");
   }
+  if (!quotation.signedAt) throw new Error("Sign and stamp this quotation before sending it to the client");
 
   const updated = await db.$transaction(async (tx) => {
     const issued = await tx.quotation.update({

@@ -1,14 +1,17 @@
 import { getCurrencySymbol, getCurrencyDecimals } from "@ishoot/config/currency";
 
-import { Document,Page,Text,View,Image as PdfImage } from "@react-pdf/renderer";
+import { Document,Page,Text,View } from "@react-pdf/renderer";
 import type { Payment,CompanySettings } from "@ishoot/database/types";
 import { pdfStyles } from "./shared-styles";
+import { PdfSigningBlock, type PdfSigning } from "./signing-block";
 import { PdfBrandLogo } from "./brand-logo-pdf";
 import { adminTranslations } from "../translations-bilingual";
 
 interface ReceiptPDFProps {
   payment: Payment;
   company: CompanySettings;
+  /** Present only once the receipt is signed. */
+  signing?: PdfSigning | null;
 }
 
 function formatDate(dateStr: string) {
@@ -28,7 +31,7 @@ function formatAmount(amount: number, decimals: number = 3) {
   });
 }
 
-function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
+function ReceiptPDF({ payment, company, signing }: ReceiptPDFProps) {
   const currencyCode = payment.currency || company.default_currency;
   const currency = getCurrencySymbol(currencyCode, false);
   const decimals = getCurrencyDecimals(currencyCode);
@@ -244,49 +247,16 @@ function ReceiptPDF({ payment, company }: ReceiptPDFProps) {
           </Text>
         </View>
 
-        {/* Signature Authorization Block */}
-        {(() => {
-          const stampPath = company.stamp_url;
-          const signaturePath = company.signature_url;
-
-          return (
-            <View style={pdfStyles.signatureContainer}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-              >
-                {stampPath && (
-                  <PdfImage src={stampPath as any} style={pdfStyles.stampImage} />
-                )}
-                <View>
-                  <Text style={{ fontSize: 7.5, color: "#6B7280" }}>
-                    {labels.issuedBy}
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 8.5,
-                      fontWeight: "bold",
-                      color: "#111827",
-                      marginTop: 1,
-                    }}
-                  >
-                    {isAr
-                      ? company.company_name_ar || company.company_name_en
-                      : company.company_name_en || company.company_name_ar}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={{ alignItems: "flex-end" }}>
-                {signaturePath ? (
-                  <PdfImage src={signaturePath as any} style={pdfStyles.signatureImage} />
-                ) : (
-                  <View style={pdfStyles.signatureBox} />
-                )}
-                <Text style={pdfStyles.signatureLabel}>{labels.cashier}</Text>
-              </View>
-            </View>
-          );
-        })()}
+        {/* Signature Authorization Block: stamp and signature only once approved and signed */}
+        <PdfSigningBlock
+          company={company}
+          signing={signing}
+          isAr={isAr}
+          issuedByLabel={labels.issuedBy}
+          signatoryLabel={labels.cashier}
+          unsignedLabel={t.awaitingSignature}
+          signedOnLabel={t.signedOn}
+        />
 
         {/* Footer */}
         <View style={pdfStyles.footer} fixed>

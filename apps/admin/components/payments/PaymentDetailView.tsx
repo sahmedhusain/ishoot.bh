@@ -28,11 +28,13 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 interface PaymentDetailViewProps {
   payment: Payment;
   company: CompanySettings;
+  signing?: { signatureUrl: string | null; signerName: string } | null;
 }
 
 export function PaymentDetailView({
   payment: initialPayment,
   company,
+  signing = null,
 }: PaymentDetailViewProps) {
   const { t, isRTL, locale } = useAdminLocale();
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
@@ -157,6 +159,7 @@ export function PaymentDetailView({
       {/* Delivery & Share Toolbar */}
       <div className="no-print" data-delivery-toolbar="true">
         <DeliveryToolbar
+          signed={!!signing}
           companyName={company?.company_name_en || ""}
           documentType="receipt"
           documentNumber={payment.receipt_number}
@@ -296,6 +299,7 @@ export function PaymentDetailView({
           payment={payment}
           company={company}
           locale={locale as "en" | "ar"}
+          signing={signing}
         />
       </div>
     </div>

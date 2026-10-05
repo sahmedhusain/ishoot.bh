@@ -71,6 +71,9 @@ model User {
   supportReimbursementsRecorded SupportReimbursement[] @relation("SupportReimbursementRecorder")
   signatureChanges           SignatureChange[]   @relation("SignatureChangeOwner")
   signatureChangesReviewed   SignatureChange[]   @relation("SignatureChangeReviewer")
+  quotationsSigned           Quotation[]         @relation("QuotationSigner")
+  invoicesSigned             Invoice[]           @relation("InvoiceSigner")
+  receiptsSigned             Payment[]           @relation("ReceiptSigner")
   @@index([role])
   authChallenges AuthChallenge[]
   quotations Quotation[] @relation("QuotationCreator")
@@ -428,6 +431,11 @@ model Invoice {
   /// The salesperson credited with this invoice (from its quotation, else its issuer).
   salesOwnerId    String?
   salesOwner      User?             @relation("InvoiceSalesOwner", fields: [salesOwnerId], references: [id], onDelete: SetNull)
+  /// Signed and stamped after approval by the person who sends it; the signature is snapshotted.
+  signedById         String?
+  signedBy           User?    @relation("InvoiceSigner", fields: [signedById], references: [id], onDelete: SetNull)
+  signedAt           DateTime?
+  signerSignatureUrl String?
   @@index([clientId])
   @@index([dealId])
   @@index([status])
@@ -476,6 +484,11 @@ model Payment {
   settlement          BankSettlement?
   createdAt           DateTime @default(now())
 
+  /// Signed and stamped after approval by the person who sends it; the signature is snapshotted.
+  signedById         String?
+  signedBy           User?    @relation("ReceiptSigner", fields: [signedById], references: [id], onDelete: SetNull)
+  signedAt           DateTime?
+  signerSignatureUrl String?
   @@index([invoiceId])
   @@index([paymentDate])
   @@index([paymentMethod])
@@ -1018,6 +1031,11 @@ model Quotation {
   /// The salesperson credited with this quotation (defaults to its issuer).
   salesOwnerId    String?
   salesOwner      User?                 @relation("QuotationSalesOwner", fields: [salesOwnerId], references: [id], onDelete: SetNull)
+  /// Signed and stamped after approval by the person who sends it; the signature is snapshotted.
+  signedById         String?
+  signedBy           User?    @relation("QuotationSigner", fields: [signedById], references: [id], onDelete: SetNull)
+  signedAt           DateTime?
+  signerSignatureUrl String?
   @@index([clientId])
   @@index([dealId])
   @@index([inquiryId])

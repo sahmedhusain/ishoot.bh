@@ -11,9 +11,11 @@ DocumentFooter,
 interface InvoiceTemplateProps {
   invoice: Invoice;
   company: CompanySettings;
+  /** Stamp and signature appear only once the document is approved and signed. */
+  signing?: { signatureUrl: string | null; signerName: string } | null;
 }
 
-export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
+export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTemplateProps) {
   const isAr = invoice.language === "ar";
   const t = isAr ? adminTranslations.ar : adminTranslations.en;
   const inv = t.invoice;
@@ -228,6 +230,9 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
         company={company}
         thankYouMessage={inv.thankYou}
         showSignature={true}
+        stampUrl={signing ? company.stamp_url : null}
+        signatureUrl={signing?.signatureUrl ?? null}
+        signerName={signing?.signerName ?? null}
         signatureTitle={isAr ? adminTranslations.ar.documentLetterhead.authorizedSignatory : adminTranslations.en.documentLetterhead.authorizedSignatory}
         signatureTitleAr={adminTranslations.ar.documentLetterhead.financeDepartment}
       />

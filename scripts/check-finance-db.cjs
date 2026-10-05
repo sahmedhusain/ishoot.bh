@@ -9,6 +9,7 @@ const { createInvoice, updateInvoiceStatus, markOverdueInvoices } = require("../
 const { createPayment } = require("../packages/database/src/queries/payments.ts");
 const { createQuotation, convertQuotationToInvoice } = require("../packages/database/src/queries/quotations.ts");
 const { createExpense } = require("../packages/database/src/queries/expenses.ts");
+const { signDocument, requestInvoiceApproval } = require("../packages/database/src/queries/document-signing.ts");
 const { getFinancialSummaryReport, getFinancialReportDetail } = require("../packages/database/src/queries/finance-reports.ts");
 
 const rollback = new Error("ROLLBACK_FINANCE_TEST");
@@ -45,6 +46,12 @@ async function main() {
 
       // 3. Drafts take no payments; 0.7 + 0.1 settles 0.8 exactly.
       await assert.rejects(createPayment({ invoice_id: first.id, amount: 0.7 }), /Mark the invoice as sent/);
+      await assert.rejects(updateInvoiceStatus(first.id, "sent"), /approved/, "an unapproved invoice cannot be sent");
+      await assert.rejects(signDocument("invoice", first.id, actor.id), /must be approved before/);
+      await requestInvoiceApproval(first.id, actor.id);
+      await assert.rejects(updateInvoiceStatus(first.id, "sent"), /Sign and stamp/, "approved but unsigned cannot be sent");
+      await signDocument("invoice", first.id, actor.id);
+      await assert.rejects(signDocument("invoice", first.id, actor.id), /already signed/);
       await updateInvoiceStatus(first.id, "sent");
       await createPayment({ invoice_id: first.id, amount: 0.7 });
       assert.equal((await tx.invoice.findUniqueOrThrow({ where: { id: first.id } })).status, "partially_paid");
@@ -54,6 +61,8 @@ async function main() {
 
       // 4. Overdue sweep moves issued, unpaid invoices past their due date.
       const late = await createInvoice({ contact_id: contact.id, issue_date: "2020-01-01", due_date: "2020-01-31", line_items: [line(10)] });
+      await requestInvoiceApproval(late.id, actor.id);
+      await signDocument("invoice", late.id, actor.id);
       await updateInvoiceStatus(late.id, "sent");
       assert.ok((await markOverdueInvoices()) >= 1);
       assert.equal((await tx.invoice.findUniqueOrThrow({ where: { id: late.id } })).status, "overdue");
@@ -97,7 +106,7 @@ async function main() {
   } catch (error) {
     if (error !== rollback) throw error;
   }
-  console.log("Finance database checks passed and rolled back: one invoice counter for manual and converted invoices, quotation double-billing blocked, due-date validation, draft payments blocked, minor-unit settlement, status transitions, overdue sweep, net expenses in reports, detailed report reconciles with the summary, per-user discount limits.");
+  console.log("Finance database checks passed and rolled back: one invoice counter for manual and converted invoices, quotation double-billing blocked, due-date validation, draft payments blocked, minor-unit settlement, status transitions, overdue sweep, net expenses in reports, detailed report reconciles with the summary, per-user discount limits, approve → sign → send.");
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; }).finally(() => db.$disconnect());

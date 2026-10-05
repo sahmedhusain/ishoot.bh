@@ -11,6 +11,8 @@ DocumentFooter,
 interface ReceiptTemplateProps {
   payment: Payment;
   company: CompanySettings;
+  /** Stamp and signature appear only once the document is approved and signed. */
+  signing?: { signatureUrl: string | null; signerName: string } | null;
   locale?: "en" | "ar";
 }
 
@@ -18,6 +20,7 @@ export function ReceiptTemplate({
   payment,
   company,
   locale = "en",
+  signing = null,
 }: ReceiptTemplateProps) {
   const isAr = locale === "ar";
   const dir = isAr ? "rtl" : "ltr";
@@ -161,6 +164,9 @@ export function ReceiptTemplate({
         company={company}
         thankYouMessage={adminTranslations[isAr ? "ar" : "en"].pdfReceipt.verifiedNotice}
         showSignature={true}
+        stampUrl={signing ? company.stamp_url : null}
+        signatureUrl={signing?.signatureUrl ?? null}
+        signerName={signing?.signerName ?? null}
         signatureTitle={isAr ? adminTranslations.ar.pdfReceipt.cashier : adminTranslations.en.pdfReceipt.cashier}
         signatureTitleAr={adminTranslations.ar.pdfReceipt.title}
       />

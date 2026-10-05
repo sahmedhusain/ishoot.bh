@@ -18,6 +18,8 @@ interface DeliveryToolbarProps {
   amountFormatted: string;
   onSendEmail?: () => Promise<{ status: "sent" | "queued" | "failed" }>;
   className?: string;
+  /** Sending to the client is allowed only once the document is approved, signed and stamped. */
+  signed?: boolean;
 }
 
 export function DeliveryToolbar({
@@ -30,6 +32,7 @@ export function DeliveryToolbar({
   amountFormatted,
   onSendEmail,
   className = "",
+  signed = true,
 }: DeliveryToolbarProps) {
   const { t, locale } = useAdminLocale();
   const { can } = usePermissions();
@@ -42,7 +45,7 @@ export function DeliveryToolbar({
   const [printing, setPrinting] = React.useState(false);
 
   const handleEmail = async () => {
-    if (!canExport) return;
+    if (!canExport || !signed) return;
     if (onSendEmail) {
       setEmailSending(true);
       try {
@@ -76,7 +79,7 @@ export function DeliveryToolbar({
   };
 
   const handleWhatsApp = () => {
-    if (!canExport) return;
+    if (!canExport || !signed) return;
     const cleanPhone = (clientPhone ?? "").replace(/[^0-9]/g, "");
     const docLabel =
       documentType === "invoice"
@@ -122,7 +125,8 @@ export function DeliveryToolbar({
       <Button
         variant={emailSent ? "secondary" : "primary"}
         size="sm"
-        disabled={emailSending || !canExport || (!clientEmail && !onSendEmail)}
+        disabled={emailSending || !canExport || !signed || (!clientEmail && !onSendEmail)}
+        title={signed ? undefined : t.signing.signBeforeSending}
         onClick={handleEmail}
         className="gap-2"
       >
@@ -145,7 +149,8 @@ export function DeliveryToolbar({
       <Button
         variant="secondary"
         size="sm"
-        disabled={!canExport || !clientPhone}
+        disabled={!canExport || !signed || !clientPhone}
+        title={signed ? undefined : t.signing.signBeforeSending}
         onClick={handleWhatsApp}
         className="gap-2 hover:border-[#25D366]/40 hover:text-[#25D366]"
       >

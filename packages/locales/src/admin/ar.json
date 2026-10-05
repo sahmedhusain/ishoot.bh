@@ -1709,7 +1709,9 @@
     "quotationTitle": "عرض سعر",
     "quotationDetails": "تفاصيل عرض السعر",
     "validUntil": "صالح حتى",
-    "quotationTotal": "إجمالي المبلغ المعروض:"
+    "quotationTotal": "إجمالي المبلغ المعروض:",
+    "awaitingSignature": "بانتظار الاعتماد والتوقيع",
+    "signedOn": "وُقّع"
   },
   "pdfReceipt": {
     "title": "سند قبض رسمي",
@@ -1735,7 +1737,9 @@
     "footer": "سند قبض رسمي • {companyName}",
     "defaultClient": "العميل",
     "crPrefix": "سجل تجاري:",
-    "country": "مملكة البحرين"
+    "country": "مملكة البحرين",
+    "awaitingSignature": "بانتظار التوقيع",
+    "signedOn": "وُقّع"
   },
   "documentLetterhead": {
     "issuedBy": "صادر عن",
@@ -3918,5 +3922,24 @@
       "rejected": "مرفوض",
       "cancelled": "مسحوب"
     }
+  },
+  "signing": {
+    "title": "الاعتماد والتوقيع والختم",
+    "approved": "معتمد",
+    "recorded": "مسجل",
+    "signedStamped": "موقّع ومختوم",
+    "readyToSend": "جاهز للإرسال",
+    "signedBy": "وقّعه وختمه {name}",
+    "needsApproval": "يحتاج إلى اعتماد قبل توقيعه وختمه.",
+    "awaitingApproval": "بانتظار الاعتماد.",
+    "requestApproval": "طلب الاعتماد",
+    "approvalRequested": "تم طلب الاعتماد",
+    "signAndStamp": "توقيع وختم",
+    "signedToast": "تم التوقيع والختم",
+    "noSignature": "تحتاج إلى توقيع معتمد قبل أن تتمكن من التوقيع.",
+    "openProfile": "ارسم توقيعك",
+    "waitingForSigner": "معتمد. بانتظار توقيع مندوب المبيعات وختمه.",
+    "failed": "تعذّر تحديث المستند",
+    "signBeforeSending": "يجب الاعتماد والتوقيع والختم قبل الإرسال للعميل"
   }
 }

@@ -486,6 +486,9 @@ export async function updateInvoiceStatus(
         );
       if (!(INVOICE_STATUS_TRANSITIONS[invoice.status] ?? []).includes(status))
         throw new Error(`An invoice cannot move from ${invoice.status} to ${status}`);
+      // Approved, then signed and stamped, before it goes to the client.
+      if (status === "sent" && invoice.status === "draft" && !invoice.signedAt)
+        throw new Error(invoice.approvalStatus === "approved" ? "Sign and stamp this invoice before sending it to the client" : "Get this invoice approved, then sign and stamp it, before sending it");
       await tx.invoice.update({
         where: { id },
         data: { status, ...(status === "sent" && !invoice.deliveredAt ? { deliveredAt: new Date() } : {}) },

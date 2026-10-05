@@ -44,7 +44,8 @@
     "test:claims-db": "node scripts/check-claims-db.cjs",
     "test:sales-db": "node scripts/check-sales-db.cjs",
     "test:support-db": "node scripts/check-support-db.cjs",
-    "test:signature-db": "node scripts/check-signature-db.cjs"
+    "test:signature-db": "node scripts/check-signature-db.cjs",
+    "test:signing-db": "node scripts/check-signing-db.cjs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",

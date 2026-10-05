@@ -10,6 +10,7 @@ import { createCRMContact, createCRMDeal, updateCRMDeal, advanceDealForEvent } f
 import { createQuotation, submitQuotationForApproval, issueQuotation, acceptQuotation } from "../src/queries/quotations";
 import { createInvoice, updateInvoiceStatus, markOverdueInvoices } from "../src/queries/invoices";
 import { createPayment } from "../src/queries/payments";
+import { signDocument, requestInvoiceApproval } from "../src/queries/document-signing";
 import { createExpense } from "../src/queries/expenses";
 import { getSupportClaims, recordSupportReimbursement } from "../src/queries/support-claims";
 import { tamkeenSupports } from "../src/constants/hr-support";
@@ -118,6 +119,12 @@ async function decideFully(outcome: ApprovalOutcome, decision: "approved" | "rej
     current = await decideApprovalRequest(current.approvalRequestId, approver, decision, reason);
   }
   return current;
+}
+/** Signs as this person when they have an approved signature, otherwise as the Super Admin. */
+async function signerFor(userId: string) {
+  const user = await seedPrisma.user.findUnique({ where: { id: userId }, select: { signatureUrl: true } });
+  if (user?.signatureUrl) return userId;
+  return (await seedPrisma.user.findFirstOrThrow({ where: { role: "super_admin", signatureUrl: { not: null } }, select: { id: true } })).id;
 }
 async function submit(targetType: ApprovalTargetType, targetId: string, requesterId: string, policySnapshot: Record<string, unknown> = {}) {
   return submitForApproval({ targetType, targetId, requesterId, policySnapshot });
@@ -296,6 +303,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     } else if (pending.status !== "approved") continue;
     const validUntil = addDays(issueDate, 30);
     if (chance(0.08)) continue; // approved, not yet sent
+    await signDocument("quotation", quotation.id, await signerFor(owner_.id));
     await issueQuotation(quotation.id, owner_.id, pick(["email", "whatsapp", "manual"]));
     if (validUntil < TODAY) {
       // Old quotations were either accepted or lapsed (the app marks unaccepted ones expired).
@@ -345,6 +353,8 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     const age = (TODAY.getTime() - plan.issueDate.getTime()) / DAY;
     if (age < 6 && chance(0.4)) continue; // draft
     if (age > 30 && chance(0.03)) { await updateInvoiceStatus(invoice.id, "void"); bump("invoicesVoid"); continue; }
+    await requestInvoiceApproval(invoice.id, issuer.id);
+    await signDocument("invoice", invoice.id, await signerFor(plan.salesOwnerId ?? issuer.id));
     await updateInvoiceStatus(invoice.id, "sent");
 
     const total = invoice.total_amount;
@@ -363,11 +373,12 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   for (const p of paymentPlans) {
     const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: p.invoiceId }, select: { issueDate: true } });
     const date = p.date < invoice.issueDate ? invoice.issueDate : p.date;
-    await createPayment({
+    const receipt = await createPayment({
       invoice_id: p.invoiceId, payment_date: iso(minDate(date, TODAY)), amount: p.amount, currency: "BHD", payment_method: p.method as never,
       reference_number: p.method === "cheque" ? `CHQ-${int(100000, 999999)}` : p.method === "cash" ? undefined : `TRF${int(10000000, 99999999)}`,
       created_by: finance.id,
     });
+    if (chance(0.92)) await signDocument("receipt", receipt.id, await signerFor(finance.id));
     bump("payments");
   }
 
@@ -724,6 +735,9 @@ export async function reconcileSeed(prisma: PrismaClient) {
   await prisma.$executeRaw`UPDATE "Invoice" i SET "salesOwnerId" = q."salesOwnerId" FROM "Quotation" q WHERE q."invoiceId" = i.id AND i."salesOwnerId" IS NULL`;
   await prisma.$executeRaw`UPDATE "Invoice" i SET "salesOwnerId" = d."assignedTo" FROM "CrmDeal" d WHERE d.id = i."dealId" AND i."salesOwnerId" IS NULL AND d."assignedTo" IS NOT NULL`;
   await prisma.$executeRaw`UPDATE "Invoice" SET "salesOwnerId" = ${fallbackOwner} WHERE "salesOwnerId" IS NULL`;
+  // Fixture documents already with clients were signed by their issuer (as the migration does for real data).
+  await prisma.$executeRaw`UPDATE "Quotation" q SET "signedById" = q."createdById", "signedAt" = q."updatedAt", "signerSignatureUrl" = u."signatureUrl" FROM "User" u WHERE u.id = q."createdById" AND q."signedAt" IS NULL AND q.status IN ('issued', 'accepted', 'rejected', 'expired', 'converted')`;
+  await prisma.$executeRaw`UPDATE "Invoice" i SET "signedById" = i."createdById", "signedAt" = i."updatedAt", "signerSignatureUrl" = u."signatureUrl", "approvalStatus" = 'approved' FROM "User" u WHERE u.id = i."createdById" AND i."signedAt" IS NULL AND i.status <> 'draft'`;
   // Deals follow their quotations and invoices (forward only, never reopening closed deals).
   const quotations = await prisma.quotation.findMany({ where: { dealId: { not: null }, status: { in: ["issued", "accepted", "converted"] } }, select: { dealId: true, status: true } });
   for (const q of quotations) await advanceDealForEvent(prisma, q.dealId, q.status === "issued" ? "quotation_issued" : "quotation_accepted");

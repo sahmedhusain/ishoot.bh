@@ -5418,6 +5418,42 @@
       }
     }
   },
+  "signDocumentAction": {
+    "kind": "object",
+    "fields": {
+      "type": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "quotation"
+          },
+          {
+            "kind": "literal",
+            "value": "invoice"
+          },
+          {
+            "kind": "literal",
+            "value": "receipt"
+          }
+        ],
+        "optional": false
+      },
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "requestInvoiceApprovalAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "createUserAction": {
     "kind": "object",
     "fields": {

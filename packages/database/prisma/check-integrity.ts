@@ -79,6 +79,10 @@ const RULES: Rule[] = [
   { area: "finance", name: "claims awaiting approval have a pending approval request",
     sql: `SELECT c.id FROM "ExpenseClaim" c WHERE c.status = 'submitted'
       AND NOT EXISTS (SELECT 1 FROM "ApprovalRequest" a WHERE a."targetType" = 'expense_claim' AND a."targetId" = c.id AND a.status = 'pending')` },
+  { area: "sales", name: "documents with clients are approved, signed and stamped",
+    sql: `SELECT "quotationNumber" FROM "Quotation" WHERE status IN ('issued','accepted','rejected','expired','converted') AND "signedAt" IS NULL
+      UNION ALL SELECT "invoiceNumber" FROM "Invoice" WHERE status NOT IN ('draft','void') AND ("signedAt" IS NULL OR "approvalStatus" <> 'approved')
+      UNION ALL SELECT "invoiceNumber" FROM "Invoice" WHERE "signedAt" IS NOT NULL AND "approvalStatus" <> 'approved'` },
   { area: "sales", name: "commission payouts booked a matching expense",
     sql: `SELECT p.id FROM "CommissionPayout" p LEFT JOIN "Expense" e ON e.id = p."expenseId"
       WHERE e.id IS NULL OR e.amount <> p.amount OR e.status <> 'approved' OR p.amount <> ROUND(p."basisAmount" * p."ratePercent" / 100, 3)` },

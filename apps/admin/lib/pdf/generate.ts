@@ -5,6 +5,8 @@ import { ReceiptPdfDocument } from "./receipt-pdf";
 import type { Invoice,Payment,CompanySettings,Quotation } from "@ishoot/database/types";
 
 import { resolveConfiguredPdfAsset } from "./configured-asset";
+import { getSigningState, type SignableDocument } from "@ishoot/database/queries/document-signing";
+import type { PdfSigning } from "./signing-block";
 
 async function enrichCompanyWithResolvedAssets(company: CompanySettings): Promise<CompanySettings> {
   const enriched = { ...company };
@@ -17,15 +19,26 @@ async function enrichCompanyWithResolvedAssets(company: CompanySettings): Promis
   return enriched;
 }
 
+/** Signature block data for a signed document; null until it is approved and signed. */
+async function pdfSigning(type: SignableDocument, id: string): Promise<PdfSigning | null> {
+  const state = await getSigningState(type, id);
+  if (!state.signed || !state.signedAt) return null;
+  return {
+    signatureSrc: state.signatureUrl ? ((await resolveConfiguredPdfAsset(state.signatureUrl)) ?? null) : null,
+    signerName: state.signedBy?.name ?? "",
+    signedAt: state.signedAt,
+  };
+}
+
 export async function generateInvoicePdfBuffer(invoice: Invoice, company: CompanySettings): Promise<Buffer> {
   const enrichedCompany = await enrichCompanyWithResolvedAssets(company);
-  const element = React.createElement(InvoicePdfDocument, { invoice, company: enrichedCompany });
+  const element = React.createElement(InvoicePdfDocument, { invoice, company: enrichedCompany, signing: await pdfSigning("invoice", invoice.id) });
   return (await renderToBuffer(element as any)) as Buffer;
 }
 
 export async function generateReceiptPdfBuffer(payment: Payment, company: CompanySettings): Promise<Buffer> {
   const enrichedCompany = await enrichCompanyWithResolvedAssets(company);
-  const element = React.createElement(ReceiptPdfDocument, { payment, company: enrichedCompany });
+  const element = React.createElement(ReceiptPdfDocument, { payment, company: enrichedCompany, signing: await pdfSigning("receipt", payment.id) });
   return (await renderToBuffer(element as any)) as Buffer;
 }
 
@@ -64,6 +77,6 @@ export async function generateQuotationPdfBuffer(quotation: Quotation, company: 
     })),
   } as unknown as Invoice;
   const terms = quotation.language === "ar" ? quotation.termsAr || quotation.termsEn : quotation.termsEn || quotation.termsAr;
-  const element = React.createElement(InvoicePdfDocument, { invoice: asInvoice, company: enrichedCompany, variant: "quotation", quotationTerms: terms });
+  const element = React.createElement(InvoicePdfDocument, { invoice: asInvoice, company: enrichedCompany, variant: "quotation", quotationTerms: terms, signing: await pdfSigning("quotation", quotation.id) });
   return (await renderToBuffer(element as any)) as Buffer;
 }

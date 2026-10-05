@@ -19,12 +19,14 @@ interface InvoiceDetailViewProps {
   invoice: Invoice;
   company: CompanySettings;
   payments: Payment[];
+  signing?: { signatureUrl: string | null; signerName: string } | null;
 }
 
 export function InvoiceDetailView({
   invoice,
   company,
   payments,
+  signing = null,
 }: InvoiceDetailViewProps) {
   const router = useRouter();
   const { t, isRTL } = useAdminLocale();
@@ -121,6 +123,7 @@ export function InvoiceDetailView({
 
       <div className="no-print" data-delivery-toolbar="true">
         <DeliveryToolbar
+          signed={!!signing}
           companyName={company?.company_name_en || ""}
           documentType="invoice"
           documentNumber={invoice.invoice_number}
@@ -132,7 +135,7 @@ export function InvoiceDetailView({
       </div>
 
       <div className="p-2 sm:p-6 bg-slate-100/70 dark:bg-surface-sunken rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm flex justify-center">
-        <InvoiceTemplate invoice={invoice} company={company} />
+        <InvoiceTemplate invoice={invoice} company={company} signing={signing} />
       </div>
 
       {payments.length > 0 && (
