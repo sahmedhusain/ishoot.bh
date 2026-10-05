@@ -1,5 +1,5 @@
 import { requirePermission } from "../../../../lib/auth";
-import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById } from "@ishoot/database";
+import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById, getFxBoard } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewInvoiceFormView } from "../../../../components/invoices/NewInvoiceFormView";
 
@@ -14,10 +14,11 @@ export default async function NewInvoicePage({
   await requirePermission("contacts", "read");
   const params = await searchParams;
 
-  const [acceptedQuotations, company, services] = await Promise.all([
+  const [acceptedQuotations, company, services, fxBoard] = await Promise.all([
     getAcceptedQuotationsUninvoiced(),
     getCachedCompanySettings(),
     getAllServices({ isActive: true }),
+    getFxBoard(),
   ]);
 
   let preselectedQuotation = null;
@@ -43,6 +44,7 @@ export default async function NewInvoicePage({
       acceptedQuotations={acceptedQuotations}
       preselectedQuotation={preselectedQuotation}
       dealId={params?.dealId}
+      fxRates={Object.fromEntries(fxBoard.map((row) => [row.currency, row.perBhd]))}
     />
   );
 }

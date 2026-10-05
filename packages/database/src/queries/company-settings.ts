@@ -1,3 +1,4 @@
+import { assertSupportedCurrency } from "../constants/finance";
 import { db } from "../db";
 import { CompanySettings, SupportedCurrency } from "../types";
 
@@ -75,6 +76,7 @@ export async function updateCompanySettings(
 ): Promise<CompanySettings> {
   if (updates.company_name_en !== undefined && !updates.company_name_en.trim()) throw new Error("Company English name is required");
   if (updates.company_name_ar !== undefined && !updates.company_name_ar.trim()) throw new Error("Company Arabic name is required");
+  if (updates.default_currency !== undefined) assertSupportedCurrency(updates.default_currency);
   const current = await getCompanySettings();
   // Moving a counter backwards would reissue numbers that already exist.
   for (const field of ["invoice_next_number", "receipt_next_number"] as const) {

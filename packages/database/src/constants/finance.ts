@@ -1,5 +1,17 @@
 // Finance rules shared by queries and the UI. Runtime-free.
 
+/** Currencies the business trades in: the six GCC currencies plus USD, EUR and GBP. BHD is the book currency. */
+export const SUPPORTED_CURRENCIES = ["BHD", "SAR", "AED", "KWD", "OMR", "QAR", "USD", "EUR", "GBP"] as const;
+/** Mirrors SupportedCurrency in types.ts (spelled out there for the action schema generator). */
+export type SupportedCurrencyCode = (typeof SUPPORTED_CURRENCIES)[number];
+export function isSupportedCurrency(code: unknown): code is SupportedCurrencyCode {
+  return typeof code === "string" && (SUPPORTED_CURRENCIES as readonly string[]).includes(code);
+}
+
+export function assertSupportedCurrency(code: unknown): asserts code is SupportedCurrencyCode {
+  if (!isSupportedCurrency(code)) throw new Error(`Unsupported currency. Use one of ${SUPPORTED_CURRENCIES.join(", ")}`);
+}
+
 /** Digits in the running part of invoice and receipt numbers: PREFIX-YYYY-0001. */
 export const DOCUMENT_NUMBER_PADDING = 4;
 

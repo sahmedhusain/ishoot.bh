@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { createInvoiceAction } from "../../app/actions/finance";
 import { convertQuotationToInvoiceAction } from "../../app/actions/quotations";
+import { convertFromBhd } from "../../lib/fx-client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { CURRENCY_CONFIGS, calculateInvoiceTotals, getCurrencyDisplayLabel } from "@ishoot/database/types";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
@@ -48,12 +49,15 @@ interface NewInvoiceFormViewProps {
   preselectedQuotation?: Quotation | null;
   /** Deal this invoice bills (from a deal page link). */
   dealId?: string;
+  /** Units of each supported currency per 1 BHD; service catalogue prices are in BHD. */
+  fxRates?: Record<string, number>;
 }
 
 export function NewInvoiceFormView({
   initialContacts,
   company,
   services = [],
+  fxRates = {},
   preselectedClientId,
   acceptedQuotations = [],
   preselectedQuotation,
@@ -497,15 +501,14 @@ export function NewInvoiceFormView({
                         const s = services.find((srv) => srv.id === sId);
                         if (s) {
                           const next = [...lineItems];
+                          const price = convertFromBhd(Number(s.default_rate) || 0, fxRates[currency] ?? 1, currency);
                           next[index] = {
                             ...next[index],
                             service_id: s.id,
                             description_en: s.name_en,
                             description_ar: s.name_ar,
-                            unit_price: Number(s.default_rate) || 0,
-                            line_total:
-                              (Number(next[index].quantity) || 1) *
-                              (Number(s.default_rate) || 0),
+                            unit_price: price,
+                            line_total: (Number(next[index].quantity) || 1) * price,
                           };
                           setLineItems(next);
                         } else {

@@ -9,7 +9,7 @@ import {
 
 import { amountDue as computeAmountDue, lineTotal, sumMoney } from "../finance/money";
 import { allocateDocumentNumber } from "../finance/numbering";
-import { INVOICE_STATUS_TRANSITIONS } from "../constants/finance";
+import { INVOICE_STATUS_TRANSITIONS, assertSupportedCurrency } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
 import { companyVat } from "../finance/vat";
 
@@ -252,6 +252,7 @@ export async function createInvoice(data: {
   created_by?: string;
 }): Promise<Invoice> {
   const currency = data.currency || "BHD";
+  assertSupportedCurrency(currency);
   const issueDate = new Date(data.issue_date);
   const dueDate = new Date(data.due_date);
   if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) throw new Error("Invalid invoice dates");
@@ -371,6 +372,7 @@ export async function updateInvoice(
 
       const currency =
         data.currency || (existing.currency as SupportedCurrency) || "BHD";
+      if (data.currency) assertSupportedCurrency(data.currency);
       const nextIssue = data.issue_date ? new Date(data.issue_date) : existing.issueDate;
       const nextDue = data.due_date ? new Date(data.due_date) : existing.dueDate;
       if (nextDue < nextIssue) throw new Error("The due date cannot be before the issue date");

@@ -1,7 +1,13 @@
+import { assertSupportedCurrency } from "../constants/finance";
 import { getCompanySettings } from "./company-settings";
 import { db, runAtomicMutation } from "../db";
 import {claimUpload} from "../services/uploads";
 import { Expense, ExpenseCategory, SupportedCurrency } from "../types";
+
+function supportedOrThrow(code: string) {
+  assertSupportedCurrency(code);
+  return code;
+}
 
 function mapCategory(c: any): ExpenseCategory {
   return {
@@ -119,7 +125,7 @@ export async function createExpense(expense: {
       inputVatAmount: inputVat,
       netAmount: Math.round((expense.amount - inputVat) * 1000) / 1000,
       isVatRecoverable: expense.is_vat_recoverable ?? true,
-      currency: expense.currency || (await getCompanySettings()).default_currency,
+      currency: supportedOrThrow(expense.currency || (await getCompanySettings()).default_currency),
       createdById: ownerId || null,
       expenseDate: expense.expense_date
         ? new Date(expense.expense_date)
@@ -159,7 +165,10 @@ export async function updateExpense(
     if (data.description_ar !== undefined)
       updateData.descriptionAr = data.description_ar;
     if (data.amount !== undefined) updateData.amount = data.amount;
-    if (data.currency !== undefined) updateData.currency = data.currency;
+    if (data.currency !== undefined) {
+      assertSupportedCurrency(data.currency);
+      updateData.currency = data.currency;
+    }
     if (data.expense_date !== undefined)
       updateData.expenseDate = new Date(data.expense_date);
     if (data.vendor_name !== undefined)

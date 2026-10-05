@@ -39,7 +39,8 @@
     "test:hrms-db": "node scripts/check-hrms-db.cjs",
     "test:approvals": "node scripts/check-approvals.cjs",
     "test:approvals-db": "node scripts/check-approvals-db.cjs",
-    "test:finance-db": "node scripts/check-finance-db.cjs"
+    "test:finance-db": "node scripts/check-finance-db.cjs",
+    "test:fx-db": "node scripts/check-fx-db.cjs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",

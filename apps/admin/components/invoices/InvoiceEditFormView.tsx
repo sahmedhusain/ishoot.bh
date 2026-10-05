@@ -38,6 +38,7 @@ import {
   ExternalLink,
   Sparkles,
 } from "lucide-react";
+import { convertFromBhd } from "../../lib/fx-client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateInvoiceAction,
@@ -51,6 +52,8 @@ interface InvoiceEditFormViewProps {
   initialContacts: CRMContact[];
   company: CompanySettings | null;
   services?: ServiceItem[];
+  /** Units of each supported currency per 1 BHD; service catalogue prices are in BHD. */
+  fxRates?: Record<string, number>;
 }
 
 export function InvoiceEditFormView({
@@ -58,6 +61,7 @@ export function InvoiceEditFormView({
   initialContacts,
   company,
   services = [],
+  fxRates = {},
 }: InvoiceEditFormViewProps) {
   const router = useRouter();
   const { t, isRTL } = useAdminLocale();
@@ -527,13 +531,14 @@ export function InvoiceEditFormView({
                             setLineItems((prev) => {
                               const next = [...prev];
                               const qty = Number(next[idx].quantity) || 1;
+                              const price = convertFromBhd(Number(s.default_rate) || 0, fxRates[currency] ?? 1, currency);
                               next[idx] = {
                                 ...next[idx],
                                 service_id: s.id,
                                 description_en: s.name_en,
                                 description_ar: s.name_ar || undefined,
-                                unit_price: s.default_rate,
-                                line_total: qty * s.default_rate,
+                                unit_price: price,
+                                line_total: qty * price,
                               };
                               return next;
                             });

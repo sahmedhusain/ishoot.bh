@@ -464,7 +464,12 @@
     "subtotal": "Subtotal",
     "discount": "Discount",
     "vat": "VAT (10%)",
-    "total": "Total Quotation Value"
+    "total": "Total Quotation Value",
+    "fxRefresh": "Refresh live rate",
+    "fxRefreshed": "Live exchange rates updated",
+    "fxRefreshFailed": "Live rates are unavailable right now; the latest stored rate is used",
+    "fxSource": "Rate: {provider}, {date}",
+    "fxSourceFallback": "Fallback rate: {provider}, {date}"
   },
   "quotationDetail": {
     "backToQuotes": "Back to Quotations",

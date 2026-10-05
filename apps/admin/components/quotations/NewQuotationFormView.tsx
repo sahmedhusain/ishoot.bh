@@ -22,8 +22,12 @@ import {
   CheckCircle2,
   Globe2,
   Layers,
+  RefreshCw,
 } from "lucide-react";
+import type { FxBoardRow } from "@ishoot/database/queries/fx-settlement";
 import { createQuotationAction } from "../../app/actions/quotations";
+import { refreshExchangeRatesAction } from "../../app/actions/finance";
+import { convertFromBhd } from "../../lib/fx-client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 import { toast } from "sonner";
@@ -34,6 +38,8 @@ interface LineItemDraft {
   descriptionAr: string;
   quantity: number;
   unitPrice: number;
+  /** The catalogue price in BHD, kept so the line re-prices when the quotation currency changes. */
+  basePriceBhd?: number | null;
 }
 
 interface NewQuotationFormViewProps {
@@ -43,8 +49,8 @@ interface NewQuotationFormViewProps {
   preselectedClientId?: string;
   dealId?: string;
   inquiryId?: string;
-  /** Units of each quotable currency per 1 BHD, from the server's rate source. */
-  fxRates: Record<string, number>;
+  /** Units of each quotable currency per 1 BHD, with the rate source. */
+  fxBoard: FxBoardRow[];
 }
 
 export function NewQuotationFormView({
@@ -54,7 +60,7 @@ export function NewQuotationFormView({
   preselectedClientId,
   dealId,
   inquiryId,
-  fxRates,
+  fxBoard: initialFxBoard,
 }: NewQuotationFormViewProps) {
   const router = useRouter();
   const { isRTL, t } = useAdminLocale();
@@ -75,6 +81,23 @@ export function NewQuotationFormView({
   const [currency, setCurrency] = React.useState<SupportedCurrency>("BHD");
   const [language, setLanguage] = React.useState<"en" | "ar">("ar");
   const [validUntilDays, setValidUntilDays] = React.useState(30);
+  const [fxBoard, setFxBoard] = React.useState(initialFxBoard);
+  const [refreshingFx, setRefreshingFx] = React.useState(false);
+  const fxRates = React.useMemo(() => Object.fromEntries(fxBoard.map((row) => [row.currency, row.perBhd])), [fxBoard]);
+  const fxRow = fxBoard.find((row) => row.currency === currency);
+  const refreshRates = async () => {
+    setRefreshingFx(true);
+    try {
+      const res = await refreshExchangeRatesAction();
+      setFxBoard(res.board);
+      if (res.live) toast.success(qfT.fxRefreshed);
+      else toast.error(qfT.fxRefreshFailed);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : qfT.fxRefreshFailed);
+    } finally {
+      setRefreshingFx(false);
+    }
+  };
 
   // FX Buffer State (3% default company policy for non-BHD)
   const isNonBhd = currency !== "BHD";
@@ -106,9 +129,19 @@ export function NewQuotationFormView({
       descriptionEn: services.length > 0 ? services[0].name_en : t.newQuotationForm.productionServices,
       descriptionAr: services.length > 0 ? services[0].name_ar : "خدمات الإنتاج والتصوير",
       quantity: 1,
-      unitPrice: 150,
+      unitPrice: services.length > 0 ? Number(services[0].default_rate) || 0 : 0,
+      basePriceBhd: services.length > 0 ? Number(services[0].default_rate) || 0 : null,
     },
   ]);
+
+  // Catalogue prices are in BHD: re-price service lines whenever the currency (and so the rate) changes.
+  React.useEffect(() => {
+    setLineItems((prev) =>
+      prev.map((item) =>
+        item.basePriceBhd == null ? item : { ...item, unitPrice: convertFromBhd(item.basePriceBhd, effectiveRate, currency) },
+      ),
+    );
+  }, [currency, effectiveRate]);
 
   const addLineItem = () => {
     setLineItems((prev) => [
@@ -132,7 +165,8 @@ export function NewQuotationFormView({
     setLineItems((prev) =>
       prev.map((item, idx) => {
         if (idx !== index) return item;
-        return { ...item, [field]: value };
+        // A hand-typed price stops following the catalogue rate.
+        return { ...item, [field]: value, ...(field === "unitPrice" && { basePriceBhd: null }) };
       }),
     );
   };
@@ -148,6 +182,8 @@ export function NewQuotationFormView({
           serviceId: s.id,
           descriptionEn: s.name_en,
           descriptionAr: s.name_ar,
+          basePriceBhd: Number(s.default_rate) || 0,
+          unitPrice: convertFromBhd(Number(s.default_rate) || 0, effectiveRate, currency),
         };
       }),
     );
@@ -547,6 +583,24 @@ export function NewQuotationFormView({
                 <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400">
                   {qfT.fxNoticeDesc}
                 </p>
+                {fxRow && (
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px]">
+                    <span>
+                      {(fxRow.isFallback ? qfT.fxSourceFallback : qfT.fxSource)
+                        .replace("{provider}", fxRow.provider)
+                        .replace("{date}", fxRow.effectiveDate)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={refreshRates}
+                      disabled={refreshingFx}
+                      className="inline-flex items-center gap-1 font-semibold underline-offset-2 hover:underline disabled:opacity-60"
+                    >
+                      <RefreshCw className={`w-3 h-3 ${refreshingFx ? "animate-spin" : ""}`} />
+                      {qfT.fxRefresh}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </Card>

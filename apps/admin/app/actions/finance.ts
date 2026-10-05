@@ -12,7 +12,9 @@ createInvoice,
 updateInvoice,
 updateInvoiceStatus,createActivityLog,getInvoiceByIdOrNumber,
 PaymentMethod,
-SupportedCurrency
+SupportedCurrency,
+  refreshExchangeRates,
+  getFxBoard,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
@@ -305,3 +307,14 @@ export async function exportFinancialReportCsvAction(filters: {
   });
 }
 
+
+/** Pulls today's live rates for every supported currency; falls back silently to stored rates. */
+export async function refreshExchangeRatesAction() {
+  return measureOperation("action:refreshExchangeRatesAction", async () => {
+    await requirePermission("quotations", "create");
+    validateActionArguments("refreshExchangeRatesAction", {});
+    const live = await refreshExchangeRates({ force: true });
+    revalidatePath(ROUTES.quotations.create());
+    return { success: true, live, board: await getFxBoard() };
+  });
+}

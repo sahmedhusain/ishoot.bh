@@ -464,7 +464,12 @@
     "subtotal": "المجموع الفرعي",
     "discount": "الخصم التجاري",
     "vat": "ضريبة القيمة المضافة (10%)",
-    "total": "إجمالي قيمة العرض"
+    "total": "إجمالي قيمة العرض",
+    "fxRefresh": "تحديث السعر المباشر",
+    "fxRefreshed": "تم تحديث أسعار الصرف المباشرة",
+    "fxRefreshFailed": "الأسعار المباشرة غير متاحة الآن؛ يُستخدم آخر سعر محفوظ",
+    "fxSource": "السعر: {provider}، {date}",
+    "fxSourceFallback": "سعر احتياطي: {provider}، {date}"
   },
   "quotationDetail": {
     "backToQuotes": "العودة إلى عروض الأسعار",

@@ -1,6 +1,6 @@
 import { requirePermission } from "../../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { getInvoiceById, getCRMContactById, getAllServices } from "@ishoot/database";
+import { getInvoiceById, getCRMContactById, getAllServices, getFxBoard } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { InvoiceEditFormView } from "../../../../../components/invoices/InvoiceEditFormView";
 
@@ -18,11 +18,12 @@ export default async function InvoiceEditPage({
   const { id } = await params;
 
   const invoicePromise = getInvoiceById(id);
-  const [invoice, contacts, company, services] = await Promise.all([
+  const [invoice, contacts, company, services, fxBoard] = await Promise.all([
     invoicePromise,
     invoicePromise.then(inv=>inv?.contact_id ? getCRMContactById(inv.contact_id).then(c=>c?[c]:[]) : []),
     getCachedCompanySettings(),
     getAllServices({ isActive: true }),
+    getFxBoard(),
   ]);
 
   if (!invoice || !company) {
@@ -35,6 +36,7 @@ export default async function InvoiceEditPage({
       initialContacts={contacts}
       company={company}
       services={services}
+      fxRates={Object.fromEntries(fxBoard.map((row) => [row.currency, row.perBhd]))}
     />
   );
 }

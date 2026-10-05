@@ -3,7 +3,7 @@ import { Quotation, calculateInvoiceTotals } from "../types";
 import { getNextSequenceNumber } from "./sequence";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { lineTotal, roundMoney } from "../finance/money";
-import { OPEN_QUOTATION_STATUSES } from "../constants/finance";
+import { OPEN_QUOTATION_STATUSES, assertSupportedCurrency } from "../constants/finance";
 import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
 import { getLatestExchangeRate } from "./fx-settlement";
@@ -38,6 +38,7 @@ export async function createQuotation(
   await assertActorNotOnLeave(actorId);
 
   const currency = data.currency || "BHD";
+  assertSupportedCurrency(currency);
   const quotationNumber = await getNextSequenceNumber("QTE");
 
   // Same totals rules as invoices (validation, per-currency rounding).
@@ -169,6 +170,7 @@ export async function updateQuotation(
   }
 
   const currency = data.currency || existing.currency;
+  assertSupportedCurrency(currency);
   let rawRate = existing.rawRate ? Number(existing.rawRate) : null;
   let fxMarginPercent = Number(existing.fxMarginPercent);
   let effectiveRate = existing.effectiveRate ? Number(existing.effectiveRate) : null;
