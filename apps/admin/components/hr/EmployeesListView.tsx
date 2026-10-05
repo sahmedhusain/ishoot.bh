@@ -17,6 +17,8 @@ interface EmployeesListViewProps {
   currentStatus: string;
   search: string;
   page: number;
+  canViewPay?: boolean;
+  canCreate?: boolean;
 }
 
 export function EmployeesListView({
@@ -26,6 +28,8 @@ export function EmployeesListView({
   currentDepartment,
   currentStatus,
   search,
+  canViewPay = false,
+  canCreate = false,
 }: EmployeesListViewProps) {
   const { t, isRTL } = useAdminLocale();
   const router = useRouter();
@@ -85,13 +89,13 @@ export function EmployeesListView({
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
+          {canCreate && <Link
             href={ROUTES.hr.newEmployee()}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <UserPlus className="w-4 h-4" />
             <span>{t.employeesList.onboardEmployee}</span>
-          </Link>
+          </Link>}
         </div>
       </div>
 
@@ -203,7 +207,7 @@ export function EmployeesListView({
                 <th className="py-3 px-4">{t.employeesList.jobTitleAndDept}</th>
                 <th className="py-3 px-4">{t.employeesList.statusAndAvailability}</th>
                 <th className="py-3 px-4 text-right">{t.employeesList.leaveBalance}</th>
-                <th className="py-3 px-4 text-right">{t.employeesList.compensation}</th>
+                {canViewPay && <th className="py-3 px-4 text-right">{t.employeesList.compensation}</th>}
                 <th className="py-3 px-4 text-right">{t.employeesList.action}</th>
               </tr>
             </thead>
@@ -211,7 +215,7 @@ export function EmployeesListView({
               {employees.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={canViewPay ? 6 : 5}
                     className="py-12 text-center text-xs text-slate-400"
                   >
                     {t.employeesList.noEmployeeRecordsFoundMatching}
@@ -286,7 +290,7 @@ export function EmployeesListView({
                         {t.shared.days}
                       </td>
 
-                      <td className="py-3.5 px-4 text-right font-mono text-xs">
+                      {canViewPay && <td className="py-3.5 px-4 text-right font-mono text-xs">
                         {totalSalary > 0 ? (
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {totalSalary.toFixed(3)}
@@ -297,7 +301,7 @@ export function EmployeesListView({
                             {t.employeesList.nA}
                           </span>
                         )}
-                      </td>
+                      </td>}
 
                       <td className="py-3.5 px-4 text-right">
                         <Link

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { usePermissions } from "../../hooks/usePermissions";
 import { NoEmployeeProfile } from "./NoEmployeeProfile";
 import {
   requestSalaryDocumentAction,
@@ -36,6 +37,9 @@ export function SalaryDocumentsView({
   showNoProfile?: boolean;
 }) {
   const { t, locale } = useAdminLocale();
+  const { can } = usePermissions();
+  // Your own documents need self-service access; requesting for others needs payroll issuing rights.
+  const canRequest = can("self_service", "create") || can("payroll", "issue_send");
   const h = t.hrExtensions;
   const router = useRouter();
   const [kind, setKind] = useState<"payslip" | "salary_certificate">("payslip");
@@ -80,7 +84,7 @@ export function SalaryDocumentsView({
     <section className="space-y-4 rounded-lg border border-slate-200 dark:border-white/10 p-5">
       <h2 className="text-lg font-semibold">{h.salaryDocuments}</h2>
       {showNoProfile && !employeeId && <NoEmployeeProfile />}
-      {employeeId && (
+      {employeeId && canRequest && (
         <form
           className="space-y-3"
           onSubmit={(e) => {

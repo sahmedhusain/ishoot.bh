@@ -2029,7 +2029,8 @@
     "certificateParagraph": "This is to certify that {name}, employee number {number}, has been employed by {company} since {hireDate} in the position of {title}, and receives a total gross monthly salary of {gross} Bahraini Dinars.",
     "certificateClosing": "This certificate was issued at the employee's request, without any liability on the company.",
     "toWhom": "To whom it may concern",
-    "bonus": "Bonus / incentive"
+    "bonus": "Bonus / incentive",
+    "payrollCompletesPay": "Salary and payroll settings will be completed by payroll before this person is paid."
   },
   "auditDetails": {
     "before": "Before",

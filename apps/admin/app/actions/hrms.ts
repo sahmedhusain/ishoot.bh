@@ -13,7 +13,15 @@ import {
   db,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
-import { requirePermission } from "../../lib/auth";
+import { hasPermission, requirePermission } from "../../lib/auth";
+
+const PAY_FIELDS = ["basicSalary", "housingAllowance", "transportAllowance", "otherAllowances", "payrollSettings"] as const;
+
+/** Salaries and payroll settings are payroll data: changing them needs payroll:edit, not only employee access. */
+async function requirePayAccessFor(data: Partial<Record<(typeof PAY_FIELDS)[number], unknown>>) {
+  const touchesPay = PAY_FIELDS.some((key) => data[key] !== undefined && !(typeof data[key] === "number" && data[key] === 0));
+  if (touchesPay && !(await hasPermission("payroll", "edit"))) throw new Error("Only payroll managers can set salaries and payroll settings");
+}
 
 export async function createEmployeeAction(data: {
   firstNameEn: string;
@@ -39,6 +47,7 @@ export async function createEmployeeAction(data: {
   return measureOperation("action:createEmployeeAction", async () => {
     const actor = await requirePermission("employees", "create");
     validateActionArguments("createEmployeeAction", { data });
+    await requirePayAccessFor(data);
 
     const { employee } = await runAtomicMutation(async () => {
       if (data.userId) {
@@ -99,6 +108,7 @@ export async function updateEmployeeAction(
   return measureOperation("action:updateEmployeeAction", async () => {
     const actor = await requirePermission("employees", "edit");
     validateActionArguments("updateEmployeeAction", { id, data });
+    await requirePayAccessFor(data);
 
     const { employee } = await runAtomicMutation(async () => {
       const before = await getEmployeeById(id);

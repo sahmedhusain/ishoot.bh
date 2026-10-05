@@ -212,6 +212,8 @@ export async function createPayrollRun(
     const otherAllowances = record ? Number(record.otherAllowances) : 0;
 
     const settings = parsePayrollSettings(record?.payrollSettings);
+    if (!settings || !record)
+      throw new Error(`Complete the salary and payroll settings for ${emp.firstNameEn} ${emp.lastNameEn} (${emp.employeeNumber}) before generating payroll`);
     const line = computePayrollLine(
       { basicSalary: basic, housingAllowance: housing, transportAllowance: transport, otherAllowances },
       settings,
@@ -452,37 +454,4 @@ export async function listPayrollRuns(): Promise<PayrollRun[]> {
       ...mapPayrollItem(it),
     })),
   }));
-}
-
-export async function getPayslipById(
-  payslipId: string,
-  actor: { id: string; role: string },
-): Promise<any> {
-  const payslip = await db.payslip.findUnique({
-    where: { id: payslipId },
-    include: {
-      payrollItem: true,
-      employee: {
-        include: {
-          department: true,
-          user: { select: { id: true } },
-        },
-      },
-    },
-  });
-
-  if (!payslip) return null;
-
-  // Access check: only the employee or HR/Admin/Super Admin
-  const isOwner = payslip.employee.userId === actor.id;
-  const isAuthorized =
-    actor.role === "super_admin" ||
-    actor.role === "admin" ||
-    actor.role === "finance_manager";
-
-  if (!isOwner && !isAuthorized) {
-    throw new Error("Unauthorized: you can only view your own payslips");
-  }
-
-  return payslip;
 }

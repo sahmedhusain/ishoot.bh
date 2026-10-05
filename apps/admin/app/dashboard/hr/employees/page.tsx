@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { hasPermission, requirePermission } from "../../../../lib/auth";
 import { listEmployees, listDepartments } from "@ishoot/database";
 import { EmployeesListView } from "../../../../components/hr/EmployeesListView";
 
@@ -16,7 +16,7 @@ export default async function EmployeesPage({
   const search = typeof query.search === "string" ? query.search : undefined;
   const page = Math.max(1, Number(query.page) || 1);
 
-  const [{ items: employees, total }, departments] = await Promise.all([
+  const [{ items: listed, total }, departments, canViewPay, canCreate] = await Promise.all([
     listEmployees({
       departmentId,
       status,
@@ -25,7 +25,11 @@ export default async function EmployeesPage({
       pageSize: 25,
     }),
     listDepartments(),
+    hasPermission("payroll", "read"),
+    hasPermission("employees", "create"),
   ]);
+  // Salaries leave the server only for people who can read payroll.
+  const employees = canViewPay ? listed : listed.map((e) => ({ ...e, employmentRecords: [] }));
 
   return (
     <EmployeesListView
@@ -36,6 +40,8 @@ export default async function EmployeesPage({
       currentStatus={status || "all"}
       search={search || ""}
       page={page}
+      canViewPay={canViewPay}
+      canCreate={canCreate}
     />
   );
 }

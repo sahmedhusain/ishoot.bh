@@ -29,14 +29,17 @@ interface PayrollManagementViewProps {
   currentUserId: string;
   /** Runs the current user may approve under the payroll approval policy. */
   decidableRunIds: string[];
-  /** May adjust individual salary lines before submission. */
+  /** May adjust individual salary lines, submit runs and mark them paid. */
   canEdit?: boolean;
+  /** May generate a monthly run. */
+  canCreate?: boolean;
 }
 
 export function PayrollManagementView({
   runs,
   decidableRunIds,
   canEdit = false,
+  canCreate = false,
 }: PayrollManagementViewProps) {
   const { t, locale } = useAdminLocale();
   const router = useRouter();
@@ -175,13 +178,13 @@ export function PayrollManagementView({
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
+          {canCreate && <Button
             onClick={() => setShowGenerateModal(true)}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.payrollManagement.generateMonthlyRun}</span>
-          </Button>
+          </Button>}
         </div>
       </div>
 
@@ -235,12 +238,14 @@ export function PayrollManagementView({
             <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1 mb-4">
               {t.payrollManagement.generateAMonthlyPayrollRun}
             </p>
-            <Button
-              onClick={() => setShowGenerateModal(true)}
-              className="bg-primary hover:bg-primary-hover text-white px-4 py-2 text-xs rounded-md"
-            >
-              {t.payrollManagement.generateFirstRun}
-            </Button>
+            {canCreate && (
+              <Button
+                onClick={() => setShowGenerateModal(true)}
+                className="bg-primary hover:bg-primary-hover text-white px-4 py-2 text-xs rounded-md"
+              >
+                {t.payrollManagement.generateFirstRun}
+              </Button>
+            )}
           </div>
         ) : (
           runs.map((run) => {
@@ -339,7 +344,7 @@ export function PayrollManagementView({
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-white/10">
-                      {(run.status === "draft" || run.status === "calculated") && (
+                      {canEdit && (run.status === "draft" || run.status === "calculated") && (
                         <Button
                           onClick={() => handleSubmitForApproval(run.id)}
                           disabled={loadingId === run.id}
@@ -361,7 +366,7 @@ export function PayrollManagementView({
                         </Button>
                       )}
 
-                      {run.status === "approved" && (
+                      {canEdit && run.status === "approved" && (
                         <Button
                           onClick={() => handleMarkPaid(run.id)}
                           disabled={loadingId === run.id}

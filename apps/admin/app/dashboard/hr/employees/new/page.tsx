@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../../lib/auth";
+import { hasPermission, requirePermission } from "../../../../../lib/auth";
 import { listDepartments, db } from "@ishoot/database";
 import { NewEmployeeFormView } from "../../../../../components/hr/NewEmployeeFormView";
 
@@ -24,5 +24,5 @@ export default async function NewEmployeePage({
       : Promise.resolve(null),
   ]);
 
-  return <NewEmployeeFormView departments={departments} linkUser={linkUser} />;
+  return <NewEmployeeFormView departments={departments} linkUser={linkUser} canSetPay={await hasPermission("payroll", "edit")} />;
 }

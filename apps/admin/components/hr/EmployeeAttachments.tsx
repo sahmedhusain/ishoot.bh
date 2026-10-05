@@ -9,10 +9,13 @@ export function EmployeeAttachments({
   employeeId,
   attachments,
   canEdit,
+  canDelete = false,
 }: {
   employeeId: string;
   attachments: { id: string; fileName: string; fileUrl: string }[];
   canEdit: boolean;
+  /** Deleting needs employees:delete, which the server enforces. */
+  canDelete?: boolean;
 }) {
   const { t } = useAdminLocale();
   const h = t.hrExtensions;
@@ -65,7 +68,7 @@ export function EmployeeAttachments({
           >
             {file.fileName}
           </a>
-          {canEdit && (
+          {canDelete && (
             <button
               disabled={busy}
               onClick={() =>

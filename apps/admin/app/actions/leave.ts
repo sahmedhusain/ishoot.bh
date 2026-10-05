@@ -13,7 +13,7 @@ import {
   db,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
-import { requireAuth, requirePermission } from "../../lib/auth";
+import { hasPermission, requireAuth, requirePermission } from "../../lib/auth";
 
 export async function createLeaveRequestAction(data: {
   employeeId?: string;
@@ -131,8 +131,8 @@ export async function cancelLeaveRequestAction(requestId: string) {
     if (!leave) throw new Error("Leave request not found");
     if (leave.status !== "pending") throw new Error(`Cannot cancel leave with status: ${leave.status}`);
 
-    // Must be either own leave request or super_admin
-    if (leave.employee.userId !== actor.id && actor.role !== "super_admin") {
+    // Your own pending request, or anyone's if you manage employee records.
+    if (leave.employee.userId !== actor.id && !(await hasPermission("employees", "edit"))) {
       throw new Error("You can only cancel your own pending leave requests");
     }
 

@@ -18,10 +18,10 @@ export default async function PayrollPage() {
     : [];
   const decidableRunIds = pending.filter((request) => canDecideApproval(request, user)).map((request) => request.targetId);
 
-  const [canEdit, supportClaims] = await Promise.all([hasPermission("payroll", "edit"), getSupportClaims()]);
+  const [canEdit, canCreate, supportClaims] = await Promise.all([hasPermission("payroll", "edit"), hasPermission("payroll", "create"), getSupportClaims()]);
   return (
     <>
-      <PayrollManagementView runs={runs} currentUserId={user.id} decidableRunIds={decidableRunIds} canEdit={canEdit} />
+      <PayrollManagementView runs={runs} currentUserId={user.id} decidableRunIds={decidableRunIds} canEdit={canEdit} canCreate={canCreate} />
       <div className="max-w-7xl mx-auto mt-8">
         <SupportClaimsPanel claims={supportClaims} canRecord={canEdit} />
       </div>

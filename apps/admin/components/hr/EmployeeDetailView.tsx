@@ -25,12 +25,18 @@ interface EmployeeDetailViewProps {
   employee: Employee;
   departments: Department[];
   canEdit: boolean;
+  /** May see salary and payroll settings (payroll:read). */
+  canViewPay?: boolean;
+  /** May change salary and payroll settings (payroll:edit). */
+  canEditPay?: boolean;
 }
 
 export function EmployeeDetailView({
   employee,
   departments,
   canEdit,
+  canViewPay = false,
+  canEditPay = false,
 }: EmployeeDetailViewProps) {
   const router = useRouter();
   const { isRTL, t } = useAdminLocale();
@@ -84,11 +90,7 @@ export function EmployeeDetailView({
         status: status as any,
         phone: phone.trim() || null,
         email: email.trim() || null,
-        basicSalary,
-        housingAllowance,
-        transportAllowance,
-        otherAllowances,
-        payrollSettings,
+        ...(canEditPay && { basicSalary, housingAllowance, transportAllowance, otherAllowances, payrollSettings }),
       });
 
       if (res.success) {
@@ -179,10 +181,10 @@ export function EmployeeDetailView({
             : t.hrExtensions.inactive
           : t.hrExtensions.unlinked}
       </section>
-      {!currentRecord?.payrollSettings && (
+      {canViewPay && !currentRecord?.payrollSettings && (
         <p className="text-amber-600">{t.hrExtensions.configure}</p>
       )}
-      {!isEditing && (
+      {canViewPay && !isEditing && (
         <fieldset disabled>
           <PayrollSettingsFields value={payrollSettings} onChange={() => {}} />
         </fieldset>
@@ -283,6 +285,7 @@ export function EmployeeDetailView({
           </Card>
 
           {/* Compensation Adjustment */}
+          {canEditPay && (<>
           <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono border-b border-ink/10 pb-3">
               {t.employeeDetail.effectiveCompensationBhd}
@@ -349,6 +352,7 @@ export function EmployeeDetailView({
             value={payrollSettings}
             onChange={setPayrollSettings}
           />
+          </>)}
           <div className="flex justify-end gap-3">
             <button
               type="button"
@@ -441,6 +445,7 @@ export function EmployeeDetailView({
             </Card>
 
             {/* Compensation Structure */}
+            {canViewPay && (
             <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
               <div className="flex items-center justify-between border-b border-ink/10 pb-3">
                 <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
@@ -485,6 +490,7 @@ export function EmployeeDetailView({
                 </div>
               </div>
             </Card>
+            )}
           </div>
 
           {/* Right Column: Leave Balance & User Link */}

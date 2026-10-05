@@ -16,11 +16,15 @@ export default async function EmployeeDetailPage({
   const actor = await requirePermission("employees", "read");
   const { id } = await params;
 
-  const [employee, departments, canEdit] = await Promise.all([
+  const [found, departments, canEdit, canViewPay, canEditPay] = await Promise.all([
     getEmployeeById(id),
     listDepartments(),
     hasPermission("employees", "edit"),
+    hasPermission("payroll", "read"),
+    hasPermission("payroll", "edit"),
   ]);
+  // Salary history stays on the server for people without payroll access.
+  const employee = found && !canViewPay ? { ...found, employmentRecords: [] } : found;
 
   if (!employee) {
     notFound();
@@ -41,8 +45,10 @@ export default async function EmployeeDetailPage({
       employee={employee}
       departments={departments}
       canEdit={canEdit}
+      canViewPay={canViewPay}
+      canEditPay={canEditPay}
     />
-    <EmployeeAttachments employeeId={id} attachments={attachments} canEdit={canEdit} />
+    <EmployeeAttachments employeeId={id} attachments={attachments} canEdit={canEdit} canDelete={await hasPermission("employees", "delete")} />
     {canManage && <SalaryDocumentsView employeeId={id} availableMonths={availableMonths} decidableIds={decidableIds} documents={documents.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes }))} />}
     </div>
   );

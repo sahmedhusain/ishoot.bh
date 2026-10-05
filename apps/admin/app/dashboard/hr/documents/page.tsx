@@ -1,4 +1,4 @@
-import { requireAuth } from "../../../../lib/auth";
+import { requirePermission } from "../../../../lib/auth";
 import { db } from "@ishoot/database";
 import {
   availablePayslipMonths,
@@ -10,7 +10,7 @@ import { SalaryDocumentsView } from "../../../../components/hr/SalaryDocumentsVi
 export const dynamic = "force-dynamic";
 
 export default async function SalaryDocumentsPage() {
-  const user = await requireAuth();
+  const user = await requirePermission("self_service", "read");
   const [canManage, employee, awaitingMe] = await Promise.all([
     canManageSalaryDocuments(user),
     db.employee.findUnique({ where: { userId: user.id }, select: { id: true } }),

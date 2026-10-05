@@ -1,4 +1,4 @@
-import { requireAuth, hasPermission } from "../../../../lib/auth";
+import { requirePermission, hasPermission } from "../../../../lib/auth";
 import { listLeaveRequests, listLeaveTypes, listEmployees, db, canDecideApproval } from "@ishoot/database";
 import { LeaveManagementView } from "../../../../components/hr/LeaveManagementView";
 
@@ -9,7 +9,8 @@ export default async function LeaveManagementPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireAuth();
+  // Leave is self-service: every staff member with self_service:read can file and follow their own.
+  const user = await requirePermission("self_service", "read");
   const query = await searchParams;
   const status = typeof query.status === "string" ? query.status : "all";
   const employeeId = typeof query.employeeId === "string" ? query.employeeId : undefined;
@@ -51,7 +52,8 @@ export default async function LeaveManagementPage({
     <LeaveManagementView
       requests={requests}
       leaveTypes={leaveTypes}
-      allEmployees={allEmployeesResult.items}
+      // Only names are needed to file for someone else; salaries never leave the server here.
+      allEmployees={allEmployeesResult.items.map((e) => ({ ...e, employmentRecords: [] }))}
       myEmployee={
         myEmployee
           ? {

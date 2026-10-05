@@ -26,9 +26,11 @@ interface NewEmployeeFormViewProps {
   departments: Department[];
   /** Existing user account the new employee record will be linked to. */
   linkUser?: { id: string; fullName: string; email: string } | null;
+  /** Salary and payroll settings are set only by payroll managers; others leave them for payroll to complete. */
+  canSetPay?: boolean;
 }
 
-export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormViewProps) {
+export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }: NewEmployeeFormViewProps) {
   const router = useRouter();
   const { isRTL, t } = useAdminLocale();
 
@@ -88,11 +90,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
         departmentId: departmentId || null,
         hireDate,
         contractType,
-        basicSalary,
-        housingAllowance,
-        transportAllowance,
-        otherAllowances,
-        payrollSettings,
+        ...(canSetPay && { basicSalary, housingAllowance, transportAllowance, otherAllowances, payrollSettings }),
         userId: linkUser?.id,
       });
 
@@ -341,6 +339,7 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
         </Card>
 
         {/* Compensation & Allowances */}
+        {canSetPay ? (<>
         <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
           <div className="flex items-center justify-between border-b border-ink/10 pb-3">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2">
@@ -413,6 +412,9 @@ export function NewEmployeeFormView({ departments, linkUser }: NewEmployeeFormVi
           value={payrollSettings}
           onChange={setPayrollSettings}
         />
+        </>) : (
+          <p className="text-xs text-amber-700 dark:text-amber-300 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">{t.hrExtensions.payrollCompletesPay}</p>
+        )}
       </div>
     </form>
   );

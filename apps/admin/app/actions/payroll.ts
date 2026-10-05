@@ -13,7 +13,7 @@ import {
   recordSupportReimbursement,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
-import { requirePermission } from "../../lib/auth";
+import { requireAuth, requirePermission } from "../../lib/auth";
 
 export async function generatePayrollRunAction(month: number, year: number) {
   return measureOperation("action:generatePayrollRunAction", async () => {
@@ -66,8 +66,9 @@ export async function submitPayrollRunForApprovalAction(runId: string) {
 
 export async function approvePayrollRunAction(runId: string) {
   return measureOperation("action:approvePayrollRunAction", async () => {
-    // Eligibility comes from the payroll approval policy, enforced by the engine.
-    const actor = await requirePermission("payroll", "read");
+    // Eligibility comes from the payroll approval policy, enforced by the engine (which also
+    // covers fallback approvers without payroll access).
+    const actor = await requireAuth();
     validateActionArguments("approvePayrollRunAction", { runId });
 
     const outcome = await runAtomicMutation(async () => {
