@@ -13,6 +13,7 @@ export const APPROVAL_TARGET_TYPES = [
   "expense",
   "invoice",
   "expense_claim",
+  "signature_change",
 ] as const;
 export type ApprovalTargetType = (typeof APPROVAL_TARGET_TYPES)[number];
 
@@ -36,6 +37,7 @@ export const APPROVAL_TARGET_ROUTES: Record<ApprovalTargetType, (id: string) => 
   expense: (id) => ROUTES.expenses.list({ highlight: id }),
   invoice: ROUTES.invoices.detail,
   expense_claim: (id) => ROUTES.claims.list({ highlight: id }),
+  signature_change: () => ROUTES.approvals(),
 };
 
 export const approvalTargetUrl = (targetType: string, targetId: string) =>

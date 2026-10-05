@@ -577,6 +577,22 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     bump("supportReimbursements");
   }
 
+  // ============================================================ 7c. signature history (each current signature was approved) and one waiting
+  for (const person of Object.values(u)) {
+    const current = await prisma.user.findUniqueOrThrow({ where: { id: person.id }, select: { signatureUrl: true, createdAt: true } });
+    if (!current.signatureUrl) continue;
+    await prisma.signatureChange.create({
+      data: { userId: person.id, signatureUrl: current.signatureUrl, status: "approved", reviewedById: owner.id, reviewNotes: "Signature on file at onboarding.", decidedAt: current.createdAt, createdAt: current.createdAt },
+    });
+    bump("signatureChanges");
+  }
+  {
+    const newcomer = staffUsers[0];
+    const change = await prisma.signatureChange.create({ data: { userId: newcomer.id, signatureUrl: "/brand/signatures/guest.svg" } });
+    await submit("signature_change", change.id, newcomer.id);
+    bump("signatureChanges");
+  }
+
   // ============================================================ 8. calendar & minutes of meetings
   for (const deal of deals) {
     if (deal.shootDate < daysAgo(200) || deal.shootDate > addDays(TODAY, 90)) continue;

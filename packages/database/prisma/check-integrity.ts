@@ -148,6 +148,7 @@ const RULES: Rule[] = [
         WHEN 'leave_request' THEN EXISTS (SELECT 1 FROM "LeaveRequest" t WHERE t.id = a."targetId" AND t.status = 'pending')
         WHEN 'payroll_run' THEN EXISTS (SELECT 1 FROM "PayrollRun" t WHERE t.id = a."targetId" AND t.status = 'submitted')
         WHEN 'expense' THEN EXISTS (SELECT 1 FROM "Expense" t WHERE t.id = a."targetId" AND t.status = 'pending')
+        WHEN 'signature_change' THEN EXISTS (SELECT 1 FROM "SignatureChange" t WHERE t.id = a."targetId" AND t.status = 'pending')
         WHEN 'expense_claim' THEN EXISTS (SELECT 1 FROM "ExpenseClaim" t WHERE t.id = a."targetId" AND t.status = 'submitted')
         WHEN 'service_request' THEN EXISTS (SELECT 1 FROM "Inquiry" t WHERE t.id = a."targetId" AND t."workflowStatus" = 'pending_approval')
         WHEN 'profile_change' THEN EXISTS (SELECT 1 FROM "ProfileChangeRequest" t WHERE t.id = a."targetId" AND t.status = 'pending')
@@ -191,6 +192,12 @@ const RULES: Rule[] = [
   { area: "hr", name: "payroll item gross = components + bonus and net = gross − employee contribution − other deductions",
     sql: `SELECT id FROM "PayrollItem" WHERE "grossSalary" <> "basicSalary" + "housingAllowance" + "transportAllowance" + "otherAllowances" + "bonus"
       OR "netSalary" <> "grossSalary" - "gosiEmployee" - "otherDeductions"` },
+  { area: "hr", name: "a user's signature is their latest approved drawn signature",
+    sql: `SELECT u.email FROM "User" u JOIN LATERAL (SELECT "signatureUrl" FROM "SignatureChange" c WHERE c."userId" = u.id AND c.status = 'approved' ORDER BY c."decidedAt" DESC LIMIT 1) last ON true
+      WHERE u."signatureUrl" IS DISTINCT FROM last."signatureUrl"` },
+  { area: "hr", name: "signature changes awaiting approval have a pending approval request",
+    sql: `SELECT c.id FROM "SignatureChange" c WHERE c.status = 'pending'
+      AND NOT EXISTS (SELECT 1 FROM "ApprovalRequest" a WHERE a."targetType" = 'signature_change' AND a."targetId" = c.id AND a.status = 'pending')` },
   { area: "hr", name: "support reimbursements are received after their six-month period",
     sql: `SELECT id FROM "SupportReimbursement" WHERE to_char("receivedOn", 'YYYY-MM') < "periodEnd" OR "receivedAmount" < 0` },
   { area: "hr", name: "payroll run totals equal the sum of its items",

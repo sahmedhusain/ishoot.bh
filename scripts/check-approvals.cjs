@@ -110,6 +110,7 @@ function createEngine(db, finalized) {
     "../queries/profile-changes": { approveProfileChange: async () => {}, rejectProfileChange: async () => {} },
     "../queries/salary-documents": { salaryDocumentSnapshot: async () => ({}) },
     "../queries/inquiries": { approveRequest: async () => {}, returnRequest: async () => {} },
+    "../queries/signature-changes": { approveSignatureChange: async () => {}, rejectSignatureChange: async () => {} },
   });
 }
 

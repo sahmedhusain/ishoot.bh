@@ -10,49 +10,23 @@ import {
   cancelPendingApprovals,
   db,
   createActivityLog,
-  claimUpload,
+  requestSignatureChange,
+  cancelSignatureChange,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "../../lib/auth";
 
 export async function updateMyProfileAction(data: {
   phone?: string;
-  signature_url?: string;
 }): Promise<{ success: boolean; user?: any }> {
   return measureOperation("action:updateMyProfileAction", async () => {
     const user = await requireAuth();
     validateActionArguments("updateMyProfileAction", { data });
 
     const { updatedUser } = await runAtomicMutation(async () => {
-      // Validate signature url if provided
-      if (data.signature_url && data.signature_url.startsWith("/api/files/")) {
-        const upload = await db.uploadObject.findUnique({ where: { fileUrl: data.signature_url } });
-        if (
-          !upload ||
-          upload.isPublic ||
-          !["image/png", "image/jpeg", "image/webp"].includes(upload.mimeType)
-        ) {
-          throw new Error("Choose a private signature image uploaded by you");
-        }
-        await claimUpload(db, data.signature_url, user.id);
-        await db.attachment.create({
-          data: {
-            entityType: "user_signature",
-            entityId: user.id,
-            fileUrl: data.signature_url,
-            fileName: upload.fileName,
-            fileSize: upload.fileSize,
-            mimeType: upload.mimeType,
-          },
-        });
-      }
-
       const updated = await db.user.update({
         where: { id: user.id },
-        data: {
-          phone: data.phone,
-          signatureUrl: data.signature_url,
-        },
+        data: { phone: data.phone },
       });
 
       await createActivityLog({
@@ -152,5 +126,35 @@ export async function decideProfileChangeAction(
     revalidatePath(ROUTES.profile());
     revalidatePath(ROUTES.users.list);
     return { success: true, approvalStatus: outcome.status };
+  });
+}
+
+/** Submit a signature drawn on the pad; it replaces the current one only once approved. */
+export async function requestSignatureChangeAction(fileUrl: string) {
+  return measureOperation("action:requestSignatureChangeAction", async () => {
+    const user = await requireAuth();
+    validateActionArguments("requestSignatureChangeAction", { fileUrl });
+    const result = await runAtomicMutation(async () => {
+      const change = await requestSignatureChange(user.id, fileUrl);
+      const approval = await submitForApproval({ targetType: "signature_change", targetId: change.id, requesterId: user.id, policySnapshot: { previous: change.previousUrl ? "replaced" : "first" } });
+      await createActivityLog({ user_id: user.id, action: "request", entity_type: "signature_change", entity_id: change.id, details: { approvalStatus: approval.status } });
+      return { change, approvalStatus: approval.status };
+    });
+    revalidatePath(ROUTES.profile());
+    revalidatePath(ROUTES.approvals());
+    return { success: true, ...result };
+  });
+}
+
+export async function cancelSignatureChangeAction(id: string) {
+  return measureOperation("action:cancelSignatureChangeAction", async () => {
+    const user = await requireAuth();
+    validateActionArguments("cancelSignatureChangeAction", { id });
+    await runAtomicMutation(async () => {
+      await cancelSignatureChange(id, user.id);
+      await createActivityLog({ user_id: user.id, action: "cancel", entity_type: "signature_change", entity_id: id });
+    });
+    revalidatePath(ROUTES.profile());
+    return { success: true };
   });
 }

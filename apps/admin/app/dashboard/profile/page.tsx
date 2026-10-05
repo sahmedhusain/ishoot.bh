@@ -6,7 +6,9 @@ import {
   getProfileChangeRequestsForUser,
   getPendingProfileChangesForManager,
   canDecideApproval,
+  listSignatureChanges,
 } from "@ishoot/database";
+import { SignaturePad } from "../../../components/profile/SignaturePad";
 import { UserProfileView } from "../../../components/profile/UserProfileView";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +67,7 @@ export default async function ProfilePage() {
       myRequests={myRequests}
       pendingTeamRequests={pendingTeamRequests}
     />
+    <SignaturePad currentUrl={user.signature_url} changes={await listSignatureChanges(user.id)} />
     <SalaryDocumentsView showNoProfile employeeId={employeeRecord?.id} availableMonths={availableMonths} documents={salaryDocuments.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes }))} />
     </div>
   );

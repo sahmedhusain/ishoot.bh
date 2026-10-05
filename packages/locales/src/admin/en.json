@@ -2083,7 +2083,8 @@
       "expense_category": "Expense category",
       "commission_payout": "Commission payout",
       "payroll_item": "Payroll line",
-      "support_reimbursement": "Support reimbursement"
+      "support_reimbursement": "Support reimbursement",
+      "signature_change": "Signature change"
     },
     "fields": {
       "name": "Name",
@@ -2194,7 +2195,8 @@
       "payroll_run": "Payroll run",
       "expense": "Expense",
       "invoice": "Invoice",
-      "expense_claim": "Expense claim"
+      "expense_claim": "Expense claim",
+      "signature_change": "Signature change"
     },
     "kpis": {
       "awaiting": "Awaiting your decision",
@@ -3243,9 +3245,6 @@
     "approveAndApply": "Approve & Apply",
     "n1ContactAndSignatureDirect": "1. Contact & Signature (Direct Updates)",
     "phoneNumberAndAuthorizedSignature": "Phone number and authorized signature image can be updated immediately after validation.",
-    "digitalSignatureUrlClaimedPrivate": "Digital Signature URL (Claimed Private Upload)",
-    "apiFilesSignature": "/api/files/signature-...",
-    "usedForStampingIssuedDocuments": "Used for stamping issued documents and authorized approval workflows",
     "saveContactInfo": "Save Contact Info",
     "n2IdentityChangeRequestManager": "2. Identity Change Request (Manager Approved)",
     "corporateGovernanceInvariant": "Corporate Governance Invariant:",
@@ -3891,6 +3890,33 @@
       "quotation": "Quotation",
       "invoice": "Invoice",
       "request": "Service request"
+    }
+  },
+  "signaturePad": {
+    "title": "Your signature",
+    "subtitle": "Draw your signature here with a mouse, pen or finger. It is used on documents you sign and replaces your current signature only after it is approved.",
+    "current": "Current signature",
+    "none": "None yet",
+    "padLabel": "Signature drawing pad",
+    "hint": "Sign inside the box. Undo removes the last stroke.",
+    "undo": "Undo",
+    "clear": "Clear",
+    "submit": "Submit for approval",
+    "submitting": "Submitting…",
+    "submitted": "Signature sent for approval",
+    "applied": "Signature updated",
+    "failed": "Could not save the signature",
+    "pending": "New signature waiting for approval",
+    "pendingHint": "Your current signature stays in use until this is approved.",
+    "withdraw": "Withdraw",
+    "withdrawn": "Signature change withdrawn",
+    "log": "Signature change log",
+    "by": "by {name}",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Withdrawn"
     }
   }
 }

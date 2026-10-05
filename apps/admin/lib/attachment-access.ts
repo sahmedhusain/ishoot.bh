@@ -29,6 +29,17 @@ export async function requireAttachmentAccess(
   action: PermissionAction,
 ) {
   if (entityType === "employee" && (!entityId || entityId === "pending")) throw new Error("Create the employee before attaching documents");
+  if (entityType === "user_signature" && (entityId === "pending" || !entityId)) {
+    // Anyone may upload a drawn signature for themselves; it only applies after approval.
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Unauthorized");
+    if (action === "read") return requirePermission("users", "read");
+    return user;
+  }
+  if (entityType === "user_signature" && action === "read") {
+    const user = await getCurrentUser();
+    if (user && user.id === entityId) return user;
+  }
   if (entityType === "expense_claim") {
     // Every staff member files claims; receipts are visible to the claimant and to finance.
     if (action !== "read") return requirePermission("self_service", "create");

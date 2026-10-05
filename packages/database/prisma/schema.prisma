@@ -69,6 +69,8 @@ model User {
   commissionPayouts          CommissionPayout[]  @relation("CommissionPayee")
   commissionPayoutsRecorded  CommissionPayout[]  @relation("CommissionRecorder")
   supportReimbursementsRecorded SupportReimbursement[] @relation("SupportReimbursementRecorder")
+  signatureChanges           SignatureChange[]   @relation("SignatureChangeOwner")
+  signatureChangesReviewed   SignatureChange[]   @relation("SignatureChangeReviewer")
   @@index([role])
   authChallenges AuthChallenge[]
   quotations Quotation[] @relation("QuotationCreator")
@@ -1629,4 +1631,23 @@ model SupportReimbursement {
   createdAt    DateTime @default(now())
 
   @@unique([employeeId, provider, periodStart])
+}
+
+/// A drawn signature waiting to replace a user's signature; applied only once approved. Kept as the change log.
+model SignatureChange {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation("SignatureChangeOwner", fields: [userId], references: [id], onDelete: Cascade)
+  signatureUrl String
+  previousUrl  String?
+  /// pending | approved | rejected | cancelled
+  status       String    @default("pending")
+  reviewedById String?
+  reviewedBy   User?     @relation("SignatureChangeReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNotes  String?
+  decidedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status])
 }

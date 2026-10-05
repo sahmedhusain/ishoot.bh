@@ -12,6 +12,7 @@ import { approveLeaveRequest, rejectLeaveRequest } from "../queries/leave";
 import { approveProfileChange, rejectProfileChange } from "../queries/profile-changes";
 import { salaryDocumentSnapshot } from "../queries/salary-documents";
 import { approveRequest, returnRequest } from "../queries/inquiries";
+import { approveSignatureChange, rejectSignatureChange } from "../queries/signature-changes";
 
 /**
  * Approval engine: every request that needs sign-off goes through submitForApproval / decideApprovalRequest.
@@ -76,6 +77,10 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
       void (await db.expense.update({ where: { id }, data: { status: "approved", reviewNotes: reason || null } })),
     reject: async (id, _decider, reason) =>
       void (await db.expense.update({ where: { id }, data: { status: "rejected", reviewNotes: reason || null } })),
+  },
+  signature_change: {
+    approve: (id, decider, reason) => approveSignatureChange(id, decider, reason),
+    reject: (id, decider, reason) => rejectSignatureChange(id, decider, reason),
   },
   expense_claim: {
     async approve(id, _decider, reason) {

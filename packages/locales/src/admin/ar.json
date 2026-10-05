@@ -2083,7 +2083,8 @@
       "expense_category": "فئة مصروف",
       "commission_payout": "صرف عمولة",
       "payroll_item": "بند رواتب",
-      "support_reimbursement": "استرداد دعم"
+      "support_reimbursement": "استرداد دعم",
+      "signature_change": "تغيير التوقيع"
     },
     "fields": {
       "name": "الاسم",
@@ -2194,7 +2195,8 @@
       "payroll_run": "مسير رواتب",
       "expense": "مصروف",
       "invoice": "فاتورة",
-      "expense_claim": "مطالبة مصروف"
+      "expense_claim": "مطالبة مصروف",
+      "signature_change": "تغيير التوقيع"
     },
     "kpis": {
       "awaiting": "بانتظار قرارك",
@@ -3243,9 +3245,6 @@
     "approveAndApply": "اعتماد وتطبيق التغيير",
     "n1ContactAndSignatureDirect": "1. بيانات التواصل والتوقيع الرقمي (تحديث فوري)",
     "phoneNumberAndAuthorizedSignature": "يمكنك تعديل رقم الهاتف ورابط التوقيع المعتمد فوراً دون الحاجة لاعتماد إداري.",
-    "digitalSignatureUrlClaimedPrivate": "رابط التوقيع الرقمي المعتمد",
-    "apiFilesSignature": "/api/files/signature-...",
-    "usedForStampingIssuedDocuments": "يُستخدم التوقيع الرقمي في اعتماد عروض الأسعار والمستندات الإدارية المخصصة لك",
     "saveContactInfo": "حفظ بيانات الاتصال",
     "n2IdentityChangeRequestManager": "2. طلب تغيير بيانات الهوية (يتطلب اعتماد المدير)",
     "corporateGovernanceInvariant": "سياسة الأمان ومصفوفة الاعتماد:",
@@ -3891,6 +3890,33 @@
       "quotation": "عرض سعر",
       "invoice": "فاتورة",
       "request": "طلب خدمة"
+    }
+  },
+  "signaturePad": {
+    "title": "توقيعك",
+    "subtitle": "ارسم توقيعك هنا بالفأرة أو القلم أو الإصبع. يُستخدم في المستندات التي توقعها ولا يحل محل توقيعك الحالي إلا بعد اعتماده.",
+    "current": "التوقيع الحالي",
+    "none": "لا يوجد بعد",
+    "padLabel": "لوحة رسم التوقيع",
+    "hint": "وقّع داخل المربع. التراجع يزيل آخر خط.",
+    "undo": "تراجع",
+    "clear": "مسح",
+    "submit": "إرسال للاعتماد",
+    "submitting": "جارٍ الإرسال…",
+    "submitted": "أُرسل التوقيع للاعتماد",
+    "applied": "تم تحديث التوقيع",
+    "failed": "تعذّر حفظ التوقيع",
+    "pending": "توقيع جديد بانتظار الاعتماد",
+    "pendingHint": "يظل توقيعك الحالي مستخدماً حتى يُعتمد هذا.",
+    "withdraw": "سحب",
+    "withdrawn": "تم سحب تغيير التوقيع",
+    "log": "سجل تغييرات التوقيع",
+    "by": "بواسطة {name}",
+    "status": {
+      "pending": "قيد الاعتماد",
+      "approved": "معتمد",
+      "rejected": "مرفوض",
+      "cancelled": "مسحوب"
     }
   }
 }

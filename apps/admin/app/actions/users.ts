@@ -6,7 +6,6 @@ import { validateActionArguments } from "../../lib/action-input";
 
 import {
   getUserById,
-  claimUpload,
   getEffectivePermissions,
   db,
   createUser,
@@ -54,38 +53,6 @@ async function checkUserManagement(
   }
 }
 
-async function attachUserSignature(
-  url: string | undefined,
-  targetId: string,
-  actorId: string,
-) {
-  if (!url?.startsWith("/api/files/")) return;
-  const existing = await db.attachment.findFirst({
-    where: { entityType: "user_signature", entityId: targetId, fileUrl: url },
-    select: { id: true },
-  });
-  if (existing) return;
-  const upload = await db.uploadObject.findUnique({ where: { fileUrl: url } });
-  if (
-    !upload ||
-    upload.isPublic ||
-    !["image/png", "image/jpeg", "image/webp"].includes(upload.mimeType)
-  )
-    throw new Error("Choose a private signature image uploaded by you");
-  const claimed = await claimUpload(db, url, actorId);
-  await db.attachment.create({
-    data: {
-      entityType: "user_signature",
-      entityId: targetId,
-      fileUrl: url,
-      fileName: claimed.fileName,
-      fileSize: claimed.fileSize,
-      mimeType: claimed.mimeType,
-      uploadedById: actorId,
-    },
-  });
-}
-
 export async function createUserAction(data: {
   employeeId: string;
   email: string;
@@ -95,7 +62,6 @@ export async function createUserAction(data: {
   phone?: string;
   department?: string;
   manager_id?: string;
-  signature_url?: string;
 }) {
   return measureOperation("action:createUserAction", async () => {
     const actor = await requirePermission("users", "write");
@@ -132,7 +98,6 @@ export async function createUserAction(data: {
         where: { id: data.employeeId },
         data: { userId: user.id },
       });
-      await attachUserSignature(data.signature_url, user.id, actor.id);
       await createActivityLog({
         user_id: actor.id,
         action: "create",
@@ -188,8 +153,7 @@ export async function updateUserAction(
     phone?: string;
     department?: string;
     manager_id?: string;
-    signature_url?: string;
-    is_active?: boolean;
+      is_active?: boolean;
     password?: string;
   },
 ) {
@@ -218,12 +182,10 @@ export async function updateUserAction(
         phone: data.phone,
         department: data.department,
         manager_id: data.manager_id,
-        signature_url: data.signature_url,
         is_active: data.is_active,
         password: data.password,
       });
       if (!user) throw new Error("User update failed");
-      await attachUserSignature(data.signature_url, user.id, actor.id);
       await createActivityLog({
         user_id: actor.id,
         action: "update",

@@ -9,7 +9,6 @@ import {
   Phone,
   Building,
   ShieldCheck,
-  FileSignature,
   Clock,
   CheckCircle2,
   XCircle,
@@ -57,9 +56,6 @@ export function UserProfileView({
 
   // Contact Form (Immediate Update)
   const [phone, setPhone] = React.useState(user.phone || "");
-  const [signatureUrl, setSignatureUrl] = React.useState(
-    user.signature_url || "",
-  );
   const [isUpdatingContact, setIsUpdatingContact] = React.useState(false);
 
   // Identity Change Request Form (Manager Approved)
@@ -86,7 +82,6 @@ export function UserProfileView({
     try {
       const res = await updateMyProfileAction({
         phone: phone.trim() || undefined,
-        signature_url: signatureUrl.trim() || undefined,
       });
 
       if (res.success) {
@@ -393,25 +388,6 @@ export function UserProfileView({
                     className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono text-start"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t.userProfile.digitalSignatureUrlClaimedPrivate}
-                </label>
-                <div className="relative">
-                  <FileSignature className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
-                  <input
-                    type="text"
-                    value={signatureUrl}
-                    onChange={(e) => setSignatureUrl(e.target.value)}
-                    placeholder={t.userProfile.apiFilesSignature}
-                    className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono text-start"
-                  />
-                </div>
-                <span className="text-[11px] text-slate-400 mt-1 block">
-                  {t.userProfile.usedForStampingIssuedDocuments}
-                </span>
               </div>
 
               <div className="flex justify-end pt-2">

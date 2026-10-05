@@ -3668,10 +3668,6 @@
           "phone": {
             "kind": "string",
             "optional": true
-          },
-          "signature_url": {
-            "kind": "string",
-            "optional": true
           }
         },
         "optional": false
@@ -3725,6 +3721,24 @@
       "notes": {
         "kind": "string",
         "optional": true
+      }
+    }
+  },
+  "requestSignatureChangeAction": {
+    "kind": "object",
+    "fields": {
+      "fileUrl": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "cancelSignatureChangeAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
       }
     }
   },
@@ -5441,10 +5455,6 @@
           "manager_id": {
             "kind": "string",
             "optional": true
-          },
-          "signature_url": {
-            "kind": "string",
-            "optional": true
           }
         },
         "optional": false
@@ -5495,10 +5505,6 @@
             "optional": true
           },
           "manager_id": {
-            "kind": "string",
-            "optional": true
-          },
-          "signature_url": {
             "kind": "string",
             "optional": true
           },
