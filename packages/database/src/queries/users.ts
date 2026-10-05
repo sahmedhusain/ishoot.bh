@@ -13,6 +13,7 @@ function mapUser(u: any): Profile {
     avatar_url: u.avatarUrl || undefined,
     signature_url: u.signatureUrl || undefined,
     discount_limit_percent: u.discountLimitPercent == null ? null : Number(u.discountLimitPercent),
+    commission_rate_percent: u.commissionRatePercent == null ? null : Number(u.commissionRatePercent),
     phone: u.phone || undefined,
     department: u.department || undefined,
     manager_id: u.managerId || undefined,

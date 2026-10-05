@@ -70,6 +70,7 @@ export const ROUTES = {
   finance: {
     overview: "/dashboard/finance",
     reports: "/dashboard/finance/reports",
+    commissions: (query?: { month?: string }) => withQuery("/dashboard/finance/commissions", query),
   },
   hr: {
     documents: (query?: HighlightQuery) => withQuery("/dashboard/hr/documents", query),

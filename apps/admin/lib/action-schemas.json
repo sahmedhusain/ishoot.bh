@@ -2205,6 +2205,10 @@
             "kind": "string",
             "optional": true
           },
+          "sales_owner_id": {
+            "kind": "string",
+            "optional": true
+          },
           "line_items": {
             "kind": "array",
             "element": {
@@ -3741,6 +3745,19 @@
             ],
             "optional": true
           },
+          "salesOwnerId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
           "lineItems": {
             "kind": "array",
             "element": {
@@ -4435,6 +4452,81 @@
             "value": "en"
           }
         ],
+        "optional": false
+      }
+    }
+  },
+  "reassignSalesOwnerAction": {
+    "kind": "object",
+    "fields": {
+      "entityType": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "quotation"
+          },
+          {
+            "kind": "literal",
+            "value": "invoice"
+          }
+        ],
+        "optional": false
+      },
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "toUserId": {
+        "kind": "string",
+        "optional": false
+      },
+      "reason": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "string"
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": true
+      }
+    }
+  },
+  "updateUserCommissionRateAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "rate": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "number"
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "recordCommissionPayoutAction": {
+    "kind": "object",
+    "fields": {
+      "userId": {
+        "kind": "string",
+        "optional": false
+      },
+      "month": {
+        "kind": "string",
         "optional": false
       }
     }

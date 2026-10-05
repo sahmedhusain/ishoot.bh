@@ -4,6 +4,7 @@ import { getNextSequenceNumber } from "./sequence";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { lineTotal, roundMoney } from "../finance/money";
 import { discountDecision } from "../finance/discount-policy";
+import { resolveSalesOwner } from "./sales-attribution";
 import { OPEN_QUOTATION_STATUSES, assertSupportedCurrency } from "../constants/finance";
 import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
@@ -27,6 +28,8 @@ export async function createQuotation(
     termsEn?: string | null;
     termsAr?: string | null;
     rawRate?: number | null;
+    /** Salesperson credited with the quotation; defaults to the issuer. */
+    salesOwnerId?: string | null;
     lineItems: {
       descriptionEn: string;
       descriptionAr?: string | null;
@@ -98,6 +101,7 @@ export async function createQuotation(
         termsEn: data.termsEn || null,
         termsAr: data.termsAr || null,
         createdById: actorId,
+        salesOwnerId: await resolveSalesOwner(data.salesOwnerId, actorId),
         lineItems: {
           create: itemsWithTotals,
         },
@@ -518,6 +522,7 @@ export async function convertQuotationToInvoice(
         status: "draft",
         approvalStatus: "draft",
         createdById: actorId,
+        salesOwnerId: quotation.salesOwnerId ?? actorId,
         lineItems: {
           create: quotation.lineItems.map((li, idx) => ({
             descriptionEn: li.descriptionEn,

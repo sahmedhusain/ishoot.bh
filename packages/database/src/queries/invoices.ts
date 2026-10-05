@@ -9,6 +9,7 @@ import {
 
 import { amountDue as computeAmountDue, lineTotal, sumMoney } from "../finance/money";
 import { allocateDocumentNumber } from "../finance/numbering";
+import { resolveSalesOwner } from "./sales-attribution";
 import { INVOICE_STATUS_TRANSITIONS, assertSupportedCurrency } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
 import { companyVat } from "../finance/vat";
@@ -232,6 +233,8 @@ export async function createInvoice(data: {
   deal_id?: string;
   /** Accepted quotation this invoice bills; it is marked converted in the same transaction. */
   quotation_id?: string;
+  /** Salesperson credited with the invoice; defaults to its quotation's, else the issuer. */
+  sales_owner_id?: string;
   issue_date: string;
   due_date: string;
   currency?: SupportedCurrency;
@@ -272,11 +275,12 @@ export async function createInvoice(data: {
 
   const created = await db.$transaction(async (tx) => {
     let dealId = data.deal_id || null;
+    let quotationOwner: string | null = null;
     if (data.quotation_id) {
       await tx.$queryRaw`SELECT id FROM "Quotation" WHERE id = ${data.quotation_id} FOR UPDATE`;
       const quotation = await tx.quotation.findUnique({
         where: { id: data.quotation_id },
-        select: { status: true, invoiceId: true, dealId: true, clientId: true, currency: true },
+        select: { status: true, invoiceId: true, dealId: true, clientId: true, currency: true, salesOwnerId: true },
       });
       if (!quotation) throw new Error("Quotation not found");
       if (quotation.invoiceId || quotation.status === "converted")
@@ -284,6 +288,7 @@ export async function createInvoice(data: {
       if (quotation.status !== "accepted") throw new Error("Only accepted quotations can be invoiced");
       if (quotation.currency !== currency) throw new Error("Invoice currency must match the quotation");
       dealId = dealId || quotation.dealId;
+      quotationOwner = quotation.salesOwnerId;
     }
     const invoiceNumber = await allocateDocumentNumber("invoice", issueDate, tx);
 
@@ -308,6 +313,7 @@ export async function createInvoice(data: {
         notesEn: data.notes_en || null,
         notesAr: data.notes_ar || null,
         createdById: data.created_by || null,
+        salesOwnerId: await resolveSalesOwner(data.sales_owner_id || quotationOwner, data.created_by),
         lineItems: {
           create: data.line_items.map((li, idx) => ({
             serviceId: li.service_id || null,

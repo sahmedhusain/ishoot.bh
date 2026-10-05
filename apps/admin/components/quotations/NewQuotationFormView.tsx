@@ -55,6 +55,9 @@ interface NewQuotationFormViewProps {
   discountLimit?: number | null;
   /** The company sends every quotation for approval regardless of discount. */
   alwaysNeedsApproval?: boolean;
+  /** People a quotation can be credited to; it defaults to the issuer. */
+  salesPeople?: { id: string; name: string }[];
+  currentUserId?: string;
 }
 
 export function NewQuotationFormView({
@@ -67,6 +70,8 @@ export function NewQuotationFormView({
   fxBoard: initialFxBoard,
   discountLimit = null,
   alwaysNeedsApproval = false,
+  salesPeople = [],
+  currentUserId,
 }: NewQuotationFormViewProps) {
   const router = useRouter();
   const { isRTL, t } = useAdminLocale();
@@ -87,6 +92,7 @@ export function NewQuotationFormView({
   const [currency, setCurrency] = React.useState<SupportedCurrency>("BHD");
   const [language, setLanguage] = React.useState<"en" | "ar">("ar");
   const [validUntilDays, setValidUntilDays] = React.useState(30);
+  const [salesOwnerId, setSalesOwnerId] = React.useState(currentUserId ?? "");
   const [fxBoard, setFxBoard] = React.useState(initialFxBoard);
   const [refreshingFx, setRefreshingFx] = React.useState(false);
   const fxRates = React.useMemo(() => Object.fromEntries(fxBoard.map((row) => [row.currency, row.perBhd])), [fxBoard]);
@@ -249,6 +255,7 @@ export function NewQuotationFormView({
         discountValue,
         termsEn,
         termsAr,
+        salesOwnerId: salesOwnerId || null,
         lineItems: lineItems.map((li, idx) => ({
           serviceId: li.serviceId || null,
           descriptionEn: li.descriptionEn,
@@ -572,6 +579,24 @@ export function NewQuotationFormView({
                   <option value="en">English (English Primary)</option>
                 </select>
               </div>
+              {salesPeople.length > 0 && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">
+                    {t.attribution.creditedTo}
+                  </label>
+                  <select
+                    value={salesOwnerId}
+                    onChange={(e) => setSalesOwnerId(e.target.value)}
+                    className="w-full text-sm rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-2 text-slate-900 dark:text-white"
+                  >
+                    {currentUserId && !salesPeople.some((p) => p.id === currentUserId) && <option value={currentUserId}>{t.attribution.me}</option>}
+                    {salesPeople.map((p) => (
+                      <option key={p.id} value={p.id}>{p.id === currentUserId ? `${p.name} (${t.attribution.me})` : p.name}</option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-ink-muted mt-1">{t.attribution.creditHint}</p>
+                </div>
+              )}
             </div>
 
             {/* 3% FX Margin Indicator */}

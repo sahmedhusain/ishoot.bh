@@ -11,6 +11,7 @@ import { createQuotation, submitQuotationForApproval, issueQuotation, acceptQuot
 import { createInvoice, updateInvoiceStatus, markOverdueInvoices } from "../src/queries/invoices";
 import { createPayment } from "../src/queries/payments";
 import { createExpense } from "../src/queries/expenses";
+import { reassignSalesOwner, getCommissionStatement, recordCommissionPayout } from "../src/queries/sales-attribution";
 import { createExpenseClaim, scheduleExpenseClaim, payExpenseClaim, cancelExpenseClaim } from "../src/queries/expense-claims";
 import { createConsolidatedRequest } from "../src/queries/requests";
 import { assignRequest, submitRequestForApproval, confirmRequest, resolveRequest, returnRequest } from "../src/queries/inquiries";
@@ -194,7 +195,8 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   const allStaff = [...Object.values(u).filter((x) => x.role !== "viewer"), ...staffUsers];
   const salesTeam = allStaff.filter((x) => ["sales", "super_admin", "admin"].includes(x.role));
   // Sales staff may give up to 7.5% without approval; everyone else uses the 5% company default.
-  await prisma.user.updateMany({ where: { role: "sales" }, data: { discountLimitPercent: 7.5 } });
+  await prisma.user.updateMany({ where: { role: "sales" }, data: { discountLimitPercent: 7.5, commissionRatePercent: 5 } });
+  await prisma.user.updateMany({ where: { role: "admin" }, data: { commissionRatePercent: 2 } });
   const productionTeam = allStaff.filter((x) => ["producer", "production_manager", "editor"].includes(x.role) && x.id !== u.editor?.id);
 
   // ============================================================ 2. customers
@@ -268,6 +270,8 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
       termsEn: "50% advance on confirmation, balance on delivery. Valid for 30 days.",
       termsAr: "دفعة مقدمة 50% عند التأكيد والباقي عند التسليم. العرض ساري لمدة 30 يوماً.",
       lineItems: lines.map((l) => ({ descriptionEn: l.descriptionEn, descriptionAr: l.descriptionAr, quantity: l.quantity, unitPrice: l.unitPrice })),
+      // Most quotations are credited to their issuer; some to the salesperson who brought the lead.
+      salesOwnerId: chance(0.2) ? pick(salesTeam).id : owner_.id,
     }, owner_.id);
     bump("quotations");
     if (issueDate > daysAgo(3) && chance(0.5)) continue; // fresh drafts
@@ -359,6 +363,28 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
       created_by: finance.id,
     });
     bump("payments");
+  }
+
+  // ============================================================ 3b. sales credit changes & commission payouts
+  {
+    const credited = await prisma.invoice.findMany({ where: { status: { not: "void" }, salesOwnerId: { not: null } }, select: { id: true, salesOwnerId: true }, take: 400 });
+    for (const inv of shuffle(credited).slice(0, 14)) {
+      const to = pick(salesTeam.filter((x) => x.id !== inv.salesOwnerId));
+      if (!to) continue;
+      await reassignSalesOwner("invoice", inv.id, to.id, owner.id, pick(["Lead introduced by this salesperson", "Account handed over", "Corrected credit after client confirmation"]));
+      bump("salesCreditChanges");
+    }
+    const currentMonth = iso(TODAY).slice(0, 7);
+    for (let back = 6; back >= 1; back--) {
+      const month = iso(new Date(Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() - back, 1))).slice(0, 7);
+      if (month >= currentMonth) continue;
+      for (const row of await getCommissionStatement(month)) {
+        if (row.commission > 0 && (back > 1 || chance(0.5))) {
+          await recordCommissionPayout(row.userId, month, finance.id);
+          bump("commissionPayouts");
+        }
+      }
+    }
   }
 
   // ============================================================ 4. expenses (with approvals)
@@ -652,6 +678,11 @@ export async function reconcileSeed(prisma: PrismaClient) {
     const requester = r.assignedToId ?? (await prisma.user.findFirstOrThrow({ where: { role: "production_manager" } })).id;
     await submit("service_request", r.id, requester, { reference: r.reference, requestType: r.requestType });
   }
+  // Hand-written fixtures are credited like migrated data: to their issuer, invoices to their quotation's owner.
+  const fallbackOwner = (await prisma.user.findFirstOrThrow({ where: { role: "sales", isActive: true }, select: { id: true } })).id;
+  await prisma.$executeRaw`UPDATE "Quotation" SET "salesOwnerId" = COALESCE("createdById", ${fallbackOwner}) WHERE "salesOwnerId" IS NULL`;
+  await prisma.$executeRaw`UPDATE "Invoice" i SET "salesOwnerId" = q."salesOwnerId" FROM "Quotation" q WHERE q."invoiceId" = i.id AND i."salesOwnerId" IS NULL`;
+  await prisma.$executeRaw`UPDATE "Invoice" SET "salesOwnerId" = COALESCE("createdById", ${fallbackOwner}) WHERE "salesOwnerId" IS NULL`;
   // Deals follow their quotations and invoices (forward only, never reopening closed deals).
   const quotations = await prisma.quotation.findMany({ where: { dealId: { not: null }, status: { in: ["issued", "accepted", "converted"] } }, select: { dealId: true, status: true } });
   for (const q of quotations) await advanceDealForEvent(prisma, q.dealId, q.status === "issued" ? "quotation_issued" : "quotation_accepted");

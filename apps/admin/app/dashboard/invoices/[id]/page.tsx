@@ -1,6 +1,7 @@
 import { requirePermission, hasPermission } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { getInvoiceById, getAllPayments } from "@ishoot/database";
+import { getInvoiceById, getAllPayments, getAttribution, listSalesPeople } from "@ishoot/database";
+import { AttributionPanel } from "../../../../components/sales/AttributionPanel";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { InvoiceDetailView } from "../../../../components/invoices/InvoiceDetailView";
 
@@ -18,10 +19,14 @@ export default async function InvoiceDetailPage({
   const { id } = await params;
 
   // Invoice access alone opens the page; the payment history needs payments access.
-  const [invoice, company, allPayments] = await Promise.all([
+  const [invoice, company, allPayments, attribution, salesPeople, canEdit, canAssign] = await Promise.all([
     getInvoiceById(id),
     getCachedCompanySettings(),
     canReadPayments ? getAllPayments({ invoiceId: id }) : Promise.resolve([]),
+    getAttribution("invoice", id),
+    listSalesPeople(),
+    hasPermission("invoices", "edit"),
+    hasPermission("invoices", "assign"),
   ]);
 
   if (!invoice || !company) {
@@ -31,10 +36,11 @@ export default async function InvoiceDetailPage({
   const invoicePayments = allPayments;
 
   return (
-    <InvoiceDetailView
-      invoice={invoice}
-      company={company}
-      payments={invoicePayments}
-    />
+    <>
+      <InvoiceDetailView invoice={invoice} company={company} payments={invoicePayments} />
+      <div className="max-w-6xl mx-auto mt-6 no-print">
+        <AttributionPanel entityType="invoice" entityId={id} info={attribution} salesPeople={salesPeople} canReassign={canEdit || canAssign} />
+      </div>
+    </>
   );
 }

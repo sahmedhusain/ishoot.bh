@@ -51,6 +51,9 @@ interface NewInvoiceFormViewProps {
   dealId?: string;
   /** Units of each supported currency per 1 BHD; service catalogue prices are in BHD. */
   fxRates?: Record<string, number>;
+  /** People an invoice can be credited to; defaults to its quotation's salesperson, else the issuer. */
+  salesPeople?: { id: string; name: string }[];
+  currentUserId?: string;
 }
 
 export function NewInvoiceFormView({
@@ -58,6 +61,8 @@ export function NewInvoiceFormView({
   company,
   services = [],
   fxRates = {},
+  salesPeople = [],
+  currentUserId,
   preselectedClientId,
   acceptedQuotations = [],
   preselectedQuotation,
@@ -84,6 +89,9 @@ export function NewInvoiceFormView({
 
   const [currency, setCurrency] = React.useState<SupportedCurrency>(
     (company?.default_currency as SupportedCurrency) || "BHD",
+  );
+  const [salesOwnerId, setSalesOwnerId] = React.useState(
+    (preselectedQuotation as { salesOwnerId?: string | null } | null | undefined)?.salesOwnerId ?? currentUserId ?? "",
   );
   const [language, setLanguage] = React.useState<"en" | "ar">(
     locale === "ar" ? "ar" : "en",
@@ -272,6 +280,7 @@ export function NewInvoiceFormView({
         discount_value: discountValue,
         vat_enabled: vatEnabled,
         vat_percentage: vatPercentage,
+        sales_owner_id: salesOwnerId || undefined,
         line_items: lineItems.map((li) => ({
           service_id: li.service_id || undefined,
           description_en: li.description_en || "Service",
@@ -425,6 +434,18 @@ export function NewInvoiceFormView({
                   ))}
                 </Select>
               </div>
+
+              {salesPeople.length > 0 && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-500 dark:text-slate-400">{t.attribution.creditedTo}</label>
+                  <Select value={salesOwnerId} onChange={(e) => setSalesOwnerId(e.target.value)}>
+                    {currentUserId && !salesPeople.some((p) => p.id === currentUserId) && <option value={currentUserId}>{t.attribution.me}</option>}
+                    {salesPeople.map((p) => (
+                      <option key={p.id} value={p.id}>{p.id === currentUserId ? `${p.name} (${t.attribution.me})` : p.name}</option>
+                    ))}
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-500 dark:text-slate-400">

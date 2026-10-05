@@ -27,6 +27,8 @@ export interface Profile {
   signature_url?: string;
   /** Discount limit (% of subtotal) without approval; null uses the company default. */
   discount_limit_percent?: number | null;
+  /** Commission on collected net revenue credited to this person; null = none. */
+  commission_rate_percent?: number | null;
   manager_id?: string;
   manager_name?: string;
   is_active?: boolean;

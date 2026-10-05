@@ -293,6 +293,7 @@ async function runTests() {
     },
     "./crm": { advanceDealForEvent: async () => false },
     "../finance/vat": { companyVat: async () => ({ vatEnabled: true, vatPercentage: 10 }) },
+    "./sales-attribution": { resolveSalesOwner: async (requested, issuer) => requested || issuer || null },
     "../finance/discount-policy": {
       discountDecision: async () => ({ percent: 0, limit: 5, limitSource: "company", withinLimit: true, needsApproval: false }),
     },

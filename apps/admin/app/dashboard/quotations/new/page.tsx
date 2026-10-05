@@ -1,5 +1,5 @@
 import { requirePermission } from "../../../../lib/auth";
-import { discountDecision } from "@ishoot/database";
+import { discountDecision, listSalesPeople } from "@ishoot/database";
 import { getCRMContactById, getAllServices, getFxBoard } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewQuotationFormView } from "../../../../components/quotations/NewQuotationFormView";
@@ -15,7 +15,7 @@ export default async function NewQuotationPage({
   await requirePermission("contacts", "read");
   const params = await searchParams;
 
-  const [contacts, company, services, fxBoard, discountPolicy] = await Promise.all([
+  const [contacts, company, services, fxBoard, discountPolicy, salesPeople] = await Promise.all([
     params?.clientId
       ? getCRMContactById(params.clientId).then((c) => (c ? [c] : []))
       : Promise.resolve([]),
@@ -23,6 +23,7 @@ export default async function NewQuotationPage({
     getAllServices({ isActive: true }),
     getFxBoard(),
     discountDecision(actor.id, 100, 0),
+    listSalesPeople(),
   ]);
 
   return (
@@ -36,6 +37,8 @@ export default async function NewQuotationPage({
       fxBoard={fxBoard}
       discountLimit={discountPolicy.limit}
       alwaysNeedsApproval={discountPolicy.needsApproval}
+      salesPeople={salesPeople}
+      currentUserId={actor.id}
     />
   );
 }

@@ -198,6 +198,7 @@ async function main() {
     "./crm": { advanceDealForEvent: async () => false },
     // Drafts take the company VAT (5% here); issued invoices keep their own snapshot.
     "../finance/vat": { companyVat: async () => ({ vatEnabled: true, vatPercentage: 5 }) },
+    "./sales-attribution": { resolveSalesOwner: async (requested, issuer) => requested || issuer || null },
   });
   await assert.rejects(invoices.updateInvoice("i", { line_items: [{ quantity: 1, unit_price: 100, description_en: "Shoot" }] }), /simulated update failure/);
   assert.equal(usedTransaction, true);

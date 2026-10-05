@@ -157,6 +157,8 @@ export async function createInvoiceAction(data: {
   vat_enabled?: boolean;
   vat_percentage?: number;
   created_by?: string;
+  /** Salesperson credited with the invoice; defaults to its quotation's, else the issuer. */
+  sales_owner_id?: string;
   line_items: {
     service_id?: string;
     description_en: string;

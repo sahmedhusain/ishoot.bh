@@ -28,6 +28,7 @@ import {
   ShieldAlert,
   TrendingUp,
   HandCoins,
+  BadgeDollarSign,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -145,6 +146,12 @@ export function Sidebar() {
             icon: BarChart,
             resource: "reports",
             moduleKey: "invoicing",
+          },
+          {
+            href: ROUTES.finance.commissions(),
+            label: t.commissions.title,
+            icon: BadgeDollarSign,
+            resource: "reports",
           },
           {
             href: ROUTES.finance.overview,

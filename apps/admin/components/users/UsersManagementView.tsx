@@ -31,6 +31,7 @@ import {
   Building,
   CheckCircle2,
 } from "lucide-react";
+import { updateUserCommissionRateAction } from "../../app/actions/sales";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface UsersManagementViewProps {
@@ -275,6 +276,7 @@ export function UsersManagementView({
                   <th className="p-4 text-start">{t.usersManagement.reportsTo}</th>
                   <th className="p-4 text-start">{t.usersView.roleHeader}</th>
                   <th className="p-4 text-start">{t.usersManagement.discountLimit}</th>
+                  <th className="p-4 text-start">{t.usersManagement.commissionRate}</th>
                   <th className="p-4 text-start">{t.usersManagement.signature}</th>
                   <th className="p-4 text-start">{t.usersView.statusHeader}</th>
                   <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
@@ -368,14 +370,24 @@ export function UsersManagementView({
                         {u.role === "super_admin" ? (
                           <span className="text-[11px] text-ink-muted">{t.usersManagement.unlimited}</span>
                         ) : (
-                          <DiscountLimitInput
-                            userId={u.id}
+                          <PercentCell
                             value={u.discount_limit_percent ?? null}
                             disabled={!canWrite}
                             placeholder={t.usersManagement.companyDefault}
                             label={t.usersManagement.discountLimit}
+                            onSave={(next) => updateUserDiscountLimitAction(u.id, next)}
                           />
                         )}
+                      </td>
+
+                      <td className="p-4">
+                        <PercentCell
+                          value={u.commission_rate_percent ?? null}
+                          disabled={!canWrite}
+                          placeholder={t.usersManagement.noCommission}
+                          label={t.usersManagement.commissionRate}
+                          onSave={(next) => updateUserCommissionRateAction(u.id, next)}
+                        />
                       </td>
 
                       {/* Digital Signature Preview */}
@@ -696,7 +708,7 @@ export function UsersManagementView({
   );
 }
 
-function DiscountLimitInput({ userId, value, disabled, placeholder, label }: { userId: string; value: number | null; disabled: boolean; placeholder: string; label: string }) {
+function PercentCell({ value, disabled, placeholder, label, onSave }: { value: number | null; disabled: boolean; placeholder: string; label: string; onSave: (next: number | null) => Promise<unknown> }) {
   const [draft, setDraft] = React.useState(value === null ? "" : String(value));
   const [state, setState] = React.useState<"idle" | "saving" | "saved" | "error">("idle");
   const save = async () => {
@@ -704,7 +716,7 @@ function DiscountLimitInput({ userId, value, disabled, placeholder, label }: { u
     if (next === value || (next !== null && !Number.isFinite(next))) return;
     setState("saving");
     try {
-      await updateUserDiscountLimitAction(userId, next);
+      await onSave(next);
       setState("saved");
     } catch {
       setState("error");

@@ -1,5 +1,5 @@
 import { requirePermission } from "../../../../lib/auth";
-import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById, getFxBoard } from "@ishoot/database";
+import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById, getFxBoard, listSalesPeople } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewInvoiceFormView } from "../../../../components/invoices/NewInvoiceFormView";
 
@@ -10,15 +10,16 @@ export default async function NewInvoicePage({
 }: {
   searchParams: Promise<{ clientId?: string; quotationId?: string; dealId?: string }>;
 }) {
-  await requirePermission("invoices", "write");
+  const actor = await requirePermission("invoices", "write");
   await requirePermission("contacts", "read");
   const params = await searchParams;
 
-  const [acceptedQuotations, company, services, fxBoard] = await Promise.all([
+  const [acceptedQuotations, company, services, fxBoard, salesPeople] = await Promise.all([
     getAcceptedQuotationsUninvoiced(),
     getCachedCompanySettings(),
     getAllServices({ isActive: true }),
     getFxBoard(),
+    listSalesPeople(),
   ]);
 
   let preselectedQuotation = null;
@@ -45,6 +46,8 @@ export default async function NewInvoicePage({
       preselectedQuotation={preselectedQuotation}
       dealId={params?.dealId}
       fxRates={Object.fromEntries(fxBoard.map((row) => [row.currency, row.perBhd]))}
+      salesPeople={salesPeople}
+      currentUserId={actor.id}
     />
   );
 }

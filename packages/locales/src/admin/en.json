@@ -2078,7 +2078,8 @@
       "auth": "Authentication",
       "company_settings": "Company settings",
       "expense_claim": "Expense claim",
-      "expense_category": "Expense category"
+      "expense_category": "Expense category",
+      "commission_payout": "Commission payout"
     },
     "fields": {
       "name": "Name",
@@ -3297,7 +3298,9 @@
     "noneExecutiveLevel": "None (Executive Level)",
     "discountLimit": "Discount limit",
     "companyDefault": "Default",
-    "unlimited": "Unlimited"
+    "unlimited": "Unlimited",
+    "commissionRate": "Commission",
+    "noCommission": "None"
   },
   "requestLabels": {
     "types": {
@@ -3765,5 +3768,41 @@
     "alwaysApproveHint": "Send all quotations for approval, even without a discount.",
     "perUserHint": "Set a different limit for a person in the Discount limit column on the Users page.",
     "openUsers": "Open Users"
+  },
+  "attribution": {
+    "title": "Sales credit",
+    "issuedBy": "Issued by",
+    "creditedTo": "Credited to",
+    "change": "Change who this is credited to",
+    "reasonPlaceholder": "Why (e.g. lead brought in by Sara)",
+    "saved": "Sales credit updated",
+    "failed": "Could not update the sales credit",
+    "history": "Credit history",
+    "historyLine": "{from} → {to} by {by}",
+    "me": "me",
+    "creditHint": "Defaults to you. Choose the salesperson who brought the lead."
+  },
+  "commissions": {
+    "title": "Sales commissions",
+    "subtitle": "Commission is earned on money collected in the month (net of VAT) on invoices credited to each person, at their commission rate. Recording a payout books it as a payroll expense.",
+    "previous": "Previous month",
+    "next": "Next month",
+    "month": "Month",
+    "collected": "Collected (net)",
+    "totalCommission": "Commission earned",
+    "recordedCount": "Payouts recorded",
+    "empty": "No collections credited to anyone this month.",
+    "person": "Salesperson",
+    "invoices": "Invoices",
+    "collectedNet": "Collected net (BHD)",
+    "rate": "Rate",
+    "commission": "Commission (BHD)",
+    "status": "Payout",
+    "setRate": "Set rate",
+    "record": "Record payout",
+    "recorded": "Commission recorded as an expense",
+    "recordedOn": "Recorded {date}",
+    "failed": "Could not record the commission",
+    "monthOpen": "Month still open"
   }
 }

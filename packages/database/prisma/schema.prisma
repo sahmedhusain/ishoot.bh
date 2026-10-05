@@ -59,6 +59,15 @@ model User {
   expenseClaimsPaid          ExpenseClaim[]      @relation("ExpenseClaimPayer")
   /// Largest discount (% of subtotal) this user may give without approval; null uses the company default.
   discountLimitPercent       Decimal?            @db.Decimal(5, 2)
+  /// Commission on collected revenue (% of net) credited to this person; null = no commission.
+  commissionRatePercent      Decimal?            @db.Decimal(5, 2)
+  quotationsOwned            Quotation[]         @relation("QuotationSalesOwner")
+  invoicesOwned              Invoice[]           @relation("InvoiceSalesOwner")
+  attributionChangesFrom     SalesAttributionChange[] @relation("AttributionFrom")
+  attributionChangesTo       SalesAttributionChange[] @relation("AttributionTo")
+  attributionChangesMade     SalesAttributionChange[] @relation("AttributionChangedBy")
+  commissionPayouts          CommissionPayout[]  @relation("CommissionPayee")
+  commissionPayoutsRecorded  CommissionPayout[]  @relation("CommissionRecorder")
   @@index([role])
   authChallenges AuthChallenge[]
   quotations Quotation[] @relation("QuotationCreator")
@@ -413,6 +422,9 @@ model Invoice {
   updatedAt       DateTime          @updatedAt
 
   expenseClaims     ExpenseClaim[]
+  /// The salesperson credited with this invoice (from its quotation, else its issuer).
+  salesOwnerId    String?
+  salesOwner      User?             @relation("InvoiceSalesOwner", fields: [salesOwnerId], references: [id], onDelete: SetNull)
   @@index([clientId])
   @@index([dealId])
   @@index([status])
@@ -515,6 +527,7 @@ model Expense {
   createdAt          DateTime         @default(now())
 
   claim              ExpenseClaim?
+  commissionPayout   CommissionPayout?
   @@index([dealId])
   @@index([clientId])
   @@index([categoryId])
@@ -998,6 +1011,9 @@ model Quotation {
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt
 
+  /// The salesperson credited with this quotation (defaults to its issuer).
+  salesOwnerId    String?
+  salesOwner      User?                 @relation("QuotationSalesOwner", fields: [salesOwnerId], references: [id], onDelete: SetNull)
   @@index([clientId])
   @@index([dealId])
   @@index([inquiryId])
@@ -1549,4 +1565,40 @@ model ExpenseClaim {
 
   @@index([claimantId])
   @@index([status])
+}
+
+/// Who a quotation or invoice was credited to, and every reassignment (internal history).
+model SalesAttributionChange {
+  id          String   @id @default(uuid())
+  entityType  String // "quotation" | "invoice"
+  entityId    String
+  fromUserId  String?
+  fromUser    User?    @relation("AttributionFrom", fields: [fromUserId], references: [id], onDelete: SetNull)
+  toUserId    String
+  toUser      User     @relation("AttributionTo", fields: [toUserId], references: [id], onDelete: Restrict)
+  changedById String
+  changedBy   User     @relation("AttributionChangedBy", fields: [changedById], references: [id], onDelete: Restrict)
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+/// A month's commission paid to a salesperson; recording it books a payroll-type expense.
+model CommissionPayout {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation("CommissionPayee", fields: [userId], references: [id], onDelete: Restrict)
+  periodMonth  String // YYYY-MM
+  basisAmount  Decimal  @db.Decimal(12, 3)
+  ratePercent  Decimal  @db.Decimal(5, 2)
+  amount       Decimal  @db.Decimal(12, 3)
+  currency     String   @default("BHD")
+  expenseId    String?  @unique
+  expense      Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  recordedById String
+  recordedBy   User     @relation("CommissionRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, periodMonth])
 }
