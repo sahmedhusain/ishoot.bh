@@ -304,14 +304,16 @@ export async function exportFinancialReportCsvAction(filters: {
     await requirePermission("reports", "read");
     validateActionArguments("exportFinancialReportCsvAction", { filters });
 
-    const { getFinancialSummaryReport, generateFinancialSummaryCsv } = await import("@ishoot/database");
-    const report = await getFinancialSummaryReport({
+    const { getFinancialSummaryReport, getFinancialReportDetail, generateFinancialSummaryCsv, generateFinancialDetailCsv } = await import("@ishoot/database");
+    const { companyVat } = await import("@ishoot/database/finance/vat");
+    const range = {
       basis: filters.basis,
       dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
-      dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
-    });
+      dateTo: filters.dateTo ? new Date(`${filters.dateTo}T23:59:59.999Z`) : undefined,
+    };
+    const [report, detail, vat] = await Promise.all([getFinancialSummaryReport(range), getFinancialReportDetail(range), companyVat()]);
 
-    const csvContent = generateFinancialSummaryCsv(report);
+    const csvContent = generateFinancialSummaryCsv(report) + "\n" + generateFinancialDetailCsv(detail, vat.vatEnabled || detail.vat.hasVatDocuments);
     return { success: true, csvContent, filename: `ishoot_financial_report_${report.basis}_${Date.now()}.csv` };
   });
 }

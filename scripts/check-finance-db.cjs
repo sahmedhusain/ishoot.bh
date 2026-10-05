@@ -9,7 +9,7 @@ const { createInvoice, updateInvoiceStatus, markOverdueInvoices } = require("../
 const { createPayment } = require("../packages/database/src/queries/payments.ts");
 const { createQuotation, convertQuotationToInvoice } = require("../packages/database/src/queries/quotations.ts");
 const { createExpense } = require("../packages/database/src/queries/expenses.ts");
-const { getFinancialSummaryReport } = require("../packages/database/src/queries/finance-reports.ts");
+const { getFinancialSummaryReport, getFinancialReportDetail } = require("../packages/database/src/queries/finance-reports.ts");
 
 const rollback = new Error("ROLLBACK_FINANCE_TEST");
 const line = (unit_price, quantity = 1) => ({ description_en: "Shoot day", quantity, unit_price });
@@ -65,12 +65,23 @@ async function main() {
       await tx.expense.update({ where: { id: expense.id }, data: { status: "approved" } });
       const after = await getFinancialSummaryReport({ basis: "accrual" });
       assert.equal(Math.round((after.expensesNet - before.expensesNet) * 1000) / 1000, 100, "net expense, not zero and not VAT-inclusive");
+      // The detailed report reconciles with the summary on both bases.
+      for (const basis of ["accrual", "cash"]) {
+        const [summary, detail] = await Promise.all([getFinancialSummaryReport({ basis }), getFinancialReportDetail({ basis })]);
+        const revenue = detail.monthly.reduce((sum, m) => sum + m.revenueNet, 0);
+        assert.ok(Math.abs(revenue - (basis === "cash" ? summary.cashNetReceipts : summary.invoicedNet)) < 0.05, `${basis} monthly revenue matches the summary`);
+        const costs = detail.expensesByKind.cost_of_sales + detail.expensesByKind.operating + detail.expensesByKind.payroll;
+        assert.ok(Math.abs(costs - (summary.expensesNet + summary.inputVatNonRecoverable)) < 0.05, "category costs match net expenses plus non-recoverable VAT");
+        const bhd = detail.invoiceTotals.find((t) => t.currency === "BHD");
+        if (bhd) assert.ok(Math.abs(bhd.withVat.gross + bhd.withoutVat.gross - summary.invoicedGross) < 0.05, "invoice register splits BHD sales into with/without VAT");
+        assert.ok(Math.abs(detail.vat.netPayable - (detail.vat.output - detail.vat.inputRecoverable)) < 0.001);
+      }
       throw rollback;
     }), { timeout: 30000 });
   } catch (error) {
     if (error !== rollback) throw error;
   }
-  console.log("Finance database checks passed and rolled back: one invoice counter for manual and converted invoices, quotation double-billing blocked, due-date validation, draft payments blocked, minor-unit settlement, status transitions, overdue sweep, net expenses in reports.");
+  console.log("Finance database checks passed and rolled back: one invoice counter for manual and converted invoices, quotation double-billing blocked, due-date validation, draft payments blocked, minor-unit settlement, status transitions, overdue sweep, net expenses in reports, detailed report reconciles with the summary.");
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; }).finally(() => db.$disconnect());
