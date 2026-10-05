@@ -113,7 +113,7 @@ export function NotificationCenter() {
     if (!entityType) return null;
     if (entityType === "payment") return ROUTES.payments.list;
     if (entityType === "calendar") return ROUTES.calendar;
-    if (entityType === "lead") return ROUTES.crm.leads;
+    if (entityType === "lead" || entityType === "inquiry") return entityId ? ROUTES.requests.detail(entityId) : ROUTES.requests.list;
     if (entityType === "invoice")
       return ROUTES.invoices.detail(entityId || "");
     if (entityType === "deal") return ROUTES.crm.deal(entityId || "");

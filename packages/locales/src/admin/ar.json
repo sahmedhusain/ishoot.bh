@@ -3280,7 +3280,7 @@
   },
   "requestLabels": {
     "types": {
-      "complaint": "شكوى عميل (CR)",
+      "complaint": "ملاحظات وشكاوى",
       "service_request": "طلب خدمة (SR)",
       "quote_request": "طلب عرض سعر",
       "inquiry": "استفسار عام"
@@ -3455,5 +3455,112 @@
   },
   "platformPicker": {
     "typeCustomPlatformName": "اكتب اسم منصة مخصصة..."
+  },
+  "financialAnalytics": {
+    "title": "التحليلات المالية",
+    "subtitle": "التحصيل والذمم المدينة واتجاهات الإنفاق. القوائم المالية والضريبة في التقارير المالية.",
+    "collectionRate": "نسبة التحصيل",
+    "collectionRateHint": "المحصل من قيمة الفواتير خلال آخر 12 شهراً",
+    "daysToCollect": "متوسط أيام التحصيل",
+    "daysToCollectHint": "من تاريخ الفاتورة حتى آخر دفعة",
+    "days": "يوم",
+    "outstanding": "الذمم المدينة القائمة",
+    "outstandingHint": "صادرة ولم تُسدد بعد",
+    "averageInvoice": "متوسط قيمة الفاتورة",
+    "averageInvoiceHint": "{count} فاتورة صادرة خلال 12 شهراً",
+    "cashTrend": "التدفق النقدي الداخل والخارج — آخر 12 شهراً",
+    "aging": "أعمار الذمم المدينة",
+    "agingBuckets": {
+      "current": "غير مستحقة بعد",
+      "d1_30": "متأخرة 1–30 يوماً",
+      "d31_60": "متأخرة 31–60 يوماً",
+      "d61_90": "متأخرة 61–90 يوماً",
+      "d90_plus": "متأخرة أكثر من 90 يوماً"
+    },
+    "invoicesCount": "{count} فاتورة",
+    "topClients": "أكبر العملاء تحصيلاً — آخر 12 شهراً",
+    "noData": "لا توجد بيانات بعد.",
+    "spending": "الإنفاق حسب الفئة"
+  },
+  "requestInbox": {
+    "title": "طلبات الخدمة",
+    "subtitle": "صندوق واحد لطلبات الخدمة وطلبات عروض الأسعار واستفسارات الموقع. افتح الطلب للتعامل معه.",
+    "newRequest": "طلب جديد",
+    "stats": {
+      "open": "مفتوحة",
+      "overdue": "تجاوزت المهلة",
+      "unassigned": "غير مسندة",
+      "awaitingApproval": "بانتظار الاعتماد",
+      "mine": "مسندة إليّ",
+      "resolvedThisMonth": "أغلقت هذا الشهر"
+    },
+    "filters": {
+      "kind": "النوع",
+      "status": "الحالة",
+      "scope": "العرض",
+      "team": "الفريق",
+      "priority": "الأولوية",
+      "search": "ابحث بالمرجع أو العميل أو الموضوع",
+      "apply": "تطبيق",
+      "overdueOnly": "المتجاوزة للمهلة فقط"
+    },
+    "kinds": {
+      "all": "كل الأنواع",
+      "service": "طلبات الخدمة",
+      "quote": "طلبات عروض الأسعار",
+      "inquiry": "الاستفسارات",
+      "feedback": "الملاحظات والشكاوى"
+    },
+    "statuses": {
+      "open": "المفتوحة",
+      "all": "كل الحالات"
+    },
+    "scopes": {
+      "all": "الجميع",
+      "mine": "المسندة إليّ",
+      "unassigned": "غير المسندة"
+    },
+    "anyPriority": "أي أولوية",
+    "columns": {
+      "reference": "المرجع",
+      "request": "الطلب",
+      "priority": "الأولوية",
+      "status": "الحالة",
+      "assignee": "المسؤول",
+      "sla": "موعد المهلة"
+    },
+    "unassigned": "غير مسند",
+    "overdue": "متأخر",
+    "empty": "لا توجد طلبات مطابقة لهذه المرشحات.",
+    "open": "فتح",
+    "previous": "السابق",
+    "next": "التالي"
+  },
+  "requestManage": {
+    "title": "إدارة الطلب",
+    "priority": "الأولوية",
+    "sla": "موعد انتهاء المهلة",
+    "save": "حفظ",
+    "saved": "تم الحفظ",
+    "claim": "إسناده إليّ",
+    "failed": "تعذر حفظ التغيير",
+    "salesTitle": "المتابعة البيعية",
+    "leadStatus": "حالة العميل المحتمل",
+    "leadStatuses": {
+      "new": "جديد",
+      "contacted": "تم التواصل",
+      "qualified": "مؤهل",
+      "archived": "مؤرشف"
+    },
+    "feedbackStatuses": {
+      "new": "جديد",
+      "in_progress": "قيد المعالجة",
+      "waiting": "بانتظار العميل",
+      "resolved": "تمت المعالجة"
+    },
+    "linkCustomer": "ربط بعميل",
+    "link": "ربط",
+    "convert": "تحويل إلى عميل وصفقة",
+    "converted": "تم التحويل — افتح الصفقة"
   }
 }

@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
-import { canTransitionRequest } from "../constants/requests";
+import { REQUEST_CLOSED_STATUSES, canTransitionRequest, requestKindOf, type RequestKind } from "../constants/requests";
 import { cancelPendingApprovals } from "../services/approval-engine";
 import { assignRequest, reassignRequest } from "./inquiries";
 import { getNextSequenceNumber } from "./sequence";
@@ -8,7 +8,7 @@ import { assertAssigneeAvailable, assertActorNotOnLeave } from "./leave";
 
 export async function createConsolidatedRequest(
   data: {
-    requestType: "SR" | "CR" | "inquiry" | "quote_request";
+    requestType: "SR" | "inquiry" | "quote_request";
     name: string;
     email: string;
     phone?: string | null;
@@ -30,7 +30,9 @@ export async function createConsolidatedRequest(
   }
 
   // Generate sequence reference e.g. SR-2026-000001 or CR-2026-000001
-  const prefix = data.requestType === "CR" ? "CR" : data.requestType === "SR" ? "SR" : "INQ";
+  // Change requests (CR) are retired: client feedback arrives as inquiries and is triaged in the inbox.
+  if ((data.requestType as string) === "CR") throw new Error("Change requests are no longer created; log a service request or an inquiry");
+  const prefix = data.requestType === "SR" ? "SR" : "INQ";
   const reference = await getNextSequenceNumber(prefix);
 
   if (data.assignedToId) {
@@ -46,7 +48,7 @@ export async function createConsolidatedRequest(
       data: {
         reference,
         requestType: data.requestType,
-        intent: data.requestType === "CR" ? "complaint" : data.requestType === "quote_request" ? "quote_request" : "inquiry",
+        intent: data.requestType === "quote_request" ? "quote_request" : "inquiry",
         name: data.name,
         email: data.email,
         emailNorm,
@@ -282,3 +284,102 @@ export async function getConsolidatedRequestById(id: string): Promise<Consolidat
   };
 }
 
+
+export interface RequestListFilters {
+  kind?: RequestKind | "all";
+  /** "open" (default) hides resolved/archived/rejected; any workflow status narrows further. */
+  status?: string;
+  scope?: "all" | "mine" | "unassigned";
+  team?: string;
+  priority?: string;
+  overdue?: boolean;
+  search?: string;
+}
+
+export interface RequestListRow {
+  id: string;
+  reference: string;
+  kind: RequestKind;
+  title: string;
+  customer: string;
+  priority: string;
+  workflowStatus: string;
+  team: string | null;
+  assignee: string | null;
+  slaDueDate: string | null;
+  overdue: boolean;
+  createdAt: string;
+}
+
+const kindWhere = (kind: RequestKind): Prisma.InquiryWhereInput =>
+  kind === "service"
+    ? { requestType: "SR" }
+    : kind === "feedback"
+      ? { OR: [{ requestType: "CR" }, { intent: { in: ["complaint", "suggestion"] } }] }
+      : kind === "quote"
+        ? { requestType: { notIn: ["SR", "CR"] }, OR: [{ requestType: "quote_request" }, { intent: "quote_request" }] }
+        : { requestType: { notIn: ["SR", "CR", "quote_request"] }, intent: "inquiry" };
+
+/** The request inbox: lean rows, server-side filters, and the counters the managers need. */
+export async function getRequestList(filters: RequestListFilters, viewerId: string, page = 1) {
+  const now = new Date();
+  const open: Prisma.InquiryWhereInput = { workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] } };
+  const and: Prisma.InquiryWhereInput[] = [];
+  if (filters.kind && filters.kind !== "all") and.push(kindWhere(filters.kind));
+  const status = filters.status || "open";
+  if (status === "open") and.push(open);
+  else if (status !== "all") and.push({ workflowStatus: status });
+  if (filters.scope === "mine") and.push({ assignedToId: viewerId });
+  if (filters.scope === "unassigned") and.push({ assignedToId: null });
+  if (filters.team && filters.team !== "all") and.push({ team: filters.team });
+  if (filters.priority && filters.priority !== "all") and.push({ priority: filters.priority });
+  if (filters.overdue) and.push(open, { slaDueDate: { lt: now } });
+  if (filters.search?.trim()) {
+    const term = filters.search.trim().slice(0, 200);
+    and.push({ OR: ["name", "email", "companyName", "message", "reference", "serviceType"].map((field) => ({ [field]: { contains: term, mode: "insensitive" as const } })) });
+  }
+  const where: Prisma.InquiryWhereInput = and.length ? { AND: and } : {};
+  const safePage = Number.isInteger(page) && page >= 1 ? Math.min(page, 10000) : 1;
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const [rows, total, openCount, overdueCount, unassignedCount, awaitingApproval, mineCount, resolvedThisMonth] = await db.$transaction([
+    db.inquiry.findMany({
+      where,
+      select: {
+        id: true, reference: true, requestType: true, intent: true, serviceType: true, message: true, name: true, companyName: true,
+        priority: true, workflowStatus: true, team: true, slaDueDate: true, createdAt: true, assignedTo: { select: { fullName: true } },
+      },
+      // Most urgent first: overdue SLAs, then priority, then newest.
+      orderBy: [{ slaDueDate: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }, { id: "desc" }],
+      take: 50,
+      skip: (safePage - 1) * 50,
+    }),
+    db.inquiry.count({ where }),
+    db.inquiry.count({ where: open }),
+    db.inquiry.count({ where: { ...open, slaDueDate: { lt: now } } }),
+    db.inquiry.count({ where: { ...open, assignedToId: null } }),
+    db.inquiry.count({ where: { workflowStatus: "pending_approval" } }),
+    db.inquiry.count({ where: { ...open, assignedToId: viewerId } }),
+    db.inquiry.count({ where: { workflowStatus: "resolved", resolvedAt: { gte: monthStart } } }),
+  ]);
+  const closed = new Set<string>(REQUEST_CLOSED_STATUSES);
+  return {
+    page: safePage,
+    pageSize: 50,
+    total,
+    stats: { open: openCount, overdue: overdueCount, unassigned: unassignedCount, awaitingApproval, mine: mineCount, resolvedThisMonth },
+    items: rows.map((r): RequestListRow => ({
+      id: r.id,
+      reference: r.reference,
+      kind: requestKindOf(r),
+      title: r.serviceType || (r.message.length > 80 ? r.message.slice(0, 80) + "…" : r.message),
+      customer: r.companyName || r.name,
+      priority: r.priority,
+      workflowStatus: r.workflowStatus,
+      team: r.team,
+      assignee: r.assignedTo?.fullName ?? null,
+      slaDueDate: r.slaDueDate?.toISOString() ?? null,
+      overdue: !!r.slaDueDate && r.slaDueDate < now && !closed.has(r.workflowStatus),
+      createdAt: r.createdAt.toISOString(),
+    })),
+  };
+}

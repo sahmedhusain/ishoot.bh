@@ -9,7 +9,6 @@ import {
   Calendar,
   Kanban,
   Users,
-  Inbox,
   FileText,
   CreditCard,
   Receipt,
@@ -88,7 +87,7 @@ export function Sidebar() {
           },
           {
             href: ROUTES.requests.list,
-            label: t.sidebar.requestsAndComplaintsSrCr,
+            label: t.requestInbox.title,
             icon: ShieldAlert,
             resource: "requests",
             moduleKey: "crm_deals",
@@ -98,13 +97,6 @@ export function Sidebar() {
             label: t.sidebar.minutesOfMeetingsMom,
             icon: FileSignature,
             resource: "moms",
-            moduleKey: "crm_deals",
-          },
-          {
-            href: ROUTES.crm.leads,
-            label: t.sidebar.requestsAndFeedback,
-            icon: Inbox,
-            resource: "leads",
             moduleKey: "crm_deals",
           },
         ],
@@ -338,6 +330,14 @@ export function Sidebar() {
       .filter((section) => section.items.length > 0);
   }, [sections, can, loading, isFeatureEnabled]);
 
+  // Only the most specific matching link is active (/finance/reports must not also light up /finance).
+  const activeHref = React.useMemo(() => {
+    const matches = visibleSections
+      .flatMap((section) => section.items.map((item) => item.href))
+      .filter((href) => pathname === href || (href !== ROUTES.home && pathname.startsWith(href + "/")));
+    return matches.sort((a, b) => b.length - a.length)[0];
+  }, [visibleSections, pathname]);
+
   const navContent = (
     <nav className="h-full overflow-y-auto py-2.5 space-y-3 select-none">
       {visibleSections.map((section, idx) => (
@@ -355,9 +355,7 @@ export function Sidebar() {
           <div className="space-y-0.5">
             {section.items.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                pathname === item.href ||
-                (item.href !== ROUTES.home && pathname.startsWith(item.href));
+              const isActive = item.href === activeHref;
 
               return (
                 <Link

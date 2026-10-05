@@ -1,237 +1,140 @@
 "use client";
+
+import Link from "next/link";
+import { Card, CurrencyDisplay } from "@ishoot/ui";
+import { CalendarClock, Percent, Receipt, Wallet } from "lucide-react";
+import type { ExpenseCategory, FinancialSummary } from "@ishoot/database/types";
+import type { ReceivablesInsight } from "@ishoot/database";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
-
-import type { FinancialSummary,ExpenseCategory } from "@ishoot/database/types";
-import { Card,CurrencyDisplay } from "@ishoot/ui";
-import {
-TrendingUp,
-TrendingDown,
-DollarSign,
-PieChart,
-Percent,
-} from "lucide-react";
+import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-
 
 interface FinancialAnalyticsViewProps {
   finance: FinancialSummary;
+  insight: ReceivablesInsight;
   categoryTotals: Record<string, number>;
   categories: ExpenseCategory[];
-  monthlyCashflow: Array<{
-    monthKey: string;
-    revenue: number;
-    expenses: number;
-  }>;
+  monthlyCashflow: Array<{ monthKey: string; revenue: number; expenses: number }>;
 }
 
-export function FinancialAnalyticsView({
-  finance,
-  categoryTotals,
-  categories,
-  monthlyCashflow,
-}: FinancialAnalyticsViewProps) {
-  const { t, locale } = useAdminLocale();
+const AGING_COLORS = ["bg-emerald-500", "bg-amber-400", "bg-orange-500", "bg-rose-500", "bg-rose-700"];
 
+/**
+ * Operational finance view: collections, receivables and spending trends.
+ * The profit & loss statement, VAT and accounting basis live only in Financial Reports.
+ */
+export function FinancialAnalyticsView({ finance, insight, categoryTotals, categories, monthlyCashflow }: FinancialAnalyticsViewProps) {
+  const { t, locale } = useAdminLocale();
+  const copy = t.financialAnalytics;
   const chartData = monthlyCashflow.map((point) => ({
     ...point,
-    name: new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-BH", {
-      month: "short",
-      year: "2-digit",
-      timeZone: "UTC",
-    }).format(new Date(`${point.monthKey}-01T00:00:00Z`)),
+    name: new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-BH", { month: "short", year: "2-digit", timeZone: "UTC" }).format(
+      new Date(`${point.monthKey}-01T00:00:00Z`),
+    ),
   }));
+  const agingTotal = insight.aging.reduce((sum, bucket) => sum + bucket.amount, 0);
+  const spendTotal = Object.values(categoryTotals).reduce((sum, amount) => sum + amount, 0);
+
+  const kpis = [
+    { icon: Percent, label: copy.collectionRate, value: `${insight.collectionRate.toFixed(1)}%`, hint: copy.collectionRateHint },
+    { icon: CalendarClock, label: copy.daysToCollect, value: `${insight.averageDaysToCollect} ${copy.days}`, hint: copy.daysToCollectHint },
+    { icon: Wallet, label: copy.outstanding, value: <CurrencyDisplay amount={finance.outstanding} currency="BHD" />, hint: copy.outstandingHint },
+    { icon: Receipt, label: copy.averageInvoice, value: <CurrencyDisplay amount={insight.averageInvoiceValue} currency="BHD" />, hint: copy.averageInvoiceHint.replace("{count}", String(insight.invoicesIssued)) },
+  ];
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
-          {t.charts.pnlStatement}
-        </h1>
-        <p className="text-xs text-ink-muted mt-1">{t.charts.pnlSubtitle}</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-ink font-display">{copy.title}</h1>
+        <p className="text-sm text-ink-muted mt-1">{copy.subtitle}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-ink-muted">
-            <span>{t.kpi.totalRevenue}</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-[#10B981]">
-              <DollarSign className="w-4 h-4" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map(({ icon: Icon, label, value, hint }) => (
+          <Card key={label} className="p-6 space-y-2 rounded-3xl">
+            <div className="flex items-center justify-between text-xs text-ink-muted">
+              <span>{label}</span>
+              <span className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+                <Icon className="w-4 h-4" />
+              </span>
             </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-ink ">
-            <CurrencyDisplay amount={finance.revenue} currency="BHD" />
-          </div>
-          <div className="text-[11px] text-emerald-400 ">
-            {t.kpi.revenueDesc}
-          </div>
-        </Card>
-
-        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-ink-muted">
-            <span>{t.kpi.operatingExpenses}</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-400">
-              <TrendingDown className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-bold text-ink ">
-            <CurrencyDisplay amount={finance.expenses} currency="BHD" />
-          </div>
-          <div className="text-[11px] text-ink-muted">{t.kpi.expensesDesc}</div>
-        </Card>
-
-        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-ink-muted">
-            <span>{t.kpi.netProfit}</span>
-            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className={`text-2xl sm:text-3xl font-bold  ${finance.netProfit >= 0 ? "text-accent" : "text-rose-400"}`}
-          >
-            <CurrencyDisplay amount={finance.netProfit} currency="BHD" />
-          </div>
-          <div className="text-[11px] text-accent ">
-            {t.financialView.revenueMinusExpenses}
-          </div>
-        </Card>
-
-        <Card className="p-6 bg-surface border border-ink/10 space-y-2 rounded-3xl">
-          <div className="flex items-center justify-between text-xs text-ink-muted">
-            <span>{t.kpi.profitMargin}</span>
-            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
-              <Percent className="w-4 h-4" />
-            </div>
-          </div>
-          <div
-            className={`text-2xl sm:text-3xl font-bold  ${finance.profitMargin >= 0 ? "text-accent" : "text-rose-400"}`}
-          >
-            {finance.profitMargin.toFixed(1)}%
-          </div>
-          <div className="text-[11px] text-ink-muted">
-            {t.financialView.acrossContracts}
-          </div>
-        </Card>
+            <div className="text-2xl font-bold text-ink">{value}</div>
+            <div className="text-[11px] text-ink-muted">{hint}</div>
+          </Card>
+        ))}
       </div>
 
-      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-6">
-        <div className="flex items-center justify-between border-b border-ink/10 pb-4">
-          <div className="flex items-center gap-2.5">
-            <TrendingUp className="w-5 h-5 text-accent" />
-            <h2 className="text-base font-bold text-ink uppercase tracking-wider">
-              {t.kpi.totalRevenue} vs {t.kpi.operatingExpenses}
-            </h2>
-          </div>
-        </div>
-        <div className="h-72 w-full pt-4">
+      <Card className="p-6 sm:p-8 rounded-3xl space-y-4">
+        <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.cashTrend}</h2>
+        <div className="h-72 w-full">
           <DeferredCashflowChart kind="finance" data={chartData} />
         </div>
       </Card>
 
-      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl shadow-xl space-y-6">
-        <div className="flex items-center justify-between border-b border-ink/10 pb-4">
-          <div className="flex items-center gap-2.5">
-            <PieChart className="w-5 h-5 text-accent" />
-            <h2 className="text-base font-bold text-ink uppercase tracking-wider">
-              {t.charts.pnlStatement}
-            </h2>
-          </div>
-          <span className="text-xs  px-3 py-1 rounded-full bg-ink/5 text-ink-muted">
-            {t.financialView.fiscalYear}
-          </span>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6 rounded-3xl space-y-4">
+          <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.aging}</h2>
+          {agingTotal === 0 ? (
+            <p className="text-sm text-ink-muted">{copy.noData}</p>
+          ) : (
+            <>
+              <div className="flex h-3 w-full overflow-hidden rounded-full bg-ink/5">
+                {insight.aging.map((bucket, i) => (
+                  <div key={bucket.bucket} className={AGING_COLORS[i]} style={{ width: `${(bucket.amount / agingTotal) * 100}%` }} />
+                ))}
+              </div>
+              <ul className="divide-y divide-ink/5 text-sm">
+                {insight.aging.map((bucket, i) => (
+                  <li key={bucket.bucket} className="flex items-center justify-between py-2.5">
+                    <span className="flex items-center gap-2 text-ink">
+                      <span className={`h-2.5 w-2.5 rounded-full ${AGING_COLORS[i]}`} />
+                      {copy.agingBuckets[bucket.bucket]}
+                      <span className="text-xs text-ink-muted">· {copy.invoicesCount.replace("{count}", String(bucket.count))}</span>
+                    </span>
+                    <span className="font-semibold text-ink"><CurrencyDisplay amount={bucket.amount} currency="BHD" /></span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </Card>
 
-        <div className="divide-y divide-ink/5 text-sm">
-          <div className="py-3.5 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="font-bold text-ink">
-                {t.charts.grossRevenue}
-              </span>
-              <p className="text-xs text-ink-muted">
-                {t.financialView.depositedViaBank}
-              </p>
-            </div>
-            <span className=" font-bold text-emerald-400 text-base">
-              +<CurrencyDisplay amount={finance.revenue} currency="BHD" />
-            </span>
-          </div>
+        <Card className="p-6 rounded-3xl space-y-4">
+          <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.topClients}</h2>
+          {insight.topClients.length === 0 ? (
+            <p className="text-sm text-ink-muted">{copy.noData}</p>
+          ) : (
+            <ol className="divide-y divide-ink/5 text-sm">
+              {insight.topClients.map((client, i) => (
+                <li key={client.clientId} className="flex items-center justify-between py-2.5">
+                  <Link href={ROUTES.crm.customer(client.clientId)} className="flex items-center gap-3 text-ink hover:text-accent">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent">{i + 1}</span>
+                    <span className="font-medium">{client.name}</span>
+                    <span className="text-xs text-ink-muted">· {copy.invoicesCount.replace("{count}", String(client.invoices))}</span>
+                  </Link>
+                  <span className="font-semibold text-ink"><CurrencyDisplay amount={client.collected} currency="BHD" /></span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </Card>
+      </div>
 
-          <div className="py-3.5 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="text-ink font-medium">
-                {t.charts.discountsGiven}
-              </span>
-              <p className="text-xs text-ink-muted">
-                {t.financialView.approvedDiscounts}
-              </p>
-            </div>
-            <span className=" text-amber-400">
-              -
-              <CurrencyDisplay amount={finance.discountsGiven} currency="BHD" />
-            </span>
-          </div>
-
-          <div className="py-3.5 flex items-center justify-between">
-            <div className="space-y-0.5">
-              <span className="font-bold text-ink">
-                {t.charts.operatingCosts}
-              </span>
-              <p className="text-xs text-ink-muted">
-                {t.financialView.productionCostsDesc}
-              </p>
-            </div>
-            <span className=" font-bold text-rose-400 text-base">
-              -<CurrencyDisplay amount={finance.expenses} currency="BHD" />
-            </span>
-          </div>
-
-          <div className="py-4 flex items-center justify-between bg-surface-sunken px-4 rounded-xl my-2">
-            <span className="font-bold text-ink">
-              {t.charts.bottomLineProfit}
-            </span>
-            <span
-              className={` font-bold text-lg ${finance.netProfit >= 0 ? "text-accent" : "text-rose-400"}`}
-            >
-              <CurrencyDisplay amount={finance.netProfit} currency="BHD" />
-            </span>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-4">
-        <h2 className="text-sm font-bold text-ink uppercase tracking-wider border-b border-ink/10 pb-3">
-          {t.charts.expensesByCategory}
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-          {categories.map((c) => {
-            const sum = categoryTotals[c.slug] || 0;
-            const percentage =
-              finance.expenses > 0 ? (sum / finance.expenses) * 100 : 0;
+      <Card className="p-6 sm:p-8 rounded-3xl space-y-4">
+        <h2 className="text-sm font-bold text-ink uppercase tracking-wider">{copy.spending}</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {categories.map((category) => {
+            const amount = categoryTotals[category.slug] || 0;
+            const share = spendTotal > 0 ? (amount / spendTotal) * 100 : 0;
             return (
-              <div
-                key={c.id}
-                className="p-4 rounded-2xl bg-surface-sunken border border-ink/5 space-y-2"
-              >
+              <div key={category.id} className="p-4 rounded-2xl bg-surface-sunken border border-ink/5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-ink">
-                    {locale === "ar" ? c.name_ar : c.name_en}
-                  </span>
-                  <span className="text-[11px]  text-ink-muted">
-                    {percentage.toFixed(0)}%
-                  </span>
+                  <span className="text-xs font-semibold text-ink">{locale === "ar" ? category.name_ar : category.name_en}</span>
+                  <span className="text-[11px] text-ink-muted">{share.toFixed(0)}%</span>
                 </div>
-                <div className="text-base font-bold text-ink ">
-                  <CurrencyDisplay amount={sum} currency="BHD" />
-                </div>
+                <div className="text-base font-bold text-ink"><CurrencyDisplay amount={amount} currency="BHD" /></div>
                 <div className="w-full h-1.5 bg-ink/5 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${percentage}%`,
-                      backgroundColor: c.color || "#09937F",
-                    }}
-                  />
+                  <div className="h-full rounded-full" style={{ width: `${share}%`, backgroundColor: category.color || "#09937F" }} />
                 </div>
               </div>
             );

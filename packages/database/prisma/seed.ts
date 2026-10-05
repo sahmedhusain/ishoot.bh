@@ -3015,8 +3015,7 @@ async function main() {
 
   // 1. Reference Sequences
   const refSequences = [
-    { id: "SR_2026", prefix: "SR", year: 2026, lastNumber: 1 },
-    { id: "CR_2026", prefix: "CR", year: 2026, lastNumber: 1 },
+    { id: "SR_2026", prefix: "SR", year: 2026, lastNumber: 2 },
     { id: "QTE_2026", prefix: "QTE", year: 2026, lastNumber: 6 },
     { id: "EMP_2026", prefix: "EMP", year: 2026, lastNumber: 9 },
   ];
@@ -3402,15 +3401,15 @@ async function main() {
   });
 
   const crInquiry = await prisma.inquiry.upsert({
-    where: { reference: "CR-2026-000001" },
+    where: { reference: "SR-2026-000002" },
     update: {
-      requestType: "CR",
+      requestType: "SR",
       workflowStatus: "under_review",
       priority: "urgent",
     },
     create: {
-      reference: "CR-2026-000001",
-      requestType: "CR",
+      reference: "SR-2026-000002",
+      requestType: "SR",
       name: "طارق الدوسري",
       email: "t.aldoseri@btea.bh",
       phone: "+973 3611 9900",

@@ -292,6 +292,7 @@ async function runTests() {
       getLatestExchangeRate: async () => ({ rate: 1.0, isFallback: false, provider: "parity", effectiveDate: new Date() }),
     },
     "./crm": { advanceDealForEvent: async () => false },
+    "../finance/vat": { companyVat: async () => ({ vatEnabled: true, vatPercentage: 10 }) },
   });
 
   // First conversion

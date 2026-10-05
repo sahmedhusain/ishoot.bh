@@ -4,6 +4,7 @@ getFinancialSummary,
 getMonthlyCashflow,
 getExpenseCategoryTotals,
 getExpenseCategories,
+getReceivablesInsight,
 } from "@ishoot/database";
 import { FinancialAnalyticsView } from "../../../components/finance/FinancialAnalyticsView";
 
@@ -11,17 +12,19 @@ export const dynamic = "force-dynamic";
 
 export default async function FinancialDashboardPage() {
   await requirePermission("finance_analytics", "read");
-  const [finance, categoryTotals, categories, monthlyCashflow] =
+  const [finance, insight, categoryTotals, categories, monthlyCashflow] =
     await Promise.all([
       getFinancialSummary(),
+      getReceivablesInsight(),
       getExpenseCategoryTotals(),
       getExpenseCategories(),
-      getMonthlyCashflow(6),
+      getMonthlyCashflow(12),
     ]);
 
   return (
     <FinancialAnalyticsView
       finance={finance}
+      insight={insight}
       categoryTotals={categoryTotals}
       categories={categories}
       monthlyCashflow={monthlyCashflow}

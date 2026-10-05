@@ -6,6 +6,7 @@ import { getCachedCompanySettings, getCachedFeatureToggles } from "../../lib/cac
 import { getCurrentPermissions,requireAuth } from "../../lib/auth";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
+import { CompanyVatProvider } from "../../hooks/useCompanyVat";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export default async function DashboardLayout({
       }}
     >
       <FeatureTogglesProvider initialFeatures={toggles}>
+        <CompanyVatProvider value={{ enabled: !!company.vat_enabled, rate: company.vat_enabled ? Number(company.vat_percentage ?? 10) : 0 }}>
         <SidebarProvider>
           <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#F8FAF9] text-slate-800 dark:bg-[#080E0D] dark:text-ink transition-colors duration-200">
             {/* Fixed Topbar spanning full width with Logo at start */}
@@ -55,6 +57,7 @@ export default async function DashboardLayout({
             </div>
           </div>
         </SidebarProvider>
+        </CompanyVatProvider>
       </FeatureTogglesProvider>
     </PermissionsProvider>
   );

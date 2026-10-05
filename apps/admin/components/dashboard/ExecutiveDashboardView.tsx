@@ -455,7 +455,7 @@ export function ExecutiveDashboardView({
             </div>
 
             <div className="space-y-1.5 text-xs">
-              <div className="flex items-center justify-between">
+              {company.vat_enabled && <div className="flex items-center justify-between">
                 <span className="text-slate-500 dark:text-neutral-400">
                   {t.settings.vatTitle}:
                 </span>
@@ -470,7 +470,7 @@ export function ExecutiveDashboardView({
                     ? t.dashboardView.vatRegistered
                     : t.dashboardView.nonVat}
                 </span>
-              </div>
+              </div>}
               <div className="flex items-center justify-between">
                 <span className="text-slate-500 dark:text-neutral-400">
                   {t.settings.bankName}:

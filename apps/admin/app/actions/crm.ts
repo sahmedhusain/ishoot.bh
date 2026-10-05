@@ -20,6 +20,7 @@ DealStage,
 InquiryStatus
 } from "@ishoot/database";
 import { requireInquiryAccess } from "../../lib/inquiry-access";
+import { REQUEST_PRIORITIES } from "@ishoot/database/constants/requests";
 import { revalidatePath } from "next/cache";
 import { requireAuth,requirePermission } from "../../lib/auth";
 import { requireFeatureEnabled } from "@ishoot/database";
@@ -285,7 +286,7 @@ export async function updateInquiryStatusAction(
       return { inquiry };
     });
 
-    revalidatePath(ROUTES.crm.leads);
+    revalidatePath(ROUTES.requests.list);
     revalidatePath(ROUTES.home);
     return { success: true, inquiry };
   });
@@ -436,7 +437,7 @@ export async function convertInquiryToClientAction(inquiryId: string) {
       };
     });
 
-    revalidatePath(ROUTES.crm.leads);
+    revalidatePath(ROUTES.requests.list);
     revalidatePath(ROUTES.crm.contacts);
     revalidatePath(ROUTES.crm.deals);
     revalidatePath(ROUTES.home);
@@ -451,14 +452,16 @@ export async function convertInquiryToClientAction(inquiryId: string) {
 
 export async function manageInquiryAction(
   id: string,
-  data: { priority?: string; claim?: boolean; note?: string },
+  data: { priority?: string; claim?: boolean; note?: string; slaDueDate?: string | null },
 ) {
   return measureOperation("action:manageInquiryAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requireInquiryAccess(id, "write");
     validateActionArguments("manageInquiryAction", { id, data });
     const { db } = await import("@ishoot/database");
-    if (data.priority && !["normal", "high", "urgent"].includes(data.priority))
+    if (data.priority && !(REQUEST_PRIORITIES as readonly string[]).includes(data.priority))
       throw new Error("Invalid priority");
+    const slaDueDate = data.slaDueDate === undefined ? undefined : data.slaDueDate === null || data.slaDueDate === "" ? null : new Date(data.slaDueDate);
+    if (slaDueDate && Number.isNaN(slaDueDate.getTime())) throw new Error("Invalid SLA date");
     if (
       data.note !== undefined &&
       (typeof data.note !== "string" ||
@@ -471,6 +474,7 @@ export async function manageInquiryAction(
         where: { id },
         data: {
           ...(data.priority ? { priority: data.priority } : {}),
+          ...(slaDueDate !== undefined ? { slaDueDate } : {}),
           ...(data.claim ? { assignedToId: user.id } : {}),
           ...(data.note
             ? {
@@ -489,13 +493,15 @@ export async function manageInquiryAction(
           entityId: id,
           details: {
             priority: data.priority,
+            slaDueDate: data.slaDueDate,
             claimed: data.claim,
             noteAdded: !!data.note,
           },
         },
       });
     });
-    revalidatePath(ROUTES.crm.leads);
+    revalidatePath(ROUTES.requests.list);
+    revalidatePath(ROUTES.requests.detail(id));
     return { success: true };
   });
 }
@@ -545,7 +551,7 @@ export async function linkInquiryCustomerAction(
         },
       });
     });
-    revalidatePath(ROUTES.crm.leads);
+    revalidatePath(ROUTES.requests.list);
     return { success: true };
   });
 }

@@ -122,3 +122,52 @@ export async function getInvoiceSummary() {
   `;
   return { outstanding: Number(row.outstanding), overdue: Number(row.overdue), discountsGiven: Number(row.discountsGiven) };
 }
+
+export interface ReceivablesInsight {
+  /** Share of the last 12 months' issued value that has been collected. */
+  collectionRate: number;
+  /** Average days from issue to the payment that settled an invoice (last 12 months). */
+  averageDaysToCollect: number;
+  averageInvoiceValue: number;
+  invoicesIssued: number;
+  aging: Array<{ bucket: "current" | "d1_30" | "d31_60" | "d61_90" | "d90_plus"; amount: number; count: number }>;
+  topClients: Array<{ clientId: string; name: string; collected: number; invoices: number }>;
+}
+
+/** Receivables and client analytics (BHD) — the operational view; the P&L lives in the financial report. */
+export async function getReceivablesInsight(): Promise<ReceivablesInsight> {
+  const [summary] = await db.$queryRaw<Array<{ issued: unknown; paid: unknown; count: bigint; avg: unknown; days: unknown }>>`
+    WITH recent AS (
+      SELECT i.id, i."totalAmount", i."issueDate", i.status FROM "Invoice" i
+      WHERE i.currency = 'BHD' AND i.status NOT IN ('draft','void') AND i."issueDate" >= CURRENT_DATE - INTERVAL '12 months'
+    ), paid AS (SELECT p."invoiceId", SUM(p.amount) amount, MAX(p."paymentDate") last FROM "Payment" p JOIN recent r ON r.id = p."invoiceId" GROUP BY 1)
+    SELECT COALESCE(SUM(r."totalAmount"),0) issued, COALESCE(SUM(p.amount),0) paid, COUNT(r.id) count, COALESCE(AVG(r."totalAmount"),0) avg,
+      COALESCE(AVG(EXTRACT(DAY FROM (p.last::timestamp - r."issueDate"::timestamp))) FILTER (WHERE r.status = 'paid'), 0) days
+    FROM recent r LEFT JOIN paid p ON p."invoiceId" = r.id`;
+  const aging = await db.$queryRaw<Array<{ bucket: ReceivablesInsight["aging"][number]["bucket"]; amount: unknown; count: bigint }>>`
+    WITH open AS (
+      SELECT i.id, i."totalAmount" - COALESCE((SELECT SUM(p.amount) FROM "Payment" p WHERE p."invoiceId" = i.id), 0) due,
+        CURRENT_DATE - i."dueDate"::date late
+      FROM "Invoice" i WHERE i.currency = 'BHD' AND i.status IN ('sent','partially_paid','overdue'))
+    SELECT CASE WHEN late <= 0 THEN 'current' WHEN late <= 30 THEN 'd1_30' WHEN late <= 60 THEN 'd31_60' WHEN late <= 90 THEN 'd61_90' ELSE 'd90_plus' END bucket,
+      SUM(due) amount, COUNT(*) count FROM open WHERE due > 0 GROUP BY 1`;
+  const top = await db.$queryRaw<Array<{ clientId: string; name: string; collected: unknown; invoices: bigint }>>`
+    SELECT c.id "clientId", COALESCE(c."companyName", TRIM(c."firstName" || ' ' || COALESCE(c."lastName", ''))) name,
+      SUM(p.amount) collected, COUNT(DISTINCT i.id) invoices
+    FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId" JOIN "CrmContact" c ON c.id = i."clientId"
+    WHERE p.currency = 'BHD' AND i.status <> 'void' AND p."paymentDate" >= CURRENT_DATE - INTERVAL '12 months'
+    GROUP BY c.id ORDER BY collected DESC LIMIT 5`;
+  const issued = Number(summary.issued);
+  const buckets: ReceivablesInsight["aging"][number]["bucket"][] = ["current", "d1_30", "d31_60", "d61_90", "d90_plus"];
+  return {
+    collectionRate: issued > 0 ? Math.round((Number(summary.paid) / issued) * 1000) / 10 : 0,
+    averageDaysToCollect: Math.round(Number(summary.days)),
+    averageInvoiceValue: Math.round(Number(summary.avg) * 1000) / 1000,
+    invoicesIssued: Number(summary.count),
+    aging: buckets.map((bucket) => {
+      const row = aging.find((a) => a.bucket === bucket);
+      return { bucket, amount: Number(row?.amount ?? 0), count: Number(row?.count ?? 0) };
+    }),
+    topClients: top.map((row) => ({ clientId: row.clientId, name: row.name, collected: Number(row.collected), invoices: Number(row.invoices) })),
+  };
+}

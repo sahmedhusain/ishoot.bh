@@ -177,7 +177,7 @@ async function main() {
               assert.equal(
                 args.data.vatAmount,
                 5,
-                "stored VAT rate must survive edit",
+                "draft VAT follows the company rate",
               );
               throw new Error("simulated update failure");
             },
@@ -196,6 +196,8 @@ async function main() {
     "../initial-company-config.json": { company: {} },
     "../types": types,
     "./crm": { advanceDealForEvent: async () => false },
+    // Drafts take the company VAT (5% here); issued invoices keep their own snapshot.
+    "../finance/vat": { companyVat: async () => ({ vatEnabled: true, vatPercentage: 5 }) },
   });
   await assert.rejects(invoices.updateInvoice("i", { line_items: [{ quantity: 1, unit_price: 100, description_en: "Shoot" }] }), /simulated update failure/);
   assert.equal(usedTransaction, true);

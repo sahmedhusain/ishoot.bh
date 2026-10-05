@@ -85,8 +85,9 @@ export function NewQuotationFormView({
     : 1.0;
 
   // VAT & Discount
-  const [vatEnabled, setVatEnabled] = React.useState<boolean>(company?.vat_enabled ?? true);
-  const vatPercentage = company?.vat_percentage ?? 10;
+  // VAT follows the company registration only; quotations never toggle it.
+  const vatEnabled = company?.vat_enabled ?? false;
+  const vatPercentage = vatEnabled ? Number(company?.vat_percentage ?? 10) : 0;
   const [discountType, setDiscountType] = React.useState<DiscountType>("none");
   const [discountValue, setDiscountValue] = React.useState<number>(0);
 
@@ -557,18 +558,6 @@ export function NewQuotationFormView({
             </h2>
 
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-medium text-slate-900 dark:text-white">{qfT.vatTitle}</div>
-                  <div className="text-[11px] text-slate-500">{vatEnabled ? qfT.vatEnabled : qfT.vatDisabled}</div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={vatEnabled}
-                  onChange={(e) => setVatEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded text-accent focus:ring-accent"
-                />
-              </div>
 
               <div>
                 <label className="block text-xs font-medium text-slate-600 dark:text-neutral-400 mb-1">

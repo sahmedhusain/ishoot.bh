@@ -409,22 +409,22 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   } as const;
   const requesters = [prodManager, sales, owner, finance];
   for (let i = 0; i < 80; i++) {
-    const type = pick(["SR", "SR", "SR", "CR", "CR", "quote_request", "inquiry"] as const);
+    const type = pick(["SR", "SR", "SR", "SR", "quote_request", "quote_request", "inquiry"] as const);
     const topic = pick<readonly [string, string]>(REQUEST_TOPICS[type]);
     const contact = pick(contacts);
     const actor = pick(requesters);
     const request = await createConsolidatedRequest({
       requestType: type, name: contact.name, email: contact.email, companyName: contact.company,
       serviceType: topic[0], message: `${topic[0]} — ${topic[1]}. Requested by ${contact.name}.`,
-      priority: pick(["normal", "normal", "normal", "high", "urgent"]), team: type === "CR" ? "support" : "production",
+      priority: pick(["normal", "normal", "normal", "high", "urgent"]), team: "production",
       customerId: contact.id, slaDueDate: addDays(TODAY, int(-5, 20)),
     }, actor.id);
     bump("requests");
-    if (type !== "SR" && type !== "CR") continue;
+    if (type !== "SR") continue;
     const roll = rand();
     if (roll < 0.15) continue; // received
     const assignee = pick(productionTeam);
-    await assignRequest(request.id, { assignedToId: assignee.id, team: type === "CR" ? "support" : "production", assignedById: prodManager.id, assignedByName: prodManager.fullName, notes: "Please handle and update the client." });
+    await assignRequest(request.id, { assignedToId: assignee.id, team: "production", assignedById: prodManager.id, assignedByName: prodManager.fullName, notes: "Please handle and update the client." });
     if (roll < 0.3) continue; // assigned
     if (roll < 0.36) { await returnRequest(request.id, { returnedById: prodManager.id, returnedByName: prodManager.fullName, reason: "Missing the client's delivery specifications." }); continue; }
     await submitRequestForApproval(request.id, { submittedById: assignee.id, submittedByName: assignee.fullName, notes: "Work completed, ready for sign-off." });

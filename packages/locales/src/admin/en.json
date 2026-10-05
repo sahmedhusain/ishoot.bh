@@ -3280,7 +3280,7 @@
   },
   "requestLabels": {
     "types": {
-      "complaint": "Client Complaint (CR)",
+      "complaint": "Feedback & complaints",
       "service_request": "Service Request (SR)",
       "quote_request": "Quote Request",
       "inquiry": "Inquiry"
@@ -3455,5 +3455,112 @@
   },
   "platformPicker": {
     "typeCustomPlatformName": "Type custom platform name..."
+  },
+  "financialAnalytics": {
+    "title": "Financial Analytics",
+    "subtitle": "Collections, receivables and spending trends. Statements and VAT are in Financial Reports.",
+    "collectionRate": "Collection rate",
+    "collectionRateHint": "Collected of the value invoiced in the last 12 months",
+    "daysToCollect": "Average days to collect",
+    "daysToCollectHint": "From invoice date to final payment",
+    "days": "days",
+    "outstanding": "Outstanding receivables",
+    "outstandingHint": "Issued and not yet paid",
+    "averageInvoice": "Average invoice",
+    "averageInvoiceHint": "{count} invoices issued in 12 months",
+    "cashTrend": "Cash in vs cash out — last 12 months",
+    "aging": "Receivables aging",
+    "agingBuckets": {
+      "current": "Not yet due",
+      "d1_30": "1–30 days late",
+      "d31_60": "31–60 days late",
+      "d61_90": "61–90 days late",
+      "d90_plus": "Over 90 days late"
+    },
+    "invoicesCount": "{count} invoices",
+    "topClients": "Top clients by collections — last 12 months",
+    "noData": "No data yet.",
+    "spending": "Spending by category"
+  },
+  "requestInbox": {
+    "title": "Service Requests",
+    "subtitle": "One inbox for service requests, quote requests and website inquiries. Open a request to act on it.",
+    "newRequest": "New request",
+    "stats": {
+      "open": "Open",
+      "overdue": "Past SLA",
+      "unassigned": "Unassigned",
+      "awaitingApproval": "Awaiting approval",
+      "mine": "Assigned to me",
+      "resolvedThisMonth": "Resolved this month"
+    },
+    "filters": {
+      "kind": "Type",
+      "status": "Status",
+      "scope": "Show",
+      "team": "Team",
+      "priority": "Priority",
+      "search": "Search reference, client or subject",
+      "apply": "Apply",
+      "overdueOnly": "Past SLA only"
+    },
+    "kinds": {
+      "all": "All types",
+      "service": "Service requests",
+      "quote": "Quote requests",
+      "inquiry": "Inquiries",
+      "feedback": "Feedback & complaints"
+    },
+    "statuses": {
+      "open": "Open",
+      "all": "All statuses"
+    },
+    "scopes": {
+      "all": "Everyone's",
+      "mine": "Assigned to me",
+      "unassigned": "Unassigned"
+    },
+    "anyPriority": "Any priority",
+    "columns": {
+      "reference": "Reference",
+      "request": "Request",
+      "priority": "Priority",
+      "status": "Status",
+      "assignee": "Assignee",
+      "sla": "SLA due"
+    },
+    "unassigned": "Unassigned",
+    "overdue": "Overdue",
+    "empty": "No requests match these filters.",
+    "open": "Open",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "requestManage": {
+    "title": "Manage request",
+    "priority": "Priority",
+    "sla": "SLA deadline",
+    "save": "Save",
+    "saved": "Saved",
+    "claim": "Assign to me",
+    "failed": "Could not save the change",
+    "salesTitle": "Sales follow-up",
+    "leadStatus": "Lead status",
+    "leadStatuses": {
+      "new": "New",
+      "contacted": "Contacted",
+      "qualified": "Qualified",
+      "archived": "Archived"
+    },
+    "feedbackStatuses": {
+      "new": "New",
+      "in_progress": "In progress",
+      "waiting": "Waiting for customer",
+      "resolved": "Resolved"
+    },
+    "linkCustomer": "Link to customer",
+    "link": "Link",
+    "convert": "Convert to client & deal",
+    "converted": "Converted — open the deal"
   }
 }

@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   Clock,
   Layers,
-  ShieldAlert,
+  
   FileQuestion,
   HelpCircle,
   Sparkles,
@@ -47,7 +47,7 @@ export function NewRequestFormView({
   const { t, isRTL } = useAdminLocale();
 
   const [requestType, setRequestType] = React.useState<
-    "SR" | "CR" | "inquiry" | "quote_request"
+    "SR" | "inquiry" | "quote_request"
   >("SR");
   const [priority, setPriority] = React.useState<string>("normal");
   const [slaDueDate, setSlaDueDate] = React.useState<string>("");
@@ -199,13 +199,6 @@ export function NewRequestFormView({
                 desc: t.newRequestForm.commercialShootDroneStudio,
                 icon: Layers,
                 color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40",
-              },
-              {
-                id: "CR",
-                label: t.newRequestForm.complaintCr,
-                desc: t.newRequestForm.qualityDeliveryDelayIssue,
-                icon: ShieldAlert,
-                color: "text-rose-600 bg-rose-50 dark:bg-rose-950/40",
               },
               {
                 id: "quote_request",

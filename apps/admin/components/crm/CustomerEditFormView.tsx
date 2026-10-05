@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyVat } from "../../hooks/useCompanyVat";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -18,6 +19,7 @@ interface CustomerEditFormViewProps {
 export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
   const router = useRouter();
   const { t, isRTL } = useAdminLocale();
+  const vat = useCompanyVat();
 
   const [fullName, setFullName] = React.useState(contact.full_name || "");
   const [company, setCompany] = React.useState(contact.company || "");
@@ -163,6 +165,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
                 onChange={(e) => setCompany(e.target.value)}
               />
             </div>
+            {vat.enabled && (
             <div>
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 {t.contactFields.vatNumber}
@@ -173,6 +176,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
                 onChange={(e) => setVatNumber(e.target.value)}
               />
             </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

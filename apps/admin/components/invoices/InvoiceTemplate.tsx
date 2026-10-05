@@ -54,7 +54,7 @@ export function InvoiceTemplate({ invoice, company }: InvoiceTemplateProps) {
           email: invoice.contact?.email,
           phone: invoice.contact?.phone,
           address: invoice.contact?.address,
-          vatNumber: invoice.contact?.vat_number,
+          vatNumber: isVatActive ? invoice.contact?.vat_number : null,
         }}
       />
 

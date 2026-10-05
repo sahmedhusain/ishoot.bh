@@ -46,7 +46,7 @@ function InvoicePDF({ invoice, company }: InvoicePDFProps) {
   const clientEmail = invoice.contact?.email || "";
   const clientPhone = invoice.contact?.phone || "";
   const clientAddress = invoice.contact?.address || "";
-  const clientVat = invoice.contact?.vat_number || "";
+  const clientVat = isVatActive ? invoice.contact?.vat_number || "" : "";
 
   const compNameEn = company.company_name_en;
   const compNameAr = company.company_name_ar;

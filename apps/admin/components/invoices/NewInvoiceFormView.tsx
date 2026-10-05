@@ -98,7 +98,8 @@ export function NewInvoiceFormView({
 
   const [discountType, setDiscountType] = React.useState<DiscountType>("none");
   const [discountValue, setDiscountValue] = React.useState<number>(0);
-  const [vatEnabled, setVatEnabled] = React.useState<boolean>(
+  // VAT follows the company registration only; documents never toggle it.
+  const [vatEnabled] = React.useState<boolean>(
     company?.vat_enabled ?? false,
   );
   const [vatPercentage] = React.useState<number>(
@@ -134,9 +135,6 @@ export function NewInvoiceFormView({
       }
       if (q.language) {
         setLanguage(q.language === "ar" ? "ar" : "en");
-      }
-      if (q.vatEnabled !== undefined) {
-        setVatEnabled(Boolean(q.vatEnabled));
       }
       if (q.discountType) {
         setDiscountType(q.discountType as DiscountType);
@@ -666,22 +664,6 @@ export function NewInvoiceFormView({
                 )}
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-medium text-slate-900 dark:text-white">
-                    {t.invoiceForm.vatEnabledTitle}
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">
-                    {t.invoiceForm.vatEnabledDesc} ({vatPercentage}%)
-                  </div>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={vatEnabled}
-                  onChange={(e) => setVatEnabled(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-accent focus:ring-accent"
-                />
-              </div>
             </div>
           </Card>
 

@@ -113,11 +113,12 @@ export function InvoiceEditFormView({
   const [discountValue, setDiscountValue] = React.useState<number>(
     Number(invoice.discount_value) || 0,
   );
-  const [vatEnabled, setVatEnabled] = React.useState<boolean>(
-    invoice.vat_enabled ?? (invoice.vat_amount > 0),
+  // VAT follows the company registration only; saving re-applies the current company rule.
+  const [vatEnabled] = React.useState<boolean>(
+    company?.vat_enabled ?? false,
   );
   const [vatPercentage] = React.useState<number>(
-    invoice.vat_percentage || company?.vat_percentage || 10,
+    company?.vat_enabled ? Number(company.vat_percentage ?? 10) : 0,
   );
 
   const isLocked = invoice.status === "void";
@@ -680,18 +681,6 @@ export function InvoiceEditFormView({
               </div>
             )}
 
-            <div className="space-y-1.5 flex items-center">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2 cursor-pointer pt-4">
-                <input
-                  type="checkbox"
-                  checked={vatEnabled}
-                  onChange={(e) => setVatEnabled(e.target.checked)}
-                  disabled={isLocked}
-                  className="w-4 h-4 rounded text-primary focus:ring-accent"
-                />
-                <span>{t.invoiceEdit.enableVat} ({vatPercentage}%)</span>
-              </label>
-            </div>
           </div>
         </Card>
 

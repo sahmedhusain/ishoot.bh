@@ -35,3 +35,17 @@ export const REQUEST_CLOSED_STATUSES = ["resolved", "archived", "rejected"] as c
 export function canTransitionRequest(workflowStatus: string | null | undefined, transition: RequestTransition): boolean {
   return (REQUEST_TRANSITIONS[transition] as readonly string[]).includes(workflowStatus ?? "");
 }
+
+/** How the request inbox groups records (CR is retired: legacy CRs and website complaints show as feedback). */
+export const REQUEST_KINDS = ["service", "quote", "inquiry", "feedback"] as const;
+export type RequestKind = (typeof REQUEST_KINDS)[number];
+
+export const REQUEST_PRIORITIES = ["urgent", "high", "normal"] as const;
+export type RequestPriority = (typeof REQUEST_PRIORITIES)[number];
+
+export function requestKindOf(record: { requestType?: string | null; intent?: string | null }): RequestKind {
+  if (record.requestType === "SR") return "service";
+  if (record.requestType === "CR" || record.intent === "complaint" || record.intent === "suggestion") return "feedback";
+  if (record.requestType === "quote_request" || record.intent === "quote_request") return "quote";
+  return "inquiry";
+}

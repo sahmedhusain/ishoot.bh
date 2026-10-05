@@ -2110,6 +2110,19 @@
           "note": {
             "kind": "string",
             "optional": true
+          },
+          "slaDueDate": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
           }
         },
         "optional": false
@@ -6250,10 +6263,6 @@
               {
                 "kind": "literal",
                 "value": "SR"
-              },
-              {
-                "kind": "literal",
-                "value": "CR"
               },
               {
                 "kind": "literal",

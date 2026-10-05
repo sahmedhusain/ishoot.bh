@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyVat } from "../../hooks/useCompanyVat";
 
 import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
@@ -20,6 +21,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 export function NewExpenseFormView() {
   const router = useRouter();
   const { t } = useAdminLocale();
+  const vat = useCompanyVat();
 
   const [descriptionEn, setDescriptionEn] = React.useState("");
   const [amount, setAmount] = React.useState<number>(0);
@@ -47,8 +49,8 @@ export function NewExpenseFormView() {
         receipt_url,
         description_en: descriptionEn,
         amount: Number(amount),
-        input_vat_amount: Number(inputVat) || 0,
-        is_vat_recoverable: vatRecoverable,
+        input_vat_amount: vat.enabled ? Number(inputVat) || 0 : 0,
+        is_vat_recoverable: vat.enabled && vatRecoverable,
         vendor_name: vendorName || undefined,
         expense_date: expenseDate || undefined,
       });
@@ -116,7 +118,7 @@ export function NewExpenseFormView() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {vat.enabled && <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.expensesNew.inputVatLabel}
@@ -134,7 +136,7 @@ export function NewExpenseFormView() {
               <input type="checkbox" className="accent-accent" checked={vatRecoverable} onChange={(e) => setVatRecoverable(e.target.checked)} />
               {t.expensesNew.vatRecoverable}
             </label>
-          </div>
+          </div>}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>

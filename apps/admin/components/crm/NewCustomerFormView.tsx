@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyVat } from "../../hooks/useCompanyVat";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -13,6 +14,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 export function NewCustomerFormView() {
   const router = useRouter();
   const { t } = useAdminLocale();
+  const vat = useCompanyVat();
 
   const [fullName, setFullName] = React.useState("");
   const [company, setCompany] = React.useState("");
@@ -103,6 +105,7 @@ export function NewCustomerFormView() {
                 onChange={(e) => setCompany(e.target.value)}
               />
             </div>
+            {vat.enabled && (
             <div>
               <label className="text-xs font-semibold text-ink mb-1.5 block">
                 {t.contactFields.vatNumber}
@@ -113,6 +116,7 @@ export function NewCustomerFormView() {
                 onChange={(e) => setVatNumber(e.target.value)}
               />
             </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

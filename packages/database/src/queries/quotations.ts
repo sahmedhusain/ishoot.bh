@@ -8,6 +8,7 @@ import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
 import { getLatestExchangeRate } from "./fx-settlement";
 import { advanceDealForEvent } from "./crm";
+import { companyVat } from "../finance/vat";
 
 export async function createQuotation(
   data: {
@@ -40,7 +41,7 @@ export async function createQuotation(
   const quotationNumber = await getNextSequenceNumber("QTE");
 
   // Same totals rules as invoices (validation, per-currency rounding).
-  const vatPercentage = data.vatEnabled ? (data.vatPercentage ?? 10) : 0;
+  const { vatEnabled, vatPercentage } = await companyVat();
   const itemsWithTotals = data.lineItems.map((item, idx) => ({
     descriptionEn: item.descriptionEn,
     descriptionAr: item.descriptionAr || null,
@@ -53,7 +54,7 @@ export async function createQuotation(
     itemsWithTotals.map((item) => ({ quantity: item.quantity, unit_price: item.unitPrice, line_total: item.lineTotal, description_en: item.descriptionEn })) as never,
     data.discountType || "none",
     data.discountValue || 0,
-    data.vatEnabled || false,
+    vatEnabled,
     vatPercentage,
     currency as never,
   );
@@ -84,7 +85,7 @@ export async function createQuotation(
         discountType: data.discountType || "none",
         discountValue: data.discountValue || 0,
         discountAmount,
-        vatEnabled: data.vatEnabled || false,
+        vatEnabled,
         vatPercentage,
         vatAmount,
         totalAmount,
@@ -179,8 +180,7 @@ export async function updateQuotation(
     effectiveRate = Math.round(rawRate * (1 + fxMarginPercent / 100) * 1000000) / 1000000;
   }
 
-  const vatEnabled = data.vatEnabled !== undefined ? data.vatEnabled : existing.vatEnabled;
-  const vatPercentage = data.vatPercentage !== undefined ? data.vatPercentage : Number(existing.vatPercentage);
+  const { vatEnabled, vatPercentage } = await companyVat();
   const discountType = data.discountType || existing.discountType;
   const discountValue = data.discountValue !== undefined ? data.discountValue : Number(existing.discountValue);
 

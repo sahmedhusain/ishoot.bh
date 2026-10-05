@@ -199,7 +199,7 @@ export async function resolveRequestAction(
 }
 
 export async function createConsolidatedRequestAction(data: {
-  requestType: "SR" | "CR" | "inquiry" | "quote_request";
+  requestType: "SR" | "inquiry" | "quote_request";
   fullName: string;
   email: string;
   phone?: string;

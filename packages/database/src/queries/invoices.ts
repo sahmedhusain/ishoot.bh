@@ -11,6 +11,7 @@ import { amountDue as computeAmountDue, lineTotal, sumMoney } from "../finance/m
 import { allocateDocumentNumber } from "../finance/numbering";
 import { INVOICE_STATUS_TRANSITIONS } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
+import { companyVat } from "../finance/vat";
 
 export { calculateInvoiceTotals };
 
@@ -255,6 +256,7 @@ export async function createInvoice(data: {
   const dueDate = new Date(data.due_date);
   if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) throw new Error("Invalid invoice dates");
   if (dueDate < issueDate) throw new Error("The due date cannot be before the issue date");
+  const vat = await companyVat();
   const totals = calculateInvoiceTotals(
     data.line_items.map((li) => ({
       ...li,
@@ -262,8 +264,8 @@ export async function createInvoice(data: {
     })),
     data.discount_type || "none",
     data.discount_value || 0,
-    data.vat_enabled ?? false,
-    data.vat_percentage ?? 10,
+    vat.vatEnabled,
+    vat.vatPercentage,
     currency,
   );
 
@@ -295,8 +297,8 @@ export async function createInvoice(data: {
         discountType: data.discount_type || "none",
         discountValue: data.discount_value || 0,
         discountAmount: totals.discountAmount,
-        vatEnabled: data.vat_enabled ?? false,
-        vatPercentage: data.vat_percentage ?? 10,
+        vatEnabled: vat.vatEnabled,
+        vatPercentage: vat.vatPercentage,
         vatAmount: totals.vatAmount,
         totalAmount: totals.totalAmount,
         currency,
@@ -382,6 +384,10 @@ export async function updateInvoice(
           unit_price: Number(li.unitPrice),
         }));
 
+      // Drafts follow the company VAT rule; an issued invoice keeps the VAT it was issued with.
+      const vat = existing.status === "draft"
+        ? await companyVat(tx)
+        : { vatEnabled: existing.vatEnabled, vatPercentage: Number(existing.vatPercentage) };
       const totals = calculateInvoiceTotals(
         lineItemsToCalc.map((li) => ({
           ...li,
@@ -389,8 +395,8 @@ export async function updateInvoice(
         })),
         data.discount_type || (existing.discountType as DiscountType) || "none",
         data.discount_value ?? Number(existing.discountValue || 0),
-        data.vat_enabled ?? existing.vatEnabled,
-        data.vat_percentage ?? Number(existing.vatPercentage),
+        vat.vatEnabled,
+        vat.vatPercentage,
         currency,
       );
 
@@ -412,14 +418,8 @@ export async function updateInvoice(
           discountType: data.discount_type || existing.discountType,
           discountValue: data.discount_value ?? existing.discountValue,
           discountAmount: totals.discountAmount,
-          vatEnabled:
-            data.vat_enabled !== undefined
-              ? data.vat_enabled
-              : existing.vatEnabled,
-          vatPercentage:
-            data.vat_percentage !== undefined
-              ? data.vat_percentage
-              : (existing.vatPercentage ?? 10),
+          vatEnabled: vat.vatEnabled,
+          vatPercentage: vat.vatPercentage,
           vatAmount: totals.vatAmount,
           totalAmount: totals.totalAmount,
           currency,

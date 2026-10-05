@@ -30,7 +30,8 @@ import { Button, StatusBadge, useDialog } from "@ishoot/ui";
 import type { ConsolidatedRequest } from "@ishoot/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
-import { REQUEST_TEAMS, canTransitionRequest } from "@ishoot/database/constants/requests";
+import { REQUEST_TEAMS, canTransitionRequest, requestKindOf } from "@ishoot/database/constants/requests";
+import { RequestManagePanel } from "./RequestManagePanel";
 import { RequestPriorityBadge, RequestTypeBadge, RequestWorkflowBadge } from "./RequestBadges";
 import {
   assignRequestWithAvailabilityAction,
@@ -55,6 +56,8 @@ interface RequestDetailViewProps {
   currentUserId: string;
   /** Server-computed: the viewer is an approver for this request's pending approval. */
   canDecideApproval: boolean;
+  /** Server-computed: may qualify, link and convert sales leads. */
+  canSell: boolean;
 }
 
 
@@ -63,6 +66,7 @@ export function RequestDetailView({
   users,
   currentUserId,
   canDecideApproval,
+  canSell,
 }: RequestDetailViewProps) {
   const router = useRouter();
   const { isRTL, t } = useAdminLocale();
@@ -657,6 +661,12 @@ export function RequestDetailView({
                 </div>
               </div>
             </div>
+            <RequestManagePanel
+              request={{ id: request.id, priority: request.priority, slaDueDate: request.slaDueDate, status: request.status, customerId: request.customerId, convertedDealId: request.convertedDeal?.id ?? null }}
+              kind={requestKindOf(request)}
+              canManage={canWrite}
+              canSell={canSell}
+            />
           </div>
         </div>
       )}
