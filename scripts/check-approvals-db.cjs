@@ -46,21 +46,21 @@ async function main() {
       assert.equal(Number((await tx.employee.findUniqueOrThrow({ where: { id: employee.id } })).leaveBalanceDays), 28, "two working days deducted");
       assert.ok(await tx.notification.count({ where: { userId: accountant.id, entityId: leave.id } }), "the accountant is notified");
 
-      // Super Admin's own request is routed to someone else and cannot be self-decided.
+      // Super Admin's own request is approved at once and the decision says why.
       const ownLeave = await tx.leaveRequest.create({
         data: { employeeId: employee.id, leaveTypeId: leaveType.id, startDate: new Date("2199-06-01"), endDate: new Date("2199-06-01"), reason: "x", status: "pending" },
       });
       const own = await submitForApproval({ targetType: "leave_request", targetId: ownLeave.id, requesterId: superAdmin.id });
-      assert.equal(own.status, "pending", "Super Admin requests are not auto-approved");
-      assert.ok(!own.approverIds.includes(superAdmin.id));
-      const ownRequest = await tx.approvalRequest.findUniqueOrThrow({ where: { id: own.approvalRequestId } });
-      assert.equal(canDecideApproval(ownRequest, superAdmin), false);
+      assert.equal(own.status, "approved", "Super Admin requests are auto-approved");
+      const ownDecision = await tx.approvalDecision.findFirstOrThrow({ where: { approvalRequestId: own.approvalRequestId } });
+      assert.equal(ownDecision.reason, "super_admin");
+      assert.equal((await tx.leaveRequest.findUniqueOrThrow({ where: { id: ownLeave.id } })).status, "approved");
       throw rollback;
     }), { timeout: 30000 });
   } catch (error) {
     if (error !== rollback) throw error;
   }
-  console.log("Approval database checks passed and rolled back: accountant leave → manager → HR, no self-approval, balance deducted by working days, requester notified, Super Admin requests routed to others.");
+  console.log("Approval database checks passed and rolled back: accountant leave → manager → HR, no self-approval, balance deducted by working days, requester notified, Super Admin requests auto-approved.");
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; }).finally(() => db.$disconnect());

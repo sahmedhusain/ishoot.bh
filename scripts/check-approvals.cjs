@@ -153,7 +153,29 @@ async function main() {
     assert.equal(db.state.notifications.at(-1).userId, "acc", "the requester is notified of the outcome");
   }
 
-  // 2. Super Admin's own request goes to someone else and they cannot decide it themselves.
+  // 2. A requester's own request goes to someone else and they cannot decide it themselves.
+  {
+    const db = createDb();
+    const finalized = [];
+    db.state.users.push(
+      { id: "prod", role: "producer", managerId: null, isActive: true },
+      { id: "hr", role: "admin", managerId: null, isActive: true },
+    );
+    db.state.policies.push(structuredClone(leavePolicy));
+    const engine = createEngine(db, finalized);
+    const submitted = await engine.submitForApproval({ targetType: "leave_request", targetId: "leave-2", requesterId: "prod" });
+    assert.equal(submitted.status, "pending");
+    assert.deepEqual(submitted.approverIds, ["hr"], "an empty manager step is skipped");
+    const request = db.state.requests[0];
+    assert.equal(engine.canDecideApproval(request, { id: "prod", role: "producer" }), false);
+    await assert.rejects(engine.decideApprovalRequest(submitted.approvalRequestId, "prod", "approved"), /your own request/);
+    await assert.rejects(engine.decideApprovalRequest(submitted.approvalRequestId, "hr", "rejected"), /reason is required/);
+    const rejected = await engine.decideApprovalRequest(submitted.approvalRequestId, "hr", "rejected", "Peak production week");
+    assert.equal(rejected.status, "rejected");
+    assert.equal(finalized[0].decision, "rejected");
+  }
+
+  // 2b. Super Admin's own requests are approved immediately and recorded as such.
   {
     const db = createDb();
     const finalized = [];
@@ -163,16 +185,9 @@ async function main() {
     );
     db.state.policies.push(structuredClone(leavePolicy));
     const engine = createEngine(db, finalized);
-    const submitted = await engine.submitForApproval({ targetType: "leave_request", targetId: "leave-2", requesterId: "root" });
-    assert.equal(submitted.status, "pending", "Super Admin requests are no longer auto-approved");
-    assert.deepEqual(submitted.approverIds, ["hr"], "an empty manager step is skipped");
-    const request = db.state.requests[0];
-    assert.equal(engine.canDecideApproval(request, { id: "root", role: "super_admin" }), false);
-    await assert.rejects(engine.decideApprovalRequest(submitted.approvalRequestId, "root", "approved"), /your own request/);
-    await assert.rejects(engine.decideApprovalRequest(submitted.approvalRequestId, "hr", "rejected"), /reason is required/);
-    const rejected = await engine.decideApprovalRequest(submitted.approvalRequestId, "hr", "rejected", "Peak production week");
-    assert.equal(rejected.status, "rejected");
-    assert.equal(finalized[0].decision, "rejected");
+    const submitted = await engine.submitForApproval({ targetType: "leave_request", targetId: "leave-root", requesterId: "root" });
+    assert.equal(submitted.status, "approved", "Super Admin requests are auto-approved");
+    assert.equal(finalized[0].decision, "approved");
   }
 
   // 3. Super Admin may step in on other people's requests even when not a listed approver.
@@ -191,14 +206,14 @@ async function main() {
     assert.equal(done.status, "approved");
   }
 
-  // 4. A sole Super Admin with nobody else to ask is approved immediately and flagged.
+  // 4. A sole administrator with nobody else to ask is approved immediately and flagged.
   {
     const db = createDb();
     const finalized = [];
-    db.state.users.push({ id: "root", role: "super_admin", managerId: null, isActive: true });
+    db.state.users.push({ id: "solo", role: "admin", managerId: null, isActive: true });
     db.state.policies.push(structuredClone(leavePolicy));
     const engine = createEngine(db, finalized);
-    const submitted = await engine.submitForApproval({ targetType: "leave_request", targetId: "leave-4", requesterId: "root" });
+    const submitted = await engine.submitForApproval({ targetType: "leave_request", targetId: "leave-4", requesterId: "solo" });
     assert.equal(submitted.status, "approved");
     assert.equal(db.state.requests[0].selfApproved, true, "self-approval is recorded, never silent");
     assert.equal(finalized.length, 1);
@@ -240,7 +255,7 @@ async function main() {
     assert.deepEqual(db.state.requests.map((r) => [r.revision, r.status]), [[1, "superseded"], [2, "pending"]]);
   }
 
-  console.log("Approval checks passed: manager → HR routing, maker-checker for every role incl. Super Admin, Super Admin override on others, recorded sole-admin self-approval, auto-approve policies, payroll state guard, revision supersede.");
+  console.log("Approval checks passed: manager → HR routing, maker-checker below Super Admin, Super Admin auto-approval and override on others, recorded sole-admin self-approval, auto-approve policies, payroll state guard, revision supersede.");
 }
 
 main().catch((error) => {

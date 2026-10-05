@@ -43,7 +43,8 @@ async function main() {
         await assert.rejects(decideApprovalRequest(pending.id, actor.id, 'approved'), /your own request/);
         await decideApprovalRequest(pending.id, pending.approverIds[0], 'approved');
       } else {
-        assert.equal(pending.selfApproved, true, 'only a sole administrator may self-approve, and it is recorded');
+        const decision = await tx.approvalDecision.findFirstOrThrow({ where: { approvalRequestId: pending.id } });
+        assert.ok(pending.selfApproved || decision.reason === 'super_admin', 'only Super Admin or a sole administrator skips review, and it is recorded');
       }
       assert.equal((await tx.approvalRequest.findUniqueOrThrow({ where: { id: pending.id } })).status, 'approved');
       assert.equal((await tx.payrollRun.findUniqueOrThrow({ where: { id: run.id } })).status, 'approved');
