@@ -366,7 +366,6 @@ export interface StudioEquipment {
   description_ar?: string;
   image_url?: string;
   quantity?: number;
-  daily_rate_bhd?: number;
   display_order: number;
   created_at: string;
 }

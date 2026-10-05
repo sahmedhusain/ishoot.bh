@@ -185,7 +185,6 @@
     "portfolioTitle": "Portfolio Project Archive",
     "clientsTitle": "Enterprise Client Logos",
     "equipmentTitle": "Gear Locker & Soundstage Inventory",
-    "dailyRate": "Daily Rate",
     "live": "Live & Published",
     "hidden": "Hidden",
     "featured": "Featured on Homepage"
@@ -839,7 +838,7 @@
     "saveFailed": "Could not save the client logo"
   },
   "equipmentView": {
-    "subtitle": "Studio-owned cinema cameras, optical lenses, lighting packages, and soundstage gear with daily rental rates.",
+    "subtitle": "Studio-owned cinema cameras, lenses, lighting packages and soundstage gear shown on the website.",
     "confirmDelete": "Are you sure you want to delete this equipment?",
     "category": "Category",
     "modelName": "Model / Item Name",
@@ -851,7 +850,6 @@
     "brand": "Brand / Manufacturer",
     "brandPlaceholder": "ARRI",
     "specsPlaceholder": "Large Format 4.5K Sensor, LPL Mount, ARRIRAW & ProRes",
-    "dailyRateBhd": "Daily Rate (BHD)",
     "availableQty": "Available Quantity",
     "categories": {
       "cameras": "Cinema Cameras",
@@ -862,7 +860,8 @@
       "drones": "Aerial Drones"
     },
     "modelNameEnLabel": "Model Name (English)",
-    "itemNameArLabel": "Item Name (Arabic)"
+    "itemNameArLabel": "Item Name (Arabic)",
+    "editEquipment": "Edit equipment"
   },
   "portfolioView": {
     "subtitle": "Cinematic commercials, narrative films, aspect ratios, and credit dossiers.",

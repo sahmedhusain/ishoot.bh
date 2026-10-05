@@ -639,7 +639,6 @@ async function main() {
       brand: "RED Digital Cinema",
       specification:
         "8K VistaVision multi-format sensor, up to 120fps at 8K, 17+ stops dynamic range, PL mount.",
-      dailyRateBhd: 450.0,
       displayOrder: 1,
     },
     {
@@ -650,7 +649,6 @@ async function main() {
       brand: "Sony Cinema",
       specification:
         "4K full-frame sensor, 15+ stops dynamic range, electronic variable ND filter, dual base ISO.",
-      dailyRateBhd: 180.0,
       displayOrder: 2,
     },
     {
@@ -661,7 +659,6 @@ async function main() {
       brand: "ARRI / ZEISS",
       specification:
         "Ultra-fast T1.3 aperture across all focal lengths, zero breathing, legendary contrast and bokeh.",
-      dailyRateBhd: 350.0,
       displayOrder: 3,
     },
     {
@@ -672,7 +669,6 @@ async function main() {
       brand: "Cooke Optics",
       specification:
         "True 2x anamorphic squeeze, classic Cooke look, smooth organic fall-off, PL mount.",
-      dailyRateBhd: 300.0,
       displayOrder: 4,
     },
     {
@@ -683,7 +679,6 @@ async function main() {
       brand: "Aputure Pro",
       specification:
         "1500W full-color point source with dual accessory mount, IP65 weather resistant.",
-      dailyRateBhd: 120.0,
       displayOrder: 5,
     },
     {
@@ -694,7 +689,6 @@ async function main() {
       brand: "Astera",
       specification:
         "Wireless RGBMintAmber LED tubes, CRMX wireless control, 20h internal battery.",
-      dailyRateBhd: 95.0,
       displayOrder: 6,
     },
     {
@@ -705,7 +699,6 @@ async function main() {
       brand: "DJI Pro",
       specification:
         "Heavy-payload 13.6kg motor support, dual battery hot-swap, ready for crane, vehicle, or handheld.",
-      dailyRateBhd: 110.0,
       displayOrder: 7,
     },
     {
@@ -716,7 +709,6 @@ async function main() {
       brand: "ishoot Soundstage",
       specification:
         "Infinity curve cyclorama, 6m overhead lighting grid, 60kW 3-phase power, soundproof control booth.",
-      dailyRateBhd: 550.0,
       displayOrder: 8,
     },
   ];

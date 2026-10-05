@@ -7,14 +7,14 @@ Button,Badge,
 Modal,
 Input,
 Select,
-CurrencyDisplay,
 ConfirmDestructiveModal
 } from "@ishoot/ui";
-import { Plus,Trash2,CheckCircle2,Filter } from "lucide-react";
+import { Plus,Trash2,CheckCircle2,Filter,Pencil } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
 deleteEquipmentAction,
 createEquipmentAction,
+updateEquipmentAction,
 } from "../../app/actions/cms";
 
 interface EquipmentManagementViewProps {
@@ -40,7 +40,7 @@ export function EquipmentManagementView({
     React.useState<StudioEquipment["category"]>("cameras");
   const [brand, setBrand] = React.useState("");
   const [specification, setSpecification] = React.useState("");
-  const [dailyRate, setDailyRate] = React.useState<number>(150);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
   const [quantity, setQuantity] = React.useState<number>(1);
 
   const categories = [
@@ -67,34 +67,42 @@ export function EquipmentManagementView({
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const openEditor = (item?: StudioEquipment) => {
+    setEditingId(item?.id ?? null);
+    setModelName(item?.model_name ?? "");
+    setNameAr(item?.name_ar ?? "");
+    setCategory(item?.category ?? "cameras");
+    setBrand(item?.brand ?? "");
+    setSpecification(item?.specification ?? "");
+    setQuantity(item?.quantity ?? 1);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!modelName) return;
     setSaving(true);
 
     try {
-      const res = await createEquipmentAction({
+      const payload = {
         category,
         model_name: modelName,
         name_ar: nameAr || modelName,
         brand: brand || undefined,
         specification: specification || undefined,
-        daily_rate_bhd: dailyRate,
         quantity,
-      });
-
-      if (res.item) {
-        setEquipment((prev) => [...prev, res.item]);
+      };
+      if (editingId) {
+        const res = await updateEquipmentAction(editingId, payload);
+        if (res.item) setEquipment((prev) => prev.map((eq) => (eq.id === editingId ? res.item! : eq)));
+      } else {
+        const res = await createEquipmentAction(payload);
+        if (res.item) setEquipment((prev) => [...prev, res.item]);
       }
       setIsModalOpen(false);
-      setModelName("");
-      setNameAr("");
-      setBrand("");
-      setSpecification("");
-      setDailyRate(150);
-      setQuantity(1);
+      setEditingId(null);
     } catch (err) {
-      console.error("Failed to create equipment:", err);
+      console.error("Failed to save equipment:", err);
     } finally {
       setSaving(false);
     }
@@ -116,7 +124,7 @@ export function EquipmentManagementView({
           variant="primary"
           size="sm"
           className="gap-1.5 self-start sm:self-auto"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => openEditor()}
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t.actions.addEquipment}</span>
@@ -148,7 +156,6 @@ export function EquipmentManagementView({
               <th className="p-4 text-start">{t.equipmentView.modelName}</th>
               <th className="p-4 text-start">{t.equipmentView.specs}</th>
               <th className="p-4 text-center">{t.equipmentView.qty}</th>
-              <th className="p-4 text-end">{t.cms.dailyRate}</th>
               <th className="p-4 text-end">{t.equipmentView.actions}</th>
             </tr>
           </thead>
@@ -179,17 +186,15 @@ export function EquipmentManagementView({
                 <td className="p-4 text-center  text-ink">
                   {eq.quantity || 1}
                 </td>
-                <td className="p-4 text-end  font-bold text-accent">
-                  {eq.daily_rate_bhd ? (
-                    <CurrencyDisplay
-                      amount={eq.daily_rate_bhd}
-                      currency="BHD"
-                    />
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                <td className="p-4 text-end">
+                <td className="p-4 text-end whitespace-nowrap">
+                  <button
+                    onClick={() => openEditor(eq)}
+                    className="p-1.5 me-1.5 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent transition-colors"
+                    title={t.actions.edit}
+                    aria-label={t.actions.edit}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
                   <button
                     onClick={() => setDeleteTargetId(eq.id)}
                     className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
@@ -207,9 +212,9 @@ export function EquipmentManagementView({
       <Modal closeLabel={t.actions.close}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={t.actions.addEquipment}
+        title={editingId ? t.equipmentView.editEquipment : t.actions.addEquipment}
       >
-        <form onSubmit={handleCreate} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-ink mb-1.5 block">
@@ -287,18 +292,6 @@ export function EquipmentManagementView({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.equipmentView.dailyRateBhd}
-              </label>
-              <Input
-                type="number"
-                step="0.001"
-                value={dailyRate}
-                onChange={(e) => setDailyRate(Number(e.target.value))}
-                required
-              />
-            </div>
             <div>
               <label className="text-xs text-ink mb-1.5 block">
                 {t.equipmentView.availableQty}

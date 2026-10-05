@@ -185,7 +185,6 @@
     "portfolioTitle": "أرشيف الأعمال والمشاريع السينمائية",
     "clientsTitle": "شعارات كبار العملاء والشركات",
     "equipmentTitle": "خزانة معدات التصوير والاستوديو",
-    "dailyRate": "سعر الإيجار اليومي",
     "live": "منشور ومعروض",
     "hidden": "مخفي",
     "featured": "مميز في الواجهة"
@@ -839,7 +838,7 @@
     "saveFailed": "تعذّر حفظ شعار العميل"
   },
   "equipmentView": {
-    "subtitle": "أصول الاستوديو من كاميرات، عدسات، وحدات إضاءة، ومعدات تصوير متخصصة مع أسعار الإيجار اليومي.",
+    "subtitle": "أصول الاستوديو من كاميرات وعدسات ووحدات إضاءة ومعدات تصوير تُعرض على الموقع.",
     "confirmDelete": "هل أنت متأكد من حذف هذه المعدة؟",
     "category": "التصنيف",
     "modelName": "اسم المعدة / الموديل",
@@ -851,7 +850,6 @@
     "brand": "الشركة المصنعة / العلامة",
     "brandPlaceholder": "ARRI",
     "specsPlaceholder": "Large Format 4.5K Sensor, LPL Mount, ARRIRAW & ProRes",
-    "dailyRateBhd": "سعر الإيجار اليومي (BHD)",
     "availableQty": "الكمية المتوفرة",
     "categories": {
       "cameras": "كاميرات سينمائية",
@@ -862,7 +860,8 @@
       "drones": "طائرات درونز جوية"
     },
     "modelNameEnLabel": "الموديل بالإنجليزية",
-    "itemNameArLabel": "الاسم بالعربية"
+    "itemNameArLabel": "الاسم بالعربية",
+    "editEquipment": "تعديل المعدة"
   },
   "portfolioView": {
     "subtitle": "أرشيف الأفلام السينمائية والإعلانات التجارية، ملفات الماستر، ونسب العرض.",

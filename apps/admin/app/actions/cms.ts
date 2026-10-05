@@ -12,6 +12,7 @@ createClientLogo,
 updateClientLogo,
 deleteClientLogo,
 createEquipment,
+updateEquipment,
 deleteEquipment,
 createPortfolioItem,
 updatePortfolioItem,
@@ -233,7 +234,6 @@ export async function createEquipmentAction(data: {
   name_ar?: string;
   brand?: string;
   specification?: string;
-  daily_rate_bhd?: number;
   quantity?: number;
 }) {
   return measureOperation("action:createEquipmentAction", async () => {
@@ -247,6 +247,46 @@ export async function createEquipmentAction(data: {
         entity_type: "equipment",
         entity_id: item.id,
         details: { model_name: data.model_name },
+      });
+      return { item };
+    });
+
+    revalidatePath(ROUTES.cms.equipment);
+    return { success: true, item };
+  });
+}
+
+export async function updateEquipmentAction(
+  id: string,
+  data: {
+    category: StudioEquipment["category"];
+    model_name: string;
+    name_ar?: string;
+    brand?: string;
+    specification?: string;
+    quantity?: number;
+  },
+) {
+  return measureOperation("action:updateEquipmentAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("equipment", "write");
+    validateActionArguments("updateEquipmentAction", { id, data });
+    if (!data.model_name?.trim()) throw new Error("Model name is required");
+    const { item } = await runAtomicMutation(async () => {
+      const item = await updateEquipment(id, {
+        category: data.category,
+        model_name: data.model_name.trim(),
+        name_ar: data.name_ar?.trim() || data.model_name.trim(),
+        brand: data.brand ?? "",
+        specification: data.specification ?? "",
+        quantity: Math.max(1, Math.trunc(data.quantity ?? 1)),
+      });
+      if (!item) throw new Error("Equipment not found");
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "equipment",
+        entity_id: id,
+        details: { model_name: item.model_name },
       });
       return { item };
     });

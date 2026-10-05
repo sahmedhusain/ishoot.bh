@@ -11,7 +11,6 @@ function mapEquipment(i: any): StudioEquipment {
     specification: i.specification || i.descriptionEn || i.nameAr,
     description_en: i.descriptionEn || undefined,
     description_ar: i.descriptionAr || undefined,
-    daily_rate_bhd: i.dailyRateBhd ? Number(i.dailyRateBhd) : undefined,
     quantity: i.quantity || 1,
     image_url: i.imageUrl || undefined,
     display_order: i.displayOrder,
@@ -41,7 +40,6 @@ export async function createEquipment(data: {
   name_ar?: string;
   brand?: string;
   specification?: string;
-  daily_rate_bhd?: number;
   quantity?: number;
   display_order?: number;
 }): Promise<StudioEquipment> {
@@ -53,7 +51,6 @@ export async function createEquipment(data: {
       brand: data.brand || null,
       specification: data.specification || null,
       descriptionEn: data.specification || null,
-      dailyRateBhd: data.daily_rate_bhd ?? null,
       quantity: data.quantity ?? 1,
       displayOrder: data.display_order ?? 0,
     },
@@ -75,8 +72,6 @@ export async function updateEquipment(
       updateData.specification = data.specification;
       updateData.descriptionEn = data.specification;
     }
-    if (data.daily_rate_bhd !== undefined)
-      updateData.dailyRateBhd = data.daily_rate_bhd;
     if (data.quantity !== undefined) updateData.quantity = data.quantity;
     if (data.display_order !== undefined)
       updateData.displayOrder = data.display_order;

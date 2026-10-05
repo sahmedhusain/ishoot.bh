@@ -143,17 +143,6 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
                   </div>
                 </div>
 
-                {gear.daily_rate_bhd && (
-                  <div className="relative z-10 pt-4 border-t border-slate-100 flex items-center justify-between font-sans">
-                    <span className="text-xs text-slate-500">
-                      {t("about.dailyRental")}
-                    </span>
-                    <div className="text-sm font-bold text-[#014842]">
-                      {gear.daily_rate_bhd.toFixed(3)}{" "}
-                      {t("financials.currency")}
-                    </div>
-                  </div>
-                )}
               </motion.div>
             ))}
           </AnimatePresence>

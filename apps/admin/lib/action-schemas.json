@@ -539,8 +539,73 @@
             "kind": "string",
             "optional": true
           },
-          "daily_rate_bhd": {
+          "quantity": {
             "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateEquipmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "category": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "cameras"
+              },
+              {
+                "kind": "literal",
+                "value": "lenses"
+              },
+              {
+                "kind": "literal",
+                "value": "lighting"
+              },
+              {
+                "kind": "literal",
+                "value": "audio_grading"
+              },
+              {
+                "kind": "literal",
+                "value": "stages"
+              },
+              {
+                "kind": "literal",
+                "value": "grip"
+              },
+              {
+                "kind": "literal",
+                "value": "audio"
+              }
+            ],
+            "optional": false
+          },
+          "model_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "brand": {
+            "kind": "string",
+            "optional": true
+          },
+          "specification": {
+            "kind": "string",
             "optional": true
           },
           "quantity": {

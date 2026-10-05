@@ -58,7 +58,7 @@ function valid(
       return false;
     if (/^(amount|quantity)$/.test(key) && value <= 0) return false;
     if (
-      /^(basicSalary|housingAllowance|transportAllowance|otherAllowances|value|unit_price|line_total|default_rate|daily_rate_bhd|discount_value|fileSize|file_size)$/.test(
+      /^(basicSalary|housingAllowance|transportAllowance|otherAllowances|value|unit_price|line_total|default_rate|discount_value|fileSize|file_size)$/.test(
         key,
       ) &&
       value < 0
