@@ -29,6 +29,7 @@ import {
   TrendingUp,
   HandCoins,
   BadgeDollarSign,
+  Contact,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -61,6 +62,11 @@ export function Sidebar() {
         title: t.nav.overview,
         items: [
           { href: ROUTES.home, label: t.nav.dashboard, icon: LayoutDashboard },
+          {
+            href: ROUTES.directory,
+            label: t.directory.title,
+            icon: Contact,
+          },
           {
             href: ROUTES.calendar,
             label: t.nav.calendar,

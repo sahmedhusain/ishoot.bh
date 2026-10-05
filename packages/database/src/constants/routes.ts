@@ -31,6 +31,7 @@ export const ROUTES = {
     withQuery("/dashboard/approvals", query),
   archive: "/dashboard/archive",
   calendar: "/dashboard/calendar",
+  directory: "/dashboard/directory",
   profile: (query?: HighlightQuery) => withQuery("/dashboard/profile", query),
   services: "/dashboard/services",
   cms: {

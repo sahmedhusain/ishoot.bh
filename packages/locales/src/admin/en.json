@@ -3848,5 +3848,17 @@
     "recorded": "Support receipt recorded",
     "failed": "Could not record the receipt",
     "receivedOn": "{amount} on {date}"
+  },
+  "directory": {
+    "title": "Company directory",
+    "subtitle": "{count} people. Call, message or email anyone at the company.",
+    "search": "Search name, title or number",
+    "department": "Department",
+    "allDepartments": "All departments",
+    "empty": "No one matches your search.",
+    "onLeave": "On leave",
+    "reportsTo": "Reports to {name}",
+    "call": "Call",
+    "email": "Email"
   }
 }

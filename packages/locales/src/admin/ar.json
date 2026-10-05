@@ -3848,5 +3848,17 @@
     "recorded": "تم تسجيل استلام الدعم",
     "failed": "تعذّر تسجيل الاستلام",
     "receivedOn": "{amount} بتاريخ {date}"
+  },
+  "directory": {
+    "title": "دليل الشركة",
+    "subtitle": "{count} شخصاً. اتصل أو راسل أو أرسل بريداً لأي زميل.",
+    "search": "ابحث بالاسم أو المسمى أو الرقم",
+    "department": "القسم",
+    "allDepartments": "كل الأقسام",
+    "empty": "لا يوجد من يطابق بحثك.",
+    "onLeave": "في إجازة",
+    "reportsTo": "يتبع لـ {name}",
+    "call": "اتصال",
+    "email": "بريد"
   }
 }
