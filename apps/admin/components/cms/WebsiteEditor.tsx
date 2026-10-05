@@ -1,6 +1,7 @@
 "use client";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
+import { AssetUrlInput } from "../shared/AssetUrlInput";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -216,7 +217,7 @@ export function WebsiteEditor({
       )}
       <section className="space-y-4 rounded-xl border p-5">
         <h2 className="font-bold">{t.websiteEditor.studioImageAndHistory}</h2>
-        <label className="block">{t.websiteEditor.imageUrl}<input className={field} value={draft.aboutImageUrl || ""} onChange={e=>change({...draft,aboutImageUrl:e.target.value})} /></label>
+        <div className="block space-y-1"><span>{t.websiteEditor.imageUrl}</span><AssetUrlInput value={draft.aboutImageUrl || ""} onChange={(url)=>change({...draft,aboutImageUrl:url})} resource="settings" /></div>
         {(draft.pillars || []).map((entry,index)=><div key={index} className="grid gap-3 sm:grid-cols-2 border p-3 rounded">
           {(["titleEn","titleAr","textEn","textAr"] as const).map(key=><label key={key}>{key}<textarea className={field} maxLength={1500} value={entry[key]} onChange={e=>change({...draft,pillars:draft.pillars!.map((p,i)=>i===index?{...p,[key]:e.target.value}:p)})}/></label>)}
           <button className={button} onClick={()=>change({...draft,pillars:draft.pillars!.filter((_,i)=>i!==index)})}>{t.websiteEditor.remove}</button>
@@ -418,14 +419,9 @@ export function WebsiteEditor({
               />
               {ar ? service.nameAr : service.nameEn}
             </label>
-            <input
-              aria-label={`${service.nameEn} image URL`}
-              className={field}
-              name="imageUrl"
-              defaultValue={service.imageUrl || ""}
-              placeholder={
-                t.websiteEditor.imageUrlOptional
-              }
+            <ServiceImageField
+              initial={service.imageUrl || ""}
+              placeholder={t.websiteEditor.imageUrlOptional}
             />
             <button disabled={busy} className={button}>
               {t.websiteEditor.save}
@@ -454,6 +450,16 @@ export function WebsiteEditor({
           )}
         </div>
       </section>
+    </div>
+  );
+}
+
+function ServiceImageField({ initial, placeholder }: { initial: string; placeholder: string }) {
+  const [value, setValue] = React.useState(initial);
+  return (
+    <div>
+      <input type="hidden" name="imageUrl" value={value} />
+      <AssetUrlInput value={value} onChange={setValue} resource="settings" placeholder={placeholder} />
     </div>
   );
 }

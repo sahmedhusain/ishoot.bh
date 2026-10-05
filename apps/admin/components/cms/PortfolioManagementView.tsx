@@ -4,6 +4,7 @@ import { ContentImage } from "../shared/ContentImage";
 import Link from "next/link";
 
 import * as React from "react";
+import { AssetUrlInput } from "../shared/AssetUrlInput";
 import type { PortfolioItem,PortfolioCategory } from "@ishoot/database/types";
 import {
 Button,Badge,
@@ -423,14 +424,15 @@ export function PortfolioManagementView({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div>
               <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.thumbnailUrl}
               </label>
-              <Input
+              <AssetUrlInput
                 value={thumbnailUrl}
-                onChange={(e) => setThumbnailUrl(e.target.value)}
+                onChange={setThumbnailUrl}
+                resource="portfolio"
                 placeholder={t.portfolioView.thumbnailPlaceholder}
                 required
               />

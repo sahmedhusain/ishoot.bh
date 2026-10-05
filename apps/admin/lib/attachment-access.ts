@@ -20,12 +20,20 @@ const resources: Record<string, PermissionResource> = {
   general: "settings",
 };
 
+/** Public website media (client logos, banners, portfolio, gear photos): the entity id names the CMS resource. */
+export const CMS_ASSET_RESOURCES = ["banners", "portfolio", "clients", "equipment", "reviews", "settings"] as const;
+
 export async function requireAttachmentAccess(
   entityType: string,
   entityId: string,
   action: PermissionAction,
 ) {
   if (entityType === "employee" && (!entityId || entityId === "pending")) throw new Error("Create the employee before attaching documents");
+  if (entityType === "cms_asset") {
+    const resource = CMS_ASSET_RESOURCES.find((r) => r === entityId);
+    if (!resource) throw new Error("Unsupported attachment type");
+    return requirePermission(resource, action);
+  }
   const resource = resources[entityType];
   if (!resource) throw new Error("Unsupported attachment type");
   const user = await requirePermission(resource, action);

@@ -11,11 +11,13 @@ Modal,
 Input,
 ConfirmDestructiveModal,
 } from "@ishoot/ui";
-import { Plus,Trash2,Globe,CheckCircle2 } from "lucide-react";
+import { Plus,Trash2,Globe,CheckCircle2,Pencil } from "lucide-react";
+import { AssetUrlInput } from "../shared/AssetUrlInput";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
 deleteClientLogoAction,
 createClientLogoAction,
+updateClientLogoAction,
 } from "../../app/actions/cms";
 
 interface ClientsManagementViewProps {
@@ -32,6 +34,8 @@ export function ClientsManagementView({
     null,
   );
   const [saving, setSaving] = React.useState(false);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [error, setError] = React.useState("");
 
   const [clientName, setClientName] = React.useState("");
   const [logoSvgUrl, setLogoSvgUrl] = React.useState("");
@@ -46,27 +50,41 @@ export function ClientsManagementView({
     }
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const openEditor = (logo?: ClientLogo) => {
+    setEditingId(logo?.id ?? null);
+    setClientName(logo?.client_name ?? "");
+    setLogoSvgUrl(logo?.logo_svg_url ?? "");
+    setWebsiteUrl(logo?.website_url ?? "");
+    setError("");
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName || !logoSvgUrl) return;
     setSaving(true);
+    setError("");
 
     try {
-      const res = await createClientLogoAction({
+      const payload = {
         client_name: clientName,
         logo_svg_url: logoSvgUrl,
         website_url: websiteUrl || undefined,
-      });
-
-      if (res.logo) {
-        setLogos((prev) => [...prev, res.logo]);
+      };
+      if (editingId) {
+        const res = await updateClientLogoAction(editingId, { ...payload, website_url: websiteUrl });
+        if (res.logo) setLogos((prev) => prev.map((l) => (l.id === editingId ? res.logo! : l)));
+      } else {
+        const res = await createClientLogoAction(payload);
+        if (res.logo) setLogos((prev) => [...prev, res.logo]);
       }
       setIsModalOpen(false);
+      setEditingId(null);
       setClientName("");
       setLogoSvgUrl("");
       setWebsiteUrl("");
     } catch (err) {
-      console.error("Failed to create client logo:", err);
+      setError(err instanceof Error ? err.message : t.clientsView.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -88,7 +106,7 @@ export function ClientsManagementView({
           variant="primary"
           size="sm"
           className="gap-1.5 self-start sm:self-auto"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => openEditor()}
         >
           <Plus className="w-3.5 h-3.5" />
           <span>{t.actions.addClient}</span>
@@ -106,13 +124,24 @@ export function ClientsManagementView({
               key={logo.id}
               className="p-6 text-center space-y-4 bg-surface border border-ink/10 hover:border-accent/40 transition-all rounded-3xl relative group"
             >
-              <button
-                onClick={() => setDeleteTargetId(logo.id)}
-                className="absolute top-4 right-4 p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                title={t.actions.delete}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              <div className="absolute top-4 end-4 flex gap-1.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                <button
+                  onClick={() => openEditor(logo)}
+                  className="p-1.5 rounded-lg bg-accent/10 hover:bg-accent/20 text-accent"
+                  title={t.actions.edit}
+                  aria-label={t.actions.edit}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => setDeleteTargetId(logo.id)}
+                  className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400"
+                  title={t.actions.delete}
+                  aria-label={t.actions.delete}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
 
               <div className="w-16 h-16 rounded-2xl mx-auto bg-ink/5 border border-ink/10 flex items-center justify-center p-3">
                 {logo.logo_svg_url.startsWith("http") ||
@@ -120,7 +149,7 @@ export function ClientsManagementView({
                   <ContentImage
                     src={logo.logo_svg_url}
                     alt={logo.client_name}
-                    className="w-full h-full object-contain filter invert opacity-80 group-hover:opacity-100 transition-opacity"
+                    className="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity"
                     onError={(e) => {
                       (e.target as HTMLElement).style.display = "none";
                     }}
@@ -158,9 +187,9 @@ export function ClientsManagementView({
       <Modal closeLabel={t.actions.close}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={t.actions.addClient}
+        title={editingId ? t.clientsView.editClient : t.actions.addClient}
       >
-        <form onSubmit={handleCreate} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className="text-xs text-ink mb-1.5 block">
               {t.clientsView.clientBrandName}
@@ -177,9 +206,10 @@ export function ClientsManagementView({
             <label className="text-xs text-ink mb-1.5 block">
               {t.clientsView.logoVectorUrl}
             </label>
-            <Input
+            <AssetUrlInput
               value={logoSvgUrl}
-              onChange={(e) => setLogoSvgUrl(e.target.value)}
+              onChange={setLogoSvgUrl}
+              resource="clients"
               placeholder={t.clientsView.logoVectorPlaceholder}
               required
             />
@@ -195,6 +225,8 @@ export function ClientsManagementView({
               placeholder={t.clientsView.officialWebsitePlaceholder}
             />
           </div>
+
+          {error && <p className="text-xs text-rose-500">{error}</p>}
 
           <div className="pt-4 flex justify-end gap-3 border-t border-ink/10">
             <Button

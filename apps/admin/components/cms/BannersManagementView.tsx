@@ -4,6 +4,7 @@ import {ContentImage} from "../shared/ContentImage";
 import Link from "next/link";
 
 import * as React from "react";
+import { AssetUrlInput } from "../shared/AssetUrlInput";
 import type { HeroBanner } from "@ishoot/database/types";
 import {
   Button,
@@ -350,20 +351,31 @@ export function BannersManagementView({
               <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.mediaUrl}
               </label>
-              <Input
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                placeholder={t.bannersView.mediaUrlPlaceholder}
-                required
-              />
+              {mediaType === "image" ? (
+                <AssetUrlInput
+                  value={mediaUrl}
+                  onChange={setMediaUrl}
+                  resource="banners"
+                  placeholder={t.bannersView.mediaUrlPlaceholder}
+                  required
+                />
+              ) : (
+                <Input
+                  value={mediaUrl}
+                  onChange={(e) => setMediaUrl(e.target.value)}
+                  placeholder={t.bannersView.mediaUrlPlaceholder}
+                  required
+                />
+              )}
             </div>
             <div>
               <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.posterUrl}
               </label>
-              <Input
+              <AssetUrlInput
                 value={posterUrl}
-                onChange={(e) => setPosterUrl(e.target.value)}
+                onChange={setPosterUrl}
+                resource="banners"
                 placeholder={t.bannersView.posterUrlPlaceholder}
               />
             </div>

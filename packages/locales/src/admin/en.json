@@ -830,11 +830,13 @@
     "liveMarquee": "Live Marquee",
     "clientBrandName": "Client Brand Name",
     "clientBrandPlaceholder": "STC Bahrain",
-    "logoVectorUrl": "Logo Vector URL (SVG)",
-    "logoVectorPlaceholder": "/images/clients/stc.svg",
+    "logoVectorUrl": "Client logo",
+    "logoVectorPlaceholder": "https://… or /images/clients/logo.svg",
     "officialWebsiteUrl": "Official Website URL",
     "officialWebsitePlaceholder": "https://example.com",
-    "emptyState": "No client logos registered."
+    "emptyState": "No client logos registered.",
+    "editClient": "Edit client",
+    "saveFailed": "Could not save the client logo"
   },
   "equipmentView": {
     "subtitle": "Studio-owned cinema cameras, optical lenses, lighting packages, and soundstage gear with daily rental rates.",
@@ -3565,5 +3567,14 @@
     "link": "Link",
     "convert": "Convert to client & deal",
     "converted": "Converted — open the deal"
+  },
+  "assetField": {
+    "upload": "Upload",
+    "uploading": "Uploading…",
+    "urlPlaceholder": "Paste an image URL or upload a file",
+    "clear": "Clear",
+    "hint": "Upload a PNG, JPG or WebP (max 10 MB), or paste an https:// or site-relative URL.",
+    "uploadFailed": "Upload failed",
+    "invalidUrl": "Use an https:// URL or a site path starting with /"
   }
 }

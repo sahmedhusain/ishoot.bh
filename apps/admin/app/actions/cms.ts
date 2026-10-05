@@ -9,6 +9,7 @@ createBanner,
 updateBanner,
 deleteBanner,
 createClientLogo,
+updateClientLogo,
 deleteClientLogo,
 createEquipment,
 deleteEquipment,
@@ -140,9 +141,13 @@ export async function createClientLogoAction(data: {
   return measureOperation("action:createClientLogoAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("clients", "write");
     validateActionArguments("createClientLogoAction", { data });
+    const fields = clientLogoFields(data);
     const { logo } = await runAtomicMutation(async () => {
       const logo = await createClientLogo({
         ...data,
+        client_name: fields.client_name!,
+        logo_svg_url: fields.logo_svg_url!,
+        website_url: fields.website_url || undefined,
         is_active: true,
       });
       await createActivityLog({
@@ -151,6 +156,47 @@ export async function createClientLogoAction(data: {
         entity_type: "client",
         entity_id: logo.id,
         details: { client_name: data.client_name },
+      });
+      return { logo };
+    });
+
+    revalidatePath(ROUTES.cms.clients);
+    revalidatePath(ROUTES.cms.website);
+    return { success: true, logo };
+  });
+}
+
+function clientLogoFields(data: { client_name?: string; logo_svg_url?: string; website_url?: string }) {
+  const clientName = data.client_name?.trim();
+  if (data.client_name !== undefined && (!clientName || clientName.length > 120)) throw new Error("Client name is required");
+  const logoUrl = data.logo_svg_url !== undefined ? safeWebsiteUrl(data.logo_svg_url.trim()) : undefined;
+  if (data.logo_svg_url !== undefined && (!logoUrl || logoUrl.length > 2000)) throw new Error("Use an https:// logo URL or a site path starting with /");
+  const websiteUrl = data.website_url !== undefined ? (data.website_url.trim() ? safeWebsiteUrl(data.website_url.trim()) : "") : undefined;
+  if (data.website_url?.trim() && !websiteUrl) throw new Error("Invalid website URL");
+  return { client_name: clientName, logo_svg_url: logoUrl, website_url: websiteUrl };
+}
+
+export async function updateClientLogoAction(
+  id: string,
+  data: { client_name?: string; logo_svg_url?: string; website_url?: string },
+) {
+  return measureOperation("action:updateClientLogoAction", async () => {
+    await requireFeatureEnabled("cms"); const user = await requirePermission("clients", "write");
+    validateActionArguments("updateClientLogoAction", { id, data });
+    const fields = clientLogoFields(data);
+    const { logo } = await runAtomicMutation(async () => {
+      const logo = await updateClientLogo(id, {
+        ...(fields.client_name !== undefined && { client_name: fields.client_name }),
+        ...(fields.logo_svg_url !== undefined && { logo_svg_url: fields.logo_svg_url }),
+        ...(fields.website_url !== undefined && { website_url: fields.website_url }),
+      });
+      if (!logo) throw new Error("Client logo not found");
+      await createActivityLog({
+        user_id: user.id,
+        action: "update",
+        entity_type: "client",
+        entity_id: id,
+        details: { client_name: logo.client_name },
       });
       return { logo };
     });

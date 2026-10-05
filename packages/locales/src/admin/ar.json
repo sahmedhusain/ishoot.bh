@@ -830,11 +830,13 @@
     "liveMarquee": "معروض في الشريط",
     "clientBrandName": "اسم العميل / العلامة التجارية",
     "clientBrandPlaceholder": "STC Bahrain",
-    "logoVectorUrl": "مسار أو رابط الشعار (SVG)",
-    "logoVectorPlaceholder": "/images/clients/stc.svg",
+    "logoVectorUrl": "شعار العميل",
+    "logoVectorPlaceholder": "https://… أو /images/clients/logo.svg",
     "officialWebsiteUrl": "رابط الموقع الرسمي",
     "officialWebsitePlaceholder": "https://example.com",
-    "emptyState": "لا توجد شعارات عملاء مسجلة بعد."
+    "emptyState": "لا توجد شعارات عملاء مسجلة بعد.",
+    "editClient": "تعديل العميل",
+    "saveFailed": "تعذّر حفظ شعار العميل"
   },
   "equipmentView": {
     "subtitle": "أصول الاستوديو من كاميرات، عدسات، وحدات إضاءة، ومعدات تصوير متخصصة مع أسعار الإيجار اليومي.",
@@ -3565,5 +3567,14 @@
     "link": "ربط",
     "convert": "تحويل إلى عميل وصفقة",
     "converted": "تم التحويل — افتح الصفقة"
+  },
+  "assetField": {
+    "upload": "رفع",
+    "uploading": "جارٍ الرفع…",
+    "urlPlaceholder": "الصق رابط صورة أو ارفع ملفاً",
+    "clear": "مسح",
+    "hint": "ارفع ملف PNG أو JPG أو WebP (بحد أقصى 10 ميغابايت)، أو الصق رابطاً يبدأ بـ https:// أو مساراً داخل الموقع.",
+    "uploadFailed": "فشل الرفع",
+    "invalidUrl": "استخدم رابطاً يبدأ بـ https:// أو مساراً يبدأ بـ /"
   }
 }

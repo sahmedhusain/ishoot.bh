@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       else if (entityType === "contact" || entityType === "customer_vault") subfolder = "vault";
       else if (entityType === "deal") subfolder = "deals";
 
-      const publicBrand = entityType === "company_asset" && ["logo_light", "logo_dark", "icon_light", "icon_dark", "icon"].includes(entityId);
+      const publicBrand = (entityType === "company_asset" && ["logo_light", "logo_dark", "icon_light", "icon_dark", "icon"].includes(entityId)) || entityType === "cms_asset";
       if (publicBrand && fileType === "application/pdf") return NextResponse.json({ error: "Brand assets must be images" }, { status: 415 });
       if (publicBrand) subfolder = "brand";
 

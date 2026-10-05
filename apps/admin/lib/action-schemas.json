@@ -447,6 +447,33 @@
       }
     }
   },
+  "updateClientLogoAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "client_name": {
+            "kind": "string",
+            "optional": true
+          },
+          "logo_svg_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "website_url": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "deleteEquipmentAction": {
     "kind": "object",
     "fields": {
