@@ -11,6 +11,8 @@ import { createQuotation, submitQuotationForApproval, issueQuotation, acceptQuot
 import { createInvoice, updateInvoiceStatus, markOverdueInvoices } from "../src/queries/invoices";
 import { createPayment } from "../src/queries/payments";
 import { createExpense } from "../src/queries/expenses";
+import { getSupportClaims, recordSupportReimbursement } from "../src/queries/support-claims";
+import { tamkeenSupports } from "../src/constants/hr-support";
 import { reassignSalesOwner, getCommissionStatement, recordCommissionPayout } from "../src/queries/sales-attribution";
 import { createExpenseClaim, scheduleExpenseClaim, payExpenseClaim, cancelExpenseClaim } from "../src/queries/expense-claims";
 import { createConsolidatedRequest } from "../src/queries/requests";
@@ -188,7 +190,9 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
       email: userId ? email : null, phone: `+973 3${int(100, 999)} ${int(1000, 9999)}`, cprNumber: String(int(800000000, 999999999)),
       jobTitleEn: plan.titleEn, jobTitleAr: plan.titleAr, departmentId: departments[plan.deptCode] ?? null, hireDate,
       basicSalary: int(plan.salary[0], plan.salary[1]), housingAllowance: pick([0, 150, 200, 250, 300]),
-      transportAllowance: pick([0, 50, 75, 100]), payrollSettings: SIO,
+      transportAllowance: pick([0, 50, 75, 100]),
+      // Bahraini hires from the last three years are on Tamkeen's 70/50/30% wage support.
+      payrollSettings: hireDate > daysAgo(3 * 365) && chance(0.7) ? { ...SIO, supports: tamkeenSupports(iso(hireDate).slice(0, 7)) } : SIO,
     }, owner.id);
     bump("employees");
   }
@@ -558,6 +562,17 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     const approved = await prisma.payrollRun.findUniqueOrThrow({ where: { id: run.id } });
     if (m === 1 && chance(0.5)) continue; // last month approved, payment pending
     if (approved.status === "approved") await markPayrollAsPaid(run.id, owner.id);
+  }
+
+  // ============================================================ 7b. Tamkeen six-monthly reimbursements received
+  for (const claim of await getSupportClaims()) {
+    if (claim.status !== "claimable" || claim.periodEnd >= iso(daysAgo(75)).slice(0, 7)) continue;
+    await recordSupportReimbursement({
+      employeeId: claim.employeeId, provider: claim.provider, periodStart: claim.periodStart,
+      receivedAmount: claim.accrued, receivedOn: iso(addDays(new Date(`${claim.periodEnd}-28T00:00:00Z`), int(20, 50))),
+      reference: `TMK-${int(100000, 999999)}`,
+    }, finance.id);
+    bump("supportReimbursements");
   }
 
   // ============================================================ 8. calendar & minutes of meetings

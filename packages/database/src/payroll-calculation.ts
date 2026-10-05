@@ -69,3 +69,20 @@ export function calculateContributions(
     employerCost: round(gross + employer - support),
   };
 }
+
+/** How a month's support splits across programmes (e.g. Tamkeen), capped like the payroll total. */
+export function supportBreakdown(fixedPay: number, settings: EmployeePayrollSettings | null, month: string) {
+  if (!settings) return [];
+  const round = (value: number) => Math.round(value * 1000) / 1000;
+  const active = settings.supports.filter((s) => s.startMonth <= month && s.endMonth >= month);
+  const raw = active.map((s) => ({
+    provider: s.provider.trim(),
+    startMonth: s.startMonth,
+    amount: round(s.mode === "percentage" ? (fixedPay * s.value) / 100 : s.value),
+  }));
+  const employer = round(settings.employer.mode === "percentage" ? (fixedPay * settings.employer.value) / 100 : settings.employer.value);
+  const total = raw.reduce((sum, r) => sum + r.amount, 0);
+  const cap = fixedPay + employer;
+  const factor = total > cap && total > 0 ? cap / total : 1;
+  return raw.map((r) => ({ ...r, amount: round(r.amount * factor) }));
+}

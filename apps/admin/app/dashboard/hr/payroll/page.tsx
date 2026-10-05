@@ -1,5 +1,6 @@
 import { hasPermission, requirePermission } from "../../../../lib/auth";
-import { listPayrollRuns, db, canDecideApproval } from "@ishoot/database";
+import { listPayrollRuns, db, canDecideApproval, getSupportClaims } from "@ishoot/database";
+import { SupportClaimsPanel } from "../../../../components/hr/SupportClaimsPanel";
 import { PayrollManagementView } from "../../../../components/hr/PayrollManagementView";
 
 export const dynamic = "force-dynamic";
@@ -17,6 +18,13 @@ export default async function PayrollPage() {
     : [];
   const decidableRunIds = pending.filter((request) => canDecideApproval(request, user)).map((request) => request.targetId);
 
-  const canEdit = await hasPermission("payroll", "edit");
-  return <PayrollManagementView runs={runs} currentUserId={user.id} decidableRunIds={decidableRunIds} canEdit={canEdit} />;
+  const [canEdit, supportClaims] = await Promise.all([hasPermission("payroll", "edit"), getSupportClaims()]);
+  return (
+    <>
+      <PayrollManagementView runs={runs} currentUserId={user.id} decidableRunIds={decidableRunIds} canEdit={canEdit} />
+      <div className="max-w-7xl mx-auto mt-8">
+        <SupportClaimsPanel claims={supportClaims} canRecord={canEdit} />
+      </div>
+    </>
+  );
 }

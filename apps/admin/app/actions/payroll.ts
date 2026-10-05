@@ -10,6 +10,7 @@ import {
   markPayrollAsPaid,
   createActivityLog,
   updatePayrollItem,
+  recordSupportReimbursement,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
@@ -141,5 +142,27 @@ export async function updatePayrollItemAction(
     });
     revalidatePath(ROUTES.hr.payroll());
     return { success: true, item };
+  });
+}
+
+/** Record money received from a wage-support programme (e.g. Tamkeen) for a six-month claim. */
+export async function recordSupportReimbursementAction(input: {
+  employeeId: string;
+  provider: string;
+  periodStart: string;
+  receivedAmount: number;
+  receivedOn: string;
+  reference?: string | null;
+}) {
+  return measureOperation("action:recordSupportReimbursementAction", async () => {
+    const actor = await requirePermission("payroll", "edit");
+    validateActionArguments("recordSupportReimbursementAction", { input });
+    const receipt = await runAtomicMutation(async () => {
+      const receipt = await recordSupportReimbursement(input, actor.id);
+      await createActivityLog({ user_id: actor.id, action: "create", entity_type: "support_reimbursement", entity_id: receipt.id, details: { ...input } });
+      return receipt;
+    });
+    revalidatePath(ROUTES.hr.payroll());
+    return { success: true, id: receipt.id };
   });
 }

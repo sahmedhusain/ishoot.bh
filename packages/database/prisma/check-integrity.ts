@@ -191,6 +191,8 @@ const RULES: Rule[] = [
   { area: "hr", name: "payroll item gross = components + bonus and net = gross − employee contribution − other deductions",
     sql: `SELECT id FROM "PayrollItem" WHERE "grossSalary" <> "basicSalary" + "housingAllowance" + "transportAllowance" + "otherAllowances" + "bonus"
       OR "netSalary" <> "grossSalary" - "gosiEmployee" - "otherDeductions"` },
+  { area: "hr", name: "support reimbursements are received after their six-month period",
+    sql: `SELECT id FROM "SupportReimbursement" WHERE to_char("receivedOn", 'YYYY-MM') < "periodEnd" OR "receivedAmount" < 0` },
   { area: "hr", name: "payroll run totals equal the sum of its items",
     sql: `SELECT r.year, r.month FROM "PayrollRun" r JOIN "PayrollItem" i ON i."payrollRunId" = r.id GROUP BY r.id
       HAVING r."totalGross" <> SUM(i."grossSalary") OR r."totalNet" <> SUM(i."netSalary") OR r."totalDeductions" <> SUM(i."gosiEmployee" + i."otherDeductions")` },

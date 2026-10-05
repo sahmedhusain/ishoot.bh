@@ -3615,6 +3615,50 @@
       }
     }
   },
+  "recordSupportReimbursementAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "employeeId": {
+            "kind": "string",
+            "optional": false
+          },
+          "provider": {
+            "kind": "string",
+            "optional": false
+          },
+          "periodStart": {
+            "kind": "string",
+            "optional": false
+          },
+          "receivedAmount": {
+            "kind": "number",
+            "optional": false
+          },
+          "receivedOn": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "updateMyProfileAction": {
     "kind": "object",
     "fields": {

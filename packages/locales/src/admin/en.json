@@ -2081,7 +2081,8 @@
       "expense_claim": "Expense claim",
       "expense_category": "Expense category",
       "commission_payout": "Commission payout",
-      "payroll_item": "Payroll line"
+      "payroll_item": "Payroll line",
+      "support_reimbursement": "Support reimbursement"
     },
     "fields": {
       "name": "Name",
@@ -3822,5 +3823,30 @@
       "bonus": "Bonus / incentive",
       "otherDeductions": "Deductions"
     }
+  },
+  "tamkeen": {
+    "addTitle": "Tamkeen wage support",
+    "addHint": "Adds 70% (year 1), 50% (year 2) and 30% (year 3) of gross pay before GOSI from this month.",
+    "firstMonth": "First supported month",
+    "add": "Add Tamkeen schedule",
+    "claimsTitle": "Wage support claims",
+    "claimsHint": "Support already reduces payroll cost; programmes such as Tamkeen pay it back every six months. Claim each period once it ends and record what was received.",
+    "claimable": "Ready to claim",
+    "accruing": "Accruing",
+    "received": "Received",
+    "showAll": "Show all",
+    "showOpen": "Open only",
+    "programme": "Programme",
+    "period": "Six-month period",
+    "months": "Months",
+    "accrued": "Accrued (BHD)",
+    "status": "Status",
+    "recordReceipt": "Record receipt",
+    "amountReceived": "Amount received",
+    "receivedDate": "Received on",
+    "reference": "Reference",
+    "recorded": "Support receipt recorded",
+    "failed": "Could not record the receipt",
+    "receivedOn": "{amount} on {date}"
   }
 }
