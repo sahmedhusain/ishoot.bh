@@ -22,7 +22,8 @@ export type RequestWorkflowKey =
   | "confirmed"
   | "returned"
   | "resolved";
-export type RequestPriorityKey = "urgent" | "high" | "normal" | "low";
+/** Matches the database constraint on Inquiry.priority. */
+export type RequestPriorityKey = "urgent" | "high" | "normal";
 
 /** Request types arrive both as workflow codes (SR/CR) and as inquiry intents. */
 export function normalizeRequestType(type?: string | null): RequestTypeKey {
@@ -97,5 +98,4 @@ export const REQUEST_PRIORITY_STYLES: Record<RequestPriorityKey, string> = {
   urgent: "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200",
   high: "bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200",
   normal: "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300",
-  low: "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400",
 };

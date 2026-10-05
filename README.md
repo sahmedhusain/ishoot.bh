@@ -55,6 +55,7 @@ ishoot.bh/
 | `pnpm format`     | Auto-format codebase using Prettier (`prettier --write "**/*.{ts,tsx,md,json}"`) |
 | `pnpm db:push`    | Sync Prisma schema directly with the PostgreSQL database                         |
 | `pnpm db:seed`    | Populate an empty development database with demo records                        |
+| `pnpm db:check-integrity` | Audit the database against 43 business rules (totals, statuses, numbering, approvals, HR) |
 
 ### Database & Prisma Commands
 
@@ -482,7 +483,7 @@ ADMIN_URL="http://localhost:3001"
    pnpm db:bootstrap
    ```
 
-   Optionally run `pnpm db:seed` on a new, empty development database for demo CMS and business records. Local demo seeding publishes an initial website snapshot; hosted development seeds leave a draft for admin review.
+   Optionally run `pnpm db:seed` on a new, empty development database for demo CMS and business records (≈15 months of history generated through the app's own domain logic; set `SEED_VOLUME=off` for the small fixture set only), then `pnpm db:check-integrity` to confirm every business rule holds. Local demo seeding publishes an initial website snapshot; hosted development seeds leave a draft for admin review.
 
 5. **Start applications in development mode**:
    ```bash

@@ -12,6 +12,8 @@ import bcrypt from "bcryptjs";
 import { defaultWebsiteConfig } from "../src/website-config";
 import { ALL_ACTIONS, ALL_RESOURCES, ALL_ROLES, isDefaultAllowed } from "../src/constants/permissions";
 import { collectWebsiteDraft } from "../src/queries/website";
+import { calculateInvoiceTotals } from "../src/types";
+import { seedVolume, reconcileSeed } from "./seed-volume";
 import { db as websiteDb } from "../src/db";
 
 const prisma = new PrismaClient();
@@ -1437,7 +1439,7 @@ async function main() {
   const invoicesData = [
     {
       id: "inv-001",
-      invoiceNumber: "ISH-2026-001",
+      invoiceNumber: "ISH-2026-0001",
       dealId: "deal-07",
       clientId: "contact-03",
       issueDate: new Date("2026-08-15"),
@@ -1462,7 +1464,7 @@ async function main() {
     },
     {
       id: "inv-002",
-      invoiceNumber: "ISH-2026-002",
+      invoiceNumber: "ISH-2026-0002",
       dealId: "deal-04",
       clientId: "contact-05",
       issueDate: new Date("2026-09-01"),
@@ -1485,7 +1487,7 @@ async function main() {
     },
     {
       id: "inv-003",
-      invoiceNumber: "ISH-2026-003",
+      invoiceNumber: "ISH-2026-0003",
       dealId: "deal-01",
       clientId: "contact-01",
       issueDate: new Date("2026-09-10"),
@@ -1508,7 +1510,7 @@ async function main() {
     },
     {
       id: "inv-004",
-      invoiceNumber: "ISH-2026-004",
+      invoiceNumber: "ISH-2026-0004",
       dealId: "deal-13",
       clientId: "contact-11",
       issueDate: new Date("2026-08-05"),
@@ -1531,7 +1533,7 @@ async function main() {
     },
     {
       id: "inv-005",
-      invoiceNumber: "ISH-2026-005",
+      invoiceNumber: "ISH-2026-0005",
       dealId: "deal-18",
       clientId: "contact-16",
       issueDate: new Date("2026-06-25"),
@@ -1554,7 +1556,7 @@ async function main() {
     },
     {
       id: "inv-006",
-      invoiceNumber: "ISH-2026-006",
+      invoiceNumber: "ISH-2026-0006",
       dealId: "deal-08",
       clientId: "contact-06",
       issueDate: new Date("2026-09-12"),
@@ -1578,7 +1580,7 @@ async function main() {
     },
     {
       id: "inv-007",
-      invoiceNumber: "ISH-2026-007",
+      invoiceNumber: "ISH-2026-0007",
       dealId: "deal-09",
       clientId: "contact-07",
       issueDate: new Date("2026-08-25"),
@@ -1601,7 +1603,7 @@ async function main() {
     },
     {
       id: "inv-008",
-      invoiceNumber: "ISH-2026-008",
+      invoiceNumber: "ISH-2026-0008",
       dealId: "deal-10",
       clientId: "contact-08",
       issueDate: new Date("2026-08-01"),
@@ -1625,7 +1627,7 @@ async function main() {
     },
     {
       id: "inv-009",
-      invoiceNumber: "ISH-2026-009",
+      invoiceNumber: "ISH-2026-0009",
       dealId: "deal-06",
       clientId: "contact-05",
       issueDate: new Date("2026-08-10"),
@@ -1648,7 +1650,7 @@ async function main() {
     },
     {
       id: "inv-010",
-      invoiceNumber: "ISH-2026-010",
+      invoiceNumber: "ISH-2026-0010",
       dealId: "deal-15",
       clientId: "contact-13",
       issueDate: new Date("2026-07-20"),
@@ -1671,7 +1673,7 @@ async function main() {
     },
     {
       id: "inv-011",
-      invoiceNumber: "ISH-2026-011",
+      invoiceNumber: "ISH-2026-0011",
       dealId: "deal-16",
       clientId: "contact-14",
       issueDate: new Date("2026-09-01"),
@@ -1695,7 +1697,7 @@ async function main() {
     },
     {
       id: "inv-012",
-      invoiceNumber: "ISH-2026-012",
+      invoiceNumber: "ISH-2026-0012",
       dealId: "deal-05",
       clientId: "contact-01",
       issueDate: new Date("2026-08-05"),
@@ -1717,7 +1719,7 @@ async function main() {
     },
     {
       id: "inv-013",
-      invoiceNumber: "ISH-2026-013",
+      invoiceNumber: "ISH-2026-0013",
       dealId: "deal-17",
       clientId: "contact-15",
       issueDate: new Date("2026-07-01"),
@@ -1740,7 +1742,7 @@ async function main() {
     },
     {
       id: "inv-014",
-      invoiceNumber: "ISH-2026-014",
+      invoiceNumber: "ISH-2026-0014",
       dealId: "deal-06",
       clientId: "contact-05",
       issueDate: new Date("2026-09-05"),
@@ -1762,7 +1764,7 @@ async function main() {
     },
     {
       id: "inv-015",
-      invoiceNumber: "ISH-2026-015",
+      invoiceNumber: "ISH-2026-0015",
       dealId: "deal-14",
       clientId: "contact-12",
       issueDate: new Date("2026-09-15"),
@@ -1785,7 +1787,7 @@ async function main() {
     },
     {
       id: "inv-016",
-      invoiceNumber: "ISH-2026-016",
+      invoiceNumber: "ISH-2026-0016",
       dealId: "deal-11",
       clientId: "contact-09",
       issueDate: new Date("2026-09-08"),
@@ -1809,7 +1811,7 @@ async function main() {
     },
     {
       id: "inv-017",
-      invoiceNumber: "ISH-2026-017",
+      invoiceNumber: "ISH-2026-0017",
       dealId: "deal-12",
       clientId: "contact-10",
       issueDate: new Date("2026-08-18"),
@@ -1832,7 +1834,7 @@ async function main() {
     },
     {
       id: "inv-018",
-      invoiceNumber: "ISH-2026-018",
+      invoiceNumber: "ISH-2026-0018",
       dealId: "deal-04",
       clientId: "contact-05",
       issueDate: new Date("2026-08-01"),
@@ -1855,7 +1857,7 @@ async function main() {
     },
     {
       id: "inv-019",
-      invoiceNumber: "ISH-2026-019",
+      invoiceNumber: "ISH-2026-0019",
       dealId: "deal-02",
       clientId: "contact-02",
       issueDate: new Date("2026-09-20"),
@@ -1878,7 +1880,7 @@ async function main() {
     },
     {
       id: "inv-020",
-      invoiceNumber: "ISH-2026-020",
+      invoiceNumber: "ISH-2026-0020",
       dealId: "deal-14",
       clientId: "contact-12",
       issueDate: new Date("2026-07-10"),
@@ -1901,7 +1903,7 @@ async function main() {
     },
     {
       id: "inv-021",
-      invoiceNumber: "ISH-2026-021",
+      invoiceNumber: "ISH-2026-0021",
       dealId: "deal-17",
       clientId: "contact-15",
       issueDate: new Date("2026-06-10"),
@@ -1924,7 +1926,7 @@ async function main() {
     },
     {
       id: "inv-022",
-      invoiceNumber: "ISH-2026-022",
+      invoiceNumber: "ISH-2026-0022",
       dealId: "deal-12",
       clientId: "contact-10",
       issueDate: new Date("2026-09-01"),
@@ -1947,7 +1949,7 @@ async function main() {
     },
     {
       id: "inv-023",
-      invoiceNumber: "ISH-2026-023",
+      invoiceNumber: "ISH-2026-0023",
       dealId: "deal-03",
       clientId: "contact-03",
       issueDate: new Date("2026-09-22"),
@@ -1970,7 +1972,7 @@ async function main() {
     },
     {
       id: "inv-024",
-      invoiceNumber: "ISH-2026-024",
+      invoiceNumber: "ISH-2026-0024",
       dealId: "deal-05",
       clientId: "contact-01",
       issueDate: new Date("2026-09-25"),
@@ -1993,7 +1995,7 @@ async function main() {
     },
     {
       id: "inv-025",
-      invoiceNumber: "ISH-2026-025",
+      invoiceNumber: "ISH-2026-0025",
       dealId: "deal-19",
       clientId: "contact-04",
       issueDate: new Date("2026-09-26"),
@@ -2036,7 +2038,7 @@ async function main() {
     {
       id: "pay-001",
       invoiceId: "inv-001",
-      receiptNumber: "RCT-2026-001",
+      receiptNumber: "RCT-2026-0001",
       paymentDate: new Date("2026-08-25"),
       amount: 9800.0,
       currency: "BHD",
@@ -2049,7 +2051,7 @@ async function main() {
     {
       id: "pay-002",
       invoiceId: "inv-002",
-      receiptNumber: "RCT-2026-002",
+      receiptNumber: "RCT-2026-0002",
       paymentDate: new Date("2026-09-05"),
       amount: 4250.0,
       currency: "BHD",
@@ -2062,7 +2064,7 @@ async function main() {
     {
       id: "pay-003",
       invoiceId: "inv-004",
-      receiptNumber: "RCT-2026-003",
+      receiptNumber: "RCT-2026-0003",
       paymentDate: new Date("2026-08-15"),
       amount: 5200.0,
       currency: "BHD",
@@ -2075,7 +2077,7 @@ async function main() {
     {
       id: "pay-004",
       invoiceId: "inv-005",
-      receiptNumber: "RCT-2026-004",
+      receiptNumber: "RCT-2026-0004",
       paymentDate: new Date("2026-07-05"),
       amount: 3400.0,
       currency: "BHD",
@@ -2088,7 +2090,7 @@ async function main() {
     {
       id: "pay-005",
       invoiceId: "inv-006",
-      receiptNumber: "RCT-2026-005",
+      receiptNumber: "RCT-2026-0005",
       paymentDate: new Date("2026-09-18"),
       amount: 6000.0,
       currency: "BHD",
@@ -2101,7 +2103,7 @@ async function main() {
     {
       id: "pay-006",
       invoiceId: "inv-007",
-      receiptNumber: "RCT-2026-006",
+      receiptNumber: "RCT-2026-0006",
       paymentDate: new Date("2026-09-02"),
       amount: 7800.0,
       currency: "BHD",
@@ -2114,7 +2116,7 @@ async function main() {
     {
       id: "pay-007",
       invoiceId: "inv-010",
-      receiptNumber: "RCT-2026-007",
+      receiptNumber: "RCT-2026-0007",
       paymentDate: new Date("2026-08-05"),
       amount: 6200.0,
       currency: "BHD",
@@ -2127,7 +2129,7 @@ async function main() {
     {
       id: "pay-008",
       invoiceId: "inv-011",
-      receiptNumber: "RCT-2026-008",
+      receiptNumber: "RCT-2026-0008",
       paymentDate: new Date("2026-09-08"),
       amount: 4750.0,
       currency: "BHD",
@@ -2140,7 +2142,7 @@ async function main() {
     {
       id: "pay-009",
       invoiceId: "inv-013",
-      receiptNumber: "RCT-2026-009",
+      receiptNumber: "RCT-2026-0009",
       paymentDate: new Date("2026-07-15"),
       amount: 6700.0,
       currency: "BHD",
@@ -2153,7 +2155,7 @@ async function main() {
     {
       id: "pay-010",
       invoiceId: "inv-014",
-      receiptNumber: "RCT-2026-010",
+      receiptNumber: "RCT-2026-0010",
       paymentDate: new Date("2026-09-12"),
       amount: 2900.0,
       currency: "BHD",
@@ -2166,7 +2168,7 @@ async function main() {
     {
       id: "pay-011",
       invoiceId: "inv-016",
-      receiptNumber: "RCT-2026-011",
+      receiptNumber: "RCT-2026-0011",
       paymentDate: new Date("2026-09-12"),
       amount: 5000.0,
       currency: "BHD",
@@ -2179,7 +2181,7 @@ async function main() {
     {
       id: "pay-012",
       invoiceId: "inv-016",
-      receiptNumber: "RCT-2026-012",
+      receiptNumber: "RCT-2026-0012",
       paymentDate: new Date("2026-09-20"),
       amount: 5000.0,
       currency: "BHD",
@@ -2192,7 +2194,7 @@ async function main() {
     {
       id: "pay-013",
       invoiceId: "inv-017",
-      receiptNumber: "RCT-2026-013",
+      receiptNumber: "RCT-2026-0013",
       paymentDate: new Date("2026-08-30"),
       amount: 6700.0,
       currency: "BHD",
@@ -2205,7 +2207,7 @@ async function main() {
     {
       id: "pay-014",
       invoiceId: "inv-020",
-      receiptNumber: "RCT-2026-014",
+      receiptNumber: "RCT-2026-0014",
       paymentDate: new Date("2026-07-25"),
       amount: 5900.0,
       currency: "BHD",
@@ -2218,7 +2220,7 @@ async function main() {
     {
       id: "pay-015",
       invoiceId: "inv-021",
-      receiptNumber: "RCT-2026-015",
+      receiptNumber: "RCT-2026-0015",
       paymentDate: new Date("2026-06-25"),
       amount: 7300.0,
       currency: "BHD",
@@ -2231,7 +2233,7 @@ async function main() {
     {
       id: "pay-016",
       invoiceId: "inv-022",
-      receiptNumber: "RCT-2026-016",
+      receiptNumber: "RCT-2026-0016",
       paymentDate: new Date("2026-09-10"),
       amount: 5400.0,
       currency: "BHD",
@@ -2244,7 +2246,7 @@ async function main() {
     {
       id: "pay-017",
       invoiceId: "inv-001",
-      receiptNumber: "RCT-2026-017",
+      receiptNumber: "RCT-2026-0017",
       paymentDate: new Date("2026-08-20"),
       amount: 0.0, // test marker or void demonstration if needed, let's keep valid amount
       currency: "BHD",
@@ -2298,11 +2300,16 @@ async function main() {
     { id: "exp-10", categoryId: "expcat-02", dealId: "deal-08", descriptionEn: "High-Speed FPV Drone Pilot Day Rate & Insurance", descriptionAr: "أجر طيار درون FPV السريع ورسوم التأمين", amount: 450.0, currency: "BHD", expenseDate: new Date("2026-09-14"), vendorName: "AeroMotion FPV Pilots", createdById: createdUsers.production_manager?.id },
   ];
 
+  // Local VAT-registered suppliers (rentals, logistics, premises) charge 10% VAT inside the gross;
+  // freelance wages and foreign subscriptions carry none. Gross always equals net + input VAT.
+  const VATABLE_CATEGORIES = new Set(["expcat-01", "expcat-03", "expcat-04"]);
   for (const e of expenses) {
+    const inputVatAmount = VATABLE_CATEGORIES.has(e.categoryId) ? Math.round((e.amount * 10 / 110) * 1000) / 1000 : 0;
+    const row = { ...e, inputVatAmount, netAmount: Math.round((e.amount - inputVatAmount) * 1000) / 1000, status: "approved" };
     await prisma.expense.upsert({
       where: { id: e.id },
-      update: e,
-      create: e,
+      update: row,
+      create: row,
     });
   }
   console.log("✅ Seeded 10 Production & Studio Operating Expenses");
@@ -2705,7 +2712,7 @@ async function main() {
         action: "create",
         entityType: "invoice",
         entityId: "inv-001",
-        details: { invoiceNumber: "ISH-2026-001", amount: 9800.0, client: "BTEA" },
+        details: { invoiceNumber: "ISH-2026-0001", amount: 9800.0, client: "BTEA" },
         ipAddress: "185.120.45.14",
       },
       {
@@ -2721,7 +2728,7 @@ async function main() {
         action: "create",
         entityType: "payment",
         entityId: "pay-001",
-        details: { receiptNumber: "RCT-2026-001", amount: 9800.0, method: "bank_transfer" },
+        details: { receiptNumber: "RCT-2026-0001", amount: 9800.0, method: "bank_transfer" },
         ipAddress: "185.120.45.14",
       },
       {
@@ -3011,7 +3018,7 @@ async function main() {
     { id: "SR_2026", prefix: "SR", year: 2026, lastNumber: 1 },
     { id: "CR_2026", prefix: "CR", year: 2026, lastNumber: 1 },
     { id: "QTE_2026", prefix: "QTE", year: 2026, lastNumber: 6 },
-    { id: "INV_2026", prefix: "INV", year: 2026, lastNumber: 25 },
+    { id: "EMP_2026", prefix: "EMP", year: 2026, lastNumber: 9 },
   ];
   for (const seq of refSequences) {
     await prisma.referenceSequence.upsert({
@@ -3093,7 +3100,7 @@ async function main() {
   // 4. HRMS Employees & Employment Records
   const employeesData = [
     {
-      employeeNumber: "EMP-001",
+      employeeNumber: "EMP-2026-000001",
       userId: createdUsers.super_admin?.id,
       departmentId: deptMap["EXEC"],
       firstNameEn: "Sayed",
@@ -3113,7 +3120,7 @@ async function main() {
       transportAllowance: 200.0,
     },
     {
-      employeeNumber: "EMP-002",
+      employeeNumber: "EMP-2026-000002",
       userId: createdUsers.admin?.id,
       departmentId: deptMap["EXEC"],
       firstNameEn: "Mohamed",
@@ -3133,7 +3140,7 @@ async function main() {
       transportAllowance: 150.0,
     },
     {
-      employeeNumber: "EMP-003",
+      employeeNumber: "EMP-2026-000003",
       userId: createdUsers.finance_manager?.id,
       departmentId: deptMap["FIN"],
       firstNameEn: "Zainab",
@@ -3153,7 +3160,7 @@ async function main() {
       transportAllowance: 150.0,
     },
     {
-      employeeNumber: "EMP-004",
+      employeeNumber: "EMP-2026-000004",
       userId: createdUsers.production_manager?.id,
       departmentId: deptMap["PROD"],
       firstNameEn: "Ali",
@@ -3173,7 +3180,7 @@ async function main() {
       transportAllowance: 150.0,
     },
     {
-      employeeNumber: "EMP-005",
+      employeeNumber: "EMP-2026-000005",
       userId: createdUsers.editor?.id,
       departmentId: deptMap["POST"],
       firstNameEn: "Fatima",
@@ -3193,7 +3200,7 @@ async function main() {
       transportAllowance: 100.0,
     },
     {
-      employeeNumber: "EMP-006",
+      employeeNumber: "EMP-2026-000006",
       userId: createdUsers.sales?.id,
       departmentId: deptMap["COMM"],
       firstNameEn: "Khalid",
@@ -3214,7 +3221,7 @@ async function main() {
     },
     // Every seeded staff role gets an employee record so self-service HR (leave, payslips) works for all of them.
     {
-      employeeNumber: "EMP-007",
+      employeeNumber: "EMP-2026-000007",
       userId: createdUsers.accountant?.id,
       departmentId: deptMap["FIN"],
       firstNameEn: "Noor",
@@ -3234,7 +3241,7 @@ async function main() {
       transportAllowance: 100.0,
     },
     {
-      employeeNumber: "EMP-008",
+      employeeNumber: "EMP-2026-000008",
       userId: createdUsers.producer?.id,
       departmentId: deptMap["PROD"],
       firstNameEn: "Hassan",
@@ -3254,7 +3261,7 @@ async function main() {
       transportAllowance: 100.0,
     },
     {
-      employeeNumber: "EMP-009",
+      employeeNumber: "EMP-2026-000009",
       userId: createdUsers.marketing?.id,
       departmentId: deptMap["COMM"],
       firstNameEn: "Layla",
@@ -3276,8 +3283,13 @@ async function main() {
   ];
 
   const empMap: Record<string, any> = {};
+  // Bahrain social insurance (SIO) defaults: 7% employee, 12% employer. Payroll cannot run without them.
+  const SIO_SETTINGS = { employee: { mode: "percentage", value: 7 }, employer: { mode: "percentage", value: 12 }, supports: [] };
+  const usersById = new Map(Object.values(createdUsers).filter(Boolean).map((u: any) => [u.id, u]));
   for (const emp of employeesData) {
-    const { basicSalary, housingAllowance, transportAllowance, ...empFields } = emp;
+    const { basicSalary, housingAllowance, transportAllowance, ...rawFields } = emp;
+    // An employee linked to a login always carries that login's e-mail.
+    const empFields = { ...rawFields, email: (usersById.get(rawFields.userId) as any)?.email ?? rawFields.email };
     const createdEmp = await prisma.employee.upsert({
       where: { employeeNumber: empFields.employeeNumber },
       update: empFields,
@@ -3294,6 +3306,7 @@ async function main() {
         housingAllowance,
         transportAllowance,
         otherAllowances: 0.0,
+        payrollSettings: SIO_SETTINGS,
         effectiveFrom: empFields.hireDate,
         isCurrent: true,
       },
@@ -3301,11 +3314,11 @@ async function main() {
   }
 
   // Approved Leave Request for EMP-005
-  if (empMap["EMP-005"] && leaveTypeMap["annual"]) {
-    await prisma.leaveRequest.deleteMany({ where: { employeeId: empMap["EMP-005"].id } });
+  if (empMap["EMP-2026-000005"] && leaveTypeMap["annual"]) {
+    await prisma.leaveRequest.deleteMany({ where: { employeeId: empMap["EMP-2026-000005"].id } });
     await prisma.leaveRequest.create({
       data: {
-        employeeId: empMap["EMP-005"].id,
+        employeeId: empMap["EMP-2026-000005"].id,
         leaveTypeId: leaveTypeMap["annual"],
         startDate: new Date("2026-10-01"),
         endDate: new Date("2026-10-07"),
@@ -3319,97 +3332,19 @@ async function main() {
     });
   }
 
-  // 5. HRMS Payroll Run (Month 9, Year 2026)
-  const payrollRun = await prisma.payrollRun.upsert({
-    where: { year_month: { year: 2026, month: 9 } },
-    update: {
-      status: "approved",
-      totalGross: 15300.0,
-      totalDeductions: 1071.0,
-      totalNet: 14229.0,
-      totalEmployerCost: 17136.0,
-      approvedById: createdUsers.super_admin?.id,
-      approvedAt: new Date("2026-09-28"),
-    },
-    create: {
-      year: 2026,
-      month: 9,
-      periodStart: new Date("2026-09-01"),
-      periodEnd: new Date("2026-09-30"),
-      status: "approved",
-      totalGross: 15300.0,
-      totalDeductions: 1071.0,
-      totalNet: 14229.0,
-      totalEmployerCost: 17136.0,
-      approvedById: createdUsers.super_admin?.id,
-      approvedAt: new Date("2026-09-28"),
-    },
-  });
-
-  await prisma.payrollItem.deleteMany({ where: { payrollRunId: payrollRun.id } });
-  for (const emp of employeesData) {
-    const createdEmp = empMap[emp.employeeNumber];
-    if (!createdEmp) continue;
-    const gross = emp.basicSalary + emp.housingAllowance + emp.transportAllowance;
-    const gosiEmp = gross * 0.07;
-    const gosiEmpr = gross * 0.12;
-    const net = gross - gosiEmp;
-    await prisma.payrollItem.create({
-      data: {
-        payrollRunId: payrollRun.id,
-        employeeId: createdEmp.id,
-        basicSalary: emp.basicSalary,
-        housingAllowance: emp.housingAllowance,
-        transportAllowance: emp.transportAllowance,
-        otherAllowances: 0.0,
-        grossSalary: gross,
-        gosiEmployee: gosiEmp,
-        gosiEmployer: gosiEmpr,
-        otherDeductions: 0.0,
-        netSalary: net,
-        paymentStatus: "paid",
-      },
-    });
-  }
-
-  // ApprovalRequest for Payroll Run
-  const payrollHash = crypto.createHash("sha256").update(`payroll_${payrollRun.id}_1`).digest("hex");
-  const payrollApproval = await prisma.approvalRequest.upsert({
-    where: { targetType_targetId_revision: { targetType: "payroll_run", targetId: payrollRun.id, revision: 1 } },
-    update: { status: "approved" },
-    create: {
-      targetType: "payroll_run",
-      targetId: payrollRun.id,
-      revision: 1,
-      contentHash: payrollHash,
-      status: "approved",
-      requestedById: createdUsers.finance_manager?.id || createdUsers.super_admin?.id,
-      policySnapshot: { threshold: 10000, requiredRole: "super_admin" },
-      diffPayload: { totalNet: 14229.0, employeeCount: employeesData.length },
-    },
-  });
-
-  await prisma.approvalDecision.deleteMany({ where: { approvalRequestId: payrollApproval.id } });
-  await prisma.approvalDecision.create({
-    data: {
-      approvalRequestId: payrollApproval.id,
-      decision: "approved",
-      decidedById: createdUsers.super_admin?.id,
-      reason: "September 2026 studio staff payroll and statutory GOSI allocations reviewed and approved.",
-      decidedAt: new Date("2026-09-28"),
-    },
-  });
+  // 5. Payroll runs are generated by the real payroll engine in seed-volume.ts, so every total,
+  //    contribution and approval matches what the app itself would produce.
 
   // 6. Inquiries (Service Request & Change Request)
   const srInquiry = await prisma.inquiry.upsert({
-    where: { reference: "SR-2026-0001" },
+    where: { reference: "SR-2026-000001" },
     update: {
       requestType: "SR",
       workflowStatus: "in_progress",
       priority: "high",
     },
     create: {
-      reference: "SR-2026-0001",
+      reference: "SR-2026-000001",
       requestType: "SR",
       name: "حمد الرميحي",
       email: "h.alromaihi@batelco.com.bh",
@@ -3467,14 +3402,14 @@ async function main() {
   });
 
   const crInquiry = await prisma.inquiry.upsert({
-    where: { reference: "CR-2026-0001" },
+    where: { reference: "CR-2026-000001" },
     update: {
       requestType: "CR",
       workflowStatus: "under_review",
       priority: "urgent",
     },
     create: {
-      reference: "CR-2026-0001",
+      reference: "CR-2026-000001",
       requestType: "CR",
       name: "طارق الدوسري",
       email: "t.aldoseri@btea.bh",
@@ -3514,7 +3449,7 @@ async function main() {
   // 7. Quotations across Full Lifecycle (Draft, Submitted, Approved, Issued, Accepted, Converted)
   const quotationsData = [
     {
-      quotationNumber: "QTE-2026-001",
+      quotationNumber: "QTE-2026-000001",
       clientId: "contact-01",
       subtotal: 3500.0,
       vatEnabled: false,
@@ -3537,7 +3472,7 @@ async function main() {
       ],
     },
     {
-      quotationNumber: "QTE-2026-002",
+      quotationNumber: "QTE-2026-000002",
       clientId: "contact-02",
       subtotal: 6000.0,
       vatEnabled: true,
@@ -3559,7 +3494,7 @@ async function main() {
       ],
     },
     {
-      quotationNumber: "QTE-2026-003",
+      quotationNumber: "QTE-2026-000003",
       clientId: "contact-03",
       subtotal: 12000.0,
       vatEnabled: true,
@@ -3582,7 +3517,7 @@ async function main() {
       ],
     },
     {
-      quotationNumber: "QTE-2026-004",
+      quotationNumber: "QTE-2026-000004",
       clientId: "contact-04",
       subtotal: 4800.0,
       vatEnabled: false,
@@ -3606,7 +3541,7 @@ async function main() {
       ],
     },
     {
-      quotationNumber: "QTE-2026-005",
+      quotationNumber: "QTE-2026-000005",
       clientId: "contact-01",
       subtotal: 8500.0,
       vatEnabled: true,
@@ -3631,7 +3566,7 @@ async function main() {
       ],
     },
     {
-      quotationNumber: "QTE-2026-006",
+      quotationNumber: "QTE-2026-000006",
       clientId: "contact-03",
       subtotal: 9800.0,
       vatEnabled: false,
@@ -3656,8 +3591,24 @@ async function main() {
     },
   ];
 
+  // Totals are computed with the app's own calculator and follow the company VAT registration, so a
+  // quotation never promises a different amount from the invoice it becomes.
+  const quotationVat = (await prisma.companySetting.findFirstOrThrow({ select: { vatEnabled: true, vatPercentage: true } }));
   for (const q of quotationsData) {
-    const { items, ...qData } = q;
+    const { items, ...rawQ } = q;
+    const totals = calculateInvoiceTotals(
+      items.map((i) => ({ quantity: i.quantity, unit_price: i.unitPrice })) as any,
+      rawQ.discountType as any, rawQ.discountValue, quotationVat.vatEnabled, Number(quotationVat.vatPercentage), rawQ.currency as any,
+    );
+    const qData = {
+      ...rawQ,
+      vatEnabled: quotationVat.vatEnabled,
+      vatPercentage: Number(quotationVat.vatPercentage),
+      subtotal: totals.subtotal,
+      discountAmount: totals.discountAmount,
+      vatAmount: totals.vatAmount,
+      totalAmount: totals.totalAmount,
+    };
     const existingQ = await prisma.quotation.findUnique({ where: { quotationNumber: qData.quotationNumber } });
     let qId = existingQ?.id;
     if (existingQ) {
@@ -3676,7 +3627,7 @@ async function main() {
       }
 
       // Add approval fixtures for submitted and approved quotes
-      if (q.quotationNumber === "QTE-2026-002") {
+      if (q.quotationNumber === "QTE-2026-000002") {
         const hash = crypto.createHash("sha256").update(`quotation_${qId}_1`).digest("hex");
         await prisma.approvalRequest.upsert({
           where: { targetType_targetId_revision: { targetType: "quotation", targetId: qId, revision: 1 } },
@@ -3692,7 +3643,7 @@ async function main() {
             policySnapshot: { maxDiscountPercent: 10, requiredRole: "admin" },
           },
         });
-      } else if (q.quotationNumber === "QTE-2026-003") {
+      } else if (q.quotationNumber === "QTE-2026-000003") {
         const hash = crypto.createHash("sha256").update(`quotation_${qId}_1`).digest("hex");
         const appReq = await prisma.approvalRequest.upsert({
           where: { targetType_targetId_revision: { targetType: "quotation", targetId: qId, revision: 1 } },
@@ -3723,6 +3674,14 @@ async function main() {
   }
 
   console.log("✅ Seeded new features: Sequences, FX Snapshots, HRMS, Payroll, Inquiries (SR/CR) & Quotations lifecycle");
+
+  // Large dataset generated through the app's own domain functions, then a reconcile pass that
+  // brings every fixture in line with the app's rules. SEED_VOLUME=off skips the volume stage.
+  if (process.env.SEED_VOLUME !== "off") {
+    const users = Object.fromEntries(Object.entries(createdUsers).map(([role, user]: [string, any]) => [role, { id: user.id, email: user.email, fullName: user.fullName, role, signatureUrl: user.signatureUrl }]));
+    await seedVolume(prisma, { users, passwordHash });
+  }
+  await reconcileSeed(prisma);
 
   // A local demo must have an explicit snapshot before the public site can render.
   const localDemo = ["localhost", "127.0.0.1", "[::1]"].includes(

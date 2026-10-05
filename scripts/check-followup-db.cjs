@@ -98,6 +98,10 @@ async function main() {
   );
   let saved = await db.inquiry.findUniqueOrThrow({ where: { id: request.id } });
   assert.equal(saved.customAssignments.length, 9);
+  // Work is submitted before it can be approved (REQUEST_TRANSITIONS); approving straight from
+  // "assigned" is refused.
+  await assert.rejects(requests.approveRequest(request.id, { approvedById: actor.id }));
+  await requests.submitRequestForApproval(request.id, { submittedById: actor.id });
   const approvals = await Promise.allSettled(
     [1, 2].map(() =>
       requests.approveRequest(request.id, { approvedById: actor.id }),
@@ -121,7 +125,7 @@ async function main() {
     /state changed/,
   );
   const logs = await db.activityLog.count({ where: { entityId: request.id } });
-  assert.equal(logs, 12);
+  assert.equal(logs, 13); // assign + 8 reassigns + submit + approve + confirm + resolve
   const other = await db.inquiry.create({
     data: {
       name: prefix,
@@ -315,6 +319,7 @@ async function main() {
     "../../lib/auth": { requirePermission: async () => ({ id: actor.id }) },
     "next/cache": { revalidatePath: () => {} },
     "../../lib/revalidate-web": { revalidatePublicSite: async () => false },
+    "../../constants/routes": require("../packages/database/src/constants/routes.ts"),
   };
   require("node:vm").runInNewContext(compiled, {
     module: moduleBox,

@@ -183,7 +183,14 @@ async function main() {
   });
   const old = await legacyModule.exports.getFinancialSummary();
   const current = await finance.getFinancialSummary();
+  // Revenue, costs and profit were redefined to match the financial report (receipts net of VAT;
+  // approved expenses + payroll + bank fees). Every other figure keeps the legacy definition.
+  const REDEFINED = new Set(["revenue", "expenses", "netProfit", "profitMargin"]);
+  assert.equal(current.revenue, 50, "revenue is cash received net of the VAT it carries (55 − 5)");
+  assert.equal(current.expenses, 20, "costs are approved BHD expenses net of recoverable VAT");
+  assert.equal(current.netProfit, 30);
   for (const key of Object.keys(current)) {
+    if (REDEFINED.has(key)) continue;
     if (typeof current[key] === "number")
       assert.ok(
         Math.abs(current[key] - old[key]) < 1e-8,
@@ -197,7 +204,7 @@ async function main() {
   assert.equal(cashflow.length, 6);
   assert.deepEqual(cashflow.at(-1), {
     monthKey: currentMonth,
-    revenue: 55,
+    revenue: 50,
     expenses: 20,
   });
   assert.equal(cashflow[0].revenue, 0);

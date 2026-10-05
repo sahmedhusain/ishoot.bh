@@ -69,16 +69,25 @@ export async function getMonthlyCashflow(
     ), months AS (
       SELECT generate_series(last_month - (${monthsCount} - 1) * INTERVAL '1 month', last_month, INTERVAL '1 month') AS month FROM bounds
     ), revenue AS (
-      SELECT date_trunc('month', p."paymentDate") AS month, SUM(p.amount) AS amount
+      -- Same definitions as the financial report: receipts net of the VAT they carry (allocated pro rata)...
+      SELECT date_trunc('month', p."paymentDate") AS month,
+        SUM(p.amount - CASE WHEN i."totalAmount" > 0 THEN ROUND(i."vatAmount" * p.amount / i."totalAmount", 3) ELSE 0 END) AS amount
       FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId"
       WHERE p.currency = 'BHD' AND i.status <> 'void'
         AND p."paymentDate" >= (SELECT MIN(month) FROM months)
         AND p."paymentDate" < (SELECT MAX(month) + INTERVAL '1 month' FROM months)
       GROUP BY 1
+    ), costs AS (
+      -- ...and operating costs = approved expenses net of recoverable VAT + paid payroll + bank fees.
+      SELECT date_trunc('month', "expenseDate") AS month,
+        (CASE WHEN "netAmount" > 0 THEN "netAmount" ELSE amount - "inputVatAmount" END)
+          + CASE WHEN "isVatRecoverable" THEN 0 ELSE "inputVatAmount" END AS amount
+      FROM "Expense" WHERE currency = 'BHD' AND status = 'approved'
+      UNION ALL SELECT date_trunc('month', "paidAt"), "totalEmployerCost" FROM "PayrollRun" WHERE status = 'paid' AND "paidAt" IS NOT NULL
+      UNION ALL SELECT date_trunc('month', "settlementDate"), "bankFeeBhd" FROM "BankSettlement" WHERE status = 'settled'
     ), expenses AS (
-      SELECT date_trunc('month', "expenseDate") AS month, SUM(amount) AS amount FROM "Expense"
-      WHERE currency = 'BHD' AND status = 'approved' AND "expenseDate" >= (SELECT MIN(month) FROM months)
-        AND "expenseDate" < (SELECT MAX(month) + INTERVAL '1 month' FROM months)
+      SELECT month, SUM(amount) AS amount FROM costs
+      WHERE month >= (SELECT MIN(month) FROM months) AND month <= (SELECT MAX(month) FROM months)
       GROUP BY 1
     )
     SELECT to_char(m.month, 'YYYY-MM') AS "monthKey", COALESCE(r.amount, 0) AS revenue, COALESCE(e.amount, 0) AS expenses

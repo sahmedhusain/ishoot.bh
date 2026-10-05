@@ -70,8 +70,10 @@ async function main() {
   await processEmailJobs(async()=>({success:false}),now);assert.equal((await db.emailJob.findUniqueOrThrow({where:{id:job.id}})).status,'pending');
   let calls=0;const later=new Date(now.getTime()+60000);await Promise.all([processEmailJobs(async input=>{calls++;assert.equal(input.idempotencyKey,prefix);return {success:true,id:'fake-provider-evidence'};},later),processEmailJobs(async()=>{calls++;return {success:true,id:'fake-provider-evidence'};},later)]);assert.equal(calls,1);const accepted=await db.emailJob.findUniqueOrThrow({where:{id:job.id}});assert.equal(accepted.status,'accepted');assert.equal(accepted.providerId,'fake-provider-evidence');
   console.log('PASS: email retry, concurrent claim and provider-acceptance evidence; no real email sent');
-  toggle=await db.featureToggle.findUnique({where:{moduleKey:'crm_deals'}});await db.featureToggle.upsert({where:{moduleKey:'crm_deals'},create:{moduleKey:'crm_deals',nameEn:'CRM',nameAr:'CRM',isEnabled:false},update:{isEnabled:false}});toggleChanged=true;assert.equal(await hasPermission('super_admin','contacts','read',actor.id),false);
-  console.log('PASS: disabled feature denies direct server grants including super administrators');
+  toggle=await db.featureToggle.findUnique({where:{moduleKey:'crm_deals'}});await db.featureToggle.upsert({where:{moduleKey:'crm_deals'},create:{moduleKey:'crm_deals',nameEn:'CRM',nameAr:'CRM',isEnabled:false},update:{isEnabled:false}});toggleChanged=true;assert.equal(await hasPermission('sales','contacts','read'),false);
+  // Super Admin keeps access to switched-off modules (see check-platform: stale denials, overrides and disabled modules never restrict Super Admin).
+  assert.equal(await hasPermission('super_admin','contacts','read'),true);
+  console.log('PASS: disabled feature denies direct server grants to every role except Super Admin');
 }
 main().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{
   await db.emailJob.deleteMany({where:{eventKey:prefix}});if(mom)await db.minuteOfMeeting.delete({where:{id:mom.id}});

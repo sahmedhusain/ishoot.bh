@@ -2612,7 +2612,6 @@
     "registerAnOfficialTrackedRequest": "Register an official tracked request, set SLA milestones, select catalog services, and assign team responsibility with leave verification.",
     "n1RequestClassificationAndSla": "1. Request Classification & SLA",
     "priorityLevel": "Priority Level",
-    "lowPriority": "Low Priority",
     "normalPriority": "Normal Priority",
     "highPriority": "High Priority",
     "urgentSla": "Urgent SLA",
@@ -3298,8 +3297,7 @@
     "priority": {
       "urgent": "Urgent SLA",
       "high": "High",
-      "normal": "Normal",
-      "low": "Low"
+      "normal": "Normal"
     },
     "teams": {
       "all": "All Teams",

@@ -2612,7 +2612,6 @@
     "registerAnOfficialTrackedRequest": "إصدار رقم مرجعي تسلسلي رسمي (SR/CR)، وتحديد معايير اتفاقية مستوى الخدمة، وتوزيع المهام مع فحص إتاحة الموظف",
     "n1RequestClassificationAndSla": "1. تصنيف ونوع الطلب ومستوى الأولوية",
     "priorityLevel": "مستوى الأولوية والأهمية",
-    "lowPriority": "منخفضة (Low)",
     "normalPriority": "عادية (Normal)",
     "highPriority": "مرتفعة (High)",
     "urgentSla": "عاجلة جداً (Urgent SLA)",
@@ -3298,8 +3297,7 @@
     "priority": {
       "urgent": "عاجل جداً",
       "high": "مرتفع",
-      "normal": "عادي",
-      "low": "منخفض"
+      "normal": "عادي"
     },
     "teams": {
       "all": "كل الفرق",

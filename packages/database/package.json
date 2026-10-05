@@ -20,6 +20,7 @@
     "db:generate": "prisma generate --schema=prisma/schema.prisma",
     "db:push": "prisma db push --schema=prisma/schema.prisma",
     "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
+    "db:check-integrity": "ts-node --project tsconfig.seed.json prisma/check-integrity.ts",
     "type-check": "tsc --noEmit && tsc --project tsconfig.seed.json --noEmit"
   },
   "dependencies": {
