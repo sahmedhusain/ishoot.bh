@@ -32,6 +32,7 @@ export const ROUTES = {
   archive: "/dashboard/archive",
   calendar: "/dashboard/calendar",
   directory: "/dashboard/directory",
+  team: "/dashboard/team",
   profile: (query?: HighlightQuery) => withQuery("/dashboard/profile", query),
   services: "/dashboard/services",
   cms: {

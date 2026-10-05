@@ -3860,5 +3860,36 @@
     "reportsTo": "يتبع لـ {name}",
     "call": "اتصال",
     "email": "بريد"
+  },
+  "team": {
+    "title": "فريقي",
+    "subtitle": "النتائج من {from} إلى {to}: عروض الأسعار والمبيعات المحتسبة لكل شخص، والمبالغ المحصلة (بدون الضريبة) وطلبات الخدمة المنجزة.",
+    "manager": "المدير",
+    "everyone": "الجميع",
+    "periods": {
+      "month": "هذا الشهر",
+      "quarter": "هذا الربع",
+      "year": "هذه السنة"
+    },
+    "collected": "المحصل (صافي)",
+    "quotesIssued": "عروض الأسعار الصادرة",
+    "srResolved": "طلبات الخدمة المنجزة",
+    "srOverdue": "الطلبات المتأخرة",
+    "empty": "لا يوجد أعضاء فريق لعرضهم.",
+    "leaveDays": "{days} أيام إجازة",
+    "quotations": "عروض الأسعار",
+    "quoteLine": "{issued} صادرة · {accepted} مقبولة ({rate}%)",
+    "sales": "المبيعات",
+    "collectedShort": "محصّل",
+    "invoicedLine": "{count} فواتير · {amount} د.ب مفوتر",
+    "requests": "طلبات الخدمة",
+    "srLine": "{resolved} منجزة · {open} مفتوحة",
+    "srDetail": "{overdue} متأخرة · {days} يوم متوسط الإنجاز",
+    "noHistory": "لا يوجد نشاط حديث.",
+    "kinds": {
+      "quotation": "عرض سعر",
+      "invoice": "فاتورة",
+      "request": "طلب خدمة"
+    }
   }
 }

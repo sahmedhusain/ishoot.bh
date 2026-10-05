@@ -11,6 +11,8 @@ interface UserState {
   email: string;
   role: UserRole;
   permissions?: Record<string, boolean>;
+  /** Has direct reports or heads a department (or is an admin), so sees the team page. */
+  managesTeam?: boolean;
 }
 
 interface PermissionsState {
@@ -43,5 +45,5 @@ export function usePermissions() {
       user?.permissions?.[`${resource}:${action}`] === true,
     [user],
   );
-  return { user, role: user?.role, can, loading };
+  return { user, role: user?.role, can, loading, managesTeam: user?.managesTeam === true };
 }

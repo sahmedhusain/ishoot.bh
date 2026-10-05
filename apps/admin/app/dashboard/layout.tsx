@@ -4,6 +4,7 @@ import { Topbar } from "../../components/layout/Topbar";
 import { SidebarProvider } from "../../components/layout/SidebarContext";
 import { getCachedCompanySettings, getCachedFeatureToggles } from "../../lib/cached-queries";
 import { getCurrentPermissions,requireAuth } from "../../lib/auth";
+import { db } from "@ishoot/database";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
 import { CompanyVatProvider } from "../../hooks/useCompanyVat";
@@ -16,10 +17,12 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await requireAuth();
-  const [company, toggles, permissions] = await Promise.all([
+  const [company, toggles, permissions, reports, headedDepartments] = await Promise.all([
     getCachedCompanySettings(),
     getCachedFeatureToggles(),
     getCurrentPermissions(),
+    db.user.count({ where: { managerId: user.id, isActive: true } }),
+    db.department.count({ where: { managerId: user.id } }),
   ]);
 
   return (
@@ -30,6 +33,7 @@ export default async function DashboardLayout({
         email: user.email,
         role: user.role,
         permissions,
+        managesTeam: user.role === "super_admin" || user.role === "admin" || reports + headedDepartments > 0,
       }}
     >
       <FeatureTogglesProvider initialFeatures={toggles}>

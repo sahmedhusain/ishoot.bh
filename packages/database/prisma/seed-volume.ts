@@ -235,7 +235,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     }));
 
   // ============================================================ 3. deals, quotations, invoices
-  type InvoicePlan = { issueDate: Date; contactId: string; dealId?: string; quotationId?: string; lines: ReturnType<typeof lineItemsFor>; discount?: { type: "percentage" | "fixed"; value: number } };
+  type InvoicePlan = { issueDate: Date; contactId: string; dealId?: string; quotationId?: string; lines: ReturnType<typeof lineItemsFor>; discount?: { type: "percentage" | "fixed"; value: number }; salesOwnerId?: string };
   const invoicePlans: InvoicePlan[] = [];
   const deals: Array<{ id: string; contactId: string; created: Date; shootDate: Date }> = [];
 
@@ -320,10 +320,12 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     invoicePlans.push({ issueDate: invoiceDate, contactId: contact.id, dealId: deal.id, quotationId: quotation.id, lines, discount });
   }
 
-  // Monthly retainers and one-off jobs billed without a quotation.
+  // Monthly retainers and one-off jobs billed without a quotation, credited to the client's account manager.
+  const accountManagers = new Map<string, string>();
   for (let i = 0; i < 110; i++) {
     const contact = pick(contacts.slice(0, 40)); // a core of repeat clients
-    invoicePlans.push({ issueDate: daysAgo(int(1, 450)), contactId: contact.id, lines: lineItemsFor() });
+    if (!accountManagers.has(contact.id)) accountManagers.set(contact.id, pick(salesTeam).id);
+    invoicePlans.push({ issueDate: daysAgo(int(1, 450)), contactId: contact.id, lines: lineItemsFor(), salesOwnerId: accountManagers.get(contact.id) });
   }
 
   // Raise invoices in date order so numbers run chronologically.
@@ -337,7 +339,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
       currency: "BHD", language: chance(0.6) ? "ar" : "en", vat_enabled: vatEnabled, vat_percentage: vatPercentage,
       discount_type: plan.discount?.type ?? "none", discount_value: plan.discount?.value ?? 0,
       line_items: plan.lines.map((l) => ({ service_id: l.serviceId, description_en: l.descriptionEn, description_ar: l.descriptionAr, quantity: l.quantity, unit_price: l.unitPrice })),
-      notes_en: "Thank you for choosing ishoot.", notes_ar: "شكراً لاختياركم آيشوت.", created_by: issuer.id,
+      notes_en: "Thank you for choosing ishoot.", notes_ar: "شكراً لاختياركم آيشوت.", created_by: issuer.id, sales_owner_id: plan.salesOwnerId,
     });
     bump("invoices");
     const age = (TODAY.getTime() - plan.issueDate.getTime()) / DAY;
@@ -704,7 +706,8 @@ export async function reconcileSeed(prisma: PrismaClient) {
   const fallbackOwner = (await prisma.user.findFirstOrThrow({ where: { role: "sales", isActive: true }, select: { id: true } })).id;
   await prisma.$executeRaw`UPDATE "Quotation" SET "salesOwnerId" = COALESCE("createdById", ${fallbackOwner}) WHERE "salesOwnerId" IS NULL`;
   await prisma.$executeRaw`UPDATE "Invoice" i SET "salesOwnerId" = q."salesOwnerId" FROM "Quotation" q WHERE q."invoiceId" = i.id AND i."salesOwnerId" IS NULL`;
-  await prisma.$executeRaw`UPDATE "Invoice" SET "salesOwnerId" = COALESCE("createdById", ${fallbackOwner}) WHERE "salesOwnerId" IS NULL`;
+  await prisma.$executeRaw`UPDATE "Invoice" i SET "salesOwnerId" = d."assignedTo" FROM "CrmDeal" d WHERE d.id = i."dealId" AND i."salesOwnerId" IS NULL AND d."assignedTo" IS NOT NULL`;
+  await prisma.$executeRaw`UPDATE "Invoice" SET "salesOwnerId" = ${fallbackOwner} WHERE "salesOwnerId" IS NULL`;
   // Deals follow their quotations and invoices (forward only, never reopening closed deals).
   const quotations = await prisma.quotation.findMany({ where: { dealId: { not: null }, status: { in: ["issued", "accepted", "converted"] } }, select: { dealId: true, status: true } });
   for (const q of quotations) await advanceDealForEvent(prisma, q.dealId, q.status === "issued" ? "quotation_issued" : "quotation_accepted");

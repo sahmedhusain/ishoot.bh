@@ -3860,5 +3860,36 @@
     "reportsTo": "Reports to {name}",
     "call": "Call",
     "email": "Email"
+  },
+  "team": {
+    "title": "My team",
+    "subtitle": "Results from {from} to {to}: quotations and sales credited to each person, money collected (net of VAT) and service requests handled.",
+    "manager": "Manager",
+    "everyone": "Everyone",
+    "periods": {
+      "month": "This month",
+      "quarter": "This quarter",
+      "year": "This year"
+    },
+    "collected": "Collected (net)",
+    "quotesIssued": "Quotations issued",
+    "srResolved": "Service requests resolved",
+    "srOverdue": "Overdue requests",
+    "empty": "No team members to show.",
+    "leaveDays": "{days} leave days",
+    "quotations": "Quotations",
+    "quoteLine": "{issued} issued · {accepted} won ({rate}%)",
+    "sales": "Sales",
+    "collectedShort": "collected",
+    "invoicedLine": "{count} invoices · BHD {amount} invoiced",
+    "requests": "Service requests",
+    "srLine": "{resolved} resolved · {open} open",
+    "srDetail": "{overdue} overdue · {days} days avg. to resolve",
+    "noHistory": "No recent activity.",
+    "kinds": {
+      "quotation": "Quotation",
+      "invoice": "Invoice",
+      "request": "Service request"
+    }
   }
 }

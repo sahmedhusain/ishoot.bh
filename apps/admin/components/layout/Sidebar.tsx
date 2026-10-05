@@ -30,6 +30,7 @@ import {
   HandCoins,
   BadgeDollarSign,
   Contact,
+  Gauge,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -42,6 +43,8 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   resource?: PermissionResource;
   moduleKey?: string;
+  /** Only for people who manage a team. */
+  managersOnly?: boolean;
 }
 
 interface NavSection {
@@ -51,7 +54,7 @@ interface NavSection {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { can, loading } = usePermissions();
+  const { can, loading, managesTeam } = usePermissions();
   const { isMobileOpen, setIsMobileOpen } = useSidebar();
   const { t } = useAdminLocale();
   const { isFeatureEnabled } = useFeatureToggles();
@@ -66,6 +69,12 @@ export function Sidebar() {
             href: ROUTES.directory,
             label: t.directory.title,
             icon: Contact,
+          },
+          {
+            href: ROUTES.team,
+            label: t.team.title,
+            icon: Gauge,
+            managersOnly: true,
           },
           {
             href: ROUTES.calendar,
@@ -343,12 +352,13 @@ export function Sidebar() {
         ...section,
         items: section.items.filter((item) => {
           if (item.moduleKey && !isFeatureEnabled(item.moduleKey)) return false;
+          if (item.managersOnly && !managesTeam) return false;
           if (!item.resource) return true;
           return can(item.resource, "read");
         }),
       }))
       .filter((section) => section.items.length > 0);
-  }, [sections, can, loading, isFeatureEnabled]);
+  }, [sections, can, loading, isFeatureEnabled, managesTeam]);
 
   // Only the most specific matching link is active (/finance/reports must not also light up /finance).
   const activeHref = React.useMemo(() => {
