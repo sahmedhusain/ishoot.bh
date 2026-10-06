@@ -32,6 +32,7 @@ export async function updateHrPolicyAction(policy: {
   attendanceCutoffDay: number | null;
   weekendDays: number[];
   workdayHours: number;
+  workdayStart: string;
   dailyRateBasis: string;
   deductionBase: string;
   overtimeBase: string;

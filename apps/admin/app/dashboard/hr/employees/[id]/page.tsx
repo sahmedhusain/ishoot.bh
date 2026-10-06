@@ -3,7 +3,9 @@ import { SalaryDocumentsView } from "../../../../../components/hr/SalaryDocument
 import { availablePayslipMonths, canManageSalaryDocuments, decidableSalaryDocumentIds } from "../../../../../lib/salary-documents";
 import { notFound } from "next/navigation";
 import { requirePermission, hasPermission } from "../../../../../lib/auth";
-import { getEmployeeById, listDepartments, db } from "@ishoot/database";
+import { getEmployeeById, listDepartments, db, getLeaveBalances } from "@ishoot/database";
+import { LeaveBalancesCard } from "../../../../../components/hr/LeaveBalancesCard";
+import { EmployeePayHistory } from "../../../../../components/hr/EmployeePayHistory";
 import { EmployeeDetailView } from "../../../../../components/hr/EmployeeDetailView";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +32,18 @@ export default async function EmployeeDetailPage({
     notFound();
   }
 
+  const year = new Date().getUTCFullYear();
+  const [balances, payItems] = await Promise.all([
+    getLeaveBalances(id, year),
+    canViewPay
+      ? db.payrollItem.findMany({
+          where: { employeeId: id },
+          orderBy: [{ payrollRun: { year: "desc" } }, { payrollRun: { month: "desc" } }],
+          take: 12,
+          select: { id: true, netSalary: true, paymentStatus: true, payrollRun: { select: { month: true, year: true, status: true } } },
+        })
+      : Promise.resolve([]),
+  ]);
   const attachments = await db.attachment.findMany({ where: { entityType: "employee", entityId: id }, select: { id: true, fileName: true, fileUrl: true }, orderBy: { createdAt: "desc" } });
   const canManage = await canManageSalaryDocuments(actor);
   const documents = canManage ? await db.salaryDocument.findMany({ where: { employeeId: id }, orderBy: { createdAt: "desc" } }) : [];
@@ -48,6 +62,8 @@ export default async function EmployeeDetailPage({
       canViewPay={canViewPay}
       canEditPay={canEditPay}
     />
+    <LeaveBalancesCard balances={balances} year={year} employeeId={id} canAdjust={canEdit} />
+    {canViewPay && <EmployeePayHistory rows={payItems.map((p) => ({ id: p.id, month: p.payrollRun.month, year: p.payrollRun.year, netSalary: Number(p.netSalary), paymentStatus: p.paymentStatus, runStatus: p.payrollRun.status }))} />}
     <EmployeeAttachments employeeId={id} attachments={attachments} canEdit={canEdit} canDelete={await hasPermission("employees", "delete")} />
     {canManage && <SalaryDocumentsView embedded employeeId={id} availableMonths={availableMonths} decidableIds={decidableIds} documents={documents.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes }))} />}
     </div>

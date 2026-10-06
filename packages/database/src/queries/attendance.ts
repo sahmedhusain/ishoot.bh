@@ -38,7 +38,7 @@ export interface AttendanceSheet {
   /** Days already in a submitted, approved or paid payroll; they cannot be edited. */
   lockedThrough: string | null;
   shiftTypes: Awaited<ReturnType<typeof listShiftTypes>>;
-  policy: Pick<HrPolicyRules, "workdayHours" | "weekendDays" | "lateGraceMinutes"> & { workdayStart: string };
+  policy: Pick<HrPolicyRules, "workdayStart" | "workdayHours" | "weekendDays" | "lateGraceMinutes">;
 }
 
 const localTime = (date: Date | null) =>
@@ -77,8 +77,7 @@ export async function getAttendanceSheet(year: number, month: number): Promise<A
   if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) throw new Error("Choose a month");
   const start = utcDay(year, month - 1, 1);
   const end = utcDay(year, month - 1, daysInMonth(year, month));
-  const [policyRow, policy, holidays, holidayRows, employees, entries, leaves, shiftTypes, locked] = await Promise.all([
-    db.hrPolicy.findUnique({ where: { id: "default" }, select: { workdayStart: true } }),
+  const [policy, holidays, holidayRows, employees, entries, leaves, shiftTypes, locked] = await Promise.all([
     getHrPolicy(),
     holidaySet(start, end),
     listPublicHolidays(year),
@@ -123,7 +122,7 @@ export async function getAttendanceSheet(year: number, month: number): Promise<A
     }),
     lockedThrough: locked ? dayKey(locked) : null,
     shiftTypes,
-    policy: { workdayStart: policyRow?.workdayStart ?? "08:00", workdayHours: policy.workdayHours, weekendDays: policy.weekendDays, lateGraceMinutes: policy.lateGraceMinutes },
+    policy: { workdayStart: policy.workdayStart, workdayHours: policy.workdayHours, weekendDays: policy.weekendDays, lateGraceMinutes: policy.lateGraceMinutes },
   };
 }
 
@@ -172,7 +171,6 @@ export async function saveAttendanceEntry(input: AttendanceInput, actorId: strin
     return value;
   };
   const policy = await getHrPolicy();
-  const policyRow = await db.hrPolicy.findUnique({ where: { id: "default" }, select: { workdayStart: true } });
   const holidays = await holidaySet(date, date);
   const working = isWorkingDay(date, policy, holidays);
   const isHoliday = holidays.has(input.date);
@@ -184,7 +182,7 @@ export async function saveAttendanceEntry(input: AttendanceInput, actorId: strin
     if (worked <= 0) worked += 24 * 60; // overnight shift
   }
   const standard = policy.workdayHours * 60 * (input.status === "half_day" ? 0.5 : 1);
-  const autoLate = present && working && input.checkIn ? Math.max(0, minutesOf(input.checkIn) - minutesOf(policyRow?.workdayStart ?? "08:00")) : 0;
+  const autoLate = present && working && input.checkIn ? Math.max(0, minutesOf(input.checkIn) - minutesOf(policy.workdayStart)) : 0;
   const autoOvertime = present && working && worked > standard ? Math.round(worked - standard) : 0;
   const autoRestDay = present && !working && !isHoliday ? worked : 0;
   const autoHoliday = present && isHoliday ? worked : 0;

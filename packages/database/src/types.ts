@@ -1237,6 +1237,10 @@ export interface PayrollRun {
   year: number;
   periodStart: Date | string;
   periodEnd: Date | string;
+  /** Window over which attendance, leave and commission were counted. */
+  attendanceStart?: string | null;
+  attendanceEnd?: string | null;
+  payDate?: string | null;
   status: "draft" | "calculated" | "submitted" | "approved" | "paid" | "closed" | string;
   totalGross: number;
   totalDeductions: number;
@@ -1266,10 +1270,20 @@ export interface PayrollItem {
   otherDeductions: number;
   /** One-off incentives and bonuses for the month. */
   bonus?: number;
+  overtimePay?: number;
+  shiftAllowance?: number;
+  commission?: number;
+  absenceDeduction?: number;
+  leaveDeduction?: number;
+  latenessDeduction?: number;
+  attendanceSummary?: unknown;
   adjustmentNote?: string | null;
   editedAt?: string | null;
   netSalary: number;
   paymentStatus: "pending" | "paid" | string;
+  paidAt?: string | null;
+  paymentMethod?: string | null;
+  paymentReference?: string | null;
   payslip?: Payslip;
   createdAt: Date | string;
 }

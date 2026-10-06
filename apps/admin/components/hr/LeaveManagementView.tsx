@@ -2,10 +2,13 @@
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { NoEmployeeProfile } from "./NoEmployeeProfile";
+import { LeaveBalancesCard } from "./LeaveBalancesCard";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import type { LeaveRequest, LeaveType, Employee } from "@ishoot/database/types";
+import type { LeaveRequest, Employee } from "@ishoot/database/types";
+import type { LeaveTypeView } from "@ishoot/database/queries/hr-settings";
+import type { LeaveBalance } from "@ishoot/database/queries/leave-balances";
 import { Card, Button, useDialog } from "@ishoot/ui";
 import { Clock, Plus } from "lucide-react";
 import {
@@ -17,7 +20,9 @@ import { toast } from "sonner";
 
 interface LeaveManagementViewProps {
   requests: LeaveRequest[];
-  leaveTypes: LeaveType[];
+  leaveTypes: LeaveTypeView[];
+  /** The viewer's balances for this year, one per leave type. */
+  myBalances?: LeaveBalance[];
   allEmployees: Employee[];
   myEmployee: any | null;
   currentUserId: string;
@@ -33,6 +38,7 @@ interface LeaveManagementViewProps {
 export function LeaveManagementView({
   requests,
   leaveTypes,
+  myBalances = [],
   allEmployees,
   myEmployee,
   canFileForOthers,
@@ -58,8 +64,15 @@ export function LeaveManagementView({
   const [endDate, setEndDate] = React.useState(
     new Date().toISOString().split("T")[0],
   );
-  const [fullDay, setFullDay] = React.useState(true);
-  const [hours, setHours] = React.useState(8);
+  const [portion, setPortion] = React.useState<"full" | "half_am" | "half_pm" | "hours">("full");
+  const [hours, setHours] = React.useState(2);
+  const [attachmentUrl, setAttachmentUrl] = React.useState("");
+  const selectedType = leaveTypes.find((lt) => lt.id === leaveTypeId);
+  React.useEffect(() => {
+    // Keep the duration valid for the chosen leave type.
+    if ((portion === "half_am" || portion === "half_pm") && selectedType && !selectedType.allowHalfDay) setPortion("full");
+    if (portion === "hours" && selectedType && !selectedType.allowHours) setPortion("full");
+  }, [selectedType, portion]);
   const [reason, setReason] = React.useState("");
 
   // Reject modal state
@@ -85,7 +98,7 @@ export function LeaveManagementView({
       return;
     }
 
-    if (new Date(endDate) < new Date(startDate)) {
+    if (portion === "full" && new Date(endDate) < new Date(startDate)) {
       toast.error(t.leaveManagement.endDateCannotBeEarlier);
       return;
     }
@@ -97,9 +110,11 @@ export function LeaveManagementView({
         employeeId: targetEmployeeId,
         leaveTypeId,
         startDate,
-        endDate,
-        fullDay,
-        hours: fullDay ? undefined : hours,
+        endDate: portion === "full" ? endDate : startDate,
+        fullDay: portion === "full",
+        hours: portion === "hours" ? hours : undefined,
+        dayPortion: portion,
+        attachmentUrl: attachmentUrl.trim() || null,
         reason: reason.trim(),
       });
 
@@ -231,7 +246,7 @@ export function LeaveManagementView({
               {t.leaveManagement.myAnnualLeaveBalance}
             </div>
             <div className="text-2xl font-bold font-mono text-primary dark:text-mint">
-              {Number(myEmployee.leaveBalanceDays).toFixed(1)}{" "}
+              {Number(myBalances.find((b) => b.code === "annual")?.available ?? myEmployee.leaveBalanceDays).toFixed(1)}{" "}
               <span className="text-xs font-normal text-slate-400">
                 {t.shared.days}
               </span>
@@ -261,6 +276,8 @@ export function LeaveManagementView({
           <div className="text-xs text-slate-400">{t.leaveManagement.activeUpcomingBlockedPeriods}</div>
         </div>
       </div>
+
+      {myEmployee && myBalances.length > 0 && <LeaveBalancesCard balances={myBalances} year={new Date().getFullYear()} />}
 
       {/* Status Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2 border-b border-ink/10 pb-3">
@@ -341,10 +358,15 @@ export function LeaveManagementView({
                         <div className="text-slate-900 dark:text-white">
                           <bdi dir="ltr">{start} → {end}</bdi>
                         </div>
-                        <div className="text-slate-400 text-[11px]">
-                          {req.fullDay
-                            ? t.leaveManagement.fullDay
-                            : t.leaveManagement.hoursCount.replace("{n}", String(req.hours))}
+                        <div className="text-slate-500 dark:text-slate-400 text-[11px]">
+                          {req.dayPortion === "half_am"
+                            ? t.leaveForm.halfAm
+                            : req.dayPortion === "half_pm"
+                              ? t.leaveForm.halfPm
+                              : req.fullDay
+                                ? t.leaveManagement.fullDay
+                                : t.leaveManagement.hoursCount.replace("{n}", String(req.hours))}
+                          {req.days ? <> · <bdi dir="ltr">{req.days}</bdi> {t.shared.days}</> : null}
                         </div>
                       </td>
 
@@ -467,37 +489,35 @@ export function LeaveManagementView({
                 >
                   {leaveTypes.map((lt) => (
                     <option key={lt.id} value={lt.id}>
-                      {lt.nameEn} ({lt.nameAr}) - {lt.daysAllowedPerYear}
-                      {t.leaveManagement.daysAllowed}
+                      {locale === "ar" ? lt.nameAr : lt.nameEn}
+                      {lt.accrual !== "none" ? ` — ${lt.daysAllowedPerYear}${t.leaveManagement.daysAllowed}` : ""}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-xs text-slate-700 dark:text-neutral-300 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={fullDay}
-                    onChange={(e) => setFullDay(e.target.checked)}
-                    className="rounded border-slate-300 text-primary"
-                  />
-                  <span>{t.leaveManagement.fullDayLeave}</span>
-                </label>
-                {!fullDay && (
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="text-slate-500">{t.leaveManagement.hours}</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={12}
-                      value={hours}
-                      onChange={(e) => setHours(Number(e.target.value))}
-                      className="w-16 text-xs font-mono rounded-md border border-ink/10 p-1"
-                    />
-                  </div>
+              <fieldset>
+                <legend className="mb-1 text-xs font-medium text-slate-700 dark:text-neutral-300">{t.leaveForm.portion}</legend>
+                <div className="flex flex-wrap gap-1.5">
+                  {([
+                    ["full", t.leaveForm.full, true],
+                    ["half_am", t.leaveForm.halfAm, selectedType?.allowHalfDay !== false],
+                    ["half_pm", t.leaveForm.halfPm, selectedType?.allowHalfDay !== false],
+                    ["hours", t.leaveForm.hours, selectedType?.allowHours === true],
+                  ] as const).filter(([, , allowed]) => allowed).map(([value, label]) => (
+                    <label key={value} className={`cursor-pointer rounded-full border px-3 py-1 text-xs focus-within:ring-2 focus-within:ring-accent/40 ${portion === value ? "border-accent bg-accent/10 text-slate-900 dark:text-white" : "border-ink/15 text-slate-600 dark:text-slate-300"}`}>
+                      <input type="radio" name="leave-portion" className="sr-only" checked={portion === value} onChange={() => setPortion(value)} />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+                {portion === "hours" && (
+                  <label className="mt-2 flex items-center gap-2 text-xs text-slate-700 dark:text-neutral-300">
+                    {t.leaveForm.hoursCount}
+                    <input type="number" min={0.5} max={7.5} step={0.5} dir="ltr" value={hours} onChange={(e) => setHours(Number(e.target.value))} className="w-20 rounded-md border border-ink/15 bg-white dark:bg-surface p-1.5 text-xs font-mono" />
+                  </label>
                 )}
-              </div>
+              </fieldset>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -512,6 +532,7 @@ export function LeaveManagementView({
                     className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                   />
                 </div>
+                {portion === "full" && (
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
                     {t.leaveManagement.endDate}
@@ -519,12 +540,31 @@ export function LeaveManagementView({
                   <input
                     type="date"
                     required
+                    min={startDate}
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
                   />
                 </div>
+                )}
               </div>
+
+              {selectedType?.requiresAttachment && (
+                <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-neutral-300">
+                  {t.leaveForm.attachment}
+                  <input type="url" required dir="ltr" placeholder="https://" value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white" />
+                </label>
+              )}
+              {(() => {
+                const balance = myBalances.find((b) => b.leaveTypeId === leaveTypeId);
+                return balance && targetEmployeeId === myEmployee?.id ? (
+                  <p className="rounded-lg bg-surface-sunken px-3 py-2 text-[11px] text-slate-700 dark:text-slate-300">
+                    {t.leaveForm.available}: <bdi dir="ltr" className="font-semibold">{balance.available == null ? t.leaveForm.unlimited : balance.available}</bdi>
+                    {balance.pending ? <> · {t.leaveForm.pending}: <bdi dir="ltr">{balance.pending}</bdi></> : null}
+                    {!balance.eligible && balance.eligibleFrom ? <> · {t.leaveForm.eligibleFrom.replace("{date}", balance.eligibleFrom)}</> : null}
+                  </p>
+                ) : null;
+              })()}
 
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">

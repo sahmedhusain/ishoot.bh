@@ -2873,6 +2873,10 @@
             "kind": "number",
             "optional": false
           },
+          "workdayStart": {
+            "kind": "string",
+            "optional": false
+          },
           "dailyRateBasis": {
             "kind": "string",
             "optional": false

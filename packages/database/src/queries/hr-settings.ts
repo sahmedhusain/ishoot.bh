@@ -13,6 +13,7 @@ export async function getHrPolicy(): Promise<HrPolicyRules> {
     attendanceCutoffDay: row.attendanceCutoffDay,
     weekendDays: row.weekendDays,
     workdayHours: Number(row.workdayHours),
+    workdayStart: row.workdayStart,
     dailyRateBasis: row.dailyRateBasis as HrPolicyRules["dailyRateBasis"],
     deductionBase: row.deductionBase as HrPolicyRules["deductionBase"],
     overtimeBase: row.overtimeBase as HrPolicyRules["overtimeBase"],
@@ -44,6 +45,7 @@ export function validateHrPolicy(input: HrPolicyRules): HrPolicyRules {
   const weekendDays = Array.from(new Set(input.weekendDays)).sort();
   if (weekendDays.length > 3 || weekendDays.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) throw new Error("Choose up to three weekend days");
   if (!(input.workdayHours >= 1 && input.workdayHours <= 16)) throw new Error("Working hours must be between 1 and 16");
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.workdayStart ?? "")) throw new Error("The working day start must be HH:MM");
   return {
     ...input,
     payDay: int(input.payDay, 1, 31, "Pay day"),

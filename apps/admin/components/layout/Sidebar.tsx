@@ -28,6 +28,8 @@ import {
   ShieldAlert,
   TrendingUp,
   HandCoins,
+  CalendarCheck,
+  Settings2,
   BadgeDollarSign,
   Contact,
   Gauge,
@@ -42,6 +44,8 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   resource?: PermissionResource;
+  /** Permission needed on the resource (default read). */
+  action?: "read" | "edit";
   moduleKey?: string;
   /** Only for people who manage a team. */
   managersOnly?: boolean;
@@ -209,11 +213,26 @@ export function Sidebar() {
             resource: "self_service",
           },
           {
+            href: ROUTES.hr.attendance,
+            label: t.nav.attendance,
+            icon: CalendarCheck,
+            resource: "employees",
+            moduleKey: "hrms",
+          },
+          {
             href: ROUTES.hr.payroll(),
             label: t.sidebar.payrollAndGosi,
             icon: CreditCard,
             resource: "payroll",
             moduleKey: "payroll",
+          },
+          {
+            href: ROUTES.hr.settings,
+            label: t.nav.hrSettings,
+            icon: Settings2,
+            resource: "employees",
+            action: "edit",
+            moduleKey: "hrms",
           },
         ],
       },
@@ -354,7 +373,7 @@ export function Sidebar() {
           if (item.moduleKey && !isFeatureEnabled(item.moduleKey)) return false;
           if (item.managersOnly && !managesTeam) return false;
           if (!item.resource) return true;
-          return can(item.resource, "read");
+          return can(item.resource, item.action ?? "read");
         }),
       }))
       .filter((section) => section.items.length > 0);

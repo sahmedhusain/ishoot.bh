@@ -2,9 +2,11 @@
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ROUTES } from "@ishoot/database/constants/routes";
 import type { PayrollRun } from "@ishoot/database/types";
-import { Card, Button, useDialog } from "@ishoot/ui";
+import { Card, Button, Modal, useDialog } from "@ishoot/ui";
 import {
   DollarSign,
   Plus,
@@ -14,15 +16,20 @@ import {
   ChevronUp,
   Receipt,
   FileCheck,
+  RefreshCw,
+  CalendarCheck,
+  Settings2,
+  ChevronRight,
+  ChevronLeft,
 } from "lucide-react";
 import {
   generatePayrollRunAction,
   submitPayrollRunForApprovalAction,
   approvePayrollRunAction,
   markPayrollRunPaidAction,
+  recalculatePayrollRunAction,
 } from "../../app/actions/payroll";
 import { toast } from "sonner";
-import { PayrollItemRow } from "./PayrollItemRow";
 
 interface PayrollManagementViewProps {
   runs: PayrollRun[];
@@ -33,6 +40,8 @@ interface PayrollManagementViewProps {
   canEdit?: boolean;
   /** May generate a monthly run. */
   canCreate?: boolean;
+  /** May record salary payments. */
+  canPay?: boolean;
 }
 
 export function PayrollManagementView({
@@ -40,8 +49,16 @@ export function PayrollManagementView({
   decidableRunIds,
   canEdit = false,
   canCreate = false,
+  canPay = false,
 }: PayrollManagementViewProps) {
-  const { t, locale } = useAdminLocale();
+  const { t, locale, isRTL } = useAdminLocale();
+  const [payAllRun, setPayAllRun] = React.useState<string | null>(null);
+  const [payMethod, setPayMethod] = React.useState("bank_transfer");
+  const [payReference, setPayReference] = React.useState("");
+  const [search, setSearch] = React.useState("");
+  const fmt = (value: number) => new Intl.NumberFormat(locale === "ar" ? "ar-BH" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(value);
+  const fill = (template: string, values: Record<string, string | number>) => Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
+  const RowArrow = isRTL ? ChevronLeft : ChevronRight;
   const router = useRouter();
 
   const [loadingId, setLoadingId] = React.useState<string | null>(null);
@@ -139,11 +156,26 @@ export function PayrollManagementView({
     }
   };
 
+  const handleRecalculate = async (runId: string) => {
+    setLoadingId(runId);
+    const toastId = toast.loading(t.payrollManagement.calculating);
+    try {
+      await recalculatePayrollRunAction(runId);
+      toast.success(t.payroll.recalculated, { id: toastId });
+      router.refresh();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t.payrollManagement.calculationFailed, { id: toastId });
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
   const handleMarkPaid = async (runId: string) => {
     setLoadingId(runId);
+    setPayAllRun(null);
     const toastId = toast.loading(t.payrollManagement.recordingSettlementAndGeneratingIndividual);
     try {
-      const res = await markPayrollRunPaidAction(runId);
+      const res = await markPayrollRunPaidAction(runId, { method: payMethod, reference: payReference.trim() || null });
       if (res.success) {
         toast.success(t.payrollManagement.payrollMarkedAsPaidIndividual, { id: toastId });
         router.refresh();
@@ -177,7 +209,17 @@ export function PayrollManagementView({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href={ROUTES.hr.attendance} className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-ink/20 px-3.5 text-xs font-medium text-primary hover:bg-primary/[0.06] dark:text-accent">
+            <CalendarCheck className="w-3.5 h-3.5" />
+            {t.payroll.attendanceLink}
+          </Link>
+          {canEdit && (
+            <Link href={ROUTES.hr.settings} className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-ink/20 px-3.5 text-xs font-medium text-primary hover:bg-primary/[0.06] dark:text-accent">
+              <Settings2 className="w-3.5 h-3.5" />
+              {t.payroll.settingsLink}
+            </Link>
+          )}
           {canCreate && <Button
             onClick={() => setShowGenerateModal(true)}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
@@ -293,9 +335,15 @@ export function PayrollManagementView({
                           ] || run.status}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-400 mt-0.5">
-                        {run.items?.length || 0}
-                        {t.payrollManagement.employeesIncluded}
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
+                        <span>{run.items?.length || 0}{t.payrollManagement.employeesIncluded}</span>
+                        {run.attendanceStart && run.attendanceEnd && (
+                          <span><bdi dir="ltr">{fill(t.payroll.attendanceWindow, { start: run.attendanceStart.slice(0, 10), end: run.attendanceEnd.slice(0, 10) })}</bdi></span>
+                        )}
+                        {run.payDate && <span>{fill(t.payroll.payDate, { date: run.payDate.slice(0, 10) })}</span>}
+                        {(run.status === "approved" || run.status === "paid") && (
+                          <span>{fill(t.payroll.paidCount, { paid: run.items?.filter((i) => i.paymentStatus === "paid").length ?? 0, total: run.items?.length ?? 0 })}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -314,7 +362,7 @@ export function PayrollManagementView({
 
                     <div>
                       <span className="text-slate-400 block text-[10px] uppercase font-mono">
-                        {t.payrollManagement.gosiDeductions}
+                        {t.payroll.deductions}
                       </span>
                       <span className="font-mono font-semibold text-amber-600">
                         -{Number(run.totalDeductions).toFixed(3)}
@@ -346,6 +394,17 @@ export function PayrollManagementView({
                     <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-white/10">
                       {canEdit && (run.status === "draft" || run.status === "calculated") && (
                         <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRecalculate(run.id)}
+                          disabled={loadingId === run.id}
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 ${loadingId === run.id ? "animate-spin" : ""}`} />
+                          {t.payroll.recalculate}
+                        </Button>
+                      )}
+                      {canEdit && (run.status === "draft" || run.status === "calculated") && (
+                        <Button
                           onClick={() => handleSubmitForApproval(run.id)}
                           disabled={loadingId === run.id}
                           className="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 text-xs rounded-md"
@@ -366,14 +425,14 @@ export function PayrollManagementView({
                         </Button>
                       )}
 
-                      {canEdit && run.status === "approved" && (
+                      {canPay && run.status === "approved" && (
                         <Button
-                          onClick={() => handleMarkPaid(run.id)}
+                          onClick={() => setPayAllRun(run.id)}
                           disabled={loadingId === run.id}
                           className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 text-xs rounded-md"
                         >
                           <Receipt className="w-3.5 h-3.5 mr-1 inline" />
-                          {t.payrollManagement.markPaidAndIssuePayslips}
+                          {t.payroll.payAll}
                         </Button>
                       )}
 
@@ -387,39 +446,67 @@ export function PayrollManagementView({
                   </div>
                 </div>
 
-                {/* Expanded Items Table */}
+                {/* Employees: each opens their own payment page */}
                 {isExpanded && (
-                  <div className="p-5 border-t border-ink/10 space-y-4">
-                    <h3 className="text-xs font-mono uppercase tracking-wider text-slate-500 font-semibold">
-                      {t.payrollManagement.employeeCalculationBreakdown}
-                      {monthName} {run.year})
-                    </h3>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-start text-xs min-w-[1100px]">
-                        <thead>
-                          <tr className="border-b border-ink/10 font-mono uppercase text-slate-400">
-                            <th className="py-2.5 px-3 text-start">{t.shared.employee}</th>
-                            <th className="py-2.5 px-3 text-end">{t.payrollManagement.basic}</th>
-                            <th className="py-2.5 px-3 text-end">{t.shared.housing}</th>
-                            <th className="py-2.5 px-3 text-end">{t.shared.transport}</th>
-                            <th className="py-2.5 px-3 text-end">{t.payrollEdit.fields.otherAllowances}</th>
-                            <th className="py-2.5 px-3 text-end">{t.payrollEdit.fields.bonus}</th>
-                            <th className="py-2.5 px-3 text-end">{t.payrollEdit.fields.otherDeductions}</th>
-                            <th className="py-2.5 px-3 text-end">{t.payrollManagement.grossSalary}</th>
-                            <th className="py-2.5 px-3 text-end text-amber-600">{t.payrollManagement.gosiEmployee}</th>
-                            <th className="py-2.5 px-3 text-end font-bold text-primary dark:text-mint">{t.payrollManagement.netSalary}</th>
-                            <th className="py-2.5 px-3 text-end">{t.payrollEdit.employerShare}</th>
-                            <th className="py-2.5 px-3 text-end">{t.payrollManagement.totalEmployerCost}</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-ink/10 dark:divide-white/5">
-                          {run.items?.map((item) => (
-                            <PayrollItemRow key={item.id} item={item} editable={canEdit && (run.status === "calculated" || run.status === "draft")} />
-                          ))}
-                        </tbody>
-                      </table>
+                  <div className="p-4 sm:p-5 border-t border-ink/10 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                        {t.payrollManagement.employeeCalculationBreakdown}
+                        {monthName} {run.year})
+                      </h3>
+                      <input
+                        type="search"
+                        aria-label={t.payroll.search}
+                        placeholder={t.payroll.search}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full sm:w-56 rounded-full border border-ink/20 bg-white dark:bg-surface px-3.5 py-1.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent/40"
+                      />
                     </div>
+                    <ul className="divide-y divide-ink/10 rounded-xl border border-ink/10 overflow-hidden">
+                      {run.items
+                        ?.filter((item) => {
+                          const q = search.trim().toLowerCase();
+                          if (!q) return true;
+                          const e = item.employee as { firstNameEn?: string; lastNameEn?: string; firstNameAr?: string; lastNameAr?: string; employeeNumber?: string } | undefined;
+                          return [e?.firstNameEn, e?.lastNameEn, e?.firstNameAr, e?.lastNameAr, e?.employeeNumber].some((v) => v?.toLowerCase().includes(q));
+                        })
+                        .map((item) => {
+                          const e = item.employee as { firstNameEn?: string; lastNameEn?: string; firstNameAr?: string; lastNameAr?: string; employeeNumber?: string } | undefined;
+                          const summary = (item as { attendanceSummary?: { absentDays?: number; unmarkedDays?: number; leave?: Record<string, { days: number }>; overtime?: Record<string, number> } | null }).attendanceSummary;
+                          const leaveDays = summary?.leave ? Object.values(summary.leave).reduce((sum, l) => sum + l.days, 0) : 0;
+                          const otHours = summary?.overtime ? Math.round((Object.values(summary.overtime).reduce((sum, m) => sum + m, 0) / 60) * 10) / 10 : 0;
+                          const deductions = Number(item.gosiEmployee) + Number(item.absenceDeduction ?? 0) + Number(item.leaveDeduction ?? 0) + Number(item.latenessDeduction ?? 0) + Number(item.otherDeductions);
+                          return (
+                            <li key={item.id}>
+                              <Link href={ROUTES.hr.payrollItem(item.id)} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 hover:bg-ink/[0.04] focus-visible:bg-ink/[0.06] focus-visible:outline-none">
+                                <div className="min-w-0 flex-1 basis-48">
+                                  <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                                    {locale === "ar" && e?.firstNameAr ? `${e.firstNameAr} ${e.lastNameAr}` : `${e?.firstNameEn ?? ""} ${e?.lastNameEn ?? ""}`}
+                                  </p>
+                                  <p className="flex flex-wrap gap-x-2 text-[11px] text-slate-500 dark:text-slate-400">
+                                    <bdi dir="ltr">{e?.employeeNumber}</bdi>
+                                    {summary?.absentDays ? <span className="text-rose-700 dark:text-rose-400">{t.payroll.absent} {summary.absentDays}</span> : null}
+                                    {leaveDays ? <span>{t.payroll.leave} {leaveDays}</span> : null}
+                                    {otHours ? <span className="text-emerald-700 dark:text-emerald-400">{t.payroll.overtime} {fill(t.payroll.hoursShort, { n: otHours })}</span> : null}
+                                    {Number(item.commission ?? 0) > 0 && <span>{t.payroll.commission} {fmt(Number(item.commission))}</span>}
+                                    {summary?.unmarkedDays ? <span className="text-amber-700 dark:text-amber-400">{fill(t.payroll.warningsUnmarked, { n: summary.unmarkedDays })}</span> : null}
+                                  </p>
+                                </div>
+                                <dl className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs">
+                                  <div><dt className="text-[10px] text-slate-500">{t.payrollManagement.grossSalary}</dt><dd className="font-mono text-slate-800 dark:text-slate-100"><bdi dir="ltr">{fmt(Number(item.grossSalary))}</bdi></dd></div>
+                                  <div><dt className="text-[10px] text-slate-500">{t.payroll.deductions}</dt><dd className="font-mono text-rose-700 dark:text-rose-400"><bdi dir="ltr">−{fmt(deductions)}</bdi></dd></div>
+                                  <div><dt className="text-[10px] text-slate-500">{t.payrollManagement.netSalary}</dt><dd className="font-mono font-bold text-primary dark:text-accent"><bdi dir="ltr">{fmt(Number(item.netSalary))}</bdi></dd></div>
+                                </dl>
+                                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${item.paymentStatus === "paid" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-slate-500/10 text-slate-600 dark:text-slate-300"}`}>
+                                  {item.paymentStatus === "paid" ? t.payroll.statusPaid : t.payroll.statusPending}
+                                </span>
+                                <RowArrow className="w-4 h-4 text-slate-400" aria-hidden />
+                              </Link>
+                            </li>
+                          );
+                        })}
+                    </ul>
                   </div>
                 )}
               </Card>
@@ -427,6 +514,32 @@ export function PayrollManagementView({
           })
         )}
       </div>
+
+      <Modal isOpen={payAllRun !== null} onClose={() => setPayAllRun(null)} title={t.payroll.payAllTitle} closeLabel={t.shared.cancel}>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (payAllRun) void handleMarkPaid(payAllRun);
+          }}
+          className="space-y-4"
+        >
+          <p className="text-sm text-slate-600 dark:text-slate-300">{t.payroll.payAllBody}</p>
+          <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+            {t.payrollItem.method}
+            <select value={payMethod} onChange={(e) => setPayMethod(e.target.value)} className="w-full rounded-lg border border-ink/20 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white">
+              {Object.entries(t.payroll.methods).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+            </select>
+          </label>
+          <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
+            {t.payrollItem.reference}
+            <input dir="ltr" maxLength={120} value={payReference} onChange={(e) => setPayReference(e.target.value)} className="w-full rounded-lg border border-ink/20 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white" />
+          </label>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setPayAllRun(null)}>{t.shared.cancel}</Button>
+            <Button type="submit" size="sm">{t.payroll.payAll}</Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Generate Run Modal */}
       {showGenerateModal && (

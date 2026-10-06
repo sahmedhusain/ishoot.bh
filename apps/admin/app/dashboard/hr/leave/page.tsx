@@ -1,5 +1,5 @@
 import { requirePermission, hasPermission } from "../../../../lib/auth";
-import { listLeaveRequests, listLeaveTypes, listEmployees, db, canDecideApproval } from "@ishoot/database";
+import { listLeaveRequests, listLeaveTypes, listEmployees, db, canDecideApproval, getLeaveBalances } from "@ishoot/database";
 import { LeaveManagementView } from "../../../../components/hr/LeaveManagementView";
 
 export const dynamic = "force-dynamic";
@@ -27,7 +27,7 @@ export default async function LeaveManagementPage({
     }),
   ]);
 
-  const [{ items: requests, total }, leaveTypes, allEmployeesResult] = await Promise.all([
+  const [{ items: requests, total }, leaveTypes, allEmployeesResult, myBalances] = await Promise.all([
     listLeaveRequests({
       status: status === "all" ? undefined : status,
       employeeId: canReadTeam ? employeeId : myEmployee?.id || "no-employee",
@@ -37,6 +37,7 @@ export default async function LeaveManagementPage({
     }),
     listLeaveTypes(),
     canFileForOthers ? listEmployees({ pageSize: 100 }) : Promise.resolve({ items: [], total: 0 }),
+    myEmployee ? getLeaveBalances(myEmployee.id) : Promise.resolve([]),
   ]);
 
   const pendingIds = requests.filter((r) => r.status === "pending").map((r) => r.id);
@@ -52,6 +53,7 @@ export default async function LeaveManagementPage({
     <LeaveManagementView
       requests={requests}
       leaveTypes={leaveTypes}
+      myBalances={myBalances}
       // Only names are needed to file for someone else; salaries never leave the server here.
       allEmployees={allEmployeesResult.items.map((e) => ({ ...e, employmentRecords: [] }))}
       myEmployee={

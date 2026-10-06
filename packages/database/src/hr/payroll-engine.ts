@@ -10,6 +10,8 @@ export interface HrPolicyRules {
   attendanceCutoffDay: number | null;
   weekendDays: number[];
   workdayHours: number;
+  /** Local start of the working day (HH:MM); arriving later counts as late. */
+  workdayStart: string;
   dailyRateBasis: "30" | "calendar_days" | "working_days";
   deductionBase: "basic" | "fixed";
   overtimeBase: "basic" | "fixed";
@@ -30,6 +32,7 @@ export const DEFAULT_HR_POLICY: HrPolicyRules = {
   attendanceCutoffDay: null,
   weekendDays: [5, 6],
   workdayHours: 8,
+  workdayStart: "08:00",
   dailyRateBasis: "30",
   deductionBase: "fixed",
   overtimeBase: "basic",
