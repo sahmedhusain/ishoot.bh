@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 
@@ -136,7 +137,7 @@ export function ArchiveManagementView({
         resolvedEntityId = "general-vault";
       }
 
-      if (["payment", "contact", "customer_vault", "deal", "invoice"].includes(entityType) && !resolvedEntityId) throw new Error("Select a target record");
+      if (["payment", "contact", "customer_vault", "deal", "invoice"].includes(entityType) && !resolvedEntityId) throw new Error(t.shared.selectTargetRecord);
       if (uploadMode === "file" && selectedFile) {
         // Send directly to /api/upload
         const data = await uploadFileDirectly(selectedFile, { entityType: entityType, entityId: resolvedEntityId, documentType: documentSubtype });
@@ -199,7 +200,7 @@ export function ArchiveManagementView({
       setEntityId("");
     } catch (err: any) {
       console.error("Failed to upload attachment:", err);
-      setUploadError(err.message || t.archiveManagement.failedToUploadAttachment);
+      setUploadError(errorMessage(err, t, t.archiveManagement.failedToUploadAttachment));
     } finally {
       setSubmitting(false);
     }
@@ -564,7 +565,7 @@ export function ArchiveManagementView({
                               {selectedFile.name}
                             </div>
                             <div className="text-[11px] text-slate-500 ">
-                              {(selectedFile.size / 1024).toFixed(1)} KB • {selectedFile.type || "Document"}
+                              {(selectedFile.size / 1024).toFixed(1)} KB • {selectedFile.type || t.shared.document}
                             </div>
                           </div>
                         </div>

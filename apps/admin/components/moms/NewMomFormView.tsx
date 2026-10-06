@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { EntityLookup } from "../shared/EntityLookup";
 
@@ -166,7 +167,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || t.newMomForm.failedToCreateMeetingMinutes);
+      setError(errorMessage(err, t, t.newMomForm.failedToCreateMeetingMinutes));
     } finally {
       setSaving(false);
     }
@@ -239,7 +240,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           <div className="space-y-1.5">
             <label className="text-ink-muted font-medium">{t.newMomForm.meetingTitleArabic}</label>
             <Input
-              placeholder="مثال: اجتماع التنسيق الفني وتجهيز كاميرات الإنتاج"
+              placeholder={t.newMomForm.titleArPlaceholder}
               value={titleAr}
               onChange={(e) => setTitleAr(e.target.value)}
               dir="rtl"

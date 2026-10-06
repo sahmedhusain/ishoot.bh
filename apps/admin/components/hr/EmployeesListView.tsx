@@ -150,13 +150,13 @@ export function EmployeesListView({
           className="flex items-center gap-2 w-full sm:w-80"
         >
           <div className="relative w-full">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+            <Search className="w-4 h-4 absolute start-3 top-2.5 text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t.employeesList.searchByNameEmployeeTitle}
-              className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 pl-9 pr-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
+              className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 ps-9 pe-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
           <button
@@ -200,15 +200,15 @@ export function EmployeesListView({
       {/* Employees Table */}
       <Card className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-start text-sm">
             <thead>
               <tr className="border-b border-ink/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
                 <th className="py-3 px-4">{t.shared.employee}</th>
                 <th className="py-3 px-4">{t.employeesList.jobTitleAndDept}</th>
                 <th className="py-3 px-4">{t.employeesList.statusAndAvailability}</th>
-                <th className="py-3 px-4 text-right">{t.employeesList.leaveBalance}</th>
-                {canViewPay && <th className="py-3 px-4 text-right">{t.employeesList.compensation}</th>}
-                <th className="py-3 px-4 text-right">{t.employeesList.action}</th>
+                <th className="py-3 px-4 text-end">{t.employeesList.leaveBalance}</th>
+                {canViewPay && <th className="py-3 px-4 text-end">{t.employeesList.compensation}</th>}
+                <th className="py-3 px-4 text-end">{t.employeesList.action}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink/10 dark:divide-white/5">
@@ -285,12 +285,12 @@ export function EmployeesListView({
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 text-right font-mono text-xs text-slate-700 dark:text-neutral-300">
+                      <td className="py-3.5 px-4 text-end font-mono text-xs text-slate-700 dark:text-neutral-300">
                         {Number(emp.leaveBalanceDays).toFixed(1)}
                         {t.shared.days}
                       </td>
 
-                      {canViewPay && <td className="py-3.5 px-4 text-right font-mono text-xs">
+                      {canViewPay && <td className="py-3.5 px-4 text-end font-mono text-xs">
                         {totalSalary > 0 ? (
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {totalSalary.toFixed(3)}
@@ -303,7 +303,7 @@ export function EmployeesListView({
                         )}
                       </td>}
 
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-4 text-end">
                         <Link
                           href={ROUTES.hr.employee(emp.id)}
                           className="inline-flex items-center gap-1 text-xs text-accent hover:text-primary dark:hover:text-mint font-medium"

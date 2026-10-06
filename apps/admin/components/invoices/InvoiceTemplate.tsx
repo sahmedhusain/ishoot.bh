@@ -149,7 +149,7 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
                   </p>
                 )}
                 {invoice.notes_ar && (
-                  <p className="font-arabic text-right text-slate-800 pt-1">
+                  <p className="font-arabic text-end text-slate-800 pt-1">
                     {invoice.notes_ar}
                   </p>
                 )}
@@ -161,10 +161,10 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
                 {inv.bankCoords}
               </div>
               <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200  text-[11px] space-y-1 print:bg-white print:border-slate-300 print:text-[10px]">
-                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.bankName}</span> {company.bank_name || (isAr ? "بنك البحرين الوطني" : "National Bank of Bahrain (NBB)")}</div>
-                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.iban}</span> {company.bank_iban || "BH00NBBB00000000000000"}</div>
-                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.accountNo}</span> {company.bank_account_number || "0000-000000-001"}</div>
-                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.swift}</span> {company.bank_swift || "NBBBBHBM"}</div>
+                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.bankName}</span> {company.bank_name || "—"}</div>
+                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.iban}</span> <bdi dir="ltr">{company.bank_iban || "—"}</bdi></div>
+                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.accountNo}</span> <bdi dir="ltr">{company.bank_account_number || "—"}</bdi></div>
+                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.swift}</span> <bdi dir="ltr">{company.bank_swift || "—"}</bdi></div>
               </div>
             </div>
           </div>

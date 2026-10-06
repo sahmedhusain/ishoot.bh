@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
@@ -204,7 +205,7 @@ export function NewInvoiceFormView({
       }
     } catch (err: unknown) {
       toast.error(
-        err instanceof Error ? err.message : t.newInvoiceForm.conversionFailed,
+        errorMessage(err, t, t.newInvoiceForm.conversionFailed),
         { id: toastId },
       );
     } finally {
@@ -300,7 +301,7 @@ export function NewInvoiceFormView({
       }
     } catch (err: unknown) {
       console.error("Error creating invoice:", err);
-      toast.error(err instanceof Error ? err.message : t.newInvoiceForm.errorCreatingInvoice, { id: toastId });
+      toast.error(errorMessage(err, t, t.newInvoiceForm.errorCreatingInvoice), { id: toastId });
     } finally {
       setSubmitting(false);
     }
@@ -361,7 +362,7 @@ export function NewInvoiceFormView({
                 <option value="">{t.newInvoiceForm.selectAcceptedQuote}</option>
                 {acceptedQuotations.map((q) => (
                   <option key={q.id} value={q.id}>
-                    {q.quotationNumber} - {q.client?.companyName || q.client?.firstName || "Client"} ({Number(q.totalAmount).toFixed(3)} {q.currency})
+                    {q.quotationNumber} - {q.client?.companyName || q.client?.firstName || t.shared.client} ({Number(q.totalAmount).toFixed(3)} {q.currency})
                   </option>
                 ))}
               </select>

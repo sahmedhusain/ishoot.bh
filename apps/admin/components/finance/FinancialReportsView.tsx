@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import { ROUTES } from "../../constants/routes";
@@ -82,7 +83,7 @@ export function FinancialReportsView({
         toast.error(t.financialReports.failedToGenerateCsvExport, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.financialReports.exportFailed, { id: toastId });
+      toast.error(errorMessage(err, t, t.financialReports.exportFailed), { id: toastId });
     } finally {
       setExporting(false);
     }

@@ -74,7 +74,7 @@ export function FaqsManagementView({ initialFaqs }: { initialFaqs: FaqItem[] }) 
           <p className="text-xs text-slate-500 mt-1">{t.faqsView.subtitle}</p>
         </div>
         <Button onClick={handleOpenNew} className="bg-accent text-white">
-          <Plus className="w-4 h-4 mr-2" /> {t.faqsView.newFaq}
+          <Plus className="w-4 h-4 me-2" /> {t.faqsView.newFaq}
         </Button>
       </div>
 

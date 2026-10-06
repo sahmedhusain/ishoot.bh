@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -20,7 +21,7 @@ import {
   X,
   FileText,
 } from "lucide-react";
-import { Button, Card, StatusBadge, useDialog } from "@ishoot/ui";
+import { Button, Card, StatusBadge, useDialog, formatDate } from "@ishoot/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateMyProfileAction,
@@ -52,7 +53,7 @@ export function UserProfileView({
   pendingTeamRequests,
 }: UserProfileViewProps) {
   const router = useRouter();
-  const { isRTL, t } = useAdminLocale();
+  const { isRTL, t, locale } = useAdminLocale();
 
   // Contact Form (Immediate Update)
   const [phone, setPhone] = React.useState(user.phone || "");
@@ -91,7 +92,7 @@ export function UserProfileView({
         toast.error(t.userProfile.failedToUpdateProfile, { id: toastId });
       }
     } catch (err: any) {
-      toast.error(err.message || t.userProfile.anErrorOccurred, { id: toastId });
+      toast.error(errorMessage(err, t, t.userProfile.anErrorOccurred), { id: toastId });
     } finally {
       setIsUpdatingContact(false);
     }
@@ -126,7 +127,7 @@ export function UserProfileView({
         toast.error(t.userProfile.failedToSubmitChangeRequest, { id: toastId });
       }
     } catch (err: any) {
-      toast.error(err.message || t.userProfile.failedToSubmitChangeRequest2, {
+      toast.error(errorMessage(err, t, t.userProfile.failedToSubmitChangeRequest2), {
         id: toastId,
       });
     } finally {
@@ -160,7 +161,7 @@ export function UserProfileView({
         toast.error(t.userProfile.decisionCouldNotBeApplied, { id: toastId });
       }
     } catch (err: any) {
-      toast.error(err.message || t.userProfile.failedToApplyDecision, { id: toastId });
+      toast.error(errorMessage(err, t, t.userProfile.failedToApplyDecision), { id: toastId });
     } finally {
       setDecidingId(null);
       setIsSubmittingDecision(false);
@@ -279,13 +280,13 @@ export function UserProfileView({
                   <div className="flex items-center justify-between text-xs">
                     <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                       <User className="w-4 h-4 text-accent" />
-                      <span>{req.user?.fullName || "Employee"}</span>
+                      <span>{req.user?.fullName || t.shared.employee}</span>
                       <span className="text-slate-400 font-normal">
                         ({req.user?.email})
                       </span>
                     </div>
                     <span className="text-[11px] text-slate-400 font-mono">
-                      {new Date(req.createdAt).toLocaleDateString()}
+                      {formatDate(req.createdAt, locale)}
                     </span>
                   </div>
 
@@ -510,7 +511,7 @@ export function UserProfileView({
                         <div className="flex items-center gap-2">
                           {getStatusBadge(req.status)}
                           <span className="font-mono text-[10px] text-slate-400">
-                            {new Date(req.createdAt).toLocaleDateString()}
+                            {formatDate(req.createdAt, locale)}
                           </span>
                         </div>
                         <div className="text-slate-700 dark:text-slate-300">
@@ -537,7 +538,7 @@ export function UserProfileView({
                       </div>
                       <div className="text-end text-[11px] text-slate-400">
                         {req.reviewedAt
-                          ? `${t.userProfile.reviewed}${new Date(req.reviewedAt).toLocaleDateString()}`
+                          ? `${t.userProfile.reviewed}${formatDate(req.reviewedAt, locale)}`
                           : t.userProfile.awaitingAction}
                       </div>
                     </div>
@@ -642,7 +643,7 @@ export function UserProfileView({
                     {t.shared.hireDate}
                   </span>
                   <div className="font-mono text-slate-700 dark:text-slate-300">
-                    {new Date(employeeRecord.hireDate).toLocaleDateString()}
+                    {formatDate(employeeRecord.hireDate, locale, "long")}
                   </div>
                 </div>
               </div>

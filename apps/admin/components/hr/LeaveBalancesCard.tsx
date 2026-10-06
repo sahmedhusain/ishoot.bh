@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -32,7 +33,7 @@ export function LeaveBalancesCard({ balances, year, employeeId, canAdjust = fals
       setForm((f) => ({ ...f, days: "", reason: "" }));
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : l.adjust);
+      toast.error(errorMessage(error, t, l.adjust));
     }
   };
 

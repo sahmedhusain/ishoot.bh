@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 import * as React from "react";
@@ -55,7 +56,7 @@ export function NewCompanyDocumentFormView() {
 
       router.push(ROUTES.company.documents);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.newCompanyDocumentForm.couldNotSaveDocument);
+      setError(errorMessage(err, t, t.newCompanyDocumentForm.couldNotSaveDocument));
     } finally {
       setSaving(false);
     }

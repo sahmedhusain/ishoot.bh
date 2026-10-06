@@ -127,7 +127,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
                 required
                 autoComplete="email"
                 placeholder={t.loginView.emailPlaceholder}
-                className={isRTL ? "pr-10" : "pl-10"}
+                className={isRTL ? "pe-10" : "ps-10"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -154,7 +154,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
                 required
                 autoComplete="current-password"
                 placeholder={t.loginView.passwordPlaceholder}
-                className={isRTL ? "pr-10" : "pl-10"}
+                className={isRTL ? "pe-10" : "ps-10"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

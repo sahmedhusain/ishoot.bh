@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -87,7 +88,7 @@ function CellEditor({
       onClose();
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : a.save);
+      toast.error(errorMessage(error, t, a.save));
     } finally {
       setSaving(false);
     }
@@ -101,7 +102,7 @@ function CellEditor({
       onClose();
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : a.clear);
+      toast.error(errorMessage(error, t, a.clear));
     } finally {
       setSaving(false);
     }
@@ -191,7 +192,7 @@ export function AttendanceSheetView({ sheet, canEdit }: { sheet: AttendanceSheet
       toast.success(fill(a.marked, { n: result.created }));
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : a.markPresent);
+      toast.error(errorMessage(error, t, a.markPresent));
     } finally {
       setMarking(false);
     }

@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -145,7 +146,7 @@ export function NewRequestFormView({
         toast.error(res.error || t.newRequestForm.createFailed, { id: toastId });
       }
     } catch (err: any) {
-      toast.error(err.message || t.newRequestForm.anUnexpectedErrorOccurred, {
+      toast.error(errorMessage(err, t, t.newRequestForm.anUnexpectedErrorOccurred), {
         id: toastId,
       });
     } finally {

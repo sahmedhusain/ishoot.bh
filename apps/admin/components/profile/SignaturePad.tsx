@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Eraser, PenLine, Send, Undo2, History, X } from "lucide-react";
@@ -99,7 +100,7 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
       clear();
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : s.failed);
+      toast.error(errorMessage(err, t, s.failed));
     } finally {
       setSaving(false);
     }
@@ -111,7 +112,7 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
       toast.success(s.withdrawn);
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : s.failed);
+      toast.error(errorMessage(err, t, s.failed));
     }
   };
 
@@ -204,7 +205,7 @@ export function SignaturePad({ currentUrl, changes }: { currentUrl?: string | nu
                   <ContentImage src={c.signatureUrl} alt="" className="max-h-full max-w-full object-contain" />
                 </div>
                 <span className={`px-2 py-0.5 rounded-full font-semibold ${statusStyle[c.status]}`}>{s.status[c.status]}</span>
-                <span className="text-ink-muted">{new Date(c.createdAt).toLocaleString(locale === "ar" ? "ar-BH" : "en-GB")}</span>
+                <span className="text-ink-muted">{new Date(c.createdAt).toLocaleString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}</span>
                 {c.reviewedBy && <span className="text-ink-muted">· {s.by.replace("{name}", c.reviewedBy)}</span>}
                 {c.reviewNotes && <span className="text-ink-muted italic">“{c.reviewNotes}”</span>}
               </li>

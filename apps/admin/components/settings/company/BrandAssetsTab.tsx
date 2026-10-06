@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../../lib/error-text";
 import { uploadFileDirectly } from "../../../lib/upload-client";
 import {ContentImage} from "../../shared/ContentImage";
 
@@ -179,7 +180,7 @@ export function BrandAssetsTab({
         if (slot.key === "signature") setSettings((s) => ({ ...s, signature_url: data.fileUrl }));
       }
     } catch (err: any) {
-      setErrorKey((prev) => ({ ...prev, [slot.key]: err.message || t.brandAssetsTab.failedToUploadAsset }));
+      setErrorKey((prev) => ({ ...prev, [slot.key]: errorMessage(err, t, t.brandAssetsTab.failedToUploadAsset) }));
     } finally {
       setUploadingKey(null);
       if (fileInputRefs.current[slot.key]) {
@@ -200,7 +201,7 @@ export function BrandAssetsTab({
       if (slotKey === "stamp") setSettings((s) => ({ ...s, stamp_url: "" }));
       if (slotKey === "signature") setSettings((s) => ({ ...s, signature_url: "" }));
     } catch (err: any) {
-      setErrorKey((prev) => ({ ...prev, [slotKey]: err.message || t.brandAssetsTab.failedToRemoveAsset }));
+      setErrorKey((prev) => ({ ...prev, [slotKey]: errorMessage(err, t, t.brandAssetsTab.failedToRemoveAsset) }));
     }
   };
 

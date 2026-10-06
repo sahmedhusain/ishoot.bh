@@ -5,7 +5,7 @@ import { adminTranslations } from "../../../lib/translations-bilingual";
 import { ResetPasswordForm } from "../../../components/auth/ResetPasswordForm";
 
 export const metadata: Metadata = {
-  title: `Reset Password | ${adminTranslations.en.brandName}`,
+  title: adminTranslations.ar.brandName,
 };
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function ResetPasswordPage() {
   const company = await getCompanySettings();
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
+    <React.Suspense fallback={<div aria-busy="true" className="min-h-screen" />}>
       <ResetPasswordForm 
         companyName={company.company_name_en} 
         logoUrl={company.dark_logo_url || company.logo_url} 

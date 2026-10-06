@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,7 +35,7 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
       toast.success(c.recorded);
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : c.failed);
+      toast.error(errorMessage(err, t, c.failed));
     } finally {
       setBusy(null);
     }

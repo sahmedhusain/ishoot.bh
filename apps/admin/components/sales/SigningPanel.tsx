@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -35,7 +36,7 @@ export function SigningPanel({ type, id, state, canSign, canRequestApproval, has
       toast.success(done);
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : s.failed);
+      toast.error(errorMessage(err, t, s.failed));
     } finally {
       setBusy(false);
     }
@@ -70,7 +71,7 @@ export function SigningPanel({ type, id, state, canSign, canRequestApproval, has
           </div>
           <div>
             <div className="font-semibold text-ink flex items-center gap-1"><BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />{s.signedBy.replace("{name}", state.signedBy?.name ?? "")}</div>
-            <div className="text-ink-muted">{state.signedAt ? new Date(state.signedAt).toLocaleString(locale === "ar" ? "ar-BH" : "en-GB") : ""}</div>
+            <div className="text-ink-muted">{state.signedAt ? new Date(state.signedAt).toLocaleString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB") : ""}</div>
           </div>
         </div>
       ) : !state.approved ? (

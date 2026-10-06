@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { HandHeart, CheckCircle2 } from "lucide-react";
@@ -78,7 +79,7 @@ function ClaimRow({ row, canRecord }: { row: SupportClaimRow; canRecord: boolean
       toast.success(c.recorded);
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : c.failed);
+      toast.error(errorMessage(err, t, c.failed));
     } finally {
       setSaving(false);
     }

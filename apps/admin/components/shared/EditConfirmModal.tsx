@@ -61,7 +61,7 @@ export function EditConfirmModal({
         </p>
 
         {filteredChanges.length > 0 ? (
-          <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+          <div className="space-y-2.5 max-h-72 overflow-y-auto pe-1">
             {filteredChanges.map((change, idx) => (
               <div
                 key={idx}

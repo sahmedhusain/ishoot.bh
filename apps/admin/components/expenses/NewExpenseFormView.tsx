@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 
 import { ROUTES } from "../../constants/routes";
@@ -100,7 +101,7 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
 
       router.push(scope === "deal" && res.expense.deal_id ? ROUTES.crm.deal(res.expense.deal_id) : ROUTES.expenses.list({ highlight: res.expense.id }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : nT.saveError);
+      setError(errorMessage(err, t, nT.saveError));
     } finally {
       setSaving(false);
     }

@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import {
   PayrollSettingsFields,
@@ -9,7 +10,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Employee, Department } from "@ishoot/database/types";
-import { Card, Button } from "@ishoot/ui";
+import { Card, Button, formatDate } from "@ishoot/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -39,7 +40,7 @@ export function EmployeeDetailView({
   canEditPay = false,
 }: EmployeeDetailViewProps) {
   const router = useRouter();
-  const { isRTL, t } = useAdminLocale();
+  const { isRTL, t, locale } = useAdminLocale();
 
   const [isEditing, setIsEditing] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
@@ -101,7 +102,7 @@ export function EmployeeDetailView({
         toast.error(t.employeeDetail.failedToUpdateEmployee, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.employeeDetail.updateFailed, {
+      toast.error(errorMessage(err, t, t.employeeDetail.updateFailed), {
         id: toastId,
       });
     } finally {
@@ -419,7 +420,7 @@ export function EmployeeDetailView({
                     {t.employeeDetail.hireDate}
                   </span>
                   <div className="font-mono text-slate-800 dark:text-neutral-200">
-                    {new Date(employee.hireDate).toLocaleDateString()}
+                    {formatDate(employee.hireDate, locale, "long")}
                   </div>
                 </div>
 

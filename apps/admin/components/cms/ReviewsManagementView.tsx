@@ -233,7 +233,7 @@ export function ReviewsManagementView({
                   {rev.quoteAr &&
                     rev.quoteEn &&
                     rev.quoteAr !== rev.quoteEn && (
-                      <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed font-arabic text-right">
+                      <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed font-arabic text-end">
                         &quot;{rev.quoteAr}&quot;
                       </p>
                     )}

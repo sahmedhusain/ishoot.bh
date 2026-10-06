@@ -97,7 +97,7 @@ export function StatsManagementView({ initialStats }: { initialStats: StatisticI
           <p className="text-xs text-slate-500 mt-1">{t.statsView.subtitle}</p>
         </div>
         <Button onClick={handleOpenNew} className="bg-accent text-white">
-          <Plus className="w-4 h-4 mr-2" /> {t.statsView.newStat}
+          <Plus className="w-4 h-4 me-2" /> {t.statsView.newStat}
         </Button>
       </div>
 
@@ -122,7 +122,7 @@ export function StatsManagementView({ initialStats }: { initialStats: StatisticI
             </div>
             <div className="flex gap-2 mt-6 pt-4 border-t dark:border-white/10">
               <Button variant="outline" size="sm" onClick={() => handleOpenEdit(stat)} className="flex-1">
-                <Edit className="w-3.5 h-3.5 mr-1" /> {t.actions.edit}
+                <Edit className="w-3.5 h-3.5 me-1" /> {t.actions.edit}
               </Button>
               <Button aria-label={t.actions.delete} variant="danger" size="sm" onClick={() => setDeleteId(stat.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
             </div>

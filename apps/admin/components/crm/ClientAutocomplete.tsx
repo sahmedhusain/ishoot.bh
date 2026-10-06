@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
@@ -49,7 +50,7 @@ export function ClientAutocomplete({
   className,
   allowCreate = true,
 }: ClientAutocompleteProps) {
-  const { t, isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
   const effectivePlaceholder = placeholder || t.crm.clientSearchPlaceholder;
   const effectiveLabel = label || t.crm.selectClientLabel;
   const effectiveInitial = contactsProp || initialContacts;
@@ -163,9 +164,7 @@ export function ClientAutocomplete({
         setContacts((prev) => [created, ...prev.filter((c) => c.id !== created.id)]);
         handleSelect(created);
         toast.success(
-          isRTL
-            ? `تمت إضافة ${created.company || created.full_name} إلى دليل العملاء واختياره بنجاح`
-            : `Added ${created.company || created.full_name} to customer directory and selected`,
+          t.clientAutocomplete.addedAndSelected.replace("{name}", created.company || created.full_name),
         );
         // Reset form
         setNewFullName("");
@@ -180,7 +179,7 @@ export function ClientAutocomplete({
       }
     } catch (err: unknown) {
       console.error("Error creating customer:", err);
-      setCreateError(err instanceof Error ? err.message : t.clientAutocomplete.errorCreatingCustomer);
+      setCreateError(errorMessage(err, t, t.clientAutocomplete.errorCreatingCustomer));
     } finally {
       setCreatingClient(false);
     }
@@ -432,11 +431,11 @@ export function ClientAutocomplete({
               }}
               onFocus={() => setIsOpen(true)}
               placeholder={effectivePlaceholder}
-              className="pl-9 pr-9"
+              className="ps-9 pe-9"
             />
-            <Search className="w-4 h-4 absolute left-3 top-3.5 text-slate-400 pointer-events-none" />
+            <Search className="w-4 h-4 absolute start-3 top-3.5 text-slate-400 pointer-events-none" />
             {loading && (
-              <Loader2 className="w-4 h-4 absolute right-3 top-3.5 text-accent animate-spin" />
+              <Loader2 className="w-4 h-4 absolute end-3 top-3.5 text-accent animate-spin" />
             )}
           </div>
 

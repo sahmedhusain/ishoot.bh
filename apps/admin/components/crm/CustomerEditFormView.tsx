@@ -18,7 +18,7 @@ interface CustomerEditFormViewProps {
 
 export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { t } = useAdminLocale();
   const vat = useCompanyVat();
 
   const [fullName, setFullName] = React.useState(contact.full_name || "");
@@ -269,7 +269,7 @@ export function CustomerEditFormView({ contact }: CustomerEditFormViewProps) {
         onConfirm={handleConfirmedSave}
         changes={changes}
         isSaving={saving}
-        title={isRTL ? `تأكيد تعديل بيانات العميل: ${contact.full_name}` : `Confirm Edit on Client: ${contact.full_name}`}
+        title={t.customerEdit.confirmEditTitle.replace("{name}", contact.full_name)}
         description={t.customerEditForm.reviewTheUpdatedClientFields}
       />
     </div>

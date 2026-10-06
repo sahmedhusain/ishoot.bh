@@ -40,7 +40,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
   return (
     <header
       data-topbar
-      className="h-14 w-full fixed top-0 left-0 right-0 z-40 bg-white dark:bg-[#1f1f1f] border-b border-ink/15 dark:border-ink/15 px-3 sm:px-4 flex items-center justify-between select-none shadow-[0_1px_2px_0_rgba(60,64,67,0.08)] dark:shadow-none transition-colors duration-150"
+      className="h-14 w-full fixed top-0 start-0 end-0 z-40 bg-white dark:bg-[#1f1f1f] border-b border-ink/15 dark:border-ink/15 px-3 sm:px-4 flex items-center justify-between select-none shadow-[0_1px_2px_0_rgba(60,64,67,0.08)] dark:shadow-none transition-colors duration-150"
     >
       {/* Start: Hamburger Menu + Dynamic Brand Lockup */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">

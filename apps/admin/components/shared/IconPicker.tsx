@@ -67,12 +67,12 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
 
       {isOpen && (
           <div id={menuId} role="dialog" aria-label={t.iconPicker.selectIcon} onKeyDown={e=>{if(e.key==="Escape"){e.stopPropagation();setIsOpen(false);}}}
-            className="absolute z-50 top-full left-0 right-0 mt-2 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] max-w-[90vw]"
+            className="absolute z-50 top-full start-0 end-0 mt-2 bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col w-[320px] max-w-[90vw]"
           >
             {/* Search Header */}
             <div className="p-3 border-b border-slate-100 dark:border-white/10 space-y-2 bg-slate-50/50 dark:bg-black/20">
               <div className="relative flex items-center">
-                <Search className="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none" />
+                <Search className="w-3.5 h-3.5 absolute start-3 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
                   aria-label={t.iconPicker.searchIcons}
@@ -80,7 +80,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   autoFocus
-                  className="w-full pl-8 pr-3 py-1.5 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg text-xs outline-none focus:border-accent text-slate-900 dark:text-white"
+                  className="w-full ps-8 pe-3 py-1.5 bg-white dark:bg-surface border border-slate-200 dark:border-white/10 rounded-lg text-xs outline-none focus:border-accent text-slate-900 dark:text-white"
                 />
               </div>
 

@@ -78,7 +78,7 @@ export function DocumentLetterhead({
       {/* Official Header Banner */}
       <div className="bg-primary text-white p-6 sm:p-8 border-b-4 border-accent flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 relative overflow-hidden">
         {/* Subtle background geometry inspired by camera aperture */}
-        <div className="absolute right-0 top-0 w-96 h-96 bg-white/[0.02] rounded-full pointer-events-none -mr-20 -mt-20 blur-2xl" />
+        <div className="absolute end-0 top-0 w-96 h-96 bg-white/[0.02] rounded-full pointer-events-none -me-20 -mt-20 blur-2xl" />
 
         <div className="relative z-10 space-y-2">
           {/* Brand Logo: Icon + Wordmark beside each other */}
@@ -88,7 +88,7 @@ export function DocumentLetterhead({
                 company.dark_icon_url ||
                 company.icon_url
               }
-              alt="Brand Icon"
+              alt={t.brandIconAlt}
               className="h-10 w-auto object-contain shrink-0"
              width={40} height={40} />
             <ContentImage
@@ -270,7 +270,7 @@ export function DocumentFooter({
             <div className="font-semibold text-gray-900">{companyName}</div>
             {signerName && (
               <div className="text-[11px] font-medium text-slate-700">
-                {isAr ? `الموقع: ${signerName}` : `Signed by: ${signerName}`}
+                {t.signedBy.replace("{name}", signerName)}
               </div>
             )}
             {isAr && company.company_name_en && (
@@ -285,7 +285,7 @@ export function DocumentFooter({
               <div className="relative w-20 h-20 shrink-0 opacity-90 print:opacity-85">
                 <ContentImage
                   src={effectiveStamp}
-                  alt="Official Corporate Seal"
+                  alt={t.sealAlt}
                   className="w-full h-full object-contain select-none"
                  width={40} height={40} />
               </div>
@@ -295,7 +295,7 @@ export function DocumentFooter({
                 {effectiveSignature ? (
                   <ContentImage
                     src={effectiveSignature}
-                    alt="Authorized Signature"
+                    alt={t.signatureAlt}
                     className="max-h-12 w-auto object-contain select-none"
                    width={40} height={40} />
                 ) : (

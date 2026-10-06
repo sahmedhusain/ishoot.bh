@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -96,7 +97,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
       toast.success(p.saved);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : p.saved);
+      toast.error(errorMessage(error, t, p.saved));
     } finally {
       setSaving(false);
     }
@@ -110,7 +111,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
       toast.success(result.runStatus === "paid" ? `${p.paymentSaved} · ${p.runPaid}` : p.paymentSaved);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : p.payNow);
+      toast.error(errorMessage(error, t, p.payNow));
     } finally {
       setPaying(false);
     }

@@ -264,13 +264,13 @@ export function ServicesManagementView({
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-surface-raised p-3 rounded-xl border border-ink/15 dark:border-ink/15 shadow-xs">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={t.servicesView.searchPlaceholder}
-            className="w-full pl-9 pr-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
+            className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
 
@@ -291,7 +291,7 @@ export function ServicesManagementView({
       {/* Services Table */}
       <div className="bg-white dark:bg-surface-raised rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-start border-collapse">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <th className="py-3 px-4">{t.servicesView.thCodeItem}</th>
@@ -299,7 +299,7 @@ export function ServicesManagementView({
                 <th className="py-3 px-4">{t.servicesView.thCategory}</th>
                 <th className="py-3 px-4">{t.servicesView.thRateUnit}</th>
                 <th className="py-3 px-4">{t.servicesView.thStatus}</th>
-                <th className="py-3 px-4 text-right">{t.servicesView.thActions}</th>
+                <th className="py-3 px-4 text-end">{t.servicesView.thActions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
@@ -366,7 +366,7 @@ export function ServicesManagementView({
                           </span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-end">
                         <div className="flex items-center justify-end gap-1.5">
                           {canWrite && <button
                             onClick={() => openEditModal(service)}
@@ -465,7 +465,7 @@ export function ServicesManagementView({
                     value={formNameAr}
                     onChange={(e) => setFormNameAr(e.target.value)}
                     required
-                    className="text-xs text-right font-arabic"
+                    className="text-xs text-end font-arabic"
                   />
                 </div>
               </div>
@@ -526,7 +526,7 @@ export function ServicesManagementView({
                   placeholder={t.servicesView.descArPlaceholder}
                   value={formDescAr}
                   onChange={(e) => setFormDescAr(e.target.value)}
-                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white text-right font-arabic focus:outline-none focus:ring-1 focus:ring-accent"
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white text-end font-arabic focus:outline-none focus:ring-1 focus:ring-accent"
                 />
               </div>
 

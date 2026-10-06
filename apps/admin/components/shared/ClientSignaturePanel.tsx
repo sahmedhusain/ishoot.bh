@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -67,7 +68,7 @@ export function ClientSignaturePanel({
     try {
       await work();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : s.errors.failed);
+      toast.error(errorMessage(error, t, s.errors.failed));
     } finally {
       setBusy(false);
     }

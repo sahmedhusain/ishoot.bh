@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
@@ -75,7 +76,7 @@ export function ApprovalsCenterView({
       setReason("");
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : a.toast.error);
+      toast.error(errorMessage(error, t, a.toast.error));
     } finally {
       setLoadingId(null);
     }
@@ -83,7 +84,7 @@ export function ApprovalsCenterView({
 
   const typeLabel = (type: string) => a.types[type as keyof typeof a.types] ?? type;
   const formatDate = (value: Date | string) =>
-    new Date(value).toLocaleString(locale === "ar" ? "ar-BH" : "en-GB", { dateStyle: "medium", timeStyle: "short" });
+    new Date(value).toLocaleString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB", { dateStyle: "medium", timeStyle: "short" });
 
   const tabs: Array<{ id: ApprovalScope; label: string; count?: number }> = [
     { id: "awaiting", label: a.tabs.awaiting, count: counts.awaiting },

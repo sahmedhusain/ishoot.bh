@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -28,7 +29,7 @@ export function EmployeeAttachments({
       router.refresh();
       toast.success(h.saved);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : h.failed);
+      toast.error(errorMessage(e, t, h.failed));
     } finally {
       setBusy(false);
     }

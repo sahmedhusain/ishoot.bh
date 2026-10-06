@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { ContentImage } from "../shared/ContentImage";
 import Link from "next/link";
@@ -160,7 +161,7 @@ export function PortfolioManagementView({
       setPreviewVideoUrl("");
       setIsFeatured(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.portfolioManagement.couldNotSaveProject);
+      setError(errorMessage(err, t, t.portfolioManagement.couldNotSaveProject));
     } finally {
       setSaving(false);
     }

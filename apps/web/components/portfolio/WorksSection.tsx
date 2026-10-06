@@ -84,7 +84,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
             {
               id: "all",
               nameEn: t("portfolio.filterAll"),
-              nameAr: t("portfolio.filterAll") || "كل الأعمال",
+              nameAr: t("portfolio.filterAll"),
             },
             ...categories.map((c) => ({
               id: c.id,

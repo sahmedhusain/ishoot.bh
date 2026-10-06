@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import {ContentImage} from "../shared/ContentImage";
 import Link from "next/link";
@@ -138,7 +139,7 @@ export function BannersManagementView({
       setMediaUrl("");
       setPosterUrl("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.bannersManagement.couldNotSaveBanner);
+      setError(errorMessage(err, t, t.bannersManagement.couldNotSaveBanner));
     } finally {
       setSaving(false);
     }
@@ -196,7 +197,7 @@ export function BannersManagementView({
                     alt={locale === "ar" ? banner.title_ar : banner.title_en}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/70 text-[9px]  text-white flex items-center gap-1">
+                  <div className="absolute top-1 start-1 px-1.5 py-0.5 rounded bg-black/70 text-[9px]  text-white flex items-center gap-1">
                     {banner.media_type === "video" ? (
                       <Film className="w-2.5 h-2.5" />
                     ) : (

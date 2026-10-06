@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
@@ -108,7 +109,7 @@ export function RequestDetailView({
       toast.success(t.requestWorkflow.approved, { id: toastId });
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t.requestWorkflow.failed, { id: toastId });
+      toast.error(errorMessage(e, t, t.requestWorkflow.failed), { id: toastId });
     }
   };
 
@@ -119,7 +120,7 @@ export function RequestDetailView({
       toast.success(t.requestWorkflow.submitted, { id: toastId });
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t.requestWorkflow.failed, { id: toastId });
+      toast.error(errorMessage(e, t, t.requestWorkflow.failed), { id: toastId });
     }
   };
 
@@ -141,7 +142,7 @@ export function RequestDetailView({
         toast.error(res.error || t.requestDetail.confirmationFailed, { id: toastId });
       }
     } catch (e: any) {
-      toast.error(e.message || t.requestDetail.anErrorOccurred, { id: toastId });
+      toast.error(errorMessage(e, t, t.requestDetail.anErrorOccurred), { id: toastId });
     }
   };
 
@@ -217,7 +218,7 @@ export function RequestDetailView({
         }
       }
     } catch (err: any) {
-      toast.error(err.message || t.requestDetail.actionFailed, { id: toastId });
+      toast.error(errorMessage(err, t, t.requestDetail.actionFailed), { id: toastId });
     } finally {
       setIsActionSubmitting(false);
     }
@@ -249,7 +250,7 @@ export function RequestDetailView({
         toast.error(res.error || t.requestDetail.failedToAddComment, { id: toastId });
       }
     } catch (e: any) {
-      toast.error(e.message || t.requestDetail.failedToAddComment, { id: toastId });
+      toast.error(errorMessage(e, t, t.requestDetail.failedToAddComment), { id: toastId });
     } finally {
       setIsPostingComment(false);
     }
@@ -294,7 +295,7 @@ export function RequestDetailView({
                 <Calendar className="w-3.5 h-3.5" />
                 <span>
                   {new Date(request.createdAt).toLocaleDateString(
-                    isRTL ? "ar-BH" : "en-US",
+                    isRTL ? "ar-BH-u-nu-latn" : "en-US",
                     { dateStyle: "long" },
                   )}
                 </span>
@@ -308,7 +309,7 @@ export function RequestDetailView({
                   <Clock className="w-3.5 h-3.5" />
                   <span>
                     {t.requestDetail.slaDeadline}
-                    {slaDateObj.toLocaleDateString(isRTL ? "ar-BH" : "en-US", {
+                    {slaDateObj.toLocaleDateString(isRTL ? "ar-BH-u-nu-latn" : "en-US", {
                       dateStyle: "medium",
                     })}
                   </span>
@@ -752,7 +753,7 @@ export function RequestDetailView({
                         </span>
                         <span className="text-[10px] text-slate-400 block">
                           {new Date(comment.createdAt).toLocaleString(
-                            isRTL ? "ar-BH" : "en-US",
+                            isRTL ? "ar-BH-u-nu-latn" : "en-US",
                           )}
                         </span>
                       </div>
@@ -807,14 +808,14 @@ export function RequestDetailView({
                   <span className="w-2.5 h-2.5 rounded-full bg-accent absolute -left-[21px] rtl:-right-[21px] top-1" />
                   <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-white">
                     <span className="capitalize font-mono text-[11px] px-2 py-0.5 rounded bg-slate-100 dark:bg-white/10">
-                      {ev.eventType}
+                      {(t.statusLabels as Record<string, string>)[ev.eventType] ?? ev.eventType.replace(/_/g, " ")}
                     </span>
                     <span className="text-slate-400 font-normal">
-                      by {ev.actor?.fullName || "System"}
+                      {t.shared.byName.replace("{name}", ev.actor?.fullName || t.shared.system)}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono ml-auto rtl:mr-auto">
                       {new Date(ev.createdAt).toLocaleString(
-                        isRTL ? "ar-BH" : "en-US",
+                        isRTL ? "ar-BH-u-nu-latn" : "en-US",
                       )}
                     </span>
                   </div>

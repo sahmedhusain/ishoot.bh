@@ -333,7 +333,7 @@ export function WebSettingsView({
                         company_name_ar: e.target.value,
                       })
                     }
-                    className="text-right font-arabic"
+                    className="text-end font-arabic"
                   />
                 </div>
               </div>
@@ -378,7 +378,7 @@ export function WebSettingsView({
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
-                {(["about_text_en","about_text_ar"] as const).map(key=><label key={key} className="text-sm">{key === "about_text_ar" ? "نبذة الاستوديو" : t.webSettings.studioStory}<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar")?"rtl":"ltr"} value={settings[key]||""} onChange={e=>setSettings({...settings,[key]:e.target.value})}/></label>)}
+                {(["about_text_en","about_text_ar"] as const).map(key=><label key={key} className="text-sm">{t.webSettings.studioStory} ({key === "about_text_ar" ? t.websiteEditor.inArabic : t.websiteEditor.inEnglish})<textarea rows={5} maxLength={20000} className="w-full border rounded p-3 bg-transparent" dir={key.endsWith("ar")?"rtl":"ltr"} value={settings[key]||""} onChange={e=>setSettings({...settings,[key]:e.target.value})}/></label>)}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
@@ -404,7 +404,7 @@ export function WebSettingsView({
                     onChange={(e) =>
                       setSettings({ ...settings, ceo_name_ar: e.target.value })
                     }
-                    className="text-right font-arabic"
+                    className="text-end font-arabic"
                   />
                 </div>
 
@@ -431,7 +431,7 @@ export function WebSettingsView({
                     onChange={(e) =>
                       setSettings({ ...settings, ceo_title_ar: e.target.value })
                     }
-                    className="text-right font-arabic"
+                    className="text-end font-arabic"
                   />
                 </div>
 
@@ -460,7 +460,7 @@ export function WebSettingsView({
                     onChange={(e) =>
                       setSettings({ ...settings, ceo_quote_ar: e.target.value })
                     }
-                    className="text-right font-arabic"
+                    className="text-end font-arabic"
                   />
                 </div>
               </div>
@@ -497,7 +497,7 @@ export function WebSettingsView({
                         setSettings({ ...settings, mission_ar: e.target.value })
                       }
                       placeholder={t.webSettingsView.missionArPlaceholder}
-                      className="text-right font-arabic"
+                      className="text-end font-arabic"
                     />
                   </div>
 
@@ -526,7 +526,7 @@ export function WebSettingsView({
                         setSettings({ ...settings, vision_ar: e.target.value })
                       }
                       placeholder={t.webSettingsView.visionArPlaceholder}
-                      className="text-right font-arabic"
+                      className="text-end font-arabic"
                     />
                   </div>
                 </div>
@@ -577,7 +577,7 @@ export function WebSettingsView({
                     onChange={(e) =>
                       setSettings({ ...settings, terms_ar: e.target.value })
                     }
-                    className="text-right font-arabic"
+                    className="text-end font-arabic"
                   />
                 </div>
 
@@ -604,7 +604,7 @@ export function WebSettingsView({
                     onChange={(e) =>
                       setSettings({ ...settings, rules_ar: e.target.value })
                     }
-                    className="text-right font-arabic"
+                    className="text-end font-arabic"
                   />
                 </div>
               </div>
@@ -683,7 +683,7 @@ export function WebSettingsView({
                     <thead className="bg-slate-50 dark:bg-white/5 text-xs text-slate-500">
                       <tr>
                         <th className="px-4 py-3 font-semibold">{t.webSettings.platform}</th>
-                        <th className="px-4 py-3 font-semibold">URL</th>
+                        <th className="px-4 py-3 font-semibold">{t.shared.url}</th>
                         <th className="px-4 py-3 font-semibold text-end">
                           {t.webSettings.actions}
                         </th>
@@ -828,7 +828,7 @@ export function WebSettingsView({
                     onChange={(e) =>
                       setSettings({ ...settings, address_ar: e.target.value })
                     }
-                    className="text-right font-arabic"
+                    className="text-end font-arabic"
                   />
                 </div>
               </div>

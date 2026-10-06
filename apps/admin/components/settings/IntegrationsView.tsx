@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { toast } from "sonner";
 import { ExternalLink, Mail, PlugZap, RefreshCw, Send, Unlink } from "lucide-react";
@@ -65,7 +66,7 @@ function IntegrationCard({ provider, view }: { provider: IntegrationProvider; vi
     try {
       return await fn();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : c.testFailed);
+      toast.error(errorMessage(error, t, c.testFailed));
       return undefined;
     } finally {
       setBusy(null);
@@ -84,14 +85,14 @@ function IntegrationCard({ provider, view }: { provider: IntegrationProvider; vi
     run("test", async () => {
       const result = await testIntegrationAction(provider.id);
       if (result.ok) toast.success(result.accountName ? `${c.testOk} · ${result.accountName}` : c.testOk);
-      else toast.error(`${c.testFailed}: ${result.error}`);
+      else { const detail = errorMessage(result.error, t, ""); toast.error(detail ? `${c.testFailed}: ${detail}` : c.testFailed); }
     });
 
   const sync = () =>
     run("sync", async () => {
       const result = await syncIntegrationAction(provider.id);
       if (result.ok) toast.success(c.syncOk.replace("{posts}", String(result.posts)));
-      else toast.error(`${c.syncFailed}: ${result.error}`);
+      else { const detail = errorMessage(result.error, t, ""); toast.error(detail ? `${c.syncFailed}: ${detail}` : c.syncFailed); }
     });
 
   const sendTest = () =>

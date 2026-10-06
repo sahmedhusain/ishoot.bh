@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,7 +49,7 @@ export function ClaimsView({ view, status, data, canProcess, currentUserId, cate
       toast.success(done);
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : c.actionFailed);
+      toast.error(errorMessage(err, t, c.actionFailed));
     } finally {
       setBusy(null);
     }

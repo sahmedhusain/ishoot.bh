@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import type { ExpenseCategory } from "@ishoot/database/types";
@@ -28,7 +29,7 @@ export function ExpenseCategoriesView({ initialCategories, canDelete }: { initia
     try {
       await fn();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : cT.saveFailed);
+      toast.error(errorMessage(err, t, cT.saveFailed));
     } finally {
       setBusy(null);
     }

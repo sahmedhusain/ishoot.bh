@@ -60,7 +60,7 @@ export function Navbar({ company, pages }: NavbarProps) {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-[80] py-4 border-b transition-colors duration-150 ${
+        className={`fixed top-0 start-0 end-0 z-[80] py-4 border-b transition-colors duration-150 ${
           isScrolled
             ? "bg-[var(--ishoot-bg-base)] border-white/10"
             : "bg-gradient-to-b from-[#050807]/90 to-transparent border-transparent"

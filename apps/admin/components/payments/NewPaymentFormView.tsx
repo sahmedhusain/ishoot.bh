@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 import { EntityLookup } from "../shared/EntityLookup";
@@ -107,7 +108,7 @@ export function NewPaymentFormView({
       else setGeneralProofFile(fileData);
     } catch (err: any) {
       console.error("Upload error:", err);
-      alert(err.message || t.newPaymentForm.failedToUploadDocument);
+      alert(errorMessage(err, t, t.newPaymentForm.failedToUploadDocument));
     } finally {
       if (type === "cheque") setUploadingCheque(false);
       else if (type === "bank_receipt") setUploadingBankReceipt(false);
@@ -178,7 +179,7 @@ export function NewPaymentFormView({
       router.push(ROUTES.payments.list);
     } catch (err: any) {
       console.error("Failed to record payment:", err);
-      setFormError(err.message || t.newPaymentForm.failedToRecordPayment);
+      setFormError(errorMessage(err, t, t.newPaymentForm.failedToRecordPayment));
     } finally {
       setSaving(false);
     }

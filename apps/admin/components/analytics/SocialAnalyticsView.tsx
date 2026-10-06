@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -199,7 +200,7 @@ function PlanForm({
       onClose();
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : p.save);
+      toast.error(errorMessage(error, t, p.save));
     } finally {
       setSaving(false);
     }
@@ -365,7 +366,7 @@ function Planner({ plans, team, canEdit, canDelete }: { plans: SocialPlanView[];
             toast.success(p.deleted);
             router.refresh();
           } catch (error) {
-            toast.error(error instanceof Error ? error.message : p.delete);
+            toast.error(errorMessage(error, t, p.delete));
           }
           setDeleting(null);
         }}
@@ -416,11 +417,11 @@ export function SocialAnalyticsView({
     try {
       const { results } = await refreshSocialAnalyticsAction();
       const failed = results.filter((r) => !r.ok);
-      if (failed.length) toast.error(`${s.refreshPartial}: ${failed.map((f) => `${t.integrations.providers[f.provider as keyof typeof t.integrations.providers]?.name ?? f.provider} — ${f.error}`).join("; ")}`);
+      if (failed.length) toast.error(`${s.refreshPartial}: ${failed.map((f) => `${t.integrations.providers[f.provider as keyof typeof t.integrations.providers]?.name ?? f.provider}${errorMessage(f.error, t, "") ? ` — ${errorMessage(f.error, t, "")}` : ""}`).join("; ")}`);
       else toast.success(s.refreshed);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : s.refreshPartial);
+      toast.error(errorMessage(error, t, s.refreshPartial));
     } finally {
       setRefreshing(false);
     }

@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -94,7 +95,7 @@ export function AccountSettingsDialog({
       onClose();
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : a.saved);
+      toast.error(errorMessage(error, t, a.saved));
     } finally {
       setSaving(false);
     }

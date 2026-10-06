@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import {
   PayrollSettingsFields,
@@ -104,7 +105,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
         toast.error(t.newEmployeeForm.failedToOnboardEmployee, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.newEmployeeForm.errorOnboardingEmployee, {
+      toast.error(errorMessage(err, t, t.newEmployeeForm.errorOnboardingEmployee), {
         id: toastId,
       });
     } finally {

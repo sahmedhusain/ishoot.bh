@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -72,7 +73,7 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
       toast.success(h.saved);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : h.save);
+      toast.error(errorMessage(error, t, h.save));
     } finally {
       setSaving(false);
     }
@@ -233,7 +234,7 @@ function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () =
       onClose();
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : h.saveType);
+      toast.error(errorMessage(error, t, h.saveType));
     } finally {
       setSaving(false);
     }
@@ -357,7 +358,7 @@ function Holidays({ holidays, year, editable }: { holidays: Holiday[]; year: num
       setForm({ date: "", nameEn: "", nameAr: "" });
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : h.addHoliday);
+      toast.error(errorMessage(error, t, h.addHoliday));
     }
   };
   return (
@@ -398,7 +399,7 @@ function Holidays({ holidays, year, editable }: { holidays: Holiday[]; year: num
             toast.success(h.holidayDeleted);
             router.refresh();
           } catch (error) {
-            toast.error(error instanceof Error ? error.message : h.delete);
+            toast.error(errorMessage(error, t, h.delete));
           }
           setDeleting(null);
         }}
@@ -426,7 +427,7 @@ function Shifts({ shiftTypes, editable }: { shiftTypes: ShiftTypeView[]; editabl
       setEditing(null);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : h.addShift);
+      toast.error(errorMessage(error, t, h.addShift));
     }
   };
   return (

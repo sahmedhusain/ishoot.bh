@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
@@ -53,7 +54,7 @@ export function NewUserFormView({
 
       router.push(ROUTES.users.list);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.hrExtensions.failed);
+      setError(errorMessage(err, t, t.hrExtensions.failed));
     } finally {
       setSaving(false);
     }

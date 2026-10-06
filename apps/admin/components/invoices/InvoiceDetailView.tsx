@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
@@ -42,7 +43,7 @@ export function InvoiceDetailView({
       toast.success(t.invoiceLifecycle.marked);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t.invoiceLifecycle.failed);
+      toast.error(errorMessage(error, t, t.invoiceLifecycle.failed));
     } finally {
       setBusy(false);
     }

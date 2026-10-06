@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import type { AuthBrandingProps } from "../../types/auth";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import * as React from "react";
@@ -31,7 +32,7 @@ export function ForgotPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandi
       if (!res.ok) throw new Error(data.error);
       setMessage(data.message || t.forgotPasswordForm.resetLinkSent);
     } catch(err: any) {
-      setError(err.message || t.forgotPasswordForm.failedToSendResetLink);
+      setError(errorMessage(err, t, t.forgotPasswordForm.failedToSendResetLink));
     } finally {
       setLoading(false);
     }
@@ -59,8 +60,8 @@ export function ForgotPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandi
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">{t.forgotPasswordForm.emailAddress}</label>
               <div className="relative">
-                <Mail className="w-4 h-4 absolute top-3.5 left-3.5 text-[#9EADA9]" />
-                <Input type="email" required placeholder="admin@ishoot.bh" className="pl-10" value={email} onChange={e => setEmail(e.target.value)} />
+                <Mail className="w-4 h-4 absolute top-3.5 start-3.5 text-[#9EADA9]" />
+                <Input type="email" required placeholder="admin@ishoot.bh" className="ps-10" value={email} onChange={e => setEmail(e.target.value)} />
               </div>
             </div>
             <Button type="submit" disabled={loading} variant="primary" size="lg" className="w-full gap-2 mt-4">

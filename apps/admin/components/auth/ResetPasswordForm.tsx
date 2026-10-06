@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import type { AuthBrandingProps } from "../../types/auth";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import * as React from "react";
@@ -47,7 +48,7 @@ export function ResetPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandin
       setMessage(t.resetPasswordForm.passwordSuccessfullyResetYouCan);
       setTimeout(() => router.push("/login"), 3000);
     } catch(err: any) {
-      setError(err.message || t.resetPasswordForm.failedToResetPassword);
+      setError(errorMessage(err, t, t.resetPasswordForm.failedToResetPassword));
     } finally {
       setLoading(false);
     }
@@ -75,8 +76,8 @@ export function ResetPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandin
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-[#9EADA9]">{t.resetPasswordForm.newPassword}</label>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute top-3.5 left-3.5 text-[#9EADA9]" />
-                <Input type="password" required placeholder={t.resetPasswordForm.min8Characters} minLength={8} className="pl-10" value={password} onChange={e => setPassword(e.target.value)} />
+                <Lock className="w-4 h-4 absolute top-3.5 start-3.5 text-[#9EADA9]" />
+                <Input type="password" required placeholder={t.resetPasswordForm.min8Characters} minLength={8} className="ps-10" value={password} onChange={e => setPassword(e.target.value)} />
               </div>
             </div>
             <Button type="submit" disabled={loading} variant="primary" size="lg" className="w-full gap-2 mt-4">

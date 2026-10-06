@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -61,7 +62,7 @@ export function SalaryDocumentsView({
       toast.success(h.saved);
       router.refresh();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : h.failed);
+      toast.error(errorMessage(e, t, h.failed));
     } finally {
       setBusy(false);
     }
@@ -95,7 +96,7 @@ export function SalaryDocumentsView({
     return groups;
   }, {});
   const monthName = (month: string) =>
-    new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-GB", { month: "short", timeZone: "UTC" }).format(new Date(`${month}-01T00:00:00Z`));
+    new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB", { month: "short", timeZone: "UTC" }).format(new Date(`${month}-01T00:00:00Z`));
   const action = "inline-flex items-center gap-1.5 h-9 rounded-full border border-ink/15 px-3.5 text-xs font-semibold text-ink hover:bg-ink/5 disabled:opacity-50 transition-colors";
   const requestDisabled = busy || (kind === "payslip" && months.length === 0);
 
@@ -232,7 +233,7 @@ export function SalaryDocumentsView({
                     </div>
                     <div className="text-xs text-ink-muted mt-0.5">
                       {item.months.length > 0 && <span dir="ltr">{item.months.join(", ")} · </span>}
-                      {new Date(item.createdAt).toLocaleDateString(locale === "ar" ? "ar-BH" : "en-GB")}
+                      {new Date(item.createdAt).toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}
                     </div>
                   </div>
                 </div>

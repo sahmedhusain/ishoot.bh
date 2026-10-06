@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { toast } from "sonner";
 import { AlarmClock, BellRing, ChevronDown, Filter, Plus, Trash2 } from "lucide-react";
@@ -205,7 +206,7 @@ function PolicyCard({ policy, users }: { policy: ApprovalPolicyView; users: User
       });
       toast.success(p.saved);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : p.saveError);
+      toast.error(errorMessage(error, t, p.saveError));
     } finally {
       setSaving(false);
     }

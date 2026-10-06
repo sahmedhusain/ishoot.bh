@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -77,10 +78,10 @@ export function MomDetailView({
   const isAr = Boolean(mom.title_ar && (!mom.title || isRTL));
 
   const clientName =
-    mom.client_name || (isAr ? "غير محدد" : "General Internal Meeting");
+    mom.client_name || (t.momDetail.generalInternalMeeting);
 
   const formattedDate = new Date(mom.meeting_date).toLocaleDateString(
-    isAr ? "ar-BH" : "en-US",
+    isAr ? "ar-BH-u-nu-latn" : "en-US",
     {
       weekday: "long",
       year: "numeric",
@@ -112,30 +113,30 @@ export function MomDetailView({
 
   const handleShareWhatsApp = () => {
     const textLines = [
-      `*${isAr ? "محضر اجتماع" : "Minutes of Meeting"} — ${mom.mom_number}*`,
-      `*${isAr ? "الموضوع:" : "Title:"}* ${mom.title}`,
-      `*${isAr ? "التاريخ:" : "Date:"}* ${formattedDate}`,
+      `*${t.momDetail.minutesOfMeeting} — ${mom.mom_number}*`,
+      `*${t.momDetail.title}* ${mom.title}`,
+      `*${t.momDetail.date}* ${formattedDate}`,
       timeLocationString
-        ? `*${isAr ? "الوقت / المكان:" : "Time / Location:"}* ${timeLocationString}`
+        ? `*${t.momDetail.timeLocation}* ${timeLocationString}`
         : "",
       mom.deal_title
-        ? `*${isAr ? "المشروع / الصفقة:" : "Project / Deal:"}* ${mom.deal_title}`
+        ? `*${t.momDetail.projectDeal}* ${mom.deal_title}`
         : "",
       "",
-      `*${isAr ? "أهم القرارات:" : "Key Decisions:"}*`,
+      `*${t.momDetail.keyDecisions}*`,
       ...(mom.decisions && mom.decisions.length > 0
         ? mom.decisions.map((d: string, i: number) => `${i + 1}. ${d}`)
-        : [isAr ? "- لا توجد قرارات مدونة" : "- None recorded"]),
+        : [t.momDetail.noneRecorded]),
       "",
-      `*${isAr ? "مهام المتابعة:" : "Action Items:"}*`,
+      `*${t.momDetail.actionItems}*`,
       ...(mom.action_items && mom.action_items.length > 0
         ? mom.action_items.map(
             (item: MomActionItem, i: number) =>
-              `${i + 1}. [${item.status.toUpperCase()}] ${item.task} — ${item.assignee || "Unassigned"}${
+              `${i + 1}. [${(t.statusLabels as Record<string, string>)[item.status] ?? item.status}] ${item.task} — ${item.assignee || t.shared.unassigned}${
                 item.dueDate ? ` (Due: ${item.dueDate})` : ""
               }`,
           )
-        : [isAr ? "- لا توجد مهام معلقة" : "- None"]),
+        : [t.momDetail.none]),
       "",
       `_iShoot Official Document Reference: ${mom.mom_number}_`,
     ]
@@ -156,21 +157,19 @@ export function MomDetailView({
       if (res.success) {
         setFeedbackMessage({
           type: "success",
-          text: isAr
-            ? "تم اعتماد وتوقيع محضر الاجتماع بنجاح!"
-            : "MOM approved and signed successfully!",
+          text: t.momDetail.momApprovedAndSignedSuccessfully,
         });
         router.refresh();
       } else {
         setFeedbackMessage({
           type: "error",
-          text: "Failed to approve MOM",
+          text: t.momDetail.approveFailed,
         });
       }
     } catch {
       setFeedbackMessage({
         type: "error",
-        text: "An unexpected error occurred while approving.",
+        text: t.momDetail.approveError,
       });
     } finally {
       setIsApproving(false);
@@ -193,13 +192,13 @@ export function MomDetailView({
       } else {
         setFeedbackMessage({
           type: "error",
-          text: res.message || "Failed to send email",
+          text: errorMessage(res.message, t, t.momDetail.emailFailed),
         });
       }
     } catch {
       setFeedbackMessage({
         type: "error",
-        text: "Error sending email.",
+        text: t.momDetail.emailFailed,
       });
     } finally {
       setIsSendingEmail(false);
@@ -219,9 +218,7 @@ export function MomDetailView({
           >
             <BackIcon className="w-4 h-4" />
             <span>
-              {isAr
-                ? "العودة إلى محاضر الاجتماعات"
-                : "Back to Minutes of Meetings"}
+              {t.momDetail.backToMinutesOfMeetings}
             </span>
           </Link>
           <div className="flex flex-wrap items-center gap-3">
@@ -233,7 +230,7 @@ export function MomDetailView({
               <Link
                 href={ROUTES.crm.customer(mom.client_id)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-primary dark:bg-[#152B27] dark:text-mint border border-accent/30 hover:underline transition-colors"
-                title="View Client 360"
+                title={t.momDetail.viewClient360}
               >
                 <span>{clientName}</span>
                 <span className="text-[10px] opacity-70">↗</span>
@@ -286,7 +283,7 @@ export function MomDetailView({
             className="gap-1.5 border-blue-500/30 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30"
           >
             <Mail className="w-4 h-4" />
-            <span>{isAr ? "إرسال بالبريد" : "Share Email"}</span>
+            <span>{t.momDetail.shareEmail}</span>
           </Button>
 
           {canSign && (
@@ -300,12 +297,8 @@ export function MomDetailView({
               <CheckCircle2 className="w-4 h-4" />
               <span>
                 {isApproving
-                  ? isAr
-                    ? "جارٍ الاعتماد..."
-                    : "Signing..."
-                  : isAr
-                    ? "اعتماد وتوقيع"
-                    : "Approve & Sign"}
+                  ? t.momDetail.signing
+                  : t.momDetail.approveSign}
               </span>
             </Button>
           )}
@@ -343,24 +336,24 @@ export function MomDetailView({
           <DocumentLetterhead
             documentType="mom"
             documentNumber={mom.mom_number}
-            titleEn="MINUTES OF MEETING"
-            titleAr="محضر اجتماع رسمي"
+            titleEn={t.momDetail.docTitle}
+            titleAr={t.momDetail.docTitle}
             company={company}
             language={isAr ? "ar" : "en"}
-            issueDateLabel={isAr ? "تاريخ الاجتماع" : "Meeting Date"}
+            issueDateLabel={t.momDetail.meetingDate}
             issueDate={formattedDate}
-            secondaryDateLabel={isAr ? "التوقيت والمقر" : "Time & Venue"}
+            secondaryDateLabel={t.momDetail.timeVenue}
             secondaryDate={timeLocationString || undefined}
-            statusLabel={isAr ? "حالة المحضر" : "Document Status"}
+            statusLabel={t.momDetail.documentStatus}
             statusValue={mom.status.toUpperCase()}
             clientSectionTitle={
-              isAr ? "الطرف المعني / العميل" : "Meeting Context & Entity"
+              t.momDetail.meetingContextEntity
             }
             client={{
               id: mom.client_id,
               name:
                 mom.client_name ||
-                (isAr ? "اجتماع داخلي / استراتيجي" : "Internal Session"),
+                (t.momDetail.internalSession),
             }}
           />
 
@@ -369,9 +362,7 @@ export function MomDetailView({
             {/* Title & Subject Block */}
             <div className="border-b-2 border-slate-900 pb-5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-accent block mb-1">
-                {isAr
-                  ? "موضوع وجدول الاجتماع الرئيسي"
-                  : "Session Subject & Focus"}
+                {t.momDetail.sessionSubjectFocus}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-slate-950">
                 {mom.title}
@@ -388,7 +379,7 @@ export function MomDetailView({
               <div className="space-y-1">
                 <span className="text-slate-500 font-bold uppercase text-[10px] flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-accent" />
-                  <span>{isAr ? "التاريخ" : "Date"}</span>
+                  <span>{t.momDetail.date2}</span>
                 </span>
                 <p className="font-semibold text-slate-800">
                   {new Date(mom.meeting_date).toISOString().split("T")[0]}
@@ -398,7 +389,7 @@ export function MomDetailView({
               <div className="space-y-1">
                 <span className="text-slate-500 font-bold uppercase text-[10px] flex items-center gap-1">
                   <Clock className="w-3 h-3 text-accent" />
-                  <span>{isAr ? "الوقت" : "Timing"}</span>
+                  <span>{t.momDetail.timing}</span>
                 </span>
                 <p className="font-semibold text-slate-800">
                   {mom.start_time || "—"}{" "}
@@ -409,24 +400,24 @@ export function MomDetailView({
               <div className="space-y-1">
                 <span className="text-slate-500 font-bold uppercase text-[10px] flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-accent" />
-                  <span>{isAr ? "الموقع" : "Location"}</span>
+                  <span>{t.momDetail.location}</span>
                 </span>
                 <p
                   className="font-semibold text-slate-800 truncate"
                   title={mom.location || ""}
                 >
                   {mom.location ||
-                    (isAr ? "مكتب آي شوت / عن بعد" : "iShoot HQ / Remote")}
+                    (t.momDetail.ishootHqRemote)}
                 </p>
               </div>
 
               <div className="space-y-1">
                 <span className="text-slate-500 font-bold uppercase text-[10px] flex items-center gap-1">
                   <FileText className="w-3 h-3 text-accent" />
-                  <span>{isAr ? "المعد" : "Recorded By"}</span>
+                  <span>{t.momDetail.recordedBy}</span>
                 </span>
                 <p className="font-semibold text-slate-800 truncate">
-                  {mom.created_by_name || "Admin"}
+                  {mom.created_by_name || t.shared.system}
                 </p>
               </div>
             </div>
@@ -437,9 +428,7 @@ export function MomDetailView({
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-2">
                   <Users className="w-4 h-4 text-accent" />
                   <span>
-                    {isAr
-                      ? "سجل الحضور والمشاركين"
-                      : "Attendees & Stakeholders"}
+                    {t.momDetail.attendeesStakeholders}
                   </span>
                 </h3>
                 <div className="overflow-x-auto">
@@ -448,13 +437,13 @@ export function MomDetailView({
                       <tr className="bg-slate-100 text-slate-800 uppercase tracking-wider text-[10px]">
                         <th className="py-2.5 px-3 text-start font-bold">#</th>
                         <th className="py-2.5 px-3 text-start font-bold">
-                          {isAr ? "الاسم" : "Name"}
+                          {t.momDetail.name}
                         </th>
                         <th className="py-2.5 px-3 text-start font-bold">
-                          {isAr ? "المسمى / الجهة" : "Role / Entity"}
+                          {t.momDetail.roleEntity}
                         </th>
                         <th className="py-2.5 px-3 text-center font-bold">
-                          {isAr ? "حالة الحضور" : "Attendance"}
+                          {t.momDetail.attendance}
                         </th>
                       </tr>
                     </thead>
@@ -496,7 +485,7 @@ export function MomDetailView({
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-1.5">
                     <ListTodo className="w-3.5 h-3.5 text-accent" />
-                    <span>{isAr ? "جدول الأعمال" : "Meeting Agenda"}</span>
+                    <span>{t.momDetail.meetingAgenda}</span>
                   </h3>
                   <div className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 whitespace-pre-line">
                     {mom.agenda}
@@ -510,7 +499,7 @@ export function MomDetailView({
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-1.5">
                     <FileText className="w-3.5 h-3.5 text-accent" />
                     <span>
-                      {isAr ? "ملاحظات تنظيمية" : "Administrative Notes"}
+                      {t.momDetail.administrativeNotes}
                     </span>
                   </h3>
                   <div className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 whitespace-pre-line">
@@ -524,9 +513,7 @@ export function MomDetailView({
             {mom.discussion_points && mom.discussion_points.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1.5">
-                  {isAr
-                    ? "أبرز محاور النقاش والمداولات"
-                    : "Key Discussion Points & Minutes"}
+                  {t.momDetail.keyDiscussionPointsMinutes}
                 </h3>
                 <div className="space-y-2.5">
                   {mom.discussion_points.map(
@@ -546,7 +533,7 @@ export function MomDetailView({
                             </span>
                           )}
                         </div>
-                        <p className="pl-7 text-slate-700 whitespace-pre-line">
+                        <p className="ps-7 text-slate-700 whitespace-pre-line">
                           {point.notes}
                         </p>
                       </div>
@@ -562,9 +549,7 @@ export function MomDetailView({
                 <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accent" />
                   <span>
-                    {isAr
-                      ? "القرارات المعتمدة في الجلسة"
-                      : "Agreed Decisions & Commitments"}
+                    {t.momDetail.agreedDecisionsCommitments}
                   </span>
                 </h3>
                 <ul className="space-y-2 text-xs text-slate-900 font-medium">
@@ -583,12 +568,10 @@ export function MomDetailView({
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1.5 flex items-center justify-between">
                   <span>
-                    {isAr
-                      ? "مصفوفة خطة العمل والمهام المسندة"
-                      : "Action Items & Accountabilities"}
+                    {t.momDetail.actionItemsAccountabilities}
                   </span>
                   <span className="text-[10px] text-slate-500 font-mono">
-                    {mom.action_items.length} {isAr ? "مهمة" : "Items"}
+                    {mom.action_items.length} {t.momDetail.items}
                   </span>
                 </h3>
                 <div className="overflow-x-auto">
@@ -599,16 +582,16 @@ export function MomDetailView({
                           #
                         </th>
                         <th className="py-2.5 px-3 text-start font-bold">
-                          {isAr ? "المهمة والتسليم المطلوب" : "Action Item"}
+                          {t.momDetail.actionItem}
                         </th>
                         <th className="py-2.5 px-3 text-start font-bold w-36">
-                          {isAr ? "المسؤول" : "Assignee"}
+                          {t.momDetail.assignee}
                         </th>
                         <th className="py-2.5 px-3 text-start font-bold w-28">
-                          {isAr ? "موعد التسليم" : "Due Date"}
+                          {t.momDetail.dueDate}
                         </th>
                         <th className="py-2.5 px-3 text-center font-bold w-24">
-                          {isAr ? "الحالة" : "Status"}
+                          {t.momDetail.status}
                         </th>
                       </tr>
                     </thead>
@@ -657,9 +640,7 @@ export function MomDetailView({
             company={company}
             language={isAr ? "ar" : "en"}
             thankYouMessage={
-              isAr
-                ? "تم توثيق محضر الاجتماع واعتماده رسمياً لدى شركة آي شوت للإنتاج الإعلامي"
-                : "Official Record of Proceedings & Commitments — iShoot Media Production"
+              t.momDetail.officialRecordOfProceedingsCommitments
             }
             showSignature={true}
             stampUrl={company.stamp_url}
@@ -667,12 +648,10 @@ export function MomDetailView({
             signerName={
               mom.approved_by_name ||
               mom.created_by_name ||
-              (isAr
-                ? "رئيس الجلسة / المسؤول التنفيذي"
-                : "Session Lead / Executive Officer")
+              (t.momDetail.sessionLeadExecutiveOfficer)
             }
-            signatureTitle={isAr ? "المسجل والمعتمد" : "Recorder & Approver"}
-            signatureTitleAr="المسجل والمعتمد"
+            signatureTitle={t.momDetail.recorderApprover}
+            signatureTitleAr={t.momDetail.recorderApprover}
           />
         </div>
       </div>
@@ -685,9 +664,7 @@ export function MomDetailView({
               <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Mail className="w-4 h-4 text-accent" />
                 <span>
-                  {isAr
-                    ? "إرسال محضر الاجتماع عبر البريد"
-                    : "Share MOM via Email"}
+                  {t.momDetail.shareMomViaEmail}
                 </span>
               </h3>
               <button
@@ -701,7 +678,7 @@ export function MomDetailView({
             <form onSubmit={handleSendEmail} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {isAr ? "البريد الإلكتروني للمستلم" : "Recipient Email"}
+                  {t.momDetail.recipientEmail}
                 </label>
                 <input
                   type="email"
@@ -715,18 +692,14 @@ export function MomDetailView({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {isAr
-                    ? "ملاحظة أو رسالة مرفقة (اختياري)"
-                    : "Message / Note (Optional)"}
+                  {t.momDetail.messageNoteOptional}
                 </label>
                 <textarea
                   rows={3}
                   value={emailNote}
                   onChange={(e) => setEmailNote(e.target.value)}
                   placeholder={
-                    isAr
-                      ? "يرجى الاطلاع على محضر الاجتماع المرفق والتواصل معنا لأي ملاحظات."
-                      : "Please find attached the official MOM for your review."
+                    t.momDetail.pleaseFindAttachedTheOfficial
                   }
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 />
@@ -739,7 +712,7 @@ export function MomDetailView({
                   size="sm"
                   onClick={() => setIsEmailModalOpen(false)}
                 >
-                  {isAr ? "إلغاء" : "Cancel"}
+                  {t.momDetail.cancel}
                 </Button>
                 <Button
                   type="submit"
@@ -749,12 +722,8 @@ export function MomDetailView({
                   className="bg-accent hover:bg-accent-pressed text-white"
                 >
                   {isSendingEmail
-                    ? isAr
-                      ? "جارٍ الإرسال..."
-                      : "Sending..."
-                    : isAr
-                      ? "إرسال الآن"
-                      : "Send Email"}
+                    ? t.momDetail.sending
+                    : t.momDetail.sendEmail}
                 </Button>
               </div>
             </form>

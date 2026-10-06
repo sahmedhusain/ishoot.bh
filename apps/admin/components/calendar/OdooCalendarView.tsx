@@ -389,7 +389,7 @@ export function OdooCalendarView({
                       <Clock className="w-3.5 h-3.5 text-accent" />
                       <span>
                         {new Date(ev.start_date).toLocaleString(
-                          locale === "ar" ? "ar-BH" : "en-US",
+                          locale === "ar" ? "ar-BH-u-nu-latn" : "en-US",
                         )}
                       </span>
                     </span>
@@ -449,7 +449,7 @@ export function OdooCalendarView({
                 </span>
                 <span className="text-ink ">
                   {new Date(selectedEvent.start_date).toLocaleString(
-                    locale === "ar" ? "ar-BH" : "en-US",
+                    locale === "ar" ? "ar-BH-u-nu-latn" : "en-US",
                   )}
                 </span>
               </div>
@@ -457,7 +457,7 @@ export function OdooCalendarView({
                 <span className="text-ink-muted">{t.calendarView.endTime}</span>
                 <span className="text-ink ">
                   {new Date(selectedEvent.end_date).toLocaleString(
-                    locale === "ar" ? "ar-BH" : "en-US",
+                    locale === "ar" ? "ar-BH-u-nu-latn" : "en-US",
                   )}
                 </span>
               </div>

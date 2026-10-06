@@ -33,8 +33,6 @@ interface CompanySettingsViewProps {
 
 interface ChangeDiff {
   key: string;
-  labelEn: string;
-  labelAr: string;
   oldValue: string;
   newValue: string;
   isVat?: boolean;
@@ -52,8 +50,6 @@ function calculateDiff(
   if (oldSettings.vat_enabled !== newSettings.vat_enabled) {
     diffs.push({
       key: "vat_enabled",
-      labelEn: "VAT Status",
-      labelAr: "حالة تفعيل ضريبة القيمة المضافة",
       oldValue: oldSettings.vat_enabled
         ? `Active (${oldSettings.vat_percentage}%)`
         : t.companySettings.inactiveNonVat,
@@ -70,8 +66,6 @@ function calculateDiff(
   ) {
     diffs.push({
       key: "vat_percentage",
-      labelEn: "VAT Percentage Rate",
-      labelAr: "نسبة ضريبة القيمة المضافة",
       oldValue: `${oldSettings.vat_percentage}%`,
       newValue: `${newSettings.vat_percentage}%`,
       isVat: true,
@@ -81,10 +75,8 @@ function calculateDiff(
   if ((oldSettings.vat_id || "") !== (newSettings.vat_id || "")) {
     diffs.push({
       key: "vat_id",
-      labelEn: "VAT Account Number (TRN)",
-      labelAr: "الرقم التعريفي الضريبي",
-      oldValue: oldSettings.vat_id || "None",
-      newValue: newSettings.vat_id || "None",
+      oldValue: oldSettings.vat_id || t.shared.none,
+      newValue: newSettings.vat_id || t.shared.none,
       isVat: true,
     });
   }
@@ -92,8 +84,6 @@ function calculateDiff(
   if (oldSettings.company_name_en !== newSettings.company_name_en) {
     diffs.push({
       key: "company_name_en",
-      labelEn: "Company Name (English)",
-      labelAr: "اسم المنشأة بالإنجليزية",
       oldValue: oldSettings.company_name_en || "—",
       newValue: newSettings.company_name_en || "—",
     });
@@ -102,8 +92,6 @@ function calculateDiff(
   if (oldSettings.company_name_ar !== newSettings.company_name_ar) {
     diffs.push({
       key: "company_name_ar",
-      labelEn: "Company Name (Arabic)",
-      labelAr: "اسم المنشأة بالعربية",
       oldValue: oldSettings.company_name_ar || "—",
       newValue: newSettings.company_name_ar || "—",
     });
@@ -112,8 +100,6 @@ function calculateDiff(
   if (oldSettings.cr_number !== newSettings.cr_number) {
     diffs.push({
       key: "cr_number",
-      labelEn: "Commercial Registration (CR)",
-      labelAr: "رقم السجل التجاري",
       oldValue: oldSettings.cr_number || "—",
       newValue: newSettings.cr_number || "—",
     });
@@ -122,8 +108,6 @@ function calculateDiff(
   if (oldSettings.phone !== newSettings.phone) {
     diffs.push({
       key: "phone",
-      labelEn: "Phone Number",
-      labelAr: "رقم الهاتف",
       oldValue: oldSettings.phone || "—",
       newValue: newSettings.phone || "—",
     });
@@ -132,8 +116,6 @@ function calculateDiff(
   if (oldSettings.email !== newSettings.email) {
     diffs.push({
       key: "email",
-      labelEn: "Official Email",
-      labelAr: "البريد الإلكتروني",
       oldValue: oldSettings.email || "—",
       newValue: newSettings.email || "—",
     });
@@ -142,8 +124,6 @@ function calculateDiff(
   if (oldSettings.website !== newSettings.website) {
     diffs.push({
       key: "website",
-      labelEn: "Website",
-      labelAr: "الموقع الإلكتروني",
       oldValue: oldSettings.website || "—",
       newValue: newSettings.website || "—",
     });
@@ -152,8 +132,6 @@ function calculateDiff(
   if (oldSettings.bank_name !== newSettings.bank_name) {
     diffs.push({
       key: "bank_name",
-      labelEn: "Beneficiary Bank Name",
-      labelAr: "اسم البنك المستفيد",
       oldValue: oldSettings.bank_name || "—",
       newValue: newSettings.bank_name || "—",
     });
@@ -162,8 +140,6 @@ function calculateDiff(
   if (oldSettings.bank_iban !== newSettings.bank_iban) {
     diffs.push({
       key: "bank_iban",
-      labelEn: "Bank IBAN Number",
-      labelAr: "رقم الآيبان الدولي",
       oldValue: oldSettings.bank_iban || "—",
       newValue: newSettings.bank_iban || "—",
     });
@@ -172,8 +148,6 @@ function calculateDiff(
   if (oldSettings.invoice_prefix !== newSettings.invoice_prefix) {
     diffs.push({
       key: "invoice_prefix",
-      labelEn: "Invoice Prefix",
-      labelAr: "بادئة الفاتورة",
       oldValue: oldSettings.invoice_prefix || "INV",
       newValue: newSettings.invoice_prefix || "INV",
     });
@@ -182,8 +156,6 @@ function calculateDiff(
   if (oldSettings.invoice_next_number !== newSettings.invoice_next_number) {
     diffs.push({
       key: "invoice_next_number",
-      labelEn: "Next Invoice Number",
-      labelAr: "رقم الفاتورة القادمة",
       oldValue: String(oldSettings.invoice_next_number),
       newValue: String(newSettings.invoice_next_number),
     });
@@ -455,7 +427,7 @@ export function CompanySettingsView({
               <div className="space-y-2">
                 {saveDiffs.map((diff) => {
                   const fieldKey = diff.key as keyof typeof t.companySettingsView.fields;
-                  const label = t.companySettingsView.fields[fieldKey] || (isRTL ? diff.labelAr : diff.labelEn);
+                  const label = t.companySettingsView.fields[fieldKey] ?? diff.key;
 
                   return (
                     <div

@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ import type { FxBoardRow } from "@ishoot/database/queries/fx-settlement";
 import { createQuotationAction } from "../../app/actions/quotations";
 import { refreshExchangeRatesAction } from "../../app/actions/finance";
 import { convertFromBhd } from "../../lib/fx-client";
+import { adminTranslations } from "../../lib/translations-bilingual";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 import { toast } from "sonner";
@@ -105,7 +107,7 @@ export function NewQuotationFormView({
       if (res.live) toast.success(qfT.fxRefreshed);
       else toast.error(qfT.fxRefreshFailed);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : qfT.fxRefreshFailed);
+      toast.error(errorMessage(err, t, qfT.fxRefreshFailed));
     } finally {
       setRefreshingFx(false);
     }
@@ -128,18 +130,18 @@ export function NewQuotationFormView({
 
   // Bilingual Terms
   const [termsEn, setTermsEn] = React.useState<string>(
-    "1. Validity: 30 days from issue date.\n2. Payment terms: 50% advance upon contract signing, 50% upon final delivery.\n3. Revisions: Up to 2 rounds included.",
+    adminTranslations.en.newQuotationForm.defaultTerms,
   );
   const [termsAr, setTermsAr] = React.useState<string>(
-    "1. الصلاحية: 30 يوماً من تاريخ الإصدار.\n2. شروط الدفع: 50% دفعة مقدمة عند توقيع العقد، و 50% عند التسليم النهائي.\n3. التعديلات: تتضمن جولتين من المراجعة والتعديل.",
+    adminTranslations.ar.newQuotationForm.defaultTerms,
   );
 
   // Line items
   const [lineItems, setLineItems] = React.useState<LineItemDraft[]>([
     {
       serviceId: services.length > 0 ? services[0].id : null,
-      descriptionEn: services.length > 0 ? services[0].name_en : t.newQuotationForm.productionServices,
-      descriptionAr: services.length > 0 ? services[0].name_ar : "خدمات الإنتاج والتصوير",
+      descriptionEn: services.length > 0 ? services[0].name_en : adminTranslations.en.newQuotationForm.productionServices,
+      descriptionAr: services.length > 0 ? services[0].name_ar : adminTranslations.ar.newQuotationForm.productionServices,
       quantity: 1,
       unitPrice: services.length > 0 ? Number(services[0].default_rate) || 0 : 0,
       basePriceBhd: services.length > 0 ? Number(services[0].default_rate) || 0 : null,
@@ -276,7 +278,7 @@ export function NewQuotationFormView({
         toast.error(t.newQuotationForm.failedToCreateQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : t.newQuotationForm.anUnexpectedErrorOccurred;
+      const msg = errorMessage(err, t, t.newQuotationForm.anUnexpectedErrorOccurred);
       toast.error(msg, { id: toastId });
     } finally {
       setSubmitting(false);
@@ -443,7 +445,7 @@ export function NewQuotationFormView({
                         dir="rtl"
                         value={item.descriptionAr}
                         onChange={(e) => updateLineItem(index, "descriptionAr", e.target.value)}
-                        placeholder="مثال: تصوير وإنتاج إعلان تجاري"
+                        placeholder={t.newQuotationForm.descriptionArPlaceholder}
                         className="w-full text-sm rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
                       />
                     </div>
@@ -575,8 +577,8 @@ export function NewQuotationFormView({
                   onChange={(e) => setLanguage(e.target.value as "en" | "ar")}
                   className="w-full text-sm rounded-md border border-ink/10 bg-white dark:bg-surface-raised px-3 py-2 text-slate-900 dark:text-white"
                 >
-                  <option value="ar">العربية (Arabic Primary)</option>
-                  <option value="en">English (English Primary)</option>
+                  <option value="ar">{t.invoiceForm.arabic}</option>
+                  <option value="en">{t.invoiceForm.english}</option>
                 </select>
               </div>
               {salesPeople.length > 0 && (

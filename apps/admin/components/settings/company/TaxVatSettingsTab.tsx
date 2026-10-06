@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../../lib/error-text";
 import { ROUTES } from "../../../constants/routes";
 import { uploadFileDirectly } from "../../../lib/upload-client";
 
@@ -64,7 +65,7 @@ export function TaxVatSettingsTab({
       setSettings(updated);
       await updateCompanySettingsAction(updated);
     } catch (err: any) {
-      setVatUploadError(err.message || t.taxVatSettingsTab.failedToUploadCertificate);
+      setVatUploadError(errorMessage(err, t, t.taxVatSettingsTab.failedToUploadCertificate));
     } finally {
       setVatUploading(false);
       if (vatFileInputRef.current) vatFileInputRef.current.value = "";

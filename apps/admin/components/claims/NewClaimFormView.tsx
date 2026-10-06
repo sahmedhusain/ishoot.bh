@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -47,7 +48,7 @@ export function NewClaimFormView({ categories, meetings, canLinkDeals, canLinkIn
       const data = await uploadFileDirectly(file, { entityType: "expense_claim", entityId: "pending" });
       setReceipt({ url: data.fileUrl, name: file.name, preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined });
     } catch (err) {
-      setError(err instanceof Error ? err.message : c.uploadFailed);
+      setError(errorMessage(err, t, c.uploadFailed));
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -73,7 +74,7 @@ export function NewClaimFormView({ categories, meetings, canLinkDeals, canLinkIn
       });
       router.push(ROUTES.claims.list({ highlight: res.claim.id }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : c.submitFailed);
+      setError(errorMessage(err, t, c.submitFailed));
       setSaving(false);
     }
   };

@@ -123,23 +123,23 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
   };
 
   const stageOptions = [
-    { value: "lead", label: t.stages?.lead || "Lead" },
+    { value: "lead", label: t.stages.lead },
     {
       value: "proposal_sent",
-      label: t.stages?.proposal_sent || t.dealEditForm.proposalSent,
+      label: t.stages.proposal_sent,
     },
     {
       value: "contract_signed",
-      label: t.stages?.contract_signed || t.dealEditForm.contractSigned,
+      label: t.stages.contract_signed,
     },
-    { value: "production", label: t.stages?.production || "Production" },
+    { value: "production", label: t.stages.production },
     {
       value: "post_production",
-      label: t.stages?.post_production || t.dealEditForm.postProduction,
+      label: t.stages.post_production,
     },
-    { value: "delivered", label: t.stages?.delivered || "Delivered" },
-    { value: "closed_won", label: t.stages?.closed_won || t.dealEditForm.closedWon },
-    { value: "closed_lost", label: t.stages?.closed_lost || t.dealEditForm.closedLost },
+    { value: "delivered", label: t.stages.delivered },
+    { value: "closed_won", label: t.stages.closed_won },
+    { value: "closed_lost", label: t.stages.closed_lost },
   ];
 
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
@@ -7,8 +8,7 @@ import { useRouter } from "next/navigation";
 import type { Quotation, ApprovalRequest } from "@ishoot/database/types";
 import {
   Card,
-  Button,
-} from "@ishoot/ui";
+  Button, formatDate } from "@ishoot/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -143,7 +143,7 @@ export function QuotationDetailView({
         toast.error(t.quotationDetail.failedToSubmitQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.quotationDetail.errorSubmittingQuotation, { id: toastId });
+      toast.error(errorMessage(err, t, t.quotationDetail.errorSubmittingQuotation), { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -166,7 +166,7 @@ export function QuotationDetailView({
         toast.error(t.quotationDetail.failedToApproveQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.quotationDetail.approvalFailed, { id: toastId });
+      toast.error(errorMessage(err, t, t.quotationDetail.approvalFailed), { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -189,7 +189,7 @@ export function QuotationDetailView({
         toast.error(t.quotationDetail.failedToRejectQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.quotationDetail.rejectionFailed, { id: toastId });
+      toast.error(errorMessage(err, t, t.quotationDetail.rejectionFailed), { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -201,14 +201,14 @@ export function QuotationDetailView({
     try {
       const res = await issueQuotationAction(quotation.id, deliveryChannel);
       if (res.success) {
-        toast.success(`Quotation issued via ${deliveryChannel}`, { id: toastId });
+        toast.success(t.newQuotationForm.issuedVia.replace("{channel}", deliveryChannel), { id: toastId });
         setShowIssueModal(false);
         router.refresh();
       } else {
         toast.error(t.quotationDetail.failedToIssueQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.quotationDetail.issuanceFailed, { id: toastId });
+      toast.error(errorMessage(err, t, t.quotationDetail.issuanceFailed), { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -227,7 +227,7 @@ export function QuotationDetailView({
         toast.error(t.quotationDetail.failedToAcceptQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.quotationDetail.actionFailed, { id: toastId });
+      toast.error(errorMessage(err, t, t.quotationDetail.actionFailed), { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -241,7 +241,7 @@ export function QuotationDetailView({
       toast.success(t.quotationLifecycle.declined);
       router.refresh();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.quotationLifecycle.failed);
+      toast.error(errorMessage(err, t, t.quotationLifecycle.failed));
     } finally {
       setLoadingAction(null);
     }
@@ -264,7 +264,7 @@ export function QuotationDetailView({
         toast.error(t.quotationDetail.failedToConvertQuotation, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.quotationDetail.conversionFailed, { id: toastId });
+      toast.error(errorMessage(err, t, t.quotationDetail.conversionFailed), { id: toastId });
     } finally {
       setLoadingAction(null);
     }
@@ -361,7 +361,7 @@ export function QuotationDetailView({
                     disabled={!!loadingAction}
                     className="bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-950/40 dark:hover:bg-red-950/70 border border-red-200 dark:border-red-900/50 px-3 py-2 rounded-md text-xs font-medium"
                   >
-                    <XCircle className="w-4 h-4 mr-1 inline" />
+                    <XCircle className="w-4 h-4 me-1 inline" />
                     {qdT.rejectBtn}
                   </Button>
                   <Button
@@ -369,7 +369,7 @@ export function QuotationDetailView({
                     disabled={!!loadingAction}
                     className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium shadow-xs"
                   >
-                    <CheckCircle2 className="w-4 h-4 mr-1 inline" />
+                    <CheckCircle2 className="w-4 h-4 me-1 inline" />
                     {qdT.approveBtn}
                   </Button>
                 </div>
@@ -523,9 +523,9 @@ export function QuotationDetailView({
                           </div>
                         )}
                       </td>
-                      <td className="py-3 px-3 text-right font-mono">{Number(item.quantity)}</td>
-                      <td className="py-3 px-3 text-right font-mono">{Number(item.unitPrice).toFixed(3)}</td>
-                      <td className="py-3 px-3 text-right font-mono font-semibold text-slate-900 dark:text-white">
+                      <td className="py-3 px-3 text-end font-mono">{Number(item.quantity)}</td>
+                      <td className="py-3 px-3 text-end font-mono">{Number(item.unitPrice).toFixed(3)}</td>
+                      <td className="py-3 px-3 text-end font-mono font-semibold text-slate-900 dark:text-white">
                         {Number(item.lineTotal).toFixed(3)}
                       </td>
                     </tr>
@@ -619,14 +619,14 @@ export function QuotationDetailView({
                 <span className="text-slate-400 block mb-0.5">{qdT.issueDate}:</span>
                 <div className="font-mono text-slate-900 dark:text-white flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  {new Date(quotation.issueDate).toLocaleDateString()}
+                  {formatDate(quotation.issueDate, locale, "long")}
                 </div>
               </div>
               <div>
                 <span className="text-slate-400 block mb-0.5">{qdT.validUntil}:</span>
                 <div className="font-mono text-slate-900 dark:text-white flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  {new Date(quotation.validUntilDate).toLocaleDateString()}
+                  {formatDate(quotation.validUntilDate, locale, "long")}
                 </div>
               </div>
               <div>
@@ -665,7 +665,7 @@ export function QuotationDetailView({
                         {dec.decision} by {dec.decidedBy?.fullName || t.quotationDetail.superAdmin}
                       </div>
                       <div className="text-slate-400 font-mono text-[10px]">
-                        {new Date(dec.decidedAt).toLocaleString()}
+                        {formatDate(dec.decidedAt, locale, "time")}
                       </div>
                       {dec.reason && <div className="text-slate-600 dark:text-neutral-400 mt-1">{dec.reason}</div>}
                     </div>

@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import * as React from "react";
@@ -88,7 +89,7 @@ export function PayrollManagementView({
   );
 
   const months = Array.from({ length: 12 }, (_, month) =>
-    new Intl.DateTimeFormat(locale, { month: "long", timeZone: "UTC" }).format(
+    new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB", { month: "long", timeZone: "UTC" }).format(
       new Date(Date.UTC(2026, month, 1)),
     ),
   );
@@ -108,7 +109,7 @@ export function PayrollManagementView({
         toast.error(t.payrollManagement.failedToGeneratePayrollRun, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.payrollManagement.calculationFailed, {
+      toast.error(errorMessage(err, t, t.payrollManagement.calculationFailed), {
         id: toastId,
       });
     } finally {
@@ -128,7 +129,7 @@ export function PayrollManagementView({
         toast.error(t.payrollManagement.submissionFailed, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.payrollManagement.errorSubmitting, {
+      toast.error(errorMessage(err, t, t.payrollManagement.errorSubmitting), {
         id: toastId,
       });
     } finally {
@@ -148,7 +149,7 @@ export function PayrollManagementView({
         toast.error(t.payrollManagement.approvalFailed, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.payrollManagement.errorApproving, {
+      toast.error(errorMessage(err, t, t.payrollManagement.errorApproving), {
         id: toastId,
       });
     } finally {
@@ -164,7 +165,7 @@ export function PayrollManagementView({
       toast.success(t.payroll.recalculated, { id: toastId });
       router.refresh();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.payrollManagement.calculationFailed, { id: toastId });
+      toast.error(errorMessage(err, t, t.payrollManagement.calculationFailed), { id: toastId });
     } finally {
       setLoadingId(null);
     }
@@ -183,7 +184,7 @@ export function PayrollManagementView({
         toast.error(t.payrollManagement.failedToMarkPaid, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.payrollManagement.errorSettlingPayroll, {
+      toast.error(errorMessage(err, t, t.payrollManagement.errorSettlingPayroll), {
         id: toastId,
       });
     } finally {
@@ -391,7 +392,7 @@ export function PayrollManagementView({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-white/10">
+                    <div className="flex items-center gap-2 ps-2 border-s border-slate-200 dark:border-white/10">
                       {canEdit && (run.status === "draft" || run.status === "calculated") && (
                         <Button
                           variant="outline"
@@ -409,7 +410,7 @@ export function PayrollManagementView({
                           disabled={loadingId === run.id}
                           className="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 text-xs rounded-md"
                         >
-                          <Send className="w-3.5 h-3.5 mr-1 inline" />
+                          <Send className="w-3.5 h-3.5 me-1 inline" />
                           {t.payrollManagement.submitForSuperAdminApproval}
                         </Button>
                       )}
@@ -420,7 +421,7 @@ export function PayrollManagementView({
                           disabled={loadingId === run.id}
                           className="bg-primary hover:bg-primary-hover text-white px-3 py-1.5 text-xs rounded-md"
                         >
-                          <CheckCircle2 className="w-3.5 h-3.5 mr-1 inline" />
+                          <CheckCircle2 className="w-3.5 h-3.5 me-1 inline" />
                           {t.payrollManagement.approvePayroll}
                         </Button>
                       )}
@@ -431,7 +432,7 @@ export function PayrollManagementView({
                           disabled={loadingId === run.id}
                           className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 text-xs rounded-md"
                         >
-                          <Receipt className="w-3.5 h-3.5 mr-1 inline" />
+                          <Receipt className="w-3.5 h-3.5 me-1 inline" />
                           {t.payroll.payAll}
                         </Button>
                       )}

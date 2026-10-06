@@ -571,13 +571,13 @@ export function DealDossierView({
                       <td className="p-3 text-slate-600 dark:text-slate-400">
                         <DateDisplay date={inv.issue_date} locale={locale} />
                       </td>
-                      <td className="p-3 text-right  text-slate-900 dark:text-white font-bold">
+                      <td className="p-3 text-end  text-slate-900 dark:text-white font-bold">
                         <CurrencyDisplay
                           amount={Number(inv.total_amount)}
                           currency={inv.currency}
                         />
                       </td>
-                      <td className="p-3 text-right  text-rose-600 dark:text-rose-400 font-bold">
+                      <td className="p-3 text-end  text-rose-600 dark:text-rose-400 font-bold">
                         <CurrencyDisplay
                           amount={
                             Number(inv.total_amount) -

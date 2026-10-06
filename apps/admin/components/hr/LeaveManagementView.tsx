@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { NoEmployeeProfile } from "./NoEmployeeProfile";
@@ -9,7 +10,7 @@ import { useRouter } from "next/navigation";
 import type { LeaveRequest, Employee } from "@ishoot/database/types";
 import type { LeaveTypeView } from "@ishoot/database/queries/hr-settings";
 import type { LeaveBalance } from "@ishoot/database/queries/leave-balances";
-import { Card, Button, useDialog } from "@ishoot/ui";
+import { Card, Button, useDialog, formatDate } from "@ishoot/ui";
 import { Clock, Plus } from "lucide-react";
 import {
   createLeaveRequestAction,
@@ -127,7 +128,7 @@ export function LeaveManagementView({
         toast.error(t.leaveManagement.failedToSubmitLeaveRequest, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.leaveManagement.errorSubmittingLeave, {
+      toast.error(errorMessage(err, t, t.leaveManagement.errorSubmittingLeave), {
         id: toastId,
       });
     } finally {
@@ -171,7 +172,7 @@ export function LeaveManagementView({
         toast.error(t.leaveManagement.failedToRecordDecision, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.leaveManagement.decisionFailed, {
+      toast.error(errorMessage(err, t, t.leaveManagement.decisionFailed), {
         id: toastId,
       });
     } finally {
@@ -191,7 +192,7 @@ export function LeaveManagementView({
         toast.error(t.leaveManagement.failedToCancelLeaveRequest, { id: toastId });
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : t.leaveManagement.cancellationFailed, {
+      toast.error(errorMessage(err, t, t.leaveManagement.cancellationFailed), {
         id: toastId,
       });
     } finally {
@@ -305,7 +306,7 @@ export function LeaveManagementView({
       {/* Leave Requests Table */}
       <Card className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-start text-sm">
             <thead>
               <tr className="border-b border-ink/10 text-xs font-mono uppercase text-slate-400 bg-slate-50/50 dark:bg-neutral-900/30">
                 <th className="py-3 px-4">{t.shared.employee}</th>
@@ -313,7 +314,7 @@ export function LeaveManagementView({
                 <th className="py-3 px-4">{t.leaveManagement.periodAndDuration}</th>
                 <th className="py-3 px-4">{t.leaveManagement.reasonNotes}</th>
                 <th className="py-3 px-4">{t.leaveManagement.statusAndInvariant}</th>
-                <th className="py-3 px-4 text-right">{t.leaveManagement.actions}</th>
+                <th className="py-3 px-4 text-end">{t.leaveManagement.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink/10 dark:divide-white/5">
@@ -331,8 +332,8 @@ export function LeaveManagementView({
                   const isOwn = req.employee?.id === myEmployee?.id;
                   const canDecide = req.status === "pending" && decidableIds.includes(req.id);
 
-                  const start = new Date(req.startDate).toLocaleDateString();
-                  const end = new Date(req.endDate).toLocaleDateString();
+                  const start = formatDate(req.startDate, locale);
+                  const end = formatDate(req.endDate, locale);
 
                   return (
                     <tr
@@ -401,7 +402,7 @@ export function LeaveManagementView({
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-4 text-end">
                         {canDecide && (
                           <div className="inline-flex items-center gap-1.5">
                             <button

@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
 
@@ -75,7 +76,7 @@ export function PaymentDetailView({
       }));
     } catch (err: any) {
       console.error("Instant upload error:", err);
-      alert(err.message || t.paymentDetail.failedToUploadDocument);
+      alert(errorMessage(err, t, t.paymentDetail.failedToUploadDocument));
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

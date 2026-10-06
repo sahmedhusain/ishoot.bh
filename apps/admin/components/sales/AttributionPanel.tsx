@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { History, UserCheck, UserPen } from "lucide-react";
@@ -36,7 +37,7 @@ export function AttributionPanel({ entityType, entityId, info, salesPeople, canR
       setReason("");
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : a.failed);
+      toast.error(errorMessage(err, t, a.failed));
     } finally {
       setSaving(false);
     }
@@ -106,7 +107,7 @@ export function AttributionPanel({ entityType, entityId, info, salesPeople, canR
                   .replace("{from}", h.from ?? "—")
                   .replace("{to}", h.to)
                   .replace("{by}", h.changedBy)}
-                <span className="text-ink-muted"> · {new Date(h.at).toLocaleDateString(locale === "ar" ? "ar-BH" : "en-GB")}</span>
+                <span className="text-ink-muted"> · {new Date(h.at).toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}</span>
                 {h.reason && <div className="text-ink-muted italic">“{h.reason}”</div>}
               </li>
             ))}

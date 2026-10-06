@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
@@ -84,7 +85,7 @@ export function ClientsManagementView({
       setLogoSvgUrl("");
       setWebsiteUrl("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.clientsView.saveFailed);
+      setError(errorMessage(err, t, t.clientsView.saveFailed));
     } finally {
       setSaving(false);
     }

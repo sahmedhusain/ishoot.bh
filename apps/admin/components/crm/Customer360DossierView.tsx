@@ -89,7 +89,7 @@ export function Customer360DossierView({
                 variant="outline"
                 className="text-xs uppercase  border-accent/40 text-accent bg-[#E6F5F2] dark:bg-accent/10"
               >
-                {contact.contact_type || "Client"}
+                {(t.crm.contactTypes as Record<string, string>)[contact.contact_type || "client"] ?? contact.contact_type}
               </Badge>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ">
@@ -328,7 +328,7 @@ export function Customer360DossierView({
                   {t.customer360.clientType}
                 </span>
                 <span className="text-slate-700 dark:text-slate-300 font-medium capitalize">
-                  {contact.contact_type || "Client"}
+                  {(t.crm.contactTypes as Record<string, string>)[contact.contact_type || "client"] ?? contact.contact_type}
                 </span>
               </div>
               <div>

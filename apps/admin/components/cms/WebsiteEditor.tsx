@@ -1,4 +1,6 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
+import { formatDate } from "@ishoot/ui";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
@@ -67,7 +69,7 @@ export function WebsiteEditor({
       router.refresh();
       setMessage(t.websiteEditor.saved);
     } catch (e) {
-      setError(e instanceof Error ? e.message : t.websiteEditor.couldNotSave);
+      setError(errorMessage(e, t, t.websiteEditor.couldNotSave));
     } finally {
       setBusy(false);
     }
@@ -91,27 +93,7 @@ export function WebsiteEditor({
     ];
     change({ ...draft, sections });
   }
-  const labels: Record<string, string> = ar
-    ? {
-        about: "نبذة",
-        clients: "العملاء",
-        services: "الخدمات",
-        portfolio: "الأعمال",
-        stats: "الأرقام",
-        reviews: "التقييمات",
-        faq: "الأسئلة",
-        cta: "التواصل",
-      }
-    : {
-        about: "About",
-        clients: "Clients",
-        services: "Services",
-        portfolio: "Selected work",
-        stats: "Statistics",
-        reviews: "Reviews",
-        faq: "FAQ",
-        cta: "Contact call to action",
-      };
+  const labels = t.websiteEditor.sectionNames as Record<string, string>;
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-16">
       <header>
@@ -126,7 +108,7 @@ export function WebsiteEditor({
         </p>
         {publishedAt && (
           <p className="text-xs text-slate-500 mt-2">
-            {`${t.websiteEditor.lastPublished} ${new Date(publishedAt).toLocaleString()}`}
+            {`${t.websiteEditor.lastPublished} ${formatDate(publishedAt, locale, "time")}`}
           </p>
         )}
         <div className="mt-3">
@@ -135,23 +117,7 @@ export function WebsiteEditor({
         {deliveryStatus && (
           <p className="text-xs text-slate-500 mt-2">
             {t.websiteEditor.publicRefresh}{" "}
-            {ar
-              ? (
-                  {
-                    delivered: "تم",
-                    pending: "في الانتظار",
-                    processing: "قيد التنفيذ",
-                    failed: "تعذر التحديث",
-                  } as Record<string, string>
-                )[deliveryStatus]
-              : (
-                  {
-                    delivered: "Delivered",
-                    pending: "Queued",
-                    processing: "In progress",
-                    failed: "Failed",
-                  } as Record<string, string>
-                )[deliveryStatus]}
+            {(t.websiteEditor.deliveryStatuses as Record<string, string>)[deliveryStatus] ?? deliveryStatus}
           </p>
         )}
       </header>
@@ -236,26 +202,10 @@ export function WebsiteEditor({
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {(draft.pages || defaultWebsitePages).map((p) => {
-            const pageLabels: Record<
-              string,
-              { en: string; ar: string; path: string }
-            > = {
-              works: {
-                en: "Selected Works",
-                ar: "صفحة الأعمال",
-                path: "/works",
-              },
-              about: { en: "About Studio", ar: "صفحة من نحن", path: "/about" },
-              contact: {
-                en: "Contact Page",
-                ar: "صفحة التواصل",
-                path: "/contact",
-              },
-            };
-            const meta = pageLabels[p.id] || {
-              en: p.id,
-              ar: p.id,
-              path: `/${p.id}`,
+            const pagePaths: Record<string, string> = { works: "/works", about: "/about", contact: "/contact" };
+            const meta = {
+              title: (t.websiteEditor.pageNames as Record<string, string>)[p.id] ?? p.id,
+              path: pagePaths[p.id] ?? `/${p.id}`,
             };
             return (
               <div
@@ -268,7 +218,7 @@ export function WebsiteEditor({
               >
                 <div>
                   <div className="font-semibold text-sm">
-                    {ar ? meta.ar : meta.en}
+                    {meta.title}
                   </div>
                   <div className="text-xs text-slate-400 font-mono mt-0.5">
                     {meta.path}
@@ -349,16 +299,12 @@ export function WebsiteEditor({
         <div className="grid md:grid-cols-2 gap-4">
           {(
             [
-              ["contactTitle", "Title", "العنوان"],
-              ["contactIntro", "Introduction", "المقدمة"],
-              [
-                "hours",
-                "Verified opening hours (optional)",
-                "ساعات العمل (اختياري)",
-              ],
-              ["response", "What happens next", "ماذا يحدث بعد الإرسال"],
+              ["contactTitle"],
+              ["contactIntro"],
+              ["hours"],
+              ["response"],
             ] as const
-          ).flatMap(([key, en, arabic]) =>
+          ).flatMap(([key]) =>
             (["En", "Ar"] as const).map((lang) => {
               const name = `${key}${lang}` as Exclude<
                 keyof WebsiteConfig,
@@ -367,7 +313,7 @@ export function WebsiteEditor({
               return (
                 <label key={name} className="text-sm space-y-2">
                   <span>
-                    {lang === "Ar" ? arabic : en} ({lang})
+                    {(t.websiteEditor.contactFields as Record<string, string>)[key]} ({lang === "Ar" ? t.websiteEditor.inArabic : t.websiteEditor.inEnglish})
                   </span>
                   <textarea
                     dir={lang === "Ar" ? "rtl" : "ltr"}

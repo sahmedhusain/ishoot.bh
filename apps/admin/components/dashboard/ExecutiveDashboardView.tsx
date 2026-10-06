@@ -73,7 +73,7 @@ export function ExecutiveDashboardView({
     const [year, month] = pt.monthKey.split("-").map(Number);
     const date = new Date(year, month - 1, 1);
     const monthName = new Intl.DateTimeFormat(
-      locale === "ar" ? "ar-BH" : "en-US",
+      locale === "ar" ? "ar-BH-u-nu-latn" : "en-US",
       { month: "short" },
     ).format(date);
     return {

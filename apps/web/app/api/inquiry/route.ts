@@ -9,6 +9,7 @@ import {
   normalizeToE164,
 } from "@ishoot/database";
 import { sendEmail } from "@ishoot/email";
+import { getTranslations } from "@ishoot/locales";
 import {
   readSubmission,
   textField,
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
     if (!["en", "ar"].includes(locale)) throw new Error("INVALID_INPUT");
     const name =
       textField(body, "fullName", 200, intent !== "suggestion") ||
-      (locale === "ar" ? "اقتراح مجهول" : "Anonymous suggestion");
+      getTranslations(locale === "ar" ? "ar" : "en").contact.anonymousSuggestion;
     const email = textField(body, "email", 254).toLowerCase();
     const phone = textField(body, "phone", 40);
     if (
@@ -118,11 +119,8 @@ export async function POST(req: NextRequest) {
           email
             ? sendEmail({
                 to: email,
-                subject:
-                  locale === "ar"
-                    ? `استلمنا رسالتك — ${resolved.reference}`
-                    : `We received your message — ${resolved.reference}`,
-                html: `<div dir="${locale === "ar" ? "rtl" : "ltr"}"><p>${locale === "ar" ? "شكراً لتواصلك معنا. استلمنا رسالتك وسيراجعها فريقنا." : "Thank you for contacting us. Your message has been received and will be reviewed by our team."}</p><p>${reference}</p></div>`,
+                subject: getTranslations(locale === "ar" ? "ar" : "en").email.inquiryReceived.subject.replace("{reference}", resolved.reference),
+                html: `<div dir="${locale === "ar" ? "rtl" : "ltr"}"><p>${getTranslations(locale === "ar" ? "ar" : "en").email.inquiryReceived.body}</p><p>${reference}</p></div>`,
               })
             : Promise.resolve(null),
           recipient

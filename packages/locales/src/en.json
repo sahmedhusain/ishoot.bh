@@ -378,7 +378,8 @@
     "responseTime": "Response Time",
     "chatWhatsapp": "Chat on WhatsApp",
     "formNote": "Use an email address or phone number we can reply to.",
-    "ratingOption": "{value} out of 5 stars"
+    "ratingOption": "{value} out of 5 stars",
+    "anonymousSuggestion": "Anonymous suggestion"
   },
   "footer": {
     "tagline": "Cinema Production House based in Manama, Kingdom of Bahrain.",
@@ -667,6 +668,10 @@
     "layout": {
       "cr": "CR: {cr}",
       "rights": "All rights reserved."
+    },
+    "inquiryReceived": {
+      "subject": "We received your message — {reference}",
+      "body": "Thank you for contacting us. Your message has been received and will be reviewed by our team."
     }
   },
   "api": {

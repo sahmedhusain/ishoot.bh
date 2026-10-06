@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -69,7 +70,7 @@ export function EmployeeAccountCard({
       toast.success(a.withdrawn);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : a.withdraw);
+      toast.error(errorMessage(error, t, a.withdraw));
     }
   };
 

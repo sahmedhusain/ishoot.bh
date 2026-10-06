@@ -1,4 +1,5 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import Link from "next/link";
 import { ContentImage } from "../shared/ContentImage";
@@ -139,7 +140,7 @@ export function UsersManagementView({
         setShowCreateModal(false);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.hrExtensions.failed);
+      setError(errorMessage(err, t, t.hrExtensions.failed));
     } finally {
       setSaving(false);
     }
@@ -151,7 +152,7 @@ export function UsersManagementView({
       setUsers(users.filter((u) => u.id !== userId));
       toast.success(t.actions.delete);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.hrExtensions.failed);
+      setError(errorMessage(err, t, t.hrExtensions.failed));
     }
   };
 
@@ -510,7 +511,7 @@ export function UsersManagementView({
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               dir="ltr"
-              className="text-left"
+              className="text-start"
             />
           </div>
 

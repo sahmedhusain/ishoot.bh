@@ -802,7 +802,7 @@ export function InvoiceEditFormView({
         onConfirm={handleConfirmedSave}
         changes={changes}
         isSaving={submitting}
-        title={isRTL ? `تأكيد تعديل الفاتورة ${invoice.invoice_number}` : `Confirm Edit on Invoice ${invoice.invoice_number}`}
+        title={t.invoiceEdit.confirmEditTitle.replace("{number}", invoice.invoice_number)}
         description={t.invoiceEditForm.reviewTheUpdatedInvoiceValues}
       />
     </div>
