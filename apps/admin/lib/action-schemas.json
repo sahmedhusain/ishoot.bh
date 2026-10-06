@@ -1010,6 +1010,98 @@
           "sortOrder": {
             "kind": "number",
             "optional": true
+          },
+          "source": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "manual"
+              },
+              {
+                "kind": "literal",
+                "value": "preset"
+              }
+            ],
+            "optional": true
+          },
+          "preset": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "projects_delivered"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "clients_served"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "team_members"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "portfolio_projects"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "five_star_reviews"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "years_in_business"
+                  }
+                ]
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "presetParam": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "roundTo": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "suffix": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
           }
         },
         "optional": false
@@ -1052,6 +1144,98 @@
           },
           "sortOrder": {
             "kind": "number",
+            "optional": true
+          },
+          "source": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "manual"
+              },
+              {
+                "kind": "literal",
+                "value": "preset"
+              }
+            ],
+            "optional": true
+          },
+          "preset": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "projects_delivered"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "clients_served"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "team_members"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "portfolio_projects"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "five_star_reviews"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "years_in_business"
+                  }
+                ]
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "presetParam": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "roundTo": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "suffix": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
             "optional": true
           }
         },

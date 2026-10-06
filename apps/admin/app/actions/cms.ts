@@ -508,6 +508,7 @@ export async function createStatisticAction(
   return measureOperation("action:createStatisticAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "write");
     validateActionArguments("createStatisticAction", { data });
+    validateStatisticData(data);
     const stat = await runAtomicMutation(async () => {
       const stat = await createStatistic(data);
       await createActivityLog({
@@ -531,6 +532,7 @@ export async function updateStatisticAction(
   return measureOperation("action:updateStatisticAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "write");
     validateActionArguments("updateStatisticAction", { id, data });
+    validateStatisticData(data);
     const stat = await runAtomicMutation(async () => {
       const stat = await updateStatistic(id, data);
       await createActivityLog({
@@ -566,6 +568,16 @@ export async function deleteStatisticAction(id: string) {
   });
 }
 
+function validateStatisticData(data: Partial<Parameters<typeof createStatistic>[0]>) {
+  for (const key of ["labelEn", "labelAr"] as const)
+    if (key in data && (typeof data[key] !== "string" || !data[key]?.trim() || data[key]!.length > 100))
+      throw new Error("Both labels are required (max 100 characters)");
+  for (const key of ["subLabelEn", "subLabelAr", "icon"] as const)
+    if ((data[key]?.length ?? 0) > 200) throw new Error("Text is too long (max 200 characters)");
+  if (data.sortOrder !== undefined && (!Number.isInteger(data.sortOrder) || Math.abs(data.sortOrder) > 10000))
+    throw new Error("Invalid sort order");
+  // Value, preset, founding year, rounding and suffix rules live in validateStatisticInput.
+}
 function validateBannerData(data: Parameters<typeof createBannerAction>[0]) {
   for (const value of [data.title_en, data.title_ar])
     if (typeof value !== "string" || !value.trim() || value.length > 500)
