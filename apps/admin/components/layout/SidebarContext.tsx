@@ -31,6 +31,16 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // The mobile drawer closes on Escape like any other overlay.
+  React.useEffect(() => {
+    if (!isMobileOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMobileOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [isMobileOpen]);
+
   const toggleMobileOpen = React.useCallback(() => {
     setIsMobileOpen((prev) => !prev);
   }, []);

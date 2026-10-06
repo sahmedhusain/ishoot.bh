@@ -74,7 +74,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
                 : company?.logo_url
             }
             alt={companyTitle}
-            className="h-6 w-auto object-contain"
+            className="hidden sm:block h-6 w-auto object-contain"
            fallbackText={companyTitle}  width={240} height={60} />
         </Link>
 
@@ -85,7 +85,8 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
       </div>
 
       {/* Center: Google Cloud Style Minimalist Search Bar */}
-      <div className="flex-1 max-w-xs sm:max-w-md lg:max-w-xl mx-2 sm:mx-6 flex justify-center">
+      {/* Search shrinks on phones so the actions on the other side stay on screen. */}
+      <div className="flex-1 min-w-0 max-w-xs sm:max-w-md lg:max-w-xl mx-2 sm:mx-6 flex justify-center">
         <GlobalQuickJump className="w-full flex items-center gap-2.5 px-3.5 py-1.5 rounded-lg bg-[#f1f3f4] hover:bg-[#e8eaed] dark:bg-[#282a2d] dark:hover:bg-[#35373a] text-slate-500 dark:text-neutral-400 text-xs transition-colors border border-transparent focus-within:border-accent focus-within:bg-white dark:focus-within:bg-[#1f1f1f] focus-within:shadow-sm justify-between cursor-pointer" />
       </div>
 
@@ -94,7 +95,7 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
         {/* Calendar Shortcut */}
         <Link
           href={ROUTES.calendar}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+          className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
           title={t.nav.calendar}
           aria-label={t.nav.calendar}
         >
