@@ -175,7 +175,7 @@ export function ExecutiveDashboardView({
           </div>
           <div className="text-[10px] text-amber-600 dark:text-amber-400  font-medium">
             {finance.overdue > 0
-              ? `${finance.overdue.toFixed(3)} BHD ${t.kpi.overdueAlert}`
+              ? <><CurrencyDisplay amount={finance.overdue} currency="BHD" /> {t.kpi.overdueAlert}</>
               : t.kpi.allOnTrack}
           </div>
         </div>)}
