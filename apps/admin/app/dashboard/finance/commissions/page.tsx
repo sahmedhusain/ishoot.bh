@@ -10,5 +10,5 @@ export default async function CommissionsPage({ searchParams }: { searchParams: 
   const current = new Date().toISOString().slice(0, 7);
   const month = /^\d{4}-(0[1-9]|1[0-2])$/.test(params.month ?? "") && params.month! <= current ? params.month! : current;
   const rows = await getCommissionStatement(month);
-  return <CommissionsView month={month} rows={rows} canRecord={grants["expenses:write"] === true} canSetRates={grants["users:write"] === true} />;
+  return <CommissionsView month={month} rows={rows} canRecord={grants["expenses:write"] === true} canSetRates={grants["users:write"] === true || grants["employees:edit"] === true} />;
 }

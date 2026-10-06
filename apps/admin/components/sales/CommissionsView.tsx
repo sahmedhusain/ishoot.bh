@@ -104,7 +104,7 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
                   </td>
                   <td className="p-3 text-end text-ink">{r.invoices}</td>
                   <td className="p-3 text-end text-ink">{fmt(r.collectedNet)}</td>
-                  <td className="p-3 text-end text-ink-muted">{r.ratePercent ? `${r.ratePercent}%` : canSetRates ? <Link href={ROUTES.users.list} className="text-accent hover:underline">{c.setRate}</Link> : "—"}</td>
+                  <td className="p-3 text-end text-ink-muted">{r.ratePercent ? `${r.ratePercent}%` : canSetRates ? <Link href={ROUTES.hr.employees} className="text-accent hover:underline">{c.setRate}</Link> : "—"}</td>
                   <td className="p-3 text-end font-bold text-ink">{fmt(r.commission)}</td>
                   <td className="p-3 pe-5 text-end">
                     {r.payout ? (

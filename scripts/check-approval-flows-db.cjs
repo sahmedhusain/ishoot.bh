@@ -90,6 +90,14 @@ async function main() {
           state: async (id) => (await tx.expenseClaim.findUniqueOrThrow({ where: { id } })).status,
           approved: "approved", rejected: "rejected",
         },
+        account_change: {
+          make: async () => {
+            const target = await tx.user.create({ data: { email: `flow-acc-${stamp}-${Math.random().toString(36).slice(2, 7)}@flows.test`, fullName: "Flow Account", passwordHash: "x", role: "viewer" } });
+            return (await tx.accountChangeRequest.create({ data: { userId: target.id, requestedById: requester.id, changes: { commissionRatePercent: 4 }, before: { commissionRatePercent: null } } })).id;
+          },
+          state: async (id) => (await tx.accountChangeRequest.findUniqueOrThrow({ where: { id } })).status,
+          approved: "approved", rejected: "rejected",
+        },
         signature_change: {
           make: async () => (await tx.signatureChange.create({ data: { userId: requester.id, signatureUrl: "/brand/signatures/guest.svg" } })).id,
           state: async (id) => (await tx.signatureChange.findUniqueOrThrow({ where: { id } })).status,

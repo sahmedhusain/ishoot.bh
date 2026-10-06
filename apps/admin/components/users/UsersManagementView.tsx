@@ -5,16 +5,9 @@ import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
 import type { Profile, UserRole } from "@ishoot/database/types";
-import {
-  createUserAction,
-  updateUserRoleAction,
-  updateUserAction,
-  updateUserDiscountLimitAction,
-  deleteUserAction,
-  suspendUserAction,
-  reactivateUserAction,
-  archiveUserAction,
-} from "../../app/actions/users";
+import { createUserAction, deleteUserAction } from "../../app/actions/users";
+import { AccountSettingsDialog, type AccountSettingsValue } from "../shared/AccountSettingsDialog";
+import { toast } from "sonner";
 import {
   Card,
   Button,
@@ -30,9 +23,11 @@ import {
   Search,
   Building,
   CheckCircle2,
+  Lock,
+  Pencil,
 } from "lucide-react";
-import { updateUserCommissionRateAction } from "../../app/actions/sales";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { usePermissions } from "../../hooks/usePermissions";
 
 interface UsersManagementViewProps {
   canWrite: boolean;
@@ -63,6 +58,7 @@ export function UsersManagementView({
   rolePermissions,
 }: UsersManagementViewProps) {
   const { t, isRTL } = useAdminLocale();
+  const { role: actorRole } = usePermissions();
 
   const [users, setUsers] = React.useState<Profile[]>(initialUsers);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -73,7 +69,8 @@ export function UsersManagementView({
   );
 
   const [employeeId, setEmployeeId] = React.useState("");
-  const [statusReason, setStatusReason] = React.useState("");
+  const [editing, setEditing] = React.useState<AccountSettingsValue | null>(null);
+  const [confirmCreate, setConfirmCreate] = React.useState(false);
   const [error, setError] = React.useState("");
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -99,20 +96,22 @@ export function UsersManagementView({
         u.department.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
-  const handleAccountStatus = async (id: string, status: string) => {
-    setError("");
-    try {
-      if (status === "active") await reactivateUserAction(id);
-      else if (status === "archived") await archiveUserAction(id);
-      else await suspendUserAction(id, statusReason);
-      window.location.reload();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : t.hrExtensions.failed);
-    }
-  };
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const statusOf = (u: Profile): AccountSettingsValue["status"] =>
+    u.archived_at ? "archived" : u.suspended_at ? "suspended" : u.is_active ? "active" : "inactive";
+  const accountValue = (u: Profile): AccountSettingsValue => ({
+    userId: u.id,
+    fullName: u.full_name,
+    role: u.role,
+    managerId: u.manager_id ?? null,
+    status: statusOf(u),
+    discountLimitPercent: u.discount_limit_percent ?? null,
+    commissionRatePercent: u.commission_rate_percent ?? null,
+  });
+
+  const handleCreateUser = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!email || !fullName || !password) return;
+    setConfirmCreate(false);
     setSaving(true);
 
     try {
@@ -130,6 +129,7 @@ export function UsersManagementView({
       if (res.user) {
         setUsers([res.user as Profile, ...users]);
         setSuccessMsg(`${fullName}: ${t.usersView.userCreatedSuccess}`);
+        toast.success(`${fullName}: ${t.usersView.userCreatedSuccess}`);
         setFullName("");
         setEmail("");
         setPassword("");
@@ -144,39 +144,11 @@ export function UsersManagementView({
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: UserRole) => {
-    const res = await updateUserRoleAction(userId, newRole);
-    if (res.success) {
-      setUsers(
-        users.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
-      );
-    }
-  };
-
-  const handleManagerChange = async (userId: string, newManagerId: string) => {
-    const managerUser = users.find((u) => u.id === newManagerId);
-    const res = await updateUserAction(userId, {
-      manager_id: newManagerId || undefined,
-    });
-    if (res.success) {
-      setUsers(
-        users.map((u) =>
-          u.id === userId
-            ? {
-                ...u,
-                manager_id: newManagerId || undefined,
-                manager_name: managerUser?.full_name,
-              }
-            : u,
-        ),
-      );
-    }
-  };
-
   const handleDeleteUser = async (userId: string) => {
     try {
       await deleteUserAction(userId);
       setUsers(users.filter((u) => u.id !== userId));
+      toast.success(t.actions.delete);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.hrExtensions.failed);
     }
@@ -189,13 +161,6 @@ export function UsersManagementView({
           {error}
         </p>
       )}
-      <label className="block text-sm">
-        {t.hrExtensions.reviewNotes}
-        <Input
-          value={statusReason}
-          onChange={(e) => setStatusReason(e.target.value)}
-        />
-      </label>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-ink font-display flex items-center gap-2">
@@ -276,7 +241,6 @@ export function UsersManagementView({
                   <th className="p-4 text-start">{t.usersManagement.reportsTo}</th>
                   <th className="p-4 text-start">{t.usersView.roleHeader}</th>
                   <th className="p-4 text-start">{t.usersManagement.discountLimit}</th>
-                  <th className="p-4 text-start">{t.usersManagement.commissionRate}</th>
                   <th className="p-4 text-start">{t.usersManagement.signature}</th>
                   <th className="p-4 text-start">{t.usersView.statusHeader}</th>
                   <th className="p-4 text-end">{t.usersView.actionsHeader}</th>
@@ -327,67 +291,20 @@ export function UsersManagementView({
                         </div>
                       </td>
 
-                      {/* Reports To Selector */}
-                      <td className="p-4">
-                        <select
-                          disabled={!canWrite}
-                          value={u.manager_id || ""}
-                          onChange={(e) =>
-                            handleManagerChange(u.id, e.target.value)
-                          }
-                          className="bg-surface-sunken border border-ink/10 rounded-xl px-2.5 py-1 text-xs text-primary dark:text-mint focus:outline-none focus:border-accent cursor-pointer max-w-[160px] truncate"
-                          title={t.usersManagement.changeManager}
-                        >
-                          <option value="">{t.usersManagement.noneIndependent}</option>
-                          {users
-                            .filter((cand) => cand.id !== u.id)
-                            .map((cand) => (
-                              <option key={cand.id} value={cand.id}>
-                                {cand.full_name} ({cand.role})
-                              </option>
-                            ))}
-                        </select>
+                      <td className="p-4 text-ink-muted">
+                        {users.find((x) => x.id === u.manager_id)?.full_name ?? t.usersManagement.noneIndependent}
                       </td>
 
-                      <td className="p-4">
-                        <select
-                          disabled={!canWrite}
-                          value={u.role}
-                          onChange={(e) =>
-                            handleRoleChange(u.id, e.target.value as UserRole)
-                          }
-                          className="bg-surface-sunken border border-ink/10 rounded-xl px-3 py-1 text-xs text-ink focus:outline-none focus:border-accent cursor-pointer"
-                        >
-                          {allRoles.map((r) => (
-                            <option key={r.key} value={r.key}>
-                              {r.name}
-                            </option>
-                          ))}
-                        </select>
+                      <td className="p-4 text-ink">
+                        {allRoles.find((r) => r.key === u.role)?.name ?? u.role}
                       </td>
 
-                      <td className="p-4">
-                        {u.role === "super_admin" ? (
-                          <span className="text-[11px] text-ink-muted">{t.usersManagement.unlimited}</span>
-                        ) : (
-                          <PercentCell
-                            value={u.discount_limit_percent ?? null}
-                            disabled={!canWrite}
-                            placeholder={t.usersManagement.companyDefault}
-                            label={t.usersManagement.discountLimit}
-                            onSave={(next) => updateUserDiscountLimitAction(u.id, next)}
-                          />
-                        )}
-                      </td>
-
-                      <td className="p-4">
-                        <PercentCell
-                          value={u.commission_rate_percent ?? null}
-                          disabled={!canWrite}
-                          placeholder={t.usersManagement.noCommission}
-                          label={t.usersManagement.commissionRate}
-                          onSave={(next) => updateUserCommissionRateAction(u.id, next)}
-                        />
+                      <td className="p-4 text-ink-muted">
+                        {u.role === "super_admin"
+                          ? t.usersManagement.unlimited
+                          : u.discount_limit_percent == null
+                            ? t.usersManagement.companyDefault
+                            : <bdi dir="ltr">{u.discount_limit_percent}%</bdi>}
                       </td>
 
                       {/* Digital Signature Preview */}
@@ -421,37 +338,18 @@ export function UsersManagementView({
                         </span>
                       </td>
 
-                      <td className="p-4 text-end">
-                        <select
-                          disabled={!canWrite}
-                          aria-label={t.hrExtensions.accountStatus}
-                          value={
-                            u.archived_at
-                              ? "archived"
-                              : u.suspended_at
-                                ? "suspended"
-                                : u.is_active
-                                  ? "active"
-                                  : "inactive"
-                          }
-                          onChange={(e) =>
-                            void handleAccountStatus(u.id, e.target.value)
-                          }
-                          className="bg-transparent border rounded p-1"
-                        >
-                          <option value="active">
-                            {t.hrExtensions.active}
-                          </option>
-                          <option value="suspended">
-                            {t.hrExtensions.suspended}
-                          </option>
-                          <option value="inactive" disabled>
-                            {t.hrExtensions.inactive}
-                          </option>
-                          <option value="archived">
-                            {t.hrExtensions.archived}
-                          </option>
-                        </select>
+                      <td className="p-4 text-end whitespace-nowrap">
+                        {u.role === "super_admin" ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-ink/5 px-2.5 py-1 text-[11px] font-medium text-ink-muted" title={t.accountSettings.protectedHint}>
+                            <Lock className="w-3 h-3" />
+                            {t.accountSettings.lockedRow}
+                          </span>
+                        ) : canWrite ? (
+                          <Button type="button" size="sm" variant="outline" onClick={() => setEditing(accountValue(u))}>
+                            <Pencil className="w-3.5 h-3.5" />
+                            {t.accountSettings.editShort}
+                          </Button>
+                        ) : null}
                         {canDelete && u.role !== "super_admin" && (
                           <button
                             onClick={() => setDeleteTargetId(u.id)}
@@ -528,7 +426,13 @@ export function UsersManagementView({
         onClose={() => setShowCreateModal(false)}
         title={t.actions.addUser}
       >
-        <form onSubmit={handleCreateUser} className="space-y-4 text-xs">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (email && fullName && password) setConfirmCreate(true);
+          }}
+          className="space-y-4 text-xs"
+        >
           <label>
             {t.hrExtensions.employeeFirst}
             <Select
@@ -690,6 +594,31 @@ export function UsersManagementView({
         </form>
       </Modal>
 
+      <Modal closeLabel={t.actions.close} isOpen={confirmCreate} onClose={() => setConfirmCreate(false)} title={t.accountSettings.confirmCreateTitle}>
+        <p className="text-sm text-ink">
+          {t.accountSettings.confirmCreateBody
+            .replace("{name}", fullName)
+            .replace("{email}", email)
+            .replace("{role}", allRoles.find((r) => r.key === role)?.name ?? role)}
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmCreate(false)}>{t.actions.cancel}</Button>
+          <Button type="button" size="sm" disabled={saving} onClick={() => void handleCreateUser()}>{t.accountSettings.create}</Button>
+        </div>
+      </Modal>
+
+      {editing && (
+        <AccountSettingsDialog
+          value={editing}
+          fields={["role", "managerId", "status", "discountLimitPercent"]}
+          roles={allRoles.filter((r) => r.key !== "super_admin" || actorRole === "super_admin").map((r) => ({ id: r.key, name: r.name }))}
+          managers={users.filter((x) => x.is_active).map((x) => ({ id: x.id, name: x.full_name }))}
+          requiresApproval={false}
+          onClose={() => setEditing(null)}
+          onSaved={() => window.location.reload()}
+        />
+      )}
+
       <ConfirmDestructiveModal
         isOpen={!!deleteTargetId}
         onClose={() => setDeleteTargetId(null)}
@@ -704,45 +633,6 @@ export function UsersManagementView({
         confirmLabel={t.actions.delete}
         cancelLabel={t.actions.cancel}
       />
-    </div>
-  );
-}
-
-function PercentCell({ value, disabled, placeholder, label, onSave }: { value: number | null; disabled: boolean; placeholder: string; label: string; onSave: (next: number | null) => Promise<unknown> }) {
-  const [draft, setDraft] = React.useState(value === null ? "" : String(value));
-  const [state, setState] = React.useState<"idle" | "saving" | "saved" | "error">("idle");
-  const save = async () => {
-    const next = draft.trim() === "" ? null : Number(draft);
-    if (next === value || (next !== null && !Number.isFinite(next))) return;
-    setState("saving");
-    try {
-      await onSave(next);
-      setState("saved");
-    } catch {
-      setState("error");
-    }
-  };
-  return (
-    <div className="flex items-center gap-1">
-      <input
-        type="number"
-        min={0}
-        max={100}
-        step="0.5"
-        aria-label={label}
-        disabled={disabled}
-        value={draft}
-        placeholder={placeholder}
-        onChange={(e) => {
-          setDraft(e.target.value);
-          setState("idle");
-        }}
-        onBlur={save}
-        onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
-        className={`w-20 bg-surface-sunken border rounded-xl px-2.5 py-1 text-xs text-ink focus:outline-none focus:border-accent ${state === "error" ? "border-rose-500" : "border-ink/10"}`}
-      />
-      <span className="text-[11px] text-ink-muted">%</span>
-      {state === "saved" && <span className="text-[10px] text-emerald-500">✓</span>}
     </div>
   );
 }

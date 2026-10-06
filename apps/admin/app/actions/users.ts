@@ -26,13 +26,10 @@ async function checkUserManagement(
 ) {
   const target = id ? await getUserById(id) : null;
   if (id && !target) throw new Error("User not found");
-  if (
-    actor.role !== "super_admin" &&
-    (target?.role === "super_admin" || role === "super_admin")
-  )
-    throw new Error(
-      "Only super administrators can manage super administrators",
-    );
+  // Super Admin accounts are protected: nobody changes, suspends, archives or deletes them from user management.
+  if (target?.role === "super_admin") throw new Error("Super Admin accounts are protected and cannot be changed");
+  if (actor.role !== "super_admin" && role === "super_admin")
+    throw new Error("Only super administrators can make someone a Super Admin");
   if (
     role &&
     !(await db.role.findUnique({ where: { id: role }, select: { id: true } }))
@@ -462,6 +459,7 @@ export async function updateUserDiscountLimitAction(id: string, limit: number | 
     const actor = await requirePermission("users", "write");
     validateActionArguments("updateUserDiscountLimitAction", { id, limit });
     const result = await runAtomicMutation(async () => {
+      await checkUserManagement(actor, id);
       const before = await db.user.findUniqueOrThrow({ where: { id }, select: { discountLimitPercent: true } });
       const result = await setUserDiscountLimit(id, limit);
       await createActivityLog({

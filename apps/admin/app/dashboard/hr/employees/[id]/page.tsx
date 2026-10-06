@@ -3,7 +3,8 @@ import { SalaryDocumentsView } from "../../../../../components/hr/SalaryDocument
 import { availablePayslipMonths, canManageSalaryDocuments, decidableSalaryDocumentIds } from "../../../../../lib/salary-documents";
 import { notFound } from "next/navigation";
 import { requirePagePermission, hasPermission } from "../../../../../lib/auth";
-import { getEmployeeById, listDepartments, db, getLeaveBalances } from "@ishoot/database";
+import { getEmployeeById, listDepartments, db, getLeaveBalances, accountSnapshot, listAccountChangeRequests } from "@ishoot/database";
+import { EmployeeAccountCard } from "../../../../../components/hr/EmployeeAccountCard";
 import { LeaveBalancesCard } from "../../../../../components/hr/LeaveBalancesCard";
 import { EmployeePayHistory } from "../../../../../components/hr/EmployeePayHistory";
 import { EmployeeDetailView } from "../../../../../components/hr/EmployeeDetailView";
@@ -32,6 +33,14 @@ export default async function EmployeeDetailPage({
     notFound();
   }
 
+  const linkedUserId = (employee as { userId?: string | null }).userId ?? null;
+  const [canManageUsers, account, accountRequests, roleRows, managerRows] = await Promise.all([
+    hasPermission("users", "write"),
+    linkedUserId ? accountSnapshot(linkedUserId) : Promise.resolve(null),
+    linkedUserId ? listAccountChangeRequests(linkedUserId) : Promise.resolve([]),
+    db.role.findMany({ select: { id: true, nameEn: true, nameAr: true }, orderBy: { createdAt: "asc" } }),
+    db.user.findMany({ where: { isActive: true }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" } }),
+  ]);
   const year = new Date().getUTCFullYear();
   const [balances, payItems] = await Promise.all([
     getLeaveBalances(id, year),
@@ -61,6 +70,17 @@ export default async function EmployeeDetailPage({
       canEdit={canEdit}
       canViewPay={canViewPay}
       canEditPay={canEditPay}
+    />
+    <EmployeeAccountCard
+      account={account && linkedUserId ? { userId: linkedUserId, fullName: account.fullName, role: account.role, managerId: account.managerId, status: account.status, discountLimitPercent: account.discountLimitPercent, commissionRatePercent: account.commissionRatePercent } : null}
+      email={account?.email ?? null}
+      isSuperAdmin={account?.isSuperAdmin ?? false}
+      roles={roleRows.map((r) => ({ id: r.id, name: r.nameEn, nameAr: r.nameAr })).map((r) => ({ id: r.id, name: r.name }))}
+      managers={managerRows.map((m) => ({ id: m.id, name: m.fullName }))}
+      requests={accountRequests as never}
+      canManageUsers={canManageUsers}
+      canEditEmployees={canEdit}
+      canViewPay={canViewPay}
     />
     <LeaveBalancesCard balances={balances} year={year} employeeId={id} canAdjust={canEdit} />
     {canViewPay && <EmployeePayHistory rows={payItems.map((p) => ({ id: p.id, month: p.payrollRun.month, year: p.payrollRun.year, netSalary: Number(p.netSalary), paymentStatus: p.paymentStatus, runStatus: p.payrollRun.status }))} />}

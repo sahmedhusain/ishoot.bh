@@ -53,7 +53,7 @@ export function LeaveBalancesCard({ balances, year, employeeId, canAdjust = fals
         <table className="w-full min-w-[560px] text-xs">
           <thead>
             <tr className="text-slate-500 dark:text-slate-400">
-              <th scope="col" className="py-2 pe-3 text-start font-medium">{t.leaveManagement.leaveType2}</th>
+              <th scope="col" className="py-2 pe-3 text-start font-medium">{t.leaveManagement.leaveType2.replace(/\s*\*$/, "")}</th>
               <th scope="col" className="py-2 px-2 text-end font-medium">{l.entitled}</th>
               <th scope="col" className="py-2 px-2 text-end font-medium">{l.carried}</th>
               <th scope="col" className="py-2 px-2 text-end font-medium">{l.adjusted}</th>

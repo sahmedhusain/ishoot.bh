@@ -95,6 +95,8 @@ model User {
   employee                   Employee?              @relation("UserEmployee")
   socialPlansAssigned        SocialContentPlan[]    @relation("SocialPlanAssignee")
   socialPlansCreated         SocialContentPlan[]    @relation("SocialPlanCreator")
+  accountChanges             AccountChangeRequest[] @relation("AccountChangeTarget")
+  accountChangesFiled        AccountChangeRequest[] @relation("AccountChangeRequester")
 
   @@index([role])
 }
@@ -1859,6 +1861,29 @@ model SupportReimbursement {
   createdAt      DateTime @default(now())
 
   @@unique([employeeId, provider, periodStart])
+}
+
+/// Account settings change filed from HR (role, manager, status, discount limit, commission); applied once approved.
+model AccountChangeRequest {
+  id            String    @id @default(uuid())
+  userId        String
+  user          User      @relation("AccountChangeTarget", fields: [userId], references: [id], onDelete: Cascade)
+  requestedById String
+  requestedBy   User      @relation("AccountChangeRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  /// Only the fields being changed: role, managerId, status, statusReason, discountLimitPercent, commissionRatePercent.
+  changes       Json
+  /// The same fields as they were when the request was filed.
+  before        Json
+  reason        String?
+  /// pending | approved | rejected | cancelled
+  status        String    @default("pending")
+  decidedById   String?
+  reviewNotes   String?
+  decidedAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status])
 }
 
 /// A drawn signature waiting to replace a user's signature; applied only once approved. Kept as the change log.

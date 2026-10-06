@@ -1,3 +1,4 @@
+import { toLeaveTypeRules } from "./hr-settings";
 import { parsePayrollSettings } from "../payroll-calculation";
 import type { Prisma } from "@prisma/client";
 import { db } from "../db";
@@ -186,7 +187,8 @@ export async function getEmployeeById(id: string): Promise<Employee | null> {
     leaveRequests: emp.leaveRequests.map((r) => ({
       ...r,
       hours: r.hours == null ? null : Number(r.hours),
-      leaveType: { ...r.leaveType, daysAllowedPerYear: Number(r.leaveType.daysAllowedPerYear) },
+      days: Number(r.days),
+      leaveType: toLeaveTypeRules(r.leaveType),
     })),
     employmentRecords: emp.employmentRecords.map((r) => ({
       ...r,

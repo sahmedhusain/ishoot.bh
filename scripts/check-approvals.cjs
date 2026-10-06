@@ -119,6 +119,7 @@ function createEngine(db, finalized) {
     "../queries/inquiries": { approveRequest: async () => {}, returnRequest: async () => {} },
     "../queries/signature-changes": { approveSignatureChange: async () => {}, rejectSignatureChange: async () => {} },
     "../queries/fx-settlement": { getLatestExchangeRate: async () => ({ rate: 1 }) },
+    "../queries/account-changes": { approveAccountChange: async () => {}, rejectAccountChange: async () => {} },
   });
 }
 

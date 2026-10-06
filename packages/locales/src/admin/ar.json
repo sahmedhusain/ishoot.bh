@@ -2305,7 +2305,8 @@
       "expense": "مصروف",
       "invoice": "فاتورة",
       "expense_claim": "مطالبة مصروف",
-      "signature_change": "تغيير التوقيع"
+      "signature_change": "تغيير التوقيع",
+      "account_change": "تغيير حساب"
     },
     "kpis": {
       "awaiting": "بانتظار قرارك",
@@ -4552,5 +4553,58 @@
     "title": "لا تملك صلاحية الوصول إلى هذه الصفحة",
     "body": "دورك لا يشمل هذا الجزء من النظام. اطلب من المسؤول إن كنت بحاجة إليه.",
     "back": "العودة إلى لوحة التحكم"
+  },
+  "accountSettings": {
+    "title": "الحساب والصلاحيات",
+    "subtitle": "دور الدخول وخط الإبلاغ وحالة الحساب وإعدادات المبيعات.",
+    "edit": "تعديل إعدادات الحساب",
+    "noAccount": "لا يوجد حساب دخول مرتبط بهذا الموظف.",
+    "protected": "حساب المدير العام — محمي",
+    "protectedHint": "لا يمكن تعديل حسابات المدير العام من هنا.",
+    "role": "الدور",
+    "manager": "المدير المباشر",
+    "noManager": "بدون مدير",
+    "status": "حالة الحساب",
+    "statusReason": "سبب الإيقاف",
+    "discountLimit": "حد الخصم (%)",
+    "discountDefault": "الافتراضي للشركة",
+    "commissionRate": "عمولة المبيعات (%)",
+    "noCommission": "بدون عمولة",
+    "statuses": {
+      "active": "نشط",
+      "suspended": "موقوف",
+      "archived": "مؤرشف",
+      "inactive": "غير نشط"
+    },
+    "review": "مراجعة التغييرات",
+    "reviewHint": "راجع التغييرات أدناه قبل الحفظ.",
+    "from": "من",
+    "to": "إلى",
+    "back": "رجوع",
+    "confirm": "تأكيد وحفظ",
+    "confirmRequest": "إرسال للاعتماد",
+    "cancel": "إلغاء",
+    "approvalNote": "يمكن لدورك اقتراح هذه التغييرات، ويعتمدها مسؤول قبل تطبيقها.",
+    "requestReason": "سبب التغيير",
+    "saved": "تم حفظ إعدادات الحساب",
+    "requested": "أُرسل التغيير لاعتماد المسؤول",
+    "nothing": "لا توجد تغييرات للحفظ",
+    "pendingTitle": "بانتظار الاعتماد",
+    "pendingBy": "طلبه {name}",
+    "withdraw": "سحب",
+    "withdrawn": "تم سحب التغيير",
+    "history": "آخر تغييرات الحساب",
+    "requestStatuses": {
+      "pending": "قيد الانتظار",
+      "approved": "معتمد",
+      "rejected": "مرفوض",
+      "cancelled": "مسحوب"
+    },
+    "confirmCreateTitle": "إنشاء هذا المستخدم؟",
+    "confirmCreateBody": "سيحصل {name} ({email}) على حساب دخول بدور {role}.",
+    "create": "إنشاء المستخدم",
+    "editShort": "تعديل",
+    "lockedRow": "محمي",
+    "email": "بريد الدخول"
   }
 }

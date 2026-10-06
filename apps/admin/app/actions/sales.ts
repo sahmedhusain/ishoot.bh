@@ -38,7 +38,8 @@ export async function updateUserCommissionRateAction(id: string, rate: number | 
     const actor = await requirePermission("users", "write");
     validateActionArguments("updateUserCommissionRateAction", { id, rate });
     const result = await runAtomicMutation(async () => {
-      const before = await db.user.findUniqueOrThrow({ where: { id }, select: { commissionRatePercent: true } });
+      const before = await db.user.findUniqueOrThrow({ where: { id }, select: { commissionRatePercent: true, role: true } });
+      if (before.role === "super_admin") throw new Error("Super Admin accounts are protected and cannot be changed");
       const result = await setUserCommissionRate(id, rate);
       await createActivityLog({
         user_id: actor.id,

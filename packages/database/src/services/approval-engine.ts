@@ -13,6 +13,7 @@ import { approveProfileChange, rejectProfileChange } from "../queries/profile-ch
 import { salaryDocumentSnapshot } from "../queries/salary-documents";
 import { approveRequest, returnRequest } from "../queries/inquiries";
 import { approveSignatureChange, rejectSignatureChange } from "../queries/signature-changes";
+import { approveAccountChange, rejectAccountChange } from "../queries/account-changes";
 import { getLatestExchangeRate } from "../queries/fx-settlement";
 import { leaveDaysRequested } from "../constants/hr";
 
@@ -149,6 +150,10 @@ const finalizers: Partial<Record<ApprovalTargetType, Finalizer>> = {
   signature_change: {
     approve: (id, decider, reason) => approveSignatureChange(id, decider, reason),
     reject: (id, decider, reason) => rejectSignatureChange(id, decider, reason),
+  },
+  account_change: {
+    approve: (id, decider, reason) => approveAccountChange(id, decider, reason),
+    reject: (id, decider, reason) => rejectAccountChange(id, decider, reason),
   },
   expense_claim: {
     async approve(id, _decider, reason) {

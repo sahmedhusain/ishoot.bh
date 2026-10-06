@@ -1,4 +1,101 @@
 {
+  "saveAccountSettingsAction": {
+    "kind": "object",
+    "fields": {
+      "userId": {
+        "kind": "string",
+        "optional": false
+      },
+      "changes": {
+        "kind": "object",
+        "fields": {
+          "role": {
+            "kind": "string",
+            "optional": true
+          },
+          "managerId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "status": {
+            "kind": "string",
+            "optional": true
+          },
+          "statusReason": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "discountLimitPercent": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "commissionRatePercent": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      },
+      "reason": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "string"
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": true
+      }
+    }
+  },
+  "cancelAccountChangeAction": {
+    "kind": "object",
+    "fields": {
+      "requestId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "updateApprovalPolicyAction": {
     "kind": "object",
     "fields": {

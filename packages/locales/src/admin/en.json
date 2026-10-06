@@ -2305,7 +2305,8 @@
       "expense": "Expense",
       "invoice": "Invoice",
       "expense_claim": "Expense claim",
-      "signature_change": "Signature change"
+      "signature_change": "Signature change",
+      "account_change": "Account change"
     },
     "kpis": {
       "awaiting": "Awaiting your decision",
@@ -4552,5 +4553,58 @@
     "title": "You don't have access to this page",
     "body": "Your role does not include this part of the system. Ask an administrator if you need it.",
     "back": "Back to dashboard"
+  },
+  "accountSettings": {
+    "title": "Account & access",
+    "subtitle": "Login role, reporting line, account status and sales settings.",
+    "edit": "Edit account settings",
+    "noAccount": "No login account is linked to this employee.",
+    "protected": "Super Admin account — protected",
+    "protectedHint": "Super Admin accounts cannot be changed from here.",
+    "role": "Role",
+    "manager": "Reports to",
+    "noManager": "No manager",
+    "status": "Account status",
+    "statusReason": "Reason for suspension",
+    "discountLimit": "Discount limit (%)",
+    "discountDefault": "Company default",
+    "commissionRate": "Sales commission (%)",
+    "noCommission": "No commission",
+    "statuses": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "archived": "Archived",
+      "inactive": "Inactive"
+    },
+    "review": "Review changes",
+    "reviewHint": "Check the changes below before saving.",
+    "from": "From",
+    "to": "To",
+    "back": "Back",
+    "confirm": "Confirm and save",
+    "confirmRequest": "Send for approval",
+    "cancel": "Cancel",
+    "approvalNote": "Your role can propose these changes; an administrator approves them before they take effect.",
+    "requestReason": "Reason for the change",
+    "saved": "Account settings saved",
+    "requested": "Change sent for administrator approval",
+    "nothing": "No changes to save",
+    "pendingTitle": "Waiting for approval",
+    "pendingBy": "Requested by {name}",
+    "withdraw": "Withdraw",
+    "withdrawn": "Change withdrawn",
+    "history": "Recent account changes",
+    "requestStatuses": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Withdrawn"
+    },
+    "confirmCreateTitle": "Create this user?",
+    "confirmCreateBody": "{name} ({email}) will get a login with the {role} role.",
+    "create": "Create user",
+    "editShort": "Edit",
+    "lockedRow": "Protected",
+    "email": "Login e-mail"
   }
 }

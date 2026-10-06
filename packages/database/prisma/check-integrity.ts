@@ -161,6 +161,7 @@ const RULES: Rule[] = [
         WHEN 'profile_change' THEN EXISTS (SELECT 1 FROM "ProfileChangeRequest" t WHERE t.id = a."targetId" AND t.status = 'pending')
         WHEN 'salary_document' THEN EXISTS (SELECT 1 FROM "SalaryDocument" t WHERE t.id = a."targetId" AND t.status = 'pending')
         WHEN 'invoice' THEN EXISTS (SELECT 1 FROM "Invoice" t WHERE t.id = a."targetId" AND t."approvalStatus" = 'submitted')
+        WHEN 'account_change' THEN EXISTS (SELECT 1 FROM "AccountChangeRequest" t WHERE t.id = a."targetId" AND t.status = 'pending')
         ELSE false END` },
   { area: "approvals", name: "items waiting for approval have a pending approval request",
     sql: `SELECT 'quotation' t, id FROM "Quotation" x WHERE status = 'submitted' AND NOT EXISTS (SELECT 1 FROM "ApprovalRequest" a WHERE a."targetId" = x.id AND a.status = 'pending')
