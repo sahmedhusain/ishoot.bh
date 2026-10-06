@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { getAllClientLogos } from "@ishoot/database";
 import { ClientsManagementView } from "../../../../components/cms/ClientsManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
@@ -6,7 +6,7 @@ import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePubl
 export const dynamic = "force-dynamic";
 
 export default async function ClientLogosManagerPage() {
-  await requirePermission("clients", "read");
+  await requirePagePermission("clients", "read");
   const logos = await getAllClientLogos();
 
   return (

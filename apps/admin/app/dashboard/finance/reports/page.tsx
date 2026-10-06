@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { getFinancialSummaryReport, getFinancialReportDetail } from "@ishoot/database";
 import { companyVat } from "@ishoot/database/finance/vat";
 import { FinancialReportDetailView } from "../../../../components/finance/FinancialReportDetailView";
@@ -11,7 +11,7 @@ export default async function FinancialReportsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requirePermission("reports", "read");
+  await requirePagePermission("reports", "read");
   const query = await searchParams;
   const basis = query.basis === "accrual" ? "accrual" : "cash";
   const dateFrom = typeof query.dateFrom === "string" ? query.dateFrom : undefined;

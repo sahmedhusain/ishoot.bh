@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import {
 verifySessionToken,
 SessionJwtPayload,
@@ -73,6 +73,19 @@ export async function requirePermission(
     );
   }
 
+  return user;
+}
+
+/**
+ * For pages: like requirePermission, but a missing permission renders the "no access" page (HTTP 403)
+ * instead of an error. Server actions keep using requirePermission, which throws.
+ */
+export async function requirePagePermission(
+  resource: PermissionResource,
+  action: PermissionAction,
+): Promise<Profile> {
+  const user = await requireAuth();
+  if ((await getCurrentPermissions())[`${resource}:${action}`] !== true) forbidden();
   return user;
 }
 

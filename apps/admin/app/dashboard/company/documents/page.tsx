@@ -1,9 +1,9 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { getCompanyDocuments } from "@ishoot/database";
 import { CompanyDocumentsClientView } from "../../../../components/company/CompanyDocumentsClientView";
 
 export default async function CompanyDocumentsPage() {
-  await requirePermission("settings", "read");
+  await requirePagePermission("settings", "read");
   const documents = await getCompanyDocuments();
 
   return <CompanyDocumentsClientView initialDocuments={documents} />;

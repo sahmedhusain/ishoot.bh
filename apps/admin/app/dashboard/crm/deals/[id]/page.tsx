@@ -1,6 +1,6 @@
 import {
 getCurrentPermissions,
-requirePermission,
+requirePagePermission,
 } from "../../../../../lib/auth";
 import {
 getCRMDealById,
@@ -23,7 +23,7 @@ export default async function DealDetailPage({
   params,
   searchParams,
 }: DealDetailPageProps) {
-  await requirePermission("deals", "read");
+  await requirePagePermission("deals", "read");
   const { id } = await params;
   const deal = await getCRMDealById(id);
 

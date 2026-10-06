@@ -1,4 +1,4 @@
-import { requirePermission, hasPermission } from "../../../../lib/auth";
+import { requirePagePermission, hasPermission } from "../../../../lib/auth";
 import { listLeaveRequests, listLeaveTypes, listEmployees, db, canDecideApproval, getLeaveBalances } from "@ishoot/database";
 import { LeaveManagementView } from "../../../../components/hr/LeaveManagementView";
 
@@ -10,7 +10,7 @@ export default async function LeaveManagementPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   // Leave is self-service: every staff member with self_service:read can file and follow their own.
-  const user = await requirePermission("self_service", "read");
+  const user = await requirePagePermission("self_service", "read");
   const query = await searchParams;
   const status = typeof query.status === "string" ? query.status : "all";
   const employeeId = typeof query.employeeId === "string" ? query.employeeId : undefined;

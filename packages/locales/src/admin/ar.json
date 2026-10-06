@@ -4392,8 +4392,8 @@
     "absentShort": "غ",
     "halfShort": "½",
     "presentShort": "ح",
-    "leaveShort": "إ",
-    "holidayShort": "ع",
+    "leaveShort": "إج",
+    "holidayShort": "عط",
     "edit": "الحضور — {name}",
     "status": "الحالة",
     "checkIn": "الدخول",
@@ -4545,5 +4545,10 @@
     "adjustSaved": "تم تعديل الرصيد",
     "notAllowedHalf": "لا يمكن أخذ هذا النوع نصف يوم",
     "notAllowedHours": "لا يمكن أخذ هذا النوع بالساعة"
+  },
+  "forbidden": {
+    "title": "لا تملك صلاحية الوصول إلى هذه الصفحة",
+    "body": "دورك لا يشمل هذا الجزء من النظام. اطلب من المسؤول إن كنت بحاجة إليه.",
+    "back": "العودة إلى لوحة التحكم"
   }
 }

@@ -1,4 +1,4 @@
-import { hasPermission, requirePermission } from "../../../../lib/auth";
+import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { listPayrollRuns, db, canDecideApproval, getSupportClaims } from "@ishoot/database";
 import { SupportClaimsPanel } from "../../../../components/hr/SupportClaimsPanel";
 import { PayrollManagementView } from "../../../../components/hr/PayrollManagementView";
@@ -6,7 +6,7 @@ import { PayrollManagementView } from "../../../../components/hr/PayrollManageme
 export const dynamic = "force-dynamic";
 
 export default async function PayrollPage() {
-  const user = await requirePermission("payroll", "read");
+  const user = await requirePagePermission("payroll", "read");
   const runs = await listPayrollRuns();
 
   const submittedIds = runs.filter((run) => run.status === "submitted").map((run) => run.id);

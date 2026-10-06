@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../../../lib/auth";
+import { requirePagePermission } from "../../../../../../lib/auth";
 import { getCRMDealById,getCRMContactById,db } from "@ishoot/database";
 import { notFound } from "next/navigation";
 import { DealEditFormView } from "../../../../../../components/crm/DealEditFormView";
@@ -10,8 +10,8 @@ interface DealEditPageProps {
 }
 
 export default async function DealEditPage({ params }: DealEditPageProps) {
-  await requirePermission("deals", "write");
-  await requirePermission("contacts", "read");
+  await requirePagePermission("deals", "write");
+  await requirePagePermission("contacts", "read");
   const { id } = await params;
 
   const dealPromise = getCRMDealById(id);

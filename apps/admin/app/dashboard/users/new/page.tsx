@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { db } from "@ishoot/database";
 import { Metadata } from "next";
 import { NewUserFormView } from "@/components/users/NewUserFormView";
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewUserPage() {
-  await requirePermission("users", "write");
+  await requirePagePermission("users", "write");
   const roles = await db.role.findMany({
     select: { id: true, nameEn: true, nameAr: true },
     orderBy: { createdAt: "asc" },

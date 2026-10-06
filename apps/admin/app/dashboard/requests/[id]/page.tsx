@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { hasPermission, requirePermission } from "../../../../lib/auth";
+import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getConsolidatedRequestById, db, findPendingApproval, canDecideApproval } from "@ishoot/database";
 import { RequestDetailView } from "../../../../components/requests/RequestDetailView";
 
@@ -10,7 +10,7 @@ export default async function RequestDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const currentUser = await requirePermission("requests", "read");
+  const currentUser = await requirePagePermission("requests", "read");
   const { id } = await params;
 
   const [request, users, pendingApproval, leadsWrite, contactsWrite, dealsWrite] = await Promise.all([

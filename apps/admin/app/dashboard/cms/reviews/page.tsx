@@ -1,9 +1,9 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { getReviews } from "@ishoot/database";
 import { ReviewsManagementView } from "../../../../components/cms/ReviewsManagementView";
 
 export default async function ReviewsSettingsPage() {
-  await requirePermission("reviews", "read");
+  await requirePagePermission("reviews", "read");
 
   const reviews = await getReviews(true);
 

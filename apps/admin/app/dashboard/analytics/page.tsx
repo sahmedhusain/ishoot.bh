@@ -1,11 +1,11 @@
 import { db, getSocialAnalytics, listSocialPlans } from "@ishoot/database";
-import { requirePermission } from "../../../lib/auth";
+import { requirePagePermission } from "../../../lib/auth";
 import { SocialAnalyticsView } from "../../../components/analytics/SocialAnalyticsView";
 
 export const dynamic = "force-dynamic";
 
 export default async function SocialAnalyticsPage({ searchParams }: { searchParams: Promise<{ days?: string; platform?: string }> }) {
-  await requirePermission("social", "read");
+  await requirePagePermission("social", "read");
   const params = await searchParams;
   const [analytics, plans, team] = await Promise.all([
     getSocialAnalytics({ days: Number(params.days) || 30, platform: params.platform ?? null }),

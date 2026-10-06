@@ -38,7 +38,7 @@ const fill = (template: string, values: Record<string, string | number>) =>
 
 function useMoney() {
   const { locale, t } = useAdminLocale();
-  const format = React.useMemo(() => new Intl.NumberFormat(locale === "ar" ? "ar-BH" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 }), [locale]);
+  const format = React.useMemo(() => new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 }), [locale]);
   return function money(value: number) {
     return (
       <bdi dir="ltr" className="whitespace-nowrap tabular-nums">
@@ -56,8 +56,7 @@ function Line({ label, detail, value, tone = "default", strong = false }: { labe
         {detail && <p className="text-[11px] text-slate-500 dark:text-slate-400">{detail}</p>}
       </div>
       <span className={`shrink-0 text-sm ${strong ? "font-bold text-slate-900 dark:text-white" : tone === "minus" ? "text-rose-700 dark:text-rose-400" : tone === "plus" ? "text-emerald-700 dark:text-emerald-400" : "text-slate-800 dark:text-slate-100"}`}>
-        {tone === "minus" && <span aria-hidden>−</span>}
-        {value}
+        {tone === "minus" ? <bdi dir="ltr">−{value}</bdi> : value}
       </span>
     </div>
   );
@@ -73,7 +72,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
   const editable = canEdit && (run.status === "draft" || run.status === "calculated");
   const payable = canPay && run.status === "approved" && item.paymentStatus !== "paid";
   const name = locale === "ar" ? `${employee.firstNameAr} ${employee.lastNameAr}` : `${employee.firstNameEn} ${employee.lastNameEn}`;
-  const monthLabel = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-BH", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(run.year, run.month - 1, 1)));
+  const monthLabel = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(run.year, run.month - 1, 1)));
   const hours = (minutes: number) => Math.round((minutes / 60) * 100) / 100;
 
   const [bonus, setBonus] = React.useState(String(item.bonus || ""));
@@ -141,7 +140,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
       </nav>
 
       <header className="flex flex-wrap items-start gap-4">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-72">
           <p className="text-xs font-medium text-primary dark:text-accent">{monthLabel}</p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white">{name}</h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
@@ -154,7 +153,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
             <div className="flex gap-1"><dt>{p.joined}:</dt><dd><DateDisplay date={employee.hireDate} locale={locale} /></dd></div>
           </dl>
         </div>
-        <Card className="min-w-56 space-y-1 p-5 dark:bg-surface-raised">
+        <Card className="w-full space-y-1 p-5 sm:w-auto sm:min-w-56 dark:bg-surface-raised">
           <p className="text-xs font-medium text-slate-600 dark:text-slate-300">{p.net}</p>
           <p className="text-3xl font-bold text-primary dark:text-accent">{money(item.netSalary)}</p>
           <p className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${item.paymentStatus === "paid" ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
@@ -224,7 +223,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
             <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-200">{p.employerTitle}</h3>
             <div className="mt-1 space-y-1 text-xs text-slate-600 dark:text-slate-300">
               <div className="flex justify-between gap-2"><span>{p.employerContribution}</span>{money(item.gosiEmployer)}</div>
-              {item.externalSupport > 0 && <div className="flex justify-between gap-2"><span>{p.support}</span><span>−{money(item.externalSupport)}</span></div>}
+              {item.externalSupport > 0 && <div className="flex justify-between gap-2"><span>{p.support}</span><bdi dir="ltr">−{money(item.externalSupport)}</bdi></div>}
               <div className="flex justify-between gap-2 font-semibold text-slate-800 dark:text-slate-100"><span>{p.employerCost}</span>{money(item.grossSalary + item.gosiEmployer - item.externalSupport)}</div>
             </div>
           </div>

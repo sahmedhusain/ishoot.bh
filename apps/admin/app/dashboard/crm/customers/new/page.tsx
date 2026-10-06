@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../../lib/auth";
+import { requirePagePermission } from "../../../../../lib/auth";
 import { Metadata } from "next";
 import { NewCustomerFormView } from "../../../../../components/crm/NewCustomerFormView";
 
@@ -7,6 +7,6 @@ export const metadata: Metadata = {
 };
 
 export default async function NewCustomerPage() {
-  await requirePermission("contacts", "write");
+  await requirePagePermission("contacts", "write");
   return <NewCustomerFormView />;
 }

@@ -1,10 +1,10 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus } from "@ishoot/database";
 import { validateWebsiteConfig } from "@ishoot/database/website-config";
 import { WebsiteEditor } from "../../../../components/cms/WebsiteEditor";
 export const dynamic = "force-dynamic";
 export default async function WebsitePage() {
-  await requirePermission("settings", "read");
+  await requirePagePermission("settings", "read");
   await requireFeatureEnabled("cms");
   const [content, services, delivery, publication] = await Promise.all([
     getWebsiteEditor(),

@@ -1,4 +1,4 @@
-import { hasPermission, requirePermission } from "../../../../lib/auth";
+import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { SigningPanel } from "../../../../components/sales/SigningPanel";
 import { notFound } from "next/navigation";
 import { getPaymentById, getSigningState, canSignDocument } from "@ishoot/database";
@@ -14,7 +14,7 @@ interface PaymentDetailPageProps {
 export default async function PaymentDetailPage({
   params,
 }: PaymentDetailPageProps) {
-  const user = await requirePermission("payments", "read");
+  const user = await requirePagePermission("payments", "read");
   const { id } = await params;
 
   const [payment, company] = await Promise.all([

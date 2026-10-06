@@ -4545,5 +4545,10 @@
     "adjustSaved": "Balance adjusted",
     "notAllowedHalf": "This leave type cannot be taken as a half day",
     "notAllowedHours": "This leave type cannot be taken by the hour"
+  },
+  "forbidden": {
+    "title": "You don't have access to this page",
+    "body": "Your role does not include this part of the system. Ask an administrator if you need it.",
+    "back": "Back to dashboard"
   }
 }

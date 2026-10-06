@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import { getPayrollItemDetail } from "@ishoot/database";
-import { hasPermission, requirePermission } from "../../../../../../lib/auth";
+import { hasPermission, requirePagePermission } from "../../../../../../lib/auth";
 import { PayrollItemView } from "../../../../../../components/hr/PayrollItemView";
 
 export const dynamic = "force-dynamic";
 
 export default async function PayrollItemPage({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission("payroll", "read");
+  await requirePagePermission("payroll", "read");
   const { id } = await params;
   const detail = await getPayrollItemDetail(id);
   if (!detail) notFound();

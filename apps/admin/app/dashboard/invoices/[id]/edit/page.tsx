@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../../lib/auth";
+import { requirePagePermission } from "../../../../../lib/auth";
 import { notFound } from "next/navigation";
 import { getInvoiceById, getCRMContactById, getAllServices, getFxBoard } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
@@ -13,8 +13,8 @@ interface InvoiceEditPageProps {
 export default async function InvoiceEditPage({
   params,
 }: InvoiceEditPageProps) {
-  await requirePermission("invoices", "write");
-  await requirePermission("contacts", "read");
+  await requirePagePermission("invoices", "write");
+  await requirePagePermission("contacts", "read");
   const { id } = await params;
 
   const invoicePromise = getInvoiceById(id);

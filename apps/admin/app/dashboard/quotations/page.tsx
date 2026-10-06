@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../lib/auth";
+import { requirePagePermission } from "../../../lib/auth";
 import { getQuotationListSummary, listQuotations } from "@ishoot/database";
 import { QUOTATION_STATUSES } from "@ishoot/database/constants/finance";
 import { QuotationsListView, type QuotationListItem } from "../../../components/quotations/QuotationsListView";
@@ -12,7 +12,7 @@ export default async function QuotationsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requirePermission("quotations", "read");
+  await requirePagePermission("quotations", "read");
   const query = await searchParams;
   const rawStatus = typeof query.status === "string" ? query.status : "all";
   const status = (QUOTATION_STATUSES as readonly string[]).includes(rawStatus) ? rawStatus : "all";

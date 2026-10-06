@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../lib/auth";
+import { requirePagePermission } from "../../../lib/auth";
 import {
 getFinancialSummary,
 getMonthlyCashflow,
@@ -11,7 +11,7 @@ import { FinancialAnalyticsView } from "../../../components/finance/FinancialAna
 export const dynamic = "force-dynamic";
 
 export default async function FinancialDashboardPage() {
-  await requirePermission("finance_analytics", "read");
+  await requirePagePermission("finance_analytics", "read");
   const [finance, insight, categoryTotals, categories, monthlyCashflow] =
     await Promise.all([
       getFinancialSummary(),

@@ -1,11 +1,11 @@
-import { hasPermission, requirePermission } from "../../../../lib/auth";
+import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { db, getAllServices, getFeatureToggle } from "@ishoot/database";
 import { NewRequestFormView } from "../../../../components/requests/NewRequestFormView";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewRequestPage() {
-  await requirePermission("requests", "write");
+  await requirePagePermission("requests", "write");
 
   const [users, canReadContacts, crmFeature, services] = await Promise.all([
     db.user.findMany({

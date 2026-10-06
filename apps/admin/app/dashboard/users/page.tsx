@@ -1,11 +1,11 @@
-import { requirePermission, hasPermission } from "../../../lib/auth";
+import { requirePagePermission, hasPermission } from "../../../lib/auth";
 import { getAllUsers, db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
 
 export const dynamic = "force-dynamic";
 
 export default async function UsersPage() {
-  await requirePermission("users", "read");
+  await requirePagePermission("users", "read");
   const [canWrite, canDelete, canCreateEmployees] = await Promise.all([
     hasPermission("users", "write"),
     hasPermission("users", "delete"),

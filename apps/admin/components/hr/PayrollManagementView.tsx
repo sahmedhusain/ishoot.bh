@@ -56,7 +56,7 @@ export function PayrollManagementView({
   const [payMethod, setPayMethod] = React.useState("bank_transfer");
   const [payReference, setPayReference] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const fmt = (value: number) => new Intl.NumberFormat(locale === "ar" ? "ar-BH" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(value);
+  const fmt = (value: number) => new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(value);
   const fill = (template: string, values: Record<string, string | number>) => Object.entries(values).reduce((text, [key, value]) => text.replaceAll(`{${key}}`, String(value)), template);
   const RowArrow = isRTL ? ChevronLeft : ChevronRight;
   const router = useRouter();
@@ -336,7 +336,7 @@ export function PayrollManagementView({
                         </span>
                       </div>
                       <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5">
-                        <span>{run.items?.length || 0}{t.payrollManagement.employeesIncluded}</span>
+                        <span>{run.items?.length || 0} {t.payrollManagement.employeesIncluded}</span>
                         {run.attendanceStart && run.attendanceEnd && (
                           <span><bdi dir="ltr">{fill(t.payroll.attendanceWindow, { start: run.attendanceStart.slice(0, 10), end: run.attendanceEnd.slice(0, 10) })}</bdi></span>
                         )}

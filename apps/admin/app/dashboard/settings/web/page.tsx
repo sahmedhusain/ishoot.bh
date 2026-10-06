@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { getCmsCounts, getSocialLinks } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { WebSettingsView } from "../../../../components/settings/WebSettingsView";
@@ -6,7 +6,7 @@ import { WebSettingsView } from "../../../../components/settings/WebSettingsView
 export const dynamic = "force-dynamic";
 
 export default async function WebSettingsPage() {
-  await requirePermission("settings", "read");
+  await requirePagePermission("settings", "read");
 
   const [company, cmsCounts, socialLinks] = await Promise.all([
     getCachedCompanySettings(),

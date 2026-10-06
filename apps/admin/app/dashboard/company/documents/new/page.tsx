@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../../lib/auth";
+import { requirePagePermission } from "../../../../../lib/auth";
 import { Metadata } from "next";
 import { NewCompanyDocumentFormView } from "../../../../../components/company/NewCompanyDocumentFormView";
 
@@ -7,6 +7,6 @@ export const metadata: Metadata = {
 };
 
 export default async function NewCompanyDocumentPage() {
-  await requirePermission("settings", "write");
+  await requirePagePermission("settings", "write");
   return <NewCompanyDocumentFormView />;
 }

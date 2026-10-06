@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../../../lib/auth";
+import { requirePagePermission } from "../../../../../../lib/auth";
 import { getCRMContactById } from "@ishoot/database";
 import { notFound } from "next/navigation";
 import { CustomerEditFormView } from "../../../../../../components/crm/CustomerEditFormView";
@@ -12,7 +12,7 @@ interface CustomerEditPageProps {
 export default async function CustomerEditPage({
   params,
 }: CustomerEditPageProps) {
-  await requirePermission("contacts", "write");
+  await requirePagePermission("contacts", "write");
   const { id } = await params;
   const contact = await getCRMContactById(id);
 

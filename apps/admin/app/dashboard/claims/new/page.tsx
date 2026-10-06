@@ -1,11 +1,11 @@
-import { getCurrentPermissions, requirePermission } from "../../../../lib/auth";
+import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
 import { db, getExpenseCategories } from "@ishoot/database";
 import { NewClaimFormView } from "../../../../components/claims/NewClaimFormView";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewClaimPage() {
-  const user = await requirePermission("self_service", "create");
+  const user = await requirePagePermission("self_service", "create");
   const since = new Date(Date.now() - 90 * 86400000);
   const [categories, grants] = await Promise.all([getExpenseCategories(), getCurrentPermissions()]);
   const meetings = await db.calendarEvent.findMany({

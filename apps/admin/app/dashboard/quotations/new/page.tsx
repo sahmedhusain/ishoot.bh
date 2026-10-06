@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { discountDecision, listSalesPeople } from "@ishoot/database";
 import { getCRMContactById, getAllServices, getFxBoard } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
@@ -11,8 +11,8 @@ export default async function NewQuotationPage({
 }: {
   searchParams: Promise<{ clientId?: string; dealId?: string; inquiryId?: string }>;
 }) {
-  const actor = await requirePermission("quotations", "create");
-  await requirePermission("contacts", "read");
+  const actor = await requirePagePermission("quotations", "create");
+  await requirePagePermission("contacts", "read");
   const params = await searchParams;
 
   const [contacts, company, services, fxBoard, discountPolicy, salesPeople] = await Promise.all([

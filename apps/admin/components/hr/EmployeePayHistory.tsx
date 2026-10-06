@@ -19,8 +19,8 @@ export interface PayHistoryRow {
 export function EmployeePayHistory({ rows }: { rows: PayHistoryRow[] }) {
   const { t, locale, isRTL } = useAdminLocale();
   const Arrow = isRTL ? ChevronLeft : ChevronRight;
-  const month = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-BH", { month: "long", year: "numeric", timeZone: "UTC" });
-  const money = new Intl.NumberFormat(locale === "ar" ? "ar-BH" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+  const month = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { month: "long", year: "numeric", timeZone: "UTC" });
+  const money = new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { minimumFractionDigits: 3, maximumFractionDigits: 3 });
   if (!rows.length) return null;
   return (
     <Card className="p-5 dark:bg-surface-raised">

@@ -1,11 +1,11 @@
-import { requirePermission } from "../../../lib/auth";
+import { requirePagePermission } from "../../../lib/auth";
 import { getCalendarEvents } from "@ishoot/database";
 import { OdooCalendarView } from "../../../components/calendar/OdooCalendarView";
 
 export const dynamic = "force-dynamic";
 
 export default async function CalendarPage() {
-  await requirePermission("calendar", "read");
+  await requirePagePermission("calendar", "read");
 
   const events = await getCalendarEvents();
 

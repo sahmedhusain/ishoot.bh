@@ -1,5 +1,5 @@
 import { ROUTES } from "../../../constants/routes";
-import { requirePermission } from "../../../lib/auth";
+import { requirePagePermission } from "../../../lib/auth";
 import {
   getInvoicesPage,
   getInvoiceSummary,
@@ -16,7 +16,7 @@ export default async function InvoicesPage({
 }: {
   searchParams: Promise<ListParameters>;
 }) {
-  await requirePermission("invoices", "read");
+  await requirePagePermission("invoices", "read");
   const [result, finance, acceptedQuotations] = await Promise.all([
     getInvoicesPage(await searchParams),
     getInvoiceSummary(),

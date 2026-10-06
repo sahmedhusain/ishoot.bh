@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requirePermission, hasPermission } from "../../../../lib/auth";
+import { requirePagePermission, hasPermission } from "../../../../lib/auth";
 import { getQuotationById, getApprovalRequest, canDecideApproval, getAttribution, listSalesPeople, getSigningState, canSignDocument } from "@ishoot/database";
 import { SigningPanel } from "../../../../components/sales/SigningPanel";
 import { AttributionPanel } from "../../../../components/sales/AttributionPanel";
@@ -12,7 +12,7 @@ export default async function QuotationDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const currentUser = await requirePermission("quotations", "read");
+  const currentUser = await requirePagePermission("quotations", "read");
   const { id } = await params;
 
   const quotation = await getQuotationById(id);

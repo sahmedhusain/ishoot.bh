@@ -14,6 +14,8 @@ const nextConfig = {
   transpilePackages: ['@ishoot/ui', '@ishoot/database', '@ishoot/locales', '@ishoot/email', '@ishoot/config'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@ishoot/ui'],
+    // Enables forbidden(): pages a role may not open render app/forbidden.tsx with HTTP 403.
+    authInterrupts: true,
   },
   images: {
     remotePatterns: [

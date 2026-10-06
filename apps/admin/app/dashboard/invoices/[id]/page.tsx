@@ -1,4 +1,4 @@
-import { requirePermission, hasPermission } from "../../../../lib/auth";
+import { requirePagePermission, hasPermission } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
 import { getInvoiceById, getAllPayments, getAttribution, listSalesPeople, getSigningState, canSignDocument } from "@ishoot/database";
 import { SigningPanel } from "../../../../components/sales/SigningPanel";
@@ -15,7 +15,7 @@ interface InvoiceDetailPageProps {
 export default async function InvoiceDetailPage({
   params,
 }: InvoiceDetailPageProps) {
-  const user = await requirePermission("invoices", "read");
+  const user = await requirePagePermission("invoices", "read");
   const canReadPayments = await hasPermission("payments", "read");
   const { id } = await params;
 

@@ -1,4 +1,4 @@
-import { getCurrentPermissions,requirePermission } from "../../../../../lib/auth";
+import { getCurrentPermissions,requirePagePermission } from "../../../../../lib/auth";
 import { getCustomerDossier, getRelatedExpenses } from "@ishoot/database";
 import { RelatedExpensesPanel } from "../../../../../components/expenses/RelatedExpensesPanel";
 import { notFound } from "next/navigation";
@@ -14,7 +14,7 @@ export default async function CustomerDossierPage({
   params,
   searchParams,
 }: CustomerDossierPageProps) {
-  await requirePermission("contacts", "read");
+  await requirePagePermission("contacts", "read");
   const { id } = await params;
   const grants = await getCurrentPermissions();
   const can = (resource:string)=>grants[`${resource}:read`] === true;

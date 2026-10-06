@@ -1,4 +1,4 @@
-import { getCurrentPermissions, requirePermission } from "../../../lib/auth";
+import { getCurrentPermissions, requirePagePermission } from "../../../lib/auth";
 import { getExpenseCategories, listExpenseClaims } from "@ishoot/database";
 import { ClaimsView } from "../../../components/claims/ClaimsView";
 
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const STATUSES = ["all", "submitted", "approved", "scheduled", "paid", "rejected", "cancelled"];
 
 export default async function ClaimsPage({ searchParams }: { searchParams: Promise<{ view?: string; status?: string; highlight?: string }> }) {
-  const user = await requirePermission("self_service", "read");
+  const user = await requirePagePermission("self_service", "read");
   const [params, grants] = await Promise.all([searchParams, getCurrentPermissions()]);
   const canProcess = grants["expenses:write"] === true;
   const view = canProcess && params.view === "finance" ? "finance" : "mine";

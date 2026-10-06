@@ -1,4 +1,4 @@
-import { requirePermission,getCurrentUser } from "../../../../lib/auth";
+import { requirePagePermission,getCurrentUser } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
 import { getMinuteOfMeetingById } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
@@ -11,7 +11,7 @@ interface MomDetailPageProps {
 }
 
 export default async function MomDetailPage({ params }: MomDetailPageProps) {
-  await requirePermission("moms", "read");
+  await requirePagePermission("moms", "read");
   const { id } = await params;
 
   const [mom, company, currentUser] = await Promise.all([

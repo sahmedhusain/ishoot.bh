@@ -1,6 +1,6 @@
 import { getRequestList } from "@ishoot/database";
 import { REQUEST_KINDS, type RequestKind } from "@ishoot/database/constants/requests";
-import { hasPermission, requirePermission } from "../../../lib/auth";
+import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { RequestsInboxView } from "../../../components/requests/RequestsInboxView";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ export default async function RequestsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requirePermission("requests", "read");
+  const user = await requirePagePermission("requests", "read");
   const query = await searchParams;
   const value = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : "");
   const kind: RequestKind | "all" = (REQUEST_KINDS as readonly string[]).includes(value("kind")) ? (value("kind") as RequestKind) : "all";

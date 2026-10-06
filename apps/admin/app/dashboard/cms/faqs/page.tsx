@@ -1,10 +1,10 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { getFaqs } from "@ishoot/database";
 import { FaqsManagementView } from "../../../../components/cms/FaqsManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
 
 export default async function FaqsSettingsPage() {
-  await requirePermission("faqs", "read");
+  await requirePagePermission("faqs", "read");
 
   const faqs = await getFaqs(true);
 

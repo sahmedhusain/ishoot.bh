@@ -49,8 +49,8 @@ const planTone: Record<SocialPlanStatus, string> = {
 function useNumber() {
   const { locale } = useAdminLocale();
   return React.useMemo(() => {
-    const full = new Intl.NumberFormat(locale === "ar" ? "ar-BH" : "en-BH");
-    const compact = new Intl.NumberFormat(locale === "ar" ? "ar-BH" : "en-BH", { notation: "compact", maximumFractionDigits: 1 });
+    const full = new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH");
+    const compact = new Intl.NumberFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { notation: "compact", maximumFractionDigits: 1 });
     return { full: (n: number) => full.format(n), compact: (n: number) => (Math.abs(n) >= 10_000 ? compact.format(n) : full.format(n)) };
   }, [locale]);
 }
@@ -96,7 +96,7 @@ function InteractionsChart({ daily }: { daily: SocialAnalytics["daily"] }) {
     return out;
   }, [daily, bucket]);
   const max = Math.max(1, ...points.map((p) => p.interactions));
-  const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH" : "en-BH", { day: "numeric", month: "short" });
+  const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { day: "numeric", month: "short" });
   const labelEvery = Math.max(1, Math.ceil(points.length / 6));
   return (
     <div className="space-y-2">

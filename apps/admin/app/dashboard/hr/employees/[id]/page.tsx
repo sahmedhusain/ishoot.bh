@@ -2,7 +2,7 @@ import { EmployeeAttachments } from "../../../../../components/hr/EmployeeAttach
 import { SalaryDocumentsView } from "../../../../../components/hr/SalaryDocumentsView";
 import { availablePayslipMonths, canManageSalaryDocuments, decidableSalaryDocumentIds } from "../../../../../lib/salary-documents";
 import { notFound } from "next/navigation";
-import { requirePermission, hasPermission } from "../../../../../lib/auth";
+import { requirePagePermission, hasPermission } from "../../../../../lib/auth";
 import { getEmployeeById, listDepartments, db, getLeaveBalances } from "@ishoot/database";
 import { LeaveBalancesCard } from "../../../../../components/hr/LeaveBalancesCard";
 import { EmployeePayHistory } from "../../../../../components/hr/EmployeePayHistory";
@@ -15,7 +15,7 @@ export default async function EmployeeDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const actor = await requirePermission("employees", "read");
+  const actor = await requirePagePermission("employees", "read");
   const { id } = await params;
 
   const [found, departments, canEdit, canViewPay, canEditPay] = await Promise.all([

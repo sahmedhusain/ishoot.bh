@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import { getHrPolicy, listLeaveTypeRules, listPublicHolidays, listShiftTypes } from "@ishoot/database";
 import { ROUTES } from "../../../../constants/routes";
-import { hasPermission, requirePermission } from "../../../../lib/auth";
+import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { HrSettingsView } from "../../../../components/hr/HrSettingsView";
 
 export const dynamic = "force-dynamic";
 
 export default async function HrSettingsPage({ searchParams }: { searchParams: Promise<{ year?: string }> }) {
-  await requirePermission("employees", "read");
+  await requirePagePermission("employees", "read");
   const [canPolicy, canLeave] = await Promise.all([hasPermission("payroll", "edit"), hasPermission("employees", "edit")]);
   if (!canPolicy && !canLeave) redirect(ROUTES.hr.employees);
   const { year: yearParam } = await searchParams;

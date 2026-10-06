@@ -1,4 +1,4 @@
-import { hasPermission, requirePermission } from "../../../../../lib/auth";
+import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { listDepartments, db } from "@ishoot/database";
 import { NewEmployeeFormView } from "../../../../../components/hr/NewEmployeeFormView";
 
@@ -9,7 +9,7 @@ export default async function NewEmployeePage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await requirePermission("employees", "create");
+  await requirePagePermission("employees", "create");
   const query = await searchParams;
   const userId = typeof query.userId === "string" ? query.userId : undefined;
 

@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { getCRMContactById, getAllServices, getAcceptedQuotationsUninvoiced, getQuotationById, getFxBoard, listSalesPeople } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewInvoiceFormView } from "../../../../components/invoices/NewInvoiceFormView";
@@ -10,8 +10,8 @@ export default async function NewInvoicePage({
 }: {
   searchParams: Promise<{ clientId?: string; quotationId?: string; dealId?: string }>;
 }) {
-  const actor = await requirePermission("invoices", "write");
-  await requirePermission("contacts", "read");
+  const actor = await requirePagePermission("invoices", "write");
+  await requirePagePermission("contacts", "read");
   const params = await searchParams;
 
   const [acceptedQuotations, company, services, fxBoard, salesPeople] = await Promise.all([

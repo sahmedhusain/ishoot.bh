@@ -1,4 +1,4 @@
-import { getCurrentPermissions, requirePermission } from "../../../../lib/auth";
+import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
 import { Metadata } from "next";
 import { getExpenseCategories } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function NewExpensePage({ searchParams }: { searchParams: Promise<{ dealId?: string; clientId?: string }> }) {
-  await requirePermission("expenses", "write");
+  await requirePagePermission("expenses", "write");
   const [params, categories, company, grants] = await Promise.all([searchParams, getExpenseCategories(), getCachedCompanySettings(), getCurrentPermissions()]);
   return (
     <NewExpenseFormView

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { getCRMContactById } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
-import { hasPermission, requirePermission } from "../../../../../lib/auth";
+import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { NewDealFormView } from "../../../../../components/crm/NewDealFormView";
 import type { NewDealQuery } from "../../../../../constants/routes";
 
@@ -14,7 +14,7 @@ export default async function NewDealPage({
 }: {
   searchParams: Promise<{ [K in keyof NewDealQuery]?: string }>;
 }) {
-  await requirePermission("deals", "write");
+  await requirePagePermission("deals", "write");
   const [{ clientId }, canPickContact, canCreateContact, settings] = await Promise.all([
     searchParams,
     hasPermission("contacts", "read"),

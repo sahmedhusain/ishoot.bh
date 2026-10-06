@@ -1,13 +1,13 @@
 import { ROUTES } from "../../../../constants/routes";
 import { redirect } from "next/navigation";
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { listApprovalPolicies, db } from "@ishoot/database";
 import { ApprovalPoliciesView } from "../../../../components/settings/ApprovalPoliciesView";
 
 export const dynamic = "force-dynamic";
 
 export default async function ApprovalPoliciesPage() {
-  const actor = await requirePermission("settings", "read");
+  const actor = await requirePagePermission("settings", "read");
   if (actor.role !== "super_admin") redirect(ROUTES.settings.root);
 
   const [policies, users] = await Promise.all([

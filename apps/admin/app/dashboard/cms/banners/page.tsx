@@ -1,4 +1,4 @@
-import { requirePermission } from "../../../../lib/auth";
+import { requirePagePermission } from "../../../../lib/auth";
 import { getAllBanners } from "@ishoot/database";
 import { BannersManagementView } from "../../../../components/cms/BannersManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
@@ -6,7 +6,7 @@ import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePubl
 export const dynamic = "force-dynamic";
 
 export default async function BannersManagerPage() {
-  await requirePermission("banners", "read");
+  await requirePagePermission("banners", "read");
   const banners = await getAllBanners();
 
   return (
