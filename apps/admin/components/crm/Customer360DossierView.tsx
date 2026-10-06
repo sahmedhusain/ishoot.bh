@@ -230,7 +230,7 @@ export function Customer360DossierView({
           <div className="text-2xl font-bold  text-slate-900 dark:text-white flex items-baseline gap-2">
             <span>{metrics.winRate}%</span>
             <span className="text-xs font-normal text-slate-500">
-              ({dossier.pagination?.deals.total ?? deals.length} deals)
+              ({t.customer360.dealsCount.replace("{n}", String(dossier.pagination?.deals.total ?? deals.length))})
             </span>
           </div>
           <div className="text-[11px] text-slate-500 dark:text-slate-400  flex items-center justify-between">
@@ -627,7 +627,7 @@ export function Customer360DossierView({
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <Button variant="outline" size="sm">
+                    <Button aria-label={t.actions.downloadPdf} variant="outline" size="sm">
                       <Download className="w-3.5 h-3.5" />
                     </Button>
                   </a>

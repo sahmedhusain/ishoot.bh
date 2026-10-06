@@ -165,7 +165,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
               ) : (
                 filteredMoms.map((mom) => (
                   <tr key={mom.id} className="hover:bg-ink/[0.02] transition-colors">
-                    <td className="p-4 font-mono font-bold text-[#5EEAD4]">
+                    <td className="p-4 font-mono font-bold text-primary dark:text-mint">
                       <Link
                         href={ROUTES.moms.detail(mom.id)}
                         className="hover:underline flex items-center gap-1.5"
@@ -219,7 +219,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           href={ROUTES.moms.detail(mom.id)}
-                          className="p-1.5 rounded-lg bg-ink/5 hover:bg-accent/20 text-[#5EEAD4] border border-ink/10 hover:border-accent/40 transition-all"
+                          className="p-1.5 rounded-lg bg-ink/5 hover:bg-accent/20 text-primary dark:text-mint border border-ink/10 hover:border-accent/40 transition-all"
                           title={t.momsList.viewOfficialDocument}
                         >
                           <ExternalLink className="w-4 h-4" />

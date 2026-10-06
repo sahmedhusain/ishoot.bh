@@ -209,7 +209,7 @@ export function OdooCalendarView({
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1.5 bg-surface-sunken p-1 rounded-xl border border-ink/10">
-            <button
+            <button aria-label={(isRTL ? t.actions.next : t.actions.previous)}
               onClick={isRTL ? nextMonth : prevMonth}
               className="p-1.5 rounded-lg hover:bg-ink/10 text-ink-muted hover:text-ink transition-colors"
             >
@@ -218,7 +218,7 @@ export function OdooCalendarView({
             <span className="font-bold text-ink text-xs px-2 min-w-[110px] text-center">
               {monthNames[month]} {year}
             </span>
-            <button
+            <button aria-label={(isRTL ? t.actions.previous : t.actions.next)}
               onClick={isRTL ? prevMonth : nextMonth}
               className="p-1.5 rounded-lg hover:bg-ink/10 text-ink-muted hover:text-ink transition-colors"
             >
@@ -508,7 +508,7 @@ export function OdooCalendarView({
                   <Pencil className="w-3.5 h-3.5" />
                   <span>{t.actions.edit}</span>
                 </Button>
-                <Button
+                <Button aria-label={t.actions.delete}
                   variant="danger"
                   size="sm"
                   onClick={() => setDeleteTargetId(selectedEvent.id)}

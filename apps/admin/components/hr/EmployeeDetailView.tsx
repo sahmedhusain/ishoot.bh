@@ -438,7 +438,7 @@ export function EmployeeDetailView({
                   </span>
                   <div className="text-slate-800 dark:text-neutral-200">
                     {employee.email || t.employeeDetail.noEmail}{" "}
-                    {employee.phone ? `• ${employee.phone}` : ""}
+                    {employee.phone ? <>• <bdi dir="ltr">{employee.phone}</bdi></> : ""}
                   </div>
                 </div>
               </div>

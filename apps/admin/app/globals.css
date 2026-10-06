@@ -164,6 +164,18 @@ html.dark {
   --ui-surface-sunken: 5 8 7;
   --ui-ink: 242 246 245;
   --ui-ink-muted: 158 173 169;
+  /* Muted greys used as secondary text; light mode darkens them to stay readable (≥4.5:1). */
+  --ui-slate-400: 148 163 184;
+  --ui-neutral-400: 163 163 163;
+  /* Status hues: bright on dark, deepened on light so text and white-on-colour stay readable. */
+  --ui-emerald-400: 52 211 153;
+  --ui-emerald-500: 16 185 129;
+  --ui-amber-400: 251 191 36;
+  --ui-amber-500: 245 158 11;
+  --ui-amber-600: 217 119 6;
+  --ui-rose-400: 251 113 133;
+  --ui-blue-400: 96 165 250;
+  --ui-gray-400: 156 163 175;
 }
 
 html.light {
@@ -171,7 +183,17 @@ html.light {
   --ui-surface-raised: 248 250 252;
   --ui-surface-sunken: 241 245 249;
   --ui-ink: 15 23 42;
-  --ui-ink-muted: 100 116 139;
+  --ui-ink-muted: 84 99 121;
+  --ui-slate-400: 84 99 121;
+  --ui-neutral-400: 99 99 99;
+  --ui-emerald-400: 4 120 87;
+  --ui-emerald-500: 4 120 87;
+  --ui-amber-400: 180 83 9;
+  --ui-amber-500: 180 83 9;
+  --ui-amber-600: 180 83 9;
+  --ui-rose-400: 225 29 72;
+  --ui-blue-400: 29 78 216;
+  --ui-gray-400: 75 85 99;
 }
 
 html.dark,
@@ -513,4 +535,24 @@ body:hover::-webkit-scrollbar-thumb,
     transition: none !important;
     backdrop-filter: none !important;
   }
+}
+
+/* Arabic script must not be letter-spaced: tracking utilities break letter joining in RTL. */
+html[dir="rtl"] [class*="tracking-"] {
+  letter-spacing: normal;
+}
+
+/* Bilingual fields: each line takes its direction from its own text (English stays LTR inside the
+   Arabic UI and vice versa); empty fields keep the page direction so placeholders align. */
+input:not([type="number"]):not([type="date"]):not([type="time"]):not([type="color"]):not([dir]),
+textarea:not([dir]),
+.whitespace-pre-wrap:not([dir]) {
+  unicode-bidi: plaintext;
+  text-align: start;
+}
+
+/* Phone numbers keep their digit order inside Arabic text. */
+a[href^="tel:"] {
+  direction: ltr;
+  unicode-bidi: isolate;
 }

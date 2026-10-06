@@ -601,7 +601,7 @@ export function QuotationDetailView({
                 <div className="text-slate-500">{qdT.email}: {quotation.client.email}</div>
               )}
               {quotation.client?.phone && (
-                <div className="text-slate-500">{qdT.phone}: {quotation.client.phone}</div>
+                <div className="text-slate-500">{qdT.phone}: <bdi dir="ltr">{quotation.client.phone}</bdi></div>
               )}
               {quotation.vatEnabled && quotation.client?.taxNumber && (
                 <div className="text-slate-500">{t.quotationDetail.vatId} {quotation.client.taxNumber}</div>

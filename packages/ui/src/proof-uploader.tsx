@@ -64,14 +64,14 @@ export function ProofUploader({
   return (
     <div className="space-y-3">
       {label && (
-        <label className="block text-xs font-semibold text-white tracking-wide">
+        <label className="block text-xs font-semibold text-ink tracking-wide">
           {label}
         </label>
       )}
 
       <div
         onClick={() => fileInputRef.current?.click()}
-        className="border-2 border-dashed border-white/15 hover:border-accent/60 bg-[#0B1210]/60 hover:bg-[#0B1210] rounded-2xl p-5 text-center cursor-pointer transition-all duration-200 group"
+        className="border-2 border-dashed border-ink/15 hover:border-accent/60 bg-surface-sunken/60 hover:bg-surface-sunken rounded-2xl p-5 text-center cursor-pointer transition-all duration-200 group"
       >
         <input
           ref={fileInputRef}
@@ -83,17 +83,17 @@ export function ProofUploader({
         />
 
         <div className="flex flex-col items-center justify-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 group-hover:border-accent group-hover:bg-accent/10 flex items-center justify-center text-[#9EADA9] group-hover:text-accent transition-colors">
+          <div className="w-10 h-10 rounded-full bg-ink/5 border border-ink/10 group-hover:border-accent group-hover:bg-accent/10 flex items-center justify-center text-ink-muted group-hover:text-accent transition-colors">
             <Upload className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-white">
+            <p className="text-xs font-medium text-ink">
               <span className="text-accent underline font-bold">
                 {clickText}
               </span>{" "}
               {dropText}
             </p>
-            {hint && <p className="text-[11px] text-[#9EADA9] mt-1">{hint}</p>}
+            {hint && <p className="text-[11px] text-ink-muted mt-1">{hint}</p>}
           </div>
         </div>
       </div>
@@ -108,10 +108,10 @@ export function ProofUploader({
             return (
               <div
                 key={file.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-[#070C0A] border border-white/10 text-xs text-white"
+                className="flex items-center justify-between p-3 rounded-xl bg-surface-sunken border border-ink/10 text-xs text-ink"
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-accent shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-ink/5 flex items-center justify-center text-accent shrink-0">
                     {isImage ? (
                       <ImageIcon className="w-4 h-4" />
                     ) : (
@@ -121,7 +121,7 @@ export function ProofUploader({
                   <div className="truncate">
                     <p className="font-semibold truncate">{file.name}</p>
                     {file.size && (
-                      <p className="text-[10px] text-[#9EADA9] font-mono">
+                      <p className="text-[10px] text-ink-muted font-mono">
                         {(file.size / 1024).toFixed(1)} KB
                       </p>
                     )}
@@ -134,7 +134,7 @@ export function ProofUploader({
                     e.stopPropagation();
                     handleRemove(file.id);
                   }}
-                  className="p-1 rounded-lg text-[#9EADA9] hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                  className="p-1 rounded-lg text-ink-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>

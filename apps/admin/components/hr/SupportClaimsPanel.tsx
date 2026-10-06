@@ -98,13 +98,13 @@ function ClaimRow({ row, canRecord }: { row: SupportClaimRow; canRecord: boolean
         <td className="p-3 text-end font-semibold text-ink">{fmt(row.accrued)}</td>
         <td className="p-3 pe-5 text-end">
           {row.status === "received" && row.receipt ? (
-            <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold" title={row.receipt.reference ?? undefined}>
+            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold" title={row.receipt.reference ?? undefined}>
               <CheckCircle2 className="w-3.5 h-3.5" />
               {c.receivedOn.replace("{amount}", fmt(row.receipt.amount)).replace("{date}", row.receipt.receivedOn)}
             </span>
           ) : row.status === "claimable" ? (
             canRecord ? (
-              <button type="button" onClick={() => setOpen(!open)} className="px-3 py-1 rounded-full bg-amber-500 text-white font-semibold">
+              <button type="button" onClick={() => setOpen(!open)} className="px-3 py-1 rounded-full bg-amber-600 text-white dark:bg-amber-400 dark:text-amber-950 font-semibold">
                 {c.recordReceipt}
               </button>
             ) : (

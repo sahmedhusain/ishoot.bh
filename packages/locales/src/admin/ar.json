@@ -75,7 +75,9 @@
     "confirm": "تأكيد الإجراء",
     "recordPayment": "تسجيل دفعة جديدة",
     "backToInvoices": "العودة إلى أرشيف الفواتير",
-    "associatedReceipts": "سندات القبض والدفعات المرتبطة"
+    "associatedReceipts": "سندات القبض والدفعات المرتبطة",
+    "previous": "السابق",
+    "next": "التالي"
   },
   "kpi": {
     "totalRevenue": "إجمالي الإيرادات النقدية",
@@ -1421,7 +1423,8 @@
     "totalAmount": "المبلغ الإجمالي",
     "amountPaid": "المبلغ المدفوع",
     "balanceDue": "المبلغ المستحق",
-    "createQuotation": "إنشاء عرض سعر"
+    "createQuotation": "إنشاء عرض سعر",
+    "dealsCount": "{n} صفقات"
   },
   "dealDossier": {
     "back": "العودة لقائمة الصفقات",
@@ -3023,7 +3026,17 @@
     "searchCustomerRecords": "بحث في سجلات العميل",
     "search": "بحث",
     "previous": "السابق",
-    "next": "التالي"
+    "next": "التالي",
+    "domains": {
+      "inquiries": "التفاعلات",
+      "deals": "الصفقات",
+      "invoices": "الفواتير",
+      "payments": "المدفوعات",
+      "contracts": "العقود",
+      "attachments": "الملفات",
+      "activities": "النشاط"
+    },
+    "pageOf": "{domain}: صفحة {page} من {pages}"
   },
   "employeeDetail": {
     "updatingEmployeeProfile": "جارٍ تحديث ملف الموظف...",

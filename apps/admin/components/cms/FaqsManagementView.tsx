@@ -98,8 +98,8 @@ export function FaqsManagementView({ initialFaqs }: { initialFaqs: FaqItem[] }) 
               </p>
             </div>
             <div className="flex gap-2 shrink-0">
-              <Button variant="outline" size="sm" onClick={() => handleOpenEdit(faq)}><Edit className="w-3.5 h-3.5" /></Button>
-              <Button variant="danger" size="sm" onClick={() => setDeleteId(faq.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+              <Button aria-label={t.actions.edit} variant="outline" size="sm" onClick={() => handleOpenEdit(faq)}><Edit className="w-3.5 h-3.5" /></Button>
+              <Button aria-label={t.actions.delete} variant="danger" size="sm" onClick={() => setDeleteId(faq.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
             </div>
           </Card>
         ))}

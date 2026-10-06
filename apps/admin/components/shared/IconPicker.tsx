@@ -137,7 +137,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
                     }`}
                     title={iconName}
                   >
-                    <IconComp className={`w-5 h-5 transition-transform group-hover/btn:scale-110 ${isSelected ? "text-[#5EEAD4]" : ""}`} />
+                    <IconComp className={`w-5 h-5 transition-transform group-hover/btn:scale-110 ${isSelected ? "text-primary dark:text-mint" : ""}`} />
                   </button>
                 );
               })}

@@ -365,7 +365,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
               </div>
               <div className="sm:col-span-1 text-end">
                 {attendees.length > 1 && (
-                  <button
+                  <button aria-label={t.actions.delete}
                     type="button"
                     onClick={() => removeAttendee(index)}
                     className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10"
@@ -439,7 +439,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
                   />
                 </div>
                 {discussionPoints.length > 1 && (
-                  <button
+                  <button aria-label={t.actions.delete}
                     type="button"
                     onClick={() => removeDiscussionPoint(index)}
                     className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10"
@@ -517,7 +517,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
               </div>
               <div className="sm:col-span-1 text-end">
                 {actionItems.length > 1 && (
-                  <button
+                  <button aria-label={t.actions.delete}
                     type="button"
                     onClick={() => removeActionItem(index)}
                     className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10"
@@ -557,7 +557,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
                 onChange={(e) => updateDecision(index, e.target.value)}
               />
               {decisions.length > 1 && (
-                <button
+                <button aria-label={t.actions.delete}
                   type="button"
                   onClick={() => removeDecision(index)}
                   className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10"

@@ -29,11 +29,11 @@ export function CashFlowChart({
       <div className="flex items-center justify-end gap-5 text-xs font-mono">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-sm bg-accent" />
-          <span className="text-[#9EADA9]">{inflowLabel}</span>
+          <span className="text-ink-muted">{inflowLabel}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-sm bg-rose-500/80" />
-          <span className="text-[#9EADA9]">{outflowLabel}</span>
+          <span className="text-ink-muted">{outflowLabel}</span>
         </div>
       </div>
 

@@ -60,12 +60,12 @@ export function ConfirmDestructiveModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} closeLabel={cancelLabel}>
-      <div className="space-y-4 text-sm text-[#9EADA9]">
+      <div className="space-y-4 text-sm text-ink-muted">
         <div
           className={`p-3.5 rounded-xl border ${
             isDanger
-              ? "bg-rose-500/10 border-rose-500/30 text-rose-300"
-              : "bg-amber-500/10 border-amber-500/30 text-amber-300"
+              ? "bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300"
+              : "bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-300"
           }`}
         >
           {description}
@@ -73,7 +73,7 @@ export function ConfirmDestructiveModal({
 
         {confirmMatchText && (
           <div className="space-y-2">
-            <p className="text-xs text-[#9EADA9]">
+            <p className="text-xs text-ink-muted">
               {typePromptLabel || confirmMatchText}
             </p>
             <Input

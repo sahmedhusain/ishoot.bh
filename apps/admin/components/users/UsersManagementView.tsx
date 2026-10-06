@@ -305,7 +305,7 @@ export function UsersManagementView({
                               <div className="mt-1 flex items-center gap-2 text-[11px]">
                                 <span className="text-amber-400">{t.hrSelfService.employeeNotLinked}</span>
                                 {canCreateEmployees && (
-                                  <Link href={ROUTES.hr.newEmployee({ userId: u.id })} className="text-[#5EEAD4] underline">
+                                  <Link href={ROUTES.hr.newEmployee({ userId: u.id })} className="text-primary dark:text-mint underline">
                                     {t.hrSelfService.createEmployeeProfile}
                                   </Link>
                                 )}
@@ -335,7 +335,7 @@ export function UsersManagementView({
                           onChange={(e) =>
                             handleManagerChange(u.id, e.target.value)
                           }
-                          className="bg-surface-sunken border border-ink/10 rounded-xl px-2.5 py-1 text-xs text-[#5EEAD4] focus:outline-none focus:border-accent cursor-pointer max-w-[160px] truncate"
+                          className="bg-surface-sunken border border-ink/10 rounded-xl px-2.5 py-1 text-xs text-primary dark:text-mint focus:outline-none focus:border-accent cursor-pointer max-w-[160px] truncate"
                           title={t.usersManagement.changeManager}
                         >
                           <option value="">{t.usersManagement.noneIndependent}</option>

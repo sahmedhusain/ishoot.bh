@@ -629,7 +629,7 @@ export function NewInvoiceFormView({
                 </div>
 
                 <div className="sm:col-span-12 md:col-span-1 flex justify-end">
-                  <Button
+                  <Button aria-label={t.actions.delete}
                     type="button"
                     variant="ghost"
                     size="sm"

@@ -38,12 +38,12 @@ export function ListControls({
       ? ["contacts", "deals", "invoices", "payments", "expenses", "settings"].every((r) => can(r as PermissionResource, "export"))
       : can(exportDomain as PermissionResource, "export"));
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mb-6 rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-2.5 shadow-xs">
-      <form action={path} method="get" role="search" className="flex flex-1 flex-wrap items-center gap-2 min-w-0">
+    <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between mb-6 rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-2.5 shadow-xs">
+      <form action={path} method="get" role="search" className="flex w-full flex-wrap items-center gap-2 lg:w-auto lg:flex-1">
         {filters.dealId ? (
           <input type="hidden" name="dealId" value={filters.dealId} />
         ) : null}
-        <div className="relative flex-1 min-w-[12rem] max-w-md">
+        <div className="relative flex-1 basis-48 min-w-0 lg:max-w-md">
           <Search className="pointer-events-none absolute top-1/2 -translate-y-1/2 start-3.5 w-4 h-4 text-ink-muted" aria-hidden />
           <input
             type="search"
@@ -79,7 +79,7 @@ export function ListControls({
       </form>
       <nav
         aria-label={t.listControls.listPages}
-        className="flex flex-wrap items-center gap-2 text-xs"
+        className="flex flex-wrap items-center justify-between gap-2 text-xs lg:justify-end"
       >
         <span className="px-2 text-ink-muted tabular-nums">
           {t.listControls.page.replace("{page}", String(page)).replace("{pages}", String(pages))} · {total} {t.listControls.records}

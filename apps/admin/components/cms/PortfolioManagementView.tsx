@@ -175,7 +175,7 @@ export function PortfolioManagementView({
       )}
       <Link
         href={ROUTES.cms.website}
-        className="block text-sm text-[#5eead4] underline"
+        className="block text-sm text-primary dark:text-mint underline"
       >
         {t.portfolioManagement.reviewAndPublishChangesIn}
       </Link>
@@ -288,7 +288,7 @@ export function PortfolioManagementView({
                 </td>
                 <td className="p-4 text-end space-x-2">
                   <button
-                    className="p-2 text-emerald-300"
+                    className="p-2 text-emerald-700 dark:text-emerald-300"
                     onClick={() => openEditor(item)}
                   >
                     {t.actions.edit}

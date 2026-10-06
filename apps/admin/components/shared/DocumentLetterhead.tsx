@@ -65,7 +65,7 @@ export function DocumentLetterhead({
       return "text-rose-300 bg-rose-950/40 border-rose-500/30";
     }
     if (s.includes("sent") || s.includes("issued") || s.includes("pending")) {
-      return "text-accent bg-accent/10 border-accent/30";
+      return "text-mint bg-accent/15 border-accent/40";
     }
     return "text-amber-300 bg-amber-950/40 border-amber-500/30";
   };
@@ -128,7 +128,7 @@ export function DocumentLetterhead({
           <div className="text-2xl sm:text-3xl font-extrabold tracking-wider uppercase font-display text-white">
             {isAr ? titleAr : titleEn}
           </div>
-          <div className="text-sm  text-accent font-bold tracking-wide">
+          <div className="text-sm text-mint font-bold tracking-wide">
             {documentNumber}
           </div>
           <div className="inline-block">
@@ -147,7 +147,7 @@ export function DocumentLetterhead({
       <div className="p-6 sm:p-8 border-b border-gray-200 bg-white grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs text-gray-800">
         {/* Client Details */}
         <div className="space-y-1.5">
-          <span className="text-gray-400 font-bold uppercase tracking-wider block text-[10px]">
+          <span className="text-slate-500 font-bold uppercase tracking-wider block text-[10px]">
             {clientSectionTitle}
           </span>
 
@@ -159,7 +159,7 @@ export function DocumentLetterhead({
                 title="View Client Dossier in CRM"
               >
                 <span>{client.company || client.name}</span>
-                <ExternalLink className="w-3.5 h-3.5 text-gray-400 group-hover:text-primary print:hidden" />
+                <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-primary print:hidden" />
               </Link>
             ) : (
               <span>{client.company || client.name}</span>
@@ -180,7 +180,7 @@ export function DocumentLetterhead({
 
           {client.phone && (
             <div className="text-gray-500 " dir="ltr">
-              {client.phone}
+              <bdi dir="ltr">{client.phone}</bdi>
             </div>
           )}
 
@@ -194,7 +194,7 @@ export function DocumentLetterhead({
         {/* Dates & Reference Block */}
         <div className="space-y-2 sm:text-end flex flex-col justify-start sm:items-end">
           <div className="flex justify-between sm:justify-end gap-6 w-full">
-            <span className="text-gray-400 font-bold uppercase text-[10px]">
+            <span className="text-slate-500 font-bold uppercase text-[10px]">
               {issueDateLabel}
             </span>
             <span className=" font-medium text-gray-900">{issueDate}</span>
@@ -202,7 +202,7 @@ export function DocumentLetterhead({
 
           {secondaryDateLabel && secondaryDate && (
             <div className="flex justify-between sm:justify-end gap-6 w-full">
-              <span className="text-gray-400 font-bold uppercase text-[10px]">
+              <span className="text-slate-500 font-bold uppercase text-[10px]">
                 {secondaryDateLabel}
               </span>
               <span className=" font-bold text-primary">{secondaryDate}</span>
@@ -261,7 +261,7 @@ export function DocumentFooter({
       {showSignature && (
         <div className="p-6 sm:p-8 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-end gap-6 text-xs text-gray-700">
           <div className="space-y-1">
-            <span className="text-gray-400 uppercase tracking-wider text-[10px] block font-bold">
+            <span className="text-slate-500 uppercase tracking-wider text-[10px] block font-bold">
               {t.issuedBy}
             </span>
             <div className="font-semibold text-gray-900">{companyName}</div>

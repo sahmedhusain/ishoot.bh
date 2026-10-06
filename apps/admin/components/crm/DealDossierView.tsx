@@ -372,7 +372,7 @@ export function DealDossierView({
                         dir="ltr"
                       >
                         <Phone className="w-3.5 h-3.5 text-accent" />
-                        <span>{contact.phone}</span>
+                        <bdi dir="ltr">{contact.phone}</bdi>
                       </a>
                     )}
                   </div>

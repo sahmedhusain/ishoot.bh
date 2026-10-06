@@ -226,7 +226,7 @@ export function UserProfileView({
               {user.phone && (
                 <span className="flex items-center gap-1 font-mono" dir="ltr">
                   <Phone className="w-3.5 h-3.5" />
-                  <span>{user.phone}</span>
+                  <bdi dir="ltr">{user.phone}</bdi>
                 </span>
               )}
               {user.department && (

@@ -24,6 +24,7 @@ import {
   Trash2,
   CheckCircle2,
 } from "lucide-react";
+import { websiteMedia } from "../../lib/website-media";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   toggleBannerStatusAction,
@@ -152,7 +153,7 @@ export function BannersManagementView({
       )}
       <Link
         href={ROUTES.cms.website}
-        className="block text-sm text-[#5eead4] underline"
+        className="block text-sm text-primary dark:text-mint underline"
       >
         {t.bannersManagement.reviewAndPublishChangesIn}
       </Link>
@@ -191,7 +192,7 @@ export function BannersManagementView({
               <div className="flex items-center gap-4">
                 <div className="relative w-36 aspect-video rounded-xl overflow-hidden bg-black border border-ink/10 shrink-0">
                   <ContentImage
-                    src={banner.poster_url || banner.media_url}
+                    src={websiteMedia(banner.poster_url || banner.media_url)}
                     alt={locale === "ar" ? banner.title_ar : banner.title_en}
                     className="w-full h-full object-cover"
                   />
@@ -255,7 +256,7 @@ export function BannersManagementView({
                   </span>
                 </Button>
 
-                <Button
+                <Button aria-label={t.actions.delete}
                   variant="danger"
                   size="sm"
                   onClick={() => setDeleteTargetId(banner.id)}
@@ -330,8 +331,8 @@ export function BannersManagementView({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
+          <div className="space-y-4">
+            <div className="sm:max-w-xs">
               <label className="text-xs text-ink mb-1.5 block">
                 {t.bannersView.mediaType}
               </label>

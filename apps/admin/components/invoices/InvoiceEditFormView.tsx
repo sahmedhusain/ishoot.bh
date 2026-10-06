@@ -405,7 +405,7 @@ export function InvoiceEditFormView({
                   {selectedContact.phone && (
                     <div className="flex items-center gap-1.5" dir="ltr">
                       <Phone className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="">{selectedContact.phone}</span>
+                      <span className=""><bdi dir="ltr">{selectedContact.phone}</bdi></span>
                     </div>
                   )}
                 </div>

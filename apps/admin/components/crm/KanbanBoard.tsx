@@ -3,7 +3,7 @@
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { CRMDeal, CRMContact, DealStage } from "@ishoot/database/types";
 import { updateDealStageAction } from "../../app/actions/crm";
 import { KanbanColumn } from "./KanbanColumn";
@@ -40,12 +40,19 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
     { stage: "closed_lost", label: t.stages.closed_lost, color: "#E11D48" },
   ];
 
+  // A click is not a drag: require a short move before dragging starts, so cards stay clickable.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor),
+  );
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
 
     const dealId = active.id as string;
     const targetStage = over.id as DealStage;
+    if (deals.find((d) => d.id === dealId)?.stage === targetStage) return;
 
     setDeals((prev) =>
       prev.map((d) => (d.id === dealId ? { ...d, stage: targetStage } : d)),
@@ -80,7 +87,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
         </Link>
       </div>
 
-      <DndContext onDragEnd={handleDragEnd}>
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <div className="flex gap-4 overflow-x-auto pb-6 select-none">
           {columns.map((col) => (
             <KanbanColumn

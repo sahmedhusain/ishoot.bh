@@ -4,6 +4,7 @@ import * as React from "react";
 import { Input } from "@ishoot/ui";
 import { Loader2, UploadCloud, X } from "lucide-react";
 import { ContentImage } from "./ContentImage";
+import { websiteMedia } from "../../lib/website-media";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadFileDirectly } from "../../lib/upload-client";
 
@@ -46,7 +47,7 @@ export function AssetUrlInput({ value, onChange, resource, placeholder, required
       <div className="flex items-stretch gap-2">
         <div className="w-11 shrink-0 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center overflow-hidden">
           {previewable ? (
-            <ContentImage src={value} alt="" className="w-full h-full object-contain p-1" />
+            <ContentImage src={websiteMedia(value)} alt="" className="w-full h-full object-contain p-1" />
           ) : (
             <UploadCloud className="w-4 h-4 text-ink-muted" />
           )}
@@ -57,13 +58,13 @@ export function AssetUrlInput({ value, onChange, resource, placeholder, required
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder || t.assetField.urlPlaceholder}
           required={required}
-          className="flex-1"
+          className="flex-1 min-w-0"
         />
         {value && (
           <button
             type="button"
             onClick={() => onChange("")}
-            className="px-2 rounded-xl text-ink-muted hover:text-rose-500 hover:bg-rose-500/10"
+            className="shrink-0 px-2 rounded-xl text-ink-muted hover:text-rose-500 hover:bg-rose-500/10"
             title={t.assetField.clear}
             aria-label={t.assetField.clear}
           >
@@ -74,7 +75,7 @@ export function AssetUrlInput({ value, onChange, resource, placeholder, required
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="inline-flex items-center gap-1.5 px-3 rounded-xl border border-ink/15 text-xs font-semibold text-ink hover:bg-ink/5 disabled:opacity-60"
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 rounded-xl border border-ink/15 text-xs font-semibold text-ink hover:bg-ink/5 disabled:opacity-60"
         >
           {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
           <span>{uploading ? t.assetField.uploading : t.assetField.upload}</span>

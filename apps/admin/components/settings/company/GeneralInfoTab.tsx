@@ -29,6 +29,9 @@ export function GeneralInfoTab({
 }: GeneralInfoTabProps) {
   React.useState(true);
   const [feedCopied, setFeedCopied] = React.useState(false);
+  // The absolute feed URL needs the browser origin; set it after mount so server and client markup match.
+  const [feedOrigin, setFeedOrigin] = React.useState("");
+  React.useEffect(() => setFeedOrigin(window.location.origin), []);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -234,7 +237,7 @@ export function GeneralInfoTab({
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <div className="flex-1 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 px-3 py-2 rounded-xl text-xs font-mono text-slate-700 dark:text-slate-300 truncate select-all">
-              {typeof window !== "undefined" ? `${window.location.origin}/api/calendar/feed` : "/api/calendar/feed"}
+              {`${feedOrigin}/api/calendar/feed`}
             </div>
             <Button
               type="button"

@@ -365,7 +365,7 @@ export function MomDetailView({
             {/* Quick Metadata Bar */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
               <div className="space-y-1">
-                <span className="text-slate-400 font-bold uppercase text-[10px] flex items-center gap-1">
+                <span className="text-slate-500 font-bold uppercase text-[10px] flex items-center gap-1">
                   <Calendar className="w-3 h-3 text-accent" />
                   <span>{isAr ? "التاريخ" : "Date"}</span>
                 </span>
@@ -375,7 +375,7 @@ export function MomDetailView({
               </div>
 
               <div className="space-y-1">
-                <span className="text-slate-400 font-bold uppercase text-[10px] flex items-center gap-1">
+                <span className="text-slate-500 font-bold uppercase text-[10px] flex items-center gap-1">
                   <Clock className="w-3 h-3 text-accent" />
                   <span>{isAr ? "الوقت" : "Timing"}</span>
                 </span>
@@ -386,7 +386,7 @@ export function MomDetailView({
               </div>
 
               <div className="space-y-1">
-                <span className="text-slate-400 font-bold uppercase text-[10px] flex items-center gap-1">
+                <span className="text-slate-500 font-bold uppercase text-[10px] flex items-center gap-1">
                   <MapPin className="w-3 h-3 text-accent" />
                   <span>{isAr ? "الموقع" : "Location"}</span>
                 </span>
@@ -400,7 +400,7 @@ export function MomDetailView({
               </div>
 
               <div className="space-y-1">
-                <span className="text-slate-400 font-bold uppercase text-[10px] flex items-center gap-1">
+                <span className="text-slate-500 font-bold uppercase text-[10px] flex items-center gap-1">
                   <FileText className="w-3 h-3 text-accent" />
                   <span>{isAr ? "المعد" : "Recorded By"}</span>
                 </span>
@@ -440,7 +440,7 @@ export function MomDetailView({
                     <tbody className="divide-y divide-slate-100">
                       {mom.attendees.map((att: MomAttendee, i: number) => (
                         <tr key={i} className="hover:bg-slate-50/50">
-                          <td className="py-2.5 px-3 text-slate-400 font-mono text-[11px] w-10">
+                          <td className="py-2.5 px-3 text-slate-500 font-mono text-[11px] w-10">
                             {String(i + 1).padStart(2, "0")}
                           </td>
                           <td className="py-2.5 px-3 font-semibold text-slate-900">
@@ -520,7 +520,7 @@ export function MomDetailView({
                           </span>
                           <span>{point.topic}</span>
                           {point.speaker && (
-                            <span className="text-slate-400 font-normal text-[11px]">
+                            <span className="text-slate-500 font-normal text-[11px]">
                               ({point.speaker})
                             </span>
                           )}
@@ -566,7 +566,7 @@ export function MomDetailView({
                       ? "مصفوفة خطة العمل والمهام المسندة"
                       : "Action Items & Accountabilities"}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-mono">
+                  <span className="text-[10px] text-slate-500 font-mono">
                     {mom.action_items.length} {isAr ? "مهمة" : "Items"}
                   </span>
                 </h3>
@@ -597,7 +597,7 @@ export function MomDetailView({
                           key={i}
                           className="hover:bg-slate-50/50 print-avoid-break"
                         >
-                          <td className="py-3 px-3 text-slate-400 font-mono text-[11px] align-top">
+                          <td className="py-3 px-3 text-slate-500 font-mono text-[11px] align-top">
                             {String(i + 1).padStart(2, "0")}
                           </td>
                           <td className="py-3 px-3 align-top font-semibold text-slate-900">

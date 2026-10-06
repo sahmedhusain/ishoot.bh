@@ -104,8 +104,8 @@ export function ExpenseCategoriesView({ initialCategories, canDelete }: { initia
                 return (
                   <div key={c.id} className={`p-3 sm:px-5 flex flex-wrap items-center gap-2 ${c.is_active ? "" : "opacity-55"}`}>
                     <input type="color" aria-label={cT.color} className="h-8 w-9 rounded-md border border-ink/15 bg-surface" value={draft.color ?? c.color} onChange={(e) => set({ color: e.target.value })} />
-                    <input className={`${field} flex-1 min-w-[140px]`} aria-label={cT.nameEn} value={draft.name_en ?? c.name_en} onChange={(e) => set({ name_en: e.target.value })} />
-                    <input className={`${field} flex-1 min-w-[140px]`} dir="rtl" aria-label={cT.nameAr} value={draft.name_ar ?? c.name_ar} onChange={(e) => set({ name_ar: e.target.value })} />
+                    <input className={`${field} basis-full sm:basis-auto flex-1 min-w-[140px]`} aria-label={cT.nameEn} value={draft.name_en ?? c.name_en} onChange={(e) => set({ name_en: e.target.value })} />
+                    <input className={`${field} basis-full sm:basis-auto flex-1 min-w-[140px]`} dir="rtl" aria-label={cT.nameAr} value={draft.name_ar ?? c.name_ar} onChange={(e) => set({ name_ar: e.target.value })} />
                     <select className={field} aria-label={cT.kind} value={draft.kind ?? c.kind} onChange={(e) => set({ kind: e.target.value as ExpenseCategoryKind })}>
                       {EXPENSE_CATEGORY_KINDS.map((k) => <option key={k} value={k}>{t.expenseMeta.kinds[k]}</option>)}
                     </select>

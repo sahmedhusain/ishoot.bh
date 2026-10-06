@@ -82,7 +82,7 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
             <tbody className="divide-y divide-slate-100 print:divide-slate-200">
               {invoice.line_items?.map((item, index) => (
                 <tr key={index} className="hover:bg-slate-50/50 print-avoid-break">
-                  <td className="py-4 px-3 text-slate-400  align-top text-xs">
+                  <td className="py-4 px-3 text-slate-500  align-top text-xs">
                     {String(index + 1).padStart(2, "0")}
                   </td>
                   <td className="py-4 px-3 align-top">
@@ -127,7 +127,7 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
             <div>
               <h3 className="text-xs font-bold uppercase tracking-wider text-accent mb-1.5 flex items-center justify-between">
                 <span>{adminTranslations.en.documentLetterhead.termsNotes}</span>
-                <span className="text-[10px] text-slate-400 font-arabic">{adminTranslations.ar.documentLetterhead.termsNotes}</span>
+                <span className="text-[10px] text-slate-500 font-arabic">{adminTranslations.ar.documentLetterhead.termsNotes}</span>
               </h3>
               <div className="text-[11px] leading-relaxed text-slate-600 space-y-1.5 bg-slate-50 p-4 rounded-xl border border-slate-200 print:bg-white print:border-slate-300 print:text-[10px]">
                 {isAr ? (
@@ -161,10 +161,10 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
                 {inv.bankCoords}
               </div>
               <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200  text-[11px] space-y-1 print:bg-white print:border-slate-300 print:text-[10px]">
-                <div><span className="text-slate-400 font-sans">{t.pdfInvoice.bankName}</span> {company.bank_name || (isAr ? "بنك البحرين الوطني" : "National Bank of Bahrain (NBB)")}</div>
-                <div><span className="text-slate-400 font-sans">{t.pdfInvoice.iban}</span> {company.bank_iban || "BH00NBBB00000000000000"}</div>
-                <div><span className="text-slate-400 font-sans">{t.pdfInvoice.accountNo}</span> {company.bank_account_number || "0000-000000-001"}</div>
-                <div><span className="text-slate-400 font-sans">{t.pdfInvoice.swift}</span> {company.bank_swift || "NBBBBHBM"}</div>
+                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.bankName}</span> {company.bank_name || (isAr ? "بنك البحرين الوطني" : "National Bank of Bahrain (NBB)")}</div>
+                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.iban}</span> {company.bank_iban || "BH00NBBB00000000000000"}</div>
+                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.accountNo}</span> {company.bank_account_number || "0000-000000-001"}</div>
+                <div><span className="text-slate-500 font-sans">{t.pdfInvoice.swift}</span> {company.bank_swift || "NBBBBHBM"}</div>
               </div>
             </div>
           </div>

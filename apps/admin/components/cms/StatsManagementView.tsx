@@ -124,7 +124,7 @@ export function StatsManagementView({ initialStats }: { initialStats: StatisticI
               <Button variant="outline" size="sm" onClick={() => handleOpenEdit(stat)} className="flex-1">
                 <Edit className="w-3.5 h-3.5 mr-1" /> {t.actions.edit}
               </Button>
-              <Button variant="danger" size="sm" onClick={() => setDeleteId(stat.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+              <Button aria-label={t.actions.delete} variant="danger" size="sm" onClick={() => setDeleteId(stat.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
             </div>
           </Card>
         ))}

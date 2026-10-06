@@ -199,7 +199,7 @@ export function CompanyDocumentsClientView({
                   </Button>
                 </a>
 
-                <Button
+                <Button aria-label={t.actions.delete}
                   variant="ghost"
                   size="sm"
                   onClick={() => setDeleteTargetId(doc.id)}

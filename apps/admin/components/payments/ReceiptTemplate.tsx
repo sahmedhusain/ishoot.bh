@@ -72,7 +72,7 @@ export function ReceiptTemplate({
         extraMeta={
           <div className="space-y-1.5 pt-1">
             <div className="flex justify-between sm:justify-end gap-6">
-              <span className="text-gray-400 font-bold uppercase text-[10px]">
+              <span className="text-slate-500 font-bold uppercase text-[10px]">
                 {rcpt.paymentMethod}
               </span>
               <span className="font-bold text-gray-900 uppercase">
@@ -81,7 +81,7 @@ export function ReceiptTemplate({
             </div>
             {payment.reference_number && (
               <div className="flex justify-between sm:justify-end gap-6">
-                <span className="text-gray-400 font-bold uppercase text-[10px]">
+                <span className="text-slate-500 font-bold uppercase text-[10px]">
                   {rcpt.referenceNo}
                 </span>
                 <span className=" text-gray-700">

@@ -188,7 +188,7 @@ export function WebSettingsView({
             rel="noopener noreferrer"
             className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold inline-flex items-center gap-2 transition-all shadow-sm"
           >
-            <Globe className="w-3.5 h-3.5 text-[#5EEAD4]" />
+            <Globe className="w-3.5 h-3.5 text-primary dark:text-mint" />
             <span>{t.webSettingsView.viewLiveWebsite}</span>
             <ExternalLink className="w-3 h-3 text-white/70" />
           </a>
@@ -1030,7 +1030,7 @@ export function WebSettingsView({
               </>
             ) : (
               <>
-                <Save className="w-4 h-4 text-[#5EEAD4]" />
+                <Save className="w-4 h-4 text-primary dark:text-mint" />
                 <span>{t.webSettingsView.saveSettings}</span>
               </>
             )}

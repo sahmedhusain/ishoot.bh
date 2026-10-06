@@ -75,7 +75,9 @@
     "confirm": "Confirm Action",
     "recordPayment": "Record Payment",
     "backToInvoices": "Back to Invoices Archive",
-    "associatedReceipts": "Linked Receipts & Payments"
+    "associatedReceipts": "Linked Receipts & Payments",
+    "previous": "Previous",
+    "next": "Next"
   },
   "kpi": {
     "totalRevenue": "Cash Revenue Collected",
@@ -1421,7 +1423,8 @@
     "totalAmount": "Total Amount",
     "amountPaid": "Amount Paid",
     "balanceDue": "Balance Due",
-    "createQuotation": "Create Quotation"
+    "createQuotation": "Create Quotation",
+    "dealsCount": "{n} deals"
   },
   "dealDossier": {
     "back": "Back to Deals",
@@ -3023,7 +3026,17 @@
     "searchCustomerRecords": "Search customer records",
     "search": "Search",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "domains": {
+      "inquiries": "Interactions",
+      "deals": "Deals",
+      "invoices": "Invoices",
+      "payments": "Payments",
+      "contracts": "Contracts",
+      "attachments": "Files",
+      "activities": "Activity"
+    },
+    "pageOf": "{domain}: page {page} of {pages}"
   },
   "employeeDetail": {
     "updatingEmployeeProfile": "Updating employee profile...",

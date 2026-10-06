@@ -25,7 +25,7 @@ export function LeadFunnelChart({ stages }: LeadFunnelChartProps) {
           <div key={stage.label} className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="font-medium text-white">{stage.label}</span>
-              <span className="font-mono text-[#9EADA9]">
+              <span className="font-mono text-ink-muted">
                 {stage.count} ({pct}%)
               </span>
             </div>
