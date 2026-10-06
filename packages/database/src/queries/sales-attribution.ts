@@ -97,6 +97,8 @@ export interface CommissionRow {
   collectedNet: number;
   commission: number;
   payout: { id: string; amount: number; recordedAt: string; expenseId: string | null; viaPayroll: boolean } | null;
+  /** Paid with the salary (HR policy), so no separate payout is recorded. */
+  onPayroll: boolean;
 }
 
 function monthRange(month: string) {
@@ -140,14 +142,17 @@ export const commissionAmount = (collectedNet: number, ratePercent: number) => M
  */
 export async function getCommissionStatement(month: string): Promise<CommissionRow[]> {
   const range = monthRange(month);
-  const [byOwner, people, payouts] = await Promise.all([
+  const [byOwner, people, payouts, policy, payrollStaff] = await Promise.all([
     commissionsForRange(range),
     db.user.findMany({
       where: { OR: [{ commissionRatePercent: { not: null } }, { invoicesOwned: { some: { payments: { some: { paymentDate: range } } } } }] },
       select: { id: true, fullName: true, role: true, commissionRatePercent: true },
     }),
     db.commissionPayout.findMany({ where: { periodMonth: month } }),
+    db.hrPolicy.findUnique({ where: { id: "default" }, select: { commissionInPayroll: true } }),
+    db.employee.findMany({ where: { userId: { not: null }, status: { not: "terminated" } }, select: { userId: true } }),
   ]);
+  const viaPayroll = new Set((policy?.commissionInPayroll ?? true) ? payrollStaff.map((e) => e.userId) : []);
   return people
     .map((u) => {
       const earned = byOwner.get(u.id);
@@ -163,6 +168,7 @@ export async function getCommissionStatement(month: string): Promise<CommissionR
         collectedNet,
         commission: commissionAmount(collectedNet, rate),
         payout: payout ? { id: payout.id, amount: Number(payout.amount), recordedAt: payout.createdAt.toISOString(), expenseId: payout.expenseId, viaPayroll: !!payout.payrollItemId } : null,
+        onPayroll: viaPayroll.has(u.id),
       };
     })
     .sort((a, b) => b.collectedNet - a.collectedNet);

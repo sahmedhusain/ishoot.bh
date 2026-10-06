@@ -4003,7 +4003,7 @@
   },
   "commissions": {
     "title": "Sales commissions",
-    "subtitle": "Commission is earned on money collected in the month (net of VAT) on invoices credited to each person, at their commission rate. Recording a payout books it as a payroll expense.",
+    "subtitle": "Commission is earned on money collected in the month (net of VAT) on invoices credited to each person, at their commission rate. Staff on payroll receive it with their salary; others get a payout booked as a payroll expense.",
     "previous": "Previous month",
     "next": "Next month",
     "month": "Month",
@@ -4022,7 +4022,9 @@
     "recorded": "Commission recorded as an expense",
     "recordedOn": "Recorded {date}",
     "failed": "Could not record the commission",
-    "monthOpen": "Month still open"
+    "monthOpen": "Month still open",
+    "paidWithSalary": "Paid with salary",
+    "inPayroll": "Paid with next salary"
   },
   "payrollEdit": {
     "edit": "Edit this salary line",

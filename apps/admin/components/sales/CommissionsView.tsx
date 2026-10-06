@@ -108,10 +108,12 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
                   <td className="p-3 text-end font-bold text-ink">{fmt(r.commission)}</td>
                   <td className="p-3 pe-5 text-end">
                     {r.payout ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold">
+                      <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        {c.recordedOn.replace("{date}", r.payout.recordedAt.slice(0, 10))}
+                        {r.payout.viaPayroll ? c.paidWithSalary : c.recordedOn.replace("{date}", r.payout.recordedAt.slice(0, 10))}
                       </span>
+                    ) : r.onPayroll && r.commission > 0 ? (
+                      <span className="text-ink-muted">{c.inPayroll}</span>
                     ) : canRecord && r.commission > 0 && month < current ? (
                       <button type="button" disabled={busy === r.userId} onClick={() => record(r.userId)} className="px-3 py-1.5 rounded-full bg-accent text-white font-semibold disabled:opacity-60">
                         {c.record}
