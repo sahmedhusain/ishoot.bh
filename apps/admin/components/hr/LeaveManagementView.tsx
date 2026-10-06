@@ -545,7 +545,7 @@ export function LeaveManagementView({
               <button
                 type="button"
                 onClick={() => setShowApplyModal(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 dark:text-neutral-300 hover:bg-slate-100 rounded-md"
+                className="px-3 py-1.5 text-xs text-ink-muted hover:text-ink hover:bg-ink/5 rounded-md"
               >
                 {t.shared.cancel}
               </button>
@@ -585,7 +585,7 @@ export function LeaveManagementView({
               <button
                 type="button"
                 onClick={() => setRejectingRequestId(null)}
-                className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded-md"
+                className="px-3 py-1.5 text-xs text-ink-muted hover:text-ink hover:bg-ink/5 rounded-md"
               >
                 {t.shared.cancel}
               </button>

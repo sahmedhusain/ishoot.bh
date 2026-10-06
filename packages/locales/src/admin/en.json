@@ -2926,7 +2926,11 @@
     "disableMfa": "Disable MFA",
     "confirmSetup": "Confirm setup",
     "saveTheseCodesSecurelyThey": "Save these codes securely. They are shown once and each works once.",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "subtitle": "Protect your account with an authenticator app (two-factor sign-in).",
+    "statusOn": "On",
+    "statusOff": "Off",
+    "failed": "Could not update security settings."
   },
   "webSettings": {
     "websiteEditorPreviewAndPublishing": "Website editor, preview & publishing →",

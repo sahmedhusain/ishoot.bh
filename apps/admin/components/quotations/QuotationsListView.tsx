@@ -227,7 +227,7 @@ export function QuotationsListView({ quotations, summary, pagination }: Quotatio
                       <td className="py-3.5 px-4 text-center">
                         <span
                           className={`inline-block px-2.5 py-0.5 text-xs font-medium rounded-full capitalize ${
-                            statusColors[q.status] || "bg-slate-100 text-slate-600"
+                            statusColors[q.status] || "bg-ink/5 text-ink-muted"
                           }`}
                         >
                           {getStatusLabel(q.status)}

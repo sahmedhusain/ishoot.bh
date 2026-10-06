@@ -135,7 +135,7 @@ export function EmployeeDetailView({
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                     : employee.status === "on_leave"
                       ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : "bg-slate-100 text-slate-600"
+                      : "bg-ink/5 text-ink-muted"
                 }`}
               >
                 {(t.hrExtensions as Record<string, string>)[employee.status] ||
@@ -292,7 +292,7 @@ export function EmployeeDetailView({
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-medium text-ink-muted mb-1">
                   {t.employeeDetail.basicSalary}
                 </label>
                 <input
@@ -305,7 +305,7 @@ export function EmployeeDetailView({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-medium text-ink-muted mb-1">
                   {t.shared.housing}
                 </label>
                 <input
@@ -318,7 +318,7 @@ export function EmployeeDetailView({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-medium text-ink-muted mb-1">
                   {t.shared.transport}
                 </label>
                 <input
@@ -333,7 +333,7 @@ export function EmployeeDetailView({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">
+                <label className="block text-xs font-medium text-ink-muted mb-1">
                   {t.employeeDetail.other}
                 </label>
                 <input
@@ -357,7 +357,7 @@ export function EmployeeDetailView({
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="px-4 py-2 text-xs font-medium rounded-md border border-ink/10 text-slate-600 hover:bg-slate-50"
+              className="px-4 py-2 text-xs font-medium rounded-md border border-ink/10 text-ink-muted hover:bg-ink/10"
             >
               {t.shared.cancel}
             </button>

@@ -2926,7 +2926,11 @@
     "disableMfa": "تعطيل المصادقة الثنائية",
     "confirmSetup": "تأكيد الإعداد",
     "saveTheseCodesSecurelyThey": "احفظ هذه الرموز بأمان. يظهر كل رمز مرة واحدة ويستخدم مرة واحدة.",
-    "signIn": "تسجيل الدخول"
+    "signIn": "تسجيل الدخول",
+    "subtitle": "احمِ حسابك بتطبيق مصادقة (تسجيل دخول بخطوتين).",
+    "statusOn": "مفعّلة",
+    "statusOff": "غير مفعّلة",
+    "failed": "تعذّر تحديث إعدادات الأمان."
   },
   "webSettings": {
     "websiteEditorPreviewAndPublishing": "تحرير الموقع والمعاينة والنشر ←",

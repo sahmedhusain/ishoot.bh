@@ -941,7 +941,7 @@ export function RequestDetailView({
               </div>
               <button
                 onClick={() => setModalType(null)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="text-slate-400 hover:text-ink text-sm font-bold"
               >
                 ✕
               </button>
