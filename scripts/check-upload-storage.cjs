@@ -26,7 +26,7 @@ async function main(){
   assert.equal((await finalize.POST(request({fileUrl:upload.fileUrl,entityType:'invoice',entityId:'pending'}))).status,200);assert.equal(creates,0);
   assert.equal((await finalize.POST(request({fileUrl:upload.fileUrl,entityType:'invoice',entityId:'i'}))).status,200);assert.equal(creates,1);
   claimCount=0;assert.equal((await finalize.POST(request({fileUrl:upload.fileUrl,entityType:'invoice',entityId:'i'}))).status,500);assert.equal(creates,1,'concurrent second claim must not create an attachment');
-  const {encryptIntegrationCredentials,decryptIntegrationCredentials}=require('../apps/admin/lib/integration-credentials.ts');
+  const {encryptIntegrationCredentials,decryptIntegrationCredentials}=require('../packages/database/src/services/integration-credentials.ts');
   delete process.env.ENCRYPTION_KEY;assert.throws(()=>encryptIntegrationCredentials({token:'test'}),/Configure/);
   process.env.ENCRYPTION_KEY='a'.repeat(32);
   const sealed=encryptIntegrationCredentials({token:'test'});assert.equal(decryptIntegrationCredentials(sealed).token,'test');assert.equal(decryptIntegrationCredentials(sealed+'ff'),null);

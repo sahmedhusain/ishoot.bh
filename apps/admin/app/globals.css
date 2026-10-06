@@ -376,7 +376,7 @@ body:hover::-webkit-scrollbar-thumb,
   border-inline-end-color: #e2e8f0 !important;
 }
 
-.light header {
+.light header[data-topbar] {
   background-color: rgba(255, 255, 255, 0.95) !important;
   border-bottom-color: #e2e8f0 !important;
 }

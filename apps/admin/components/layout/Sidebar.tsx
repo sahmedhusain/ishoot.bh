@@ -295,7 +295,7 @@ export function Sidebar() {
             href: ROUTES.analytics,
             label: t.nav.socialAnalytics,
             icon: TrendingUp,
-            resource: "reports",
+            resource: "social",
           },
         ],
       },

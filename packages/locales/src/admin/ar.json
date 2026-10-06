@@ -298,7 +298,7 @@
     "preferences": "المظهر واللغة",
     "company": "بيانات الشركة والضرائب",
     "audit": "سجل العمليات والجلسات",
-    "integrations": "ربط منصات ميتا",
+    "integrations": "التكاملات",
     "web": "إعدادات الموقع والمحتوى",
     "roles": "الصلاحيات والأدوار",
     "modules": "وحدات النظام",
@@ -316,23 +316,93 @@
     "systemTitle": "حسب النظام"
   },
   "integrations": {
-    "title": "ربط وتكامل منصات ميتا (Meta APIs)",
-    "subtitle": "تفعيل قنوات WhatsApp Cloud API، وحساب إنستغرام للأعمال، وإعلانات فيسبوك لتوليد العملاء تلقائياً في CRM.",
-    "saved": "تم حفظ بيانات الربط وتحديث إعدادات منصات ميتا بنجاح!",
-    "testSent": "تم إرسال رسالة اختبار عبر WhatsApp Cloud API بنجاح إلى رقم الإدارة!",
-    "connected": "متصل ونشط",
-    "waDesc": "إرسال الفواتير الرسمية وروابط السداد وإيصالات القبض آلياً للعملاء عبر رقم الشركة الرسمي الموثق (+973).",
-    "sendTest": "إرسال رسالة اختبار",
-    "phoneId": "معرّف رقم هاتف واتساب (Phone Number ID)",
-    "wabaId": "معرّف حساب واتساب للأعمال (WABA ID)",
-    "token": "رمز الوصول الدائم للنظام (Permanent Access Token)",
-    "autoInvoices": "إرسال الفواتير الضريبية بصيغة PDF فور إصدارها",
-    "autoReceipts": "إرسال إيصال السداد فور تسجيل الدفعة البنكية",
-    "igFbTitle": "Instagram Graph & Facebook Lead Ads",
-    "igFbDesc": "تحويل استفسارات ورسائل إنستغرام وحملات إعلانات فيسبوك مباشرة إلى صفقات في نظام CRM.",
-    "igHandle": "حساب إنستغرام الرسمي للأعمال",
-    "fbPageId": "معرّف صفحة فيسبوك الرسمية (Page ID)",
-    "autoFbLeads": "إنشاء صفقة جديدة في CRM فور وصول عميل محتمل من إعلانات Lead Ads"
+    "title": "التكاملات",
+    "subtitle": "اربط حسابات التواصل الاجتماعي وواتساب وإرسال البريد. تُشفّر بيانات الدخول ولا تُعرض مرة أخرى بعد الحفظ.",
+    "kinds": {
+      "social": "التواصل الاجتماعي",
+      "messaging": "المراسلة",
+      "email": "البريد الإلكتروني"
+    },
+    "providers": {
+      "meta": {
+        "name": "فيسبوك وإنستغرام",
+        "description": "متابعو الصفحة وحساب إنستغرام التجاري والمنشورات والتفاعل عبر Meta Graph API."
+      },
+      "whatsapp": {
+        "name": "واتساب للأعمال",
+        "description": "إرسال المستندات والرسائل للعملاء والموظفين عبر WhatsApp Cloud API."
+      },
+      "youtube": {
+        "name": "يوتيوب",
+        "description": "مشتركو القناة والمشاهدات وأداء الفيديوهات عبر YouTube Data API."
+      },
+      "tiktok": {
+        "name": "تيك توك",
+        "description": "المتابعون وأداء الفيديوهات عبر TikTok Display API."
+      },
+      "x": {
+        "name": "إكس (تويتر)",
+        "description": "المتابعون وأداء المنشورات عبر X API v2."
+      },
+      "linkedin": {
+        "name": "لينكدإن",
+        "description": "متابعو صفحة الشركة عبر LinkedIn Community Management API."
+      },
+      "resend": {
+        "name": "بريد Resend",
+        "description": "إرسال الفواتير وعروض الأسعار والإشعارات، مع التحقق من توثيق نطاق المرسِل."
+      }
+    },
+    "fields": {
+      "pageId": "معرّف صفحة فيسبوك",
+      "instagramAccountId": "معرّف حساب إنستغرام التجاري",
+      "accessToken": "رمز الوصول",
+      "phoneId": "معرّف رقم الهاتف",
+      "businessId": "معرّف حساب واتساب للأعمال",
+      "token": "رمز الوصول الدائم",
+      "channelId": "معرّف القناة",
+      "apiKey": "مفتاح API",
+      "username": "اسم المستخدم",
+      "bearerToken": "رمز Bearer",
+      "organizationId": "معرّف المؤسسة",
+      "fromEmail": "بريد المرسِل"
+    },
+    "status": {
+      "healthy": "متصل",
+      "error": "يحتاج إلى مراجعة",
+      "unknown": "لم يُفحص",
+      "off": "متوقف"
+    },
+    "secretSet": "محفوظ {hint}",
+    "secretKeep": "اتركه فارغاً للإبقاء على القيمة المحفوظة",
+    "enabled": "مفعّل",
+    "save": "حفظ",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم الحفظ",
+    "test": "اختبار الاتصال",
+    "testing": "جارٍ الاختبار…",
+    "testOk": "الاتصال يعمل",
+    "testFailed": "فشل الاتصال",
+    "sync": "مزامنة الآن",
+    "syncing": "جارٍ المزامنة…",
+    "syncOk": "تمت مزامنة {posts} منشوراً",
+    "syncFailed": "فشلت المزامنة",
+    "unlink": "قطع الاتصال",
+    "unlinkTitle": "قطع الاتصال بـ {name}؟",
+    "unlinkBody": "تُحذف بيانات الدخول المحفوظة، وتبقى المنشورات والسجل في التحليلات.",
+    "account": "الحساب",
+    "lastChecked": "آخر فحص",
+    "lastSynced": "آخر مزامنة",
+    "never": "أبداً",
+    "docs": "دليل الإعداد",
+    "whatsappTest": "إرسال رسالة تجريبية",
+    "whatsappTo": "الرقم مع رمز الدولة",
+    "whatsappBody": "رسالة تجريبية من لوحة iShoot.",
+    "send": "إرسال",
+    "sent": "قبل واتساب الرسالة",
+    "configure": "إعداد",
+    "edit": "تعديل",
+    "cancel": "إلغاء"
   },
   "audit": {
     "title": "سجل العمليات، التدقيق، والجلسات",
@@ -2202,7 +2272,8 @@
       "benefits": "المزايا",
       "reports": "التقارير",
       "profile_changes": "تعديلات الملف الشخصي",
-      "self_service": "خدماتي (الخدمة الذاتية)"
+      "self_service": "خدماتي (الخدمة الذاتية)",
+      "social": "وسائل التواصل الاجتماعي"
     }
   },
   "approvals": {
@@ -2395,23 +2466,101 @@
   },
   "socialAnalytics": {
     "title": "تحليلات التواصل الاجتماعي",
-    "subtitle": "آخر قراءة لكل مؤشر من قنوات التواصل الاجتماعي.",
-    "empty": "لا توجد بيانات تحليلية بعد.",
-    "stale": "بيانات قديمة",
-    "fresh": "محدّثة",
+    "subtitle": "المتابعون والمنشورات والتفاعل عبر الحسابات المرتبطة.",
+    "empty": "اربط حساب تواصل اجتماعي من الإعدادات ← التكاملات لبدء جمع التحليلات.",
+    "connect": "ربط الحسابات",
+    "stale": "غير محدّث",
+    "fresh": "محدّث",
     "updated": "آخر تحديث",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث…",
+    "refreshed": "تم تحديث التحليلات",
+    "refreshPartial": "تعذّر تحديث بعض الحسابات",
+    "period": "الفترة",
+    "periods": {
+      "7": "7 أيام",
+      "30": "30 يوماً",
+      "90": "90 يوماً",
+      "365": "12 شهراً"
+    },
+    "allPlatforms": "كل المنصات",
     "platforms": {
       "facebook": "فيسبوك",
       "instagram": "إنستغرام",
       "youtube": "يوتيوب",
+      "tiktok": "تيك توك",
+      "x": "إكس",
+      "linkedin": "لينكدإن",
       "whatsapp": "واتساب"
     },
     "metrics": {
       "followers": "المتابعون",
+      "posts": "المنشورات",
       "views": "المشاهدات",
       "engagement": "التفاعل",
+      "reach": "الوصول",
       "messages_sent": "الرسائل المرسلة",
       "messages_read": "الرسائل المقروءة"
+    },
+    "tabs": {
+      "overview": "نظرة عامة",
+      "posts": "المنشورات",
+      "planner": "خطة المحتوى"
+    },
+    "kpi": {
+      "followers": "إجمالي المتابعين",
+      "posts": "المنشورات",
+      "interactions": "التفاعلات",
+      "views": "المشاهدات",
+      "engagementRate": "متوسط معدل التفاعل",
+      "vsPrevious": "مقارنة بالفترة السابقة"
+    },
+    "followersGained": "{n} خلال الفترة",
+    "notConnected": "غير مرتبط",
+    "noData": "لا توجد بيانات بعد",
+    "chartTitle": "التفاعلات حسب اليوم",
+    "chartPosts": "منشورات",
+    "byPlatform": "حسب المنصة",
+    "topPosts": "أفضل المنشورات",
+    "post": "المنشور",
+    "published": "تاريخ النشر",
+    "likes": "الإعجابات",
+    "comments": "التعليقات",
+    "shares": "المشاركات",
+    "saves": "الحفظ",
+    "rate": "التفاعل",
+    "open": "فتح المنشور",
+    "noCaption": "(بدون نص)",
+    "noPosts": "لا توجد منشورات في هذه الفترة.",
+    "plan": {
+      "add": "فكرة منشور جديدة",
+      "edit": "تعديل المنشور",
+      "title": "العنوان",
+      "caption": "النص",
+      "platforms": "المنصات",
+      "media": "رابط الوسائط",
+      "scheduledFor": "موعد النشر",
+      "status": "الحالة",
+      "publishedUrl": "رابط المنشور",
+      "assignee": "المسؤول",
+      "unassigned": "غير مسند",
+      "statuses": {
+        "idea": "فكرة",
+        "draft": "مسودة",
+        "scheduled": "مجدول",
+        "published": "منشور",
+        "cancelled": "ملغى"
+      },
+      "empty": "لا يوجد محتوى مخطط بعد. أضف الأفكار وجدولها وتابع ما نُشر.",
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "delete": "حذف",
+      "deleteTitle": "حذف خطة المنشور؟",
+      "saved": "تم حفظ الخطة",
+      "deleted": "تم حذف الخطة",
+      "overdue": "متأخر",
+      "unscheduled": "غير مجدول",
+      "all": "الكل"
     }
   },
   "adminLoginForm": {
@@ -2925,22 +3074,6 @@
   "companySettings": {
     "saving": "جاري الحفظ...",
     "inactiveNonVat": "غير مفعّلة (غير مسجل ضريبياً)"
-  },
-  "metaIntegrations": {
-    "whatsappCredentialsEncryptedAndSaved": "تم تحديث وتشفير بيانات واتساب بنجاح.",
-    "instagramAndFacebookConnectionSaved": "تم تحديث ربط إنستغرام وفيسبوك بنجاح.",
-    "integrationUnlinkedAndKeysPurged": "تم فك الارتباط بنجاح.",
-    "connectionError": "خطأ في الاتصال",
-    "connectionUnverified": "لم يتم التحقق من الاتصال",
-    "disconnected": "غير متصل",
-    "edit": "تعديل",
-    "unlink": "إلغاء الربط",
-    "connectWhatsapp": "ربط الحساب",
-    "cancel": "إلغاء",
-    "saveChanges": "حفظ التغييرات",
-    "connectAccounts": "ربط الحسابات",
-    "confirmUnlinkingAndKeyPurge": "تأكيد إلغاء الربط وحذف مفاتيح الدخول",
-    "areYouSureYouWant": "هل أنت متأكد من إلغاء الربط؟ سيتم حذف المفاتيح والتفويضات المشفرة وإيقاف الإشعارات التلقائية المرتبطة بها فوراً."
   },
   "securitySettings": {
     "updatedSignInAgain": "تم التحديث. سجل الدخول مرة أخرى.",

@@ -1,44 +1,36 @@
 "use server";
 import { ROUTES } from "../../constants/routes";
-import type { Prisma } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
-
-import { measureOperation,db } from "@ishoot/database";
+import {
+  measureOperation,
+  createActivityLog,
+  saveIntegrationSettings,
+  unlinkIntegrationSettings,
+  testIntegration,
+  syncSocialIntegration,
+  sendWhatsAppTestMessage,
+} from "@ishoot/database";
 import { requirePermission } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
-import { encryptIntegrationCredentials } from "../../lib/integration-credentials";
 
-export async function saveIntegration(provider: string, isActive: boolean, credentials: Record<string, string>, config: Record<string, unknown> = {}) {
-  validateActionArguments("saveIntegration", { provider, isActive, credentials, config });
+function revalidate() {
+  revalidatePath(ROUTES.settings.integrations);
+  revalidatePath(ROUTES.analytics);
+}
+
+/** Saves an integration. Secret fields left blank keep their stored value; secrets are never returned. */
+export async function saveIntegration(
+  provider: string,
+  isActive: boolean,
+  values: Record<string, string>,
+  config: Record<string, boolean | string | number> = {},
+) {
+  validateActionArguments("saveIntegration", { provider, isActive, values, config });
   return measureOperation(`admin:saveIntegration:${provider}`, async () => {
     const user = await requirePermission("settings", "write");
-
-    const encryptedCredentials = encryptIntegrationCredentials(credentials);
-
-    // Saving credentials does not prove provider connectivity.
-
-    await db.integrationSetting.upsert({
-      where: { provider },
-      update: {
-        isActive,
-        credentials: encryptedCredentials,
-        config: JSON.parse(JSON.stringify(config)) as Prisma.InputJsonObject,
-        updatedById: user.id,
-        healthStatus: "unknown",
-        lastCheckedAt: new Date(),
-      },
-      create: {
-        provider,
-        isActive,
-        credentials: encryptedCredentials,
-        config: JSON.parse(JSON.stringify(config)) as Prisma.InputJsonObject,
-        updatedById: user.id,
-        healthStatus: "unknown",
-        lastCheckedAt: new Date(),
-      }
-    });
-
-    revalidatePath(ROUTES.settings.root);
+    await saveIntegrationSettings(provider, { isActive, values, config }, user.id);
+    await createActivityLog({ user_id: user.id, action: "update", entity_type: "integration", entity_id: provider, details: { isActive } });
+    revalidate();
     return { success: true };
   });
 }
@@ -47,19 +39,44 @@ export async function unlinkIntegration(provider: string) {
   validateActionArguments("unlinkIntegration", { provider });
   return measureOperation(`admin:unlinkIntegration:${provider}`, async () => {
     const user = await requirePermission("settings", "write");
-
-    await db.integrationSetting.update({
-      where: { provider },
-      data: {
-        isActive: false,
-        credentials: null,
-        healthStatus: "unknown",
-        lastCheckedAt: new Date(),
-        updatedById: user.id
-      }
-    });
-
-    revalidatePath(ROUTES.settings.root);
+    await unlinkIntegrationSettings(provider, user.id);
+    await createActivityLog({ user_id: user.id, action: "delete", entity_type: "integration", entity_id: provider });
+    revalidate();
     return { success: true };
+  });
+}
+
+export async function testIntegrationAction(provider: string) {
+  validateActionArguments("testIntegrationAction", { provider });
+  return measureOperation(`admin:testIntegration:${provider}`, async () => {
+    await requirePermission("settings", "write");
+    const result = await testIntegration(provider);
+    revalidate();
+    return { ok: result.ok, accountName: result.accountName ?? null, error: result.error ?? null };
+  });
+}
+
+export async function syncIntegrationAction(provider: string) {
+  validateActionArguments("syncIntegrationAction", { provider });
+  return measureOperation(`admin:syncIntegration:${provider}`, async () => {
+    await requirePermission("social", "write");
+    try {
+      const result = await syncSocialIntegration(provider);
+      return { ok: true as const, ...result, error: null };
+    } catch (error) {
+      return { ok: false as const, posts: 0, metrics: 0, error: error instanceof Error ? error.message : "Sync failed" };
+    } finally {
+      revalidate();
+    }
+  });
+}
+
+export async function sendWhatsAppTestAction(to: string, message: string) {
+  validateActionArguments("sendWhatsAppTestAction", { to, message });
+  return measureOperation("admin:sendWhatsAppTest", async () => {
+    const user = await requirePermission("settings", "write");
+    const result = await sendWhatsAppTestMessage(to, message);
+    await createActivityLog({ user_id: user.id, action: "whatsapp_test", entity_type: "integration", entity_id: "whatsapp", details: { messageId: result.messageId } });
+    return { messageId: result.messageId };
   });
 }

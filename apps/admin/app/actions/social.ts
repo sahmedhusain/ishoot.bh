@@ -1,0 +1,72 @@
+"use server";
+import { ROUTES } from "../../constants/routes";
+import { validateActionArguments } from "../../lib/action-input";
+import {
+  measureOperation,
+  createSocialPlan,
+  updateSocialPlan,
+  deleteSocialPlan,
+  syncSocialIntegration,
+  INTEGRATION_PROVIDERS,
+  db,
+} from "@ishoot/database";
+import { requirePermission } from "../../lib/auth";
+import { revalidatePath } from "next/cache";
+
+interface PlanInput {
+  title: string;
+  caption?: string | null;
+  platforms: string[];
+  mediaUrl?: string | null;
+  scheduledFor?: string | null;
+  status: string;
+  publishedUrl?: string | null;
+  assigneeId?: string | null;
+}
+
+/** Syncs every connected social account now. Returns per-provider results so the page can show failures. */
+export async function refreshSocialAnalyticsAction() {
+  validateActionArguments("refreshSocialAnalyticsAction", {});
+  return measureOperation("admin:refreshSocialAnalytics", async () => {
+    await requirePermission("social", "write");
+    const active = await db.integrationSetting.findMany({
+      where: { isActive: true, provider: { in: INTEGRATION_PROVIDERS.filter((p) => p.kind === "social").map((p) => p.id) } },
+      select: { provider: true },
+    });
+    const results: Array<{ provider: string; ok: boolean; error: string | null }> = [];
+    for (const { provider } of active) {
+      try {
+        await syncSocialIntegration(provider);
+        results.push({ provider, ok: true, error: null });
+      } catch (error) {
+        results.push({ provider, ok: false, error: error instanceof Error ? error.message : "Sync failed" });
+      }
+    }
+    revalidatePath(ROUTES.analytics);
+    return { results };
+  });
+}
+
+export async function saveSocialPlanAction(id: string | null, input: PlanInput) {
+  validateActionArguments("saveSocialPlanAction", { id, input });
+  return measureOperation("admin:saveSocialPlan", async () => {
+    const user = await requirePermission("social", id ? "edit" : "create");
+    if (input.assigneeId) {
+      const assignee = await db.user.findFirst({ where: { id: input.assigneeId, isActive: true }, select: { id: true } });
+      if (!assignee) throw new Error("Choose an active team member");
+    }
+    const plan = id ? await updateSocialPlan(id, input) : await createSocialPlan(input, user.id);
+    revalidatePath(ROUTES.analytics);
+    return plan;
+  });
+}
+
+export async function deleteSocialPlanAction(id: string) {
+  validateActionArguments("deleteSocialPlanAction", { id });
+  return measureOperation("admin:deleteSocialPlan", async () => {
+    await requirePermission("social", "delete");
+    await deleteSocialPlan(id);
+    revalidatePath(ROUTES.analytics);
+    return { success: true };
+  });
+}

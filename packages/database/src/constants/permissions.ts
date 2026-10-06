@@ -31,6 +31,7 @@ export const ALL_RESOURCES = [
   "reports",
   "profile_changes",
   "self_service",
+  "social",
 ] as const;
 
 export const ALL_ACTIONS = [
@@ -104,6 +105,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     reports: ["read", "export"],
     profile_changes: ["read", "approve"],
     self_service: SELF_SERVICE,
+    social: [...CRUD, "export"],
   },
   finance_manager: {
     invoices: ["read", "write", "create", "edit", "export"],
@@ -183,6 +185,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     equipment: ["read"],
     requests: ["read", "write", "create", "edit"],
     self_service: SELF_SERVICE,
+    social: [...CRUD, "export"],
   },
   editor: {
     portfolio: ["read", "write", "create", "edit"],
@@ -219,7 +222,7 @@ export const PERMISSION_GROUPS: ReadonlyArray<{ key: string; resources: readonly
   { key: "finance", resources: ["invoices", "quotations", "payments", "expenses", "finance_analytics", "reports"] },
   { key: "crm", resources: ["deals", "contacts", "leads", "contracts", "requests", "moms", "support"] },
   { key: "hr", resources: ["employees", "payroll", "benefits", "profile_changes", "self_service"] },
-  { key: "cms", resources: ["banners", "portfolio", "clients", "equipment", "reviews", "faqs", "stats"] },
+  { key: "cms", resources: ["banners", "portfolio", "clients", "equipment", "reviews", "faqs", "stats", "social"] },
   { key: "operations", resources: ["calendar"] },
   { key: "administration", resources: ["users", "settings", "audit_logs"] },
 ];

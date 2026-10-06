@@ -3344,7 +3344,7 @@
         "kind": "boolean",
         "optional": false
       },
-      "credentials": {
+      "values": {
         "kind": "record",
         "element": {
           "kind": "string"
@@ -3354,7 +3354,18 @@
       "config": {
         "kind": "record",
         "element": {
-          "kind": "unknown"
+          "kind": "union",
+          "variants": [
+            {
+              "kind": "boolean"
+            },
+            {
+              "kind": "string"
+            },
+            {
+              "kind": "number"
+            }
+          ]
         },
         "optional": true
       }
@@ -3364,6 +3375,37 @@
     "kind": "object",
     "fields": {
       "provider": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "testIntegrationAction": {
+    "kind": "object",
+    "fields": {
+      "provider": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "syncIntegrationAction": {
+    "kind": "object",
+    "fields": {
+      "provider": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "sendWhatsAppTestAction": {
+    "kind": "object",
+    "fields": {
+      "to": {
+        "kind": "string",
+        "optional": false
+      },
+      "message": {
         "kind": "string",
         "optional": false
       }
@@ -5734,6 +5776,123 @@
     }
   },
   "requestInvoiceApprovalAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "refreshSocialAnalyticsAction": {
+    "kind": "object",
+    "fields": {}
+  },
+  "saveSocialPlanAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "string"
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "caption": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "platforms": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "mediaUrl": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "scheduledFor": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "status": {
+            "kind": "string",
+            "optional": false
+          },
+          "publishedUrl": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "assigneeId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteSocialPlanAction": {
     "kind": "object",
     "fields": {
       "id": {

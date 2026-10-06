@@ -298,7 +298,7 @@
     "preferences": "Appearance & Language",
     "company": "Company & Tax",
     "audit": "Audit Logs & Sessions",
-    "integrations": "Meta & Integrations",
+    "integrations": "Integrations",
     "web": "Website & CMS Settings",
     "roles": "Roles & Permissions",
     "modules": "System Modules",
@@ -316,23 +316,93 @@
     "systemTitle": "System"
   },
   "integrations": {
-    "title": "Meta Platform Integrations",
-    "subtitle": "Direct API synchronization for WhatsApp Cloud API, Instagram Graph API, and Facebook Lead Ads.",
-    "saved": "Meta API settings successfully saved and verified!",
-    "testSent": "Test message successfully dispatched via WhatsApp Cloud API!",
-    "connected": "Connected",
-    "waDesc": "Automated dispatch of verified invoices, payment links, and receipts directly to client WhatsApp.",
-    "sendTest": "Send Test Ping",
-    "phoneId": "WhatsApp Phone Number ID",
-    "wabaId": "WhatsApp Business Account ID",
-    "token": "System User Access Token",
-    "autoInvoices": "Auto-dispatch PDF tax invoices upon issuance",
-    "autoReceipts": "Auto-dispatch payment receipts upon reconciliation",
-    "igFbTitle": "Instagram Graph & Facebook Lead Ads",
-    "igFbDesc": "Directly ingest Instagram direct inquiries and Facebook Lead Ads into the CRM pipeline.",
-    "igHandle": "Instagram Professional Handle",
-    "fbPageId": "Facebook Page ID",
-    "autoFbLeads": "Automatically create CRM Deal on new Facebook Lead"
+    "title": "Integrations",
+    "subtitle": "Connect your social accounts, WhatsApp and e-mail delivery. Credentials are encrypted and never shown again after saving.",
+    "kinds": {
+      "social": "Social media",
+      "messaging": "Messaging",
+      "email": "E-mail"
+    },
+    "providers": {
+      "meta": {
+        "name": "Facebook & Instagram",
+        "description": "Page and Instagram Business followers, posts and engagement through the Meta Graph API."
+      },
+      "whatsapp": {
+        "name": "WhatsApp Business",
+        "description": "Send documents and messages to clients and staff through the WhatsApp Cloud API."
+      },
+      "youtube": {
+        "name": "YouTube",
+        "description": "Channel subscribers, views and video performance through the YouTube Data API."
+      },
+      "tiktok": {
+        "name": "TikTok",
+        "description": "Followers and video performance through the TikTok Display API."
+      },
+      "x": {
+        "name": "X (Twitter)",
+        "description": "Followers and post performance through the X API v2."
+      },
+      "linkedin": {
+        "name": "LinkedIn",
+        "description": "Company page followers through the LinkedIn Community Management API."
+      },
+      "resend": {
+        "name": "Resend e-mail",
+        "description": "Delivery of invoices, quotations and notifications. Checks that the sender domain is verified."
+      }
+    },
+    "fields": {
+      "pageId": "Facebook Page ID",
+      "instagramAccountId": "Instagram Business account ID",
+      "accessToken": "Access token",
+      "phoneId": "Phone number ID",
+      "businessId": "WhatsApp Business account ID",
+      "token": "Permanent access token",
+      "channelId": "Channel ID",
+      "apiKey": "API key",
+      "username": "Username",
+      "bearerToken": "Bearer token",
+      "organizationId": "Organization ID",
+      "fromEmail": "Sender e-mail"
+    },
+    "status": {
+      "healthy": "Connected",
+      "error": "Needs attention",
+      "unknown": "Not checked",
+      "off": "Off"
+    },
+    "secretSet": "Saved {hint}",
+    "secretKeep": "Leave blank to keep the saved value",
+    "enabled": "Enabled",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "test": "Test connection",
+    "testing": "Testing…",
+    "testOk": "Connection works",
+    "testFailed": "Connection failed",
+    "sync": "Sync now",
+    "syncing": "Syncing…",
+    "syncOk": "Synced {posts} posts",
+    "syncFailed": "Sync failed",
+    "unlink": "Disconnect",
+    "unlinkTitle": "Disconnect {name}?",
+    "unlinkBody": "The saved credentials are deleted. Synced posts and history stay in analytics.",
+    "account": "Account",
+    "lastChecked": "Checked",
+    "lastSynced": "Synced",
+    "never": "Never",
+    "docs": "Setup guide",
+    "whatsappTest": "Send a test message",
+    "whatsappTo": "Number with country code",
+    "whatsappBody": "Test message from iShoot admin.",
+    "send": "Send",
+    "sent": "Message accepted by WhatsApp",
+    "configure": "Set up",
+    "edit": "Edit",
+    "cancel": "Cancel"
   },
   "audit": {
     "title": "Audit Trail & Session History",
@@ -2202,7 +2272,8 @@
       "benefits": "Benefits",
       "reports": "Reports",
       "profile_changes": "Profile changes",
-      "self_service": "My HR (self-service)"
+      "self_service": "My HR (self-service)",
+      "social": "Social media"
     }
   },
   "approvals": {
@@ -2394,24 +2465,102 @@
     }
   },
   "socialAnalytics": {
-    "title": "Social Analytics",
-    "subtitle": "Latest reading of each social channel metric.",
-    "empty": "No analytics data available yet.",
-    "stale": "Stale data",
-    "fresh": "Fresh",
+    "title": "Social analytics",
+    "subtitle": "Followers, posts and engagement across your connected accounts.",
+    "empty": "Connect a social account in Settings → Integrations to start collecting analytics.",
+    "connect": "Connect accounts",
+    "stale": "Out of date",
+    "fresh": "Up to date",
     "updated": "Updated",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing…",
+    "refreshed": "Analytics refreshed",
+    "refreshPartial": "Some accounts could not be refreshed",
+    "period": "Period",
+    "periods": {
+      "7": "7 days",
+      "30": "30 days",
+      "90": "90 days",
+      "365": "12 months"
+    },
+    "allPlatforms": "All platforms",
     "platforms": {
       "facebook": "Facebook",
       "instagram": "Instagram",
       "youtube": "YouTube",
+      "tiktok": "TikTok",
+      "x": "X",
+      "linkedin": "LinkedIn",
       "whatsapp": "WhatsApp"
     },
     "metrics": {
       "followers": "Followers",
+      "posts": "Posts",
       "views": "Views",
       "engagement": "Engagement",
+      "reach": "Reach",
       "messages_sent": "Messages sent",
       "messages_read": "Messages read"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "posts": "Posts",
+      "planner": "Content plan"
+    },
+    "kpi": {
+      "followers": "Total followers",
+      "posts": "Posts published",
+      "interactions": "Interactions",
+      "views": "Views",
+      "engagementRate": "Avg. engagement rate",
+      "vsPrevious": "vs previous period"
+    },
+    "followersGained": "{n} this period",
+    "notConnected": "Not connected",
+    "noData": "No data yet",
+    "chartTitle": "Interactions by day",
+    "chartPosts": "Posts",
+    "byPlatform": "By platform",
+    "topPosts": "Top posts",
+    "post": "Post",
+    "published": "Published",
+    "likes": "Likes",
+    "comments": "Comments",
+    "shares": "Shares",
+    "saves": "Saves",
+    "rate": "Engagement",
+    "open": "Open post",
+    "noCaption": "(no caption)",
+    "noPosts": "No posts in this period.",
+    "plan": {
+      "add": "New post idea",
+      "edit": "Edit post",
+      "title": "Title",
+      "caption": "Caption",
+      "platforms": "Platforms",
+      "media": "Media link",
+      "scheduledFor": "Publish on",
+      "status": "Status",
+      "publishedUrl": "Published link",
+      "assignee": "Owner",
+      "unassigned": "Unassigned",
+      "statuses": {
+        "idea": "Idea",
+        "draft": "Draft",
+        "scheduled": "Scheduled",
+        "published": "Published",
+        "cancelled": "Cancelled"
+      },
+      "empty": "No planned content yet. Add ideas, schedule them and track what was published.",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleteTitle": "Delete this post plan?",
+      "saved": "Plan saved",
+      "deleted": "Plan deleted",
+      "overdue": "Overdue",
+      "unscheduled": "Not scheduled",
+      "all": "All"
     }
   },
   "adminLoginForm": {
@@ -2925,22 +3074,6 @@
   "companySettings": {
     "saving": "Saving...",
     "inactiveNonVat": "Inactive (Non-VAT)"
-  },
-  "metaIntegrations": {
-    "whatsappCredentialsEncryptedAndSaved": "WhatsApp credentials encrypted and saved.",
-    "instagramAndFacebookConnectionSaved": "Instagram & Facebook connection saved.",
-    "integrationUnlinkedAndKeysPurged": "Integration unlinked and keys purged.",
-    "connectionError": "Connection Error",
-    "connectionUnverified": "Connection unverified",
-    "disconnected": "Disconnected",
-    "edit": "Edit",
-    "unlink": "Unlink",
-    "connectWhatsapp": "Connect WhatsApp",
-    "cancel": "Cancel",
-    "saveChanges": "Save Changes",
-    "connectAccounts": "Connect Accounts",
-    "confirmUnlinkingAndKeyPurge": "Confirm Unlinking and Key Purge",
-    "areYouSureYouWant": "Are you sure you want to unlink? All stored authentication tokens and credentials will be purged, and automatic webhook messaging will be stopped immediately."
   },
   "securitySettings": {
     "updatedSignInAgain": "Updated. Sign in again.",
