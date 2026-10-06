@@ -49,6 +49,8 @@ interface NavItem {
   moduleKey?: string;
   /** Only for people who manage a team. */
   managersOnly?: boolean;
+  /** Only for super administrators (governance pages). */
+  superAdminOnly?: boolean;
 }
 
 interface NavSection {
@@ -58,7 +60,7 @@ interface NavSection {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { can, loading, managesTeam } = usePermissions();
+  const { can, loading, managesTeam, role } = usePermissions();
   const { isMobileOpen, setIsMobileOpen } = useSidebar();
   const { t } = useAdminLocale();
   const { isFeatureEnabled } = useFeatureToggles();
@@ -344,6 +346,7 @@ export function Sidebar() {
             label: t.nav.roles,
             icon: Key,
             resource: "users",
+            superAdminOnly: true,
           },
           {
             href: ROUTES.users.list,
@@ -372,12 +375,13 @@ export function Sidebar() {
         items: section.items.filter((item) => {
           if (item.moduleKey && !isFeatureEnabled(item.moduleKey)) return false;
           if (item.managersOnly && !managesTeam) return false;
+          if (item.superAdminOnly && role !== "super_admin") return false;
           if (!item.resource) return true;
           return can(item.resource, item.action ?? "read");
         }),
       }))
       .filter((section) => section.items.length > 0);
-  }, [sections, can, loading, isFeatureEnabled, managesTeam]);
+  }, [sections, can, loading, isFeatureEnabled, managesTeam, role]);
 
   // Only the most specific matching link is active (/finance/reports must not also light up /finance).
   const activeHref = React.useMemo(() => {

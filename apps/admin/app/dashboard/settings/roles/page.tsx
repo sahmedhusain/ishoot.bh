@@ -1,3 +1,4 @@
+import { forbidden } from "next/navigation";
 import { requirePagePermission } from "../../../../lib/auth";
 import { db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";
@@ -5,8 +6,8 @@ import type { RoleWithGrants } from "../../../../types/roles";
 
 export default async function RolesSettingsPage() {
   const actor = await requirePagePermission("users", "read");
-  if (actor.role !== "super_admin")
-    throw new Error("Only super administrators can manage roles");
+  // Role design is governance: only super administrators.
+  if (actor.role !== "super_admin") forbidden();
 
   const [roles, userCounts, permissions] = await Promise.all([
     db.role.findMany({ orderBy: { createdAt: "asc" } }),
