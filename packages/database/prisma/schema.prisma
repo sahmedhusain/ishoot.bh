@@ -882,6 +882,15 @@ model Statistic {
   subLabelAr String?
   icon       String? // Lucide icon name, e.g. "Film"
   sortOrder  Int     @default(0)
+  /// "manual" uses value as typed; "preset" computes it from live data.
+  source     String  @default("manual")
+  /// projects_delivered | clients_served | team_members | portfolio_projects | five_star_reviews | years_in_business
+  preset     String?
+  /// Preset input, e.g. the founding year for years_in_business.
+  presetParam Int?
+  /// Round computed values down to this step (10 → 157 shows 150) before the suffix.
+  roundTo    Int?
+  suffix     String?
 }
 
 // Durable cross-app cache invalidation, committed with publication.
