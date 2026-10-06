@@ -684,6 +684,122 @@
       }
     }
   },
+  "createSigningLinkAction": {
+    "kind": "object",
+    "fields": {
+      "type": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "quotation"
+          },
+          {
+            "kind": "literal",
+            "value": "invoice"
+          }
+        ],
+        "optional": false
+      },
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "days": {
+        "kind": "number",
+        "optional": false
+      },
+      "recipientEmail": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "string"
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": true
+      }
+    }
+  },
+  "revokeSigningLinkAction": {
+    "kind": "object",
+    "fields": {
+      "signatureId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "recordSignedCopyAction": {
+    "kind": "object",
+    "fields": {
+      "type": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "quotation"
+          },
+          {
+            "kind": "literal",
+            "value": "invoice"
+          }
+        ],
+        "optional": false
+      },
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "signerName": {
+            "kind": "string",
+            "optional": false
+          },
+          "signerTitle": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "signedAt": {
+            "kind": "string",
+            "optional": false
+          },
+          "fileUrl": {
+            "kind": "string",
+            "optional": false
+          },
+          "fileName": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "toggleBannerStatusAction": {
     "kind": "object",
     "fields": {

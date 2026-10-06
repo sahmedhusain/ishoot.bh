@@ -163,6 +163,14 @@ const RULES: Rule[] = [
         WHEN 'invoice' THEN EXISTS (SELECT 1 FROM "Invoice" t WHERE t.id = a."targetId" AND t."approvalStatus" = 'submitted')
         WHEN 'account_change' THEN EXISTS (SELECT 1 FROM "AccountChangeRequest" t WHERE t.id = a."targetId" AND t.status = 'pending')
         ELSE false END` },
+  { area: "sales", name: "a quotation the client signed is accepted (or later)",
+    sql: `SELECT q.id, q."quotationNumber", q.status FROM "ClientSignature" c JOIN "Quotation" q ON q.id = c."documentId"
+      WHERE c."documentType" = 'quotation' AND c.status = 'signed' AND q.status NOT IN ('accepted', 'converted', 'expired', 'cancelled', 'rejected')` },
+  { area: "sales", name: "an open signing link belongs to a document that can still be signed",
+    sql: `SELECT c.id, c."documentType", c."documentId" FROM "ClientSignature" c
+      LEFT JOIN "Quotation" q ON c."documentType" = 'quotation' AND q.id = c."documentId"
+      LEFT JOIN "Invoice" i ON c."documentType" = 'invoice' AND i.id = c."documentId"
+      WHERE c.status = 'pending' AND c."expiresAt" > now() AND COALESCE(q.status, i.status) NOT IN ('issued', 'accepted', 'sent', 'partially_paid', 'overdue', 'paid')` },
   { area: "approvals", name: "items waiting for approval have a pending approval request",
     sql: `SELECT 'quotation' t, id FROM "Quotation" x WHERE status = 'submitted' AND NOT EXISTS (SELECT 1 FROM "ApprovalRequest" a WHERE a."targetId" = x.id AND a.status = 'pending')
       UNION ALL SELECT 'leave', id FROM "LeaveRequest" x WHERE status = 'pending' AND NOT EXISTS (SELECT 1 FROM "ApprovalRequest" a WHERE a."targetId" = x.id AND a.status = 'pending')

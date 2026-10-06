@@ -54,3 +54,20 @@ export async function uploadFileDirectly(file: File, options: UploadOptions = {}
 
   return finalizeData;
 }
+
+/**
+ * Uploads a file and leaves it unclaimed so a server action can claim it with the record it belongs to
+ * (the action verifies the stored bytes and creates the attachment).
+ */
+export async function uploadForClaim(file: File, options: Pick<UploadOptions, "entityType" | "entityId"> = {}) {
+  const initRes = await fetch("/api/upload/init", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fileName: file.name, fileType: file.type, fileSize: file.size, entityType: options.entityType, entityId: options.entityId }),
+  });
+  const initData = await initRes.json();
+  if (!initRes.ok || !initData.signedUrl) throw new Error(initData.error || "Failed to initialize upload");
+  const uploadRes = await fetch(initData.signedUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+  if (!uploadRes.ok) throw new Error("Failed to upload file to storage bucket");
+  return { fileUrl: initData.fileUrl as string, fileName: file.name };
+}

@@ -1,4 +1,5 @@
 import * as React from "react";
+import sharp from "sharp";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoicePdfDocument } from "./invoice-pdf";
 import { ReceiptPdfDocument } from "./receipt-pdf";
@@ -34,7 +35,8 @@ async function pdfAcceptance(type: ClientSignableType, id: string): Promise<Clie
     signerTitle: acceptance.signerTitle,
     signedAt: acceptance.signedAt,
     method: acceptance.method,
-    signatureSrc: png ? Buffer.from(png, "base64") : null,
+    // The drawing pad leaves blank space around the strokes; trim it so the signature fills its line.
+    signatureSrc: png ? await sharp(Buffer.from(png, "base64")).trim().png().toBuffer().catch(() => Buffer.from(png, "base64")) : null,
   };
 }
 

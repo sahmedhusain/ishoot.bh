@@ -1,6 +1,7 @@
 import { requirePagePermission, hasPermission } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { getInvoiceById, getAllPayments, getAttribution, listSalesPeople, getSigningState, canSignDocument } from "@ishoot/database";
+import { getInvoiceById, getAllPayments, getAttribution, listSalesPeople, getSigningState, canSignDocument, listClientSignatures, SIGNABLE_STATUSES } from "@ishoot/database";
+import { ClientSignaturePanel } from "../../../../components/shared/ClientSignaturePanel";
 import { SigningPanel } from "../../../../components/sales/SigningPanel";
 import { AttributionPanel } from "../../../../components/sales/AttributionPanel";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
@@ -29,15 +30,17 @@ export default async function InvoiceDetailPage({
     hasPermission("invoices", "edit"),
     hasPermission("invoices", "assign"),
   ]);
+  const canIssue = await hasPermission("invoices", "issue_send");
   const [signing, canSign, canWrite] = await Promise.all([
     getSigningState("invoice", id),
-    canSignDocument("invoice", id, user, await hasPermission("invoices", "issue_send")),
+    canSignDocument("invoice", id, user, canIssue),
     hasPermission("invoices", "write"),
   ]);
 
   if (!invoice || !company) {
     notFound();
   }
+  const clientSignatures = await listClientSignatures("invoice", invoice.id);
 
   const invoicePayments = allPayments;
 
@@ -47,6 +50,17 @@ export default async function InvoiceDetailPage({
       <div className="max-w-6xl mx-auto mt-6 no-print grid gap-6 lg:grid-cols-2">
         <SigningPanel type="invoice" id={id} state={signing} canSign={canSign} canRequestApproval={canWrite} hasSignature={!!user.signature_url} />
         <AttributionPanel entityType="invoice" entityId={id} info={attribution} salesPeople={salesPeople} canReassign={canEdit || canAssign} />
+        <div className="lg:col-span-2">
+          <ClientSignaturePanel
+            documentType="invoice"
+            documentId={invoice.id}
+            signable={SIGNABLE_STATUSES.invoice.includes(invoice.status)}
+            records={clientSignatures}
+            canSend={canIssue}
+            canRecord={canEdit}
+            defaultEmail={invoice.contact?.email ?? null}
+          />
+        </div>
       </div>
     </>
   );

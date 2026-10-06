@@ -78,11 +78,11 @@ export async function loadSignableDocument(type: ClientSignableType, id: string,
 }
 
 /** E-signature consent wording in the document language, supplied by the app (it owns the translations). */
-export type ConsentText = (language: "ar" | "en", number: string) => string;
+export type ConsentText = (language: "ar" | "en", number: string, type: ClientSignableType) => string;
 
 /** What the client agreed to: the document's own terms plus the e-signature consent, in its language. */
 export function signingTerms(doc: ClientSignableDocument, consent: ConsentText): string {
-  return [doc.terms?.trim(), consent(doc.language, doc.number)].filter(Boolean).join("\n\n");
+  return [doc.terms?.trim(), consent(doc.language, doc.number, doc.type)].filter(Boolean).join("\n\n");
 }
 
 /** Number, currency, total and lines: if any of these change after signing, the signature no longer matches. */
