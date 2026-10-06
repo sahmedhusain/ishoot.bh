@@ -333,8 +333,15 @@ export async function createInvoice(data: {
         deal: { include: { contact: true } },
       },
     });
-    if (data.quotation_id)
+    if (data.quotation_id) {
       await tx.quotation.update({ where: { id: data.quotation_id }, data: { invoiceId: invoice.id, status: "converted" } });
+      // Crediting the invoice to someone other than the quotation's salesperson is a reassignment: keep the history.
+      if (quotationOwner && invoice.salesOwnerId && invoice.salesOwnerId !== quotationOwner && data.created_by) {
+        await tx.salesAttributionChange.create({
+          data: { entityType: "invoice", entityId: invoice.id, fromUserId: quotationOwner, toUserId: invoice.salesOwnerId, changedById: data.created_by, reason: "Credited differently when invoicing the quotation" },
+        });
+      }
+    }
     return invoice;
   });
 

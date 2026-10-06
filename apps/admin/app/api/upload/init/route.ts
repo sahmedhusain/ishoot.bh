@@ -3,7 +3,7 @@ import { NextRequest,NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../lib/attachment-access";
 import { randomUUID } from "crypto";
-import { getStorageClient } from "@ishoot/database";
+import { getStorageClient, isSupabaseStorageConfigured } from "@ishoot/database";
 
 export const dynamic = "force-dynamic";
 
@@ -43,14 +43,19 @@ export async function POST(req: NextRequest) {
       const filePath = `${subfolder}/${uniqueFileName}`;
       const bucket = publicBrand ? "public-assets" : "private-assets";
 
-      const client = getStorageClient();
-      const { data, error } = await client.storage.from(bucket).createSignedUploadUrl(filePath);
-
-      if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-      }
-
       const fileUrl = `/api/files/${subfolder}/${uniqueFileName}`;
+      // Without Supabase Storage (local development), the browser sends the file to our own owner-checked endpoint.
+      let signed: { signedUrl: string; token: string | null };
+      if (isSupabaseStorageConfigured()) {
+        const { data, error } = await getStorageClient().storage.from(bucket).createSignedUploadUrl(filePath);
+        if (error) {
+          console.error("Upload init storage error:", error.message);
+          return NextResponse.json({ error: "File storage is unavailable. Try again shortly." }, { status: 503 });
+        }
+        signed = { signedUrl: data.signedUrl, token: data.token };
+      } else {
+        signed = { signedUrl: `/api/upload/local/${subfolder}/${uniqueFileName}`, token: null };
+      }
       await db.uploadObject.create({
         data: {
           fileUrl,
@@ -65,10 +70,10 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        signedUrl: data.signedUrl,
+        signedUrl: signed.signedUrl,
         fileUrl,
         filePath,
-        token: data.token,
+        token: signed.token,
         bucket,
         uniqueFileName,
       });

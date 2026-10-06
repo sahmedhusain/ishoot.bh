@@ -34,6 +34,8 @@ export default async function ProfilePage() {
           where: { userId: user.id },
           include: { department: true },
         })
+        // Decimals cannot cross to client components.
+        .then((employee) => (employee ? { ...employee, leaveBalanceDays: Number(employee.leaveBalanceDays) } : null))
         .catch(() => null),
       getProfileChangeRequestsForUser(user.id).catch(() => []),
       // Returns only changes filed by this user's direct reports; empty for non-managers.

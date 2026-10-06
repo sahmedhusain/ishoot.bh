@@ -1,5 +1,5 @@
 import { ROUTES } from "../../../../constants/routes";
-import { verifyStoredUpload } from "@ishoot/database";
+import { verifyStoredUpload, isSupabaseStorageConfigured, uploadRoot } from "@ishoot/database";
 import { measureOperation,db } from "@ishoot/database";
 import { NextRequest,NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../lib/auth";
@@ -31,7 +31,11 @@ export async function POST(req: NextRequest) {
       if (upload.claimedAt || upload.expiresAt <= new Date()) {
         return NextResponse.json({ error: "Upload is already claimed or expired" }, { status: 400 });
       }
-      await verifyStoredUpload(upload);
+      try {
+        await verifyStoredUpload(upload, isSupabaseStorageConfigured() ? undefined : uploadRoot());
+      } catch {
+        return NextResponse.json({ error: "The file did not arrive intact. Upload it again." }, { status: 422 });
+      }
       const createdAttachment = await db.$transaction(async (tx) => {
         const finalName = customName || upload.fileName;
         const claimed = await tx.uploadObject.updateMany({

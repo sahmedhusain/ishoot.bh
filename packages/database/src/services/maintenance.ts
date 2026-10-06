@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { getStorageClient, uploadStorageLocation } from "./storage";
+import { getStorageClient, isSupabaseStorageConfigured, uploadStorageLocation } from "./storage";
 import { uploadRoot } from "./uploads";
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -8,7 +8,7 @@ export async function removeExpiredUploads() {
   return db.$transaction(async (tx) => {
     const rows = await tx.$queryRaw<{ id: string; fileUrl: string }[]>`SELECT id,"fileUrl" FROM "UploadObject" WHERE "claimedAt" IS NULL AND "isPublic"=false AND "expiresAt"<CURRENT_TIMESTAMP ORDER BY "expiresAt" LIMIT 25 FOR UPDATE SKIP LOCKED`;
     const locations = rows.map((row) => uploadStorageLocation(row.fileUrl, false));
-    if (rows.length && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (rows.length && isSupabaseStorageConfigured()) {
       const { error } = await getStorageClient().storage.from("private-assets").remove(locations.map((location) => location.path));
       if (error) throw new Error("Expired upload removal failed; database records retained");
     } else {

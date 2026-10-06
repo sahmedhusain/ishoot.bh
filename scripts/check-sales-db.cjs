@@ -64,6 +64,20 @@ async function main() {
       assert.deepEqual([Number(expense.amount), expense.status, expense.category?.slug], [row.commission, "approved", "commissions"]);
       await assert.rejects(sales.recordCommissionPayout(closer.id, "2199-03", finance.id), /already recorded/);
       assert.equal((await sales.getCommissionStatement("2199-03")).find((r) => r.userId === other.id)?.commission ?? 0, 0, "the previous owner earns nothing");
+      // Invoicing an accepted quotation directly keeps its credit; crediting someone else is recorded as a reassignment.
+      const { createInvoice } = require("../packages/database/src/queries/invoices.ts");
+      const accepted = async () => {
+        const q = await createQuotation({ clientId: contact.id, salesOwnerId: closer.id, validUntilDate: new Date(Date.now() + 7 * 86400000), lineItems: [{ descriptionEn: "Edit", quantity: 1, unitPrice: 200 }] }, issuer.id);
+        await tx.quotation.update({ where: { id: q.id }, data: { status: "accepted" } });
+        return q.id;
+      };
+      const invoiceInput = (quotationId, extra = {}) => ({ contact_id: contact.id, quotation_id: quotationId, issue_date: "2199-04-01", due_date: "2199-04-15", line_items: [{ description_en: "Edit", quantity: 1, unit_price: 200 }], created_by: issuer.id, ...extra });
+      const kept = await createInvoice(invoiceInput(await accepted()));
+      assert.equal((await tx.invoice.findUniqueOrThrow({ where: { id: kept.id } })).salesOwnerId, closer.id, "invoice keeps the quotation's salesperson");
+      assert.equal(await tx.salesAttributionChange.count({ where: { entityType: "invoice", entityId: kept.id } }), 0);
+      const moved = await createInvoice(invoiceInput(await accepted(), { sales_owner_id: other.id }));
+      const change = await tx.salesAttributionChange.findFirstOrThrow({ where: { entityType: "invoice", entityId: moved.id } });
+      assert.deepEqual([change.fromUserId, change.toUserId, change.changedById], [closer.id, other.id, issuer.id], "a different credit is recorded as a reassignment");
       throw rollback;
     }), { timeout: 30000 });
   } catch (error) {

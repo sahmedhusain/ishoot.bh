@@ -2,7 +2,7 @@ import sharp from "sharp";
 import fs from "fs/promises";
 import { uploadRoot } from "@ishoot/database";
 import path from "path";
-import { db,getStorageClient,uploadStorageLocation } from "@ishoot/database";
+import { db,getStorageClient,uploadStorageLocation,isSupabaseStorageConfigured } from "@ishoot/database";
 
 export async function resolveConfiguredPdfAsset(
   url?: string | null,
@@ -13,7 +13,7 @@ export async function resolveConfiguredPdfAsset(
   const privateFile = url.startsWith("/api/files/");
 
   // Storage fallback for cloud environments
-  if (privateFile && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (privateFile && isSupabaseStorageConfigured()) {
     try {
       const upload = await db.uploadObject.findUnique({ where: { fileUrl: url } });
       if (!upload) return undefined;

@@ -45,11 +45,12 @@ const RULES: Rule[] = [
   { area: "finance", name: "overdue invoices are past due; sent invoices are not",
     sql: `SELECT "invoiceNumber", status, "dueDate" FROM "Invoice"
       WHERE (status = 'overdue' AND "dueDate" >= CURRENT_DATE) OR (status = 'sent' AND "dueDate" < CURRENT_DATE)` },
-  { area: "finance", name: "invoices and quotations charge VAT only when the company is VAT-registered, at its rate",
-    sql: `SELECT 'invoice' doc, "invoiceNumber" num FROM "Invoice" i, "CompanySetting" c WHERE i.status <> 'void'
-        AND (i."vatEnabled" <> c."vatEnabled" OR (i."vatEnabled" AND i."vatPercentage" <> c."vatPercentage"))
-      UNION ALL SELECT 'quotation', "quotationNumber" FROM "Quotation" q, "CompanySetting" c
-        WHERE q."vatEnabled" <> c."vatEnabled" OR (q."vatEnabled" AND q."vatPercentage" <> c."vatPercentage")` },
+  // VAT registration can change over time, so each document is checked against its own VAT choice, not today's setting.
+  { area: "finance", name: "documents charging VAT use a positive rate; documents without VAT carry no VAT",
+    sql: `SELECT 'invoice' doc, "invoiceNumber" num FROM "Invoice" WHERE status <> 'void'
+        AND (("vatEnabled" AND "vatPercentage" <= 0) OR (NOT "vatEnabled" AND "vatAmount" <> 0))
+      UNION ALL SELECT 'quotation', "quotationNumber" FROM "Quotation"
+        WHERE ("vatEnabled" AND "vatPercentage" <= 0) OR (NOT "vatEnabled" AND "vatAmount" <> 0)` },
   { area: "finance", name: "due date is not before issue date",
     sql: `SELECT "invoiceNumber" FROM "Invoice" WHERE "dueDate" < "issueDate"` },
   { area: "finance", name: "payment currency and date match its invoice",

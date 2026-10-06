@@ -1,7 +1,7 @@
 require('ts-node').register({transpileOnly:true,skipProject:true,compilerOptions:{module:'CommonJS',target:'ES2022',moduleResolution:'Node',esModuleInterop:true}});
 const { realConstants } = require("./lib/real-constants.cjs");
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
-function load(file,mocks){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:id=>{id=((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id,mocks);if(!(id in mocks)){const real=realConstants(file,id);if(real)return real;throw Error('Missing mock '+id);}return mocks[id];},process,Buffer,Date,console});return module.exports;}
+function load(file,mocks){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,{module,exports:module.exports,require:id=>{id=((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id,mocks);if(!(id in mocks)){if(id.startsWith('node:'))return require(id);const real=realConstants(file,id);if(real)return real;throw Error('Missing mock '+id);}return mocks[id];},process,Buffer,Date,console});return module.exports;}
 async function main(){
   let metadata={size:123,contentType:'application/pdf'},downloads=0,creates=0,claims=0,access=0;
   const storage=load('packages/database/src/services/storage.ts',{'@supabase/supabase-js':{createClient:()=>({storage:{from:bucket=>({info:async path=>({data:metadata,error:null}),download:async()=>{downloads++;}})}})}});
@@ -17,11 +17,11 @@ async function main(){
   const response={json:(body,options)=>({body,status:options?.status||200})};
   let user={id:'u'},denied=false,claimCount=1;
   const tx={uploadObject:{updateMany:async()=>{claims++;return {count:claimCount}}},attachment:{create:async()=>{creates++;return {id:'a'}}},activityLog:{create:async()=>{}}};
-  const finalize=load('apps/admin/app/api/upload/finalize/route.ts',{'next/server':{NextResponse:response},'next/cache':{revalidatePath(){}},'../../../../lib/auth':{getCurrentUser:async()=>user},'../../../../lib/attachment-access':{requireAttachmentAccess:async()=>{access++;if(denied)throw Error('denied')}},'@ishoot/database':{measureOperation:async(_,fn)=>fn(),verifyStoredUpload:storage.verifyStoredUpload,db:{uploadObject:{findUnique:async()=>upload},$transaction:async fn=>fn(tx)}}});
+  const finalize=load('apps/admin/app/api/upload/finalize/route.ts',{'next/server':{NextResponse:response},'next/cache':{revalidatePath(){}},'../../../../lib/auth':{getCurrentUser:async()=>user},'../../../../lib/attachment-access':{requireAttachmentAccess:async()=>{access++;if(denied)throw Error('denied')}},'@ishoot/database':{measureOperation:async(_,fn)=>fn(),verifyStoredUpload:storage.verifyStoredUpload,isSupabaseStorageConfigured:storage.isSupabaseStorageConfigured,uploadRoot:()=>'/tmp/upload-test',db:{uploadObject:{findUnique:async()=>upload},$transaction:async fn=>fn(tx)}}});
   const request=data=>({json:async()=>data});
   user=null;assert.equal((await finalize.POST(request({}))).status,401);user={id:'u'};
   denied=true;assert.equal((await finalize.POST(request({fileUrl:upload.fileUrl,entityType:'invoice',entityId:'i'}))).status,403);assert.equal(claims,0);denied=false;
-  metadata={size:999,contentType:'application/pdf'};assert.equal((await finalize.POST(request({fileUrl:upload.fileUrl,entityType:'invoice',entityId:'i'}))).status,500);assert.equal(creates,0);
+  metadata={size:999,contentType:'application/pdf'};assert.equal((await finalize.POST(request({fileUrl:upload.fileUrl,entityType:'invoice',entityId:'i'}))).status,422);assert.equal(creates,0);
   metadata={size:123,contentType:'application/pdf'};
   assert.equal((await finalize.POST(request({fileUrl:upload.fileUrl,entityType:'invoice',entityId:'pending'}))).status,200);assert.equal(creates,0);
   assert.equal((await finalize.POST(request({fileUrl:upload.fileUrl,entityType:'invoice',entityId:'i'}))).status,200);assert.equal(creates,1);

@@ -134,6 +134,8 @@ export function NewInvoiceFormView({
       if (!q) return;
       setSelectedQuotationId(q.id);
       if (q.dealId) setSelectedDealId(q.dealId);
+      // The invoice keeps the quotation's sales credit unless someone changes it on purpose.
+      if (q.salesOwnerId) setSalesOwnerId(q.salesOwnerId);
 
       if (q.clientId) {
         setSelectedContactId(q.clientId);
