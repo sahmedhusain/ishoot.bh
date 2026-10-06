@@ -1,4 +1,5 @@
 "use client";
+import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -76,7 +77,8 @@ export function NewQuotationFormView({
   currentUserId,
 }: NewQuotationFormViewProps) {
   const router = useRouter();
-  const { isRTL, t } = useAdminLocale();
+  const { isRTL, t, locale } = useAdminLocale();
+  const bhd = getCurrencyLabel("BHD", locale === "ar");
   const qfT = t.quotationForm;
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
@@ -610,7 +612,7 @@ export function NewQuotationFormView({
                     <span>{qfT.fxNoticeTitle}</span>
                   </div>
                   <span className="font-mono text-[11px]">
-                    1 BHD = {currentRawRate.toFixed(4)} → {effectiveRate.toFixed(4)} {currency}
+                    1 {bhd} = {currentRawRate.toFixed(4)} → {effectiveRate.toFixed(4)} {currency}
                   </span>
                 </div>
                 <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400">

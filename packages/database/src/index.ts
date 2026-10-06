@@ -43,6 +43,7 @@ export * from "./queries/social-metrics";
 export * from "./queries/moms";
 
 export * from "./queries/list-pages";
+export * from "./queries/client-profiles";
 
 export * from "./services/uploads";
 

@@ -1,12 +1,11 @@
 import { requirePagePermission } from "../../../../../lib/auth";
-import { Metadata } from "next";
-import { NewCustomerFormView } from "../../../../../components/crm/NewCustomerFormView";
+import { getCompanySettings } from "@ishoot/database";
+import { ClientProfileForm } from "../../../../../components/crm/ClientProfileForm";
 
-export const metadata: Metadata = {
-  title: "New Customer | CRM",
-};
+export const dynamic = "force-dynamic";
 
 export default async function NewCustomerPage() {
   await requirePagePermission("contacts", "write");
-  return <NewCustomerFormView />;
+  const settings = await getCompanySettings();
+  return <ClientProfileForm defaultPaymentTermsDays={settings?.payment_terms_days ?? 30} />;
 }

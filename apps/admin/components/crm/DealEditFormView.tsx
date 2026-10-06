@@ -1,4 +1,5 @@
 "use client";
+import { getCurrencyLabel } from "@ishoot/config/currency";
 import { ROUTES } from "../../constants/routes";
 import {EntityLookup} from "../shared/EntityLookup";
 
@@ -20,7 +21,8 @@ interface DealEditFormViewProps {
 
 export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewProps) {
   const router = useRouter();
-  const {t} = useAdminLocale();
+  const {t, locale } = useAdminLocale();
+  const bhd = getCurrencyLabel("BHD", locale === "ar");
 
   const [title, setTitle] = React.useState(deal.title || "");
   const [contactId, setContactId] = React.useState(deal.contact_id || "");
@@ -66,8 +68,8 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
     {
       field: "value",
       label: t.dealEditForm.dealValue,
-      oldValue: `${Number(deal.value || 0).toFixed(3)} BHD`,
-      newValue: `${Number(dealValue || 0).toFixed(3)} BHD`,
+      oldValue: `${Number(deal.value || 0).toFixed(3)} ${bhd}`,
+      newValue: `${Number(dealValue || 0).toFixed(3)} ${bhd}`,
     },
     {
       field: "probability",
@@ -87,7 +89,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
       oldValue: deal.target_close_date ? new Date(deal.target_close_date).toISOString().split("T")[0] : "—",
       newValue: expectedCloseDate || "—",
     },
-  ], [t, deal, title, dealStage, dealValue, probability, shootDate, expectedCloseDate]);
+  ], [t, bhd, deal, title, dealStage, dealValue, probability, shootDate, expectedCloseDate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

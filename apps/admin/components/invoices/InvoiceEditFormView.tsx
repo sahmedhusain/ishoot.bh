@@ -1,4 +1,5 @@
 "use client";
+import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -64,7 +65,8 @@ export function InvoiceEditFormView({
   fxRates = {},
 }: InvoiceEditFormViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { t, isRTL, locale } = useAdminLocale();
+  const bhd = getCurrencyLabel("BHD", locale === "ar");
 
   const [contacts, setContacts] = React.useState<CRMContact[]>(initialContacts);
   const [submitting, setSubmitting] = React.useState(false);
@@ -549,7 +551,7 @@ export function InvoiceEditFormView({
                         <option value="">{t.invoiceEdit.customItemNone}</option>
                         {services.map((srv) => (
                           <option key={srv.id} value={srv.id}>
-                            {srv.name_en} ({srv.default_rate.toFixed(3)} BHD / {srv.unit})
+                            {srv.name_en} ({srv.default_rate.toFixed(3)} {bhd} / {srv.unit})
                           </option>
                         ))}
                       </select>

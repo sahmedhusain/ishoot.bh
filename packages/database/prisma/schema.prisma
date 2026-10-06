@@ -348,6 +348,45 @@ model CrmContact {
   vatNumber            String? // buyer VAT registration, printed on tax invoices
   jobTitle             String?
   contactType          String                @default("client") // "client", "vendor", "freelancer", "agency"
+  /// "individual" | "company" | "government"
+  clientKind           String                @default("individual")
+  /// Companies only: "local" (registered in Bahrain, has a CR) or "foreign".
+  companyOrigin        String?
+  companyNameAr        String?
+  /// "wll", "spc", "bsc_closed", "bsc_public", "sole_proprietorship", "partnership", "foreign_branch", "other"
+  legalForm            String?
+  /// Bahrain commercial registration, e.g. 142859-1. Required for local companies.
+  crNumber             String?
+  crExpiryDate         DateTime?             @db.Date
+  /// Foreign companies: registration number in their home country.
+  registrationNumber   String?
+  /// ISO 3166 alpha-2 country of registration (companies) or of the entity (government).
+  registrationCountry  String?
+  /// "ministry", "authority", "municipality", "semi_government", "royal_court", "embassy", "other"
+  governmentType       String?
+  /// Our supplier number with the government entity, quoted on its purchase orders.
+  supplierNumber       String?
+  requiresPurchaseOrder Boolean              @default(false)
+  /// ISO alpha-2, individuals.
+  nationality          String?
+  industry             String?
+  website              String?
+  /// Language the client's documents default to: "ar" | "en".
+  preferredLanguage    String?
+  /// Overrides the company's default payment terms for this client.
+  paymentTermsDays     Int?
+  addressCountry       String?
+  addressCity          String?
+  addressArea          String?
+  addressBlock         String?
+  addressRoad          String?
+  addressBuilding      String?
+  addressUnit          String?
+  addressLine          String?
+  addressState         String?
+  addressPostalCode    String?
+  addressPoBox         String?
+  contactPersons       ClientContactPerson[]
   notes                String?
   deals                CrmDeal[]
   inquiries            Inquiry[]
@@ -363,6 +402,28 @@ model CrmContact {
 
   @@index([emailNorm])
   @@index([phoneE164])
+  @@index([clientKind])
+  @@index([crNumber])
+}
+
+/// A point of contact at a company or government client. The primary one is mirrored onto the client
+/// (name, email, phone, job title) so documents and messages keep using those fields.
+model ClientContactPerson {
+  id           String     @id @default(uuid())
+  contactId    String
+  contact      CrmContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  fullName     String
+  position     String?
+  department   String?
+  email        String?
+  phone        String?
+  isPrimary    Boolean    @default(false)
+  notes        String?
+  displayOrder Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([contactId, displayOrder])
 }
 
 model CrmDeal {

@@ -1,4 +1,5 @@
 "use client";
+import { getCurrencyLabel } from "@ishoot/config/currency";
 import { errorMessage } from "../../lib/error-text";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -34,7 +35,8 @@ export function FinancialReportsView({
   dateTo,
   showVat = true,
 }: FinancialReportsViewProps) {
-  const { t } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
+  const bhd = getCurrencyLabel("BHD", locale === "ar");
   const router = useRouter();
   const [exporting, setExporting] = React.useState(false);
 
@@ -209,7 +211,7 @@ export function FinancialReportsView({
           </div>
           <div className="text-2xl font-bold font-mono">
             {report.operatingProfit.toFixed(3)}{" "}
-            <span className="text-xs font-normal text-white/70">BHD</span>
+            <span className="text-xs font-normal text-white/70">{bhd}</span>
           </div>
           <div className="text-xs text-white/80 flex items-center gap-1.5">
             <TrendingUp className="w-3.5 h-3.5 text-mint" />
@@ -224,11 +226,11 @@ export function FinancialReportsView({
           </div>
           <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
             {currentBasis === "cash" ? report.cashNetReceipts.toFixed(3) : report.invoicedNet.toFixed(3)}{" "}
-            <span className="text-xs font-normal text-slate-400">BHD</span>
+            <span className="text-xs font-normal text-slate-400">{bhd}</span>
           </div>
           {showVat && (
             <div className="text-[11px] text-slate-400">
-              {t.financialDetail.gross}: {currentBasis === "cash" ? report.cashGrossReceipts.toFixed(3) : report.invoicedGross.toFixed(3)} BHD
+              {t.financialDetail.gross}: {currentBasis === "cash" ? report.cashGrossReceipts.toFixed(3) : report.invoicedGross.toFixed(3)} {bhd}
             </div>
           )}
         </div>
@@ -241,7 +243,7 @@ export function FinancialReportsView({
           </div>
           <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
             {currentBasis === "cash" ? report.cashOutputVat.toFixed(3) : report.invoicedOutputVat.toFixed(3)}{" "}
-            <span className="text-xs font-normal text-slate-400">BHD</span>
+            <span className="text-xs font-normal text-slate-400">{bhd}</span>
           </div>
           <div className="text-[11px] text-amber-600 dark:text-amber-400">
             {t.financialReports.fiduciaryTaxLiability}
@@ -256,7 +258,7 @@ export function FinancialReportsView({
           </div>
           <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">
             {(report.expensesNet + report.inputVatNonRecoverable + report.payrollCostsTotal).toFixed(3)}{" "}
-            <span className="text-xs font-normal text-slate-400">BHD</span>
+            <span className="text-xs font-normal text-slate-400">{bhd}</span>
           </div>
           <div className="text-[11px] text-slate-400">
             {t.financialReports.payrollNetVendorInvoices}
@@ -276,33 +278,33 @@ export function FinancialReportsView({
           <div className="space-y-3 text-xs">
             <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5">
               <span className="text-slate-500">{showVat ? t.financialReports.invoicedSalesGrossWithVat : t.financialDetail.invoicedSales}</span>
-              <span className="font-mono font-medium">{report.invoicedGross.toFixed(3)} BHD</span>
+              <span className="font-mono font-medium">{report.invoicedGross.toFixed(3)} {bhd}</span>
             </div>
             {showVat && (
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5">
                 <span className="text-slate-500">{t.financialReports.invoicedOutputVat10}</span>
-                <span className="font-mono font-medium text-amber-600">-{report.invoicedOutputVat.toFixed(3)} BHD</span>
+                <span className="font-mono font-medium text-amber-600">-{report.invoicedOutputVat.toFixed(3)} {bhd}</span>
               </div>
             )}
             <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5 font-semibold text-slate-900 dark:text-white">
               <span>{t.financialReports.invoicedNetRevenueAccrual}</span>
-              <span className="font-mono">{report.invoicedNet.toFixed(3)} BHD</span>
+              <span className="font-mono">{report.invoicedNet.toFixed(3)} {bhd}</span>
             </div>
             <div className="pt-2" />
             <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5">
               <span className="text-slate-500">{showVat ? t.financialReports.cashReceiptsCollectedGross : t.financialDetail.cashReceipts}</span>
-              <span className="font-mono font-medium">{report.cashGrossReceipts.toFixed(3)} BHD</span>
+              <span className="font-mono font-medium">{report.cashGrossReceipts.toFixed(3)} {bhd}</span>
             </div>
             {showVat && (
               <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5">
                 <span className="text-slate-500">{t.financialReports.allocatedCashOutputVat}</span>
-                <span className="font-mono font-medium text-amber-600">-{report.cashOutputVat.toFixed(3)} BHD</span>
+                <span className="font-mono font-medium text-amber-600">-{report.cashOutputVat.toFixed(3)} {bhd}</span>
               </div>
             )}
             <div className="flex justify-between py-1.5 font-semibold text-slate-900 dark:text-white">
               <span>{t.financialReports.cashNetReceiptsCashBasis}</span>
               <span className="font-mono text-primary dark:text-mint">
-                {report.cashNetReceipts.toFixed(3)} BHD
+                {report.cashNetReceipts.toFixed(3)} {bhd}
               </span>
             </div>
           </div>
@@ -318,31 +320,31 @@ export function FinancialReportsView({
           <div className="space-y-3 text-xs">
             <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5">
               <span className="text-slate-500">{showVat ? t.financialReports.totalExpensesGrossWithVat : t.financialDetail.totalExpenses}</span>
-              <span className="font-mono font-medium">{report.totalExpensesGross.toFixed(3)} BHD</span>
+              <span className="font-mono font-medium">{report.totalExpensesGross.toFixed(3)} {bhd}</span>
             </div>
             <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5">
               <span className="text-slate-500">{t.financialReports.netOperatingExpenses}</span>
-              <span className="font-mono font-medium">{report.expensesNet.toFixed(3)} BHD</span>
+              <span className="font-mono font-medium">{report.expensesNet.toFixed(3)} {bhd}</span>
             </div>
             {showVat && (
               <>
                 <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5 text-emerald-600 dark:text-emerald-400">
                   <span>{t.financialReports.recoverableInputVatClaimableFrom}</span>
-                  <span className="font-mono font-medium">+{report.inputVatRecoverable.toFixed(3)} BHD</span>
+                  <span className="font-mono font-medium">+{report.inputVatRecoverable.toFixed(3)} {bhd}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5 text-slate-500">
                   <span>{t.financialReports.nonRecoverableInputVatCost}</span>
-                  <span className="font-mono font-medium">{report.inputVatNonRecoverable.toFixed(3)} BHD</span>
+                  <span className="font-mono font-medium">{report.inputVatNonRecoverable.toFixed(3)} {bhd}</span>
                 </div>
               </>
             )}
             <div className="flex justify-between py-1.5 border-b border-slate-100 dark:border-white/5 font-semibold text-slate-900 dark:text-white">
               <span>{t.financialReports.payrollAndEmployeeCostsTotal}</span>
-              <span className="font-mono">{report.payrollCostsTotal.toFixed(3)} BHD</span>
+              <span className="font-mono">{report.payrollCostsTotal.toFixed(3)} {bhd}</span>
             </div>
             <div className="flex justify-between py-1.5 text-slate-500">
               <span>{t.financialReports.bankProcessingFees}</span>
-              <span className="font-mono font-medium">{report.bankFeesTotal.toFixed(3)} BHD</span>
+              <span className="font-mono font-medium">{report.bankFeesTotal.toFixed(3)} {bhd}</span>
             </div>
           </div>
         </Card>
@@ -371,7 +373,7 @@ export function FinancialReportsView({
           <div className="p-4 bg-slate-50 dark:bg-neutral-900/50 rounded-md border border-ink/10 space-y-1">
             <span className="text-slate-400 uppercase font-mono text-[10px]">{t.financialReports.realizedFxImpactBhd}</span>
             <div className={`text-xl font-bold font-mono ${report.realizedFxGainLoss >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-              {report.realizedFxGainLoss >= 0 ? `+${report.realizedFxGainLoss.toFixed(3)}` : report.realizedFxGainLoss.toFixed(3)} BHD
+              {report.realizedFxGainLoss >= 0 ? `+${report.realizedFxGainLoss.toFixed(3)}` : report.realizedFxGainLoss.toFixed(3)} {bhd}
             </div>
             <div className="text-[11px] text-slate-400">{t.financialReports.netFxGainLossOn}</div>
           </div>

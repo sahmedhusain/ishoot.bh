@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { StatusLabelsProvider } from "@ishoot/ui";
+import { CurrencyLocaleProvider, StatusLabelsProvider } from "@ishoot/ui";
 import {
   type AdminLocale,
   type AdminTranslations,
@@ -55,7 +55,9 @@ export function AdminLocaleProvider({
 
   return (
     <AdminLocaleContext.Provider value={{ locale, isRTL, setLocale, t }}>
-      <StatusLabelsProvider value={t.statusLabels ?? {}}>{children}</StatusLabelsProvider>
+      <CurrencyLocaleProvider value={locale}>
+        <StatusLabelsProvider value={t.statusLabels ?? {}}>{children}</StatusLabelsProvider>
+      </CurrencyLocaleProvider>
     </AdminLocaleContext.Provider>
   );
 }

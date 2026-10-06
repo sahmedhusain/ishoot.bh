@@ -9,10 +9,13 @@ function buildIndex() {
   const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return {
     exact: new Map(Object.entries(messages).map(([key, text]) => [text as string, key])),
-    patterns: Object.entries(templates).map(([key, text]) => ({
-      key,
-      re: new RegExp(`^${escape(text as string).replace(/\\\{\d+\\\}/g, "(.+?)")}$`),
-    })),
+    // Most specific first: "Invalid input for {0}" must win over "Invalid {0}".
+    patterns: Object.entries(templates)
+      .sort(([, a], [, b]) => (b as string).replace(/\{\d+\}/g, "").length - (a as string).replace(/\{\d+\}/g, "").length)
+      .map(([key, text]) => ({
+        key,
+        re: new RegExp(`^${escape(text as string).replace(/\\\{\d+\\\}/g, "(.+?)")}$`),
+      })),
   };
 }
 

@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
 import { mapContact, mapDeal } from "./crm";
 import type { Invoice, Payment } from "../types";
+import { getClientsPage, type ClientListParameters } from "./client-profiles";
 
 export type ListParameters = {
   q?: string;
@@ -75,25 +76,6 @@ async function pageQuery<T>(
     },
     { isolationLevel: "RepeatableRead" },
   );
-}
-export async function getContactsPage(
-  input: ListParameters,
-  batch?: ExportBatch,
-) {
-  const f = listParameters(input);
-  const result = await pageQuery<any>(
-    "crmContact",
-    f.q ? contactSearch(f.q) : {},
-    contactListSelect,
-    f.page,
-    batch,
-  );
-  return {
-    ...result,
-    items: result.rows.map(mapContact),
-    rows: undefined,
-    filters: f,
-  };
 }
 export async function getDealsPage(input: ListParameters, batch?: ExportBatch) {
   const f = listParameters(input);
@@ -485,7 +467,7 @@ export async function getCompanyDocumentsPage(
 }
 
 export const listDomains = {
-  contacts: getContactsPage,
+  contacts: (input: ListParameters, batch?: ExportBatch) => getClientsPage(input as ClientListParameters, batch),
   deals: getDealsPage,
   invoices: getInvoicesPage,
   payments: getPaymentsPage,

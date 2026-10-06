@@ -27,15 +27,18 @@ Plus,AlertCircle,
 import type { CustomerDossier } from "@ishoot/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { DossierActions } from "../../types/crm";
+import { ClientProfilePanel, ClientTierBadge, type ClientStanding } from "./ClientProfilePanel";
 
 interface Customer360DossierViewProps {
   dossier: CustomerDossier;
   actions: DossierActions;
+  standing: ClientStanding | null;
 }
 
 export function Customer360DossierView({
   dossier,
   actions,
+  standing,
 }: Customer360DossierViewProps) {
   const {t, locale} = useAdminLocale();
   const [activeTab, setActiveTab] = React.useState<
@@ -78,10 +81,10 @@ export function Customer360DossierView({
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl sm:text-3xl font-bold font-display text-slate-900 dark:text-white flex items-center gap-2">
-                <span>{contact.company || contact.full_name}</span>
-                {contact.company && contact.full_name && (
-                  <span className="text-base font-normal text-slate-500 dark:text-slate-400">
-                    ({contact.full_name})
+                <span>{(locale === "ar" && contact.company_name_ar) || contact.company || contact.full_name}</span>
+                {contact.company && contact.company_name_ar && (
+                  <span className="text-base font-normal text-slate-500 dark:text-slate-400" dir={locale === "ar" ? "ltr" : "rtl"}>
+                    {locale === "ar" ? contact.company : contact.company_name_ar}
                   </span>
                 )}
               </h1>
@@ -89,11 +92,12 @@ export function Customer360DossierView({
                 variant="outline"
                 className="text-xs uppercase  border-accent/40 text-accent bg-[#E6F5F2] dark:bg-accent/10"
               >
-                {(t.crm.contactTypes as Record<string, string>)[contact.contact_type || "client"] ?? contact.contact_type}
+                {t.clients.kinds[contact.client_kind ?? "individual"]}
               </Badge>
+              {standing ? <ClientTierBadge standing={standing} /> : null}
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ">
-              ID: {contact.id} {t.customer360Dossier.registered}{" "}
+              {t.customer360Dossier.registered}{" "}
               <DateDisplay date={contact.created_at} locale={locale} />
               {metrics.lastActivityDate && (
                 <span>
@@ -239,7 +243,7 @@ export function Customer360DossierView({
             </span>
             <span>
               {t.customer360.avgDeal}:{" "}
-              {Number(metrics.avgDealSize || 0).toFixed(2)} BHD
+              <CurrencyDisplay amount={metrics.avgDealSize || 0} currency="BHD" />
             </span>
           </div>
         </Card>
@@ -292,81 +296,7 @@ export function Customer360DossierView({
       {/* TAB 1: OVERVIEW */}
       {activeTab === "overview" && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 space-y-4 md:col-span-2">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <User className="w-4 h-4 text-accent" />
-              <span>{t.customer360.primaryContact}</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">
-                  {t.customer360.companyName}
-                </span>
-                <span className="text-slate-900 dark:text-white font-bold text-sm">
-                  {contact.company || t.customer360Dossier.directClient}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">
-                  {t.customer360.contactPerson}
-                </span>
-                <span className="text-slate-800 dark:text-slate-200 font-medium text-sm">
-                  {contact.full_name || "N/A"}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">
-                  {t.customerEdit.jobTitle}
-                </span>
-                <span className="text-slate-700 dark:text-slate-300 font-medium">
-                  {contact.job_title || "N/A"}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">
-                  {t.customer360.clientType}
-                </span>
-                <span className="text-slate-700 dark:text-slate-300 font-medium capitalize">
-                  {(t.crm.contactTypes as Record<string, string>)[contact.contact_type || "client"] ?? contact.contact_type}
-                </span>
-              </div>
-              <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">
-                  {t.customer360.email}
-                </span>
-                <a
-                  href={`mailto:${contact.email}`}
-                  className="text-accent hover:underline "
-                >
-                  {contact.email || t.customer360Dossier.noEmailRegistered}
-                </a>
-              </div>
-              <div>
-                <span className="text-slate-400 dark:text-slate-500 block mb-1">
-                  {t.customer360.phone}
-                </span>
-                <a
-                  href={`tel:${contact.phone}`}
-                  className="text-accent hover:underline "
-                  dir="ltr"
-                >
-                  {contact.phone || t.customer360Dossier.noPhoneRegistered}
-                </a>
-              </div>
-            </div>
-
-            {contact.notes && (
-              <div className="pt-4 border-t border-slate-100 dark:border-white/10">
-                <span className="text-slate-400 dark:text-slate-500 text-xs block mb-1">
-                  {t.customer360.notes}
-                </span>
-                <p className="text-xs text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-slate-200 dark:border-white/5 whitespace-pre-wrap">
-                  {contact.notes}
-                </p>
-              </div>
-            )}
-          </Card>
+          <ClientProfilePanel contact={contact} standing={standing} className="md:col-span-2" />
 
           <Card className="p-6 space-y-4">
             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">

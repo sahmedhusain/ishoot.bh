@@ -244,7 +244,7 @@ const consolidatedRequestInclude = {
   assignedTo: { select: { id: true, fullName: true, email: true } },
   convertedDeal: { select: { id: true, title: true, dealStage: true, dealValue: true } },
   quotations: {
-    select: { id: true, quotationNumber: true, totalAmount: true, status: true },
+    select: { id: true, quotationNumber: true, totalAmount: true, currency: true, status: true },
     orderBy: { createdAt: "desc" },
   },
   requestEvents: {

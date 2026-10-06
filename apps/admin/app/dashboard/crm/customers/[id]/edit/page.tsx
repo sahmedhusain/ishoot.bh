@@ -1,24 +1,14 @@
 import { requirePagePermission } from "../../../../../../lib/auth";
-import { getCRMContactById } from "@ishoot/database";
+import { getClientProfile, getCompanySettings } from "@ishoot/database";
 import { notFound } from "next/navigation";
-import { CustomerEditFormView } from "../../../../../../components/crm/CustomerEditFormView";
+import { ClientProfileForm } from "../../../../../../components/crm/ClientProfileForm";
 
 export const dynamic = "force-dynamic";
 
-interface CustomerEditPageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default async function CustomerEditPage({
-  params,
-}: CustomerEditPageProps) {
+export default async function CustomerEditPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePagePermission("contacts", "write");
   const { id } = await params;
-  const contact = await getCRMContactById(id);
-
-  if (!contact) {
-    notFound();
-  }
-
-  return <CustomerEditFormView contact={contact} />;
+  const [contact, settings] = await Promise.all([getClientProfile(id), getCompanySettings()]);
+  if (!contact) notFound();
+  return <ClientProfileForm contact={contact} defaultPaymentTermsDays={settings?.payment_terms_days ?? 30} />;
 }

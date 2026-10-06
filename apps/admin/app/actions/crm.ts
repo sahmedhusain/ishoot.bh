@@ -2,6 +2,7 @@
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
+import type { ClientProfileInput } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -123,16 +124,7 @@ export async function updateDealAction(
   });
 }
 
-export async function createContactAction(data: {
-  full_name: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  vat_number?: string;
-  job_title?: string;
-  contact_type?: "client" | "agency" | "vendor" | "freelancer";
-  notes?: string;
-}) {
+export async function createContactAction(data: ClientProfileInput) {
   return measureOperation("action:createContactAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requirePermission("contacts", "write");
     validateActionArguments("createContactAction", { data });
@@ -143,7 +135,7 @@ export async function createContactAction(data: {
         action: "create",
         entity_type: "contact",
         entity_id: contact.id,
-        details: { name: data.full_name, email: data.email },
+        details: { name: contact.company || contact.full_name, kind: contact.client_kind, email: contact.email },
       });
       return { contact };
     });
@@ -155,7 +147,7 @@ export async function createContactAction(data: {
 
 export async function updateContactAction(
   id: string,
-  data: Partial<Parameters<typeof createContactAction>[0]>,
+  data: ClientProfileInput,
 ) {
   return measureOperation("action:updateContactAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requirePermission("contacts", "write");
@@ -369,6 +361,7 @@ export async function convertInquiryToClientAction(inquiryId: string) {
             firstName,
             lastName,
             companyName: inquiry.companyName || null,
+            clientKind: inquiry.companyName ? "company" : "individual",
             email: inquiry.email,
             emailNorm: inquiry.email.trim().toLowerCase(),
             phone: inquiry.phone || null,

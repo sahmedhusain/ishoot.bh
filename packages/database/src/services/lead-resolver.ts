@@ -113,6 +113,7 @@ export async function resolveIncomingLead(
               phone: data.phone || null,
               phoneE164,
               companyName: data.companyName || null,
+              clientKind: data.companyName ? "company" : "individual",
               contactType: "client",
             },
           });

@@ -28,15 +28,20 @@ async function main() {
   assert.equal(currencies.getCurrencySymbol("OMR", false), "RO");
   assert.equal(currencies.getCurrencySymbol("MVR"), "\u20c2");
   const { formatCurrencyValue } = load('packages/ui/src/currency-display.tsx', { 'react/jsx-runtime': {}, react: {}, '@ishoot/config/currency': currencies });
+  // Arabic screens use Arabic abbreviations instead of Latin ones; official currency signs are the same in both languages.
+  assert.equal(formatCurrencyValue(12, 'BHD', false), '12.000 BHD');
+  assert.equal(formatCurrencyValue(12, 'BHD', true), '12.000 د.ب');
+  assert.equal(formatCurrencyValue(12, 'KWD', false), '12.000 KD');
+  assert.equal(formatCurrencyValue(12, 'KWD', true), '12.000 د.ك');
+  assert.equal(formatCurrencyValue(12, 'SAR', true, false), '12.00 ر.س');
+  assert.equal(formatCurrencyValue(12, 'USD', true), '12.00 $');
   for (const ar of [false, true]) {
-    assert.equal(formatCurrencyValue(12, 'BHD', ar), '12.000 BHD');
-    assert.equal(formatCurrencyValue(12, 'KWD', ar), '12.000 KD');
     assert.equal(formatCurrencyValue(12, 'OMR', ar), '12.000 \u20c4');
     assert.equal(formatCurrencyValue(12, 'SAR', ar), '12.00 \u20c1');
     assert.equal(formatCurrencyValue(12, 'AED', ar), '12.00 \u20c3');
     assert.equal(formatCurrencyValue(12, 'JPY', ar), '12 ¥');
     assert.equal(formatCurrencyValue(12, 'INR', ar), '12.00 ₹');
-    assert.equal(formatCurrencyValue(12, 'jod', ar), '12.000 JOD');
+    assert.equal(formatCurrencyValue(12, 'jod', ar), ar ? '12.000 د.أ' : '12.000 JOD');
   }
   const en = require('../packages/locales/src/admin/en.json');
   const ar = require('../packages/locales/src/admin/ar.json');

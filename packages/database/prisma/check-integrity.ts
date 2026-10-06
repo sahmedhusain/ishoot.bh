@@ -163,6 +163,16 @@ const RULES: Rule[] = [
         WHEN 'invoice' THEN EXISTS (SELECT 1 FROM "Invoice" t WHERE t.id = a."targetId" AND t."approvalStatus" = 'submitted')
         WHEN 'account_change' THEN EXISTS (SELECT 1 FROM "AccountChangeRequest" t WHERE t.id = a."targetId" AND t.status = 'pending')
         ELSE false END` },
+  { area: "sales", name: "company and government clients have exactly one primary point of contact; individuals have none",
+    sql: `SELECT c.id, c."clientKind", COUNT(p.id) persons, COUNT(p.id) FILTER (WHERE p."isPrimary") primaries
+      FROM "CrmContact" c LEFT JOIN "ClientContactPerson" p ON p."contactId" = c.id GROUP BY c.id
+      HAVING (c."clientKind" = 'individual' AND COUNT(p.id) > 0)
+          OR (c."clientKind" <> 'individual' AND COUNT(p.id) > 0 AND COUNT(p.id) FILTER (WHERE p."isPrimary") <> 1)` },
+  { area: "sales", name: "client registration matches its type (local companies in Bahrain, foreign ones abroad)",
+    sql: `SELECT id, "clientKind", "companyOrigin", "registrationCountry", "crNumber" FROM "CrmContact"
+      WHERE ("clientKind" = 'company' AND "companyOrigin" = 'foreign' AND ("registrationCountry" = 'BH' OR "crNumber" IS NOT NULL))
+         OR ("clientKind" <> 'company' AND ("crNumber" IS NOT NULL OR "companyOrigin" IS NOT NULL))
+         OR ("clientKind" = 'individual' AND NULLIF(BTRIM("companyName"), '') IS NOT NULL)` },
   { area: "sales", name: "a quotation the client signed is accepted (or later)",
     sql: `SELECT q.id, q."quotationNumber", q.status FROM "ClientSignature" c JOIN "Quotation" q ON q.id = c."documentId"
       WHERE c."documentType" = 'quotation' AND c.status = 'signed' AND q.status NOT IN ('accepted', 'converted', 'expired', 'cancelled', 'rejected')` },

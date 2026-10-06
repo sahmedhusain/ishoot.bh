@@ -1,4 +1,5 @@
 "use client";
+import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
@@ -13,7 +14,8 @@ const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 3,
 
 /** Six-monthly wage-support claims (Tamkeen) built from approved payroll, with receipts. */
 export function SupportClaimsPanel({ claims, canRecord }: { claims: SupportClaimRow[]; canRecord: boolean }) {
-  const { t } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
+  const bhd = getCurrencyLabel("BHD", locale === "ar");
   const c = t.tamkeen;
   const [filter, setFilter] = React.useState<"open" | "all">("open");
   const rows = claims.filter((r) => filter === "all" || r.status !== "received");
@@ -31,9 +33,9 @@ export function SupportClaimsPanel({ claims, canRecord }: { claims: SupportClaim
           <p className="text-xs text-ink-muted mt-0.5 max-w-2xl">{c.claimsHint}</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
-          <span className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300">{c.claimable}: BHD {fmt(sum("claimable"))}</span>
-          <span className="px-3 py-1.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300">{c.accruing}: BHD {fmt(sum("accruing"))}</span>
-          <span className="px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">{c.received}: BHD {fmt(sum("received"))}</span>
+          <span className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300">{c.claimable}: {bhd} {fmt(sum("claimable"))}</span>
+          <span className="px-3 py-1.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-300">{c.accruing}: {bhd} {fmt(sum("accruing"))}</span>
+          <span className="px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">{c.received}: {bhd} {fmt(sum("received"))}</span>
           <button type="button" onClick={() => setFilter(filter === "open" ? "all" : "open")} className="px-3 py-1.5 rounded-full border border-ink/15 text-ink">
             {filter === "open" ? c.showAll : c.showOpen}
           </button>

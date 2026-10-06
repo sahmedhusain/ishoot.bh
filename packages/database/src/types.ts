@@ -337,6 +337,88 @@ export interface MinuteOfMeetingItem {
   updated_at: string;
 }
 
+export interface ClientAddress {
+  country?: string;
+  city?: string;
+  area?: string;
+  block?: string;
+  road?: string;
+  building?: string;
+  unit?: string;
+  line?: string;
+  state?: string;
+  postal_code?: string;
+  po_box?: string;
+}
+
+export interface ClientContactPerson {
+  id: string;
+  full_name: string;
+  position?: string;
+  department?: string;
+  email?: string;
+  phone?: string;
+  is_primary: boolean;
+  notes?: string;
+}
+
+export interface ClientContactPersonInput {
+  full_name: string;
+  position?: string;
+  department?: string;
+  email?: string;
+  phone?: string;
+  is_primary?: boolean;
+  notes?: string;
+}
+
+/** Everything the client form sends. Omitted fields keep their stored value on update. */
+export interface ClientProfileInput {
+  client_kind?: "individual" | "company" | "government";
+  full_name?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  job_title?: string;
+  company?: string;
+  /** Arabic company or entity name. */
+  company_ar?: string;
+  company_origin?: "local" | "foreign";
+  legal_form?: string;
+  cr_number?: string;
+  cr_expiry_date?: string;
+  registration_number?: string;
+  registration_country?: string;
+  government_type?: string;
+  supplier_number?: string;
+  requires_purchase_order?: boolean;
+  nationality?: string;
+  industry?: string;
+  website?: string;
+  vat_number?: string;
+  preferred_language?: "ar" | "en";
+  payment_terms_days?: number;
+  address?: ClientAddress;
+  contact_type?: "client" | "vendor" | "freelancer" | "agency";
+  notes?: string;
+  contact_persons?: ClientContactPersonInput[];
+}
+
+/** A row of the client list: the profile plus its standing. Amounts are in the base currency. */
+export interface ClientListRow extends CRMContact {
+  rank: number | null;
+  tier: "A" | "B" | "C" | "none";
+  billed: number;
+  collected: number;
+  outstanding: number;
+  overdue: boolean;
+  invoice_count: number;
+  deals_won: number;
+  contact_persons_count: number;
+  last_activity: string;
+}
+
 export interface CRMContact {
   id: string;
   full_name: string;
@@ -352,6 +434,24 @@ export interface CRMContact {
   notes?: string;
   address?: string;
   vat_number?: string;
+  client_kind?: "individual" | "company" | "government";
+  company_origin?: "local" | "foreign";
+  company_name_ar?: string;
+  legal_form?: string;
+  cr_number?: string;
+  cr_expiry_date?: string;
+  registration_number?: string;
+  registration_country?: string;
+  government_type?: string;
+  supplier_number?: string;
+  requires_purchase_order?: boolean;
+  nationality?: string;
+  industry?: string;
+  website?: string;
+  preferred_language?: "ar" | "en";
+  payment_terms_days?: number;
+  address_details?: ClientAddress;
+  contact_persons?: ClientContactPerson[];
   deals?: CRMDeal[];
   invoices?: Invoice[];
   inquiries?: Inquiry[];

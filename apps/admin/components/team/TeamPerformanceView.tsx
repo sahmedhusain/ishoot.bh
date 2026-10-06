@@ -1,4 +1,5 @@
 "use client";
+import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import * as React from "react";
 import Link from "next/link";
@@ -23,7 +24,8 @@ interface TeamPerformanceViewProps {
 }
 
 export function TeamPerformanceView({ period, from, to, members, history, managers, managerId }: TeamPerformanceViewProps) {
-  const { t } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
+  const bhd = getCurrencyLabel("BHD", locale === "ar");
   const k = t.team;
   const router = useRouter();
   const [open, setOpen] = React.useState<string | null>(null);
@@ -72,7 +74,7 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          [k.collected, `BHD ${fmt(total.collected)}`],
+          [k.collected, `${bhd} ${fmt(total.collected)}`],
           [k.quotesIssued, String(total.quotes)],
           [k.srResolved, String(total.resolved)],
           [k.srOverdue, String(total.overdue)],
@@ -98,11 +100,11 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
                 <div className="text-xs">
                   <div className="text-ink-muted flex items-center gap-1"><FileText className="w-3.5 h-3.5" />{k.quotations}</div>
                   <div className="text-ink font-semibold mt-0.5">{k.quoteLine.replace("{issued}", String(m.quotations.issued)).replace("{accepted}", String(m.quotations.accepted)).replace("{rate}", String(m.quotations.winRate))}</div>
-                  <div className="text-ink-muted">BHD {fmt(m.quotations.acceptedValue)} / {fmt(m.quotations.value)}</div>
+                  <div className="text-ink-muted">{bhd} {fmt(m.quotations.acceptedValue)} / {fmt(m.quotations.value)}</div>
                 </div>
                 <div className="text-xs">
                   <div className="text-ink-muted flex items-center gap-1"><Receipt className="w-3.5 h-3.5" />{k.sales}</div>
-                  <div className="text-ink font-semibold mt-0.5">BHD {fmt(m.sales.collectedNet)} {k.collectedShort}</div>
+                  <div className="text-ink font-semibold mt-0.5">{bhd} {fmt(m.sales.collectedNet)} {k.collectedShort}</div>
                   <div className="text-ink-muted">{k.invoicedLine.replace("{count}", String(m.sales.invoices)).replace("{amount}", fmt(m.sales.invoicedNet))}</div>
                 </div>
                 <div className="text-xs">

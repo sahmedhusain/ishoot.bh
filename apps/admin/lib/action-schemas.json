@@ -2021,9 +2021,35 @@
       "data": {
         "kind": "object",
         "fields": {
+          "client_kind": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "individual"
+              },
+              {
+                "kind": "literal",
+                "value": "company"
+              },
+              {
+                "kind": "literal",
+                "value": "government"
+              }
+            ],
+            "optional": true
+          },
           "full_name": {
             "kind": "string",
-            "optional": false
+            "optional": true
+          },
+          "first_name": {
+            "kind": "string",
+            "optional": true
+          },
+          "last_name": {
+            "kind": "string",
+            "optional": true
           },
           "email": {
             "kind": "string",
@@ -2033,7 +2059,73 @@
             "kind": "string",
             "optional": true
           },
+          "job_title": {
+            "kind": "string",
+            "optional": true
+          },
           "company": {
+            "kind": "string",
+            "optional": true
+          },
+          "company_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "company_origin": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "local"
+              },
+              {
+                "kind": "literal",
+                "value": "foreign"
+              }
+            ],
+            "optional": true
+          },
+          "legal_form": {
+            "kind": "string",
+            "optional": true
+          },
+          "cr_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "cr_expiry_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "registration_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "registration_country": {
+            "kind": "string",
+            "optional": true
+          },
+          "government_type": {
+            "kind": "string",
+            "optional": true
+          },
+          "supplier_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "requires_purchase_order": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "nationality": {
+            "kind": "string",
+            "optional": true
+          },
+          "industry": {
+            "kind": "string",
+            "optional": true
+          },
+          "website": {
             "kind": "string",
             "optional": true
           },
@@ -2041,8 +2133,72 @@
             "kind": "string",
             "optional": true
           },
-          "job_title": {
-            "kind": "string",
+          "preferred_language": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "ar"
+              },
+              {
+                "kind": "literal",
+                "value": "en"
+              }
+            ],
+            "optional": true
+          },
+          "payment_terms_days": {
+            "kind": "number",
+            "optional": true
+          },
+          "address": {
+            "kind": "object",
+            "fields": {
+              "country": {
+                "kind": "string",
+                "optional": true
+              },
+              "city": {
+                "kind": "string",
+                "optional": true
+              },
+              "area": {
+                "kind": "string",
+                "optional": true
+              },
+              "block": {
+                "kind": "string",
+                "optional": true
+              },
+              "road": {
+                "kind": "string",
+                "optional": true
+              },
+              "building": {
+                "kind": "string",
+                "optional": true
+              },
+              "unit": {
+                "kind": "string",
+                "optional": true
+              },
+              "line": {
+                "kind": "string",
+                "optional": true
+              },
+              "state": {
+                "kind": "string",
+                "optional": true
+              },
+              "postal_code": {
+                "kind": "string",
+                "optional": true
+              },
+              "po_box": {
+                "kind": "string",
+                "optional": true
+              }
+            },
             "optional": true
           },
           "contact_type": {
@@ -2054,21 +2210,58 @@
               },
               {
                 "kind": "literal",
-                "value": "agency"
-              },
-              {
-                "kind": "literal",
                 "value": "vendor"
               },
               {
                 "kind": "literal",
                 "value": "freelancer"
+              },
+              {
+                "kind": "literal",
+                "value": "agency"
               }
             ],
             "optional": true
           },
           "notes": {
             "kind": "string",
+            "optional": true
+          },
+          "contact_persons": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "full_name": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "position": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "department": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "email": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "phone": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "is_primary": {
+                  "kind": "boolean",
+                  "optional": true
+                },
+                "notes": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
             "optional": true
           }
         },
@@ -2086,7 +2279,33 @@
       "data": {
         "kind": "object",
         "fields": {
+          "client_kind": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "individual"
+              },
+              {
+                "kind": "literal",
+                "value": "company"
+              },
+              {
+                "kind": "literal",
+                "value": "government"
+              }
+            ],
+            "optional": true
+          },
           "full_name": {
+            "kind": "string",
+            "optional": true
+          },
+          "first_name": {
+            "kind": "string",
+            "optional": true
+          },
+          "last_name": {
             "kind": "string",
             "optional": true
           },
@@ -2098,7 +2317,73 @@
             "kind": "string",
             "optional": true
           },
+          "job_title": {
+            "kind": "string",
+            "optional": true
+          },
           "company": {
+            "kind": "string",
+            "optional": true
+          },
+          "company_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "company_origin": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "local"
+              },
+              {
+                "kind": "literal",
+                "value": "foreign"
+              }
+            ],
+            "optional": true
+          },
+          "legal_form": {
+            "kind": "string",
+            "optional": true
+          },
+          "cr_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "cr_expiry_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "registration_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "registration_country": {
+            "kind": "string",
+            "optional": true
+          },
+          "government_type": {
+            "kind": "string",
+            "optional": true
+          },
+          "supplier_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "requires_purchase_order": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "nationality": {
+            "kind": "string",
+            "optional": true
+          },
+          "industry": {
+            "kind": "string",
+            "optional": true
+          },
+          "website": {
             "kind": "string",
             "optional": true
           },
@@ -2106,8 +2391,72 @@
             "kind": "string",
             "optional": true
           },
-          "job_title": {
-            "kind": "string",
+          "preferred_language": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "ar"
+              },
+              {
+                "kind": "literal",
+                "value": "en"
+              }
+            ],
+            "optional": true
+          },
+          "payment_terms_days": {
+            "kind": "number",
+            "optional": true
+          },
+          "address": {
+            "kind": "object",
+            "fields": {
+              "country": {
+                "kind": "string",
+                "optional": true
+              },
+              "city": {
+                "kind": "string",
+                "optional": true
+              },
+              "area": {
+                "kind": "string",
+                "optional": true
+              },
+              "block": {
+                "kind": "string",
+                "optional": true
+              },
+              "road": {
+                "kind": "string",
+                "optional": true
+              },
+              "building": {
+                "kind": "string",
+                "optional": true
+              },
+              "unit": {
+                "kind": "string",
+                "optional": true
+              },
+              "line": {
+                "kind": "string",
+                "optional": true
+              },
+              "state": {
+                "kind": "string",
+                "optional": true
+              },
+              "postal_code": {
+                "kind": "string",
+                "optional": true
+              },
+              "po_box": {
+                "kind": "string",
+                "optional": true
+              }
+            },
             "optional": true
           },
           "contact_type": {
@@ -2119,21 +2468,58 @@
               },
               {
                 "kind": "literal",
-                "value": "agency"
-              },
-              {
-                "kind": "literal",
                 "value": "vendor"
               },
               {
                 "kind": "literal",
                 "value": "freelancer"
+              },
+              {
+                "kind": "literal",
+                "value": "agency"
               }
             ],
             "optional": true
           },
           "notes": {
             "kind": "string",
+            "optional": true
+          },
+          "contact_persons": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "full_name": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "position": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "department": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "email": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "phone": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "is_primary": {
+                  "kind": "boolean",
+                  "optional": true
+                },
+                "notes": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
             "optional": true
           }
         },

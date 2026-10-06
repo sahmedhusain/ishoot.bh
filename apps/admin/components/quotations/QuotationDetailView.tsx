@@ -483,7 +483,7 @@ export function QuotationDetailView({
                 <div>
                   <span className="text-slate-500">{qdT.effectiveRate}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white">
-                    {quotation.effectiveRate ? Number(quotation.effectiveRate).toFixed(4) : "N/A"} {quotation.currency}/BHD
+                    {quotation.effectiveRate ? Number(quotation.effectiveRate).toFixed(4) : "—"} {quotation.currency}/BHD
                   </div>
                 </div>
               </div>

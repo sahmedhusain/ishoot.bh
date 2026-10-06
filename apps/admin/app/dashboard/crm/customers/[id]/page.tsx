@@ -1,5 +1,5 @@
 import { getCurrentPermissions,requirePagePermission } from "../../../../../lib/auth";
-import { getCustomerDossier, getRelatedExpenses } from "@ishoot/database";
+import { getClientStanding, getCustomerDossier, getRelatedExpenses } from "@ishoot/database";
 import { RelatedExpensesPanel } from "../../../../../components/expenses/RelatedExpensesPanel";
 import { notFound } from "next/navigation";
 import type { DossierActions } from "../../../../../types/crm";
@@ -66,10 +66,13 @@ export default async function CustomerDossierPage({
     createDeal: grants["deals:write"] === true,
     editRecord: grants["contacts:write"] === true,
   };
-  const expenses = grants["expenses:read"] === true ? await getRelatedExpenses({ clientId: id }) : null;
+  const [expenses, standing] = await Promise.all([
+    grants["expenses:read"] === true ? getRelatedExpenses({ clientId: id }) : null,
+    invoices ? getClientStanding(id) : null,
+  ]);
   return (
     <>
-      <Customer360DossierView dossier={dossier} actions={actions} />
+      <Customer360DossierView dossier={dossier} actions={actions} standing={standing} />
       {expenses && <RelatedExpensesPanel clientId={id} items={expenses.items} totals={expenses.totals} canWrite={grants["expenses:write"] === true} />}
     </>
   );

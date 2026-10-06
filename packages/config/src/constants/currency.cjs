@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CURRENCY_SYMBOLS = void 0;
 exports.getCurrencySymbol = getCurrencySymbol;
 exports.getCurrencyDecimals = getCurrencyDecimals;
+exports.getCurrencyLabel = getCurrencyLabel;
 exports.CURRENCY_SYMBOLS = {
   BHD: "BHD",
   KWD: "KD",
@@ -90,6 +91,14 @@ function getCurrencySymbol(code, unicode = true) {
   if (!unicode && normalized === "SAR") return "SAR";
   if (!unicode && normalized === "AED") return "AED";
   return exports.CURRENCY_SYMBOLS[normalized] || normalized;
+}
+/** Arabic abbreviations used on Arabic screens and documents; other currencies keep their symbol. */
+exports.ARABIC_CURRENCY_LABELS = { BHD: "د.ب", KWD: "د.ك", QAR: "ر.ق", SAR: "ر.س", AED: "د.إ", OMR: "ر.ع", EGP: "ج.م", JOD: "د.أ" };
+/** The currency's symbol; on Arabic screens a Latin abbreviation (BHD, KD, SAR…) becomes its Arabic one. Official signs stay. */
+function getCurrencyLabel(code, isArabic = false, unicode = true) {
+  const normalized = (code || "BHD").trim().toUpperCase();
+  const symbol = getCurrencySymbol(normalized, unicode);
+  return isArabic && /[A-Za-z]/.test(symbol) && exports.ARABIC_CURRENCY_LABELS[normalized] ? exports.ARABIC_CURRENCY_LABELS[normalized] : symbol;
 }
 function getCurrencyDecimals(code) {
   try {

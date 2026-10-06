@@ -1,4 +1,5 @@
 "use client";
+import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
@@ -21,7 +22,8 @@ function shiftMonth(month: string, delta: number) {
 }
 
 export function CommissionsView({ month, rows, canRecord, canSetRates }: { month: string; rows: CommissionRow[]; canRecord: boolean; canSetRates: boolean }) {
-  const { t } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
+  const bhd = getCurrencyLabel("BHD", locale === "ar");
   const c = t.commissions;
   const router = useRouter();
   const [busy, setBusy] = React.useState<string | null>(null);
@@ -69,11 +71,11 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="p-5 rounded-3xl bg-surface border border-ink/10">
           <div className="text-xs text-ink-muted">{c.collected}</div>
-          <div className="text-2xl font-bold text-ink mt-1">BHD {fmt(totals.collected)}</div>
+          <div className="text-2xl font-bold text-ink mt-1">{bhd} {fmt(totals.collected)}</div>
         </Card>
         <Card className="p-5 rounded-3xl bg-surface border border-ink/10">
           <div className="text-xs text-ink-muted">{c.totalCommission}</div>
-          <div className="text-2xl font-bold text-accent mt-1">BHD {fmt(totals.commission)}</div>
+          <div className="text-2xl font-bold text-accent mt-1">{bhd} {fmt(totals.commission)}</div>
         </Card>
         <Card className="p-5 rounded-3xl bg-surface border border-ink/10">
           <div className="text-xs text-ink-muted">{c.recordedCount}</div>

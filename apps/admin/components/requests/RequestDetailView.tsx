@@ -27,7 +27,7 @@ import {
   Plus,
   Send,
 } from "lucide-react";
-import { Button, StatusBadge, useDialog } from "@ishoot/ui";
+import { Button, CurrencyDisplay, StatusBadge, useDialog } from "@ishoot/ui";
 import type { ConsolidatedRequest } from "@ishoot/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -872,7 +872,7 @@ export function RequestDetailView({
                         {q.quotationNumber}
                       </Link>
                       <div className="text-[11px] text-slate-400">
-                        {q.totalAmount} BHD
+                        <CurrencyDisplay amount={q.totalAmount} currency={q.currency || "BHD"} />
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

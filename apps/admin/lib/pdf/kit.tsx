@@ -6,7 +6,7 @@
  */
 import * as React from "react";
 import { Image, Text, View, type Styles } from "@react-pdf/renderer";
-import { getCurrencyDecimals, getCurrencySymbol } from "@ishoot/config/currency";
+import { getCurrencyDecimals, getCurrencyLabel } from "@ishoot/config/currency";
 import { getTranslations } from "@ishoot/locales";
 import { db } from "@ishoot/database";
 import type { CompanySettings } from "@ishoot/database/types";
@@ -61,7 +61,6 @@ export async function resolvePdfBrand(company: CompanySettings): Promise<PdfBran
 
 // ---------------------------------------------------------------- formatting (Western digits in both languages)
 
-const AR_CURRENCY: Record<string, string> = { BHD: "د.ب", KWD: "د.ك", QAR: "ر.ق", SAR: "ر.س", AED: "د.إ", OMR: "ر.ع", EGP: "ج.م", JOD: "د.أ" };
 
 export function numberLocale(isAr: boolean) {
   return isAr ? "ar-BH-u-nu-latn" : "en-GB";
@@ -73,7 +72,7 @@ export function fmtNumber(value: number, decimals = 0) {
 
 export function currencyLabel(code: string, isAr: boolean) {
   const upper = (code || "BHD").toUpperCase();
-  return isAr ? AR_CURRENCY[upper] ?? getCurrencySymbol(upper, false) : getCurrencySymbol(upper, false);
+  return getCurrencyLabel(upper, isAr, false);
 }
 
 export function fmtMoney(value: number, code: string, isAr: boolean) {

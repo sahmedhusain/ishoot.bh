@@ -4,7 +4,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoicePdfDocument } from "./invoice-pdf";
 import { ReceiptPdfDocument } from "./receipt-pdf";
 import type { Invoice, Payment, CompanySettings, Quotation } from "@ishoot/database/types";
-import { db, getClientAcceptance, type ClientSignableType } from "@ishoot/database";
+import { db, getClientAcceptance, mapContact, type ClientSignableType } from "@ishoot/database";
 import { getSigningState, type SignableDocument } from "@ishoot/database/queries/document-signing";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import { resolvePdfBrand, type ClientAcceptance, type CompanySignature } from "./kit";
@@ -73,9 +73,7 @@ export async function generateQuotationPdfBuffer(quotation: Quotation, company: 
     amount_paid: 0,
     amount_due: quotation.totalAmount,
     contact_name: fullName || client?.companyName || "",
-    contact: client
-      ? { full_name: fullName, company: client.companyName ?? "", email: client.email ?? "", phone: client.phone ?? "", vat_number: client.vatNumber ?? "" }
-      : undefined,
+    contact: client ? { ...mapContact(client), full_name: fullName, company: client.companyName ?? "" } : undefined,
     line_items: (quotation.lineItems ?? []).map((li) => ({
       id: li.id,
       description_en: li.descriptionEn,

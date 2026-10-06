@@ -13,6 +13,7 @@ import {
   docKit,
   type DocKit,
 } from "./kit";
+import { formatClientAddress } from "../client-address";
 
 interface InvoicePDFProps {
   invoice: Invoice;
@@ -42,7 +43,8 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
   const companyName = isAr ? company.company_name_ar : company.company_name_en;
 
   const clientName = invoice.contact?.full_name || invoice.contact_name || t.defaultClient;
-  const clientCompany = invoice.contact?.company || "";
+  const clientCompany = (isAr && invoice.contact?.company_name_ar) || invoice.contact?.company || "";
+  const clientAddress = formatClientAddress(invoice.contact?.address_details, all.clients.addressParts, isAr ? "ar" : "en") || invoice.contact?.address || "";
   const statusLabel = (all.statusLabels as Record<string, string>)[invoice.status || "draft"] ?? invoice.status;
 
   const facts: Array<[string, string]> = [
@@ -80,7 +82,8 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
           {clientCompany && clientName && clientCompany !== clientName ? <Field label={d.attention} value={clientName} /> : null}
           {invoice.contact?.email ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.email}</T> : null}
           {invoice.contact?.phone ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.phone}</T> : null}
-          {invoice.contact?.address ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.address}</T> : null}
+          {clientAddress ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{clientAddress}</T> : null}
+          {invoice.contact?.cr_number ? <Field label={d.crNo} value={invoice.contact.cr_number} /> : null}
           {isVatActive && invoice.contact?.vat_number ? <Field label={d.vatNo} value={invoice.contact.vat_number} strong /> : null}
         </Card>
         <Card label={isQuote ? t.quotationDetails : t.bankDetails}>

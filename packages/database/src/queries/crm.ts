@@ -2,8 +2,24 @@ import { ROUTES } from "../constants/routes";
 import { DEAL_STAGE_ON_EVENT, DEAL_STAGE_PROBABILITY, dealStagesBefore, isActiveDealStage, type DealProgressEvent } from "../constants/crm";
 import { getCompanySettings } from "./company-settings";
 import { db } from "../db";
-import { normalizeToE164 } from "../services/lead-resolver";
-import { CRMContact, CRMDeal, DealStage, SupportedCurrency } from "../types";
+import { ClientAddress, ClientProfileInput, CRMContact, CRMDeal, DealStage, SupportedCurrency } from "../types";
+
+function mapAddress(c: any): ClientAddress | undefined {
+  const address: ClientAddress = {
+    country: c.addressCountry || undefined,
+    city: c.addressCity || undefined,
+    area: c.addressArea || undefined,
+    block: c.addressBlock || undefined,
+    road: c.addressRoad || undefined,
+    building: c.addressBuilding || undefined,
+    unit: c.addressUnit || undefined,
+    line: c.addressLine || undefined,
+    state: c.addressState || undefined,
+    postal_code: c.addressPostalCode || undefined,
+    po_box: c.addressPoBox || undefined,
+  };
+  return Object.values(address).some(Boolean) ? address : undefined;
+}
 
 export function mapContact(c: any): CRMContact {
   return {
@@ -21,6 +37,35 @@ export function mapContact(c: any): CRMContact {
     job_title: c.jobTitle || undefined,
     contact_type: c.contactType as any,
     notes: c.notes || undefined,
+    client_kind: c.clientKind ?? (c.companyName ? "company" : "individual"),
+    company_origin: c.companyOrigin || undefined,
+    company_name_ar: c.companyNameAr || undefined,
+    legal_form: c.legalForm || undefined,
+    cr_number: c.crNumber || undefined,
+    cr_expiry_date: c.crExpiryDate ? c.crExpiryDate.toISOString().slice(0, 10) : undefined,
+    registration_number: c.registrationNumber || undefined,
+    registration_country: c.registrationCountry || undefined,
+    government_type: c.governmentType || undefined,
+    supplier_number: c.supplierNumber || undefined,
+    requires_purchase_order: c.requiresPurchaseOrder ?? undefined,
+    nationality: c.nationality || undefined,
+    industry: c.industry || undefined,
+    website: c.website || undefined,
+    preferred_language: c.preferredLanguage || undefined,
+    payment_terms_days: c.paymentTermsDays ?? undefined,
+    address_details: mapAddress(c),
+    contact_persons: Array.isArray(c.contactPersons)
+      ? c.contactPersons.map((p: any) => ({
+          id: p.id,
+          full_name: p.fullName,
+          position: p.position || undefined,
+          department: p.department || undefined,
+          email: p.email || undefined,
+          phone: p.phone || undefined,
+          is_primary: p.isPrimary,
+          notes: p.notes || undefined,
+        }))
+      : undefined,
     created_at: c.createdAt.toISOString(),
     updated_at: c.updatedAt.toISOString(),
   };
@@ -68,7 +113,7 @@ export async function getCRMContactById(
   try {
     const contact = await db.crmContact.findUnique({
       where: { id },
-      include: { deals: true },
+      include: { deals: true, contactPersons: { orderBy: { displayOrder: "asc" } } },
     });
     return contact ? mapContact(contact) : null;
   } catch (e) {
@@ -113,6 +158,7 @@ export async function getCustomerDossier(
   try {
     const contactRaw = await db.crmContact.findUnique({
       where: { id },
+      include: { contactPersons: { orderBy: { displayOrder: "asc" } } },
     });
     if (!contactRaw) return null;
 
@@ -405,76 +451,14 @@ activities: {total: counts[6], page: Math.min(Math.max(1, Math.min(1000000, Numb
   }
 }
 
-export async function createCRMContact(data: {
-  first_name?: string;
-  last_name?: string;
-  full_name?: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  vat_number?: string;
-  job_title?: string;
-  contact_type?: "client" | "vendor" | "freelancer" | "agency";
-  notes?: string;
-}): Promise<CRMContact> {
-  let firstName = data.first_name || "";
-  let lastName = data.last_name || "";
-  if (!firstName && data.full_name) {
-    const parts = data.full_name.trim().split(" ");
-    firstName = parts[0] || "Client";
-    lastName = parts.slice(1).join(" ");
-  }
-
-  const created = await db.crmContact.create({
-    data: {
-      firstName: firstName || "Client",
-      lastName: lastName || null,
-      email: data.email || null,
-      emailNorm: data.email?.trim().toLowerCase() || null,
-      phone: data.phone || null,
-      phoneE164: data.phone ? normalizeToE164(data.phone) : null,
-      companyName: data.company || null,
-      vatNumber: data.vat_number?.trim() || null,
-      jobTitle: data.job_title || null,
-      contactType: data.contact_type || "client",
-      notes: data.notes || null,
-    },
-  });
-  return mapContact(created);
+export async function createCRMContact(data: ClientProfileInput): Promise<CRMContact> {
+  const { createClientProfile } = await import("./client-profiles");
+  return createClientProfile(data);
 }
 
-export async function updateCRMContact(
-  id: string,
-  data: Partial<CRMContact>,
-): Promise<CRMContact | null> {
-  try {
-    const updateData: any = {};
-    if (data.first_name !== undefined) updateData.firstName = data.first_name;
-    if (data.last_name !== undefined) updateData.lastName = data.last_name;
-    if (data.email !== undefined) {
-      updateData.email = data.email;
-      updateData.emailNorm = data.email?.trim().toLowerCase() || null;
-    }
-    if (data.phone !== undefined) {
-      updateData.phone = data.phone;
-      updateData.phoneE164 = data.phone ? normalizeToE164(data.phone) : null;
-    }
-    if (data.company !== undefined) updateData.companyName = data.company;
-    if (data.vat_number !== undefined) updateData.vatNumber = data.vat_number?.trim() || null;
-    if (data.job_title !== undefined) updateData.jobTitle = data.job_title;
-    if (data.contact_type !== undefined)
-      updateData.contactType = data.contact_type;
-    if (data.notes !== undefined) updateData.notes = data.notes;
-
-    const updated = await db.crmContact.update({
-      where: { id },
-      data: updateData,
-    });
-    return mapContact(updated);
-  } catch (e) {
-    console.error(`Error updating CRM contact ${id}:`, e);
-    throw e;
-  }
+export async function updateCRMContact(id: string, data: ClientProfileInput): Promise<CRMContact | null> {
+  const { updateClientProfile } = await import("./client-profiles");
+  return updateClientProfile(id, data);
 }
 
 export async function deleteCRMContact(id: string): Promise<boolean> {
