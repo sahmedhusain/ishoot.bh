@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
-import { REQUEST_CLOSED_STATUSES, canTransitionRequest, requestKindOf, type RequestKind } from "../constants/requests";
+import { REQUEST_CLOSED_STATUSES, REQUEST_SORTS, REQUEST_SOURCES, canTransitionRequest, requestKindOf, type RequestKind, type RequestSort } from "../constants/requests";
 import { cancelPendingApprovals } from "../services/approval-engine";
 import { assignRequest, reassignRequest } from "./inquiries";
 import { getNextSequenceNumber } from "./sequence";
@@ -285,6 +285,7 @@ export async function getConsolidatedRequestById(id: string): Promise<Consolidat
 }
 
 
+
 export interface RequestListFilters {
   kind?: RequestKind | "all";
   /** "open" (default) hides resolved/archived/rejected; any workflow status narrows further. */
@@ -292,8 +293,18 @@ export interface RequestListFilters {
   scope?: "all" | "mine" | "unassigned";
   team?: string;
   priority?: string;
+  /** Kept for old links: the same as due = "overdue". */
   overdue?: boolean;
+  /** "overdue", "today" (due by end of today), "week" (due within 7 days) or "none" (no SLA date). */
+  due?: string;
+  assignee?: string;
+  source?: string;
+  customerId?: string;
+  /** Received on or after / on or before (YYYY-MM-DD). */
+  from?: string;
+  to?: string;
   search?: string;
+  sort?: string;
 }
 
 export interface RequestListRow {
@@ -305,6 +316,7 @@ export interface RequestListRow {
   priority: string;
   workflowStatus: string;
   team: string | null;
+  source: string;
   assignee: string | null;
   slaDueDate: string | null;
   overdue: boolean;
@@ -320,8 +332,7 @@ const kindWhere = (kind: RequestKind): Prisma.InquiryWhereInput =>
         ? { requestType: { notIn: ["SR", "CR"] }, OR: [{ requestType: "quote_request" }, { intent: "quote_request" }] }
         : { requestType: { notIn: ["SR", "CR", "quote_request"] }, intent: "inquiry" };
 
-/** The request inbox: lean rows, server-side filters, and the counters the managers need. */
-export async function getRequestList(filters: RequestListFilters, viewerId: string, page = 1) {
+function requestWhere(filters: RequestListFilters, viewerId: string): Prisma.InquiryWhereInput {
   const now = new Date();
   const open: Prisma.InquiryWhereInput = { workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] } };
   const and: Prisma.InquiryWhereInput[] = [];
@@ -333,53 +344,127 @@ export async function getRequestList(filters: RequestListFilters, viewerId: stri
   if (filters.scope === "unassigned") and.push({ assignedToId: null });
   if (filters.team && filters.team !== "all") and.push({ team: filters.team });
   if (filters.priority && filters.priority !== "all") and.push({ priority: filters.priority });
-  if (filters.overdue) and.push(open, { slaDueDate: { lt: now } });
+  const due = filters.overdue ? "overdue" : filters.due;
+  if (due === "overdue") and.push(open, { slaDueDate: { lt: now } });
+  if (due === "today") {
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    and.push(open, { slaDueDate: { gte: now, lte: end } });
+  }
+  if (due === "week") and.push(open, { slaDueDate: { gte: now, lte: new Date(now.getTime() + 7 * 86400000) } });
+  if (due === "none") and.push({ slaDueDate: null });
+  if (filters.assignee && filters.assignee !== "all" && filters.assignee.length <= 150) and.push({ assignedToId: filters.assignee });
+  if (filters.source && (REQUEST_SOURCES as readonly string[]).includes(filters.source)) and.push({ source: filters.source });
+  if (filters.customerId && filters.customerId.length <= 150) and.push({ customerId: filters.customerId });
+  const day = (value: string | undefined, end = false) =>
+    value && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) ? new Date(`${value}T${end ? "23:59:59.999" : "00:00:00"}+03:00`) : null;
+  const from = day(filters.from);
+  const to = day(filters.to, true);
+  if (from || to) and.push({ createdAt: { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) } });
   if (filters.search?.trim()) {
     const term = filters.search.trim().slice(0, 200);
     and.push({ OR: ["name", "email", "companyName", "message", "reference", "serviceType"].map((field) => ({ [field]: { contains: term, mode: "insensitive" as const } })) });
   }
-  const where: Prisma.InquiryWhereInput = and.length ? { AND: and } : {};
+  return and.length ? { AND: and } : {};
+}
+
+const REQUEST_ORDER: Record<Exclude<RequestSort, "priority">, Prisma.InquiryOrderByWithRelationInput[]> = {
+  // Most urgent first: overdue SLAs, then newest.
+  urgency: [{ slaDueDate: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }, { id: "desc" }],
+  newest: [{ createdAt: "desc" }, { id: "desc" }],
+  oldest: [{ createdAt: "asc" }, { id: "asc" }],
+  sla_asc: [{ slaDueDate: { sort: "asc", nulls: "last" } }, { id: "asc" }],
+  sla_desc: [{ slaDueDate: { sort: "desc", nulls: "last" } }, { id: "asc" }],
+  customer_asc: [{ companyName: { sort: "asc", nulls: "last" } }, { name: "asc" }, { id: "asc" }],
+};
+
+const listSelect = {
+  id: true, reference: true, requestType: true, intent: true, serviceType: true, message: true, name: true, companyName: true, source: true,
+  priority: true, workflowStatus: true, team: true, slaDueDate: true, createdAt: true, assignedTo: { select: { fullName: true } },
+} satisfies Prisma.InquirySelect;
+type ListRecord = Prisma.InquiryGetPayload<{ select: typeof listSelect }>;
+
+/** One page of matches. Priority order (urgent, high, normal) walks the priority buckets in turn. */
+async function requestPage(where: Prisma.InquiryWhereInput, sort: RequestSort, skip: number, take: number): Promise<ListRecord[]> {
+  if (sort !== "priority") return db.inquiry.findMany({ where, select: listSelect, orderBy: REQUEST_ORDER[sort], skip, take });
+  const buckets = ["urgent", "high", "normal"];
+  const rest: Prisma.InquiryWhereInput = { priority: { notIn: buckets } };
+  const groups = [...buckets.map((priority) => ({ priority })), rest];
+  const rows: ListRecord[] = [];
+  for (const group of groups) {
+    if (rows.length >= take) break;
+    const bucket: Prisma.InquiryWhereInput = { AND: [where, group] };
+    const count = await db.inquiry.count({ where: bucket });
+    if (skip >= count) {
+      skip -= count;
+      continue;
+    }
+    rows.push(...(await db.inquiry.findMany({ where: bucket, select: listSelect, orderBy: REQUEST_ORDER.urgency, skip, take: take - rows.length })));
+    skip = 0;
+  }
+  return rows;
+}
+
+function toRow(r: ListRecord, now: Date): RequestListRow {
+  const closed = new Set<string>(REQUEST_CLOSED_STATUSES);
+  return {
+    id: r.id,
+    reference: r.reference,
+    kind: requestKindOf(r),
+    title: r.serviceType || (r.message.length > 80 ? r.message.slice(0, 80) + "…" : r.message),
+    customer: r.companyName || r.name,
+    priority: r.priority,
+    workflowStatus: r.workflowStatus,
+    team: r.team,
+    source: r.source,
+    assignee: r.assignedTo?.fullName ?? null,
+    slaDueDate: r.slaDueDate?.toISOString() ?? null,
+    overdue: !!r.slaDueDate && r.slaDueDate < now && !closed.has(r.workflowStatus),
+    createdAt: r.createdAt.toISOString(),
+  };
+}
+
+/** Every match for the CSV export, walked by id. */
+export async function getRequestExportBatch(filters: RequestListFilters, viewerId: string, batch: { after?: string; batchSize: number }) {
+  const where = requestWhere(filters, viewerId);
+  const rows = await db.inquiry.findMany({
+    where: { AND: [where, ...(batch.after ? [{ id: { gt: batch.after } }] : [])] },
+    select: listSelect,
+    orderBy: { id: "asc" },
+    take: Math.min(500, batch.batchSize),
+  });
+  const now = new Date();
+  return rows.map((r) => toRow(r, now));
+}
+
+/** The request inbox: lean rows, server-side filters and sorting, and the counters the managers need. */
+export async function getRequestList(filters: RequestListFilters, viewerId: string, page = 1) {
+  const now = new Date();
+  const open: Prisma.InquiryWhereInput = { workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] } };
+  const where = requestWhere(filters, viewerId);
+  const sort: RequestSort = (REQUEST_SORTS as readonly string[]).includes(filters.sort ?? "") ? (filters.sort as RequestSort) : "urgency";
   const safePage = Number.isInteger(page) && page >= 1 ? Math.min(page, 10000) : 1;
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const [rows, total, openCount, overdueCount, unassignedCount, awaitingApproval, mineCount, resolvedThisMonth] = await db.$transaction([
-    db.inquiry.findMany({
-      where,
-      select: {
-        id: true, reference: true, requestType: true, intent: true, serviceType: true, message: true, name: true, companyName: true,
-        priority: true, workflowStatus: true, team: true, slaDueDate: true, createdAt: true, assignedTo: { select: { fullName: true } },
-      },
-      // Most urgent first: overdue SLAs, then priority, then newest.
-      orderBy: [{ slaDueDate: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }, { id: "desc" }],
-      take: 50,
-      skip: (safePage - 1) * 50,
-    }),
-    db.inquiry.count({ where }),
-    db.inquiry.count({ where: open }),
-    db.inquiry.count({ where: { ...open, slaDueDate: { lt: now } } }),
-    db.inquiry.count({ where: { ...open, assignedToId: null } }),
-    db.inquiry.count({ where: { workflowStatus: "pending_approval" } }),
-    db.inquiry.count({ where: { ...open, assignedToId: viewerId } }),
-    db.inquiry.count({ where: { workflowStatus: "resolved", resolvedAt: { gte: monthStart } } }),
-  ]);
-  const closed = new Set<string>(REQUEST_CLOSED_STATUSES);
+  const [rows, total, openCount, overdueCount, unassignedCount, awaitingApproval, mineCount, resolvedThisMonth] = await runAtomicMutation(
+    () =>
+      Promise.all([
+        requestPage(where, sort, (safePage - 1) * 50, 50),
+        db.inquiry.count({ where }),
+        db.inquiry.count({ where: open }),
+        db.inquiry.count({ where: { ...open, slaDueDate: { lt: now } } }),
+        db.inquiry.count({ where: { ...open, assignedToId: null } }),
+        db.inquiry.count({ where: { workflowStatus: "pending_approval" } }),
+        db.inquiry.count({ where: { ...open, assignedToId: viewerId } }),
+        db.inquiry.count({ where: { workflowStatus: "resolved", resolvedAt: { gte: monthStart } } }),
+      ]),
+    "RepeatableRead",
+  );
   return {
     page: safePage,
     pageSize: 50,
     total,
+    sort,
     stats: { open: openCount, overdue: overdueCount, unassigned: unassignedCount, awaitingApproval, mine: mineCount, resolvedThisMonth },
-    items: rows.map((r): RequestListRow => ({
-      id: r.id,
-      reference: r.reference,
-      kind: requestKindOf(r),
-      title: r.serviceType || (r.message.length > 80 ? r.message.slice(0, 80) + "…" : r.message),
-      customer: r.companyName || r.name,
-      priority: r.priority,
-      workflowStatus: r.workflowStatus,
-      team: r.team,
-      assignee: r.assignedTo?.fullName ?? null,
-      slaDueDate: r.slaDueDate?.toISOString() ?? null,
-      overdue: !!r.slaDueDate && r.slaDueDate < now && !closed.has(r.workflowStatus),
-      createdAt: r.createdAt.toISOString(),
-    })),
+    items: rows.map((r) => toRow(r, now)),
   };
 }

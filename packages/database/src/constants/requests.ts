@@ -49,3 +49,9 @@ export function requestKindOf(record: { requestType?: string | null; intent?: st
   if (record.requestType === "quote_request" || record.intent === "quote_request") return "quote";
   return "inquiry";
 }
+
+/** Request inbox sort orders, due-date filters and intake channels. */
+export const REQUEST_SORTS = ["urgency", "newest", "oldest", "sla_asc", "sla_desc", "priority", "customer_asc"] as const;
+export type RequestSort = (typeof REQUEST_SORTS)[number];
+export const REQUEST_DUE_FILTERS = ["overdue", "today", "week", "none"] as const;
+export const REQUEST_SOURCES = ["website", "email", "whatsapp", "manual"] as const;

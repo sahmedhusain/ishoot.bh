@@ -1,6 +1,6 @@
 import { measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
-import { iterateListExport, listDomains, type ClientListRow } from "@ishoot/database";
+import { getRequestExportBatch, iterateListExport, listDomains, type ClientListRow, type RequestListFilters } from "@ishoot/database";
 import { getCurrentUser, requirePermission } from "../../../../lib/auth";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -20,6 +20,7 @@ const columns = {
   calendar: ["id", "title", "start_date", "end_date", "event_type", "location", "deal_id", "created_by"],
   moms: ["id", "mom_number", "title", "meeting_date", "status", "client_name", "deal_title", "created_by_name", "approved_by_name"],
   companyDocuments: ["id", "title_en", "category", "document_number", "valid_from", "valid_until"],
+  requests: ["id", "reference", "kind", "title", "customer", "priority", "workflowStatus", "team", "assignee", "source", "createdAt", "slaDueDate", "overdue"],
 };
 /** A client row for the spreadsheet: the profile flattened, with every point of contact on one cell. */
 function clientRow(row: ClientListRow) {
@@ -46,10 +47,47 @@ function csv(value: unknown) {
   if (typeof value === "string" && /^[\s]*[=+@-]/.test(text)) text = "'" + text;
   return '"' + text.replaceAll('"', '""') + '"';
 }
+/** The request inbox export: the same filters as the inbox, every match walked by id. */
+async function exportRequests(req: NextRequest) {
+  let viewer: { id: string };
+  try {
+    viewer = await requirePermission("requests", "read");
+    await requirePermission("requests", "export");
+  } catch {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const q = req.nextUrl.searchParams;
+  const get = (key: string) => (q.get(key) || "").slice(0, 200) || undefined;
+  const filters: RequestListFilters = {
+    kind: get("kind") as RequestListFilters["kind"], status: get("status") || "open", scope: get("scope") as RequestListFilters["scope"],
+    team: get("team"), priority: get("priority"), due: get("due"), assignee: get("assignee"), source: get("source"),
+    customerId: get("customerId"), from: get("from"), to: get("to"), search: get("search"),
+  };
+  const encoder = new TextEncoder();
+  let after: string | undefined;
+  let header = false;
+  let done = false;
+  const stream = new ReadableStream({
+    async pull(controller) {
+      try {
+        if (!header) { controller.enqueue(encoder.encode("\uFEFF" + columns.requests.map(csv).join(",") + "\r\n")); header = true; return; }
+        if (done || req.signal.aborted) { controller.close(); return; }
+        const rows = await getRequestExportBatch(filters, viewer.id, { after, batchSize: 500 });
+        if (!rows.length) { controller.close(); return; }
+        after = rows[rows.length - 1].id;
+        done = rows.length < 500;
+        controller.enqueue(encoder.encode(rows.map((row) => columns.requests.map((key) => csv((row as unknown as Record<string, unknown>)[key])).join(",")).join("\r\n") + "\r\n"));
+      } catch (error) { controller.error(error); }
+    },
+  });
+  return new NextResponse(stream, { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="requests-${new Date().toISOString().slice(0, 10)}.csv"`, "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
+}
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ domain: string }> }) {
   return measureOperation("admin:exports/[domain]:GET", async () => {
   if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { domain } = await params;
+  if (domain === "requests") return exportRequests(req);
   if (!Object.hasOwn(listDomains, domain)) return new NextResponse(null, { status: 404 });
   const name = domain as keyof typeof listDomains;
   try { for (const resource of name === "archive" ? ["contacts","deals","invoices","payments","expenses","settings"] as const : name === "companyDocuments" ? ["settings"] : [name]) { await requirePermission(resource as any, "read"); await requirePermission(resource as any, "export"); } }

@@ -3842,7 +3842,18 @@
       "priority": "Priority",
       "search": "Search reference, client or subject",
       "apply": "Apply",
-      "overdueOnly": "Past SLA only"
+      "overdueOnly": "Past SLA only",
+      "sort": "Sort by",
+      "more": "Filters",
+      "reset": "Clear",
+      "assignee": "Assignee",
+      "anyAssignee": "Any assignee",
+      "source": "Source",
+      "anySource": "Any source",
+      "due": "Due",
+      "anyDue": "Any due date",
+      "from": "Received from",
+      "to": "Received to"
     },
     "kinds": {
       "all": "All types",
@@ -3867,14 +3878,37 @@
       "priority": "Priority",
       "status": "Status",
       "assignee": "Assignee",
-      "sla": "SLA due"
+      "sla": "SLA due",
+      "received": "Received"
     },
     "unassigned": "Unassigned",
     "overdue": "Overdue",
     "empty": "No requests match these filters.",
     "open": "Open",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "export": "Export",
+    "sorts": {
+      "urgency": "Most urgent",
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "sla_asc": "Due soonest",
+      "sla_desc": "Due latest",
+      "priority": "Priority",
+      "customer_asc": "Customer A to Z"
+    },
+    "sources": {
+      "website": "Website",
+      "email": "E-mail",
+      "whatsapp": "WhatsApp",
+      "manual": "Entered by staff"
+    },
+    "dues": {
+      "overdue": "Overdue",
+      "today": "Due today",
+      "week": "Due within 7 days",
+      "none": "No due date"
+    }
   },
   "requestManage": {
     "title": "Manage request",
