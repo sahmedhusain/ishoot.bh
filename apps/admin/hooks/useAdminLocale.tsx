@@ -55,7 +55,7 @@ export function AdminLocaleProvider({
 
   return (
     <AdminLocaleContext.Provider value={{ locale, isRTL, setLocale, t }}>
-      <StatusLabelsProvider value={t.statusLabels}>{children}</StatusLabelsProvider>
+      <StatusLabelsProvider value={t.statusLabels ?? {}}>{children}</StatusLabelsProvider>
     </AdminLocaleContext.Provider>
   );
 }

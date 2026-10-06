@@ -40,7 +40,7 @@ export const StatusLabelsProvider = StatusLabelsContext.Provider;
 const humanize = (status: string) => status.replaceAll("_", " ").replace(/^\w/, (c) => c.toUpperCase());
 
 export function StatusBadge({ status, label, variant }: StatusBadgeProps) {
-  const labels = React.useContext(StatusLabelsContext);
+  const labels = React.useContext(StatusLabelsContext) ?? {};
   const resolvedVariant = variant || defaultVariants[status] || "default";
   const displayText = label || labels[status] || labels[status?.toLowerCase()] || humanize(String(status ?? ""));
 
