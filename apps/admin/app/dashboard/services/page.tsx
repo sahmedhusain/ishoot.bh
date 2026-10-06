@@ -5,7 +5,7 @@ import { ServicesManagementView } from "../../../components/services/ServicesMan
 export const dynamic = "force-dynamic";
 
 export default async function ServicesPage() {
-  await requirePagePermission("settings", "read");
+  await requirePagePermission("invoices", "read");
   const services = await getAllServices();
 
   return <ServicesManagementView initialServices={services} />;

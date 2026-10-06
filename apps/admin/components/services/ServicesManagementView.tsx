@@ -19,6 +19,7 @@ updateServiceAction,
 deleteServiceAction,
 } from "../../app/actions/services";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { usePermissions } from "../../hooks/usePermissions";
 import { SERVICE_CATEGORIES,SERVICE_UNITS } from "@ishoot/config/constants";
 
 interface ServicesManagementViewProps {
@@ -29,6 +30,9 @@ export function ServicesManagementView({
   initialServices,
 }: ServicesManagementViewProps) {
   const { isRTL, t } = useAdminLocale();
+  const { can } = usePermissions();
+  const canWrite = can("invoices", "write");
+  const canDelete = can("invoices", "delete");
   const [services, setServices] = React.useState<ServiceItem[]>(initialServices);
   const [activeCategory, setActiveCategory] = React.useState("all");
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -177,13 +181,13 @@ export function ServicesManagementView({
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
+          {canWrite && <Button
             onClick={openCreateModal}
             className="bg-primary hover:bg-primary/90 text-white gap-2 shadow-xs rounded-full px-4 h-8 text-xs font-semibold"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{t.servicesView.addService}</span>
-          </Button>
+          </Button>}
         </div>
       </div>
 
@@ -364,21 +368,21 @@ export function ServicesManagementView({
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          <button
+                          {canWrite && <button
                             onClick={() => openEditModal(service)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-accent hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                             title={t.servicesManagement.editService}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
+                          </button>}
+                          {canDelete && <button
                             onClick={() => handleDelete(service.id)}
                             disabled={deletingId === service.id}
                             className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                             title={t.servicesManagement.deleteService}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          </button>}
                         </div>
                       </td>
                     </tr>
