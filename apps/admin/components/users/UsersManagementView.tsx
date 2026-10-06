@@ -6,6 +6,7 @@ import { ContentImage } from "../shared/ContentImage";
 import * as React from "react";
 import type { Profile, UserRole } from "@ishoot/database/types";
 import { createUserAction, deleteUserAction } from "../../app/actions/users";
+import { RolePermissionMatrix } from "./RolePermissionMatrix";
 import { AccountSettingsDialog, type AccountSettingsValue } from "../shared/AccountSettingsDialog";
 import { toast } from "sonner";
 import {
@@ -309,18 +310,20 @@ export function UsersManagementView({
 
                       {/* Digital Signature Preview */}
                       <td className="p-4">
-                        <div className="flex items-center gap-2">
+                        {u.signature_url ? (
                           <div
-                            className="h-8 w-20 px-2 py-0.5 rounded-lg bg-ink/95 border border-ink/20 flex items-center justify-center overflow-hidden shadow-sm"
+                            className="flex h-9 w-24 items-center justify-center overflow-hidden rounded-lg border border-ink/10 bg-white px-2 py-0.5 shadow-sm"
                             title={u.full_name}
                           >
                             <ContentImage
                               src={u.signature_url}
-                              alt="Signature"
+                              alt={`${t.usersManagement.signature} — ${u.full_name}`}
                               className="h-full w-auto object-contain"
                             />
                           </div>
-                        </div>
+                        ) : (
+                          <span className="text-ink-muted/60">—</span>
+                        )}
                       </td>
 
                       <td className="p-4">
@@ -369,57 +372,7 @@ export function UsersManagementView({
         </Card>
       )}
 
-      {activeTab === "matrix" && (
-        <Card className="p-6 bg-surface border border-ink/10 rounded-3xl shadow-xl overflow-x-auto space-y-4">
-          <div className="border-b border-ink/10 pb-3 flex items-center justify-between">
-            <h2 className="text-sm font-bold text-ink uppercase tracking-wider">
-              {t.usersView.matrixTitle}
-            </h2>
-            <div className="flex items-center gap-3 text-[11px] ">
-              <span className="text-emerald-400">{t.usersView.rwLegend}</span>
-              <span className="text-blue-400">{t.usersView.rLegend}</span>
-              <span className="text-ink-muted/40">{t.usersView.naLegend}</span>
-            </div>
-          </div>
-
-          <table className="w-full text-xs ">
-            <thead>
-              <tr className="border-b border-ink/10 text-ink-muted text-start">
-                <th className="py-2.5 text-start font-sans font-bold">
-                  {t.usersView.moduleHeader}
-                </th>
-                {allRoles.map((r) => (
-                  <th key={r.key} className="py-2.5 text-center">
-                    {r.name}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink/5">
-              {resources.map((resource) => (
-                <tr key={resource} className="hover:bg-ink/[0.02]">
-                  <td className="py-3 text-ink font-sans font-semibold">
-                    {resource}
-                  </td>
-                  {allRoles.map((r) => (
-                    <td
-                      key={r.key}
-                      className="py-3 text-center text-emerald-400"
-                    >
-                      {["read", "write", "delete", "export", "approve"]
-                        .filter(
-                          (action) =>
-                            rolePermissions[r.key]?.[`${resource}:${action}`],
-                        )
-                        .join(", ") || "—"}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      )}
+      {activeTab === "matrix" && <RolePermissionMatrix roles={allRoles} rolePermissions={rolePermissions} />}
 
       <Modal closeLabel={t.actions.close}
         isOpen={showCreateModal}
