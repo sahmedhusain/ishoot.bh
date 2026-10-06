@@ -159,7 +159,7 @@ export function DocumentLetterhead({
               <Link
                 href={ROUTES.crm.customer(client.id)}
                 className="hover:text-primary hover:underline inline-flex items-center gap-1 print:no-underline print:text-black group"
-                title="View Client Dossier in CRM"
+                title={adminTranslations[isAr ? "ar" : "en"].executiveDashboard.viewCustomerDossier}
               >
                 <span>{client.company || client.name}</span>
                 <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-primary print:hidden" />

@@ -424,7 +424,7 @@ export function NewPaymentFormView({
                             target="_blank"
                             rel="noreferrer"
                             className="p-1 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-                            title="View"
+                            title={t.actions.view} aria-label={t.actions.view}
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
@@ -432,7 +432,7 @@ export function NewPaymentFormView({
                             type="button"
                             onClick={() => setChequeFile(null)}
                             className="p-1 text-rose-500 hover:text-rose-700"
-                            title="Remove"
+                            title={t.actions.delete} aria-label={t.actions.delete}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -500,7 +500,7 @@ export function NewPaymentFormView({
                             target="_blank"
                             rel="noreferrer"
                             className="p-1 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-                            title="View"
+                            title={t.actions.view} aria-label={t.actions.view}
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
@@ -508,7 +508,7 @@ export function NewPaymentFormView({
                             type="button"
                             onClick={() => setBankReceiptFile(null)}
                             className="p-1 text-rose-500 hover:text-rose-700"
-                            title="Remove"
+                            title={t.actions.delete} aria-label={t.actions.delete}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -577,7 +577,7 @@ export function NewPaymentFormView({
                         target="_blank"
                         rel="noreferrer"
                         className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-                        title="View"
+                        title={t.actions.view} aria-label={t.actions.view}
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
@@ -585,7 +585,7 @@ export function NewPaymentFormView({
                         type="button"
                         onClick={() => setGeneralProofFile(null)}
                         className="p-1.5 text-rose-500 hover:text-rose-700"
-                        title="Remove"
+                        title={t.actions.delete} aria-label={t.actions.delete}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
