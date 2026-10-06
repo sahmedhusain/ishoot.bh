@@ -75,6 +75,7 @@ export function AdminProfileDropdown() {
         className="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus:outline-none"
         aria-expanded={isOpen}
         aria-label={displayName}
+        suppressHydrationWarning
       >
         <div className="w-8 h-8 rounded-xl bg-primary border border-accent/40 flex items-center justify-center text-xs font-bold text-white  shadow-sm">
           <User className="w-4 h-4" />
