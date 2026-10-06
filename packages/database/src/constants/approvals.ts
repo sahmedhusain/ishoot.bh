@@ -23,6 +23,9 @@ export type ApproverMode = (typeof APPROVER_MODES)[number];
 export const APPROVAL_STATUSES = ["pending", "approved", "rejected", "superseded", "cancelled"] as const;
 export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 
+/** A pending approval older than this many days is flagged as stale on dashboards. */
+export const STALE_APPROVAL_DAYS = 3;
+
 /** Roles that receive a request when no configured step yields an approver other than the requester. */
 export const APPROVAL_FALLBACK_ROLES = ["admin", "super_admin"] as const;
 

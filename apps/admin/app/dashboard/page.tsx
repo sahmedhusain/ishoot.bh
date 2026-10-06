@@ -1,13 +1,23 @@
 import { getCurrentPermissions,requireAuth } from "../../lib/auth";
-import { getFinancialSummary, getMonthlyCashflow, getCRMDealOverview, db, getCalendarEvents } from "@ishoot/database";
+import { getFinancialSummary, getMonthlyCashflow, getCRMDealOverview, db, getCalendarEvents, getApprovalWorkload, getRequestWorkload, getComplaintWorkload } from "@ishoot/database";
+import { readableApprovalTypes } from "../../lib/approval-access";
+import { dashboardFocus } from "../../lib/dashboard-focus";
 import { getCachedCompanySettings } from "../../lib/cached-queries";
 import { ExecutiveDashboardView } from "../../components/dashboard/ExecutiveDashboardView";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  await requireAuth();
+  const user = await requireAuth();
   const grants = await getCurrentPermissions();
+  const canRequests = grants["requests:read"] === true;
+  const canComplaints = grants["support:read"] === true;
+  const now = new Date();
+  const [approvals, requests, complaints] = await Promise.all([
+    readableApprovalTypes().then((types) => getApprovalWorkload(user.id, types, now)),
+    canRequests ? getRequestWorkload(user.id, { includeComplaints: canComplaints }, now) : Promise.resolve(null),
+    canComplaints ? getComplaintWorkload(now) : Promise.resolve(null),
+  ]);
   const canFinance = grants["finance_analytics:read"] === true;
   const canDeals = grants["deals:read"] === true;
   const canLeads = grants["leads:read"] === true;
@@ -72,6 +82,8 @@ export default async function DashboardPage() {
             }
       }
       upcomingEvents={upcomingEvents}
+      focus={dashboardFocus(user.role, grants)}
+      workload={{ approvals, requests, complaints, generatedAt: now.toISOString() }}
     />
   );
 }

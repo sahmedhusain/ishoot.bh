@@ -18,7 +18,7 @@ function load(file, mocks, jsx = false) {
     id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
     if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error('Unmocked dependency: ' + id); }
     return mocks[id];
-  }, console, Date, Intl, Set, Map });
+  }, console, Date, Intl, Set, Map, URLSearchParams });
   return module.exports;
 }
 async function main() {
@@ -28,6 +28,7 @@ async function main() {
     const { ExecutiveDashboardView } = load('apps/admin/components/dashboard/ExecutiveDashboardView.tsx', {
       'next/link': ({ href, children }) => React.createElement('a', { href }, children),
       '../shared/DeferredCharts': { DeferredCashflowChart: () => React.createElement('div', { 'data-testid': 'cashflow-chart' }) },
+      './WorkloadPanels': { WorkloadPanels: () => React.createElement('div', { 'data-testid': 'workload' }) },
       '@ishoot/ui': { Button: node('button'), CurrencyDisplay: ({ amount }) => React.createElement('span', null, amount), DateDisplay: node('span'), StatusBadge: node('span') },
       'lucide-react': new Proxy({}, { get: () => () => React.createElement('svg') }),
       '../../hooks/useAdminLocale': { useAdminLocale: () => ({ t, locale }) },
@@ -44,6 +45,23 @@ async function main() {
     assert.ok(finance.includes(t.kpi.totalRevenue));
     assert.ok(finance.includes('cashflow-chart'));
     assert.ok(finance.includes('/dashboard/invoices/new'));
+    const { WorkloadPanels } = load('apps/admin/components/dashboard/WorkloadPanels.tsx', {
+      'next/link': ({ href, children }) => React.createElement('a', { href }, children),
+      'lucide-react': new Proxy({}, { get: () => () => React.createElement('svg') }),
+      '../../hooks/useAdminLocale': { useAdminLocale: () => ({ t, locale }) },
+    }, true);
+    const approvals = { awaitingMe: 1, awaitingMeByType: { quotation: 1 }, oldestAwaitingAt: '2026-10-01T00:00:00.000Z', queue: [{ id: 'a1', targetType: 'quotation', targetId: 'q1', requester: 'Staff', currentStep: 1, createdAt: '2026-10-01T00:00:00.000Z' }], mySubmittedPending: 0, myDecidedLast30: 0, org: null };
+    const requests = { open: 2, overdue: 1, unassigned: 0, awaitingApproval: 0, newLast7: 1, resolvedLast30: 0, avgResolutionHours: null, slaMetPct: null, byKind: { service: 2 }, byTeam: {}, byPriority: { urgent: 1, high: 0, normal: 1 }, byStatus: {}, mine: { open: 0, overdue: 0, items: [] } };
+    const panels = (extra) => renderToStaticMarkup(React.createElement(WorkloadPanels, { approvals, requests: null, complaints: null, generatedAt: '2026-10-06T00:00:00.000Z', ...extra }));
+    const staffOnly = panels({});
+    assert.ok(staffOnly.includes(t.workload.approvalsTitle) && staffOnly.includes('/dashboard/quotations/q1'), 'Everyone sees their approval queue with links to the record');
+    assert.ok(!staffOnly.includes('wl-org'), 'No company approvals view without readable types');
+    assert.ok(!staffOnly.includes('wl-requests') && !staffOnly.includes('wl-complaints'), 'Request and complaint panels need their permissions');
+    const withRequests = panels({ requests });
+    assert.ok(withRequests.includes('id="wl-requests"') && withRequests.includes('overdue=true'));
+    assert.ok(!withRequests.includes('wl-complaints'));
+    const focused = renderToStaticMarkup(React.createElement(ExecutiveDashboardView, { ...props, focus: 'production', capabilities: { finance: false, deals: false, leads: false, calendar: false, createInvoice: false, settings: false } }));
+    assert.ok(focused.includes(t.workload.focus.production) && focused.includes(t.workload.focusSubtitle.production), 'The role desk sets the dashboard title');
   }
   let aggregations = 0, listReads = 0;
   const { getCRMDealOverview } = load('packages/database/src/queries/crm.ts', {

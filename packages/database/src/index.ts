@@ -14,6 +14,7 @@ export * from "./queries/sales-attribution";
 export * from "./queries/support-claims";
 export * from "./queries/directory";
 export * from "./queries/team-performance";
+export * from "./queries/dashboard-workload";
 export * from "./queries/signature-changes";
 export * from "./queries/document-signing";
 export * from "./queries/company-settings";

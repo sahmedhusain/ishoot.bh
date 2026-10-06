@@ -434,6 +434,8 @@ export async function listLeaveRequests(filters: {
       startDate: r.startDate.toISOString(),
       endDate: r.endDate.toISOString(),
       hours: r.hours ? Number(r.hours) : null,
+      // Decimal cannot cross to client components.
+      leaveType: r.leaveType ? { ...r.leaveType, daysAllowedPerYear: Number(r.leaveType.daysAllowedPerYear) } : r.leaveType,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
       approvedAt: r.approvedAt?.toISOString() || null,

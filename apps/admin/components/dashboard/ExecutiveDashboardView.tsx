@@ -27,6 +27,7 @@ TrendingDown,MapPin,ExternalLink
 } from "lucide-react";
 
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { WorkloadPanels } from "./WorkloadPanels";
 
 interface ExecutiveDashboardViewProps {
   capabilities: { finance: boolean; deals: boolean; leads: boolean; calendar: boolean; createInvoice: boolean; settings: boolean };
@@ -38,6 +39,10 @@ interface ExecutiveDashboardViewProps {
   inquiryCount: number;
   company: CompanySettings;
   upcomingEvents: CalendarEvent[];
+  /** Role desk the page leads with; omitted keeps the generic title. */
+  focus?: "executive" | "finance" | "hr" | "sales" | "production" | "staff";
+  /** Approvals, requests and complaints panels, shown under the KPIs. */
+  workload?: React.ComponentProps<typeof WorkloadPanels>;
 }
 
 export function ExecutiveDashboardView({
@@ -48,6 +53,8 @@ export function ExecutiveDashboardView({
   inquiryCount,
   company,
   upcomingEvents,
+  focus,
+  workload,
 }: ExecutiveDashboardViewProps) {
   const { t, locale } = useAdminLocale();
 
@@ -82,8 +89,9 @@ export function ExecutiveDashboardView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            {capabilities.finance ? t.executiveOps : t.dashboardView.workspaceTitle}
+            {focus ? t.workload.focus[focus] : capabilities.finance ? t.executiveOps : t.dashboardView.workspaceTitle}
           </h1>
+          {focus && <p className="text-sm text-ink-muted mt-1">{t.workload.focusSubtitle[focus]}</p>}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -226,6 +234,8 @@ export function ExecutiveDashboardView({
           </div>
         </div>)}
       </div>
+
+      {workload && <WorkloadPanels {...workload} />}
 
       {/* Main Charts & Pipeline Grid */}
       {capabilities.finance && (<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

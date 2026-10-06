@@ -182,6 +182,12 @@ export async function getEmployeeById(id: string): Promise<Employee | null> {
     hireDate: emp.hireDate.toISOString(),
     createdAt: emp.createdAt.toISOString(),
     updatedAt: emp.updatedAt.toISOString(),
+    // Decimal cannot cross to client components.
+    leaveRequests: emp.leaveRequests.map((r) => ({
+      ...r,
+      hours: r.hours == null ? null : Number(r.hours),
+      leaveType: { ...r.leaveType, daysAllowedPerYear: Number(r.leaveType.daysAllowedPerYear) },
+    })),
     employmentRecords: emp.employmentRecords.map((r) => ({
       ...r,
       basicSalary: Number(r.basicSalary),
@@ -192,7 +198,7 @@ export async function getEmployeeById(id: string): Promise<Employee | null> {
       effectiveFrom: r.effectiveFrom.toISOString(),
       effectiveTo: r.effectiveTo?.toISOString() || null,
     })),
-  };
+  } as Employee;
 }
 
 export async function listDepartments(): Promise<Department[]> {

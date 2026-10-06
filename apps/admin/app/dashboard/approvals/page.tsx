@@ -1,4 +1,5 @@
-import { requireAuth, hasPermission } from "../../../lib/auth";
+import { requireAuth } from "../../../lib/auth";
+import { readableApprovalTypes } from "../../../lib/approval-access";
 import { listApprovalRequests, canDecideApproval, approvalTargetUrl, APPROVAL_TARGET_TYPES } from "@ishoot/database";
 import { ApprovalsCenterView } from "../../../components/approvals/ApprovalsCenterView";
 import type { ApprovalListItem, ApprovalScope } from "../../../types/approvals";
@@ -7,19 +8,6 @@ export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 30;
 
-/** Target types whose records a reader may see in the "All" tab. */
-const READ_ACCESS: Array<[string, Parameters<typeof hasPermission>]> = [
-  ["quotation", ["quotations", "read"]],
-  ["invoice", ["invoices", "read"]],
-  ["expense", ["expenses", "read"]],
-  ["expense_claim", ["expenses", "read"]],
-  ["payroll_run", ["payroll", "read"]],
-  ["salary_document", ["payroll", "issue_send"]],
-  ["leave_request", ["employees", "read"]],
-  ["profile_change", ["profile_changes", "read"]],
-  ["service_request", ["requests", "read"]],
-];
-
 export default async function ApprovalsPage({
   searchParams,
 }: {
@@ -27,9 +15,7 @@ export default async function ApprovalsPage({
 }) {
   const user = await requireAuth();
   const query = await searchParams;
-  const readable = (
-    await Promise.all(READ_ACCESS.map(async ([type, [resource, action]]) => ((await hasPermission(resource, action)) ? type : null)))
-  ).filter((type): type is string => type !== null);
+  const readable = await readableApprovalTypes();
 
   const requestedScope = typeof query.scope === "string" ? query.scope : "awaiting";
   const scope: ApprovalScope =
