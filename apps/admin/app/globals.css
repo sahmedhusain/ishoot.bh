@@ -180,8 +180,9 @@ html.dark {
 
 html.light {
   --ui-surface: 255 255 255;
-  --ui-surface-raised: 248 250 252;
-  --ui-surface-sunken: 241 245 249;
+  /* Material 3 tonal surfaces: neutrals carry a faint tint of the brand teal. */
+  --ui-surface-raised: 246 250 249;
+  --ui-surface-sunken: 238 245 243;
   --ui-ink: 15 23 42;
   --ui-ink-muted: 84 99 121;
   --ui-slate-400: 84 99 121;
@@ -206,9 +207,9 @@ body.dark {
 html.light,
 body.light {
   /* Light Mode Surfaces */
-  --ishoot-bg-base: #f8fafc;
+  --ishoot-bg-base: #f6faf9;
   --ishoot-bg-surface: #ffffff;
-  --ishoot-bg-elevated: #f1f5f9;
+  --ishoot-bg-elevated: #eef5f3;
 
   /* Light Mode Text */
   --ishoot-text-primary: #0f172a;

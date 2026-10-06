@@ -9,17 +9,19 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", ...props }, ref) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none rounded-xl active:scale-[0.98]";
+      // Material 3 Expressive: pill shape that squares off slightly while pressed, visible keyboard focus.
+      "inline-flex items-center justify-center font-medium select-none transition-[background-color,border-color,color,box-shadow,border-radius,transform] duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none rounded-full active:rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-surface";
 
     const variants = {
       primary:
-        "bg-primary hover:bg-primary-light active:bg-[#003631] text-white shadow-sm hover:shadow-md",
+        "bg-primary hover:bg-primary-light active:bg-primary-dark text-white shadow-sm hover:shadow-md dark:bg-[#5ad8c2] dark:hover:bg-[#7ae3d1] dark:active:bg-[#4cc9b3] dark:text-[#00201c]",
+      // Filled tonal
       secondary:
-        "bg-[#E8F5F3] hover:bg-[#D5EFEA] text-primary dark:bg-[#162925] dark:hover:bg-[#1D3631] dark:text-[#64DFC9] border border-accent/20",
+        "bg-[#d3ede8] hover:bg-[#c2e5de] text-[#00201c] dark:bg-[#1c3a35] dark:hover:bg-[#24473f] dark:text-[#b6f0e4]",
       ghost:
-        "bg-transparent hover:bg-slate-100 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white",
+        "bg-transparent hover:bg-ink/[0.08] active:bg-ink/[0.12] text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white",
       outline:
-        "bg-transparent border border-slate-300 hover:border-accent hover:bg-slate-50 text-slate-700 hover:text-primary dark:border-white/20 dark:text-slate-200 dark:hover:border-accent dark:hover:bg-white/5",
+        "bg-transparent border border-ink/25 hover:bg-primary/[0.06] hover:border-ink/40 text-primary dark:text-accent dark:hover:bg-accent/10",
       danger:
         "bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 dark:text-rose-300 dark:border-rose-800/40",
       fab:
@@ -27,9 +29,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
-      sm: "text-xs px-3.5 py-1.5 gap-1.5",
-      md: "text-sm px-5 py-2.5 gap-2",
-      lg: "text-base px-7 py-3.5 gap-2.5 font-semibold",
+      sm: "text-xs min-h-8 px-3.5 py-1.5 gap-1.5",
+      md: "text-sm min-h-10 px-5 py-2 gap-2",
+      lg: "text-base min-h-12 px-7 py-3 gap-2.5 font-semibold",
       icon: "w-10 h-10 p-0",
       fab: "h-14 px-6 text-sm font-semibold gap-3",
     };
