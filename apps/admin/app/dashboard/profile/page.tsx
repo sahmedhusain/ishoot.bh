@@ -1,5 +1,3 @@
-import { SalaryDocumentsView } from "../../../components/hr/SalaryDocumentsView";
-import { availablePayslipMonths } from "../../../lib/salary-documents";
 import { requireAuth } from "../../../lib/auth";
 import {
   db,
@@ -52,12 +50,6 @@ export default async function ProfilePage() {
   const decidable = new Set(teamApprovals.filter((a) => canDecideApproval(a, user)).map((a) => a.targetId));
   const pendingTeamRequests = teamRequests.filter((r: { id: string }) => decidable.has(r.id));
 
-  const [salaryDocuments, availableMonths] = employeeRecord
-    ? await Promise.all([
-        db.salaryDocument.findMany({ where: { employeeId: employeeRecord.id }, orderBy: { createdAt: "desc" } }),
-        availablePayslipMonths(employeeRecord.id),
-      ])
-    : [[], []];
   return (
     <div className="space-y-6">
     <UserProfileView
@@ -68,7 +60,6 @@ export default async function ProfilePage() {
       pendingTeamRequests={pendingTeamRequests}
     />
     <SignaturePad currentUrl={user.signature_url} changes={await listSignatureChanges(user.id)} />
-    <SalaryDocumentsView showNoProfile employeeId={employeeRecord?.id} availableMonths={availableMonths} documents={salaryDocuments.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes }))} />
     </div>
   );
 }

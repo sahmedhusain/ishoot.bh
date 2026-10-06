@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
 User,
-Shield,
 Building2,
 Sliders,
 History,
@@ -16,7 +15,6 @@ ExternalLink
 } from "lucide-react";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { useAdminTheme } from "../../hooks/useAdminTheme";
 import { ConfirmDestructiveModal } from "@ishoot/ui";
 
 
@@ -24,7 +22,6 @@ import { ConfirmDestructiveModal } from "@ishoot/ui";
 export function AdminProfileDropdown() {
   const router = useRouter();
   const {t} = useAdminLocale();
-  const { resolvedTheme } = useAdminTheme();
   const [isOpen, setIsOpen] = React.useState(false);
   const [confirmSignOutOpen, setConfirmSignOutOpen] = React.useState(false);
   const { user: currentUser } = usePermissions();
@@ -105,10 +102,6 @@ export function AdminProfileDropdown() {
                 <div className="text-[11px] text-slate-500 dark:text-ink-muted  truncate">
                   {displayEmail}
                 </div>
-                <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px]  font-bold bg-accent/15 text-accent border border-accent/30">
-                  <Shield className="w-2.5 h-2.5" />
-                  <span>{displayRole}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -148,14 +141,7 @@ export function AdminProfileDropdown() {
               className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-ink-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
             >
               <Sliders className="w-4 h-4 text-accent" />
-              <div className="flex-1 flex items-center justify-between">
-                <span>{t.profileDropdown.appearance}</span>
-                <span className="text-[10px]  text-accent bg-accent/10 px-1.5 py-0.5 rounded">
-                  {resolvedTheme === "dark"
-                    ? t.profileDropdown.dark
-                    : t.profileDropdown.light}
-                </span>
-              </div>
+              <span className="flex-1">{t.profileDropdown.appearance}</span>
             </Link>
 
             <Link
