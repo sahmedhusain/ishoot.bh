@@ -1,3 +1,5 @@
+"use client";
+import * as React from "react";
 import { Badge } from "./badge";
 
 export interface StatusBadgeProps {
@@ -31,9 +33,16 @@ const defaultVariants: Record<
   archived: "default",
 };
 
+/** Localized status names supplied once by the app, so badges never show raw codes. */
+const StatusLabelsContext = React.createContext<Record<string, string>>({});
+export const StatusLabelsProvider = StatusLabelsContext.Provider;
+
+const humanize = (status: string) => status.replaceAll("_", " ").replace(/^\w/, (c) => c.toUpperCase());
+
 export function StatusBadge({ status, label, variant }: StatusBadgeProps) {
+  const labels = React.useContext(StatusLabelsContext);
   const resolvedVariant = variant || defaultVariants[status] || "default";
-  const displayText = label || status;
+  const displayText = label || labels[status] || labels[status?.toLowerCase()] || humanize(String(status ?? ""));
 
   return <Badge variant={resolvedVariant}>{displayText}</Badge>;
 }

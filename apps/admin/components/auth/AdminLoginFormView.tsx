@@ -93,7 +93,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
           <div className="space-y-1">
             <h1 className="text-xl font-bold text-white tracking-tight font-display">
               {companyName ? (
-                <span>{companyName}</span>
+                <span dir="auto">{companyName}</span>
               ) : (
                 <span>{t.portalTitle}</span>
               )}

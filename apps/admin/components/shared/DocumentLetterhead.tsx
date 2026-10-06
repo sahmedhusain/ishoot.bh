@@ -55,6 +55,9 @@ export function DocumentLetterhead({
 }: DocumentLetterheadProps) {
   const isAr = language === "ar";
   const t = adminTranslations[isAr ? "ar" : "en"].documentLetterhead;
+  // Status codes (e.g. "partially paid", "APPROVED") read in the document's language.
+  const statusLabels = adminTranslations[isAr ? "ar" : "en"].statusLabels as Record<string, string>;
+  const statusText = statusLabels[statusValue.trim().toLowerCase().replace(/\s+/g, "_")] ?? statusValue;
 
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase();
@@ -137,7 +140,7 @@ export function DocumentLetterhead({
                 statusValue,
               )}`}
             >
-              {statusValue}
+              {statusText}
             </span>
           </div>
         </div>

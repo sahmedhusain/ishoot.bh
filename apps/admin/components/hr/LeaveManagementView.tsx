@@ -39,7 +39,7 @@ export function LeaveManagementView({
   decidableIds,
   currentStatus,
 }: LeaveManagementViewProps) {
-  const { t } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
   const router = useRouter();
 
   const [loadingId, setLoadingId] = React.useState<string | null>(null);
@@ -267,9 +267,9 @@ export function LeaveManagementView({
         {[
           { id: "all", label: t.leaveManagement.allRequests },
           { id: "pending", label: t.leaveManagement.pendingReview },
-          { id: "approved", label: "Approved" },
-          { id: "rejected", label: "Rejected" },
-          { id: "cancelled", label: "Cancelled" },
+          { id: "approved", label: t.leaveManagement.tabApproved },
+          { id: "rejected", label: t.leaveManagement.tabRejected },
+          { id: "cancelled", label: t.leaveManagement.tabCancelled },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -333,23 +333,23 @@ export function LeaveManagementView({
 
                       <td className="py-3.5 px-4">
                         <span className="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-neutral-300">
-                          {req.leaveType?.nameEn || t.leaveManagement.generalLeave}
+                          {(locale === "ar" ? req.leaveType?.nameAr : req.leaveType?.nameEn) || t.leaveManagement.generalLeave}
                         </span>
                       </td>
 
                       <td className="py-3.5 px-4 font-mono text-xs">
                         <div className="text-slate-900 dark:text-white">
-                          {start} → {end}
+                          <bdi dir="ltr">{start} → {end}</bdi>
                         </div>
                         <div className="text-slate-400 text-[11px]">
                           {req.fullDay
                             ? t.leaveManagement.fullDay
-                            : `${req.hours} Hours`}
+                            : t.leaveManagement.hoursCount.replace("{n}", String(req.hours))}
                         </div>
                       </td>
 
                       <td className="py-3.5 px-4 text-xs max-w-xs">
-                        <p className="text-slate-700 dark:text-neutral-300 truncate font-mono text-[11px]">
+                        <p dir="auto" className="text-slate-700 dark:text-neutral-300 truncate text-[11px]">
                           {req.reason}
                         </p>
                         {req.reviewNotes && (

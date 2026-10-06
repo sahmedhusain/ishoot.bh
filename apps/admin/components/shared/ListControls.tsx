@@ -68,7 +68,7 @@ export function ListControls({
             <option value="all">{t.listControls.all}</option>
             {statuses.map((s) => (
               <option key={s} value={s}>
-                {s.replaceAll("_", " ")}
+                {(t.statusLabels as Record<string, string>)[s] ?? s.replaceAll("_", " ")}
               </option>
             ))}
           </select>

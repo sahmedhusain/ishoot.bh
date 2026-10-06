@@ -619,7 +619,7 @@ export function MomDetailView({
                                     : "bg-amber-100 text-amber-800"
                               }`}
                             >
-                              {act.status}
+                              {(t.statusLabels as Record<string, string>)[act.status] ?? act.status}
                             </span>
                           </td>
                         </tr>
