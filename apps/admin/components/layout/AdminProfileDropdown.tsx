@@ -96,7 +96,7 @@ export function AdminProfileDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full end-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col">
+        <div className="absolute top-full end-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] max-sm:fixed max-sm:inset-x-3 max-sm:top-14 max-sm:mt-0 max-sm:w-auto max-sm:max-w-none rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col">
           <div className="p-4 bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/10">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-primary border border-accent/50 flex items-center justify-center text-sm font-bold text-white  shrink-0 shadow-md">
