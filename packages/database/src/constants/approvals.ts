@@ -20,6 +20,22 @@ export type ApprovalTargetType = (typeof APPROVAL_TARGET_TYPES)[number];
 export const APPROVER_MODES = ["manager", "department_manager", "role", "user", "permission"] as const;
 export type ApproverMode = (typeof APPROVER_MODES)[number];
 
+export type ApprovalConditionField = "minAmount" | "minDays" | "minDiscountPercent";
+
+/** Which conditions make sense for each request type. */
+export const APPROVAL_CONDITION_FIELDS: Record<ApprovalTargetType, ApprovalConditionField[]> = {
+  quotation: ["minAmount", "minDiscountPercent"],
+  invoice: ["minAmount", "minDiscountPercent"],
+  expense: ["minAmount"],
+  expense_claim: ["minAmount"],
+  payroll_run: ["minAmount"],
+  leave_request: ["minDays"],
+  salary_document: [],
+  profile_change: [],
+  service_request: [],
+  signature_change: [],
+};
+
 export const APPROVAL_STATUSES = ["pending", "approved", "rejected", "superseded", "cancelled"] as const;
 export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 

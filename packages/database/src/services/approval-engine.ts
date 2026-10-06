@@ -13,6 +13,8 @@ import { approveProfileChange, rejectProfileChange } from "../queries/profile-ch
 import { salaryDocumentSnapshot } from "../queries/salary-documents";
 import { approveRequest, returnRequest } from "../queries/inquiries";
 import { approveSignatureChange, rejectSignatureChange } from "../queries/signature-changes";
+import { getLatestExchangeRate } from "../queries/fx-settlement";
+import { leaveDaysRequested } from "../constants/hr";
 
 /**
  * Approval engine: every request that needs sign-off goes through submitForApproval / decideApprovalRequest.
@@ -34,6 +36,72 @@ interface PolicyStep {
   roleKey: string | null;
   userId: string | null;
   permission: string | null;
+  minAmount?: unknown;
+  minDays?: unknown;
+  minDiscountPercent?: unknown;
+}
+
+/** Facts about the record that step conditions are checked against. Amounts are in BHD. */
+export interface ApprovalMetrics {
+  amount?: number;
+  days?: number;
+  discountPercent?: number;
+}
+
+const round3 = (value: number) => Math.round(value * 1000) / 1000;
+
+async function toBhd(amount: number, currency: string, rate?: unknown): Promise<number> {
+  if (currency === "BHD") return round3(amount);
+  // Rates are units of the foreign currency per 1 BHD.
+  const perBhd = rate != null && Number(rate) > 0 ? Number(rate) : (await getLatestExchangeRate("BHD", currency)).rate;
+  return perBhd > 0 ? round3(amount / perBhd) : round3(amount);
+}
+
+function discountPercent(subtotal: unknown, discount: unknown): number {
+  const base = Number(subtotal);
+  return base > 0 ? Math.round((Number(discount) / base) * 10000) / 100 : 0;
+}
+
+/** Reads the amount, days or discount of the record being approved. */
+export async function approvalMetrics(targetType: string, targetId: string): Promise<ApprovalMetrics> {
+  switch (targetType) {
+    case "quotation": {
+      const q = await db.quotation.findUnique({ where: { id: targetId }, select: { totalAmount: true, subtotal: true, discountAmount: true, currency: true, effectiveRate: true } });
+      return q ? { amount: await toBhd(Number(q.totalAmount), q.currency, q.effectiveRate), discountPercent: discountPercent(q.subtotal, q.discountAmount) } : {};
+    }
+    case "invoice": {
+      const i = await db.invoice.findUnique({ where: { id: targetId }, select: { totalAmount: true, subtotal: true, discountAmount: true, currency: true } });
+      return i ? { amount: await toBhd(Number(i.totalAmount), i.currency), discountPercent: discountPercent(i.subtotal, i.discountAmount) } : {};
+    }
+    case "expense": {
+      const e = await db.expense.findUnique({ where: { id: targetId }, select: { amount: true, currency: true } });
+      return e ? { amount: await toBhd(Number(e.amount), e.currency) } : {};
+    }
+    case "expense_claim": {
+      const c = await db.expenseClaim.findUnique({ where: { id: targetId }, select: { amount: true, currency: true } });
+      return c ? { amount: await toBhd(Number(c.amount), c.currency) } : {};
+    }
+    case "payroll_run": {
+      const r = await db.payrollRun.findUnique({ where: { id: targetId }, select: { totalNet: true } });
+      return r ? { amount: round3(Number(r.totalNet)) } : {};
+    }
+    case "leave_request": {
+      const l = await db.leaveRequest.findUnique({ where: { id: targetId }, select: { startDate: true, endDate: true, fullDay: true, hours: true } });
+      return l ? { days: leaveDaysRequested(l.startDate, l.endDate, l.fullDay, l.hours ? Number(l.hours) : null) } : {};
+    }
+    default:
+      return {};
+  }
+}
+
+/** A condition with no value always holds; a value the record does not have fails the condition. */
+export function stepApplies(step: Pick<PolicyStep, "minAmount" | "minDays" | "minDiscountPercent">, metrics: ApprovalMetrics): boolean {
+  const checks: Array<[unknown, number | undefined]> = [
+    [step.minAmount, metrics.amount],
+    [step.minDays, metrics.days],
+    [step.minDiscountPercent, metrics.discountPercent],
+  ];
+  return checks.every(([min, value]) => min == null || (value != null && value >= Number(min)));
 }
 
 export interface Finalizer {
@@ -169,8 +237,9 @@ async function nextApprovers(
   requester: Requester,
   allowSelf: boolean,
   exclude: Set<string>,
+  metrics: ApprovalMetrics = {},
 ): Promise<{ step: number; approverIds: string[] } | null> {
-  for (const step of steps.filter((s) => s.order >= fromOrder)) {
+  for (const step of steps.filter((s) => s.order >= fromOrder && stepApplies(s, metrics))) {
     const ids = (await resolveStep(step, requester)).filter(
       (id) => (allowSelf || id !== requester.id) && !exclude.has(id),
     );
@@ -250,13 +319,16 @@ export async function submitForApproval(input: SubmitForApprovalInput): Promise<
       select: { revision: true },
     });
     const revision = (latest?.revision ?? 0) + 1;
+    const metrics = await approvalMetrics(input.targetType, input.targetId);
+    // Steps whose thresholds the record does not reach are skipped; if none apply, nobody needs to sign off.
+    const belowThreshold = !!policy?.enabled && policy.steps.length > 0 && !policy.steps.some((step) => stepApplies(step, metrics));
 
     // Super Admin is the final authority: their own requests never wait on a lower approver.
     const superAdmin = requester.role === "super_admin";
-    const autoApprove = superAdmin || !!input.autoApproveReason || (!!policy && (!policy.enabled || policy.autoApproveRoles.includes(requester.role)));
+    const autoApprove = superAdmin || !!input.autoApproveReason || belowThreshold || (!!policy && (!policy.enabled || policy.autoApproveRoles.includes(requester.role)));
     const allowSelf = policy?.allowSelfApproval ?? false;
     // A missing policy falls back to the admin pool rather than silently approving.
-    const route = autoApprove ? null : await nextApprovers(policy?.steps ?? [], 1, requester, allowSelf, new Set());
+    const route = autoApprove ? null : await nextApprovers(policy?.steps ?? [], 1, requester, allowSelf, new Set(), metrics);
     const approverIds = route?.approverIds ?? (autoApprove ? [] : await fallbackApprovers(requester));
     const selfApproved = !autoApprove && approverIds.length === 0;
 
@@ -272,6 +344,7 @@ export async function submitForApproval(input: SubmitForApprovalInput): Promise<
         currentStep: route?.step ?? 1,
         approverIds,
         selfApproved,
+        metrics: metrics as object,
         policySnapshot: (input.policySnapshot ?? {}) as object,
         diffPayload: (input.diffPayload ?? undefined) as object | undefined,
         discountReason: input.discountReason ?? null,
@@ -279,7 +352,7 @@ export async function submitForApproval(input: SubmitForApprovalInput): Promise<
     });
 
     if (autoApprove || selfApproved) {
-      const reason = superAdmin ? "super_admin" : input.autoApproveReason ? input.autoApproveReason : autoApprove ? "policy_auto" : "no_alternate_approver";
+      const reason = superAdmin ? "super_admin" : input.autoApproveReason ? input.autoApproveReason : belowThreshold ? "below_threshold" : autoApprove ? "policy_auto" : "no_alternate_approver";
       await db.approvalDecision.create({
         data: { approvalRequestId: created.id, decision: "approved", decidedById: requester.id, reason, step: created.currentStep },
       });
@@ -355,11 +428,12 @@ export async function decideApprovalRequest(
         requester,
         request.policy?.allowSelfApproval ?? false,
         alreadyDecided,
+        (request.metrics ?? {}) as ApprovalMetrics,
       );
       if (next) {
         await db.approvalRequest.update({
           where: { id: approvalRequestId },
-          data: { currentStep: next.step, approverIds: next.approverIds },
+          data: { currentStep: next.step, approverIds: next.approverIds, stepStartedAt: new Date(), remindedAt: null, escalatedAt: null },
         });
         await notify(next.approverIds, {
           title: "Approval required",
@@ -404,4 +478,63 @@ export async function cancelPendingApprovals(targetType: ApprovalTargetType, tar
     where: { targetType, targetId, status: "pending" },
     data: { status: "cancelled" },
   });
+}
+
+/**
+ * Reminds and escalates requests that have waited too long at their current step. Run by the maintenance worker;
+ * each request is reminded once and escalated once per step.
+ */
+export async function processApprovalTimeouts(now = new Date()): Promise<{ reminded: number; escalated: number }> {
+  const pending = await db.approvalRequest.findMany({
+    where: { status: "pending", policyId: { not: null } },
+    select: {
+      id: true, targetType: true, targetId: true, currentStep: true, approverIds: true, requestedById: true,
+      stepStartedAt: true, remindedAt: true, escalatedAt: true,
+      policy: { select: { reminderAfterHours: true, steps: true } },
+    },
+  });
+  let reminded = 0;
+  let escalated = 0;
+  for (const request of pending) {
+    const waitedHours = (now.getTime() - request.stepStartedAt.getTime()) / 3_600_000;
+    const step = request.policy?.steps.find((s) => s.order === request.currentStep);
+    if (step?.escalateAfterHours && !request.escalatedAt && waitedHours >= step.escalateAfterHours) {
+      const targets = step.escalateMode === "role" && step.escalateRoleKey
+        ? await activeUserIds({ role: step.escalateRoleKey })
+        : step.escalateMode === "user" && step.escalateUserId
+          ? await activeUserIds({ id: step.escalateUserId })
+          : [];
+      const added = targets.filter((id) => id !== request.requestedById && !request.approverIds.includes(id));
+      await db.approvalRequest.update({
+        where: { id: request.id },
+        data: { escalatedAt: now, approverIds: [...request.approverIds, ...added] },
+      });
+      await notify(added, {
+        title: "Approval escalated",
+        message: "A request has waited too long and was escalated to you.",
+        messageKey: "approvals.notifications.escalated",
+        targetType: request.targetType,
+        targetId: request.targetId,
+        type: "warning",
+      });
+      await db.activityLog.create({
+        data: { userId: request.requestedById, action: "escalate", entityType: request.targetType, entityId: request.targetId, details: { approvalRequestId: request.id, step: request.currentStep, added } },
+      });
+      escalated++;
+      continue;
+    }
+    const remindAfter = request.policy?.reminderAfterHours;
+    if (remindAfter && !request.remindedAt && waitedHours >= remindAfter) {
+      await db.approvalRequest.update({ where: { id: request.id }, data: { remindedAt: now } });
+      await notify(request.approverIds, {
+        title: "Approval reminder",
+        message: "A request is still waiting for your approval.",
+        messageKey: "approvals.notifications.reminder",
+        targetType: request.targetType,
+        targetId: request.targetId,
+      });
+      reminded++;
+    }
+  }
+  return { reminded, escalated };
 }

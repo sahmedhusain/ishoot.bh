@@ -11,7 +11,20 @@ export async function updateApprovalPolicyAction(
     enabled: boolean;
     allowSelfApproval: boolean;
     autoApproveRoles: string[];
-    steps: { approverMode: string; roleKey?: string | null; userId?: string | null; permission?: string | null }[];
+    reminderAfterHours?: number | null;
+    steps: {
+      approverMode: string;
+      roleKey?: string | null;
+      userId?: string | null;
+      permission?: string | null;
+      minAmount?: number | null;
+      minDays?: number | null;
+      minDiscountPercent?: number | null;
+      escalateAfterHours?: number | null;
+      escalateMode?: string | null;
+      escalateRoleKey?: string | null;
+      escalateUserId?: string | null;
+    }[];
   },
 ) {
   return measureOperation("action:updateApprovalPolicyAction", async () => {
@@ -22,7 +35,11 @@ export async function updateApprovalPolicyAction(
     // Values are validated against the approval/permission constants inside updateApprovalPolicy.
     await updateApprovalPolicy(targetType as ApprovalTargetType, {
       ...policy,
-      steps: policy.steps.map((step) => ({ ...step, approverMode: step.approverMode as ApproverMode })),
+      steps: policy.steps.map((step) => ({
+        ...step,
+        approverMode: step.approverMode as ApproverMode,
+        escalateMode: step.escalateMode === "role" || step.escalateMode === "user" ? step.escalateMode : null,
+      })),
     });
     await createActivityLog({
       user_id: actor.id,

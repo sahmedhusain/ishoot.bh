@@ -163,7 +163,9 @@
     "lastLogin": "Last Login",
     "department": "Department",
     "statusActive": "Active",
-    "statusInactive": "Disabled"
+    "statusInactive": "Disabled",
+    "sales": "Sales",
+    "marketing": "Marketing"
   },
   "calendar": {
     "title": "Production Schedule & Deadlines",
@@ -2281,6 +2283,14 @@
       "rejected": {
         "title": "Request rejected",
         "message": "Your {type} was rejected."
+      },
+      "escalated": {
+        "title": "Approval escalated",
+        "message": "A {type} waited too long and was escalated to you."
+      },
+      "reminder": {
+        "title": "Approval reminder",
+        "message": "A {type} is still waiting for your approval."
       }
     }
   },
@@ -2327,7 +2337,25 @@
     "fallbackNote": "If a step finds no approver other than the requester, it is skipped. If no step finds one, the request goes to administrators.",
     "save": "Save policy",
     "saved": "Policy saved",
-    "saveError": "Could not save the policy"
+    "saveError": "Could not save the policy",
+    "approverLabel": "Approver",
+    "conditions": "Only when",
+    "conditionsHint": "Leave blank to always require this step.",
+    "minAmount": "Amount at least (BHD)",
+    "minDays": "Leave of at least (days)",
+    "minDiscountPercent": "Discount at least (%)",
+    "escalate": "Escalate if undecided",
+    "escalateAfter": "After (hours)",
+    "escalateTo": "Escalate to",
+    "escalateModes": {
+      "role": "Everyone with a role",
+      "user": "A specific person"
+    },
+    "reminder": "Remind approvers after (hours)",
+    "reminderHint": "Sent once per step. Leave blank for no reminder.",
+    "thresholdNote": "Steps with conditions are skipped when the request does not reach them. If no step applies, the request is approved automatically.",
+    "summaryAlways": "Always",
+    "summaryNoSteps": "No steps yet"
   },
   "invoiceLifecycle": {
     "markSent": "Mark as sent",

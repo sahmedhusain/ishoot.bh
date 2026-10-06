@@ -85,7 +85,14 @@ function createDb() {
     approvalDecision: { create: async ({ data }) => state.decisions.push({ id: id("dec"), ...data }) },
     notification: { createMany: async ({ data }) => state.notifications.push(...data) },
     activityLog: { create: async ({ data }) => state.activity.push(data) },
+    // Records looked up for policy conditions; this harness configures no conditional steps.
+    quotation: { findUnique: async () => null },
+    invoice: { findUnique: async () => null },
+    expense: { findUnique: async () => null },
+    expenseClaim: { findUnique: async () => null },
+    leaveRequest: { findUnique: async () => null },
     payrollRun: {
+      findUnique: async ({ where }) => state.payrollRuns.find((r) => r.id === where.id) || null,
       findUniqueOrThrow: async ({ where }) => state.payrollRuns.find((r) => r.id === where.id),
       update: async ({ where, data }) => Object.assign(state.payrollRuns.find((r) => r.id === where.id), data),
     },
@@ -111,6 +118,7 @@ function createEngine(db, finalized) {
     "../queries/salary-documents": { salaryDocumentSnapshot: async () => ({}) },
     "../queries/inquiries": { approveRequest: async () => {}, returnRequest: async () => {} },
     "../queries/signature-changes": { approveSignatureChange: async () => {}, rejectSignatureChange: async () => {} },
+    "../queries/fx-settlement": { getLatestExchangeRate: async () => ({ rate: 1 }) },
   });
 }
 

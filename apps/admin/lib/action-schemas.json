@@ -24,6 +24,19 @@
             },
             "optional": false
           },
+          "reminderAfterHours": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
           "steps": {
             "kind": "array",
             "element": {
@@ -60,6 +73,97 @@
                   "optional": true
                 },
                 "permission": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "minAmount": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "number"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "minDays": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "number"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "minDiscountPercent": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "number"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "escalateAfterHours": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "number"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "escalateMode": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "escalateRoleKey": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "string"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "escalateUserId": {
                   "kind": "union",
                   "variants": [
                     {

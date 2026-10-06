@@ -1194,6 +1194,11 @@ model ApprovalRequest {
   currentStep    Int                @default(1)
   approverIds    String[]           @default([]) // eligible deciders for currentStep, resolved at submit/advance time
   selfApproved   Boolean            @default(false) // decided by the requester because no other approver existed
+  /// Facts the policy conditions were evaluated against: { amount (BHD), days, discountPercent }.
+  metrics        Json?
+  stepStartedAt  DateTime           @default(now())
+  remindedAt     DateTime?
+  escalatedAt    DateTime?
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
 
@@ -1224,6 +1229,8 @@ model ApprovalPolicy {
   enabled           Boolean              @default(true) // disabled = requests are approved on submit
   allowSelfApproval Boolean              @default(false)
   autoApproveRoles  String[]             @default([])
+  /// Re-notify the current approvers once a request has waited this long.
+  reminderAfterHours Int?
   steps             ApprovalPolicyStep[]
   requests          ApprovalRequest[]
   createdAt         DateTime             @default(now())
@@ -1239,6 +1246,15 @@ model ApprovalPolicyStep {
   roleKey      String?
   userId       String?
   permission   String? // "resource:action"
+  /// The step applies only when every set condition holds; otherwise it is skipped.
+  minAmount          Decimal? @db.Decimal(14, 3) // BHD
+  minDays            Decimal? @db.Decimal(6, 2)
+  minDiscountPercent Decimal? @db.Decimal(5, 2)
+  /// After this many hours waiting at this step, the escalation approver is added.
+  escalateAfterHours Int?
+  escalateMode       String? // "role" | "user"
+  escalateRoleKey    String?
+  escalateUserId     String?
 
   @@unique([policyId, order])
 }
