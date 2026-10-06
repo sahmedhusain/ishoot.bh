@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       let subfolder = "general";
       if (entityType === "payment" || entityType === "bank") subfolder = "payments";
       else if (entityType === "company_setting") subfolder = "certificates";
-      else if (entityType === "invoice") subfolder = "invoices";
+      else if (entityType === "invoice" || entityType === "quotation") subfolder = "invoices";
       else if (entityType === "contact" || entityType === "customer_vault") subfolder = "vault";
       else if (entityType === "deal") subfolder = "deals";
 

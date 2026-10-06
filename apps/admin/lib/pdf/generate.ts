@@ -2,49 +2,56 @@ import * as React from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoicePdfDocument } from "./invoice-pdf";
 import { ReceiptPdfDocument } from "./receipt-pdf";
-import type { Invoice,Payment,CompanySettings,Quotation } from "@ishoot/database/types";
-
-import { resolveConfiguredPdfAsset } from "./configured-asset";
+import type { Invoice, Payment, CompanySettings, Quotation } from "@ishoot/database/types";
+import { db, getClientAcceptance, type ClientSignableType } from "@ishoot/database";
 import { getSigningState, type SignableDocument } from "@ishoot/database/queries/document-signing";
-import type { PdfSigning } from "./signing-block";
+import { resolveConfiguredPdfAsset } from "./configured-asset";
+import { resolvePdfBrand, type ClientAcceptance, type CompanySignature } from "./kit";
 
-async function enrichCompanyWithResolvedAssets(company: CompanySettings): Promise<CompanySettings> {
-  const enriched = { ...company };
-  if (enriched.logo_url) enriched.logo_url = await resolveConfiguredPdfAsset(enriched.logo_url) as string || "";
-  if (enriched.dark_logo_url) enriched.dark_logo_url = await resolveConfiguredPdfAsset(enriched.dark_logo_url) as string || "";
-  if (enriched.icon_url) enriched.icon_url = await resolveConfiguredPdfAsset(enriched.icon_url) as string || "";
-  if (enriched.dark_icon_url) enriched.dark_icon_url = await resolveConfiguredPdfAsset(enriched.dark_icon_url) as string || "";
-  if (enriched.stamp_url) enriched.stamp_url = await resolveConfiguredPdfAsset(enriched.stamp_url) as string || "";
-  if (enriched.signature_url) enriched.signature_url = await resolveConfiguredPdfAsset(enriched.signature_url) as string || "";
-  return enriched;
-}
-
-/** Signature block data for a signed document; null until it is approved and signed. */
-async function pdfSigning(type: SignableDocument, id: string): Promise<PdfSigning | null> {
+/** Company signature for a signed document; null until it is approved and signed. Names follow the document language. */
+async function pdfSigning(type: SignableDocument, id: string, language: string | null | undefined): Promise<CompanySignature | null> {
   const state = await getSigningState(type, id);
   if (!state.signed || !state.signedAt) return null;
+  const employee = state.signedBy?.id
+    ? (await db.user.findUnique({ where: { id: state.signedBy.id }, select: { employee: { select: { firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true, jobTitleEn: true, jobTitleAr: true } } } }))?.employee
+    : null;
+  const isAr = language === "ar";
   return {
     signatureSrc: state.signatureUrl ? ((await resolveConfiguredPdfAsset(state.signatureUrl)) ?? null) : null,
-    signerName: state.signedBy?.name ?? "",
+    signerName: employee ? (isAr ? `${employee.firstNameAr} ${employee.lastNameAr}` : `${employee.firstNameEn} ${employee.lastNameEn}`) : state.signedBy?.name ?? "",
+    signerTitle: employee ? (isAr ? employee.jobTitleAr : employee.jobTitleEn) : null,
     signedAt: state.signedAt,
   };
 }
 
+/** The client's acceptance (signed online or a signed copy on file). */
+async function pdfAcceptance(type: ClientSignableType, id: string): Promise<ClientAcceptance | null> {
+  const acceptance = await getClientAcceptance(type, id);
+  if (!acceptance) return null;
+  const png = acceptance.signatureData?.match(/^data:image\/png;base64,(.+)$/)?.[1];
+  return {
+    signerName: acceptance.signerName,
+    signerTitle: acceptance.signerTitle,
+    signedAt: acceptance.signedAt,
+    method: acceptance.method,
+    signatureSrc: png ? Buffer.from(png, "base64") : null,
+  };
+}
+
 export async function generateInvoicePdfBuffer(invoice: Invoice, company: CompanySettings): Promise<Buffer> {
-  const enrichedCompany = await enrichCompanyWithResolvedAssets(company);
-  const element = React.createElement(InvoicePdfDocument, { invoice, company: enrichedCompany, signing: await pdfSigning("invoice", invoice.id) });
-  return (await renderToBuffer(element as any)) as Buffer;
+  const [brand, signing, acceptance] = await Promise.all([resolvePdfBrand(company), pdfSigning("invoice", invoice.id, invoice.language), pdfAcceptance("invoice", invoice.id)]);
+  const element = React.createElement(InvoicePdfDocument, { invoice, brand, signing, acceptance });
+  return (await renderToBuffer(element as never)) as Buffer;
 }
 
 export async function generateReceiptPdfBuffer(payment: Payment, company: CompanySettings): Promise<Buffer> {
-  const enrichedCompany = await enrichCompanyWithResolvedAssets(company);
-  const element = React.createElement(ReceiptPdfDocument, { payment, company: enrichedCompany, signing: await pdfSigning("receipt", payment.id) });
-  return (await renderToBuffer(element as any)) as Buffer;
+  const [brand, signing] = await Promise.all([resolvePdfBrand(company), pdfSigning("receipt", payment.id, payment.invoice?.language)]);
+  const element = React.createElement(ReceiptPdfDocument, { payment, brand, signing });
+  return (await renderToBuffer(element as never)) as Buffer;
 }
 
 /** Quotations print through the invoice layout so the downloaded, printed and emailed PDF are one file. */
 export async function generateQuotationPdfBuffer(quotation: Quotation, company: CompanySettings): Promise<Buffer> {
-  const enrichedCompany = await enrichCompanyWithResolvedAssets(company);
   const client = quotation.client as { firstName?: string; lastName?: string | null; companyName?: string | null; email?: string | null; phone?: string | null; vatNumber?: string | null } | null | undefined;
   const fullName = [client?.firstName, client?.lastName].filter(Boolean).join(" ");
   const asInvoice = {
@@ -77,6 +84,7 @@ export async function generateQuotationPdfBuffer(quotation: Quotation, company: 
     })),
   } as unknown as Invoice;
   const terms = quotation.language === "ar" ? quotation.termsAr || quotation.termsEn : quotation.termsEn || quotation.termsAr;
-  const element = React.createElement(InvoicePdfDocument, { invoice: asInvoice, company: enrichedCompany, variant: "quotation", quotationTerms: terms, signing: await pdfSigning("quotation", quotation.id) });
-  return (await renderToBuffer(element as any)) as Buffer;
+  const [brand, signing, acceptance] = await Promise.all([resolvePdfBrand(company), pdfSigning("quotation", quotation.id, quotation.language), pdfAcceptance("quotation", quotation.id)]);
+  const element = React.createElement(InvoicePdfDocument, { invoice: asInvoice, brand, variant: "quotation", quotationTerms: terms, signing, acceptance });
+  return (await renderToBuffer(element as never)) as Buffer;
 }

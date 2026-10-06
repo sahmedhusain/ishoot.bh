@@ -11,6 +11,7 @@ const resources: Record<string, PermissionResource> = {
   expense: "expenses",
   payment: "payments",
   invoice: "invoices",
+  quotation: "quotations",
   contact: "contacts",
   customer_vault: "contacts",
   deal: "deals",
@@ -81,6 +82,8 @@ export async function requireAttachmentAccess(
                   where: { id: entityId },
                   select: { id: true },
                 })
+            : entityType === "quotation"
+              ? await db.quotation.findUnique({ where: { id: entityId }, select: { id: true } })
               : entityType === "contact" || entityType === "customer_vault"
                 ? await db.crmContact.findUnique({
                     where: { id: entityId },

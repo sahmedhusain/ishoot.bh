@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
 import { NoEmployeeProfile } from "./NoEmployeeProfile";
-import { Award, Check, Download, Eye, FileText, Mail, MessageCircle, Receipt, Send, X } from "lucide-react";
+import { Award, Check, Download, Eye, FileText, Mail, MessageCircle, Printer, Receipt, Send, X } from "lucide-react";
+import { printPdfUrl, salaryDocumentPdfUrl } from "../../lib/pdf-print";
 import {
   requestSalaryDocumentAction,
   reviewSalaryDocumentAction,
@@ -65,7 +66,7 @@ export function SalaryDocumentsView({
       setBusy(false);
     }
   }
-  const pdfUrl = (id: string) => `/api/hr/documents/${id}/pdf?locale=${locale}`;
+  const pdfUrl = (id: string) => salaryDocumentPdfUrl(id, locale);
   async function share(id: string) {
     const response = await fetch(pdfUrl(id));
     if (!response.ok) throw new Error(h.failed);
@@ -255,7 +256,10 @@ export function SalaryDocumentsView({
                   {item.status === "issued" && (
                     <>
                       <a className={action} href={pdfUrl(item.id)} target="_blank" rel="noreferrer"><Eye className="w-3.5 h-3.5" aria-hidden /> {h.pdf}</a>
-                      <a className={action} href={`${pdfUrl(item.id)}&download=true`}><Download className="w-3.5 h-3.5" aria-hidden /> {h.download}</a>
+                      <a className={action} href={salaryDocumentPdfUrl(item.id, locale, true)}><Download className="w-3.5 h-3.5" aria-hidden /> {h.download}</a>
+                      <button disabled={busy} className={action} onClick={() => printPdfUrl(pdfUrl(item.id)).catch(() => toast.error(t.pdfActions.failed))}>
+                        <Printer className="w-3.5 h-3.5" aria-hidden /> {t.pdfActions.print}
+                      </button>
                       <button
                         disabled={busy}
                         className={action}

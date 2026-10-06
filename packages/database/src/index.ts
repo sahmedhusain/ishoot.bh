@@ -82,6 +82,7 @@ export * from "./finance/numbering";
 export * from "./services/approval-engine";
 export * from "./queries/approval-policies";
 export * from "./queries/account-changes";
+export * from "./queries/client-signatures";
 export * from "./queries/integrations";
 export * from "./queries/social-analytics";
 export * from "./constants/integrations";

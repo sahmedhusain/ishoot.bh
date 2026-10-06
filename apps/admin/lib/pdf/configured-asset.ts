@@ -4,6 +4,23 @@ import { uploadRoot } from "@ishoot/database";
 import path from "path";
 import { db,getStorageClient,uploadStorageLocation,isSupabaseStorageConfigured } from "@ishoot/database";
 
+/**
+ * PDF images: vector art is rasterized at print resolution and empty margins are trimmed so a
+ * signature or stamp fills the box it is placed in.
+ */
+async function printReady(buffer: Buffer, vector: boolean): Promise<Buffer> {
+  try {
+    // Sharp at the printed size (a stamp or logo is under 3 cm) while keeping multi-page PDFs small.
+    return await sharp(buffer, { limitInputPixels: 16000000, ...(vector ? { density: 300 } : {}) })
+      .trim()
+      .resize({ width: 520, height: 520, fit: "inside", withoutEnlargement: true })
+      .png({ compressionLevel: 9, palette: true })
+      .toBuffer();
+  } catch {
+    return vector ? sharp(buffer, { limitInputPixels: 16000000, density: 300 }).png().toBuffer() : buffer;
+  }
+}
+
 export async function resolveConfiguredPdfAsset(
   url?: string | null,
 ): Promise<Buffer | string | undefined> {
@@ -22,7 +39,7 @@ export async function resolveConfiguredPdfAsset(
       const { data, error } = await client.storage.from(location.bucket).download(location.path);
       if (!error && data) {
         const buffer = Buffer.from(await data.arrayBuffer());
-        return /\.webp$/i.test(url) ? sharp(buffer, { limitInputPixels: 16000000 }).png().toBuffer() : buffer;
+        return printReady(buffer, /\.svg$/i.test(url));
       }
     } catch(e) {
       console.warn("Storage fetch failed", e);
@@ -45,7 +62,7 @@ export async function resolveConfiguredPdfAsset(
     if (!target.startsWith(resolvedRoot + path.sep) || !(await fs.stat(target)).isFile())
       return;
     const buf = await fs.readFile(target);
-    return /\.(svg|webp)$/i.test(target) ? sharp(buf, { limitInputPixels: 16000000 }).png().toBuffer() : buf;
+    return printReady(buf, /\.svg$/i.test(target));
   } catch {
     return;
   }

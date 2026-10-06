@@ -1,273 +1,113 @@
-import { getCurrencySymbol, getCurrencyDecimals } from "@ishoot/config/currency";
-
-import { Document,Page,Text,View } from "@react-pdf/renderer";
-import type { Payment,CompanySettings } from "@ishoot/database/types";
-import { pdfStyles } from "./shared-styles";
-import { PdfSigningBlock, type PdfSigning } from "./signing-block";
-import { PdfBrandLogo } from "./brand-logo-pdf";
-import { adminTranslations } from "../translations-bilingual";
+import { Document, Page, View } from "@react-pdf/renderer";
+import type { Payment } from "@ishoot/database/types";
+import {
+  Letterhead,
+  C,
+  fmtDate,
+  fmtMoney,
+  pageStyle,
+  type CompanySignature,
+  type PdfBrand,
+  docKit,
+  type DocKit,
+} from "./kit";
 
 interface ReceiptPDFProps {
   payment: Payment;
-  company: CompanySettings;
+  brand: PdfBrand;
   /** Present only once the receipt is signed. */
-  signing?: PdfSigning | null;
+  signing?: CompanySignature | null;
 }
 
-function formatDate(dateStr: string) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
+const bare = (label: string) => label.replace(/\s*[:：]\s*$/, "");
 
-function formatAmount(amount: number, decimals: number = 3) {
-  return Number(amount || 0).toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
-
-function ReceiptPDF({ payment, company, signing }: ReceiptPDFProps) {
-  const currencyCode = payment.currency || company.default_currency;
-  const currency = getCurrencySymbol(currencyCode, false);
-  const decimals = getCurrencyDecimals(currencyCode);
+function ReceiptBody({ k, payment, brand, signing }: ReceiptPDFProps & { k: DocKit }) {
+  const { t: all, isAr, T, Row, Card, Field, Totals, TitleBlock, CompanySignatureBlock } = k;
+  const t = all.pdfReceipt;
+  const d = all.pdfDocs;
+  const company = brand.company;
   const invoice = payment.invoice;
-  const isAr = invoice?.language === "ar";
-  const t = adminTranslations[isAr ? "ar" : "en"].pdfReceipt;
-
-  const clientName = invoice?.contact?.full_name ?? t.defaultClient;
+  const currency = payment.currency || company.default_currency;
+  const money = (value: number) => fmtMoney(value, currency, isAr);
+  const companyName = isAr ? company.company_name_ar : company.company_name_en;
+  const clientName = invoice?.contact?.full_name || t.defaultClient;
   const clientCompany = invoice?.contact?.company || "";
-  const clientEmail = invoice?.contact?.email || "";
-  const clientPhone = invoice?.contact?.phone || "";
-
-
-  const totalPaidAfterThis = invoice
-    ? Number(invoice.amount_paid)
-    : payment.amount;
+  const method = (d.paymentMethods as Record<string, string>)[payment.payment_method] ?? payment.payment_method;
+  const totalPaidAfterThis = invoice ? Number(invoice.amount_paid) : payment.amount;
   const previouslyPaid = Math.max(0, totalPaidAfterThis - payment.amount);
 
-  const compNameEn = company.company_name_en;
-  const compNameAr = company.company_name_ar;
-  const companyDisplayName = isAr ? compNameAr : compNameEn;
-
-  const labels = {
-    mainTitle: t.title,
-    receivedFrom: t.receivedFrom,
-    paymentDetails: t.paymentDetails,
-    date: t.receiptDate,
-    method: t.paymentMethod,
-    ref: t.refNumber,
-    linkedInvoice: t.linkedInvoice,
-    description: t.description,
-    amountReceived: `${t.amountReceived} (${currency})`,
-    directPayment: t.directPayment,
-    settlementFor: t.settlementFor,
-    notes: t.notes,
-    totalInvoice: t.totalInvoice,
-    previouslyPaid: t.previouslyPaid,
-    thisPayment: t.thisPayment,
-    remainingBalance: t.remainingBalance,
-    verified: t.verifiedNotice,
-    electronicNotice: t.electronicNotice.replace(
-      "{companyName}",
-      companyDisplayName,
-    ),
-    issuedBy: t.issuedBy,
-    cashier: t.cashier,
-    footerReceipt: t.footer.replace("{companyName}", companyDisplayName),
-  };
-
   return (
-    <Document title={`Receipt ${payment.receipt_number} - ${compNameEn}`}>
-      <Page size="A4" style={pdfStyles.page}>
-        {/* Official Header Banner */}
-        <View style={pdfStyles.headerBanner}>
-          <View>
-            <PdfBrandLogo
-              company={company}
-              theme="dark"
-              iconHeight={24}
-              wordmarkHeight={16}
-            />
-            <Text style={pdfStyles.companySubtitle}>
-              {isAr ? compNameAr : compNameEn}
-            </Text>
-            <Text style={pdfStyles.companyMeta}>
-              {t.crPrefix} {company.cr_number} • {t.country}
-            </Text>
-          </View>
+    <>
+      <TitleBlock
+        title={t.title}
+        number={payment.receipt_number}
+        facts={[
+          [bare(t.receiptDate), fmtDate(payment.payment_date, isAr)],
+          ...(invoice ? ([[bare(t.linkedInvoice), invoice.invoice_number]] as Array<[string, string]>) : []),
+        ]}
+      />
 
-          <View style={pdfStyles.docTitleBlock}>
-            <Text style={pdfStyles.docMainTitle}>{labels.mainTitle}</Text>
-            <Text style={pdfStyles.docNumber}>{payment.receipt_number}</Text>
-          </View>
+      <Row style={{ gap: 12, marginBottom: 16 }}>
+        <Card label={t.receivedFrom}>
+          <T style={{ fontSize: 10, fontWeight: "bold" }}>{clientCompany || clientName}</T>
+          {clientCompany && clientName && clientCompany !== clientName ? <Field label={d.attention} value={clientName} /> : null}
+          {invoice?.contact?.email ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.email}</T> : null}
+          {invoice?.contact?.phone ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.phone}</T> : null}
+        </Card>
+        <Card label={t.paymentDetails}>
+          <Field label={bare(t.paymentMethod)} value={method} strong />
+          <Field label={bare(t.refNumber)} value={payment.reference_number} />
+          <Field label={bare(t.receiptDate)} value={fmtDate(payment.payment_date, isAr)} />
+        </Card>
+      </Row>
+
+      {/* The amount, given the visual weight of a voucher. */}
+      <Row style={{ borderWidth: 1, borderColor: C.primary, borderRadius: 8, overflow: "hidden", marginBottom: 16 }} wrap={false}>
+        <View style={{ flex: 1, padding: 14 }}>
+          <T style={{ fontSize: 10, fontWeight: "bold" }}>{t.directPayment}</T>
+          {invoice ? <T style={{ fontSize: 8, color: C.muted, marginTop: 3 }}>{t.settlementFor} {invoice.invoice_number}</T> : null}
+          {payment.notes ? <Field label={bare(t.notes)} value={payment.notes} /> : null}
         </View>
-
-        {/* Client & Metadata Grid */}
-        <View style={pdfStyles.metaGrid}>
-          <View style={pdfStyles.metaCard}>
-            <Text style={pdfStyles.metaLabel}>{labels.receivedFrom}</Text>
-            <Text style={pdfStyles.metaValue}>
-              {clientCompany || clientName}
-            </Text>
-            {clientCompany && clientName && clientCompany !== clientName ? (
-              <Text style={pdfStyles.metaSub}>Attn: {clientName}</Text>
-            ) : null}
-            {clientEmail ? (
-              <Text style={pdfStyles.metaSub}>{clientEmail}</Text>
-            ) : null}
-            {clientPhone ? (
-              <Text style={pdfStyles.metaSub}>{clientPhone}</Text>
-            ) : null}
-          </View>
-
-          <View style={pdfStyles.metaCard}>
-            <Text style={pdfStyles.metaLabel}>{labels.paymentDetails}</Text>
-            <Text style={pdfStyles.metaSub}>
-              {labels.date} {formatDate(payment.payment_date)}
-            </Text>
-            <Text style={pdfStyles.metaSub}>
-              {labels.method}{" "}
-              {payment.payment_method.replace("_", " ").toUpperCase()}
-            </Text>
-            {payment.reference_number ? (
-              <Text style={pdfStyles.metaSub}>
-                {labels.ref} {payment.reference_number}
-              </Text>
-            ) : null}
-            {invoice ? (
-              <Text
-                style={[
-                  pdfStyles.metaSub,
-                  { fontWeight: "bold", color: "#014842" },
-                ]}
-              >
-                {labels.linkedInvoice} {invoice.invoice_number}
-              </Text>
-            ) : null}
-          </View>
+        <View style={{ width: 190, backgroundColor: C.primary, padding: 14, justifyContent: "center" }}>
+          <T align="center" style={{ fontSize: 7.5, color: "#CFE3DF" }}>{t.amountReceived}</T>
+          <T align="center" style={{ fontSize: 16, fontWeight: "bold", color: "#FFFFFF", marginTop: 2 }}>{money(payment.amount)}</T>
         </View>
+      </Row>
 
-        {/* Payment Amount Card */}
-        <View style={pdfStyles.table}>
-          <View style={pdfStyles.tableHeader}>
-            <Text style={{ flex: 3 }}>{labels.description}</Text>
-            <Text style={{ flex: 2, textAlign: "right" }}>
-              {labels.amountReceived}
-            </Text>
-          </View>
-
-          <View style={[pdfStyles.tableRow, { paddingVertical: 12 }]}>
-            <View style={{ flex: 3 }}>
-              <Text style={{ fontWeight: "bold", fontSize: 10 }}>
-                {labels.directPayment}
-              </Text>
-              {invoice ? (
-                <Text style={{ fontSize: 8, color: "#6B7280", marginTop: 3 }}>
-                  {labels.settlementFor} {invoice.invoice_number}
-                </Text>
-              ) : null}
-              {payment.notes ? (
-                <Text style={{ fontSize: 8, color: "#4B5563", marginTop: 2 }}>
-                  {labels.notes} {payment.notes}
-                </Text>
-              ) : null}
-            </View>
-            <Text
-              style={{
-                flex: 2,
-                textAlign: "right",
-                fontWeight: "bold",
-                fontSize: 14,
-                color: "#014842",
-              }}
-            >
-              {currency} {formatAmount(payment.amount, decimals)}
-            </Text>
-          </View>
-        </View>
-
-        {/* Linked Invoice Financial Summary */}
-        {invoice && (
-          <View
-            style={[pdfStyles.totalsContainer, { justifyContent: "flex-end" }]}
-          >
-            <View style={pdfStyles.totalsBlock}>
-              <View style={pdfStyles.totalRow}>
-                <Text>{labels.totalInvoice}</Text>
-                <Text>
-                  {currency} {formatAmount(invoice.total_amount, decimals)}
-                </Text>
-              </View>
-
-              <View style={pdfStyles.totalRow}>
-                <Text>{labels.previouslyPaid}</Text>
-                <Text>
-                  {currency} {formatAmount(previouslyPaid, decimals)}
-                </Text>
-              </View>
-
-              <View style={pdfStyles.totalRow}>
-                <Text>{labels.thisPayment}</Text>
-                <Text style={{ fontWeight: "bold", color: "#059669" }}>
-                  {currency} {formatAmount(payment.amount, decimals)}
-                </Text>
-              </View>
-
-              <View style={pdfStyles.dueRow}>
-                <Text>{labels.remainingBalance}</Text>
-                <Text>
-                  {currency} {formatAmount(invoice.amount_due, decimals)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Verification Card */}
-        <View
-          style={{
-            marginTop: 10,
-            padding: 8,
-            backgroundColor: "#F0FDF4",
-            borderRadius: 6,
-            borderWidth: 1,
-            borderColor: "#BBF7D0",
-          }}
-        >
-          <Text style={{ fontSize: 7.5, color: "#166534", fontWeight: "bold" }}>
-            {labels.verified}
-          </Text>
-          <Text style={{ fontSize: 7, color: "#4B5563", marginTop: 2 }}>
-            {labels.electronicNotice}
-          </Text>
-        </View>
-
-        {/* Signature Authorization Block: stamp and signature only once approved and signed */}
-        <PdfSigningBlock
-          company={company}
-          signing={signing}
-          isAr={isAr}
-          issuedByLabel={labels.issuedBy}
-          signatoryLabel={labels.cashier}
-          unsignedLabel={t.awaitingSignature}
-          signedOnLabel={t.signedOn}
+      {invoice ? (
+        <Totals
+          lines={[
+            { label: bare(t.totalInvoice), value: money(invoice.total_amount) },
+            { label: bare(t.previouslyPaid), value: money(previouslyPaid) },
+            { label: bare(t.thisPayment), value: money(payment.amount), tone: "success" },
+            { label: bare(t.remainingBalance), value: money(invoice.amount_due), tone: "final" },
+          ]}
         />
+      ) : null}
 
-        {/* Footer */}
-        <View style={pdfStyles.footer} fixed>
-          <Text>{labels.footerReceipt}</Text>
-          <Text>
-            {company.website}
-            {` • ${company.email}`}
-            {` • ${company.phone}`}
-          </Text>
-        </View>
-      </Page>
+      <View style={{ marginTop: 16, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: "#ECFDF5", borderRadius: 6 }} wrap={false}>
+        <T style={{ fontSize: 8, color: C.success, fontWeight: "bold" }}>{t.verifiedNotice.replace(/^✓\s*/, "")}</T>
+        <T style={{ fontSize: 7.5, color: C.body, marginTop: 2 }}>{t.electronicNotice.replace("{companyName}", companyName)}</T>
+      </View>
+
+      <Row style={{ justifyContent: "flex-end", marginTop: 26 }} wrap={false}>
+        <CompanySignatureBlock brand={brand} signing={signing} pending={t.awaitingSignature} label={t.cashier} />
+      </Row>
+    </>
+  );
+}
+
+function ReceiptPDF(props: ReceiptPDFProps) {
+  const isAr = props.payment.invoice?.language === "ar";
+  const company = props.brand.company;
+  const k = docKit(isAr ? "ar" : "en");
+  return (
+    <Document title={`${props.payment.receipt_number} · ${isAr ? company.company_name_ar : company.company_name_en}`} author={company.company_name_en} language={isAr ? "ar" : "en"}>
+        <Page size="A4" style={pageStyle}>
+          <Letterhead brand={props.brand} />
+          <ReceiptBody k={k} {...props} />
+          <k.Footer brand={props.brand} reference={props.payment.receipt_number} />
+        </Page>
     </Document>
   );
 }

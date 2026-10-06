@@ -9,7 +9,18 @@ export function documentPdfUrl(type: PdfDocumentType, id: string, locale: string
  * from the browser's PDF viewer, so there are no page headers, footers or extra margins.
  */
 export async function printDocumentPdf(type: PdfDocumentType, id: string, locale: string): Promise<void> {
-  const response = await fetch(documentPdfUrl(type, id, locale), { cache: "no-store" });
+  return printPdfUrl(documentPdfUrl(type, id, locale));
+}
+
+export const salaryDocumentPdfUrl = (id: string, locale: string, download = false) =>
+  `/api/hr/documents/${encodeURIComponent(id)}/pdf?locale=${locale}${download ? "&download=true" : ""}`;
+
+export const momPdfUrl = (id: string, locale: string, download = false) =>
+  `/api/moms/${encodeURIComponent(id)}/pdf?locale=${locale}${download ? "&download=true" : ""}`;
+
+/** Prints any generated PDF (payslips, certificates, minutes) exactly as it downloads. */
+export async function printPdfUrl(pdfUrl: string): Promise<void> {
+  const response = await fetch(pdfUrl, { cache: "no-store" });
   if (!response.ok || !response.headers.get("content-type")?.includes("application/pdf"))
     throw new Error("PDF unavailable");
   const url = URL.createObjectURL(await response.blob());

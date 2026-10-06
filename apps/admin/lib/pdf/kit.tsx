@@ -1,0 +1,427 @@
+/* eslint-disable jsx-a11y/alt-text -- React PDF images are PDF primitives, not DOM images. */
+/**
+ * Building blocks shared by every generated document (invoices, quotations, receipts, payslips,
+ * salary certificates and minutes): one fixed letterhead and footer on every page, Thmanyah only,
+ * right-to-left layout for Arabic documents and Western digits in both languages.
+ */
+import * as React from "react";
+import { Image, Text, View, type Styles } from "@react-pdf/renderer";
+import { getCurrencyDecimals, getCurrencySymbol } from "@ishoot/config/currency";
+import { getTranslations } from "@ishoot/locales";
+import { db } from "@ishoot/database";
+import type { CompanySettings } from "@ishoot/database/types";
+import { resolveConfiguredPdfAsset } from "./configured-asset";
+import "./shared-styles"; // registers the Thmanyah font family
+
+export const FONT = "Thmanyah Sans";
+export const C = {
+  primary: "#014842",
+  accent: "#09937F",
+  ink: "#111827",
+  body: "#374151",
+  muted: "#6B7280",
+  line: "#E5E7EB",
+  soft: "#F4F7F6",
+  danger: "#B91C1C",
+  success: "#047857",
+};
+
+type Src = Buffer | string;
+const ARABIC = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/;
+type Style = Styles[string];
+const styles = (style?: Style | Style[]) => (Array.isArray(style) ? style : style ? [style] : []);
+
+export type DocLocale = "en" | "ar";
+
+/** Company artwork resolved to PDF-ready images once per document. */
+export interface PdfBrand {
+  company: CompanySettings;
+  logo?: Src;
+  icon?: Src;
+  stamp?: Src;
+  signature?: Src;
+  letterheadHeader?: Src;
+  letterheadFooter?: Src;
+}
+
+export async function resolvePdfBrand(company: CompanySettings): Promise<PdfBrand> {
+  const [logo, icon, stamp, signature, assets] = await Promise.all([
+    resolveConfiguredPdfAsset(company.logo_url),
+    resolveConfiguredPdfAsset(company.icon_url),
+    resolveConfiguredPdfAsset(company.stamp_url),
+    resolveConfiguredPdfAsset(company.signature_url),
+    db.companyAsset.findMany({ where: { assetKey: { in: ["letterhead_header", "letterhead_footer"] } }, select: { assetKey: true, fileUrl: true } }),
+  ]);
+  const asset = async (key: string) => {
+    const url = assets.find((a) => a.assetKey === key)?.fileUrl;
+    return url ? resolveConfiguredPdfAsset(url) : undefined;
+  };
+  return { company, logo, icon, stamp, signature, letterheadHeader: await asset("letterhead_header"), letterheadFooter: await asset("letterhead_footer") };
+}
+
+// ---------------------------------------------------------------- formatting (Western digits in both languages)
+
+const AR_CURRENCY: Record<string, string> = { BHD: "د.ب", KWD: "د.ك", QAR: "ر.ق", SAR: "ر.س", AED: "د.إ", OMR: "ر.ع", EGP: "ج.م", JOD: "د.أ" };
+
+export function numberLocale(isAr: boolean) {
+  return isAr ? "ar-BH-u-nu-latn" : "en-GB";
+}
+
+export function fmtNumber(value: number, decimals = 0) {
+  return Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+export function currencyLabel(code: string, isAr: boolean) {
+  const upper = (code || "BHD").toUpperCase();
+  return isAr ? AR_CURRENCY[upper] ?? getCurrencySymbol(upper, false) : getCurrencySymbol(upper, false);
+}
+
+export function fmtMoney(value: number, code: string, isAr: boolean) {
+  const amount = fmtNumber(value, getCurrencyDecimals(code || "BHD"));
+  const symbol = currencyLabel(code, isAr);
+  return isAr ? `${amount} ${symbol}` : `${symbol} ${amount}`;
+}
+
+export function fmtDate(value: string | Date | null | undefined, isAr: boolean, month: "long" | "short" = "long") {
+  if (!value) return "";
+  const date = typeof value === "string" ? new Date(value.length === 10 ? `${value}T00:00:00Z` : value) : value;
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(numberLocale(isAr), { day: "numeric", month, year: "numeric", timeZone: "Asia/Bahrain" }).format(date);
+}
+
+export function fmtMonth(year: number, month: number, isAr: boolean) {
+  return new Intl.DateTimeFormat(numberLocale(isAr), { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
+// ---------------------------------------------------------------- page frame (identical in both languages)
+
+const LETTERHEAD_HEIGHT = 104;
+const FOOTER_HEIGHT = 58;
+
+export const pageStyle: Style = {
+  fontFamily: FONT,
+  fontSize: 9,
+  color: C.ink,
+  backgroundColor: "#FFFFFF",
+  paddingTop: LETTERHEAD_HEIGHT + 14,
+  paddingBottom: FOOTER_HEIGHT + 14,
+  paddingHorizontal: 40,
+  // No page-wide lineHeight: react-pdf drops render-time text (page numbers) that inherits one.
+};
+
+function BrandMark({ brand, height = 30 }: { brand: PdfBrand; height?: number }) {
+  if (!brand.icon && !brand.logo)
+    return <Text style={{ fontSize: 16, fontWeight: "bold", color: C.primary }}>{brand.company.company_name_en}</Text>;
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      {brand.icon ? <Image src={brand.icon} style={{ height, width: height, objectFit: "contain" }} /> : null}
+      {brand.logo ? <Image src={brand.logo} style={{ height: height * 0.62, width: height * 2.2, objectFit: "contain", marginLeft: 6 }} /> : null}
+    </View>
+  );
+}
+
+/**
+ * The fixed letterhead: English details on the left, the logo in the middle and Arabic details on the
+ * right, the same on every page of every document in both languages. An uploaded letterhead image
+ * (Settings → Brand assets) replaces it.
+ */
+export function Letterhead({ brand }: { brand: PdfBrand }) {
+  const company = brand.company;
+  const en = getTranslations("en").admin.pdfDocs;
+  const ar = getTranslations("ar").admin.pdfDocs;
+  if (brand.letterheadHeader)
+    return (
+      <View fixed style={{ position: "absolute", top: 0, left: 0, right: 0, height: LETTERHEAD_HEIGHT }}>
+        <Image src={brand.letterheadHeader} style={{ width: "100%", height: LETTERHEAD_HEIGHT, objectFit: "cover" }} />
+      </View>
+    );
+  const meta = (label: string, value: string | null | undefined) => (value ? `${label} ${value}` : "");
+  const rtl = { direction: "rtl", textAlign: "right" } as Style;
+  return (
+    <View fixed style={{ position: "absolute", top: 0, left: 0, right: 0, height: LETTERHEAD_HEIGHT, paddingHorizontal: 40, paddingTop: 26 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <View style={{ width: 190 }}>
+          <Text style={{ fontSize: 9, fontWeight: "bold", color: C.primary }}>{company.company_name_en}</Text>
+          {company.address_en ? <Text style={{ fontSize: 6.8, color: C.muted, marginTop: 2, lineHeight: 1.35 }}>{company.address_en}</Text> : null}
+          <Text style={{ fontSize: 6.8, color: C.muted, marginTop: 1 }}>{meta(en.crNo, company.cr_number)}</Text>
+          {company.vat_enabled && company.vat_id ? <Text style={{ fontSize: 6.8, color: C.muted }}>{meta(en.vatNo, company.vat_id)}</Text> : null}
+        </View>
+        <BrandMark brand={brand} />
+        <View style={{ width: 190, alignItems: "flex-end" }}>
+          <Text style={[{ fontSize: 9, fontWeight: "bold", color: C.primary }, rtl]}>{company.company_name_ar}</Text>
+          {company.address_ar ? <Text style={[{ fontSize: 6.8, color: C.muted, marginTop: 2, lineHeight: 1.35 }, rtl]}>{company.address_ar}</Text> : null}
+          <Text style={[{ fontSize: 6.8, color: C.muted, marginTop: 1 }, rtl]}>{meta(ar.crNo, company.cr_number)}</Text>
+          {company.vat_enabled && company.vat_id ? <Text style={[{ fontSize: 6.8, color: C.muted }, rtl]}>{meta(ar.vatNo, company.vat_id)}</Text> : null}
+        </View>
+      </View>
+      <View style={{ marginTop: 12, height: 2.2, backgroundColor: C.primary }} />
+      <View style={{ marginTop: 1.6, height: 0.8, backgroundColor: C.accent }} />
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------- shared shapes
+
+export interface Column {
+  key: string;
+  label: string;
+  flex: number;
+  align?: "start" | "end" | "center";
+}
+
+export interface CompanySignature {
+  signatureSrc?: Src | null;
+  signerName?: string | null;
+  signerTitle?: string | null;
+  signedAt?: string | null;
+}
+
+export interface ClientAcceptance {
+  signerName: string;
+  signerTitle?: string | null;
+  signedAt: string;
+  method: "electronic" | "upload";
+  signatureSrc?: Src | null;
+}
+
+// ---------------------------------------------------------------- language-bound components
+// Route handlers render with React's server build (no context API), so the document language is
+// bound into these components by a factory rather than provided through context.
+
+export type DocKit = ReturnType<typeof docKit>;
+
+export function docKit(locale: DocLocale) {
+  const isAr = locale === "ar";
+  const t = getTranslations(locale).admin;
+  const d = t.pdfDocs;
+  const endItems = isAr ? "flex-start" : "flex-end";
+  const startItems = isAr ? "flex-end" : "flex-start";
+  const textAlignFor = (align?: "start" | "end" | "center") =>
+    align === "center" ? "center" : align === "end" ? (isAr ? "left" : "right") : isAr ? "right" : "left";
+  const money = (value: number, code: string) => fmtMoney(value, code, isAr);
+  const date = (value: string | Date | null | undefined, month: "long" | "short" = "long") => fmtDate(value, isAr, month);
+  const pageLabel = (n: number, total: number) => d.page.replace("{n}", String(n)).replace("{total}", String(total));
+
+  /**
+   * Text that follows the document direction; `align="end"` puts it on the trailing side. Values with
+   * no Arabic letters (phone numbers, e-mails, IBANs, references) keep their left-to-right order.
+   */
+  function T({ style, align, children, ...rest }: { style?: Style | Style[]; align?: "start" | "end" | "center"; children?: React.ReactNode } & Omit<React.ComponentProps<typeof Text>, "style">) {
+    const plain = (Array.isArray(children) ? children : [children]).every((c) => typeof c === "string" || typeof c === "number");
+    const latinOnly = plain && !ARABIC.test((Array.isArray(children) ? children : [children]).join(""));
+    return (
+      <Text {...rest} style={[{ direction: isAr && !latinOnly ? "rtl" : "ltr", textAlign: textAlignFor(align), lineHeight: 1.45 } as Style, ...styles(style)]}>
+        {children}
+      </Text>
+    );
+  }
+
+  /** A horizontal row that runs right-to-left in Arabic documents. */
+  function Row({ style, children, ...rest }: { style?: Style | Style[]; children?: React.ReactNode } & Omit<React.ComponentProps<typeof View>, "style">) {
+    return (
+      <View {...rest} style={[{ flexDirection: isAr ? "row-reverse" : "row" } as Style, ...styles(style)]}>
+        {children}
+      </View>
+    );
+  }
+
+  /** Fixed footer: contact line, the document reference and "page x of y" in the document language. */
+  function Footer({ brand, reference }: { brand: PdfBrand; reference?: string }) {
+    const company = brand.company;
+    if (brand.letterheadFooter)
+      return (
+        <View fixed style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: FOOTER_HEIGHT }}>
+          <Image src={brand.letterheadFooter} style={{ width: "100%", height: FOOTER_HEIGHT, objectFit: "cover" }} />
+          <Text fixed style={{ position: "absolute", bottom: 6, right: 40, width: 120, textAlign: "right", fontSize: 6.5, color: C.muted }} render={({ pageNumber, totalPages }) => pageLabel(pageNumber, totalPages)} />
+        </View>
+      );
+    const contact = [company.phone, company.email, company.website?.replace(/^https?:\/\//, "")].filter(Boolean).join("   ·   ");
+    return (
+      <View fixed style={{ position: "absolute", bottom: 0, left: 40, right: 40, height: FOOTER_HEIGHT, paddingTop: 12 }}>
+        <View style={{ height: 0.8, backgroundColor: C.accent }} />
+        <View style={{ flexDirection: isAr ? "row-reverse" : "row", justifyContent: "space-between", marginTop: 7 }}>
+          <Text style={{ fontSize: 7, color: C.body }}>{contact}</Text>
+          {/* Text drawn at render time has no intrinsic width inside a row, so it is given one. */}
+          <Text
+            fixed
+            style={{ width: 240, fontSize: 7, color: C.muted, direction: isAr ? "rtl" : "ltr", textAlign: isAr ? "left" : "right" } as Style}
+            render={({ pageNumber, totalPages }) => [reference, pageLabel(pageNumber, totalPages)].filter(Boolean).join("   ·   ")}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  /** Document title with its number and up to three key facts on the trailing side. */
+  function TitleBlock({ title, subtitle, number, facts = [] }: { title: string; subtitle?: string; number?: string; facts?: Array<[string, string]> }) {
+    return (
+      <Row style={{ justifyContent: "space-between", alignItems: "flex-end", marginBottom: 18 }}>
+        <View style={{ alignItems: startItems, maxWidth: "58%" }}>
+          <T style={{ fontSize: 20, fontWeight: "bold", color: C.primary, lineHeight: 1.2 }}>{title}</T>
+          {subtitle ? <T style={{ fontSize: 9, color: C.muted, marginTop: 3 }}>{subtitle}</T> : null}
+          {number ? <T style={{ fontSize: 10, fontWeight: "bold", color: C.accent, marginTop: 4, letterSpacing: 0.4 }}>{number}</T> : null}
+        </View>
+        {facts.length ? (
+          <View style={{ alignItems: endItems }}>
+            {facts.map(([label, value]) => (
+              <Row key={label} style={{ marginTop: 2 }}>
+                <T style={{ fontSize: 7.5, color: C.muted }}>{label}</T>
+                <T style={{ fontSize: 8.5, fontWeight: "bold", color: C.ink, marginHorizontal: 6 }}>{value}</T>
+              </Row>
+            ))}
+          </View>
+        ) : null}
+      </Row>
+    );
+  }
+
+  /** A soft card with a small caption and its lines. */
+  function Card({ label, children, style }: { label?: string; children: React.ReactNode; style?: Style }) {
+    return (
+      <View style={[{ flex: 1, backgroundColor: C.soft, borderRadius: 6, paddingVertical: 10, paddingHorizontal: 12 }, ...styles(style)]}>
+        {label ? <T style={{ fontSize: 7, color: C.accent, fontWeight: "bold", marginBottom: 4, letterSpacing: 0.3 }}>{label}</T> : null}
+        {children}
+      </View>
+    );
+  }
+
+  /** "Label  value" line inside cards. */
+  function Field({ label, value, strong }: { label: string; value?: React.ReactNode; strong?: boolean }) {
+    if (value == null || value === "") return null;
+    return (
+      <Row style={{ marginTop: 1.5 }}>
+        <T style={{ fontSize: 8, color: C.muted }}>{label}</T>
+        <T style={{ fontSize: 8, color: C.ink, fontWeight: strong ? "bold" : "normal", marginHorizontal: 5 }}>{value}</T>
+      </Row>
+    );
+  }
+
+  /** Branded table; column order follows the document direction and the header repeats on new pages. */
+  function Table({ columns, rows }: { columns: Column[]; rows: Array<Record<string, React.ReactNode>> }) {
+    return (
+      <View style={{ borderRadius: 6, overflow: "hidden", borderWidth: 0.8, borderColor: C.line, marginBottom: 14 }}>
+        <Row style={{ backgroundColor: C.primary, paddingVertical: 6, paddingHorizontal: 10 }} fixed>
+          {columns.map((column) => (
+            <T key={column.key} align={column.align} style={{ flex: column.flex, color: "#FFFFFF", fontSize: 7.5, fontWeight: "bold", paddingHorizontal: 3 }}>
+              {column.label}
+            </T>
+          ))}
+        </Row>
+        {rows.map((row, index) => (
+          <Row
+            key={index}
+            wrap={false}
+            style={{ paddingVertical: 6.5, paddingHorizontal: 10, borderTopWidth: index ? 0.6 : 0, borderTopColor: C.line, backgroundColor: index % 2 ? "#FAFBFB" : "#FFFFFF", alignItems: "center" }}
+          >
+            {columns.map((column) => (
+              <View key={column.key} style={{ flex: column.flex, paddingHorizontal: 3 }}>
+                {typeof row[column.key] === "string" || typeof row[column.key] === "number" ? (
+                  <T align={column.align} style={{ fontSize: 8.5 }}>{row[column.key]}</T>
+                ) : (
+                  row[column.key]
+                )}
+              </View>
+            ))}
+          </Row>
+        ))}
+      </View>
+    );
+  }
+
+  /** Totals panel: label/amount pairs with an optional highlighted final line. */
+  function Totals({ lines, width = 230 }: { lines: Array<{ label: string; value: string; tone?: "danger" | "success" | "final" | "muted" }>; width?: number }) {
+    return (
+      <View style={{ width, alignSelf: endItems }}>
+        {lines.map((line, index) => {
+          const final = line.tone === "final";
+          return (
+            <Row
+              key={index}
+              wrap={false}
+              style={{ justifyContent: "space-between", paddingVertical: final ? 7 : 3, paddingHorizontal: final ? 10 : 2, marginTop: final ? 5 : 0, backgroundColor: final ? C.primary : undefined, borderRadius: final ? 5 : 0 }}
+            >
+              <T style={{ fontSize: final ? 9.5 : 8.5, color: final ? "#FFFFFF" : C.body, fontWeight: final ? "bold" : "normal" }}>{line.label}</T>
+              <T
+                style={{
+                  fontSize: final ? 10.5 : 8.5,
+                  fontWeight: final || line.tone ? "bold" : "normal",
+                  color: final ? "#FFFFFF" : line.tone === "danger" ? C.danger : line.tone === "success" ? C.success : line.tone === "muted" ? C.muted : C.ink,
+                }}
+              >
+                {line.value}
+              </T>
+            </Row>
+          );
+        })}
+      </View>
+    );
+  }
+
+  function SectionTitle({ children }: { children: React.ReactNode }) {
+    return <T style={{ fontSize: 9.5, fontWeight: "bold", color: C.primary, marginBottom: 6, marginTop: 4 }}>{children}</T>;
+  }
+
+  function Paragraph({ children, style }: { children: React.ReactNode; style?: Style }) {
+    return <T style={[{ fontSize: 9.5, lineHeight: 1.8, color: C.body, marginBottom: 10 }, ...styles(style)]}>{children}</T>;
+  }
+
+  /**
+   * The company's signature with the seal pressed over it, as on a hand-stamped original.
+   * Until the document is signed it shows an empty signing line with `pending` underneath.
+   */
+  function CompanySignatureBlock({ brand, signing, pending, label }: { brand: PdfBrand; signing?: CompanySignature | null; pending?: string; label?: string }) {
+    const companyName = isAr ? brand.company.company_name_ar : brand.company.company_name_en;
+    return (
+      <View wrap={false} style={{ width: 210, alignItems: "center" }}>
+        <T align="center" style={{ fontSize: 7.5, color: C.muted, marginBottom: 2 }}>{label ?? d.authorizedSignatory}</T>
+        <View style={{ height: 70, width: 210, justifyContent: "center", alignItems: "center" }}>
+          {signing && brand.stamp ? (
+            <Image src={brand.stamp} style={{ position: "absolute", height: 70, width: 70, objectFit: "contain", opacity: 0.82, transform: "rotate(-10deg)", left: isAr ? 18 : 122, top: 0 }} />
+          ) : null}
+          {signing?.signatureSrc ? (
+            <Image src={signing.signatureSrc} style={{ height: 46, width: 150, objectFit: "contain" }} />
+          ) : !signing && pending ? (
+            <T align="center" style={{ fontSize: 7, color: "#9CA3AF" }}>{pending}</T>
+          ) : null}
+        </View>
+        <View style={{ width: 180, height: 0.8, backgroundColor: C.body }} />
+        <T align="center" style={{ fontSize: 8.5, fontWeight: "bold", color: C.ink, marginTop: 4 }}>{signing?.signerName || companyName}</T>
+        {signing?.signerTitle ? <T align="center" style={{ fontSize: 7.5, color: C.muted }}>{signing.signerTitle}</T> : null}
+        {signing?.signedAt ? <T align="center" style={{ fontSize: 7, color: C.muted, marginTop: 1 }}>{d.signedOn.replace("{date}", date(signing.signedAt))}</T> : null}
+      </View>
+    );
+  }
+
+  /** The client's side: their e-signature or the uploaded signed copy, or blank lines to sign by hand. */
+  function ClientAcceptanceBlock({ acceptance, documentKind }: { acceptance?: ClientAcceptance | null; documentKind: "quotation" | "invoice" }) {
+    const c = d.client;
+    const line = (label: string, value?: string | null) => (
+      <Row style={{ alignItems: "flex-end", marginTop: 7 }}>
+        <T style={{ fontSize: 7.5, color: C.muted, width: 52 }}>{label}</T>
+        <View style={{ flex: 1, borderBottomWidth: 0.7, borderBottomColor: "#9CA3AF", borderBottomStyle: value ? "solid" : "dashed", paddingBottom: 1 }}>
+          <T style={{ fontSize: 8.5, fontWeight: "bold" }}>{value || " "}</T>
+        </View>
+      </Row>
+    );
+    return (
+      <View wrap={false} style={{ width: 230 }}>
+        <T style={{ fontSize: 8.5, fontWeight: "bold", color: C.primary }}>{c.title}</T>
+        <T style={{ fontSize: 7, color: C.muted, marginTop: 1 }}>{c.statement.replace("{document}", documentKind === "quotation" ? c.quotation : c.invoice)}</T>
+        {line(c.name, acceptance ? [acceptance.signerName, acceptance.signerTitle].filter(Boolean).join(isAr ? "، " : ", ") : null)}
+        <Row style={{ alignItems: "flex-end", marginTop: 7 }}>
+          <T style={{ fontSize: 7.5, color: C.muted, width: 52 }}>{c.signature}</T>
+          <View style={{ flex: 1, height: 34, borderBottomWidth: 0.7, borderBottomColor: "#9CA3AF", borderBottomStyle: acceptance ? "solid" : "dashed", justifyContent: "flex-end", alignItems: startItems }}>
+            {acceptance?.signatureSrc ? <Image src={acceptance.signatureSrc} style={{ height: 32, width: 130, objectFit: "contain" }} /> : null}
+          </View>
+        </Row>
+        {line(c.date, acceptance ? date(acceptance.signedAt) : null)}
+        {acceptance ? <T style={{ fontSize: 6.8, color: C.success, marginTop: 4 }}>{acceptance.method === "electronic" ? c.signedElectronically : c.signedCopy}</T> : null}
+      </View>
+    );
+  }
+
+  return {
+    locale, isAr, t, d, money, date, endItems, startItems,
+    T, Row, Footer, TitleBlock, Card, Field, Table, Totals, SectionTitle, Paragraph, CompanySignatureBlock, ClientAcceptanceBlock,
+  };
+}

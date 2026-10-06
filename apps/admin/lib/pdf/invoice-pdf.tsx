@@ -1,342 +1,167 @@
-import { getCurrencySymbol, getCurrencyDecimals } from "@ishoot/config/currency";
-
-import { Document,Page,Text,View } from "@react-pdf/renderer";
-import type { Invoice,CompanySettings } from "@ishoot/database/types";
-import { pdfStyles } from "./shared-styles";
-import { PdfSigningBlock, type PdfSigning } from "./signing-block";
-import { PdfBrandLogo } from "./brand-logo-pdf";
-import { adminTranslations } from "../translations-bilingual";
+import { Document, Page, View } from "@react-pdf/renderer";
+import type { Invoice } from "@ishoot/database/types";
+import {
+  Letterhead,
+  C,
+  fmtDate,
+  fmtMoney,
+  fmtNumber,
+  pageStyle,
+  type ClientAcceptance,
+  type CompanySignature,
+  type PdfBrand,
+  docKit,
+  type DocKit,
+} from "./kit";
 
 interface InvoicePDFProps {
   invoice: Invoice;
-  company: CompanySettings;
+  brand: PdfBrand;
   /** A quotation renders through the same layout so print, download and email stay identical. */
   variant?: "invoice" | "quotation";
   /** Quotation terms in the document language. */
   quotationTerms?: string | null;
   /** Present only once the document is approved and signed. */
-  signing?: PdfSigning | null;
+  signing?: CompanySignature | null;
+  /** The client's signature, once they sign online or a signed copy is uploaded. */
+  acceptance?: ClientAcceptance | null;
 }
 
-function formatDate(dateStr: string) {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
+const bare = (label: string) => label.replace(/\s*[:：]\s*$/, "");
 
-function formatAmount(amount: number, decimals: number = 3) {
-  return Number(amount || 0).toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
-
-function InvoicePDF({ invoice, company, variant = "invoice", quotationTerms, signing }: InvoicePDFProps) {
+function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, signing, acceptance }: InvoicePDFProps & { k: DocKit }) {
+  const { t: all, isAr, T, Row, Card, Field, Table, Totals, TitleBlock, ClientAcceptanceBlock, CompanySignatureBlock } = k;
+  const t = all.pdfInvoice;
+  const d = all.pdfDocs;
+  const company = brand.company;
   const isQuote = variant === "quotation";
-  // VAT on an invoice is immutable: depends strictly on the invoice's own issued snapshot
-  const isVatActive = Boolean(
-    invoice.vat_enabled && Number(invoice.vat_amount) > 0,
-  );
-  const currencyCode = invoice.currency || company.default_currency;
-  const currency = getCurrencySymbol(currencyCode, false);
-  const decimals = getCurrencyDecimals(currencyCode);
-  const lineItems = invoice.line_items || [];
-  const isAr = invoice.language === "ar";
-  const t = adminTranslations[isAr ? "ar" : "en"].pdfInvoice;
+  // VAT on an invoice is immutable: it depends strictly on the invoice's own issued snapshot.
+  const isVatActive = Boolean(invoice.vat_enabled && Number(invoice.vat_amount) > 0);
+  const currency = invoice.currency || company.default_currency;
+  const money = (value: number) => fmtMoney(value, currency, isAr);
+  const companyName = isAr ? company.company_name_ar : company.company_name_en;
 
-  const clientName =
-    invoice.contact?.full_name ?? invoice.contact_name ?? t.defaultClient;
+  const clientName = invoice.contact?.full_name || invoice.contact_name || t.defaultClient;
   const clientCompany = invoice.contact?.company || "";
-  const clientEmail = invoice.contact?.email || "";
-  const clientPhone = invoice.contact?.phone || "";
-  const clientAddress = invoice.contact?.address || "";
-  const clientVat = isVatActive ? invoice.contact?.vat_number || "" : "";
+  const statusLabel = (all.statusLabels as Record<string, string>)[invoice.status || "draft"] ?? invoice.status;
 
-  const compNameEn = company.company_name_en;
-  const compNameAr = company.company_name_ar;
-  const companyDisplayName = isAr ? compNameAr : compNameEn;
+  const facts: Array<[string, string]> = [
+    [t.issueDate, fmtDate(invoice.issue_date, isAr)],
+    [isQuote ? t.validUntil : t.dueDate, fmtDate(invoice.due_date, isAr)],
+    ...(!isQuote ? ([[d.invoiceStatus, statusLabel]] as Array<[string, string]>) : []),
+  ];
 
-  const labels = {
-    title: isQuote ? t.quotationTitle : isVatActive ? t.taxInvoiceTitle : t.standardInvoiceTitle,
-    billedTo: t.clientDetails,
-    invoiceDetails: isQuote ? t.quotationDetails : t.invoiceDetails,
-    issueDate: t.issueDate,
-    dueDate: isQuote ? t.validUntil : t.dueDate,
-    status: t.status,
-    currencyLabel: t.currency,
-    description: t.description,
-    qty: t.qty,
-    unitPrice: `${t.unitPrice} (${currency})`,
-    total: `${t.total} (${currency})`,
-    subtotal: t.subtotal,
-    discount: t.discount,
-    vat: `${t.vat} (${invoice.vat_percentage}%):`,
-    totalFinal: isQuote ? t.quotationTotal : t.totalAmount,
-    amountPaid: t.amountPaid,
-    balanceDue: t.balanceDue,
-    bankDetails: t.bankDetails,
-    bankName: t.bankName,
-    iban: t.iban,
-    accountNo: t.accountNo,
-    swift: t.swift,
-    issuedBy: t.issuedBy,
-    authorizedSignatory: t.authorizedSignatory,
-    terms: t.termsNotice
-      .replace("{days}", String(company.payment_terms_days))
-      .replace("{date}", formatDate(invoice.due_date)),
-    wireRef: t.wireRefNotice.replace("{invNum}", invoice.invoice_number),
-    thankYou: t.thankYou.replace("{companyName}", companyDisplayName),
-  };
+  const items = (invoice.line_items || []).map((item, index) => ({
+    n: String(index + 1),
+    description: isAr ? item.description_ar || item.description_en : item.description_en || item.description_ar,
+    qty: fmtNumber(Number(item.quantity), Number(item.quantity) % 1 ? 2 : 0),
+    unit: fmtNumber(item.unit_price, 3),
+    total: fmtNumber(item.line_total, 3),
+  }));
+
+  const totals = [
+    { label: bare(t.subtotal), value: money(invoice.subtotal) },
+    ...(invoice.discount_amount > 0 ? [{ label: bare(t.discount), value: `- ${money(invoice.discount_amount)}`, tone: "danger" as const }] : []),
+    ...(isVatActive ? [{ label: `${bare(t.vat)} (${fmtNumber(Number(invoice.vat_percentage), Number(invoice.vat_percentage) % 1 ? 2 : 0)}%)`, value: money(invoice.vat_amount) }] : []),
+    { label: bare(isQuote ? t.quotationTotal : t.totalAmount), value: money(invoice.total_amount), tone: "final" as const },
+    ...(!isQuote && invoice.amount_paid > 0 ? [{ label: bare(t.amountPaid), value: money(invoice.amount_paid), tone: "success" as const }] : []),
+    ...(!isQuote && invoice.amount_paid > 0 ? [{ label: bare(t.balanceDue), value: money(invoice.amount_due), tone: invoice.amount_due > 0 ? ("danger" as const) : ("muted" as const) }] : []),
+  ];
+
+  const notes = isAr ? invoice.notes_ar || invoice.notes_en : invoice.notes_en || invoice.notes_ar;
 
   return (
-    <Document title={`${isQuote ? "Quotation" : "Invoice"} ${invoice.invoice_number} - ${compNameEn}`}>
-      <Page size="A4" style={pdfStyles.page}>
-        {/* Official Header Banner */}
-        <View style={pdfStyles.headerBanner}>
-          <View>
-            <PdfBrandLogo
-              company={company}
-              theme="dark"
-              iconHeight={24}
-              wordmarkHeight={16}
-            />
-            <Text style={pdfStyles.companySubtitle}>
-              {isAr ? compNameAr : compNameEn}
-            </Text>
-            <Text style={pdfStyles.companyMeta}>
-              {t.crPrefix} {company.cr_number}
-              {isVatActive && company.vat_id
-                ? ` • VAT ID: ${company.vat_id}`
-                : ""}
-              {` • ${t.country}`}
-            </Text>
-          </View>
+    <>
+      <TitleBlock title={isQuote ? t.quotationTitle : isVatActive ? t.taxInvoiceTitle : t.standardInvoiceTitle} number={invoice.invoice_number} facts={facts} />
 
-          <View style={pdfStyles.docTitleBlock}>
-            <Text style={pdfStyles.docMainTitle}>{labels.title}</Text>
-            <Text style={pdfStyles.docNumber}>{invoice.invoice_number}</Text>
-          </View>
+      <Row style={{ gap: 12, marginBottom: 16 }}>
+        <Card label={t.clientDetails}>
+          <T style={{ fontSize: 10, fontWeight: "bold" }}>{clientCompany || clientName}</T>
+          {clientCompany && clientName && clientCompany !== clientName ? <Field label={d.attention} value={clientName} /> : null}
+          {invoice.contact?.email ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.email}</T> : null}
+          {invoice.contact?.phone ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.phone}</T> : null}
+          {invoice.contact?.address ? <T style={{ fontSize: 8, color: C.body, marginTop: 1.5 }}>{invoice.contact.address}</T> : null}
+          {isVatActive && invoice.contact?.vat_number ? <Field label={d.vatNo} value={invoice.contact.vat_number} strong /> : null}
+        </Card>
+        <Card label={isQuote ? t.quotationDetails : t.bankDetails}>
+          {isQuote ? (
+            <>
+              <Field label={bare(t.currency)} value={currency} />
+              <Field label={t.validUntil} value={fmtDate(invoice.due_date, isAr)} />
+              <Field label={d.issuedOn} value={fmtDate(invoice.issue_date, isAr)} />
+            </>
+          ) : (
+            <>
+              <Field label={bare(t.bankName)} value={company.bank_name} />
+              <Field label={bare(t.iban)} value={company.bank_iban} strong />
+              <Field label={bare(t.accountNo)} value={company.bank_account_number} />
+              <Field label={bare(t.swift)} value={company.bank_swift} />
+              <T style={{ fontSize: 7, color: C.muted, marginTop: 4 }}>{t.wireRefNotice.replace("{invNum}", invoice.invoice_number)}</T>
+            </>
+          )}
+        </Card>
+      </Row>
+
+      <Table
+        columns={[
+          { key: "n", label: "#", flex: 0.4, align: "center" },
+          { key: "description", label: t.description, flex: 5 },
+          { key: "qty", label: t.qty, flex: 0.9, align: "center" },
+          { key: "unit", label: `${t.unitPrice}`, flex: 1.6, align: "end" },
+          { key: "total", label: t.total, flex: 1.7, align: "end" },
+        ]}
+        rows={items}
+      />
+
+      <Row style={{ justifyContent: "space-between", alignItems: "flex-start", gap: 16 }} wrap={false}>
+        <View style={{ flex: 1 }}>
+          {isQuote ? (
+            quotationTerms ? (
+              <>
+                <T style={{ fontSize: 8, fontWeight: "bold", color: C.primary, marginBottom: 3 }}>{d.terms}</T>
+                <T style={{ fontSize: 7.5, color: C.body, lineHeight: 1.55 }}>{quotationTerms}</T>
+              </>
+            ) : null
+          ) : (
+            <T style={{ fontSize: 7.5, color: C.body, lineHeight: 1.55 }}>
+              {t.termsNotice.replace("{days}", String(company.payment_terms_days)).replace("{date}", fmtDate(invoice.due_date, isAr))}
+            </T>
+          )}
+          <T style={{ fontSize: 7.5, color: C.muted, marginTop: 6 }}>{t.thankYou.replace("{companyName}", companyName).replace(/\.\.$/, ".")}</T>
+          {notes ? (
+            <T style={{ fontSize: 7.5, color: C.ink, marginTop: 6, lineHeight: 1.55 }}>
+              {d.note}: {notes}
+            </T>
+          ) : null}
         </View>
+        <Totals lines={totals} />
+      </Row>
 
-        {/* Client & Metadata Grid */}
-        <View style={pdfStyles.metaGrid}>
-          <View style={pdfStyles.metaCard}>
-            <Text style={pdfStyles.metaLabel}>{labels.billedTo}</Text>
-            <Text style={pdfStyles.metaValue}>
-              {clientCompany || clientName}
-            </Text>
-            {clientCompany && clientName && clientCompany !== clientName ? (
-              <Text style={pdfStyles.metaSub}>Attn: {clientName}</Text>
-            ) : null}
-            {clientEmail ? (
-              <Text style={pdfStyles.metaSub}>{clientEmail}</Text>
-            ) : null}
-            {clientPhone ? (
-              <Text style={pdfStyles.metaSub}>{clientPhone}</Text>
-            ) : null}
-            {clientAddress ? (
-              <Text style={pdfStyles.metaSub}>{clientAddress}</Text>
-            ) : null}
-            {clientVat ? (
-              <Text style={[pdfStyles.metaSub, { fontWeight: "bold" }]}>
-                VAT: {clientVat}
-              </Text>
-            ) : null}
-          </View>
+      <Row style={{ justifyContent: "space-between", alignItems: "flex-end", marginTop: 16 }} wrap={false}>
+        <ClientAcceptanceBlock acceptance={acceptance} documentKind={isQuote ? "quotation" : "invoice"} />
+        <CompanySignatureBlock brand={brand} signing={signing} pending={t.awaitingSignature} label={t.authorizedSignatory} />
+      </Row>
 
-          <View style={pdfStyles.metaCard}>
-            <Text style={pdfStyles.metaLabel}>{labels.invoiceDetails}</Text>
-            <Text style={pdfStyles.metaSub}>
-              {labels.issueDate}: {formatDate(invoice.issue_date)}
-            </Text>
-            <Text style={pdfStyles.metaSub}>
-              {labels.dueDate}: {formatDate(invoice.due_date)}
-            </Text>
-            {!isQuote && (
-              <Text style={pdfStyles.metaSub}>
-                {labels.status}:{" "}
-                {(invoice.status || "draft").replace("_", " ").toUpperCase()}
-              </Text>
-            )}
-            <Text style={pdfStyles.metaSub}>
-              {labels.currencyLabel}: {currency}
-            </Text>
-          </View>
-        </View>
 
-        {/* Line Items Table */}
-        <View style={pdfStyles.table}>
-          <View style={pdfStyles.tableHeader}>
-            <Text style={pdfStyles.colDesc}>{labels.description}</Text>
-            <Text style={pdfStyles.colQty}>{labels.qty}</Text>
-            <Text style={pdfStyles.colUnitPrice}>{labels.unitPrice}</Text>
-            <Text style={pdfStyles.colTotal}>{labels.total}</Text>
-          </View>
+    </>
+  );
+}
 
-          {lineItems.map((item, index) => (
-            <View
-              key={item.id || index}
-              style={[
-                pdfStyles.tableRow,
-                index % 2 === 1 ? pdfStyles.tableRowAlt : {},
-              ]}
-            >
-              <View style={pdfStyles.colDesc}>
-                <Text style={{ fontWeight: "bold" }}>
-                  {isAr
-                    ? item.description_ar || item.description_en
-                    : item.description_en || item.description_ar}
-                </Text>
-              </View>
-              <Text style={pdfStyles.colQty}>{item.quantity}</Text>
-              <Text style={pdfStyles.colUnitPrice}>
-                {formatAmount(item.unit_price, decimals)}
-              </Text>
-              <Text style={pdfStyles.colTotal}>
-                {formatAmount(item.line_total, decimals)}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Bank & Totals Block */}
-        <View style={pdfStyles.totalsContainer}>
-          <View style={pdfStyles.bankBlock}>
-            <Text style={pdfStyles.metaLabel}>{labels.bankDetails}</Text>
-            <Text style={pdfStyles.metaSub}>
-              {labels.bankName} {company.bank_name}
-            </Text>
-            <Text style={pdfStyles.metaSub}>
-              {labels.iban} {company.bank_iban}
-            </Text>
-            <Text style={pdfStyles.metaSub}>
-              {labels.accountNo} {company.bank_account_number}
-            </Text>
-            <Text style={pdfStyles.metaSub}>
-              {labels.swift} {company.bank_swift}
-            </Text>
-
-            {/* Terms and notes */}
-            <View
-              style={{
-                marginTop: 8,
-                paddingTop: 6,
-                borderTopWidth: 1,
-                borderTopColor: "#E5E7EB",
-              }}
-            >
-              {isQuote ? (
-                quotationTerms ? (
-                  <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.4 }}>{quotationTerms}</Text>
-                ) : null
-              ) : (
-                <>
-                  <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.3 }}>
-                    {labels.terms}
-                  </Text>
-                  <Text style={{ fontSize: 7, color: "#4B5563", lineHeight: 1.3 }}>
-                    {labels.wireRef}
-                  </Text>
-                </>
-              )}
-              {invoice.notes_en ? (
-                <Text
-                  style={{
-                    fontSize: 7,
-                    color: "#111827",
-                    marginTop: 2,
-                    fontWeight: "bold",
-                  }}
-                >
-                  Note: {invoice.notes_en}
-                </Text>
-              ) : null}
-              {invoice.notes_ar ? (
-                <Text style={{ fontSize: 7, color: "#111827", marginTop: 1 }}>
-                  {invoice.notes_ar}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-
-          <View style={pdfStyles.totalsBlock}>
-            <View style={pdfStyles.totalRow}>
-              <Text>{labels.subtotal}</Text>
-              <Text>
-                {currency} {formatAmount(invoice.subtotal, decimals)}
-              </Text>
-            </View>
-
-            {invoice.discount_amount > 0 && (
-              <View style={pdfStyles.totalRow}>
-                <Text>{labels.discount}</Text>
-                <Text style={{ color: "#DC2626" }}>
-                  - {currency} {formatAmount(invoice.discount_amount, decimals)}
-                </Text>
-              </View>
-            )}
-
-            {isVatActive && (
-              <View style={pdfStyles.totalRow}>
-                <Text>{labels.vat}</Text>
-                <Text>
-                  {currency} {formatAmount(invoice.vat_amount, decimals)}
-                </Text>
-              </View>
-            )}
-
-            <View style={pdfStyles.totalRowFinal}>
-              <Text>{labels.totalFinal}</Text>
-              <Text>
-                {currency} {formatAmount(invoice.total_amount, decimals)}
-              </Text>
-            </View>
-
-            {!isQuote && invoice.amount_paid > 0 && (
-              <View style={pdfStyles.paidRow}>
-                <Text>{labels.amountPaid}</Text>
-                <Text>
-                  {currency} {formatAmount(invoice.amount_paid, decimals)}
-                </Text>
-              </View>
-            )}
-
-            {!isQuote && (
-              <View style={pdfStyles.dueRow}>
-                <Text>{labels.balanceDue}</Text>
-                <Text>
-                  {currency} {formatAmount(invoice.amount_due, decimals)}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Signature Authorization Block: stamp and signature only once approved and signed */}
-        <PdfSigningBlock
-          company={company}
-          signing={signing}
-          isAr={isAr}
-          issuedByLabel={labels.issuedBy}
-          signatoryLabel={labels.authorizedSignatory}
-          unsignedLabel={t.awaitingSignature}
-          signedOnLabel={t.signedOn}
-        />
-
-        {/* Footer */}
-        <View style={pdfStyles.footer} fixed>
-          <Text>{labels.thankYou}</Text>
-          <Text>
-            {company.website}
-            {` • ${company.email}`}
-            {` • ${company.phone}`}
-          </Text>
-        </View>
-      </Page>
+function InvoicePDF(props: InvoicePDFProps) {
+  const isAr = props.invoice.language === "ar";
+  const company = props.brand.company;
+  const k = docKit(isAr ? "ar" : "en");
+  return (
+    <Document
+      title={`${props.invoice.invoice_number} · ${isAr ? company.company_name_ar : company.company_name_en}`}
+      author={company.company_name_en}
+      language={isAr ? "ar" : "en"}
+    >
+        <Page size="A4" style={pageStyle}>
+          <Letterhead brand={props.brand} />
+          <InvoiceBody k={k} {...props} />
+          <k.Footer brand={props.brand} reference={props.invoice.invoice_number} />
+        </Page>
     </Document>
   );
 }

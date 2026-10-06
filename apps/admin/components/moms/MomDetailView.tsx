@@ -3,6 +3,7 @@
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import type {
   CompanySettings,
@@ -20,6 +21,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Printer,
+  Download,
   Share2,
   Mail,
   CheckCircle2,
@@ -33,6 +35,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { momPdfUrl, printPdfUrl } from "../../lib/pdf-print";
 import { usePermissions } from "../../hooks/usePermissions";
 import {
   approveAndSignMomAction,
@@ -57,7 +60,7 @@ export function MomDetailView({
   currentUser,
 }: MomDetailViewProps) {
   const router = useRouter();
-  const { t, isRTL } = useAdminLocale();
+  const { t, isRTL, locale } = useAdminLocale();
   const { can } = usePermissions();
   const [isApproving, setIsApproving] = React.useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
@@ -95,8 +98,16 @@ export function MomDetailView({
     .filter(Boolean)
     .join(" • ");
 
-  const handlePrint = () => {
-    window.print();
+  const [printing, setPrinting] = React.useState(false);
+  const handlePrint = async () => {
+    setPrinting(true);
+    try {
+      await printPdfUrl(momPdfUrl(mom.id, locale));
+    } catch {
+      toast.error(t.pdfActions.failed);
+    } finally {
+      setPrinting(false);
+    }
   };
 
   const handleShareWhatsApp = () => {
@@ -242,11 +253,21 @@ export function MomDetailView({
             variant="outline"
             size="sm"
             onClick={handlePrint}
+            disabled={printing}
             className="gap-1.5 border-slate-300 dark:border-white/20 text-slate-700 dark:text-slate-200"
           >
             <Printer className="w-4 h-4" />
-            <span>{isAr ? "طباعة / PDF" : "Print / PDF"}</span>
+            <span>{printing ? t.pdfActions.preparing : t.pdfActions.print}</span>
           </Button>
+          {can("moms", "export") && (
+            <a
+              href={momPdfUrl(mom.id, locale, true)}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-white/20 dark:text-slate-200 dark:hover:bg-white/5"
+            >
+              <Download className="w-4 h-4" />
+              <span>{t.pdfActions.download}</span>
+            </a>
+          )}
 
           <Button
             variant="outline"

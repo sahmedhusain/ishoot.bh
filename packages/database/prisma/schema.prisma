@@ -97,6 +97,7 @@ model User {
   socialPlansCreated         SocialContentPlan[]    @relation("SocialPlanCreator")
   accountChanges             AccountChangeRequest[] @relation("AccountChangeTarget")
   accountChangesFiled        AccountChangeRequest[] @relation("AccountChangeRequester")
+  clientSignaturesCreated    ClientSignature[]      @relation("ClientSignatureCreator")
 
   @@index([role])
 }
@@ -1902,5 +1903,43 @@ model SignatureChange {
   createdAt    DateTime  @default(now())
 
   @@index([userId, createdAt])
+  @@index([status])
+}
+
+/// A client's acceptance of a quotation or invoice: signed online through a time-limited link, or a
+/// signed copy uploaded by staff. The token is stored only as a SHA-256 hash.
+model ClientSignature {
+  id              String    @id @default(uuid())
+  /// quotation | invoice
+  documentType    String
+  documentId      String
+  /// link | upload
+  method          String
+  /// pending (link not used yet) | signed | revoked | expired
+  status          String    @default("pending")
+  tokenHash       String?   @unique
+  expiresAt       DateTime?
+  recipientEmail  String?
+  signerName      String?
+  signerTitle     String?
+  /// The drawn signature as a PNG data URL (signed online).
+  signatureData   String?
+  /// The uploaded signed copy (private file).
+  signedFileUrl   String?
+  /// The terms shown to the client when they accepted.
+  termsText       String?
+  termsAccepted   Boolean   @default(false)
+  /// Fingerprint of the document's number, total and lines at the moment it was signed.
+  documentHash    String?
+  signedIp        String?
+  signedUserAgent String?
+  signedAt        DateTime?
+  viewedAt        DateTime?
+  revokedAt       DateTime?
+  createdById     String
+  createdBy       User      @relation("ClientSignatureCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt       DateTime  @default(now())
+
+  @@index([documentType, documentId])
   @@index([status])
 }

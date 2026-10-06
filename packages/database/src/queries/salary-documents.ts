@@ -8,7 +8,7 @@ export async function salaryDocumentSnapshot(
 ) {
   const employee = await db.employee.findUniqueOrThrow({
     where: { id: employeeId },
-    include: { employmentRecords: { where: { isCurrent: true }, take: 1 } },
+    include: { employmentRecords: { where: { isCurrent: true }, take: 1 }, department: { select: { nameEn: true, nameAr: true } } },
   });
   const identity = {
     employeeNumber: employee.employeeNumber,
@@ -19,6 +19,8 @@ export async function salaryDocumentSnapshot(
     jobTitleEn: employee.jobTitleEn,
     jobTitleAr: employee.jobTitleAr,
     hireDate: employee.hireDate.toISOString(),
+    departmentEn: employee.department?.nameEn ?? null,
+    departmentAr: employee.department?.nameAr ?? null,
   };
   if (kind === "salary_certificate") {
     const record = employee.employmentRecords[0];
@@ -39,7 +41,7 @@ export async function salaryDocumentSnapshot(
       },
     },
     include: {
-      payrollRun: { select: { month: true, year: true, status: true } },
+      payrollRun: { select: { month: true, year: true, status: true, periodStart: true, periodEnd: true, attendanceStart: true, attendanceEnd: true, payDate: true } },
     },
     orderBy: { payrollRun: { periodStart: "asc" } },
   });
