@@ -3,7 +3,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "../..");
 const constantsDir = path.join(root, "packages/database/src/constants") + path.sep;
 const constantsDirs = [constantsDir, path.join(root, "apps/admin/constants") + path.sep];
-const pureFiles = [path.join(root, "packages/database/src/finance/money")];
+const pureFiles = [path.join(root, "packages/database/src/finance/money"), path.join(root, "packages/database/src/hr/payroll-engine")];
 let registered = false;
 
 function realConstants(fromFile, id) {

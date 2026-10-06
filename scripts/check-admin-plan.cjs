@@ -76,6 +76,9 @@ async function runTests() {
   const leaveEndDate = new Date("2026-10-20T23:59:59.999Z");
 
   const leaveQueries = loadTs("packages/database/src/queries/leave.ts", {
+    // Leave rules and balances are not used by the availability checks below.
+    "./hr-settings": { getHrPolicy: async () => ({}), holidaySet: async () => new Set(), listLeaveTypeRules: async () => [], toLeaveTypeRules: (row) => row },
+    "./leave-balances": { getLeaveBalance: async () => ({}), refreshLeaveBalanceCache: async () => {} },
     "../db": {
       db: {
         user: { findUnique: async ({ where }) => ({ id: where.id, role: where.id === "super-admin" ? "super_admin" : "producer" }) },

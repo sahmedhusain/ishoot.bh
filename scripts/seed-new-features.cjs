@@ -276,6 +276,7 @@ async function main() {
         startDate: new Date("2026-10-01"),
         endDate: new Date("2026-10-07"),
         fullDay: true,
+        days: 5, // working days 1–7 October 2026 with a Friday/Saturday weekend
         status: "approved",
         reason: "Annual vacation & rest after international commercial film project.",
         approvedById: productionManager?.id || superAdmin?.id,

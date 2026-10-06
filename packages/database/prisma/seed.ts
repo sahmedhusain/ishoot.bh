@@ -10,6 +10,7 @@ import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { defaultWebsiteConfig } from "../src/website-config";
+import { workingDaysBetween } from "../src/hr/payroll-engine";
 import { ALL_ACTIONS, ALL_RESOURCES, ALL_ROLES, isDefaultAllowed } from "../src/constants/permissions";
 import { collectWebsiteDraft } from "../src/queries/website";
 import { calculateInvoiceTotals } from "../src/types";
@@ -3338,6 +3339,8 @@ async function main() {
         startDate: new Date("2026-10-01"),
         endDate: new Date("2026-10-07"),
         fullDay: true,
+        // Working days charged (Friday/Saturday weekend).
+        days: workingDaysBetween(new Date("2026-10-01"), new Date("2026-10-07"), { weekendDays: [5, 6] }, new Set()),
         status: "approved",
         reason: "Annual vacation & rest after international commercial film project.",
         approvedById: createdUsers.production_manager?.id || createdUsers.super_admin?.id,

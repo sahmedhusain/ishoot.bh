@@ -392,11 +392,13 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
       bump("salesCreditChanges");
     }
     const currentMonth = iso(TODAY).slice(0, 7);
+    // Staff on payroll are paid their commission with their salary; only others get a separate payout.
+    const onPayroll = new Set((await prisma.employee.findMany({ where: { userId: { not: null }, status: { not: "terminated" } }, select: { userId: true } })).map((e) => e.userId));
     for (let back = 6; back >= 1; back--) {
       const month = iso(new Date(Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() - back, 1))).slice(0, 7);
       if (month >= currentMonth) continue;
       for (const row of await getCommissionStatement(month)) {
-        if (row.commission > 0 && (back > 1 || chance(0.5))) {
+        if (row.commission > 0 && !onPayroll.has(row.userId) && (back > 1 || chance(0.5))) {
           await recordCommissionPayout(row.userId, month, finance.id);
           bump("commissionPayouts");
         }

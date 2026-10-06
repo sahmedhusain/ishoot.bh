@@ -83,9 +83,11 @@ const RULES: Rule[] = [
     sql: `SELECT "quotationNumber" FROM "Quotation" WHERE status IN ('issued','accepted','rejected','expired','converted') AND "signedAt" IS NULL
       UNION ALL SELECT "invoiceNumber" FROM "Invoice" WHERE status NOT IN ('draft','void') AND ("signedAt" IS NULL OR "approvalStatus" <> 'approved')
       UNION ALL SELECT "invoiceNumber" FROM "Invoice" WHERE "signedAt" IS NOT NULL AND "approvalStatus" <> 'approved'` },
-  { area: "sales", name: "commission payouts booked a matching expense",
+  { area: "sales", name: "commission payouts booked a matching expense (or were paid with the salary)",
     sql: `SELECT p.id FROM "CommissionPayout" p LEFT JOIN "Expense" e ON e.id = p."expenseId"
-      WHERE e.id IS NULL OR e.amount <> p.amount OR e.status <> 'approved' OR p.amount <> ROUND(p."basisAmount" * p."ratePercent" / 100, 3)` },
+      WHERE (p."payrollItemId" IS NULL AND (e.id IS NULL OR e.amount <> p.amount OR e.status <> 'approved'))
+        OR (p."payrollItemId" IS NOT NULL AND p."expenseId" IS NOT NULL)
+        OR ABS(p.amount - ROUND(p."basisAmount" * p."ratePercent" / 100, 3)) > 0.001` },
   { area: "sales", name: "invoices are credited like their quotation unless reassigned",
     sql: `SELECT i."invoiceNumber" FROM "Invoice" i JOIN "Quotation" q ON q."invoiceId" = i.id
       WHERE i."salesOwnerId" IS DISTINCT FROM q."salesOwnerId"
