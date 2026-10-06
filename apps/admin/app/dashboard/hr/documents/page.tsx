@@ -23,7 +23,7 @@ export default async function SalaryDocumentsPage() {
     where: canManage
       ? {}
       : { OR: [{ employee: { userId: user.id } }, { id: { in: awaitingMe.map((a) => a.targetId) } }] },
-    include: { employee: { select: { firstNameEn: true, lastNameEn: true } } },
+    include: { employee: { select: { firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true } } },
     orderBy: { createdAt: "desc" },
     take: 100,
   });
@@ -45,6 +45,8 @@ export default async function SalaryDocumentsPage() {
         createdAt: item.createdAt.toISOString(),
         reviewNotes: item.reviewNotes,
         employeeName: `${item.employee.firstNameEn} ${item.employee.lastNameEn}`,
+        employeeNameAr: `${item.employee.firstNameAr} ${item.employee.lastNameAr}`,
+        languages: item.languages,
       }))}
     />
   );

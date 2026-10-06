@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyVat } from "../../hooks/useCompanyVat";
 import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import { ROUTES } from "../../constants/routes";
@@ -129,6 +130,12 @@ export function InvoiceEditFormView({
 
   const isLocked = invoice.status === "void";
 
+  // Drafts follow the company tax registry; an issued invoice keeps the taxes it was issued with.
+  const { taxes: registeredTaxes } = useCompanyVat();
+  const otherTaxes =
+    invoice.status === "draft"
+      ? registeredTaxes.filter((tax) => tax.invoices)
+      : (invoice.other_taxes ?? []).map((tax) => ({ ...tax, invoices: true, quotations: false }));
   const totals = calculateInvoiceTotals(
     lineItems,
     discountType,
@@ -136,6 +143,7 @@ export function InvoiceEditFormView({
     vatEnabled,
     vatPercentage,
     currency,
+    otherTaxes,
   );
 
   const handleLineItemChange = (
@@ -756,6 +764,17 @@ export function InvoiceEditFormView({
               </span>
             </div>
           )}
+
+          {otherTaxes.map((tax) => (
+            <div key={tax.code} className="flex items-center justify-between text-xs border-b border-slate-100 dark:border-white/10 pb-3">
+              <span className="text-slate-500 dark:text-slate-400">
+                {isRTL ? tax.name_ar : tax.name_en} ({tax.rate}%)
+              </span>
+              <span className=" font-bold text-accent">
+                +{(totals.taxes.find((x) => x.code === tax.code)?.amount ?? 0).toFixed(3)} {currency}
+              </span>
+            </div>
+          ))}
 
           <div className="flex items-center justify-between text-sm border-t-2 border-accent/40 pt-3">
             <span className="font-bold text-slate-900 dark:text-white">{t.invoiceEdit.totalAmount}</span>

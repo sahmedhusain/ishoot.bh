@@ -1,6 +1,7 @@
 import { Document, Page, View } from "@react-pdf/renderer";
 import type { Invoice } from "@ishoot/database/types";
 import {
+  currencyLabel,
   Letterhead,
   C,
   fmtDate,
@@ -12,6 +13,7 @@ import {
   type PdfBrand,
   docKit,
   type DocKit,
+  type TaxCertificateMark,
 } from "./kit";
 import { formatClientAddress } from "../client-address";
 
@@ -26,12 +28,14 @@ interface InvoicePDFProps {
   signing?: CompanySignature | null;
   /** The client's signature, once they sign online or a signed copy is uploaded. */
   acceptance?: ClientAcceptance | null;
+  /** QR codes to the certificates of the taxes on this document, printed centred at its end. */
+  certificates?: TaxCertificateMark[];
 }
 
 const bare = (label: string) => label.replace(/\s*[:：]\s*$/, "");
 
-function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, signing, acceptance }: InvoicePDFProps & { k: DocKit }) {
-  const { t: all, isAr, T, Row, Card, Field, Table, Totals, TitleBlock, ClientAcceptanceBlock, CompanySignatureBlock } = k;
+function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, signing, acceptance, certificates = [] }: InvoicePDFProps & { k: DocKit }) {
+  const { t: all, isAr, T, Row, Card, Field, Table, Totals, TitleBlock, ClientAcceptanceBlock, CompanySignatureBlock, ClosingRow } = k;
   const t = all.pdfInvoice;
   const d = all.pdfDocs;
   const company = brand.company;
@@ -65,6 +69,7 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
     { label: bare(t.subtotal), value: money(invoice.subtotal) },
     ...(invoice.discount_amount > 0 ? [{ label: bare(t.discount), value: `- ${money(invoice.discount_amount)}`, tone: "danger" as const }] : []),
     ...(isVatActive ? [{ label: `${bare(t.vat)} (${fmtNumber(Number(invoice.vat_percentage), Number(invoice.vat_percentage) % 1 ? 2 : 0)}%)`, value: money(invoice.vat_amount) }] : []),
+    ...(invoice.other_taxes ?? []).map((tax) => ({ label: `${isAr ? tax.name_ar : tax.name_en} (${fmtNumber(tax.rate, tax.rate % 1 ? 2 : 0)}%)`, value: money(tax.amount) })),
     { label: bare(isQuote ? t.quotationTotal : t.totalAmount), value: money(invoice.total_amount), tone: "final" as const },
     ...(!isQuote && invoice.amount_paid > 0 ? [{ label: bare(t.amountPaid), value: money(invoice.amount_paid), tone: "success" as const }] : []),
     ...(!isQuote && invoice.amount_paid > 0 ? [{ label: bare(t.balanceDue), value: money(invoice.amount_due), tone: invoice.amount_due > 0 ? ("danger" as const) : ("muted" as const) }] : []),
@@ -89,7 +94,7 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
         <Card label={isQuote ? t.quotationDetails : t.bankDetails}>
           {isQuote ? (
             <>
-              <Field label={bare(t.currency)} value={currency} />
+              <Field label={bare(t.currency)} value={currencyLabel(currency, isAr)} />
               <Field label={t.validUntil} value={fmtDate(invoice.due_date, isAr)} />
               <Field label={d.issuedOn} value={fmtDate(invoice.issue_date, isAr)} />
             </>
@@ -140,11 +145,11 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
         <Totals lines={totals} />
       </Row>
 
-      <Row style={{ justifyContent: "space-between", alignItems: "flex-end", marginTop: 16 }} wrap={false}>
-        <ClientAcceptanceBlock acceptance={acceptance} documentKind={isQuote ? "quotation" : "invoice"} />
-        <CompanySignatureBlock brand={brand} signing={signing} pending={t.awaitingSignature} label={t.authorizedSignatory} />
-      </Row>
-
+      <ClosingRow
+        certificates={certificates}
+        start={<ClientAcceptanceBlock acceptance={acceptance} documentKind={isQuote ? "quotation" : "invoice"} width={certificates.length === 1 ? 196 : 230} />}
+        end={<CompanySignatureBlock brand={brand} signing={signing} pending={t.awaitingSignature} label={t.authorizedSignatory} />}
+      />
 
     </>
   );

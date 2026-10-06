@@ -1,5 +1,5 @@
 "use server";
-import { headers } from "next/headers";
+import { publicOrigin } from "../../lib/public-origin";
 import { revalidatePath } from "next/cache";
 import {
   measureOperation,
@@ -21,14 +21,6 @@ function revalidateDocument(type: ClientSignableType, id: string) {
   if (type === "invoice") revalidatePath("/dashboard/invoices/[id]", "page");
 }
 
-/** Where clients open the link: the configured admin address, else the address staff are using now. */
-async function publicOrigin() {
-  if (process.env.ADMIN_APP_URL) return process.env.ADMIN_APP_URL.replace(/\/$/, "");
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3001";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}`;
-}
 
 /** Creates a one-time signing link for the client. The raw link is returned once and never stored. */
 export async function createSigningLinkAction(type: ClientSignableType, id: string, days: number, recipientEmail?: string | null) {

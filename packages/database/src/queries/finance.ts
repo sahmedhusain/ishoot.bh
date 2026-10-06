@@ -69,9 +69,9 @@ export async function getMonthlyCashflow(
     ), months AS (
       SELECT generate_series(last_month - (${monthsCount} - 1) * INTERVAL '1 month', last_month, INTERVAL '1 month') AS month FROM bounds
     ), revenue AS (
-      -- Same definitions as the financial report: receipts net of the VAT they carry (allocated pro rata)...
+      -- Same definitions as the financial report: receipts net of the VAT and other taxes they carry (allocated pro rata)...
       SELECT date_trunc('month', p."paymentDate") AS month,
-        SUM(p.amount - CASE WHEN i."totalAmount" > 0 THEN ROUND(i."vatAmount" * p.amount / i."totalAmount", 3) ELSE 0 END) AS amount
+        SUM(p.amount - CASE WHEN i."totalAmount" > 0 THEN ROUND((i."vatAmount" + i."otherTaxAmount") * p.amount / i."totalAmount", 3) ELSE 0 END) AS amount
       FROM "Payment" p JOIN "Invoice" i ON i.id = p."invoiceId"
       WHERE p.currency = 'BHD' AND i.status <> 'void'
         AND p."paymentDate" >= (SELECT MIN(month) FROM months)

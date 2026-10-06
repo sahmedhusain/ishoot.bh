@@ -11,6 +11,8 @@ export interface SalaryDocumentRecord {
   employeeId: string;
   kind: string;
   months: unknown;
+  /** Languages the employee asked for ("ar", "en"). */
+  languages: string[];
   status: string;
   snapshot: unknown;
   requestedById: string;

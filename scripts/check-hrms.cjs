@@ -61,20 +61,23 @@ async function main() {
     '../../lib/salary-documents': { canManageSalaryDocuments: async () => manager, availablePayslipMonths: async () => ['2026-02', '2026-01'] },
     'next/cache': { revalidatePath: () => {} }, '../../lib/pdf/salary-document-pdf': {},
   });
-  await actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-02','2026-01','2026-02'] });
+  await actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-02','2026-01','2026-02'], languages: ['en', 'ar', 'en'] });
   assert.equal(creates[0].status, 'pending');
+  assert.equal(JSON.stringify(creates[0].languages), '["ar","en"]', 'both languages, each once, in a fixed order');
+  await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-01'], languages: [] }), /document language/);
   assert.equal(JSON.stringify(creates[0].months), '["2026-01","2026-02"]');
   assert.equal(creates[0].snapshot, undefined);
   assert.equal(submissions[0].targetType, 'salary_document');
   assert.equal(submissions[0].requesterId, 'employee-user', 'the employee is the requester so they cannot approve it');
-  await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2025-12'] }), /not approved yet/);
+  await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2025-12'], languages: ['ar'] }), /not approved yet/);
   actor = { id: 'other-user', role: 'producer' };
-  await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'salary_certificate', months: [] }), /only request your own/);
+  await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'salary_certificate', months: [], languages: ['ar'] }), /only request your own/);
   actor = { id: 'employee-user', role: 'producer' };
-  await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-13'] }), /valid months/);
+  await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-13'], languages: ['en'] }), /valid months/);
   // HR filing on an employee's behalf still routes the approval to someone other than that employee.
   actor = { id: 'super-user', role: 'super_admin' }; manager = true;
-  await actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'salary_certificate', months: [] });
+  await actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'salary_certificate', months: [], languages: ['en'] });
+  assert.equal(JSON.stringify(creates[1].languages), '["en"]');
   assert.equal(creates[1].status, 'pending', 'no role bypasses the salary document approval policy');
   assert.equal(submissions[1].requesterId, 'employee-user');
   const { sendWhatsAppDocument } = load('apps/admin/lib/whatsapp-document.ts');

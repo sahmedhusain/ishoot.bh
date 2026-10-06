@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyVat } from "../../hooks/useCompanyVat";
 import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
@@ -224,7 +225,13 @@ export function NewQuotationFormView({
   const vatAmount = vatEnabled
     ? Math.round(taxableAmount * (vatPercentage / 100) * 1000) / 1000
     : 0;
-  const totalAmount = Math.round((taxableAmount + vatAmount) * 1000) / 1000;
+  // Taxes besides VAT from the company registry, charged on the same amount (the server applies the same list).
+  const { taxes: registeredTaxes } = useCompanyVat();
+  const otherTaxes = registeredTaxes
+    .filter((tax) => tax.quotations)
+    .map((tax) => ({ ...tax, amount: Math.round(taxableAmount * (tax.rate / 100) * 1000) / 1000 }));
+  const otherTaxAmount = otherTaxes.reduce((sum, tax) => sum + tax.amount, 0);
+  const totalAmount = Math.round((taxableAmount + vatAmount + otherTaxAmount) * 1000) / 1000;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -714,6 +721,12 @@ export function NewQuotationFormView({
                   <span className="font-mono font-medium">+{vatAmount.toFixed(3)} {currency}</span>
                 </div>
               )}
+              {otherTaxes.map((tax) => (
+                <div key={tax.code} className="flex justify-between text-white/80">
+                  <span>{isRTL ? tax.name_ar : tax.name_en} ({tax.rate}%)</span>
+                  <span className="font-mono font-medium">+{tax.amount.toFixed(3)} {currency}</span>
+                </div>
+              ))}
             </div>
 
             <div className="flex items-baseline justify-between pt-1">

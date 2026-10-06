@@ -22,7 +22,7 @@ const totalsRule = (table: string, lineTable: string, fk: string) => `
   FROM "${table}" d LEFT JOIN lines l ON l.id = d.id
   WHERE l.s IS NULL
      OR d.subtotal <> l.s
-     OR d."totalAmount" <> d.subtotal - d."discountAmount" + d."vatAmount"
+     OR d."totalAmount" <> d.subtotal - d."discountAmount" + d."vatAmount" + d."otherTaxAmount"
      OR (d."vatEnabled" AND d."vatAmount" <> ROUND((d.subtotal - d."discountAmount") * d."vatPercentage" / 100, 3))
      OR (NOT d."vatEnabled" AND d."vatAmount" <> 0)
      OR (d."discountType" = 'none' AND d."discountAmount" <> 0)
@@ -33,6 +33,15 @@ const RULES: Rule[] = [
   { area: "finance", name: "invoice line total = quantity × unit price",
     sql: `SELECT id, "invoiceId" FROM "InvoiceLineItem" WHERE "lineTotal" <> ROUND(quantity * "unitPrice", 3)` },
   { area: "finance", name: "invoice subtotal/discount/VAT/total agree with its lines", sql: totalsRule("Invoice", "InvoiceLineItem", "invoiceId") },
+  { area: "finance", name: "other taxes on invoices and quotations add up to their stored total and follow the rate",
+    sql: `WITH docs AS (
+        SELECT 'invoice' kind, id, subtotal - "discountAmount" base, "otherTaxAmount" FROM "Invoice"
+        UNION ALL SELECT 'quotation', id, subtotal - "discountAmount", "otherTaxAmount" FROM "Quotation"),
+      taxes AS (SELECT COALESCE("invoiceId", "quotationId") id, SUM(amount) s,
+          BOOL_AND(ABS(amount - (SELECT base FROM docs WHERE docs.id = COALESCE(t."invoiceId", t."quotationId")) * "ratePercent" / 100) <= 0.005) rated
+        FROM "DocumentTax" t GROUP BY 1)
+      SELECT d.kind, d.id, d."otherTaxAmount", t.s FROM docs d LEFT JOIN taxes t ON t.id = d.id
+      WHERE d."otherTaxAmount" <> COALESCE(t.s, 0) OR t.rated = false` },
   { area: "finance", name: "invoice status matches the payments received",
     sql: `WITH p AS (SELECT "invoiceId" id, SUM(amount) paid FROM "Payment" GROUP BY 1)
       SELECT i."invoiceNumber", i.status, i."totalAmount", COALESCE(p.paid,0) paid FROM "Invoice" i LEFT JOIN p ON p.id = i.id

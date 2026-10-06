@@ -197,6 +197,9 @@ export function ClientSigningView({
                     {doc.vatEnabled && doc.vatAmount > 0 && (
                       <tr><td colSpan={2} className="px-3 pt-1 text-end text-slate-500">{s.vat} ({doc.vatPercentage}%)</td><td className="px-3 pt-1 text-end tabular-nums">{amount(doc.vatAmount)}</td></tr>
                     )}
+                    {doc.otherTaxes.map((tax) => (
+                      <tr key={tax.code}><td colSpan={2} className="px-3 pt-1 text-end text-slate-500">{language === "ar" ? tax.nameAr : tax.nameEn} ({tax.rate}%)</td><td className="px-3 pt-1 text-end tabular-nums">{amount(tax.amount)}</td></tr>
+                    ))}
                     <tr><td colSpan={2} className="px-3 pt-2 text-end font-bold text-[#014842]">{s.total}</td><td className="px-3 pt-2 text-end font-bold tabular-nums text-[#014842]">{money(doc.totalAmount)}</td></tr>
                   </tfoot>
                 </table>

@@ -97,6 +97,7 @@ export async function getFinancialSummaryReport(filters: {
           subtotal: true,
           totalAmount: true,
           vatAmount: true,
+          otherTaxAmount: true,
           vatEnabled: true,
         },
       },
@@ -116,8 +117,10 @@ export async function getFinancialSummaryReport(filters: {
       const invVat = Number(p.invoice.vatAmount);
       const ratio = amount / invTotal;
       const allocatedVat = Math.round(invVat * ratio * 1000) / 1000;
+      // Other taxes are collected for the government too, so they are not revenue either.
+      const allocatedOther = Math.round(Number(p.invoice.otherTaxAmount ?? 0) * ratio * 1000) / 1000;
       cashOutputVat += allocatedVat;
-      cashNetReceipts += Math.round((amount - allocatedVat) * 1000) / 1000;
+      cashNetReceipts += Math.round((amount - allocatedVat - allocatedOther) * 1000) / 1000;
     } else {
       cashNetReceipts += amount;
     }
@@ -299,6 +302,8 @@ export interface InvoiceRegisterRow {
   vatApplied: boolean;
   net: number;
   vat: number;
+  /** Taxes besides VAT. */
+  otherTaxes: number;
   gross: number;
   paid: number;
   due: number;
@@ -314,7 +319,7 @@ export interface FinancialReportDetail {
   revenueByClient: Array<{ clientId: string; name: string; net: number; invoices: number }>;
   dealProfitability: Array<{ dealId: string; title: string; revenueNet: number; costsNet: number; margin: number; marginPercent: number }>;
   claims: { paidCount: number; paidAmount: number; outstandingAmount: number };
-  vat: { output: number; inputRecoverable: number; inputNonRecoverable: number; netPayable: number; hasVatDocuments: boolean };
+  vat: { output: number; inputRecoverable: number; inputNonRecoverable: number; netPayable: number; hasVatDocuments: boolean; otherTaxes: number };
 }
 
 const monthKey = (d: Date) => d.toISOString().slice(0, 7);
@@ -335,7 +340,7 @@ export async function getFinancialReportDetail(filters: { dateFrom?: Date; dateT
       where: { status: { notIn: ["void", "draft"] }, ...(range && { issueDate: range }) },
       select: {
         id: true, invoiceNumber: true, issueDate: true, status: true, currency: true, subtotal: true, discountAmount: true,
-        vatAmount: true, vatEnabled: true, totalAmount: true, clientId: true, dealId: true,
+        vatAmount: true, otherTaxAmount: true, vatEnabled: true, totalAmount: true, clientId: true, dealId: true,
         client: { select: { firstName: true, lastName: true, companyName: true } },
         payments: { select: { amount: true } },
       },
@@ -348,7 +353,7 @@ export async function getFinancialReportDetail(filters: { dateFrom?: Date; dateT
     db.payrollRun.findMany({ where: { status: "paid", ...(range && { paidAt: range }) }, select: { totalEmployerCost: true, paidAt: true } }),
     db.payment.findMany({
       where: { currency: FUNCTIONAL_CURRENCY, invoice: { status: { not: "void" } }, ...(range && { paymentDate: range }) },
-      select: { amount: true, paymentDate: true, invoice: { select: { totalAmount: true, vatAmount: true } } },
+      select: { amount: true, paymentDate: true, invoice: { select: { totalAmount: true, vatAmount: true, otherTaxAmount: true } } },
     }),
     db.expenseClaim.aggregate({ where: { status: "paid", currency: FUNCTIONAL_CURRENCY, ...(range && { paidAt: range }) }, _sum: { amount: true }, _count: { _all: true } }),
     db.expenseClaim.aggregate({ where: { status: { in: ["approved", "scheduled"] }, currency: FUNCTIONAL_CURRENCY }, _sum: { amount: true } }),
@@ -369,6 +374,7 @@ export async function getFinancialReportDetail(filters: { dateFrom?: Date; dateT
       vatApplied: inv.vatEnabled && vat > 0,
       net: r3(Number(inv.subtotal) - Number(inv.discountAmount)),
       vat: r3(vat),
+      otherTaxes: r3(Number(inv.otherTaxAmount ?? 0)),
       gross: r3(gross),
       paid: r3(paid),
       due: r3(Math.max(0, gross - paid)),
@@ -424,17 +430,21 @@ export async function getFinancialReportDetail(filters: { dateFrom?: Date; dateT
 
   // Revenue per month on the selected basis, net of VAT.
   let outputVat = 0;
+  let otherTaxes = 0;
   if (basis === "cash") {
     for (const p of payments) {
       const amount = Number(p.amount);
       const total = Number(p.invoice?.totalAmount ?? 0);
       const vat = total > 0 ? (Number(p.invoice!.vatAmount) * amount) / total : 0;
+      const other = total > 0 ? (Number(p.invoice!.otherTaxAmount ?? 0) * amount) / total : 0;
       outputVat += vat;
-      month(monthKey(p.paymentDate)).revenueNet += amount - vat;
+      otherTaxes += other;
+      month(monthKey(p.paymentDate)).revenueNet += amount - vat - other;
     }
   } else {
     for (const inv of invoices) if (inv.currency === FUNCTIONAL_CURRENCY) {
       outputVat += inv.vat;
+      otherTaxes += inv.otherTaxes;
       month(inv.issueDate.slice(0, 7)).revenueNet += inv.net;
     }
   }
@@ -488,6 +498,7 @@ export async function getFinancialReportDetail(filters: { dateFrom?: Date; dateT
       inputRecoverable: r3(inputRecoverable),
       inputNonRecoverable: r3(inputNonRecoverable),
       netPayable: r3(outputVat - inputRecoverable),
+      otherTaxes: r3(otherTaxes),
       hasVatDocuments: invoices.some((i) => i.vatApplied) || inputRecoverable + inputNonRecoverable > 0,
     },
   };

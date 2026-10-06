@@ -568,8 +568,11 @@ export function calculateInvoiceTotals(
   vatEnabled: boolean,
   vatPercentage: number,
   currency: SupportedCurrency = "BHD",
+  /** Taxes besides VAT (company tax registry), each charged on the amount after discount. */
+  otherTaxes: Array<{ code: string; rate: number }> = [],
 ) {
   if (!CURRENCY_CONFIGS[currency]) throw new Error("Unsupported currency");
+  if (otherTaxes.some((tax) => !Number.isFinite(tax.rate) || tax.rate <= 0 || tax.rate > 100)) throw new Error("Invalid tax rate");
   if (!["none", "percentage", "fixed"].includes(discountType))
     throw new Error("Invalid discount type");
   if (
@@ -627,15 +630,29 @@ export function calculateInvoiceTotals(
       Math.round(((afterDiscount * vatPercentage) / 100) * factor) / factor;
   }
 
-  const totalAmount = Math.round((afterDiscount + vatAmount) * factor) / factor;
+  const taxes = otherTaxes.map((tax) => ({ code: tax.code, amount: Math.round(((afterDiscount * tax.rate) / 100) * factor) / factor }));
+  const otherTaxAmount = Math.round(taxes.reduce((sum, tax) => sum + tax.amount, 0) * factor) / factor;
+  const totalAmount = Math.round((afterDiscount + vatAmount + otherTaxAmount) * factor) / factor;
 
   return {
     subtotal,
     discountAmount,
     afterDiscount,
     vatAmount,
+    taxes,
+    otherTaxAmount,
     totalAmount,
   };
+}
+
+/** One tax besides VAT as frozen on a document. */
+export interface DocumentTaxLine {
+  code: string;
+  name_en: string;
+  name_ar: string;
+  rate: number;
+  registration_number?: string;
+  amount: number;
 }
 
 export interface Invoice {
@@ -655,6 +672,9 @@ export interface Invoice {
   vat_enabled: boolean;
   vat_percentage: number;
   vat_amount: number;
+  /** Taxes besides VAT on this invoice and their sum. */
+  other_taxes?: DocumentTaxLine[];
+  other_tax_amount?: number;
   total_amount: number;
   amount_paid: number;
   amount_due: number;
@@ -1014,6 +1034,8 @@ export interface Quotation {
   vatEnabled: boolean;
   vatPercentage: any;
   vatAmount: any;
+  otherTaxAmount?: number;
+  taxes?: DocumentTaxLine[];
   discountType: string;
   discountValue: any;
   discountAmount: any;

@@ -4,7 +4,7 @@ import { Topbar } from "../../components/layout/Topbar";
 import { SidebarProvider } from "../../components/layout/SidebarContext";
 import { getCachedCompanySettings, getCachedFeatureToggles } from "../../lib/cached-queries";
 import { getCurrentPermissions,requireAuth } from "../../lib/auth";
-import { db } from "@ishoot/database";
+import { db, getActiveTaxSummary } from "@ishoot/database";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
 import { CompanyVatProvider } from "../../hooks/useCompanyVat";
@@ -17,12 +17,13 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await requireAuth();
-  const [company, toggles, permissions, reports, headedDepartments] = await Promise.all([
+  const [company, toggles, permissions, reports, headedDepartments, taxes] = await Promise.all([
     getCachedCompanySettings(),
     getCachedFeatureToggles(),
     getCurrentPermissions(),
     db.user.count({ where: { managerId: user.id, isActive: true } }),
     db.department.count({ where: { managerId: user.id } }),
+    getActiveTaxSummary(),
   ]);
 
   return (
@@ -37,7 +38,7 @@ export default async function DashboardLayout({
       }}
     >
       <FeatureTogglesProvider initialFeatures={toggles}>
-        <CompanyVatProvider value={{ enabled: !!company.vat_enabled, rate: company.vat_enabled ? Number(company.vat_percentage ?? 10) : 0 }}>
+        <CompanyVatProvider value={{ enabled: !!company.vat_enabled, rate: company.vat_enabled ? Number(company.vat_percentage ?? 10) : 0, taxes }}>
         <SidebarProvider>
           <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#F4F8F7] text-slate-800 dark:bg-[#080E0D] dark:text-ink transition-colors duration-200">
             {/* Fixed Topbar spanning full width with Logo at start */}

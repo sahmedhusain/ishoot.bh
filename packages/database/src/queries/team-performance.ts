@@ -55,7 +55,7 @@ export async function getTeamPerformance(memberIds: string[], from: Date, to: Da
     }),
     db.payment.findMany({
       where: { paymentDate: range, currency: FUNCTIONAL_CURRENCY, invoice: { salesOwnerId: { in: memberIds }, status: { not: "void" } } },
-      select: { amount: true, invoice: { select: { salesOwnerId: true, totalAmount: true, vatAmount: true } } },
+      select: { amount: true, invoice: { select: { salesOwnerId: true, totalAmount: true, vatAmount: true, otherTaxAmount: true } } },
     }),
     db.inquiry.findMany({
       where: { assignedToId: { in: memberIds }, requestType: "SR", createdAt: { lte: to } },
@@ -83,7 +83,7 @@ export async function getTeamPerformance(memberIds: string[], from: Date, to: Da
         .reduce((sum, p) => {
           const total = Number(p.invoice!.totalAmount);
           const amount = Number(p.amount);
-          return sum + (total > 0 ? amount - (Number(p.invoice!.vatAmount) * amount) / total : amount);
+          return sum + (total > 0 ? amount - ((Number(p.invoice!.vatAmount) + Number(p.invoice!.otherTaxAmount ?? 0)) * amount) / total : amount);
         }, 0);
       const r = requests.filter((x) => x.assignedToId === u.id);
       const open = r.filter((x) => !["resolved", "rejected"].includes(x.workflowStatus));

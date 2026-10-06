@@ -6045,6 +6045,23 @@
               "kind": "string"
             },
             "optional": false
+          },
+          "languages": {
+            "kind": "array",
+            "element": {
+              "kind": "union",
+              "variants": [
+                {
+                  "kind": "literal",
+                  "value": "ar"
+                },
+                {
+                  "kind": "literal",
+                  "value": "en"
+                }
+              ]
+            },
+            "optional": false
           }
         },
         "optional": false
@@ -7121,6 +7138,66 @@
     }
   },
   "deleteSocialPlanAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveTaxRateAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "rate": {
+            "kind": "number",
+            "optional": false
+          },
+          "registration_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "certificate_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "certificate_valid_until": {
+            "kind": "string",
+            "optional": true
+          },
+          "applies_to_invoices": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "applies_to_quotations": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteTaxRateAction": {
     "kind": "object",
     "fields": {
       "id": {

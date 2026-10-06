@@ -3,6 +3,7 @@
 import type { Invoice,CompanySettings } from "@ishoot/database/types";
 import { formatCurrencyValue } from "@ishoot/ui";
 import { adminTranslations } from "../../lib/translations-bilingual";
+import { formatClientAddress } from "../../lib/client-address";
 import {
 DocumentLetterhead,
 DocumentFooter,
@@ -55,7 +56,7 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
           company: invoice.contact?.company,
           email: invoice.contact?.email,
           phone: invoice.contact?.phone,
-          address: invoice.contact?.address,
+          address: formatClientAddress(invoice.contact?.address_details, t.clients.addressParts, isAr ? "ar" : "en") || invoice.contact?.address,
           vatNumber: isVatActive ? invoice.contact?.vat_number : null,
         }}
       />
@@ -125,24 +126,13 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
           {/* Left Column: Terms & Conditions and Bank Coordinates */}
           <div className="space-y-4">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-accent mb-1.5 flex items-center justify-between">
-                <span>{adminTranslations.en.documentLetterhead.termsNotes}</span>
-                <span className="text-[10px] text-slate-500 font-arabic">{adminTranslations.ar.documentLetterhead.termsNotes}</span>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-accent mb-1.5">
+                {t.documentLetterhead.termsNotes}
               </h3>
               <div className="text-[11px] leading-relaxed text-slate-600 space-y-1.5 bg-slate-50 p-4 rounded-xl border border-slate-200 print:bg-white print:border-slate-300 print:text-[10px]">
-                {isAr ? (
-                  <>
-                    <p>1. يستحق السداد خلال <strong className="text-slate-800 font-semibold">{company.payment_terms_days || 30} يوماً</strong> من تاريخ الفاتورة ({invoice.due_date}).</p>
-                    <p>2. يجب ذكر رقم الفاتورة في التحويل البنكي: <strong className=" text-slate-900">{invoice.invoice_number}</strong>.</p>
-                    <p>3. تنتقل حقوق الملكية الفكرية والمواد الخام بعد سداد كامل الرصيد المستحق.</p>
-                  </>
-                ) : (
-                  <>
-                    <p>1. Payment is due within <strong className="text-slate-800 font-semibold">{company.payment_terms_days || 30} days</strong> from invoice date ({invoice.due_date}).</p>
-                    <p>2. Electronic wire payments must reference invoice number: <strong className=" text-slate-900">{invoice.invoice_number}</strong>.</p>
-                    <p>3. Raw footage and intellectual property rights transfer upon complete settlement of balance due.</p>
-                  </>
-                )}
+                <p>1. {inv.terms1.replace("{days}", String(company.payment_terms_days || 30)).replace("{date}", invoice.due_date)}</p>
+                <p>2. {inv.terms2.replace("{number}", invoice.invoice_number)}</p>
+                <p>3. {inv.terms3}</p>
                 {invoice.notes_en && (
                   <p className="pt-1.5 border-t border-slate-200/80 font-medium text-slate-800">
                     {invoice.notes_en}
@@ -198,6 +188,15 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
               </div>
             )}
 
+            {(invoice.other_taxes ?? []).map((tax) => (
+              <div key={tax.code} className="flex justify-between py-1.5 border-b border-slate-100 text-slate-600">
+                <span className="font-sans text-xs">
+                  {isAr ? tax.name_ar : tax.name_en} ({tax.rate}%):
+                </span>
+                <span>{formatCurrencyValue(tax.amount, currency, isAr)}</span>
+              </div>
+            ))}
+
             <div className="flex justify-between py-3 border-t-2 border-slate-900 text-base font-extrabold text-primary">
               <span className="font-sans">{inv.totalAmount}</span>
               <span>
@@ -225,6 +224,21 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
           </div>
         </div>
       </div>
+
+      {(isVatActive || (invoice.other_taxes ?? []).length > 0) && (
+        <div className="flex flex-wrap justify-center gap-6 px-8 pb-6 text-center text-[11px]">
+          {isVatActive && (
+            <a href={`/certificates/vat?lang=${invoice.language}`} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">
+              {t.taxCertificate.vatCertificate}
+            </a>
+          )}
+          {(invoice.other_taxes ?? []).map((tax) => (
+            <a key={tax.code} href={`/certificates/${tax.code}?lang=${invoice.language}`} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">
+              {t.taxCertificate.certificateOf.replace("{tax}", isAr ? tax.name_ar : tax.name_en)}
+            </a>
+          ))}
+        </div>
+      )}
 
       <DocumentFooter
         company={company}

@@ -1,4 +1,5 @@
 "use client";
+import { useCompanyVat } from "../../hooks/useCompanyVat";
 
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -247,6 +248,9 @@ export function NewInvoiceFormView({
     setLineItems((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Taxes besides VAT that the company registry adds to new invoices (the server applies the same list).
+  const { taxes: registeredTaxes } = useCompanyVat();
+  const otherTaxes = React.useMemo(() => registeredTaxes.filter((tax) => tax.invoices), [registeredTaxes]);
   const totals = React.useMemo(() => {
     return calculateInvoiceTotals(
       lineItems,
@@ -255,8 +259,9 @@ export function NewInvoiceFormView({
       vatEnabled,
       vatPercentage,
       currency,
+      otherTaxes,
     );
-  }, [lineItems, discountType, discountValue, vatEnabled, vatPercentage, currency]);
+  }, [lineItems, discountType, discountValue, vatEnabled, vatPercentage, currency, otherTaxes]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -727,6 +732,15 @@ export function NewInvoiceFormView({
                     </span>
                   </div>
                 )}
+
+                {otherTaxes.map((tax) => (
+                  <div key={tax.code} className="flex justify-between text-slate-600 dark:text-slate-400">
+                    <span>{isRTL ? tax.name_ar : tax.name_en} ({tax.rate}%)</span>
+                    <span className="font-mono font-medium">
+                      {(totals.taxes.find((x) => x.code === tax.code)?.amount ?? 0).toFixed(3)} {currency}
+                    </span>
+                  </div>
+                ))}
 
                 <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex justify-between text-base font-bold text-slate-900 dark:text-white">
                   <span>{t.finance.totalAmount}</span>

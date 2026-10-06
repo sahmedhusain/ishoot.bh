@@ -3,6 +3,7 @@ import type { AdminTranslations } from "../../lib/translations";
 
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
+import type { TaxRateRecord } from "@ishoot/database";
 import type { CompanyAssetItem } from "@ishoot/database";
 import { Button, useDialog } from "@ishoot/ui";
 import {
@@ -20,6 +21,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateCompanySettingsAction } from "../../app/actions/settings";
 import { SettingsNavTabs } from "./SettingsNavTabs";
 import { GeneralInfoTab } from "./company/GeneralInfoTab";
+import { CustomTaxesPanel } from "./company/CustomTaxesPanel";
 import { TaxVatSettingsTab } from "./company/TaxVatSettingsTab";
 import { BankCoordinatesTab } from "./company/BankCoordinatesTab";
 import { InvoiceReceiptSequencesTab } from "./company/InvoiceReceiptSequencesTab";
@@ -29,6 +31,8 @@ import { SalesDiscountsTab } from "./company/SalesDiscountsTab";
 interface CompanySettingsViewProps {
   initialSettings: CompanySettings;
   initialAssets?: CompanyAssetItem[];
+  taxes?: TaxRateRecord[];
+  canEditTaxes?: boolean;
 }
 
 interface ChangeDiff {
@@ -167,6 +171,8 @@ function calculateDiff(
 export function CompanySettingsView({
   initialSettings,
   initialAssets = [],
+  taxes = [],
+  canEditTaxes = false,
 }: CompanySettingsViewProps) {
   const { t, locale, isRTL } = useAdminLocale();
 
@@ -334,13 +340,16 @@ export function CompanySettingsView({
         )}
 
         {activeTab === "taxVat" && (
-          <TaxVatSettingsTab
-            settings={settings}
-            setSettings={setSettings}
-            t={t}
-            locale={locale}
-            isRTL={isRTL}
-          />
+          <>
+            <TaxVatSettingsTab
+              settings={settings}
+              setSettings={setSettings}
+              t={t}
+              locale={locale}
+              isRTL={isRTL}
+            />
+            <CustomTaxesPanel initialTaxes={taxes} canEdit={canEditTaxes} />
+          </>
         )}
 
         {activeTab === "banking" && (

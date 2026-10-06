@@ -114,14 +114,6 @@ export function DocumentLetterhead({
             <span>
               {t.crLabel} {company.cr_number}
             </span>
-            {company.vat_enabled && company.vat_id && (
-              <>
-                <span className="text-white/40">•</span>
-                <span>
-                  {t.vatIdLabel} {company.vat_id}
-                </span>
-              </>
-            )}
             <span className="text-white/40">•</span>
             <span>{t.countryBahrain}</span>
           </div>
@@ -170,12 +162,12 @@ export function DocumentLetterhead({
           </div>
 
           {client.company && client.name && client.company !== client.name && (
-            <div className="text-gray-600 font-medium">Attn: {client.name}</div>
+            <div className="text-gray-600 font-medium">{t.attention} {client.name}</div>
           )}
 
           {client.vatNumber && (
             <div className="text-gray-500  text-[11px]">
-              Client VAT: {client.vatNumber}
+              {t.clientVat} <bdi dir="ltr">{client.vatNumber}</bdi>
             </div>
           )}
 

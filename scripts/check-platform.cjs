@@ -166,6 +166,7 @@ async function main() {
       try {
         return await fn({
           $queryRaw: async () => [],
+          documentTax: { deleteMany: async () => {}, createMany: async () => {} },
           invoiceLineItem: {
             deleteMany: async () => {
               deleted = true;
@@ -197,7 +198,13 @@ async function main() {
     "../types": types,
     "./crm": { advanceDealForEvent: async () => false },
     // Drafts take the company VAT (5% here); issued invoices keep their own snapshot.
-    "../finance/vat": { companyVat: async () => ({ vatEnabled: true, vatPercentage: 5 }) },
+    "../finance/vat": {
+      companyVat: async () => ({ vatEnabled: true, vatPercentage: 5 }),
+      companyTaxes: async () => [],
+      frozenTaxes: () => [],
+      documentTaxRows: () => [],
+      mapDocumentTaxLines: () => [],
+    },
     "./sales-attribution": { resolveSalesOwner: async (requested, issuer) => requested || issuer || null },
   });
   await assert.rejects(invoices.updateInvoice("i", { line_items: [{ quantity: 1, unit_price: 100, description_en: "Shoot" }] }), /simulated update failure/);
@@ -212,6 +219,7 @@ async function main() {
     payments: [],
   };
   const payments = load("packages/database/src/queries/payments.ts", {
+    "../finance/vat": { mapDocumentTaxLines: () => [] },
     "../db": {
       db: {
         $transaction: async (fn) =>

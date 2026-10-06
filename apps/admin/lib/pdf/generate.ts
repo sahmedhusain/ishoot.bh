@@ -4,10 +4,44 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoicePdfDocument } from "./invoice-pdf";
 import { ReceiptPdfDocument } from "./receipt-pdf";
 import type { Invoice, Payment, CompanySettings, Quotation } from "@ishoot/database/types";
-import { db, getClientAcceptance, mapContact, type ClientSignableType } from "@ishoot/database";
+import QRCode from "qrcode";
+import { db, getClientAcceptance, getTaxCertificate, mapContact, type ClientSignableType } from "@ishoot/database";
+import type { DocumentTaxLine } from "@ishoot/database/types";
+import { getTranslations } from "@ishoot/locales";
+import { publicOrigin } from "../public-origin";
 import { getSigningState, type SignableDocument } from "@ishoot/database/queries/document-signing";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
-import { resolvePdfBrand, type ClientAcceptance, type CompanySignature } from "./kit";
+import { resolvePdfBrand, type ClientAcceptance, type CompanySignature, type TaxCertificateMark } from "./kit";
+
+/**
+ * One QR code per tax on the document (VAT and any other tax), linking to the public certificate page
+ * in the document language. A registration without an uploaded certificate prints its number only.
+ */
+async function pdfTaxCertificates(
+  doc: { vat_enabled?: boolean; vat_amount?: number | string; other_taxes?: DocumentTaxLine[] },
+  language: string | null | undefined,
+): Promise<TaxCertificateMark[]> {
+  const lang = language === "en" ? "en" : "ar";
+  const c = getTranslations(lang).admin.taxCertificate;
+  const origin = await publicOrigin();
+  const qr = (code: string) =>
+    QRCode.toBuffer(`${origin}/certificates/${code}?lang=${lang}`, { errorCorrectionLevel: "M", margin: 1, width: 280, color: { dark: "#111827", light: "#FFFFFF" } });
+  const marks: TaxCertificateMark[] = [];
+  if (doc.vat_enabled && Number(doc.vat_amount) > 0) {
+    const vat = await getTaxCertificate("vat");
+    if (vat) marks.push({ qr: vat.certificateUrl ? await qr("vat") : undefined, title: c.vatCertificate, registration: vat.registrationNumber ? c.registrationLine.replace("{number}", vat.registrationNumber) : null });
+  }
+  for (const tax of doc.other_taxes ?? []) {
+    const certificate = await getTaxCertificate(tax.code);
+    const name = lang === "ar" ? tax.name_ar : tax.name_en;
+    marks.push({
+      qr: certificate?.certificateUrl ? await qr(tax.code) : undefined,
+      title: c.certificateOf.replace("{tax}", name),
+      registration: tax.registration_number ? c.registrationLine.replace("{number}", tax.registration_number) : null,
+    });
+  }
+  return marks;
+}
 
 /** Company signature for a signed document; null until it is approved and signed. Names follow the document language. */
 async function pdfSigning(type: SignableDocument, id: string, language: string | null | undefined): Promise<CompanySignature | null> {
@@ -41,14 +75,23 @@ async function pdfAcceptance(type: ClientSignableType, id: string): Promise<Clie
 }
 
 export async function generateInvoicePdfBuffer(invoice: Invoice, company: CompanySettings): Promise<Buffer> {
-  const [brand, signing, acceptance] = await Promise.all([resolvePdfBrand(company), pdfSigning("invoice", invoice.id, invoice.language), pdfAcceptance("invoice", invoice.id)]);
-  const element = React.createElement(InvoicePdfDocument, { invoice, brand, signing, acceptance });
+  const [brand, signing, acceptance, certificates] = await Promise.all([
+    resolvePdfBrand(company),
+    pdfSigning("invoice", invoice.id, invoice.language),
+    pdfAcceptance("invoice", invoice.id),
+    pdfTaxCertificates(invoice, invoice.language),
+  ]);
+  const element = React.createElement(InvoicePdfDocument, { invoice, brand, signing, acceptance, certificates });
   return (await renderToBuffer(element as never)) as Buffer;
 }
 
 export async function generateReceiptPdfBuffer(payment: Payment, company: CompanySettings): Promise<Buffer> {
-  const [brand, signing] = await Promise.all([resolvePdfBrand(company), pdfSigning("receipt", payment.id, payment.invoice?.language)]);
-  const element = React.createElement(ReceiptPdfDocument, { payment, brand, signing });
+  const [brand, signing, certificates] = await Promise.all([
+    resolvePdfBrand(company),
+    pdfSigning("receipt", payment.id, payment.invoice?.language),
+    payment.invoice ? pdfTaxCertificates(payment.invoice, payment.invoice.language) : [],
+  ]);
+  const element = React.createElement(ReceiptPdfDocument, { payment, brand, signing, certificates });
   return (await renderToBuffer(element as never)) as Buffer;
 }
 
@@ -69,6 +112,8 @@ export async function generateQuotationPdfBuffer(quotation: Quotation, company: 
     vat_enabled: quotation.vatEnabled,
     vat_percentage: quotation.vatPercentage,
     vat_amount: quotation.vatAmount,
+    other_taxes: quotation.taxes ?? [],
+    other_tax_amount: quotation.otherTaxAmount ?? 0,
     total_amount: quotation.totalAmount,
     amount_paid: 0,
     amount_due: quotation.totalAmount,
@@ -84,7 +129,12 @@ export async function generateQuotationPdfBuffer(quotation: Quotation, company: 
     })),
   } as unknown as Invoice;
   const terms = quotation.language === "ar" ? quotation.termsAr || quotation.termsEn : quotation.termsEn || quotation.termsAr;
-  const [brand, signing, acceptance] = await Promise.all([resolvePdfBrand(company), pdfSigning("quotation", quotation.id, quotation.language), pdfAcceptance("quotation", quotation.id)]);
-  const element = React.createElement(InvoicePdfDocument, { invoice: asInvoice, brand, variant: "quotation", quotationTerms: terms, signing, acceptance });
+  const [brand, signing, acceptance, certificates] = await Promise.all([
+    resolvePdfBrand(company),
+    pdfSigning("quotation", quotation.id, quotation.language),
+    pdfAcceptance("quotation", quotation.id),
+    pdfTaxCertificates(asInvoice, quotation.language),
+  ]);
+  const element = React.createElement(InvoicePdfDocument, { invoice: asInvoice, brand, variant: "quotation", quotationTerms: terms, signing, acceptance, certificates });
   return (await renderToBuffer(element as never)) as Buffer;
 }

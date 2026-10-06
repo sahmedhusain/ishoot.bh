@@ -231,7 +231,10 @@
     "amountPaid": "Amount Paid:",
     "balanceDue": "Balance Due:",
     "thankYou": "Thank you for choosing ishoot Cinema Production.",
-    "clientFallback": "Client Name"
+    "clientFallback": "Client Name",
+    "terms1": "Payment is due within {days} days of the invoice date ({date}).",
+    "terms2": "Bank transfers must quote the invoice number: {number}.",
+    "terms3": "Raw footage and intellectual property rights transfer once the balance is paid in full."
   },
   "receipt": {
     "title": "PAYMENT RECEIPT",
@@ -1827,7 +1830,9 @@
     "brandIconAlt": "Company logo",
     "sealAlt": "Company seal",
     "signatureAlt": "Authorized signature",
-    "signedBy": "Signed by: {name}"
+    "signedBy": "Signed by: {name}",
+    "attention": "Attention:",
+    "clientVat": "Client VAT No.:"
   },
   "rolesView": {
     "title": "Roles & Permissions (RBAC)",
@@ -2136,7 +2141,9 @@
     "monthsSelected": "{n} selected",
     "clearMonths": "Clear",
     "historyTitle": "Requests and issued documents",
-    "emptyHint": "Requests you make will appear here."
+    "emptyHint": "Requests you make will appear here.",
+    "documentLanguage": "Document language",
+    "documentLanguageHint": "Choose Arabic, English or both. Each language is issued as its own official PDF."
   },
   "auditDetails": {
     "before": "Before",
@@ -5333,7 +5340,16 @@
       "aClientCanHaveAtMost": "A client can have at most 20 points of contact",
       "addAtLeastOnePointOf": "Add at least one point of contact",
       "anotherClientIsAlreadyRegisteredWith": "Another client is already registered with this CR number",
-      "contactNotFound": "Contact not found"
+      "contactNotFound": "Contact not found",
+      "enterTheTaxNameInEnglish": "Enter the tax name in English and Arabic",
+      "vatIsSetUpInThe": "VAT is set up in the VAT section above",
+      "enterATaxRateBetween0": "Enter a tax rate between 0.01% and 100%",
+      "chooseWhereTheTaxAppliesInvoices": "Choose where the tax applies: invoices, quotations or both",
+      "taxNotFound": "Tax not found",
+      "thisTaxIsOnExistingDocuments": "This tax is on existing documents. Deactivate it instead.",
+      "invalidTaxRate": "Invalid tax rate",
+      "chooseTheDocumentLanguageArabicEnglish": "Choose the document language: Arabic, English or both",
+      "thisDocumentWasNotRequestedIn": "This document was not requested in that language"
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -5638,5 +5654,73 @@
       "crExpiresSoon": "The commercial registration expires in {days} days.",
       "days": "{n} days"
     }
+  },
+  "taxRegistry": {
+    "title": "Other taxes",
+    "subtitle": "Taxes the company is registered for besides VAT, such as a tourism levy or a registration in another country. Active taxes are added to new invoices and quotations like VAT, and each certificate is printed as a QR code at the end of invoices, quotations and receipts.",
+    "add": "Add tax",
+    "edit": "Edit tax",
+    "delete": "Delete tax",
+    "empty": "No other taxes. VAT is the only tax on documents.",
+    "inactive": "Inactive",
+    "registrationShort": "Reg. No.",
+    "invoices": "Invoices",
+    "quotations": "Quotations",
+    "validUntil": "Certificate valid until",
+    "documents": "On {n} documents",
+    "publicPage": "Certificate page",
+    "noCertificate": "No certificate uploaded",
+    "nameEn": "Name in English",
+    "nameAr": "Name in Arabic",
+    "nameEnPlaceholder": "e.g. Tourism levy",
+    "nameArPlaceholder": "مثال: رسوم السياحة",
+    "rate": "Rate (%)",
+    "registrationNumber": "Registration number",
+    "certificate": "Registration certificate",
+    "uploadCertificate": "Upload certificate",
+    "replaceCertificate": "Replace certificate",
+    "viewCertificate": "View certificate",
+    "appliesToInvoices": "Apply to invoices",
+    "appliesToQuotations": "Apply to quotations",
+    "active": "Active",
+    "note": "A new rate applies to new documents and drafts; issued invoices and quotations keep the tax they were issued with. A tax already on documents can be deactivated but not deleted.",
+    "save": "Save tax",
+    "saving": "Saving…",
+    "saved": "Tax saved",
+    "saveFailed": "Could not save the tax",
+    "deleted": "Tax deleted",
+    "deleteFailed": "Could not delete the tax",
+    "uploadFailed": "Could not upload the certificate"
+  },
+  "taxCertificate": {
+    "eyebrow": "Tax registration",
+    "vatName": "Value added tax (VAT)",
+    "vatCertificate": "VAT certificate",
+    "certificateOf": "{tax} certificate",
+    "registrationLine": "Reg. No. {number}",
+    "subtitle": "Registration certificate of {company}",
+    "registrationNumber": "Registration number",
+    "registeredName": "Registered name",
+    "crNumber": "Commercial registration",
+    "validUntil": "Valid until",
+    "active": "Registered",
+    "inactive": "No longer active",
+    "expired": "Expired",
+    "open": "Open the certificate",
+    "noFile": "The certificate file is not available online. Contact us for a copy.",
+    "notFoundTitle": "Certificate not found",
+    "notFoundBody": "This link does not match a tax registration of the company."
+  },
+  "salaryDocumentLanguages": {
+    "choices": {
+      "ar": "Arabic",
+      "en": "English",
+      "both": "Arabic and English"
+    },
+    "names": {
+      "ar": "Arabic",
+      "en": "English"
+    },
+    "separator": " and "
   }
 }

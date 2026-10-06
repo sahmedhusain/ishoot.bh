@@ -85,7 +85,7 @@ export default async function EmployeeDetailPage({
     <LeaveBalancesCard balances={balances} year={year} employeeId={id} canAdjust={canEdit} />
     {canViewPay && <EmployeePayHistory rows={payItems.map((p) => ({ id: p.id, month: p.payrollRun.month, year: p.payrollRun.year, netSalary: Number(p.netSalary), paymentStatus: p.paymentStatus, runStatus: p.payrollRun.status }))} />}
     <EmployeeAttachments employeeId={id} attachments={attachments} canEdit={canEdit} canDelete={await hasPermission("employees", "delete")} />
-    {canManage && <SalaryDocumentsView embedded employeeId={id} availableMonths={availableMonths} decidableIds={decidableIds} documents={documents.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes }))} />}
+    {canManage && <SalaryDocumentsView embedded employeeId={id} availableMonths={availableMonths} decidableIds={decidableIds} documents={documents.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes, languages: item.languages }))} />}
     </div>
   );
 }

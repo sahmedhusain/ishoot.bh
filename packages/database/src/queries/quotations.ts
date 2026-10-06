@@ -10,7 +10,7 @@ import { submitForApproval } from "../services/approval-engine";
 import { assertActorNotOnLeave } from "./leave";
 import { getLatestExchangeRate } from "./fx-settlement";
 import { advanceDealForEvent } from "./crm";
-import { companyVat } from "../finance/vat";
+import { companyTaxes, companyVat, documentTaxRows, mapDocumentTaxLines } from "../finance/vat";
 
 export async function createQuotation(
   data: {
@@ -47,6 +47,7 @@ export async function createQuotation(
 
   // Same totals rules as invoices (validation, per-currency rounding).
   const { vatEnabled, vatPercentage } = await companyVat();
+  const otherTaxes = await companyTaxes("quotation");
   const itemsWithTotals = data.lineItems.map((item, idx) => ({
     descriptionEn: item.descriptionEn,
     descriptionAr: item.descriptionAr || null,
@@ -55,13 +56,14 @@ export async function createQuotation(
     lineTotal: lineTotal(Number(item.quantity), Number(item.unitPrice), currency),
     orderIndex: idx,
   }));
-  const { subtotal, discountAmount, vatAmount, totalAmount } = calculateInvoiceTotals(
+  const { subtotal, discountAmount, vatAmount, taxes, otherTaxAmount, totalAmount } = calculateInvoiceTotals(
     itemsWithTotals.map((item) => ({ quantity: item.quantity, unit_price: item.unitPrice, line_total: item.lineTotal, description_en: item.descriptionEn })) as never,
     data.discountType || "none",
     data.discountValue || 0,
     vatEnabled,
     vatPercentage,
     currency as never,
+    otherTaxes,
   );
 
   // 3% FX margin: built into customer quote total if non-BHD and rawRate is provided
@@ -93,6 +95,8 @@ export async function createQuotation(
         vatEnabled,
         vatPercentage,
         vatAmount,
+        otherTaxAmount,
+        taxes: { create: documentTaxRows(otherTaxes, taxes) },
         totalAmount,
         rawRate: currency !== "BHD" ? rawRate : null,
         fxMarginPercent,
@@ -108,6 +112,8 @@ export async function createQuotation(
       },
       include: {
         lineItems: { orderBy: { orderIndex: "asc" } },
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         client: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
       },
@@ -123,6 +129,8 @@ export async function createQuotation(
     discountAmount: Number(quotation.discountAmount),
     vatPercentage: Number(quotation.vatPercentage),
     vatAmount: Number(quotation.vatAmount),
+    otherTaxAmount: Number(quotation.otherTaxAmount ?? 0),
+    taxes: mapDocumentTaxLines(quotation.taxes),
     totalAmount: Number(quotation.totalAmount),
     rawRate: quotation.rawRate ? Number(quotation.rawRate) : null,
     fxMarginPercent: Number(quotation.fxMarginPercent),
@@ -167,7 +175,7 @@ export async function updateQuotation(
 
   const existing = await db.quotation.findUnique({
     where: { id },
-    include: { lineItems: true },
+    include: { lineItems: true, taxes: { orderBy: { displayOrder: "asc" } } },
   });
   if (!existing) throw new Error("Quotation not found");
   if (existing.status !== "draft") {
@@ -188,6 +196,7 @@ export async function updateQuotation(
   }
 
   const { vatEnabled, vatPercentage } = await companyVat();
+  const otherTaxes = await companyTaxes("quotation");
   const discountType = data.discountType || existing.discountType;
   const discountValue = data.discountValue !== undefined ? data.discountValue : Number(existing.discountValue);
 
@@ -200,13 +209,14 @@ export async function updateQuotation(
     sortOrder: l.orderIndex,
   }));
 
-  const { subtotal, discountAmount, vatAmount, totalAmount } = calculateInvoiceTotals(
+  const { subtotal, discountAmount, vatAmount, taxes, otherTaxAmount, totalAmount } = calculateInvoiceTotals(
     lines.map((item) => ({ quantity: item.quantity, unit_price: item.unitPrice, line_total: lineTotal(item.quantity, item.unitPrice, currency), description_en: item.descriptionEn })) as never,
     discountType as "none" | "percentage" | "fixed",
     discountValue,
     vatEnabled,
     vatPercentage,
     currency as never,
+    otherTaxes,
   );
 
   await db.$transaction(async (tx) => {
@@ -225,6 +235,8 @@ export async function updateQuotation(
       });
     }
 
+    await tx.documentTax.deleteMany({ where: { quotationId: id } });
+    await tx.documentTax.createMany({ data: documentTaxRows(otherTaxes, taxes).map((row) => ({ ...row, quotationId: id })) });
     await tx.quotation.update({
       where: { id },
       data: {
@@ -238,6 +250,7 @@ export async function updateQuotation(
         vatEnabled,
         vatPercentage,
         vatAmount,
+        otherTaxAmount,
         totalAmount,
         rawRate,
         fxMarginPercent,
@@ -265,6 +278,8 @@ export async function submitQuotationForApproval(
     where: { id },
     include: {
       lineItems: { orderBy: { orderIndex: "asc" } },
+
+      taxes: { orderBy: { displayOrder: "asc" } },
       client: true,
     },
   });
@@ -296,6 +311,8 @@ export async function submitQuotationForApproval(
       discountPercent: discount.percent,
       discountLimit: discount.limit,
       vatAmount: Number(quotation.vatAmount),
+      otherTaxAmount: Number(quotation.otherTaxAmount ?? 0),
+      taxes: mapDocumentTaxLines(quotation.taxes),
       clientName: quotation.client?.companyName || quotation.client?.firstName,
       rawRate: quotation.rawRate ? Number(quotation.rawRate) : null,
       effectiveRate: quotation.effectiveRate ? Number(quotation.effectiveRate) : null,
@@ -328,7 +345,7 @@ export async function issueQuotation(
 
   const quotation = await db.quotation.findUnique({
     where: { id },
-    include: { lineItems: true, client: true },
+    include: { lineItems: true, client: true, taxes: { orderBy: { displayOrder: "asc" } } },
   });
 
   if (!quotation) throw new Error("Quotation not found");
@@ -349,6 +366,8 @@ export async function issueQuotation(
       },
       include: {
         lineItems: { orderBy: { orderIndex: "asc" } },
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         client: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
       },
@@ -364,6 +383,8 @@ export async function issueQuotation(
     discountAmount: Number(updated.discountAmount),
     vatPercentage: Number(updated.vatPercentage),
     vatAmount: Number(updated.vatAmount),
+    otherTaxAmount: Number(updated.otherTaxAmount ?? 0),
+    taxes: mapDocumentTaxLines(updated.taxes),
     totalAmount: Number(updated.totalAmount),
     rawRate: updated.rawRate ? Number(updated.rawRate) : null,
     fxMarginPercent: Number(updated.fxMarginPercent),
@@ -407,6 +428,8 @@ export async function acceptQuotation(
       },
       include: {
         lineItems: { orderBy: { orderIndex: "asc" } },
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         client: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
       },
@@ -422,6 +445,8 @@ export async function acceptQuotation(
     discountAmount: Number(updated.discountAmount),
     vatPercentage: Number(updated.vatPercentage),
     vatAmount: Number(updated.vatAmount),
+    otherTaxAmount: Number(updated.otherTaxAmount ?? 0),
+    taxes: mapDocumentTaxLines(updated.taxes),
     totalAmount: Number(updated.totalAmount),
     rawRate: updated.rawRate ? Number(updated.rawRate) : null,
     fxMarginPercent: Number(updated.fxMarginPercent),
@@ -479,7 +504,7 @@ export async function convertQuotationToInvoice(
     await db.$queryRaw`SELECT id FROM "Quotation" WHERE id = ${quotationId} FOR UPDATE`;
     const quotation = await db.quotation.findUnique({
       where: { id: quotationId },
-      include: { lineItems: { orderBy: { orderIndex: "asc" } } },
+      include: { lineItems: { orderBy: { orderIndex: "asc" } }, taxes: { orderBy: { displayOrder: "asc" } } },
     });
     if (!quotation) throw new Error("Quotation not found");
 
@@ -515,6 +540,13 @@ export async function convertQuotationToInvoice(
         vatEnabled: quotation.vatEnabled,
         vatPercentage: quotation.vatPercentage,
         vatAmount: quotation.vatAmount,
+        // The invoice charges exactly what the client accepted, including the other taxes.
+        otherTaxAmount: quotation.otherTaxAmount,
+        taxes: {
+          create: (quotation.taxes ?? []).map(({ taxRateId, code, nameEn, nameAr, ratePercent, registrationNumber, amount, displayOrder }) => ({
+            taxRateId, code, nameEn, nameAr, ratePercent, registrationNumber, amount, displayOrder,
+          })),
+        },
         totalAmount: quotation.totalAmount,
         currency: quotation.currency,
         language: quotation.language,
@@ -553,6 +585,8 @@ export async function getQuotationById(id: string): Promise<Quotation | null> {
     where: { id },
     include: {
       lineItems: { orderBy: { orderIndex: "asc" } },
+
+      taxes: { orderBy: { displayOrder: "asc" } },
       client: true,
       createdBy: { select: { id: true, fullName: true, email: true } },
       invoice: { select: { id: true, invoiceNumber: true, status: true } },
@@ -568,6 +602,8 @@ export async function getQuotationById(id: string): Promise<Quotation | null> {
     discountAmount: Number(q.discountAmount),
     vatPercentage: Number(q.vatPercentage),
     vatAmount: Number(q.vatAmount),
+    otherTaxAmount: Number(q.otherTaxAmount ?? 0),
+    taxes: mapDocumentTaxLines(q.taxes),
     totalAmount: Number(q.totalAmount),
     rawRate: q.rawRate ? Number(q.rawRate) : null,
     fxMarginPercent: Number(q.fxMarginPercent),
@@ -645,6 +681,8 @@ export async function listQuotations(filters: {
       take: pageSize,
       include: {
         lineItems: { orderBy: { orderIndex: "asc" } },
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         client: true,
         createdBy: { select: { id: true, fullName: true, email: true } },
       },
@@ -660,6 +698,8 @@ export async function listQuotations(filters: {
       discountAmount: Number(q.discountAmount),
       vatPercentage: Number(q.vatPercentage),
       vatAmount: Number(q.vatAmount),
+      otherTaxAmount: Number(q.otherTaxAmount ?? 0),
+      taxes: mapDocumentTaxLines(q.taxes),
       totalAmount: Number(q.totalAmount),
       rawRate: q.rawRate ? Number(q.rawRate) : null,
       fxMarginPercent: Number(q.fxMarginPercent),
@@ -687,6 +727,8 @@ export async function getAcceptedQuotationsUninvoiced(): Promise<Quotation[]> {
     orderBy: { updatedAt: "desc" },
     include: {
       lineItems: { orderBy: { orderIndex: "asc" } },
+
+      taxes: { orderBy: { displayOrder: "asc" } },
       client: true,
       createdBy: { select: { id: true, fullName: true, email: true } },
     },
@@ -699,6 +741,8 @@ export async function getAcceptedQuotationsUninvoiced(): Promise<Quotation[]> {
     discountAmount: Number(q.discountAmount),
     vatPercentage: Number(q.vatPercentage),
     vatAmount: Number(q.vatAmount),
+    otherTaxAmount: Number(q.otherTaxAmount ?? 0),
+    taxes: mapDocumentTaxLines(q.taxes),
     totalAmount: Number(q.totalAmount),
     rawRate: q.rawRate ? Number(q.rawRate) : null,
     fxMarginPercent: Number(q.fxMarginPercent),

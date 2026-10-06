@@ -18,8 +18,10 @@ export async function GET(
   }
   if (document.status !== "issued")
     return new NextResponse(null, { status: 409 });
-  const locale =
-    request.nextUrl.searchParams.get("locale") === "ar" ? "ar" : "en";
+  // Only the languages the employee asked for are issued.
+  const requested = request.nextUrl.searchParams.get("locale");
+  const locale = (requested === "ar" || requested === "en" ? requested : document.languages[0]) as "ar" | "en";
+  if (!document.languages.includes(locale)) return new NextResponse(null, { status: 404 });
   const buffer = await generateSalaryDocumentPdf(
     document,
     await getCompanySettings(),
@@ -35,7 +37,7 @@ export async function GET(
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `${request.nextUrl.searchParams.get("download") === "true" ? "attachment" : "inline"}; filename="Salary-${id}.pdf"`,
+      "Content-Disposition": `${request.nextUrl.searchParams.get("download") === "true" ? "attachment" : "inline"}; filename="${document.kind === "payslip" ? "Payslip" : "Salary-Certificate"}-${document.employee.employeeNumber}-${locale.toUpperCase()}.pdf"`,
       "Cache-Control": "private, no-store",
     },
   });

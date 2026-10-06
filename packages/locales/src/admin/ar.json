@@ -231,7 +231,10 @@
     "amountPaid": "المبلغ المسدد:",
     "balanceDue": "المتبقي للسداد:",
     "thankYou": "شكراً لتعاملكم مع دار آي شوت للإنتاج السينمائي.",
-    "clientFallback": "اسم العميل"
+    "clientFallback": "اسم العميل",
+    "terms1": "يستحق السداد خلال {days} يومًا من تاريخ الفاتورة ({date}).",
+    "terms2": "يجب ذكر رقم الفاتورة في التحويل البنكي: {number}.",
+    "terms3": "تنتقل حقوق المواد الخام والملكية الفكرية بعد سداد الرصيد بالكامل."
   },
   "receipt": {
     "title": "إيصال استلام دفعة",
@@ -1827,7 +1830,9 @@
     "brandIconAlt": "شعار الشركة",
     "sealAlt": "ختم الشركة",
     "signatureAlt": "التوقيع المعتمد",
-    "signedBy": "الموقّع: {name}"
+    "signedBy": "الموقّع: {name}",
+    "attention": "عناية:",
+    "clientVat": "الرقم الضريبي للعميل:"
   },
   "rolesView": {
     "title": "إدارة الصلاحيات والأدوار",
@@ -2136,7 +2141,9 @@
     "monthsSelected": "{n} محدد",
     "clearMonths": "مسح",
     "historyTitle": "الطلبات والمستندات الصادرة",
-    "emptyHint": "ستظهر طلباتك هنا."
+    "emptyHint": "ستظهر طلباتك هنا.",
+    "documentLanguage": "لغة المستند",
+    "documentLanguageHint": "اختر العربية أو الإنجليزية أو كلتيهما. يصدر كل لغة كملف PDF رسمي مستقل."
   },
   "auditDetails": {
     "before": "قبل التعديل",
@@ -5333,7 +5340,16 @@
       "aClientCanHaveAtMost": "يمكن أن يكون للعميل 20 جهة اتصال كحد أقصى",
       "addAtLeastOnePointOf": "أضف جهة اتصال واحدة على الأقل",
       "anotherClientIsAlreadyRegisteredWith": "يوجد عميل آخر مسجل بنفس رقم السجل التجاري",
-      "contactNotFound": "لم يتم العثور على العميل"
+      "contactNotFound": "لم يتم العثور على العميل",
+      "enterTheTaxNameInEnglish": "أدخل اسم الضريبة بالإنجليزية والعربية",
+      "vatIsSetUpInThe": "تُضبط ضريبة القيمة المضافة في قسمها أعلاه",
+      "enterATaxRateBetween0": "أدخل نسبة ضريبة بين 0.01% و100%",
+      "chooseWhereTheTaxAppliesInvoices": "اختر أين تطبق الضريبة: الفواتير أو عروض الأسعار أو كلاهما",
+      "taxNotFound": "لم يتم العثور على الضريبة",
+      "thisTaxIsOnExistingDocuments": "هذه الضريبة موجودة على مستندات صادرة. أوقفها بدلًا من حذفها.",
+      "invalidTaxRate": "نسبة الضريبة غير صالحة",
+      "chooseTheDocumentLanguageArabicEnglish": "اختر لغة المستند: العربية أو الإنجليزية أو كلتيهما",
+      "thisDocumentWasNotRequestedIn": "لم يُطلب هذا المستند بهذه اللغة"
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -5638,5 +5654,73 @@
       "crExpiresSoon": "ينتهي السجل التجاري خلال {days} يومًا.",
       "days": "{n} يومًا"
     }
+  },
+  "taxRegistry": {
+    "title": "الضرائب الأخرى",
+    "subtitle": "الضرائب المسجلة فيها الشركة غير ضريبة القيمة المضافة، مثل رسوم السياحة أو تسجيل في دولة أخرى. تُضاف الضرائب المفعّلة إلى الفواتير وعروض الأسعار الجديدة كما تُضاف ضريبة القيمة المضافة، وتُطبع شهادة كل منها كرمز QR في نهاية الفواتير وعروض الأسعار والإيصالات.",
+    "add": "إضافة ضريبة",
+    "edit": "تعديل الضريبة",
+    "delete": "حذف الضريبة",
+    "empty": "لا توجد ضرائب أخرى. ضريبة القيمة المضافة هي الضريبة الوحيدة على المستندات.",
+    "inactive": "غير مفعّلة",
+    "registrationShort": "رقم التسجيل",
+    "invoices": "الفواتير",
+    "quotations": "عروض الأسعار",
+    "validUntil": "الشهادة سارية حتى",
+    "documents": "على {n} مستندات",
+    "publicPage": "صفحة الشهادة",
+    "noCertificate": "لم تُرفع شهادة",
+    "nameEn": "الاسم بالإنجليزية",
+    "nameAr": "الاسم بالعربية",
+    "nameEnPlaceholder": "كما يظهر في المستندات الإنجليزية",
+    "nameArPlaceholder": "مثال: رسوم السياحة",
+    "rate": "النسبة (%)",
+    "registrationNumber": "رقم التسجيل",
+    "certificate": "شهادة التسجيل",
+    "uploadCertificate": "رفع الشهادة",
+    "replaceCertificate": "استبدال الشهادة",
+    "viewCertificate": "عرض الشهادة",
+    "appliesToInvoices": "تطبق على الفواتير",
+    "appliesToQuotations": "تطبق على عروض الأسعار",
+    "active": "مفعّلة",
+    "note": "تُطبق النسبة الجديدة على المستندات الجديدة والمسودات، وتحتفظ الفواتير وعروض الأسعار الصادرة بالضريبة التي صدرت بها. يمكن إيقاف ضريبة موجودة على مستندات ولا يمكن حذفها.",
+    "save": "حفظ الضريبة",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم حفظ الضريبة",
+    "saveFailed": "تعذّر حفظ الضريبة",
+    "deleted": "تم حذف الضريبة",
+    "deleteFailed": "تعذّر حذف الضريبة",
+    "uploadFailed": "تعذّر رفع الشهادة"
+  },
+  "taxCertificate": {
+    "eyebrow": "التسجيل الضريبي",
+    "vatName": "ضريبة القيمة المضافة",
+    "vatCertificate": "شهادة ضريبة القيمة المضافة",
+    "certificateOf": "شهادة {tax}",
+    "registrationLine": "رقم التسجيل {number}",
+    "subtitle": "شهادة تسجيل {company}",
+    "registrationNumber": "رقم التسجيل",
+    "registeredName": "الاسم المسجل",
+    "crNumber": "السجل التجاري",
+    "validUntil": "سارية حتى",
+    "active": "مسجلة",
+    "inactive": "لم تعد مفعّلة",
+    "expired": "منتهية",
+    "open": "فتح الشهادة",
+    "noFile": "ملف الشهادة غير متاح على الإنترنت. تواصل معنا للحصول على نسخة.",
+    "notFoundTitle": "لم يتم العثور على الشهادة",
+    "notFoundBody": "هذا الرابط لا يطابق أي تسجيل ضريبي للشركة."
+  },
+  "salaryDocumentLanguages": {
+    "choices": {
+      "ar": "العربية",
+      "en": "الإنجليزية",
+      "both": "العربية والإنجليزية"
+    },
+    "names": {
+      "ar": "العربية",
+      "en": "الإنجليزية"
+    },
+    "separator": " و"
   }
 }

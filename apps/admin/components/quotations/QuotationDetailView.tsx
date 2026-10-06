@@ -553,6 +553,12 @@ export function QuotationDetailView({
                     <span className="font-mono font-medium">+{Number(quotation.vatAmount).toFixed(3)} {quotation.currency}</span>
                   </div>
                 )}
+                {(quotation.taxes ?? []).map((tax) => (
+                  <div key={tax.code} className="flex justify-between text-slate-600 dark:text-neutral-400">
+                    <span>{locale === "ar" ? tax.name_ar : tax.name_en} ({tax.rate}%)</span>
+                    <span className="font-mono font-medium">+{tax.amount.toFixed(3)} {quotation.currency}</span>
+                  </div>
+                ))}
                 <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-white border-t border-ink/10 pt-2">
                   <span>{qdT.totalPayable}</span>
                   <span className="font-mono text-primary dark:text-mint">

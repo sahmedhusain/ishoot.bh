@@ -25,6 +25,8 @@ export async function requestSalaryDocumentAction(data: {
   employeeId: string;
   kind: "payslip" | "salary_certificate";
   months: string[];
+  /** The employee picks Arabic, English or both; each language is its own PDF. */
+  languages: Array<"ar" | "en">;
 }) {
   return measureOperation("action:requestSalaryDocumentAction", async () => {
     const actor = await requireAuth();
@@ -43,6 +45,8 @@ export async function requestSalaryDocumentAction(data: {
         months.some((value) => !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)))
     )
       throw new Error("Select between one and 24 valid months");
+    const languages = (["ar", "en"] as const).filter((language) => data.languages.includes(language));
+    if (!languages.length) throw new Error("Choose the document language: Arabic, English or both");
     if (data.kind === "payslip") {
       const available = await availablePayslipMonths(employee.id);
       const missing = months.filter((month) => !available.includes(month));
@@ -54,6 +58,7 @@ export async function requestSalaryDocumentAction(data: {
           employeeId: employee.id,
           kind: data.kind,
           months: data.kind === "payslip" ? months : [],
+          languages: [...languages],
           requestedById: actor.id,
           status: "pending",
         },
@@ -63,14 +68,14 @@ export async function requestSalaryDocumentAction(data: {
         targetType: "salary_document",
         targetId: document.id,
         requesterId: employee.userId ?? actor.id,
-        policySnapshot: { kind: data.kind, months },
+        policySnapshot: { kind: data.kind, months, languages },
       });
       await createActivityLog({
         user_id: actor.id,
         action: "request",
         entity_type: "salary_document",
         entity_id: document.id,
-        details: { kind: data.kind, months, employeeId: employee.id, approvalStatus: approval.status },
+        details: { kind: data.kind, months, languages, employeeId: employee.id, approvalStatus: approval.status },
       });
       return { id: document.id, approvalStatus: approval.status };
     });
@@ -125,6 +130,7 @@ export async function emailSalaryDocumentAction(
   const document = await getAccessibleSalaryDocument(id, actor);
   if (document.status !== "issued")
     throw new Error("Only issued documents can be sent");
+  if (!document.languages.includes(locale)) throw new Error("This document was not requested in that language");
   const recipient = document.employee.email;
   if (!recipient) throw new Error("Add the employee email before sending");
   const h = getTranslations(locale).admin.hrExtensions;
@@ -145,7 +151,7 @@ export async function emailSalaryDocumentAction(
         recipient,
         subject: `${document.kind === "payslip" ? h.payslip : h.salary_certificate} · ${document.employee.employeeNumber}`,
         html: `<p>${h.emailBody}</p>`,
-        attachmentName: `Salary-${id}.pdf`,
+        attachmentName: `${document.kind === "payslip" ? "Payslip" : "Salary-Certificate"}-${document.employee.employeeNumber}-${locale.toUpperCase()}.pdf`,
         attachment,
       },
     });
@@ -171,6 +177,7 @@ export async function whatsappSalaryDocumentAction(
   const document = await getAccessibleSalaryDocument(id, actor);
   if (document.status !== "issued")
     throw new Error("Only issued documents can be sent");
+  if (!document.languages.includes(locale)) throw new Error("This document was not requested in that language");
   const integration = await db.integrationSetting.findUnique({
     where: { provider: "whatsapp" },
   });

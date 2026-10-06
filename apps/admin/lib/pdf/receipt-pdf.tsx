@@ -10,6 +10,7 @@ import {
   type PdfBrand,
   docKit,
   type DocKit,
+  type TaxCertificateMark,
 } from "./kit";
 
 interface ReceiptPDFProps {
@@ -17,12 +18,14 @@ interface ReceiptPDFProps {
   brand: PdfBrand;
   /** Present only once the receipt is signed. */
   signing?: CompanySignature | null;
+  /** QR codes to the certificates of the taxes on the paid invoice. */
+  certificates?: TaxCertificateMark[];
 }
 
 const bare = (label: string) => label.replace(/\s*[:：]\s*$/, "");
 
-function ReceiptBody({ k, payment, brand, signing }: ReceiptPDFProps & { k: DocKit }) {
-  const { t: all, isAr, T, Row, Card, Field, Totals, TitleBlock, CompanySignatureBlock } = k;
+function ReceiptBody({ k, payment, brand, signing, certificates = [] }: ReceiptPDFProps & { k: DocKit }) {
+  const { t: all, isAr, T, Row, Card, Field, Totals, TitleBlock, CompanySignatureBlock, ClosingRow } = k;
   const t = all.pdfReceipt;
   const d = all.pdfDocs;
   const company = brand.company;
@@ -90,9 +93,7 @@ function ReceiptBody({ k, payment, brand, signing }: ReceiptPDFProps & { k: DocK
         <T style={{ fontSize: 7.5, color: C.body, marginTop: 2 }}>{t.electronicNotice.replace("{companyName}", companyName)}</T>
       </View>
 
-      <Row style={{ justifyContent: "flex-end", marginTop: 26 }} wrap={false}>
-        <CompanySignatureBlock brand={brand} signing={signing} pending={t.awaitingSignature} label={t.cashier} />
-      </Row>
+      <ClosingRow certificates={certificates} end={<CompanySignatureBlock brand={brand} signing={signing} pending={t.awaitingSignature} label={t.cashier} />} />
     </>
   );
 }

@@ -12,7 +12,7 @@ import { allocateDocumentNumber } from "../finance/numbering";
 import { resolveSalesOwner } from "./sales-attribution";
 import { INVOICE_STATUS_TRANSITIONS, assertSupportedCurrency } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
-import { companyVat } from "../finance/vat";
+import { companyTaxes, companyVat, documentTaxRows, frozenTaxes, mapDocumentTaxLines } from "../finance/vat";
 
 export { calculateInvoiceTotals };
 
@@ -45,6 +45,8 @@ function mapPrismaInvoiceToInvoice(inv: any): Invoice {
     vat_enabled: inv.vatEnabled ?? vatAmount > 0,
     vat_percentage: inv.vatPercentage != null ? Number(inv.vatPercentage) : 10,
     vat_amount: vatAmount,
+    other_taxes: mapDocumentTaxLines(inv.taxes),
+    other_tax_amount: Number(inv.otherTaxAmount ?? 0),
     total_amount: totalAmount,
     amount_paid: amountPaid,
     amount_due: amountDue,
@@ -108,6 +110,8 @@ export async function getAllInvoices(options?: {
       include: {
         client: true,
         lineItems: true,
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         payments: true,
         deal: {
           include: { contact: true },
@@ -129,6 +133,8 @@ export async function getInvoicesByDealId(dealId: string): Promise<Invoice[]> {
       include: {
         client: true,
         lineItems: true,
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         payments: true,
         deal: {
           include: { contact: true },
@@ -154,6 +160,8 @@ export async function getInvoicesByClientId(
       include: {
         client: true,
         lineItems: true,
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         payments: true,
         deal: {
           include: { contact: true },
@@ -191,6 +199,8 @@ export async function getInvoiceById(id: string): Promise<Invoice | null> {
       include: {
         client: true,
         lineItems: { orderBy: { displayOrder: "asc" } },
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         payments: { orderBy: { paymentDate: "desc" } },
         deal: {
           include: { contact: true },
@@ -215,6 +225,8 @@ export async function getInvoiceByIdOrNumber(
       include: {
         client: true,
         lineItems: { orderBy: { displayOrder: "asc" } },
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         payments: { orderBy: { paymentDate: "desc" } },
         deal: {
           include: { contact: true },
@@ -261,6 +273,7 @@ export async function createInvoice(data: {
   if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) throw new Error("Invalid invoice dates");
   if (dueDate < issueDate) throw new Error("The due date cannot be before the issue date");
   const vat = await companyVat();
+  const otherTaxes = await companyTaxes("invoice");
   const totals = calculateInvoiceTotals(
     data.line_items.map((li) => ({
       ...li,
@@ -271,6 +284,7 @@ export async function createInvoice(data: {
     vat.vatEnabled,
     vat.vatPercentage,
     currency,
+    otherTaxes,
   );
 
   const created = await db.$transaction(async (tx) => {
@@ -306,6 +320,8 @@ export async function createInvoice(data: {
         vatEnabled: vat.vatEnabled,
         vatPercentage: vat.vatPercentage,
         vatAmount: totals.vatAmount,
+        otherTaxAmount: totals.otherTaxAmount,
+        taxes: { create: documentTaxRows(otherTaxes, totals.taxes) },
         totalAmount: totals.totalAmount,
         currency,
         language: data.language || "ar",
@@ -329,6 +345,8 @@ export async function createInvoice(data: {
       include: {
         client: true,
         lineItems: true,
+
+        taxes: { orderBy: { displayOrder: "asc" } },
         payments: true,
         deal: { include: { contact: true } },
       },
@@ -377,7 +395,7 @@ export async function updateInvoice(
       await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${id} FOR UPDATE`;
       const existing = await tx.invoice.findUnique({
         where: { id },
-        include: { lineItems: true, payments: true },
+        include: { lineItems: true, payments: true, taxes: { orderBy: { displayOrder: "asc" } } },
       });
       if (!existing) return null;
       if (existing.status === "void" || existing.payments.length > 0)
@@ -403,6 +421,8 @@ export async function updateInvoice(
       const vat = existing.status === "draft"
         ? await companyVat(tx)
         : { vatEnabled: existing.vatEnabled, vatPercentage: Number(existing.vatPercentage) };
+      // Likewise for the other taxes: drafts follow the registry, issued invoices keep their frozen taxes.
+      const otherTaxes = existing.status === "draft" ? await companyTaxes("invoice", tx) : frozenTaxes(existing.taxes);
       const totals = calculateInvoiceTotals(
         lineItemsToCalc.map((li) => ({
           ...li,
@@ -413,7 +433,10 @@ export async function updateInvoice(
         vat.vatEnabled,
         vat.vatPercentage,
         currency,
+        otherTaxes,
       );
+      await tx.documentTax.deleteMany({ where: { invoiceId: id } });
+      await tx.documentTax.createMany({ data: documentTaxRows(otherTaxes, totals.taxes).map((row) => ({ ...row, invoiceId: id })) });
 
       if (data.line_items) {
         await tx.invoiceLineItem.deleteMany({ where: { invoiceId: id } });
@@ -436,6 +459,7 @@ export async function updateInvoice(
           vatEnabled: vat.vatEnabled,
           vatPercentage: vat.vatPercentage,
           vatAmount: totals.vatAmount,
+          otherTaxAmount: totals.otherTaxAmount,
           totalAmount: totals.totalAmount,
           currency,
           language: data.language || existing.language,
@@ -462,6 +486,8 @@ export async function updateInvoice(
         include: {
           client: true,
           lineItems: true,
+
+          taxes: { orderBy: { displayOrder: "asc" } },
           payments: true,
           deal: { include: { contact: true } },
         },

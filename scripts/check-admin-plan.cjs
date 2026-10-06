@@ -295,7 +295,7 @@ async function runTests() {
       getLatestExchangeRate: async () => ({ rate: 1.0, isFallback: false, provider: "parity", effectiveDate: new Date() }),
     },
     "./crm": { advanceDealForEvent: async () => false },
-    "../finance/vat": { companyVat: async () => ({ vatEnabled: true, vatPercentage: 10 }) },
+    "../finance/vat": { companyVat: async () => ({ vatEnabled: true, vatPercentage: 10 }), companyTaxes: async () => [], documentTaxRows: () => [], mapDocumentTaxLines: () => [] },
     "./sales-attribution": { resolveSalesOwner: async (requested, issuer) => requested || issuer || null },
     "../finance/discount-policy": {
       discountDecision: async () => ({ percent: 0, limit: 5, limitSource: "company", withinLimit: true, needsApproval: false }),

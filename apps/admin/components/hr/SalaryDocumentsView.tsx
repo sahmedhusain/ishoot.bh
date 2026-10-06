@@ -22,7 +22,11 @@ export interface SalaryDocumentItem {
   createdAt: string;
   reviewNotes: string | null;
   employeeName?: string;
+  employeeNameAr?: string;
+  /** Languages the employee asked for; one PDF each. */
+  languages: string[];
 }
+const LANGUAGE_CHOICES = { ar: ["ar"], en: ["en"], both: ["ar", "en"] } as const;
 export function SalaryDocumentsView({
   employeeId,
   documents,
@@ -50,6 +54,7 @@ export function SalaryDocumentsView({
   const router = useRouter();
   const [kind, setKind] = useState<"payslip" | "salary_certificate">("payslip");
   const [months, setMonths] = useState<string[]>([]);
+  const [languageChoice, setLanguageChoice] = useState<keyof typeof LANGUAGE_CHOICES>(locale === "en" ? "en" : "ar");
   const canReview = decidableIds.length > 0;
   const toggleMonth = (month: string) =>
     setMonths((current) => (current.includes(month) ? current.filter((m) => m !== month) : [...current, month].slice(0, 24)));
@@ -67,9 +72,9 @@ export function SalaryDocumentsView({
       setBusy(false);
     }
   }
-  const pdfUrl = (id: string) => salaryDocumentPdfUrl(id, locale);
-  async function share(id: string) {
-    const response = await fetch(pdfUrl(id));
+  const pdfUrl = (id: string, language: string) => salaryDocumentPdfUrl(id, language);
+  async function share(id: string, language: string) {
+    const response = await fetch(pdfUrl(id, language));
     if (!response.ok) throw new Error(h.failed);
     const file = new File([await response.blob()], `Salary-${id}.pdf`, {
       type: "application/pdf",
@@ -126,6 +131,7 @@ export function SalaryDocumentsView({
                   employeeId,
                   kind,
                   months: kind === "payslip" ? months : [],
+                  languages: [...LANGUAGE_CHOICES[languageChoice]],
                 }),
               );
             }}
@@ -145,6 +151,25 @@ export function SalaryDocumentsView({
                 </button>
               ))}
             </div>
+
+            <fieldset className="space-y-2">
+              <legend className="text-xs font-semibold text-ink">{h.documentLanguage}</legend>
+              <div role="radiogroup" aria-label={h.documentLanguage} className="inline-flex flex-wrap gap-1 p-1 rounded-full bg-surface-sunken border border-ink/10">
+                {(Object.keys(LANGUAGE_CHOICES) as Array<keyof typeof LANGUAGE_CHOICES>).map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    role="radio"
+                    aria-checked={languageChoice === option}
+                    onClick={() => setLanguageChoice(option)}
+                    className={`px-4 py-2 rounded-full text-xs font-semibold transition-colors ${languageChoice === option ? "bg-accent text-white shadow-sm" : "text-ink-muted hover:text-ink hover:bg-ink/5"}`}
+                  >
+                    {t.salaryDocumentLanguages.choices[option]}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[11px] text-ink-muted">{h.documentLanguageHint}</p>
+            </fieldset>
 
             {kind === "payslip" && (
               <fieldset className="space-y-3">
@@ -229,11 +254,13 @@ export function SalaryDocumentsView({
                   <div className="min-w-0">
                     <div className="text-sm font-bold text-ink truncate">
                       {item.kind === "payslip" ? h.payslip : h.salary_certificate}
-                      {item.employeeName && <span className="font-medium text-ink-muted"> · {item.employeeName}</span>}
+                      {item.employeeName && <span className="font-medium text-ink-muted"> · {(locale === "ar" && item.employeeNameAr) || item.employeeName}</span>}
                     </div>
                     <div className="text-xs text-ink-muted mt-0.5">
                       {item.months.length > 0 && <span dir="ltr">{item.months.join(", ")} · </span>}
                       {new Date(item.createdAt).toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}
+                      {" · "}
+                      {item.languages.map((language) => t.salaryDocumentLanguages.names[language as "ar" | "en"]).join(t.salaryDocumentLanguages.separator)}
                     </div>
                   </div>
                 </div>
@@ -255,38 +282,45 @@ export function SalaryDocumentsView({
                     </>
                   )}
                   {item.status === "issued" && (
-                    <>
-                      <a className={action} href={pdfUrl(item.id)} target="_blank" rel="noreferrer"><Eye className="w-3.5 h-3.5" aria-hidden /> {h.pdf}</a>
-                      <a className={action} href={salaryDocumentPdfUrl(item.id, locale, true)}><Download className="w-3.5 h-3.5" aria-hidden /> {h.download}</a>
-                      <button disabled={busy} className={action} onClick={() => printPdfUrl(pdfUrl(item.id)).catch(() => toast.error(t.pdfActions.failed))}>
-                        <Printer className="w-3.5 h-3.5" aria-hidden /> {t.pdfActions.print}
-                      </button>
-                      <button
-                        disabled={busy}
-                        className={action}
-                        onClick={() =>
-                          run(async () => {
-                            const result = await emailSalaryDocumentAction(item.id, locale);
-                            if (result.status === "failed") throw new Error(h.emailFailed);
-                            toast.info(result.status === "accepted" ? h.saved : h.emailQueued);
-                          })
-                        }
-                      >
-                        <Mail className="w-3.5 h-3.5" aria-hidden /> {h.email}
-                      </button>
-                      <button
-                        disabled={busy}
-                        className={action}
-                        onClick={() =>
-                          run(async () => {
-                            const result = await whatsappSalaryDocumentAction(item.id, locale);
-                            if (result.fallback) await share(item.id);
-                          })
-                        }
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" aria-hidden /> {h.whatsapp}
-                      </button>
-                    </>
+                    <div className="w-full space-y-2">
+                      {item.languages.map((language) => (
+                        <div key={language} className="flex flex-wrap items-center gap-2">
+                          {item.languages.length > 1 && (
+                            <span className="w-16 shrink-0 text-[11px] font-bold text-ink-muted">{t.salaryDocumentLanguages.names[language as "ar" | "en"]}</span>
+                          )}
+                          <a className={action} href={pdfUrl(item.id, language)} target="_blank" rel="noreferrer"><Eye className="w-3.5 h-3.5" aria-hidden /> {h.pdf}</a>
+                          <a className={action} href={salaryDocumentPdfUrl(item.id, language, true)}><Download className="w-3.5 h-3.5" aria-hidden /> {h.download}</a>
+                          <button disabled={busy} className={action} onClick={() => printPdfUrl(pdfUrl(item.id, language)).catch(() => toast.error(t.pdfActions.failed))}>
+                            <Printer className="w-3.5 h-3.5" aria-hidden /> {t.pdfActions.print}
+                          </button>
+                          <button
+                            disabled={busy}
+                            className={action}
+                            onClick={() =>
+                              run(async () => {
+                                const result = await emailSalaryDocumentAction(item.id, language as "ar" | "en");
+                                if (result.status === "failed") throw new Error(h.emailFailed);
+                                toast.info(result.status === "accepted" ? h.saved : h.emailQueued);
+                              })
+                            }
+                          >
+                            <Mail className="w-3.5 h-3.5" aria-hidden /> {h.email}
+                          </button>
+                          <button
+                            disabled={busy}
+                            className={action}
+                            onClick={() =>
+                              run(async () => {
+                                const result = await whatsappSalaryDocumentAction(item.id, language as "ar" | "en");
+                                if (result.fallback) await share(item.id, language);
+                              })
+                            }
+                          >
+                            <MessageCircle className="w-3.5 h-3.5" aria-hidden /> {h.whatsapp}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}

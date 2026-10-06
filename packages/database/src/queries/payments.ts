@@ -3,6 +3,7 @@ import { paymentStatusFor, roundMoney, sumMoney, toMinorUnits } from "../finance
 import { allocateDocumentNumber } from "../finance/numbering";
 import { PAYABLE_INVOICE_STATUSES } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
+import { mapDocumentTaxLines } from "../finance/vat";
 import { db } from "../db";
 import { Payment, SupportedCurrency, PaymentMethod } from "../types";
 
@@ -51,6 +52,8 @@ function mapPayment(p: any): Payment {
           vat_enabled: p.invoice.vatEnabled,
           vat_percentage: Number(p.invoice.vatPercentage),
           vat_amount: Number(p.invoice.vatAmount),
+          other_taxes: mapDocumentTaxLines(p.invoice.taxes),
+          other_tax_amount: Number(p.invoice.otherTaxAmount ?? 0),
           total_amount: totalInvoice,
           amount_paid: totalPaidOnInvoice,
           amount_due: amountDue,
@@ -97,6 +100,7 @@ export async function getAllPayments(options?: {
           include: {
             client: true,
             payments: true,
+            taxes: { orderBy: { displayOrder: "asc" } },
             deal: {
               include: { contact: true },
             },
@@ -121,6 +125,7 @@ export async function getPaymentById(id: string): Promise<Payment | null> {
           include: {
             client: true,
             payments: true,
+            taxes: { orderBy: { displayOrder: "asc" } },
             deal: {
               include: { contact: true },
             },
@@ -169,6 +174,7 @@ export async function getPaymentByIdOrNumber(
           include: {
             client: true,
             payments: true,
+            taxes: { orderBy: { displayOrder: "asc" } },
             deal: {
               include: { contact: true },
             },

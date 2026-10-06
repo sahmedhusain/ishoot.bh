@@ -36,6 +36,8 @@ export interface ClientSignableDocument {
   vatAmount: number;
   vatPercentage: number;
   vatEnabled: boolean;
+  /** Taxes besides VAT frozen on the document. */
+  otherTaxes: Array<{ code: string; nameEn: string; nameAr: string; rate: number; amount: number }>;
   totalAmount: number;
   clientName: string;
   clientCompany: string | null;
@@ -48,7 +50,7 @@ export interface ClientSignableDocument {
 export async function loadSignableDocument(type: ClientSignableType, id: string, client: Prisma.TransactionClient = db): Promise<ClientSignableDocument | null> {
   const contactSelect = { firstName: true, lastName: true, companyName: true, email: true } as const;
   if (type === "quotation") {
-    const q = await client.quotation.findUnique({ where: { id }, include: { client: { select: contactSelect }, lineItems: { orderBy: { orderIndex: "asc" } } } });
+    const q = await client.quotation.findUnique({ where: { id }, include: { client: { select: contactSelect }, lineItems: { orderBy: { orderIndex: "asc" } }, taxes: { orderBy: { displayOrder: "asc" } } } });
     if (!q) return null;
     const language = q.language === "en" ? "en" : "ar";
     return {
@@ -56,13 +58,14 @@ export async function loadSignableDocument(type: ClientSignableType, id: string,
       issueDate: q.issueDate.toISOString().slice(0, 10), untilDate: q.validUntilDate.toISOString().slice(0, 10),
       currency: q.currency, subtotal: Number(q.subtotal), discountAmount: Number(q.discountAmount), vatAmount: Number(q.vatAmount),
       vatPercentage: Number(q.vatPercentage), vatEnabled: q.vatEnabled, totalAmount: Number(q.totalAmount),
+      otherTaxes: q.taxes.map((x) => ({ code: x.code, nameEn: x.nameEn, nameAr: x.nameAr, rate: Number(x.ratePercent), amount: Number(x.amount) })),
       clientName: [q.client?.firstName, q.client?.lastName].filter(Boolean).join(" "), clientCompany: q.client?.companyName ?? null, clientEmail: q.client?.email ?? null,
       lines: q.lineItems.map((l) => ({ descriptionEn: l.descriptionEn, descriptionAr: l.descriptionAr, quantity: Number(l.quantity), unitPrice: Number(l.unitPrice), lineTotal: Number(l.lineTotal) })),
       terms: (language === "ar" ? q.termsAr || q.termsEn : q.termsEn || q.termsAr) ?? null,
       dealId: q.dealId,
     };
   }
-  const inv = await client.invoice.findUnique({ where: { id }, include: { client: { select: contactSelect }, lineItems: { orderBy: { displayOrder: "asc" } } } });
+  const inv = await client.invoice.findUnique({ where: { id }, include: { client: { select: contactSelect }, lineItems: { orderBy: { displayOrder: "asc" } }, taxes: { orderBy: { displayOrder: "asc" } } } });
   if (!inv) return null;
   const language = inv.language === "en" ? "en" : "ar";
   return {
@@ -70,6 +73,7 @@ export async function loadSignableDocument(type: ClientSignableType, id: string,
     issueDate: inv.issueDate.toISOString().slice(0, 10), untilDate: inv.dueDate.toISOString().slice(0, 10),
     currency: inv.currency, subtotal: Number(inv.subtotal), discountAmount: Number(inv.discountAmount), vatAmount: Number(inv.vatAmount),
     vatPercentage: Number(inv.vatPercentage), vatEnabled: inv.vatEnabled, totalAmount: Number(inv.totalAmount),
+    otherTaxes: inv.taxes.map((x) => ({ code: x.code, nameEn: x.nameEn, nameAr: x.nameAr, rate: Number(x.ratePercent), amount: Number(x.amount) })),
     clientName: [inv.client?.firstName, inv.client?.lastName].filter(Boolean).join(" "), clientCompany: inv.client?.companyName ?? null, clientEmail: inv.client?.email ?? null,
     lines: inv.lineItems.map((l) => ({ descriptionEn: l.descriptionEn, descriptionAr: l.descriptionAr, quantity: Number(l.quantity), unitPrice: Number(l.unitPrice), lineTotal: Number(l.lineTotal) })),
     terms: (language === "ar" ? inv.notesAr || inv.notesEn : inv.notesEn || inv.notesAr) ?? null,

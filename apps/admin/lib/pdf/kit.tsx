@@ -121,8 +121,9 @@ function BrandMark({ brand, height = 30 }: { brand: PdfBrand; height?: number })
 
 /**
  * The fixed letterhead: English details on the left, the logo in the middle and Arabic details on the
- * right, the same on every page of every document in both languages. An uploaded letterhead image
- * (Settings → Brand assets) replaces it.
+ * right, the same on every page of every document in both languages. Tax registrations are not part of
+ * it: they are printed with their certificate QR code at the end of invoices, quotations and receipts.
+ * An uploaded letterhead image (Settings → Brand assets) replaces it.
  */
 export function Letterhead({ brand }: { brand: PdfBrand }) {
   const company = brand.company;
@@ -143,14 +144,12 @@ export function Letterhead({ brand }: { brand: PdfBrand }) {
           <Text style={{ fontSize: 9, fontWeight: "bold", color: C.primary }}>{company.company_name_en}</Text>
           {company.address_en ? <Text style={{ fontSize: 6.8, color: C.muted, marginTop: 2, lineHeight: 1.35 }}>{company.address_en}</Text> : null}
           <Text style={{ fontSize: 6.8, color: C.muted, marginTop: 1 }}>{meta(en.crNo, company.cr_number)}</Text>
-          {company.vat_enabled && company.vat_id ? <Text style={{ fontSize: 6.8, color: C.muted }}>{meta(en.vatNo, company.vat_id)}</Text> : null}
         </View>
         <BrandMark brand={brand} />
         <View style={{ width: 190, alignItems: "flex-end" }}>
           <Text style={[{ fontSize: 9, fontWeight: "bold", color: C.primary }, rtl]}>{company.company_name_ar}</Text>
           {company.address_ar ? <Text style={[{ fontSize: 6.8, color: C.muted, marginTop: 2, lineHeight: 1.35 }, rtl]}>{company.address_ar}</Text> : null}
           <Text style={[{ fontSize: 6.8, color: C.muted, marginTop: 1 }, rtl]}>{meta(ar.crNo, company.cr_number)}</Text>
-          {company.vat_enabled && company.vat_id ? <Text style={[{ fontSize: 6.8, color: C.muted }, rtl]}>{meta(ar.vatNo, company.vat_id)}</Text> : null}
         </View>
       </View>
       <View style={{ marginTop: 12, height: 2.2, backgroundColor: C.primary }} />
@@ -173,6 +172,13 @@ export interface CompanySignature {
   signerName?: string | null;
   signerTitle?: string | null;
   signedAt?: string | null;
+}
+
+/** A tax registration printed at the end of a document: QR code to the certificate, its name and number. */
+export interface TaxCertificateMark {
+  qr?: Buffer;
+  title: string;
+  registration?: string | null;
 }
 
 export interface ClientAcceptance {
@@ -248,6 +254,51 @@ export function docKit(locale: DocLocale) {
           />
         </View>
       </View>
+    );
+  }
+
+  /**
+   * Tax registrations at the end of a document, centred: a scannable QR code to each certificate with
+   * the certificate name written below it and the registration number. `inline` is the compact form
+   * placed between the signatures when there is a single certificate.
+   */
+  function TaxCertificates({ items, inline = false }: { items: TaxCertificateMark[]; inline?: boolean }) {
+    if (!items.length) return null;
+    const width = inline ? 96 : 120;
+    const marks = items.map((item) => (
+      <View key={item.title} style={{ alignItems: "center", width }}>
+        {item.qr ? <Image src={item.qr} style={{ width: inline ? 58 : 66, height: inline ? 58 : 66 }} /> : null}
+        <T align="center" style={{ fontSize: inline ? 7 : 7.5, fontWeight: "bold", color: C.primary, marginTop: 3, width, lineHeight: 1.3 }}>{item.title}</T>
+        {item.registration ? <T align="center" style={{ fontSize: 6.5, color: C.muted, width }}>{item.registration}</T> : null}
+      </View>
+    ));
+    if (inline) return <View wrap={false} style={{ alignItems: "center" }}>{marks}</View>;
+    return (
+      <View wrap={false} style={{ marginTop: 14, paddingTop: 10, borderTopWidth: 0.6, borderTopColor: C.line, alignItems: "center" }}>
+        <View style={{ flexDirection: isAr ? "row-reverse" : "row", justifyContent: "center", gap: 28 }}>{marks}</View>
+      </View>
+    );
+  }
+
+  /**
+   * The closing row of a document: the client's acceptance (or nothing), the tax certificate QR centred,
+   * and the company signature. Two or more certificates get their own centred row underneath.
+   */
+  function ClosingRow({ start, end, certificates }: { start?: React.ReactNode; end: React.ReactNode; certificates: TaxCertificateMark[] }) {
+    const single = certificates.length === 1;
+    return (
+      <>
+        <Row style={{ justifyContent: "space-between", alignItems: "flex-end", marginTop: 16 }} wrap={false}>
+          {start ?? <View style={{ width: 196 }} />}
+          {single ? (
+            <View style={{ flex: 1, alignItems: "center", paddingHorizontal: 4 }}>
+              <TaxCertificates items={certificates} inline />
+            </View>
+          ) : null}
+          {end}
+        </Row>
+        {!single ? <TaxCertificates items={certificates} /> : null}
+      </>
     );
   }
 
@@ -392,7 +443,7 @@ export function docKit(locale: DocLocale) {
   }
 
   /** The client's side: their e-signature or the uploaded signed copy, or blank lines to sign by hand. */
-  function ClientAcceptanceBlock({ acceptance, documentKind }: { acceptance?: ClientAcceptance | null; documentKind: "quotation" | "invoice" }) {
+  function ClientAcceptanceBlock({ acceptance, documentKind, width = 230 }: { acceptance?: ClientAcceptance | null; documentKind: "quotation" | "invoice"; width?: number }) {
     const c = d.client;
     const line = (label: string, value?: string | null) => (
       <Row style={{ alignItems: "flex-end", marginTop: 7 }}>
@@ -403,7 +454,7 @@ export function docKit(locale: DocLocale) {
       </Row>
     );
     return (
-      <View wrap={false} style={{ width: 230 }}>
+      <View wrap={false} style={{ width }}>
         <T style={{ fontSize: 8.5, fontWeight: "bold", color: C.primary }}>{c.title}</T>
         <T style={{ fontSize: 7, color: C.muted, marginTop: 1 }}>{c.statement.replace("{document}", documentKind === "quotation" ? c.quotation : c.invoice)}</T>
         {line(c.name, acceptance ? [acceptance.signerName, acceptance.signerTitle].filter(Boolean).join(isAr ? "، " : ", ") : null)}
@@ -421,6 +472,6 @@ export function docKit(locale: DocLocale) {
 
   return {
     locale, isAr, t, d, money, date, endItems, startItems,
-    T, Row, Footer, TitleBlock, Card, Field, Table, Totals, SectionTitle, Paragraph, CompanySignatureBlock, ClientAcceptanceBlock,
+    T, Row, Footer, TitleBlock, Card, Field, Table, Totals, SectionTitle, Paragraph, CompanySignatureBlock, ClientAcceptanceBlock, TaxCertificates, ClosingRow,
   };
 }

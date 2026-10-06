@@ -118,14 +118,15 @@ export async function commissionsForRange(range: { gte: Date; lt: Date }, userId
       currency: FUNCTIONAL_CURRENCY,
       invoice: { status: { not: "void" }, salesOwnerId: userIds ? { in: userIds } : { not: null } },
     },
-    select: { amount: true, invoice: { select: { id: true, salesOwnerId: true, totalAmount: true, vatAmount: true } } },
+    select: { amount: true, invoice: { select: { id: true, salesOwnerId: true, totalAmount: true, vatAmount: true, otherTaxAmount: true } } },
   });
   const byOwner = new Map<string, { net: number; invoices: Set<string> }>();
   for (const p of payments) {
     const inv = p.invoice!;
     const amount = Number(p.amount);
     const total = Number(inv.totalAmount);
-    const net = total > 0 ? amount - (Number(inv.vatAmount) * amount) / total : amount;
+    // Commission is earned on revenue net of VAT and any other tax collected for the government.
+    const net = total > 0 ? amount - ((Number(inv.vatAmount) + Number(inv.otherTaxAmount ?? 0)) * amount) / total : amount;
     const row = byOwner.get(inv.salesOwnerId!) ?? { net: 0, invoices: new Set<string>() };
     row.net += net;
     row.invoices.add(inv.id);
