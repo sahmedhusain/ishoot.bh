@@ -891,7 +891,9 @@
     "paymentAmountBhd": "Payment Amount (BHD)",
     "tableStatus": "Status",
     "notes": "Notes",
-    "notesPlaceholder": "Verified by finance director..."
+    "notesPlaceholder": "Verified by finance director...",
+    "empty": "No payments match these filters.",
+    "receiptsCount": "{n} receipts"
   },
   "paymentRecorder": {
     "modalTitle": "Record Payment",
@@ -2052,7 +2054,14 @@
     "certificateClosing": "This certificate was issued at the employee's request, without any liability on the company.",
     "toWhom": "To whom it may concern",
     "bonus": "Bonus / incentive",
-    "payrollCompletesPay": "Salary and payroll settings will be completed by payroll before this person is paid."
+    "payrollCompletesPay": "Salary and payroll settings will be completed by payroll before this person is paid.",
+    "documentsSubtitle": "Request salary slips and certificates and track their approval.",
+    "requestTitle": "New request",
+    "documentType": "Document type",
+    "monthsSelected": "{n} selected",
+    "clearMonths": "Clear",
+    "historyTitle": "Requests and issued documents",
+    "emptyHint": "Requests you make will appear here."
   },
   "auditDetails": {
     "before": "Before",
@@ -3007,7 +3016,8 @@
     "records": "records",
     "previous": "Previous",
     "next": "Next",
-    "exportMatches": "Export matches"
+    "exportMatches": "Export matches",
+    "page": "Page {page} of {pages}"
   },
   "relatedListControls": {
     "searchCustomerRecords": "Search customer records",
@@ -3959,5 +3969,61 @@
     "waitingForSigner": "Approved. Waiting for the salesperson to sign and stamp it.",
     "failed": "Could not update the document",
     "signBeforeSending": "Approve, sign and stamp before sending to the client"
+  },
+  "workload": {
+    "focus": {
+      "executive": "Executive overview",
+      "finance": "Finance desk",
+      "hr": "People & HR desk",
+      "sales": "Sales desk",
+      "production": "Production desk",
+      "staff": "My workspace"
+    },
+    "focusSubtitle": {
+      "executive": "Company-wide approvals, requests and complaints at a glance.",
+      "finance": "Approvals, receivables and requests that need finance.",
+      "hr": "Leave, payroll and profile approvals waiting on HR.",
+      "sales": "Your pipeline, quotes awaiting approval and client requests.",
+      "production": "Service requests, SLAs and approvals for the production team.",
+      "staff": "What is waiting for you today."
+    },
+    "approvalsTitle": "Approvals waiting for you",
+    "approvalsEmpty": "Nothing is waiting for your decision.",
+    "oldestWaiting": "Oldest waiting",
+    "submittedPending": "Your submissions awaiting others",
+    "decidedLast30": "Decided by you (30 days)",
+    "openApprovals": "Open approvals center",
+    "step": "Step {n}",
+    "from": "From {name}",
+    "orgApprovalsTitle": "Approvals across the company",
+    "pending": "Pending",
+    "stale": "Waiting over {days} days",
+    "approved30": "Approved (30 days)",
+    "rejected30": "Rejected (30 days)",
+    "avgDecision": "Average time to decide",
+    "byType": "Pending by type",
+    "requestsTitle": "Requests & service requests",
+    "newLast7": "New this week",
+    "resolved30": "Resolved (30 days)",
+    "avgResolution": "Average resolution",
+    "slaMet": "Resolved within SLA",
+    "byKind": "Open by type",
+    "byPriority": "Open by priority",
+    "byTeam": "Open by team",
+    "byStatus": "Open by stage",
+    "noTeam": "No team",
+    "myQueue": "My queue",
+    "myQueueEmpty": "No open requests are assigned to you.",
+    "myOverdue": "{n} past SLA",
+    "complaintsTitle": "Customer complaints",
+    "complaintsEmpty": "No open complaints.",
+    "latestComplaints": "Most urgent open complaints",
+    "vsLastWeek": "{n} the week before",
+    "viewAll": "View all",
+    "hours": "{n} h",
+    "days": "{n} d",
+    "none": "—",
+    "unassigned": "Unassigned",
+    "overdue": "Past SLA"
   }
 }

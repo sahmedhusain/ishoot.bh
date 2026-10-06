@@ -49,7 +49,7 @@ export default async function EmployeeDetailPage({
       canEditPay={canEditPay}
     />
     <EmployeeAttachments employeeId={id} attachments={attachments} canEdit={canEdit} canDelete={await hasPermission("employees", "delete")} />
-    {canManage && <SalaryDocumentsView employeeId={id} availableMonths={availableMonths} decidableIds={decidableIds} documents={documents.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes }))} />}
+    {canManage && <SalaryDocumentsView embedded employeeId={id} availableMonths={availableMonths} decidableIds={decidableIds} documents={documents.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes }))} />}
     </div>
   );
 }
