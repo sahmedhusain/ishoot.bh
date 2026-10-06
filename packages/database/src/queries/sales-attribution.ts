@@ -96,7 +96,7 @@ export interface CommissionRow {
   invoices: number;
   collectedNet: number;
   commission: number;
-  payout: { id: string; amount: number; recordedAt: string; expenseId: string | null } | null;
+  payout: { id: string; amount: number; recordedAt: string; expenseId: string | null; viaPayroll: boolean } | null;
 }
 
 function monthRange(month: string) {
@@ -106,22 +106,18 @@ function monthRange(month: string) {
 }
 
 /**
- * Commission is earned on money collected in the month (net of VAT, BHD) on invoices credited to
- * the salesperson, at their commission rate. Closed, paid work is what counts.
+ * Commission earned on money collected in [range.gte, range.lt) (net of VAT, BHD) on invoices credited to each
+ * salesperson, at their commission rate. Shared by the commission statement and payroll.
  */
-export async function getCommissionStatement(month: string): Promise<CommissionRow[]> {
-  const range = monthRange(month);
-  const [payments, people, payouts] = await Promise.all([
-    db.payment.findMany({
-      where: { paymentDate: range, currency: FUNCTIONAL_CURRENCY, invoice: { status: { not: "void" }, salesOwnerId: { not: null } } },
-      select: { amount: true, invoice: { select: { id: true, salesOwnerId: true, totalAmount: true, vatAmount: true } } },
-    }),
-    db.user.findMany({
-      where: { OR: [{ commissionRatePercent: { not: null } }, { invoicesOwned: { some: { payments: { some: { paymentDate: range } } } } }] },
-      select: { id: true, fullName: true, role: true, commissionRatePercent: true },
-    }),
-    db.commissionPayout.findMany({ where: { periodMonth: month } }),
-  ]);
+export async function commissionsForRange(range: { gte: Date; lt: Date }, userIds?: string[]) {
+  const payments = await db.payment.findMany({
+    where: {
+      paymentDate: range,
+      currency: FUNCTIONAL_CURRENCY,
+      invoice: { status: { not: "void" }, salesOwnerId: userIds ? { in: userIds } : { not: null } },
+    },
+    select: { amount: true, invoice: { select: { id: true, salesOwnerId: true, totalAmount: true, vatAmount: true } } },
+  });
   const byOwner = new Map<string, { net: number; invoices: Set<string> }>();
   for (const p of payments) {
     const inv = p.invoice!;
@@ -133,6 +129,25 @@ export async function getCommissionStatement(month: string): Promise<CommissionR
     row.invoices.add(inv.id);
     byOwner.set(inv.salesOwnerId!, row);
   }
+  return byOwner;
+}
+
+export const commissionAmount = (collectedNet: number, ratePercent: number) => Math.round(collectedNet * ratePercent * 10) / 1000;
+
+/**
+ * Commission is earned on money collected in the month (net of VAT, BHD) on invoices credited to
+ * the salesperson, at their commission rate. Closed, paid work is what counts.
+ */
+export async function getCommissionStatement(month: string): Promise<CommissionRow[]> {
+  const range = monthRange(month);
+  const [byOwner, people, payouts] = await Promise.all([
+    commissionsForRange(range),
+    db.user.findMany({
+      where: { OR: [{ commissionRatePercent: { not: null } }, { invoicesOwned: { some: { payments: { some: { paymentDate: range } } } } }] },
+      select: { id: true, fullName: true, role: true, commissionRatePercent: true },
+    }),
+    db.commissionPayout.findMany({ where: { periodMonth: month } }),
+  ]);
   return people
     .map((u) => {
       const earned = byOwner.get(u.id);
@@ -146,8 +161,8 @@ export async function getCommissionStatement(month: string): Promise<CommissionR
         ratePercent: rate,
         invoices: earned?.invoices.size ?? 0,
         collectedNet,
-        commission: Math.round(collectedNet * rate * 10) / 1000,
-        payout: payout ? { id: payout.id, amount: Number(payout.amount), recordedAt: payout.createdAt.toISOString(), expenseId: payout.expenseId } : null,
+        commission: commissionAmount(collectedNet, rate),
+        payout: payout ? { id: payout.id, amount: Number(payout.amount), recordedAt: payout.createdAt.toISOString(), expenseId: payout.expenseId, viaPayroll: !!payout.payrollItemId } : null,
       };
     })
     .sort((a, b) => b.collectedNet - a.collectedNet);
@@ -160,6 +175,12 @@ export async function recordCommissionPayout(userId: string, month: string, acto
     if (!row) throw new Error("No commission for this person in that month");
     if (row.payout) throw new Error("This month's commission is already recorded");
     if (!(row.commission > 0)) throw new Error("There is no commission to pay for this month");
+    // Staff on payroll receive commission with their salary when the HR policy says so.
+    const [policy, employee] = await Promise.all([
+      db.hrPolicy.findUnique({ where: { id: "default" }, select: { commissionInPayroll: true } }),
+      db.employee.findFirst({ where: { userId, status: { not: "terminated" } }, select: { id: true } }),
+    ]);
+    if ((policy?.commissionInPayroll ?? true) && employee) throw new Error("This person is on payroll; their commission is paid with their salary");
     const category = await db.expenseCategory.findUnique({ where: { slug: "commissions" }, select: { id: true } });
     const range = monthRange(month);
     const lastDay = new Date(range.lt.getTime() - 86400000);

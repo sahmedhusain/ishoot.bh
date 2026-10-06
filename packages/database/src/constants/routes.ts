@@ -81,6 +81,9 @@ export const ROUTES = {
     newEmployee: (query?: NewEmployeeQuery) => withQuery("/dashboard/hr/employees/new", query),
     leave: (query?: HighlightQuery) => withQuery("/dashboard/hr/leave", query),
     payroll: (query?: HighlightQuery) => withQuery("/dashboard/hr/payroll", query),
+    payrollItem: (id: string) => `/dashboard/hr/payroll/items/${encode(id)}`,
+    attendance: "/dashboard/hr/attendance",
+    settings: "/dashboard/hr/settings",
   },
   invoices: {
     list: "/dashboard/invoices",

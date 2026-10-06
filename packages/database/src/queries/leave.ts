@@ -1,6 +1,8 @@
 import { db } from "../db";
-import { leaveDaysRequested } from "../constants/hr";
-import { LeaveRequest, LeaveType } from "../types";
+import { leaveDaysCharged, type DayPortion } from "../hr/payroll-engine";
+import { getHrPolicy, holidaySet, listLeaveTypeRules, toLeaveTypeRules, type LeaveTypeView } from "./hr-settings";
+import { getLeaveBalance, refreshLeaveBalanceCache } from "./leave-balances";
+import { LeaveRequest } from "../types";
 
 /**
  * Checks if an employee (or linked User) has an overlapping approved leave.
@@ -162,11 +164,15 @@ export async function createLeaveRequest(data: {
   endDate: Date;
   fullDay?: boolean;
   hours?: number;
+  /** "full" (default), "half_am", "half_pm" or "hours". */
+  dayPortion?: DayPortion;
+  attachmentUrl?: string | null;
   reason: string;
 }): Promise<LeaveRequest> {
   if (data.endDate < data.startDate) {
     throw new Error("Invalid leave period: end date cannot be earlier than start date");
   }
+  const portion: DayPortion = data.dayPortion ?? (data.fullDay === false ? "hours" : "full");
 
   // Check existing approved or pending leaves for overlap
   const existingOverlap = await db.leaveRequest.findFirst({
@@ -179,17 +185,35 @@ export async function createLeaveRequest(data: {
   });
 
   if (existingOverlap) {
-    throw new Error(`Conflicting leave request already exists for this period (status: ${existingOverlap.status})`);
+    // Two half days on the same date (morning and afternoon) may coexist.
+    const halves = ["half_am", "half_pm"];
+    const sameDayHalves = halves.includes(portion) && halves.includes(existingOverlap.dayPortion) && existingOverlap.dayPortion !== portion;
+    if (!sameDayHalves) throw new Error(`Conflicting leave request already exists for this period (status: ${existingOverlap.status})`);
   }
 
-  const [leaveType, employee] = await Promise.all([
-    db.leaveType.findUniqueOrThrow({ where: { id: data.leaveTypeId }, select: { isPaid: true } }),
-    db.employee.findUniqueOrThrow({ where: { id: data.employeeId }, select: { leaveBalanceDays: true } }),
+  const [typeRow, employee, policy] = await Promise.all([
+    db.leaveType.findUniqueOrThrow({ where: { id: data.leaveTypeId } }),
+    db.employee.findUniqueOrThrow({ where: { id: data.employeeId }, select: { hireDate: true, status: true } }),
+    getHrPolicy(),
   ]);
-  const requestedDays = leaveDaysRequested(data.startDate, data.endDate, data.fullDay !== false, data.hours);
-  if (requestedDays <= 0) throw new Error("The selected period has no working days");
-  if (leaveType.isPaid && requestedDays > Number(employee.leaveBalanceDays)) {
-    throw new Error(`Insufficient leave balance: ${requestedDays} day(s) requested, ${Number(employee.leaveBalanceDays)} available`);
+  const type = toLeaveTypeRules(typeRow);
+  if (!type.isActive) throw new Error("This leave type is no longer offered");
+  if (employee.status === "terminated") throw new Error("Leave cannot be requested for a former employee");
+  if (type.requiresAttachment && !data.attachmentUrl) throw new Error("Attach a supporting document for this leave type");
+  const holidays = await holidaySet(data.startDate, data.endDate);
+  const requestedDays = leaveDaysCharged(
+    { start: data.startDate, end: data.endDate, portion, hours: data.hours },
+    type,
+    policy,
+    holidays,
+  );
+  if (data.startDate.getUTCFullYear() !== data.endDate.getUTCFullYear())
+    throw new Error("Split leave that crosses the new year into two requests");
+  const balance = await getLeaveBalance(data.employeeId, data.leaveTypeId, data.startDate.getUTCFullYear(), data.startDate);
+  if (!balance.eligible)
+    throw new Error(`Not yet eligible for this leave type (available from ${balance.eligibleFrom})`);
+  if (balance.available != null && requestedDays > balance.available) {
+    throw new Error(`Insufficient leave balance: ${requestedDays} day(s) requested, ${balance.available} available`);
   }
 
   const created = await db.leaveRequest.create({
@@ -198,8 +222,11 @@ export async function createLeaveRequest(data: {
       leaveTypeId: data.leaveTypeId,
       startDate: data.startDate,
       endDate: data.endDate,
-      fullDay: data.fullDay !== false,
-      hours: data.hours || null,
+      fullDay: portion === "full",
+      hours: portion === "hours" ? data.hours || null : null,
+      dayPortion: portion,
+      days: requestedDays,
+      attachmentUrl: data.attachmentUrl || null,
       reason: data.reason,
       status: "pending",
     },
@@ -216,11 +243,13 @@ export async function createLeaveRequest(data: {
     },
   });
 
+  await refreshLeaveBalanceCache(data.employeeId);
   return {
     ...created,
     startDate: created.startDate.toISOString(),
     endDate: created.endDate.toISOString(),
     hours: created.hours ? Number(created.hours) : null,
+    days: Number(created.days),
     createdAt: created.createdAt.toISOString(),
     updatedAt: created.updatedAt.toISOString(),
     approvedAt: created.approvedAt?.toISOString() || null,
@@ -293,37 +322,21 @@ export async function approveLeaveRequest(
   if (leave.status !== "pending") throw new Error(`Cannot approve leave with status: ${leave.status}`);
 
   const conflicts = await getLeaveConflicts(leave);
+  // Other requests (approved or pending) already count against the balance; this one is pending too.
+  const balance = await getLeaveBalance(leave.employeeId, leave.leaveTypeId, leave.startDate.getUTCFullYear(), leave.startDate);
+  if (balance.available != null && balance.available < 0) throw new Error("Insufficient leave balance to approve this request");
 
-  const updated = await db.$transaction(async (tx) => {
-    const res = await tx.leaveRequest.update({
-      where: { id: requestId },
-      data: {
-        status: "approved",
-        approvedById: approverId,
-        approvedAt: new Date(),
-        reviewNotes: reviewNotes || null,
-      },
-      include: {
-        employee: true,
-        leaveType: true,
-      },
-    });
-
-    // Deduct leave balance if it's paid leave
-    if (res.leaveType.isPaid) {
-      const days = leaveDaysRequested(leave.startDate, leave.endDate, leave.fullDay, leave.hours ? Number(leave.hours) : null);
-      if (days > Number(res.employee.leaveBalanceDays))
-        throw new Error("Insufficient leave balance to approve this request");
-      await tx.employee.update({
-        where: { id: leave.employeeId },
-        data: {
-          leaveBalanceDays: { decrement: days },
-        },
-      });
-    }
-
-    return res;
+  await db.leaveRequest.update({
+    where: { id: requestId },
+    data: {
+      status: "approved",
+      approvedById: approverId,
+      approvedAt: new Date(),
+      reviewNotes: reviewNotes || null,
+    },
   });
+  await refreshLeaveBalanceCache(leave.employeeId);
+  const updated = await db.leaveRequest.findUniqueOrThrow({ where: { id: requestId }, include: { employee: true, leaveType: true } });
 
   return {
     request: {
@@ -335,6 +348,7 @@ export async function approveLeaveRequest(
       startDate: updated.startDate.toISOString(),
       endDate: updated.endDate.toISOString(),
       hours: updated.hours ? Number(updated.hours) : null,
+      days: Number(updated.days),
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
       approvedAt: updated.approvedAt?.toISOString() || null,
@@ -357,7 +371,7 @@ export async function rejectLeaveRequest(
   if (!leave) throw new Error("Leave request not found");
   if (leave.status !== "pending") throw new Error(`Cannot reject leave with status: ${leave.status}`);
 
-  const updated = await db.leaveRequest.update({
+  await db.leaveRequest.update({
     where: { id: requestId },
     data: {
       status: "rejected",
@@ -365,8 +379,9 @@ export async function rejectLeaveRequest(
       approvedAt: new Date(),
       reviewNotes: reason,
     },
-    include: { employee: true, leaveType: true },
   });
+  await refreshLeaveBalanceCache(leave.employeeId);
+  const updated = await db.leaveRequest.findUniqueOrThrow({ where: { id: requestId }, include: { employee: true, leaveType: true } });
 
   return {
     ...updated,
@@ -377,6 +392,7 @@ export async function rejectLeaveRequest(
     startDate: updated.startDate.toISOString(),
     endDate: updated.endDate.toISOString(),
     hours: updated.hours ? Number(updated.hours) : null,
+    days: Number(updated.days),
     createdAt: updated.createdAt.toISOString(),
     updatedAt: updated.updatedAt.toISOString(),
     approvedAt: updated.approvedAt?.toISOString() || null,
@@ -434,8 +450,9 @@ export async function listLeaveRequests(filters: {
       startDate: r.startDate.toISOString(),
       endDate: r.endDate.toISOString(),
       hours: r.hours ? Number(r.hours) : null,
+      days: Number(r.days),
       // Decimal cannot cross to client components.
-      leaveType: r.leaveType ? { ...r.leaveType, daysAllowedPerYear: Number(r.leaveType.daysAllowedPerYear) } : r.leaveType,
+      leaveType: r.leaveType ? toLeaveTypeRules(r.leaveType) : r.leaveType,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
       approvedAt: r.approvedAt?.toISOString() || null,
@@ -443,43 +460,7 @@ export async function listLeaveRequests(filters: {
   };
 }
 
-export async function listLeaveTypes(): Promise<LeaveType[]> {
-  const types = await db.leaveType.findMany({
-    orderBy: { code: "asc" },
-  });
-
-  if (types.length === 0) {
-    // Return standard statutory Bahrain leave types
-    const defaults = [
-      { code: "annual", nameEn: "Annual Leave", nameAr: "إجازة سنوية", daysAllowedPerYear: 30, isPaid: true },
-      { code: "sick", nameEn: "Sick Leave", nameAr: "إجازة مرضية", daysAllowedPerYear: 15, isPaid: true },
-      { code: "unpaid", nameEn: "Unpaid Leave", nameAr: "إجازة بدون راتب", daysAllowedPerYear: 30, isPaid: false },
-      { code: "emergency", nameEn: "Emergency Leave", nameAr: "إجازة طارئة", daysAllowedPerYear: 6, isPaid: true },
-      { code: "maternity", nameEn: "Maternity / Paternity", nameAr: "إجازة أمومة / أبوة", daysAllowedPerYear: 60, isPaid: true },
-    ];
-
-    const createdList: LeaveType[] = [];
-    for (const d of defaults) {
-      const created = await db.leaveType.create({ data: d });
-      createdList.push({
-        id: created.id,
-        code: created.code,
-        nameEn: created.nameEn,
-        nameAr: created.nameAr,
-        daysAllowedPerYear: Number(created.daysAllowedPerYear),
-        isPaid: created.isPaid,
-      });
-    }
-    return createdList;
-  }
-
-  return types.map((t) => ({
-    id: t.id,
-    code: t.code,
-    nameEn: t.nameEn,
-    nameAr: t.nameAr,
-    daysAllowedPerYear: Number(t.daysAllowedPerYear),
-    isPaid: t.isPaid,
-  }));
+/** Active leave types with their rules (half days, hours, attachments), in display order. */
+export async function listLeaveTypes(): Promise<LeaveTypeView[]> {
+  return listLeaveTypeRules({ activeOnly: true });
 }
-

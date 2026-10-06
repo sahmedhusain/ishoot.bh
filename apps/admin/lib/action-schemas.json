@@ -2835,6 +2835,522 @@
       }
     }
   },
+  "updateHrPolicyAction": {
+    "kind": "object",
+    "fields": {
+      "policy": {
+        "kind": "object",
+        "fields": {
+          "salaryTiming": {
+            "kind": "string",
+            "optional": false
+          },
+          "payDay": {
+            "kind": "number",
+            "optional": false
+          },
+          "attendanceCutoffDay": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "weekendDays": {
+            "kind": "array",
+            "element": {
+              "kind": "number"
+            },
+            "optional": false
+          },
+          "workdayHours": {
+            "kind": "number",
+            "optional": false
+          },
+          "dailyRateBasis": {
+            "kind": "string",
+            "optional": false
+          },
+          "deductionBase": {
+            "kind": "string",
+            "optional": false
+          },
+          "overtimeBase": {
+            "kind": "string",
+            "optional": false
+          },
+          "overtimeRate": {
+            "kind": "number",
+            "optional": false
+          },
+          "overtimeNightRate": {
+            "kind": "number",
+            "optional": false
+          },
+          "overtimeRestDayRate": {
+            "kind": "number",
+            "optional": false
+          },
+          "overtimeHolidayRate": {
+            "kind": "number",
+            "optional": false
+          },
+          "lateGraceMinutes": {
+            "kind": "number",
+            "optional": false
+          },
+          "deductLateness": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "unmarkedDays": {
+            "kind": "string",
+            "optional": false
+          },
+          "prorateJoiners": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "commissionInPayroll": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveLeaveTypeAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "payPercent": {
+            "kind": "number",
+            "optional": false
+          },
+          "payTiers": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "array",
+                "element": {
+                  "kind": "object",
+                  "fields": {
+                    "upToDays": {
+                      "kind": "number",
+                      "optional": false
+                    },
+                    "percent": {
+                      "kind": "number",
+                      "optional": false
+                    }
+                  }
+                }
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "accrual": {
+            "kind": "string",
+            "optional": false
+          },
+          "daysAllowedPerYear": {
+            "kind": "number",
+            "optional": false
+          },
+          "eligibleAfterMonths": {
+            "kind": "number",
+            "optional": false
+          },
+          "maxCarryOverDays": {
+            "kind": "number",
+            "optional": false
+          },
+          "maxDaysPerRequest": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "allowHalfDay": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "allowHours": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "countCalendarDays": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "requiresAttachment": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "sortOrder": {
+            "kind": "number",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "savePublicHolidayAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "date": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deletePublicHolidayAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveShiftTypeAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "allowanceMode": {
+            "kind": "string",
+            "optional": false
+          },
+          "allowanceValue": {
+            "kind": "number",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "addLeaveAdjustmentAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "employeeId": {
+            "kind": "string",
+            "optional": false
+          },
+          "leaveTypeId": {
+            "kind": "string",
+            "optional": false
+          },
+          "year": {
+            "kind": "number",
+            "optional": false
+          },
+          "days": {
+            "kind": "number",
+            "optional": false
+          },
+          "reason": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveAttendanceAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "employeeId": {
+            "kind": "string",
+            "optional": false
+          },
+          "date": {
+            "kind": "string",
+            "optional": false
+          },
+          "status": {
+            "kind": "string",
+            "optional": false
+          },
+          "checkIn": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "checkOut": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "lateMinutes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "overtimeMinutes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "overtimeNightMinutes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "overtimeRestDayMinutes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "overtimeHolidayMinutes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "shiftTypeId": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "notes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteAttendanceAction": {
+    "kind": "object",
+    "fields": {
+      "employeeId": {
+        "kind": "string",
+        "optional": false
+      },
+      "date": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "markMonthPresentAction": {
+    "kind": "object",
+    "fields": {
+      "year": {
+        "kind": "number",
+        "optional": false
+      },
+      "month": {
+        "kind": "number",
+        "optional": false
+      },
+      "employeeIds": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            }
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
   "createEmployeeAction": {
     "kind": "object",
     "fields": {
@@ -3444,6 +3960,41 @@
           "hours": {
             "kind": "number",
             "optional": true
+          },
+          "dayPortion": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "full"
+              },
+              {
+                "kind": "literal",
+                "value": "half_am"
+              },
+              {
+                "kind": "literal",
+                "value": "half_pm"
+              },
+              {
+                "kind": "literal",
+                "value": "hours"
+              }
+            ],
+            "optional": true
+          },
+          "attachmentUrl": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
           }
         },
         "optional": false
@@ -3890,6 +4441,96 @@
       "runId": {
         "kind": "string",
         "optional": false
+      },
+      "payment": {
+        "kind": "object",
+        "fields": {
+          "method": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "paidOn": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": true
+      }
+    }
+  },
+  "payPayrollItemAction": {
+    "kind": "object",
+    "fields": {
+      "itemId": {
+        "kind": "string",
+        "optional": false
+      },
+      "payment": {
+        "kind": "object",
+        "fields": {
+          "method": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "paidOn": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "recalculatePayrollRunAction": {
+    "kind": "object",
+    "fields": {
+      "runId": {
+        "kind": "string",
+        "optional": false
       }
     }
   },
@@ -3903,22 +4544,6 @@
       "patch": {
         "kind": "object",
         "fields": {
-          "basicSalary": {
-            "kind": "number",
-            "optional": true
-          },
-          "housingAllowance": {
-            "kind": "number",
-            "optional": true
-          },
-          "transportAllowance": {
-            "kind": "number",
-            "optional": true
-          },
-          "otherAllowances": {
-            "kind": "number",
-            "optional": true
-          },
           "bonus": {
             "kind": "number",
             "optional": true

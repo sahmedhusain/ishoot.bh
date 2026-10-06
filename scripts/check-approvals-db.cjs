@@ -45,7 +45,8 @@ async function main() {
         await decideApprovalRequest(submitted.approvalRequestId, step2.approverIds[0], "approved");
       }
       assert.equal((await tx.leaveRequest.findUniqueOrThrow({ where: { id: leave.id } })).status, "approved");
-      assert.equal(Number((await tx.employee.findUniqueOrThrow({ where: { id: employee.id } })).leaveBalanceDays), 28, "two working days deducted");
+      const { getLeaveBalance } = require("../packages/database/src/queries/leave-balances.ts");
+      assert.equal((await getLeaveBalance(employee.id, leaveType.id, 2199)).available, 28, "two working days deducted");
       assert.ok(await tx.notification.count({ where: { userId: accountant.id, entityId: leave.id } }), "the accountant is notified");
 
       // Super Admin's own request is approved at once and the decision says why.

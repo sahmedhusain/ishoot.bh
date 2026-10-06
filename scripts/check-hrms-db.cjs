@@ -68,7 +68,10 @@ async function main() {
       const leaveType = await tx.leaveType.create({ data: { code: `test-${employee.id}`, nameEn: 'Test paid leave', nameAr: 'إجازة اختبار', isPaid: true } });
       const leave = await createLeaveRequest({ employeeId: employee.id, leaveTypeId: leaveType.id, startDate: new Date('2199-04-01'), endDate: new Date('2199-04-02'), reason: 'Integration test' });
       await approveLeaveRequest(leave.id, actor.id);
-      assert.equal(Number((await tx.employee.findUniqueOrThrow({ where: { id: employee.id } })).leaveBalanceDays), 28);
+      const { getLeaveBalance } = require('../packages/database/src/queries/leave-balances.ts');
+      const balance = await getLeaveBalance(employee.id, leaveType.id, 2199);
+      assert.equal(balance.used, 2, 'two working days charged');
+      assert.equal(balance.available, 28);
       throw rollback;
     }), { timeout: 20000 });
   } catch (error) { if (error !== rollback) throw error; }

@@ -10,6 +10,8 @@ import {
   markPayrollAsPaid,
   createActivityLog,
   updatePayrollItem,
+  recalculatePayrollRun,
+  payPayrollItem,
   recordSupportReimbursement,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
@@ -91,20 +93,27 @@ export async function approvePayrollRunAction(runId: string) {
   });
 }
 
-export async function markPayrollRunPaidAction(runId: string) {
+interface PaymentInput {
+  method: string;
+  reference?: string | null;
+  paidOn?: string | null;
+}
+
+/** Pays every salary still unpaid in an approved run. */
+export async function markPayrollRunPaidAction(runId: string, payment: PaymentInput = { method: "bank_transfer" }) {
   return measureOperation("action:markPayrollRunPaidAction", async () => {
-    const actor = await requirePermission("payroll", "edit");
-    validateActionArguments("markPayrollRunPaidAction", { runId });
+    const actor = await requirePermission("payroll", "issue_send");
+    validateActionArguments("markPayrollRunPaidAction", { runId, payment });
 
     const { payrollRun } = await runAtomicMutation(async () => {
-      const payrollRun = await markPayrollAsPaid(runId, actor.id);
+      const payrollRun = await markPayrollAsPaid(runId, actor.id, payment);
 
       await createActivityLog({
         user_id: actor.id,
         action: "mark_paid",
         entity_type: "payroll_run",
         entity_id: runId,
-        details: { paidAt: new Date().toISOString() },
+        details: { paidAt: new Date().toISOString(), method: payment.method, reference: payment.reference ?? null },
       });
 
       return { payrollRun };
@@ -115,14 +124,40 @@ export async function markPayrollRunPaidAction(runId: string) {
   });
 }
 
-/** Edit one employee's salary line (pay, bonus, deductions, note) before the run is submitted. */
+/** One employee's salary payment, from their payment page. */
+export async function payPayrollItemAction(itemId: string, payment: PaymentInput) {
+  return measureOperation("action:payPayrollItemAction", async () => {
+    const actor = await requirePermission("payroll", "issue_send");
+    validateActionArguments("payPayrollItemAction", { itemId, payment });
+    const run = await runAtomicMutation(async () => {
+      const run = await payPayrollItem(itemId, payment, actor.id);
+      await createActivityLog({ user_id: actor.id, action: "mark_paid", entity_type: "payroll_item", entity_id: itemId, details: { payrollRunId: run.id, method: payment.method, reference: payment.reference ?? null } });
+      return run;
+    });
+    revalidatePath(ROUTES.hr.payroll());
+    return { success: true, runStatus: run.status };
+  });
+}
+
+/** Recomputes a run that is not yet submitted, after attendance, leave or salary changes. */
+export async function recalculatePayrollRunAction(runId: string) {
+  return measureOperation("action:recalculatePayrollRunAction", async () => {
+    const actor = await requirePermission("payroll", "edit");
+    validateActionArguments("recalculatePayrollRunAction", { runId });
+    const run = await runAtomicMutation(async () => {
+      const run = await recalculatePayrollRun(runId, actor.id);
+      await createActivityLog({ user_id: actor.id, action: "recalculate", entity_type: "payroll_run", entity_id: runId, details: { totalNet: run.totalNet } });
+      return run;
+    });
+    revalidatePath(ROUTES.hr.payroll());
+    return { success: true, totalNet: run.totalNet };
+  });
+}
+
+/** Add a bonus or deduction (with a reason) to one employee's salary before the run is submitted. */
 export async function updatePayrollItemAction(
   itemId: string,
   patch: {
-    basicSalary?: number;
-    housingAllowance?: number;
-    transportAllowance?: number;
-    otherAllowances?: number;
     bonus?: number;
     otherDeductions?: number;
     adjustmentNote?: string | null;
@@ -134,7 +169,7 @@ export async function updatePayrollItemAction(
     const { item } = await runAtomicMutation(async () => {
       const { item, before } = await updatePayrollItem(itemId, patch, actor.id);
       const changed = Object.fromEntries(
-        (["basicSalary", "housingAllowance", "transportAllowance", "otherAllowances", "bonus", "otherDeductions", "adjustmentNote"] as const)
+        (["bonus", "otherDeductions", "adjustmentNote"] as const)
           .filter((key) => patch[key] !== undefined && before[key] !== item[key])
           .map((key) => [key, { from: before[key], to: item[key] }]),
       );

@@ -9,6 +9,7 @@ import {
   findPendingApproval,
   decideApprovalRequest,
   cancelPendingApprovals,
+  refreshLeaveBalanceCache,
   getLeaveConflicts,
   db,
 } from "@ishoot/database";
@@ -23,6 +24,9 @@ export async function createLeaveRequestAction(data: {
   reason: string;
   fullDay?: boolean;
   hours?: number;
+  /** "full", "half_am", "half_pm" or "hours". */
+  dayPortion?: "full" | "half_am" | "half_pm" | "hours";
+  attachmentUrl?: string | null;
 }) {
   return measureOperation("action:createLeaveRequestAction", async () => {
     const actor = await requireAuth();
@@ -52,6 +56,8 @@ export async function createLeaveRequestAction(data: {
         reason: data.reason,
         fullDay: data.fullDay !== false,
         hours: data.hours,
+        dayPortion: data.dayPortion,
+        attachmentUrl: data.attachmentUrl ?? null,
       });
 
       // The employee is the requester even when HR files on their behalf, so they can't self-approve.
@@ -142,6 +148,7 @@ export async function cancelLeaveRequestAction(requestId: string) {
         data: { status: "cancelled" },
       });
       await cancelPendingApprovals("leave_request", requestId);
+      await refreshLeaveBalanceCache(leave.employeeId);
     });
 
     await createActivityLog({

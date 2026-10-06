@@ -9,93 +9,94 @@ generator client {
 }
 
 model User {
-  id             String    @id @default(uuid())
-  email          String    @unique
-  fullName       String
-  passwordHash   String
-  role           String    @default("viewer") // "super_admin", "admin", "finance_manager", "production_manager", "producer", "editor", "accountant", "viewer"
-  roleDefinition Role      @relation(fields: [role], references: [id], onDelete: Restrict)
-  permissions    Json? // custom granular override
-  avatarUrl      String?
-  signatureUrl   String?
-  phone          String?
-  department     String? // production, finance, marketing, executive
-  managerId      String?
-  manager        User?     @relation("UserHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
-  subordinates   User[]    @relation("UserHierarchy")
-  isActive       Boolean   @default(true)
-  lastLoginAt    DateTime?
-  mfaEnabled Boolean @default(false)
-  mfaSecretEncrypted String?
+  id                        String            @id @default(uuid())
+  email                     String            @unique
+  fullName                  String
+  passwordHash              String
+  role                      String            @default("viewer") // "super_admin", "admin", "finance_manager", "production_manager", "producer", "editor", "accountant", "viewer"
+  roleDefinition            Role              @relation(fields: [role], references: [id], onDelete: Restrict)
+  permissions               Json? // custom granular override
+  avatarUrl                 String?
+  signatureUrl              String?
+  phone                     String?
+  department                String? // production, finance, marketing, executive
+  managerId                 String?
+  manager                   User?             @relation("UserHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
+  subordinates              User[]            @relation("UserHierarchy")
+  isActive                  Boolean           @default(true)
+  lastLoginAt               DateTime?
+  mfaEnabled                Boolean           @default(false)
+  mfaSecretEncrypted        String?
   mfaPendingSecretEncrypted String?
-  mfaPendingExpiresAt DateTime?
-  mfaLastStep BigInt?
-  recoveryCodes MfaRecoveryCode[]
-  resetToken     String?
-  resetExpiresAt DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  mfaPendingExpiresAt       DateTime?
+  mfaLastStep               BigInt?
+  recoveryCodes             MfaRecoveryCode[]
+  resetToken                String?
+  resetExpiresAt            DateTime?
+  createdAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
 
-  assignedDeals      CrmDeal[]
-  assignedInquiries  Inquiry[]
-  inquiryNotes       InquiryNote[]
-  invoicesCreated    Invoice[]
-  paymentsCreated    Payment[]
-  expensesCreated    Expense[]
-  calendarEvents     CalendarEvent[]
-  activities         ActivityLog[]
-  notifications      Notification[]
-  attachments        Attachment[]
-  uploads            UploadObject[]
-  sessions           Session[]
-  contractsCreated   Contract[]
-  generatedDocuments GeneratedDocument[]
-  companyDocuments   CompanyDocument[]
-  emailJobs          EmailJob[]
-  momsCreated        MinuteOfMeeting[]   @relation("MomCreator")
-  momsApproved       MinuteOfMeeting[]   @relation("MomApprover")
-  expenseClaims              ExpenseClaim[]      @relation("ExpenseClaimClaimant")
-  expenseClaimsScheduled     ExpenseClaim[]      @relation("ExpenseClaimScheduler")
-  expenseClaimsPaid          ExpenseClaim[]      @relation("ExpenseClaimPayer")
+  assignedDeals                 CrmDeal[]
+  assignedInquiries             Inquiry[]
+  inquiryNotes                  InquiryNote[]
+  invoicesCreated               Invoice[]
+  paymentsCreated               Payment[]
+  expensesCreated               Expense[]
+  calendarEvents                CalendarEvent[]
+  activities                    ActivityLog[]
+  notifications                 Notification[]
+  attachments                   Attachment[]
+  uploads                       UploadObject[]
+  sessions                      Session[]
+  contractsCreated              Contract[]
+  generatedDocuments            GeneratedDocument[]
+  companyDocuments              CompanyDocument[]
+  emailJobs                     EmailJob[]
+  momsCreated                   MinuteOfMeeting[]        @relation("MomCreator")
+  momsApproved                  MinuteOfMeeting[]        @relation("MomApprover")
+  expenseClaims                 ExpenseClaim[]           @relation("ExpenseClaimClaimant")
+  expenseClaimsScheduled        ExpenseClaim[]           @relation("ExpenseClaimScheduler")
+  expenseClaimsPaid             ExpenseClaim[]           @relation("ExpenseClaimPayer")
   /// Largest discount (% of subtotal) this user may give without approval; null uses the company default.
-  discountLimitPercent       Decimal?            @db.Decimal(5, 2)
+  discountLimitPercent          Decimal?                 @db.Decimal(5, 2)
   /// Commission on collected revenue (% of net) credited to this person; null = no commission.
-  commissionRatePercent      Decimal?            @db.Decimal(5, 2)
-  quotationsOwned            Quotation[]         @relation("QuotationSalesOwner")
-  invoicesOwned              Invoice[]           @relation("InvoiceSalesOwner")
-  attributionChangesFrom     SalesAttributionChange[] @relation("AttributionFrom")
-  attributionChangesTo       SalesAttributionChange[] @relation("AttributionTo")
-  attributionChangesMade     SalesAttributionChange[] @relation("AttributionChangedBy")
-  commissionPayouts          CommissionPayout[]  @relation("CommissionPayee")
-  commissionPayoutsRecorded  CommissionPayout[]  @relation("CommissionRecorder")
-  supportReimbursementsRecorded SupportReimbursement[] @relation("SupportReimbursementRecorder")
-  signatureChanges           SignatureChange[]   @relation("SignatureChangeOwner")
-  signatureChangesReviewed   SignatureChange[]   @relation("SignatureChangeReviewer")
-  quotationsSigned           Quotation[]         @relation("QuotationSigner")
-  invoicesSigned             Invoice[]           @relation("InvoiceSigner")
-  receiptsSigned             Payment[]           @relation("ReceiptSigner")
-  @@index([role])
-  authChallenges AuthChallenge[]
-  quotations Quotation[] @relation("QuotationCreator")
-  communicationThreads CommunicationThread[]
-  archivedAt      DateTime?
-  archivedById    String?
-  suspendedAt     DateTime?
-  suspendedById   String?
-  suspensionReason String?
+  commissionRatePercent         Decimal?                 @db.Decimal(5, 2)
+  quotationsOwned               Quotation[]              @relation("QuotationSalesOwner")
+  invoicesOwned                 Invoice[]                @relation("InvoiceSalesOwner")
+  attributionChangesFrom        SalesAttributionChange[] @relation("AttributionFrom")
+  attributionChangesTo          SalesAttributionChange[] @relation("AttributionTo")
+  attributionChangesMade        SalesAttributionChange[] @relation("AttributionChangedBy")
+  commissionPayouts             CommissionPayout[]       @relation("CommissionPayee")
+  commissionPayoutsRecorded     CommissionPayout[]       @relation("CommissionRecorder")
+  supportReimbursementsRecorded SupportReimbursement[]   @relation("SupportReimbursementRecorder")
+  signatureChanges              SignatureChange[]        @relation("SignatureChangeOwner")
+  signatureChangesReviewed      SignatureChange[]        @relation("SignatureChangeReviewer")
+  quotationsSigned              Quotation[]              @relation("QuotationSigner")
+  invoicesSigned                Invoice[]                @relation("InvoiceSigner")
+  receiptsSigned                Payment[]                @relation("ReceiptSigner")
+  authChallenges                AuthChallenge[]
+  quotations                    Quotation[]              @relation("QuotationCreator")
+  communicationThreads          CommunicationThread[]
+  archivedAt                    DateTime?
+  archivedById                  String?
+  suspendedAt                   DateTime?
+  suspendedById                 String?
+  suspensionReason              String?
 
-  profileChangesRequested ProfileChangeRequest[] @relation("ProfileChangeRequester")
-  profileChangesManaged   ProfileChangeRequest[] @relation("ProfileChangeManager")
-  profileChangesForUser   ProfileChangeRequest[] @relation("UserProfileChanges")
-  approvalRequestsCreated ApprovalRequest[]      @relation("ApprovalRequester")
-  approvalDecisionsGiven  ApprovalDecision[]     @relation("ApprovalDecider")
-  requestAssignmentsReceived RequestAssignment[] @relation("RequestAssignee")
-  requestAssignmentsGiven    RequestAssignment[] @relation("RequestAssigner")
-  requestCommentsAuthored    RequestComment[]    @relation("RequestCommentAuthor")
-  requestEventsAuthored      RequestEvent[]      @relation("RequestEventActor")
-  employee                   Employee?           @relation("UserEmployee")
-  socialPlansAssigned SocialContentPlan[] @relation("SocialPlanAssignee")
-  socialPlansCreated  SocialContentPlan[] @relation("SocialPlanCreator")
+  profileChangesRequested    ProfileChangeRequest[] @relation("ProfileChangeRequester")
+  profileChangesManaged      ProfileChangeRequest[] @relation("ProfileChangeManager")
+  profileChangesForUser      ProfileChangeRequest[] @relation("UserProfileChanges")
+  approvalRequestsCreated    ApprovalRequest[]      @relation("ApprovalRequester")
+  approvalDecisionsGiven     ApprovalDecision[]     @relation("ApprovalDecider")
+  requestAssignmentsReceived RequestAssignment[]    @relation("RequestAssignee")
+  requestAssignmentsGiven    RequestAssignment[]    @relation("RequestAssigner")
+  requestCommentsAuthored    RequestComment[]       @relation("RequestCommentAuthor")
+  requestEventsAuthored      RequestEvent[]         @relation("RequestEventActor")
+  employee                   Employee?              @relation("UserEmployee")
+  socialPlansAssigned        SocialContentPlan[]    @relation("SocialPlanAssignee")
+  socialPlansCreated         SocialContentPlan[]    @relation("SocialPlanCreator")
+
+  @@index([role])
 }
 
 model CompanySetting {
@@ -156,11 +157,11 @@ model CompanySetting {
   rulesEn String? @db.Text
   rulesAr String? @db.Text
 
-  updatedAt DateTime @updatedAt
+  updatedAt                    DateTime @updatedAt
   /// Discounts up to this % of the subtotal need no approval unless a user has their own limit.
-  defaultDiscountLimitPercent Decimal @default(5.00) @db.Decimal(5, 2)
+  defaultDiscountLimitPercent  Decimal  @default(5.00) @db.Decimal(5, 2)
   /// When on, every quotation goes through approval even without a discount.
-  quotationsAlwaysNeedApproval Boolean @default(false)
+  quotationsAlwaysNeedApproval Boolean  @default(false)
 }
 
 model CompanyAsset {
@@ -249,7 +250,7 @@ model StudioEquipment {
 }
 
 model Inquiry {
-  id                     String        @id @default(uuid())
+  id                     String                @id @default(uuid())
   name                   String
   email                  String
   emailNorm              String? // lower(trim(email)) for dedup matching
@@ -260,42 +261,47 @@ model Inquiry {
   budgetRange            String?
   timeline               String?
   message                String
-  status                 String        @default("new") // "new", "contacted", "qualified", "archived"
-  locale                 String        @default("ar")
-  source                 String        @default("website") // "website", "email", "whatsapp", "manual"
+  status                 String                @default("new") // "new", "contacted", "qualified", "archived"
+  locale                 String                @default("ar")
+  source                 String                @default("website") // "website", "email", "whatsapp", "manual"
   customerId             String? // FK to resolved CrmContact
-  customer               CrmContact?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  intent                 String        @default("inquiry")
-  reference              String        @unique @default(cuid())
-  submissionKey          String?       @unique
+  customer               CrmContact?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  intent                 String                @default("inquiry")
+  reference              String                @unique @default(cuid())
+  submissionKey          String?               @unique
   requestHash            String?
-  serviceIds             String[]      @default([])
+  serviceIds             String[]              @default([])
   projectReference       String?
   location               String?
   assignedToId           String?
-  assignedTo             User?         @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedTo             User?                 @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
   team                   String? // "production", "post_production", "finance", "sales", "executive", "support"
-  workflowStatus         String        @default("received") // "received", "under_review", "assigned", "pending_approval", "confirmed", "returned", "in_progress", "resolved", "rejected"
-  customAssignments      Json?         @default("[]") // [{ assignedToId, assignedBy, timestamp, notes, action }]
+  workflowStatus         String                @default("received") // "received", "under_review", "assigned", "pending_approval", "confirmed", "returned", "in_progress", "resolved", "rejected"
+  customAssignments      Json?                 @default("[]") // [{ assignedToId, assignedBy, timestamp, notes, action }]
   approvedById           String?
   approvedAt             DateTime?
-  approvalNotes          String?       @db.Text
-  returnReason           String?       @db.Text
-  resolutionNotes        String?       @db.Text
+  approvalNotes          String?               @db.Text
+  returnReason           String?               @db.Text
+  resolutionNotes        String?               @db.Text
   confirmedAt            DateTime?
   confirmedById          String?
-  priority               String        @default("normal")
+  priority               String                @default("normal")
   resolvedAt             DateTime?
-  confirmationStatus     String        @default("unknown")
-  notificationStatus     String        @default("unknown")
+  confirmationStatus     String                @default("unknown")
+  notificationStatus     String                @default("unknown")
   confirmationProviderId String?
   notificationProviderId String?
-  convertedDeal          CrmDeal?      @relation("InquiryConversion")
+  convertedDeal          CrmDeal?              @relation("InquiryConversion")
   notes                  InquiryNote[]
-  mergeFlag              Boolean       @default(false)
-  requestType            String        @default("inquiry") // "SR", "CR", "inquiry", "quote_request"
+  mergeFlag              Boolean               @default(false)
+  requestType            String                @default("inquiry") // "SR", "CR", "inquiry", "quote_request"
   slaDueDate             DateTime?
-  createdAt              DateTime      @default(now())
+  createdAt              DateTime              @default(now())
+  quotations             Quotation[]
+  communicationThreads   CommunicationThread[]
+  requestEvents          RequestEvent[]
+  assignments            RequestAssignment[]
+  comments               RequestComment[]
 
   @@index([intent, status, createdAt])
   @@index([assignedToId, status, createdAt])
@@ -303,11 +309,6 @@ model Inquiry {
   @@index([customerId])
   @@index([emailNorm])
   @@index([phoneE164])
-  quotations Quotation[]
-  communicationThreads CommunicationThread[]
-  requestEvents RequestEvent[]
-  assignments RequestAssignment[]
-  comments RequestComment[]
 }
 
 model InquiryNote {
@@ -333,32 +334,32 @@ model WebsiteContent {
 }
 
 model CrmContact {
-  id          String     @id @default(uuid())
-  firstName   String
-  lastName    String?
-  email       String?
-  emailNorm   String? // lower(trim(email)) for dedup
-  phone       String?
-  phoneE164   String? // E.164 normalized phone
-  companyName String?
-  vatNumber   String? // buyer VAT registration, printed on tax invoices
-  jobTitle    String?
-  contactType String     @default("client") // "client", "vendor", "freelancer", "agency"
-  notes       String?
-  deals       CrmDeal[]
-  inquiries   Inquiry[]
-  contracts         Contract[]
-  invoices          Invoice[]
-  reviews           Review[]
-  minutesOfMeetings MinuteOfMeeting[]
-  expenses          Expense[]
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                   String                @id @default(uuid())
+  firstName            String
+  lastName             String?
+  email                String?
+  emailNorm            String? // lower(trim(email)) for dedup
+  phone                String?
+  phoneE164            String? // E.164 normalized phone
+  companyName          String?
+  vatNumber            String? // buyer VAT registration, printed on tax invoices
+  jobTitle             String?
+  contactType          String                @default("client") // "client", "vendor", "freelancer", "agency"
+  notes                String?
+  deals                CrmDeal[]
+  inquiries            Inquiry[]
+  contracts            Contract[]
+  invoices             Invoice[]
+  reviews              Review[]
+  minutesOfMeetings    MinuteOfMeeting[]
+  expenses             Expense[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  quotations           Quotation[]
+  communicationThreads CommunicationThread[]
 
   @@index([emailNorm])
   @@index([phoneE164])
-  quotations Quotation[]
-  communicationThreads CommunicationThread[]
 }
 
 model CrmDeal {
@@ -376,7 +377,7 @@ model CrmDeal {
   shootDate         DateTime?         @db.Date
   lostReason        String?
   assignedTo        String?
-  assignee          User? @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
+  assignee          User?             @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
   notes             String?
   invoices          Invoice[]
   expenses          Expense[]
@@ -384,68 +385,70 @@ model CrmDeal {
   contracts         Contract[]
   minutesOfMeetings MinuteOfMeeting[]
   createdAt         DateTime          @default(now())
-  updatedAt         DateTime        @updatedAt
+  updatedAt         DateTime          @updatedAt
 
-  expenseClaims     ExpenseClaim[]
+  expenseClaims ExpenseClaim[]
+  quotations    Quotation[]
+
   @@index([contactId])
   @@index([dealStage])
   @@index([assignedTo])
-  quotations Quotation[]
 }
 
 model Invoice {
-  id              String            @id @default(uuid())
-  dealId          String?
-  deal            CrmDeal?          @relation(fields: [dealId], references: [id], onDelete: SetNull)
-  invoiceNumber   String            @unique
-  clientId        String?
-  client          CrmContact?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  issueDate       DateTime          @default(now()) @db.Date
-  dueDate         DateTime          @db.Date
-  subtotal        Decimal           @default(0.000) @db.Decimal(12, 3)
-  vatEnabled      Boolean           @default(false)
-  vatPercentage   Decimal           @default(10.00) @db.Decimal(5, 2)
-  vatAmount       Decimal           @default(0.000) @db.Decimal(12, 3)
-  discountType    String            @default("none") // "none", "percentage", "fixed"
-  discountValue   Decimal           @default(0.000) @db.Decimal(12, 3)
-  discountAmount  Decimal           @default(0.000) @db.Decimal(12, 3)
-  totalAmount     Decimal           @default(0.000) @db.Decimal(12, 3)
-  currency        String            @default("BHD")
-  language        String            @default("ar") // "ar", "en"
-  status          String            @default("draft") // "draft", "sent", "partially_paid", "paid", "overdue", "void"
-  approvalStatus  String            @default("draft") // "draft", "submitted", "approved", "rejected"
-  approvalRevision Int              @default(1)
-  contentHash     String?
-  pdfStoragePath  String?
-  deliveryChannel String?
-  deliveredAt     DateTime?         @db.Timestamptz
-  notesEn         String?
-  notesAr         String?
-  createdById     String?
-  createdBy       User?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  lineItems       InvoiceLineItem[]
-  payments        Payment[]
-  allocations     PaymentAllocation[]
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id               String              @id @default(uuid())
+  dealId           String?
+  deal             CrmDeal?            @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  invoiceNumber    String              @unique
+  clientId         String?
+  client           CrmContact?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  issueDate        DateTime            @default(now()) @db.Date
+  dueDate          DateTime            @db.Date
+  subtotal         Decimal             @default(0.000) @db.Decimal(12, 3)
+  vatEnabled       Boolean             @default(false)
+  vatPercentage    Decimal             @default(10.00) @db.Decimal(5, 2)
+  vatAmount        Decimal             @default(0.000) @db.Decimal(12, 3)
+  discountType     String              @default("none") // "none", "percentage", "fixed"
+  discountValue    Decimal             @default(0.000) @db.Decimal(12, 3)
+  discountAmount   Decimal             @default(0.000) @db.Decimal(12, 3)
+  totalAmount      Decimal             @default(0.000) @db.Decimal(12, 3)
+  currency         String              @default("BHD")
+  language         String              @default("ar") // "ar", "en"
+  status           String              @default("draft") // "draft", "sent", "partially_paid", "paid", "overdue", "void"
+  approvalStatus   String              @default("draft") // "draft", "submitted", "approved", "rejected"
+  approvalRevision Int                 @default(1)
+  contentHash      String?
+  pdfStoragePath   String?
+  deliveryChannel  String?
+  deliveredAt      DateTime?           @db.Timestamptz
+  notesEn          String?
+  notesAr          String?
+  createdById      String?
+  createdBy        User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  lineItems        InvoiceLineItem[]
+  payments         Payment[]
+  allocations      PaymentAllocation[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
-  expenseClaims     ExpenseClaim[]
+  expenseClaims         ExpenseClaim[]
   /// The salesperson credited with this invoice (from its quotation, else its issuer).
-  salesOwnerId    String?
-  salesOwner      User?             @relation("InvoiceSalesOwner", fields: [salesOwnerId], references: [id], onDelete: SetNull)
+  salesOwnerId          String?
+  salesOwner            User?                  @relation("InvoiceSalesOwner", fields: [salesOwnerId], references: [id], onDelete: SetNull)
   /// Signed and stamped after approval by the person who sends it; the signature is snapshotted.
-  signedById         String?
-  signedBy           User?    @relation("InvoiceSigner", fields: [signedById], references: [id], onDelete: SetNull)
-  signedAt           DateTime?
-  signerSignatureUrl String?
+  signedById            String?
+  signedBy              User?                  @relation("InvoiceSigner", fields: [signedById], references: [id], onDelete: SetNull)
+  signedAt              DateTime?
+  signerSignatureUrl    String?
+  quotation             Quotation?
+  communicationMessages CommunicationMessage[]
+
   @@index([clientId])
   @@index([dealId])
   @@index([status])
   @@index([approvalStatus])
   @@index([issueDate])
   @@index([createdAt])
-  quotation Quotation?
-  communicationMessages CommunicationMessage[]
   @@index([salesOwnerId])
 }
 
@@ -467,47 +470,48 @@ model InvoiceLineItem {
 }
 
 model Payment {
-  id                  String   @id @default(uuid())
+  id                  String              @id @default(uuid())
   invoiceId           String
-  invoice             Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
-  receiptNumber       String   @unique
-  paymentDate         DateTime @default(now()) @db.Date
-  amount              Decimal  @db.Decimal(12, 3)
-  currency            String   @default("BHD")
-  paymentMethod       String   @default("bank_transfer") // "bank_transfer", "cash", "cheque", "card", "online"
+  invoice             Invoice             @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  receiptNumber       String              @unique
+  paymentDate         DateTime            @default(now()) @db.Date
+  amount              Decimal             @db.Decimal(12, 3)
+  currency            String              @default("BHD")
+  paymentMethod       String              @default("bank_transfer") // "bank_transfer", "cash", "cheque", "card", "online"
   referenceNumber     String?
   notes               String?
   receiptPdfPath      String?
   notificationChannel String?
-  notificationSent    Boolean  @default(false)
+  notificationSent    Boolean             @default(false)
   createdById         String?
-  createdBy           User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy           User?               @relation(fields: [createdById], references: [id], onDelete: SetNull)
   allocations         PaymentAllocation[]
   settlement          BankSettlement?
-  createdAt           DateTime @default(now())
+  createdAt           DateTime            @default(now())
 
   /// Signed and stamped after approval by the person who sends it; the signature is snapshotted.
   signedById         String?
-  signedBy           User?    @relation("ReceiptSigner", fields: [signedById], references: [id], onDelete: SetNull)
+  signedBy           User?     @relation("ReceiptSigner", fields: [signedById], references: [id], onDelete: SetNull)
   signedAt           DateTime?
   signerSignatureUrl String?
+
   @@index([invoiceId])
   @@index([paymentDate])
   @@index([paymentMethod])
 }
 
 model ExpenseCategory {
-  id           String    @id @default(uuid())
-  slug         String    @unique
+  id           String         @id @default(uuid())
+  slug         String         @unique
   nameEn       String
   nameAr       String
-  color        String    @default("#9EADA9")
-  displayOrder Int       @default(0)
+  color        String         @default("#9EADA9")
+  displayOrder Int            @default(0)
   /// "cost_of_sales" (project costs), "operating" (overheads) or "payroll".
-  kind         String    @default("operating")
+  kind         String         @default("operating")
   /// Built-in categories can be renamed or hidden but never deleted.
-  isSystem     Boolean   @default(false)
-  isActive     Boolean   @default(true)
+  isSystem     Boolean        @default(false)
+  isActive     Boolean        @default(true)
   expenses     Expense[]
   claims       ExpenseClaim[]
 }
@@ -545,8 +549,9 @@ model Expense {
   createdBy          User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
   createdAt          DateTime         @default(now())
 
-  claim              ExpenseClaim?
-  commissionPayout   CommissionPayout?
+  claim            ExpenseClaim?
+  commissionPayout CommissionPayout?
+
   @@index([dealId])
   @@index([clientId])
   @@index([categoryId])
@@ -577,7 +582,8 @@ model CalendarEvent {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  expenseClaims    ExpenseClaim[]
+  expenseClaims ExpenseClaim[]
+
   @@index([dealId])
   @@index([startDate])
 }
@@ -601,20 +607,20 @@ model ActivityLog {
 }
 
 model Notification {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  title      String
-  message    String
-  type       String   @default("info") // "info", "warning", "success", "action"
-  entityType String?
-  entityId   String?
-  messageKey String?
+  id            String   @id @default(uuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  title         String
+  message       String
+  type          String   @default("info") // "info", "warning", "success", "action"
+  entityType    String?
+  entityId      String?
+  messageKey    String?
   messageParams Json?
-  actionUrl  String?
-  eventKey   String?
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  actionUrl     String?
+  eventKey      String?
+  isRead        Boolean  @default(false)
+  createdAt     DateTime @default(now())
 
   @@index([userId, isRead, createdAt])
   @@index([eventKey])
@@ -646,13 +652,13 @@ model Attachment {
 }
 
 model Permission {
-  id        String   @id @default(uuid())
-  role      String // "super_admin", "admin", "finance_manager", "sales", "marketing", "production_manager", "producer", "editor", "accountant", "viewer"
-  roleDefinition Role @relation(fields: [role], references: [id], onDelete: Cascade)
-  resource  String // "invoices", "payments", "expenses", "finance_analytics", "deals", "contacts", "leads", "contracts", "banners", "portfolio", "clients", "equipment", "users", "settings", "audit_logs"
-  action    String // "read", "write", "delete", "export", "approve"
-  allowed   Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id             String   @id @default(uuid())
+  role           String // "super_admin", "admin", "finance_manager", "sales", "marketing", "production_manager", "producer", "editor", "accountant", "viewer"
+  roleDefinition Role     @relation(fields: [role], references: [id], onDelete: Cascade)
+  resource       String // "invoices", "payments", "expenses", "finance_analytics", "deals", "contacts", "leads", "contracts", "banners", "portfolio", "clients", "equipment", "users", "settings", "audit_logs"
+  action         String // "read", "write", "delete", "export", "approve"
+  allowed        Boolean  @default(false)
+  createdAt      DateTime @default(now())
 
   @@unique([role, resource, action])
   @@index([role])
@@ -716,15 +722,15 @@ model Contract {
 }
 
 model MinuteOfMeeting {
-  emailJobs EmailJob[]
+  emailJobs        EmailJob[]
   id               String      @id @default(uuid())
   momNumber        String      @unique // e.g. "MOM-2026-001"
   title            String
   titleAr          String?
   meetingDate      DateTime    @db.Date
-  startTime        String?     // e.g. "10:00 AM"
-  endTime          String?     // e.g. "11:30 AM"
-  location         String?     // e.g. "ishoot Studio", "Zoom Virtual Room", "Client HQ"
+  startTime        String? // e.g. "10:00 AM"
+  endTime          String? // e.g. "11:30 AM"
+  location         String? // e.g. "ishoot Studio", "Zoom Virtual Room", "Client HQ"
   dealId           String?
   deal             CrmDeal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
   clientId         String?
@@ -740,7 +746,7 @@ model MinuteOfMeeting {
   createdBy        User?       @relation("MomCreator", fields: [createdById], references: [id], onDelete: SetNull)
   approvedById     String?
   approvedBy       User?       @relation("MomApprover", fields: [approvedById], references: [id], onDelete: SetNull)
-  signatureUrl     String?     // User signature snapshot at signing
+  signatureUrl     String? // User signature snapshot at signing
   pdfStoragePath   String?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
@@ -827,11 +833,11 @@ model SocialLink {
 model Role {
   users       User[]
   permissions Permission[]
-  id        String   @id @default(cuid()) // e.g. "sales_lead", "agency_partner"
-  nameEn    String
-  nameAr    String
-  isSystem  Boolean  @default(false) // Prevents deletion of core roles
-  createdAt DateTime @default(now())
+  id          String       @id @default(cuid()) // e.g. "sales_lead", "agency_partner"
+  nameEn      String
+  nameAr      String
+  isSystem    Boolean      @default(false) // Prevents deletion of core roles
+  createdAt   DateTime     @default(now())
 }
 
 model FeatureToggle {
@@ -876,188 +882,193 @@ model Faq {
 }
 
 model Statistic {
-  id         String  @id @default(cuid())
-  value      String // e.g., "150+" or "8K"
-  labelEn    String
-  labelAr    String
-  subLabelEn String?
-  subLabelAr String?
-  icon       String? // Lucide icon name, e.g. "Film"
-  sortOrder  Int     @default(0)
+  id          String  @id @default(cuid())
+  value       String // e.g., "150+" or "8K"
+  labelEn     String
+  labelAr     String
+  subLabelEn  String?
+  subLabelAr  String?
+  icon        String? // Lucide icon name, e.g. "Film"
+  sortOrder   Int     @default(0)
   /// "manual" uses value as typed; "preset" computes it from live data.
-  source     String  @default("manual")
+  source      String  @default("manual")
   /// projects_delivered | clients_served | team_members | portfolio_projects | five_star_reviews | years_in_business
-  preset     String?
+  preset      String?
   /// Preset input, e.g. the founding year for years_in_business.
   presetParam Int?
   /// Round computed values down to this step (10 → 157 shows 150) before the suffix.
-  roundTo    Int?
-  suffix     String?
+  roundTo     Int?
+  suffix      String?
 }
 
 // Durable cross-app cache invalidation, committed with publication.
 model RevalidationJob {
-  id            String   @id @default(cuid())
-  eventKey      String   @unique
+  id            String    @id @default(cuid())
+  eventKey      String    @unique
   payload       Json
-  status        String   @default("pending")
-  attempts      Int      @default(0)
-  nextAttemptAt DateTime @default(now())
+  status        String    @default("pending")
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime  @default(now())
   lastError     String?
   deliveredAt   DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
   @@index([status, nextAttemptAt])
 }
 
 model UploadObject {
-  id String @id @default(uuid())
-  fileUrl String @unique
-  ownerId String
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  fileName String
-  fileSize Int
-  mimeType String
-  isPublic Boolean @default(false)
+  id        String    @id @default(uuid())
+  fileUrl   String    @unique
+  ownerId   String
+  owner     User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  fileName  String
+  fileSize  Int
+  mimeType  String
+  isPublic  Boolean   @default(false)
   claimedAt DateTime?
   expiresAt DateTime
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+
   @@index([ownerId, expiresAt])
 }
 
 model AbuseWindow {
-  key String @id
-  count Int @default(1)
+  key       String   @id
+  count     Int      @default(1)
   expiresAt DateTime
+
   @@index([expiresAt])
 }
 
 model MfaRecoveryCode {
-  id String @id @default(uuid())
-  userId String
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  codeHash String @unique
-  usedAt DateTime?
+  id       String    @id @default(uuid())
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash String    @unique
+  usedAt   DateTime?
+
   @@index([userId])
 }
 
 model EmailJob {
-  id String @id @default(uuid())
-  eventKey String @unique
-  momId String?
-  mom MinuteOfMeeting? @relation(fields: [momId], references: [id], onDelete: Restrict)
-  createdById String?
-  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  recipient String
-  subject String
-  html String @db.Text
+  id             String           @id @default(uuid())
+  eventKey       String           @unique
+  momId          String?
+  mom            MinuteOfMeeting? @relation(fields: [momId], references: [id], onDelete: Restrict)
+  createdById    String?
+  createdBy      User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  recipient      String
+  subject        String
+  html           String           @db.Text
   attachmentName String
-  attachment Bytes
-  status String @default("pending")
-  attempts Int @default(0)
-  nextAttemptAt DateTime @default(now())
-  providerId String?
-  lastError String?
-  acceptedAt DateTime?
-  createdAt DateTime @default(now())
+  attachment     Bytes
+  status         String           @default("pending")
+  attempts       Int              @default(0)
+  nextAttemptAt  DateTime         @default(now())
+  providerId     String?
+  lastError      String?
+  acceptedAt     DateTime?
+  createdAt      DateTime         @default(now())
+
   @@index([status, nextAttemptAt])
   @@index([momId, createdAt])
 }
 
 model IntegrationSetting {
-  provider       String    @id // e.g. "whatsapp", "meta"
-  isActive       Boolean   @default(false)
-  credentials    String?   // Encrypted payload (e.g. aes-256-gcm)
-  config         Json?     // Cleartext config (e.g. autoSendInvoices)
-  healthStatus   String    @default("unknown") // "healthy", "error", "unknown"
-  lastCheckedAt  DateTime?
+  provider      String    @id // e.g. "whatsapp", "meta"
+  isActive      Boolean   @default(false)
+  credentials   String? // Encrypted payload (e.g. aes-256-gcm)
+  config        Json? // Cleartext config (e.g. autoSendInvoices)
+  healthStatus  String    @default("unknown") // "healthy", "error", "unknown"
+  lastCheckedAt DateTime?
   /// Provider message from the last failed check or sync (never contains credentials).
-  lastError      String?
+  lastError     String?
   /// Name of the connected account/page/channel as reported by the provider.
-  accountName    String?
-  lastSyncedAt   DateTime?
-  updatedAt      DateTime  @updatedAt
-  updatedById    String?
+  accountName   String?
+  lastSyncedAt  DateTime?
+  updatedAt     DateTime  @updatedAt
+  updatedById   String?
 }
 
 model AuthChallenge {
-  id          String   @id @default(cuid())
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  email       String
-  type        String   // "invitation", "password_reset", "login_otp", "mfa_setup"
-  codeHash    String   // bcrypt hash of the plain token/otp
-  expiresAt   DateTime
-  attempts    Int      @default(0)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email     String
+  type      String // "invitation", "password_reset", "login_otp", "mfa_setup"
+  codeHash  String // bcrypt hash of the plain token/otp
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
 
   @@index([email, type])
 }
 
 model Quotation {
-  id              String                @id @default(uuid())
-  quotationNumber String                @unique
-  revision        Int                   @default(1)
-  
-  dealId          String?
-  deal            CrmDeal?              @relation(fields: [dealId], references: [id], onDelete: SetNull)
-  clientId        String?
-  client          CrmContact?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  inquiryId       String?
-  inquiry         Inquiry?              @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
-  invoiceId       String?               @unique
-  invoice         Invoice?              @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  
-  issueDate       DateTime              @default(now()) @db.Date
-  validUntilDate  DateTime              @db.Date
-  
-  subtotal        Decimal               @default(0.000) @db.Decimal(12, 3)
-  vatEnabled      Boolean               @default(false)
-  vatPercentage   Decimal               @default(10.00) @db.Decimal(5, 2)
-  vatAmount       Decimal               @default(0.000) @db.Decimal(12, 3)
-  discountType    String                @default("none") // "none", "percentage", "fixed"
-  discountValue   Decimal               @default(0.000) @db.Decimal(12, 3)
-  discountAmount  Decimal               @default(0.000) @db.Decimal(12, 3)
-  totalAmount     Decimal               @default(0.000) @db.Decimal(12, 3)
-  currency        String                @default("BHD")
-  language        String                @default("ar") // "ar", "en"
-  
-  status          String                @default("draft") // "draft", "submitted", "approved", "issued", "accepted", "declined", "expired", "cancelled"
+  id              String @id @default(uuid())
+  quotationNumber String @unique
+  revision        Int    @default(1)
+
+  dealId    String?
+  deal      CrmDeal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  clientId  String?
+  client    CrmContact? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  inquiryId String?
+  inquiry   Inquiry?    @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  invoiceId String?     @unique
+  invoice   Invoice?    @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  issueDate      DateTime @default(now()) @db.Date
+  validUntilDate DateTime @db.Date
+
+  subtotal       Decimal @default(0.000) @db.Decimal(12, 3)
+  vatEnabled     Boolean @default(false)
+  vatPercentage  Decimal @default(10.00) @db.Decimal(5, 2)
+  vatAmount      Decimal @default(0.000) @db.Decimal(12, 3)
+  discountType   String  @default("none") // "none", "percentage", "fixed"
+  discountValue  Decimal @default(0.000) @db.Decimal(12, 3)
+  discountAmount Decimal @default(0.000) @db.Decimal(12, 3)
+  totalAmount    Decimal @default(0.000) @db.Decimal(12, 3)
+  currency       String  @default("BHD")
+  language       String  @default("ar") // "ar", "en"
+
+  status             String   @default("draft") // "draft", "submitted", "approved", "issued", "accepted", "declined", "expired", "cancelled"
   acceptanceEvidence String?
-  approvalRevision Int                  @default(1)
-  contentHash     String?
-  rawRate         Decimal?              @db.Decimal(14, 6)
-  fxMarginPercent Decimal               @default(3.00) @db.Decimal(5, 2)
-  effectiveRate   Decimal?              @db.Decimal(14, 6)
-  
+  approvalRevision   Int      @default(1)
+  contentHash        String?
+  rawRate            Decimal? @db.Decimal(14, 6)
+  fxMarginPercent    Decimal  @default(3.00) @db.Decimal(5, 2)
+  effectiveRate      Decimal? @db.Decimal(14, 6)
+
   pdfStoragePath  String?
   deliveryChannel String?
-  deliveredAt     DateTime?             @db.Timestamptz
-  
-  termsEn         String?
-  termsAr         String?
-  
-  createdById     String?
-  createdBy       User?                 @relation("QuotationCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  lineItems       QuotationLineItem[]
-  
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
+  deliveredAt     DateTime? @db.Timestamptz
+
+  termsEn String?
+  termsAr String?
+
+  createdById String?
+  createdBy   User?               @relation("QuotationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  lineItems   QuotationLineItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   /// The salesperson credited with this quotation (defaults to its issuer).
-  salesOwnerId    String?
-  salesOwner      User?                 @relation("QuotationSalesOwner", fields: [salesOwnerId], references: [id], onDelete: SetNull)
+  salesOwnerId          String?
+  salesOwner            User?                  @relation("QuotationSalesOwner", fields: [salesOwnerId], references: [id], onDelete: SetNull)
   /// Signed and stamped after approval by the person who sends it; the signature is snapshotted.
-  signedById         String?
-  signedBy           User?    @relation("QuotationSigner", fields: [signedById], references: [id], onDelete: SetNull)
-  signedAt           DateTime?
-  signerSignatureUrl String?
+  signedById            String?
+  signedBy              User?                  @relation("QuotationSigner", fields: [signedById], references: [id], onDelete: SetNull)
+  signedAt              DateTime?
+  signerSignatureUrl    String?
+  communicationMessages CommunicationMessage[]
+
   @@index([clientId])
   @@index([dealId])
   @@index([inquiryId])
   @@index([status])
   @@index([validUntilDate])
-  communicationMessages CommunicationMessage[]
   @@index([salesOwnerId])
 }
 
@@ -1076,90 +1087,90 @@ model QuotationLineItem {
 }
 
 model CommunicationThread {
-  id          String   @id @default(uuid())
-  subject     String
-  status      String   @default("open") // "open", "resolved", "snoozed"
-  contactId   String?
-  contact     CrmContact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
-  inquiryId   String?
-  inquiry     Inquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
-  assignedTo  String?
-  assignee    User?    @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
-  
-  messages    CommunicationMessage[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id         String      @id @default(uuid())
+  subject    String
+  status     String      @default("open") // "open", "resolved", "snoozed"
+  contactId  String?
+  contact    CrmContact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  inquiryId  String?
+  inquiry    Inquiry?    @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  assignedTo String?
+  assignee   User?       @relation(fields: [assignedTo], references: [id], onDelete: SetNull)
+
+  messages CommunicationMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([contactId])
   @@index([inquiryId])
 }
 
 model CommunicationMessage {
-  id              String   @id @default(uuid())
-  threadId        String?
-  thread          CommunicationThread? @relation(fields: [threadId], references: [id], onDelete: SetNull)
-  
-  messageId       String?  @unique // SMTP Message-ID
-  inReplyTo       String?  // SMTP In-Reply-To
-  
-  direction       String   // "inbound", "outbound"
-  fromEmail       String
-  toEmail         String
-  subject         String
-  bodyText        String?  @db.Text
-  bodyHtml        String?  @db.Text
-  
-  status          String   @default("queued") // "queued", "accepted", "delivered", "bounced", "failed"
-  deliveryLog     Json?    // Array of delivery events from webhooks
-  
+  id       String               @id @default(uuid())
+  threadId String?
+  thread   CommunicationThread? @relation(fields: [threadId], references: [id], onDelete: SetNull)
+
+  messageId String? @unique // SMTP Message-ID
+  inReplyTo String? // SMTP In-Reply-To
+
+  direction String // "inbound", "outbound"
+  fromEmail String
+  toEmail   String
+  subject   String
+  bodyText  String? @db.Text
+  bodyHtml  String? @db.Text
+
+  status      String @default("queued") // "queued", "accepted", "delivered", "bounced", "failed"
+  deliveryLog Json? // Array of delivery events from webhooks
+
   // Relations to sent documents
-  invoiceId       String?
-  invoice         Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  quotationId     String?
-  quotation       Quotation? @relation(fields: [quotationId], references: [id], onDelete: SetNull)
-  
-  attachments     MessageAttachment[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  invoiceId   String?
+  invoice     Invoice?   @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  quotationId String?
+  quotation   Quotation? @relation(fields: [quotationId], references: [id], onDelete: SetNull)
+
+  attachments MessageAttachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([threadId])
   @@index([messageId])
 }
 
 model MessageAttachment {
-  id            String   @id @default(uuid())
+  id            String               @id @default(uuid())
   messageId     String
   message       CommunicationMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
   filename      String
   contentType   String
   size          Int
   storagePath   String
-  isQuarantined Boolean  @default(false)
-  createdAt     DateTime @default(now())
+  isQuarantined Boolean              @default(false)
+  createdAt     DateTime             @default(now())
 
   @@index([messageId])
 }
 
 /// A post or video fetched from a connected social account, with its latest engagement counts.
 model SocialPost {
-  id          String    @id @default(uuid())
-  platform    String // "facebook", "instagram", "youtube", "tiktok", "x", "linkedin"
-  externalId  String
-  caption     String?   @db.Text
-  mediaType   String? // "image", "video", "carousel", "text", "reel"
-  permalink   String?
+  id           String   @id @default(uuid())
+  platform     String // "facebook", "instagram", "youtube", "tiktok", "x", "linkedin"
+  externalId   String
+  caption      String?  @db.Text
+  mediaType    String? // "image", "video", "carousel", "text", "reel"
+  permalink    String?
   thumbnailUrl String?
-  publishedAt DateTime
-  likes       Int       @default(0)
-  comments    Int       @default(0)
-  shares      Int       @default(0)
-  views       Int       @default(0)
-  reach       Int       @default(0)
-  saves       Int       @default(0)
-  fetchedAt   DateTime  @default(now())
-  createdAt   DateTime  @default(now())
+  publishedAt  DateTime
+  likes        Int      @default(0)
+  comments     Int      @default(0)
+  shares       Int      @default(0)
+  views        Int      @default(0)
+  reach        Int      @default(0)
+  saves        Int      @default(0)
+  fetchedAt    DateTime @default(now())
+  createdAt    DateTime @default(now())
 
   @@unique([platform, externalId])
   @@index([platform, publishedAt])
@@ -1186,17 +1197,17 @@ model SocialContentPlan {
 }
 
 model SocialMetric {
-  id              String   @id @default(uuid())
-  platform        String   // "facebook", "instagram", "youtube", "whatsapp"
-  metricType      String   // "followers", "views", "engagement", "messages_sent", "messages_read"
-  value           Int
-  recordedAt      DateTime @default(now())
-  
+  id         String   @id @default(uuid())
+  platform   String // "facebook", "instagram", "youtube", "whatsapp"
+  metricType String // "followers", "views", "engagement", "messages_sent", "messages_read"
+  value      Int
+  recordedAt DateTime @default(now())
+
   // To track freshness and handle unavailable data truthfully
-  isStale         Boolean  @default(false)
-  errorStatus     String?  // If there was an error fetching the data
-  
-  createdAt       DateTime @default(now())
+  isStale     Boolean @default(false)
+  errorStatus String? // If there was an error fetching the data
+
+  createdAt DateTime @default(now())
 
   @@index([platform, metricType])
   @@index([recordedAt])
@@ -1207,20 +1218,20 @@ model SocialMetric {
 // ==========================================
 
 model ProfileChangeRequest {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   userId        String
-  user          User     @relation("UserProfileChanges", fields: [userId], references: [id], onDelete: Cascade)
+  user          User      @relation("UserProfileChanges", fields: [userId], references: [id], onDelete: Cascade)
   requestedById String
-  requestedBy   User     @relation("ProfileChangeRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+  requestedBy   User      @relation("ProfileChangeRequester", fields: [requestedById], references: [id], onDelete: Restrict)
   managerId     String?
-  manager       User?    @relation("ProfileChangeManager", fields: [managerId], references: [id], onDelete: SetNull)
-  status        String   @default("pending") // "pending", "approved", "rejected", "cancelled"
+  manager       User?     @relation("ProfileChangeManager", fields: [managerId], references: [id], onDelete: SetNull)
+  status        String    @default("pending") // "pending", "approved", "rejected", "cancelled"
   oldValues     Json
   newValues     Json
   reviewedAt    DateTime?
-  reviewNotes   String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  reviewNotes   String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([userId, status])
   @@index([managerId, status])
@@ -1228,7 +1239,7 @@ model ProfileChangeRequest {
 
 model ApprovalRequest {
   id             String             @id @default(uuid())
-  targetType     String             // "quotation", "invoice", "profile_change", "leave_request", "payroll_run"
+  targetType     String // "quotation", "invoice", "profile_change", "leave_request", "payroll_run"
   targetId       String
   revision       Int                @default(1)
   contentHash    String
@@ -1261,7 +1272,7 @@ model ApprovalDecision {
   id                String          @id @default(uuid())
   approvalRequestId String
   approvalRequest   ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
-  decision          String          // "approved", "rejected"
+  decision          String // "approved", "rejected"
   decidedById       String
   decidedBy         User            @relation("ApprovalDecider", fields: [decidedById], references: [id], onDelete: Restrict)
   reason            String?         @db.Text
@@ -1274,32 +1285,32 @@ model ApprovalDecision {
 
 /// Who must approve each kind of request. One policy per target type, editable in Settings → Approvals.
 model ApprovalPolicy {
-  id                String               @id @default(uuid())
-  targetType        String               @unique // see APPROVAL_TARGET_TYPES in src/constants/approvals.ts
-  enabled           Boolean              @default(true) // disabled = requests are approved on submit
-  allowSelfApproval Boolean              @default(false)
-  autoApproveRoles  String[]             @default([])
+  id                 String               @id @default(uuid())
+  targetType         String               @unique // see APPROVAL_TARGET_TYPES in src/constants/approvals.ts
+  enabled            Boolean              @default(true) // disabled = requests are approved on submit
+  allowSelfApproval  Boolean              @default(false)
+  autoApproveRoles   String[]             @default([])
   /// Re-notify the current approvers once a request has waited this long.
   reminderAfterHours Int?
-  steps             ApprovalPolicyStep[]
-  requests          ApprovalRequest[]
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  steps              ApprovalPolicyStep[]
+  requests           ApprovalRequest[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
 }
 
 model ApprovalPolicyStep {
-  id           String         @id @default(uuid())
-  policyId     String
-  policy       ApprovalPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
-  order        Int
-  approverMode String // "manager" | "department_manager" | "role" | "user" | "permission"
-  roleKey      String?
-  userId       String?
-  permission   String? // "resource:action"
+  id                 String         @id @default(uuid())
+  policyId           String
+  policy             ApprovalPolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  order              Int
+  approverMode       String // "manager" | "department_manager" | "role" | "user" | "permission"
+  roleKey            String?
+  userId             String?
+  permission         String? // "resource:action"
   /// The step applies only when every set condition holds; otherwise it is skipped.
-  minAmount          Decimal? @db.Decimal(14, 3) // BHD
-  minDays            Decimal? @db.Decimal(6, 2)
-  minDiscountPercent Decimal? @db.Decimal(5, 2)
+  minAmount          Decimal?       @db.Decimal(14, 3) // BHD
+  minDays            Decimal?       @db.Decimal(6, 2)
+  minDiscountPercent Decimal?       @db.Decimal(5, 2)
   /// After this many hours waiting at this step, the escalation approver is added.
   escalateAfterHours Int?
   escalateMode       String? // "role" | "user"
@@ -1323,7 +1334,7 @@ model RequestEvent {
   inquiry   Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
   actorId   String?
   actor     User?    @relation("RequestEventActor", fields: [actorId], references: [id], onDelete: SetNull)
-  eventType String   // "status_change", "assignment", "comment", "priority_change", "reopen", "resolved"
+  eventType String // "status_change", "assignment", "comment", "priority_change", "reopen", "resolved"
   details   Json
   createdAt DateTime @default(now())
 
@@ -1368,12 +1379,12 @@ model RequestComment {
 
 model ExchangeRateSnapshot {
   id             String   @id @default(uuid())
-  baseCurrency   String   // e.g. "BHD"
-  quoteCurrency  String   // e.g. "USD", "SAR"
+  baseCurrency   String // e.g. "BHD"
+  quoteCurrency  String // e.g. "USD", "SAR"
   rate           Decimal  @db.Decimal(14, 6)
   effectiveDate  DateTime @db.Date
   fetchedAt      DateTime @default(now())
-  provider       String   // e.g. "frankfurter", "cbb_manual"
+  provider       String // e.g. "frankfurter", "cbb_manual"
   sourceEvidence String?
   createdAt      DateTime @default(now())
 
@@ -1382,7 +1393,7 @@ model ExchangeRateSnapshot {
 
 model DocumentFx {
   id             String   @id @default(uuid())
-  documentType   String   // "quotation", "invoice"
+  documentType   String // "quotation", "invoice"
   documentId     String
   baseAmount     Decimal  @db.Decimal(12, 3)
   targetAmount   Decimal  @db.Decimal(12, 3)
@@ -1440,100 +1451,202 @@ model Department {
 }
 
 model Employee {
-  id                 String             @id @default(uuid())
-  employeeNumber     String             @unique
-  userId             String?            @unique
-  user               User?              @relation("UserEmployee", fields: [userId], references: [id], onDelete: SetNull)
-  departmentId       String?
-  department         Department?        @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  firstNameEn        String
-  lastNameEn         String
-  firstNameAr        String
-  lastNameAr         String
-  email              String?
-  phone              String?
-  cprNumber          String?
-  jobTitleEn         String
-  jobTitleAr         String
-  hireDate           DateTime           @db.Date
-  status             String             @default("active") // "active", "on_leave", "suspended", "terminated"
-  leaveBalanceDays   Decimal            @default(30.00) @db.Decimal(5, 2)
-  salaryDocuments    SalaryDocument[]
-  employmentRecords  EmploymentRecord[]
-  leaveRequests      LeaveRequest[]
-  attendanceEntries  AttendanceEntry[]
-  payrollItems       PayrollItem[]
-  payslips           Payslip[]
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id                String             @id @default(uuid())
+  employeeNumber    String             @unique
+  userId            String?            @unique
+  user              User?              @relation("UserEmployee", fields: [userId], references: [id], onDelete: SetNull)
+  departmentId      String?
+  department        Department?        @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  firstNameEn       String
+  lastNameEn        String
+  firstNameAr       String
+  lastNameAr        String
+  email             String?
+  phone             String?
+  cprNumber         String?
+  jobTitleEn        String
+  jobTitleAr        String
+  hireDate          DateTime           @db.Date
+  status            String             @default("active") // "active", "on_leave", "suspended", "terminated"
+  leaveBalanceDays  Decimal            @default(30.00) @db.Decimal(5, 2)
+  salaryDocuments   SalaryDocument[]
+  employmentRecords EmploymentRecord[]
+  leaveRequests     LeaveRequest[]
+  leaveAdjustments  LeaveAdjustment[]
+  attendanceEntries AttendanceEntry[]
+  payrollItems      PayrollItem[]
+  payslips          Payslip[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   supportReimbursements SupportReimbursement[]
+
   @@index([departmentId])
   @@index([status])
 }
 
 model EmploymentRecord {
-  id                  String    @id @default(uuid())
-  employeeId          String
-  employee            Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  contractType        String    @default("full_time") // "full_time", "part_time", "contract"
-  basicSalary         Decimal   @db.Decimal(12, 3)
-  housingAllowance    Decimal   @default(0.000) @db.Decimal(12, 3)
-  transportAllowance  Decimal   @default(0.000) @db.Decimal(12, 3)
-  otherAllowances     Decimal   @default(0.000) @db.Decimal(12, 3)
-  payrollSettings     Json?
-  effectiveFrom       DateTime  @db.Date
-  effectiveTo         DateTime? @db.Date
-  isCurrent           Boolean   @default(true)
-  createdAt           DateTime  @default(now())
+  id                 String    @id @default(uuid())
+  employeeId         String
+  employee           Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  contractType       String    @default("full_time") // "full_time", "part_time", "contract"
+  basicSalary        Decimal   @db.Decimal(12, 3)
+  housingAllowance   Decimal   @default(0.000) @db.Decimal(12, 3)
+  transportAllowance Decimal   @default(0.000) @db.Decimal(12, 3)
+  otherAllowances    Decimal   @default(0.000) @db.Decimal(12, 3)
+  payrollSettings    Json?
+  effectiveFrom      DateTime  @db.Date
+  effectiveTo        DateTime? @db.Date
+  isCurrent          Boolean   @default(true)
+  createdAt          DateTime  @default(now())
 
   @@index([employeeId, isCurrent])
 }
 
 model LeaveType {
-  id                 String         @id @default(uuid())
-  code               String         @unique // "annual", "sick", "maternity", "emergency", "unpaid"
-  nameEn             String
-  nameAr             String
-  daysAllowedPerYear Decimal        @default(30.00) @db.Decimal(5, 2)
-  isPaid             Boolean        @default(true)
-  requests           LeaveRequest[]
+  id                  String            @id @default(uuid())
+  code                String            @unique // "annual", "sick", "maternity", "emergency", "unpaid"
+  nameEn              String
+  nameAr              String
+  daysAllowedPerYear  Decimal           @default(30.00) @db.Decimal(5, 2)
+  /// Kept in step with payPercent > 0 for older readers.
+  isPaid              Boolean           @default(true)
+  /// Share of the daily rate paid while on this leave: 100 = full pay, 50 = half pay, 0 = unpaid.
+  payPercent          Int               @default(100)
+  /// Optional pay bands by days taken in the year, e.g. [{"upToDays":15,"percent":100},{"upToDays":35,"percent":50}].
+  payTiers            Json?
+  /// "annual" = full entitlement each year, "monthly" = earned per completed month, "none" = no balance kept.
+  accrual             String            @default("annual")
+  eligibleAfterMonths Int               @default(0)
+  maxCarryOverDays    Decimal           @default(0) @db.Decimal(5, 2)
+  maxDaysPerRequest   Decimal?          @db.Decimal(5, 2)
+  allowHalfDay        Boolean           @default(true)
+  allowHours          Boolean           @default(false)
+  /// Count weekends and holidays inside the leave (e.g. maternity) instead of working days only.
+  countCalendarDays   Boolean           @default(false)
+  requiresAttachment  Boolean           @default(false)
+  isActive            Boolean           @default(true)
+  sortOrder           Int               @default(0)
+  requests            LeaveRequest[]
+  adjustments         LeaveAdjustment[]
+}
+
+/// Manual change to a leave balance: opening balance, correction or encashment (negative).
+model LeaveAdjustment {
+  id          String    @id @default(uuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveTypeId String
+  leaveType   LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+  year        Int
+  days        Decimal   @db.Decimal(6, 2)
+  reason      String
+  createdById String
+  createdAt   DateTime  @default(now())
+
+  @@index([employeeId, leaveTypeId, year])
+}
+
+/// Company-wide payroll and attendance rules (single row, id "default"), edited in HR settings.
+model HrPolicy {
+  id                  String   @id @default("default")
+  /// "arrears": pay day falls in the next month and pays the previous month; "current": pay day is inside the month.
+  salaryTiming        String   @default("arrears")
+  payDay              Int      @default(1)
+  /// Last day of the month counted for attendance in "current" timing; later days roll into next month's payroll.
+  attendanceCutoffDay Int?
+  weekendDays         Int[]    @default([5, 6])
+  workdayHours        Decimal  @default(8) @db.Decimal(4, 2)
+  workdayStart        String   @default("08:00")
+  /// Divisor for the daily rate: "30", "calendar_days" or "working_days".
+  dailyRateBasis      String   @default("30")
+  /// Pay used for absence and leave deductions: "basic" or "fixed" (basic + fixed allowances).
+  deductionBase       String   @default("fixed")
+  overtimeBase        String   @default("basic")
+  overtimeRate        Decimal  @default(1.25) @db.Decimal(4, 2)
+  overtimeNightRate   Decimal  @default(1.50) @db.Decimal(4, 2)
+  overtimeRestDayRate Decimal  @default(1.50) @db.Decimal(4, 2)
+  overtimeHolidayRate Decimal  @default(2.00) @db.Decimal(4, 2)
+  lateGraceMinutes    Int      @default(15)
+  deductLateness      Boolean  @default(false)
+  /// How a working day with no attendance record counts: "present" or "absent".
+  unmarkedDays        String   @default("present")
+  prorateJoiners      Boolean  @default(true)
+  commissionInPayroll Boolean  @default(true)
+  updatedById         String?
+  updatedAt           DateTime @updatedAt
+}
+
+model PublicHoliday {
+  id     String   @id @default(uuid())
+  date   DateTime @unique @db.Date
+  nameEn String
+  nameAr String
+}
+
+/// Shift kinds that carry an allowance per shift worked (e.g. night shift, on-location day).
+model ShiftType {
+  id             String            @id @default(uuid())
+  code           String            @unique
+  nameEn         String
+  nameAr         String
+  /// "fixed" BHD per shift, or "percent" of the daily rate.
+  allowanceMode  String            @default("fixed")
+  allowanceValue Decimal           @default(0) @db.Decimal(10, 3)
+  isActive       Boolean           @default(true)
+  attendance     AttendanceEntry[]
 }
 
 model LeaveRequest {
-  id           String    @id @default(uuid())
-  employeeId   String
-  employee     Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  leaveTypeId  String
-  leaveType    LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
-  startDate    DateTime
-  endDate      DateTime
-  fullDay      Boolean   @default(true)
-  hours        Decimal?  @db.Decimal(4, 2)
-  status       String    @default("pending") // "pending", "approved", "rejected", "cancelled"
-  reason       String    @db.Text
-  approvedById String?
-  approvedAt   DateTime?
-  reviewNotes  String?   @db.Text
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String    @id @default(uuid())
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveTypeId   String
+  leaveType     LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Restrict)
+  startDate     DateTime
+  endDate       DateTime
+  fullDay       Boolean   @default(true)
+  hours         Decimal?  @db.Decimal(4, 2)
+  /// "full", "half_am", "half_pm" or "hours".
+  dayPortion    String    @default("full")
+  /// Days charged, worked out when the request is made (working or calendar days per the leave type).
+  days          Decimal   @default(0) @db.Decimal(6, 2)
+  attachmentUrl String?
+  status        String    @default("pending") // "pending", "approved", "rejected", "cancelled"
+  reason        String    @db.Text
+  approvedById  String?
+  approvedAt    DateTime?
+  reviewNotes   String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([employeeId, status])
   @@index([startDate, endDate])
 }
 
 model AttendanceEntry {
-  id         String    @id @default(uuid())
-  employeeId String
-  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  date       DateTime  @db.Date
-  checkIn    DateTime?
-  checkOut   DateTime?
-  status     String    @default("present") // "present", "absent", "half_day", "on_leave", "holiday"
-  notes      String?
-  createdAt  DateTime  @default(now())
+  id                     String     @id @default(uuid())
+  employeeId             String
+  employee               Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date                   DateTime   @db.Date
+  checkIn                DateTime?
+  checkOut               DateTime?
+  status                 String     @default("present") // "present", "absent", "half_day", "on_leave", "holiday"
+  lateMinutes            Int        @default(0)
+  overtimeMinutes        Int        @default(0)
+  overtimeNightMinutes   Int        @default(0)
+  overtimeRestDayMinutes Int        @default(0)
+  overtimeHolidayMinutes Int        @default(0)
+  shiftTypeId            String?
+  shiftType              ShiftType? @relation(fields: [shiftTypeId], references: [id], onDelete: SetNull)
+  source                 String     @default("manual") // "manual", "bulk", "import"
+  recordedById           String?
+  notes                  String?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @default(now()) @updatedAt
 
   @@unique([employeeId, date])
+  @@index([date])
 }
 
 model BenefitPlan {
@@ -1548,51 +1661,70 @@ model BenefitPlan {
 }
 
 model PayrollRun {
-  id                 String        @id @default(uuid())
-  month              Int
-  year               Int
-  periodStart        DateTime      @db.Date
-  periodEnd          DateTime      @db.Date
-  status             String        @default("draft") // "draft", "calculated", "submitted", "approved", "paid", "closed"
-  totalGross         Decimal       @default(0.000) @db.Decimal(12, 3)
-  totalDeductions    Decimal       @default(0.000) @db.Decimal(12, 3)
-  totalNet           Decimal       @default(0.000) @db.Decimal(12, 3)
-  totalEmployerCost  Decimal       @default(0.000) @db.Decimal(12, 3)
-  approvedById       String?
-  approvedAt         DateTime?
-  paidAt             DateTime?
-  items              PayrollItem[]
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  id                String        @id @default(uuid())
+  month             Int
+  year              Int
+  periodStart       DateTime      @db.Date
+  periodEnd         DateTime      @db.Date
+  /// Attendance, leave and commission are counted over this window (differs from the month with a cut-off day).
+  attendanceStart   DateTime?     @db.Date
+  attendanceEnd     DateTime?     @db.Date
+  payDate           DateTime?     @db.Date
+  status            String        @default("draft") // "draft", "calculated", "submitted", "approved", "paid", "closed"
+  totalGross        Decimal       @default(0.000) @db.Decimal(12, 3)
+  totalDeductions   Decimal       @default(0.000) @db.Decimal(12, 3)
+  totalNet          Decimal       @default(0.000) @db.Decimal(12, 3)
+  totalEmployerCost Decimal       @default(0.000) @db.Decimal(12, 3)
+  approvedById      String?
+  approvedAt        DateTime?
+  paidAt            DateTime?
+  items             PayrollItem[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   @@unique([year, month])
 }
 
 model PayrollItem {
-  id                 String     @id @default(uuid())
-  payrollRunId       String
-  payrollRun         PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
-  employeeId         String
-  employee           Employee   @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  basicSalary        Decimal    @default(0.000) @db.Decimal(12, 3)
-  housingAllowance   Decimal    @default(0.000) @db.Decimal(12, 3)
-  transportAllowance Decimal    @default(0.000) @db.Decimal(12, 3)
-  otherAllowances    Decimal    @default(0.000) @db.Decimal(12, 3)
-  grossSalary        Decimal    @default(0.000) @db.Decimal(12, 3)
-  gosiEmployee       Decimal    @default(0.000) @db.Decimal(12, 3)
-  gosiEmployer       Decimal    @default(0.000) @db.Decimal(12, 3)
-  externalSupport    Decimal    @default(0.000) @db.Decimal(12, 3)
+  id                  String            @id @default(uuid())
+  payrollRunId        String
+  payrollRun          PayrollRun        @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeId          String
+  employee            Employee          @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  basicSalary         Decimal           @default(0.000) @db.Decimal(12, 3)
+  housingAllowance    Decimal           @default(0.000) @db.Decimal(12, 3)
+  transportAllowance  Decimal           @default(0.000) @db.Decimal(12, 3)
+  otherAllowances     Decimal           @default(0.000) @db.Decimal(12, 3)
+  grossSalary         Decimal           @default(0.000) @db.Decimal(12, 3)
+  gosiEmployee        Decimal           @default(0.000) @db.Decimal(12, 3)
+  gosiEmployer        Decimal           @default(0.000) @db.Decimal(12, 3)
+  externalSupport     Decimal           @default(0.000) @db.Decimal(12, 3)
   calculationSnapshot Json?
-  otherDeductions    Decimal    @default(0.000) @db.Decimal(12, 3)
+  otherDeductions     Decimal           @default(0.000) @db.Decimal(12, 3)
   /// One-off incentives and bonuses for the month (not subject to GOSI).
-  bonus              Decimal    @default(0.000) @db.Decimal(12, 3)
-  adjustmentNote     String?
-  editedById         String?
-  editedAt           DateTime?
-  netSalary          Decimal    @default(0.000) @db.Decimal(12, 3)
-  paymentStatus      String     @default("pending") // "pending", "paid"
-  payslip            Payslip?
-  createdAt          DateTime   @default(now())
+  bonus               Decimal           @default(0.000) @db.Decimal(12, 3)
+  overtimePay         Decimal           @default(0.000) @db.Decimal(12, 3)
+  shiftAllowance      Decimal           @default(0.000) @db.Decimal(12, 3)
+  commission          Decimal           @default(0.000) @db.Decimal(12, 3)
+  /// Absent days, half days and pay for days before joining.
+  absenceDeduction    Decimal           @default(0.000) @db.Decimal(12, 3)
+  /// Unpaid share of leave (unpaid and half-paid leave).
+  leaveDeduction      Decimal           @default(0.000) @db.Decimal(12, 3)
+  latenessDeduction   Decimal           @default(0.000) @db.Decimal(12, 3)
+  /// Attendance and leave counts behind the figures, shown on the employee's payment page.
+  attendanceSummary   Json?
+  adjustmentNote      String?
+  editedById          String?
+  editedAt            DateTime?
+  netSalary           Decimal           @default(0.000) @db.Decimal(12, 3)
+  paymentStatus       String            @default("pending") // "pending", "paid"
+  paidAt              DateTime?
+  paidById            String?
+  paymentMethod       String?
+  paymentReference    String?
+  payslip             Payslip?
+  commissionPayout    CommissionPayout?
+  createdAt           DateTime          @default(now())
 
   @@unique([payrollRunId, employeeId])
 }
@@ -1611,21 +1743,21 @@ model Payslip {
   @@index([employeeId, year, month])
 }
 
-
 model SalaryDocument {
-  id String @id @default(uuid())
-  employeeId String
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  kind String // payslip, salary_certificate
-  months Json // YYYY-MM values
-  status String @default("pending")
+  id            String    @id @default(uuid())
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  kind          String // payslip, salary_certificate
+  months        Json // YYYY-MM values
+  status        String    @default("pending")
   requestedById String
-  reviewedById String?
-  reviewNotes String?
-  snapshot Json?
-  createdAt DateTime @default(now())
-  issuedAt DateTime?
-  updatedAt DateTime @updatedAt
+  reviewedById  String?
+  reviewNotes   String?
+  snapshot      Json?
+  createdAt     DateTime  @default(now())
+  issuedAt      DateTime?
+  updatedAt     DateTime  @updatedAt
+
   @@index([employeeId, createdAt])
   @@index([status])
 }
@@ -1690,38 +1822,41 @@ model SalesAttributionChange {
 
 /// A month's commission paid to a salesperson; recording it books a payroll-type expense.
 model CommissionPayout {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation("CommissionPayee", fields: [userId], references: [id], onDelete: Restrict)
-  periodMonth  String // YYYY-MM
-  basisAmount  Decimal  @db.Decimal(12, 3)
-  ratePercent  Decimal  @db.Decimal(5, 2)
-  amount       Decimal  @db.Decimal(12, 3)
-  currency     String   @default("BHD")
-  expenseId    String?  @unique
-  expense      Expense? @relation(fields: [expenseId], references: [id], onDelete: SetNull)
-  recordedById String
-  recordedBy   User     @relation("CommissionRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
-  createdAt    DateTime @default(now())
+  id            String       @id @default(uuid())
+  userId        String
+  user          User         @relation("CommissionPayee", fields: [userId], references: [id], onDelete: Restrict)
+  periodMonth   String // YYYY-MM
+  basisAmount   Decimal      @db.Decimal(12, 3)
+  ratePercent   Decimal      @db.Decimal(5, 2)
+  amount        Decimal      @db.Decimal(12, 3)
+  currency      String       @default("BHD")
+  expenseId     String?      @unique
+  expense       Expense?     @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  /// Set when the commission is paid with the salary instead of as a separate expense.
+  payrollItemId String?      @unique
+  payrollItem   PayrollItem? @relation(fields: [payrollItemId], references: [id], onDelete: Cascade)
+  recordedById  String
+  recordedBy    User         @relation("CommissionRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+  createdAt     DateTime     @default(now())
 
   @@unique([userId, periodMonth])
 }
 
 /// Money received from a wage-support programme (e.g. Tamkeen) for one employee's six-month claim.
 model SupportReimbursement {
-  id           String   @id @default(uuid())
-  employeeId   String
-  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
-  provider     String
-  periodStart  String // YYYY-MM, first month of the claim
-  periodEnd    String // YYYY-MM, last month of the claim
-  claimedAmount Decimal @db.Decimal(12, 3)
-  receivedAmount Decimal @db.Decimal(12, 3)
-  receivedOn   DateTime @db.Date
-  reference    String?
-  recordedById String
-  recordedBy   User     @relation("SupportReimbursementRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
-  createdAt    DateTime @default(now())
+  id             String   @id @default(uuid())
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  provider       String
+  periodStart    String // YYYY-MM, first month of the claim
+  periodEnd      String // YYYY-MM, last month of the claim
+  claimedAmount  Decimal  @db.Decimal(12, 3)
+  receivedAmount Decimal  @db.Decimal(12, 3)
+  receivedOn     DateTime @db.Date
+  reference      String?
+  recordedById   String
+  recordedBy     User     @relation("SupportReimbursementRecorder", fields: [recordedById], references: [id], onDelete: Restrict)
+  createdAt      DateTime @default(now())
 
   @@unique([employeeId, provider, periodStart])
 }

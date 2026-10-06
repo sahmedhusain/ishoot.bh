@@ -1196,6 +1196,10 @@ export interface LeaveRequest {
   endDate: Date | string;
   fullDay: boolean;
   hours?: number | null;
+  dayPortion?: "full" | "half_am" | "half_pm" | "hours" | string;
+  /** Days charged against the balance. */
+  days?: number;
+  attachmentUrl?: string | null;
   status: "pending" | "approved" | "rejected" | "cancelled" | string;
   reason: string;
   approvedById?: string | null;

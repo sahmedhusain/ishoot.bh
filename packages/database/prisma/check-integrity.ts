@@ -193,9 +193,13 @@ const RULES: Rule[] = [
       WHERE a.status = 'approved' AND b.status = 'approved' AND a."startDate" <= b."endDate" AND b."startDate" <= a."endDate"` },
   { area: "hr", name: "decided leave records who decided it",
     sql: `SELECT id FROM "LeaveRequest" WHERE status IN ('approved','rejected') AND ("approvedById" IS NULL OR "approvedAt" IS NULL)` },
-  { area: "hr", name: "payroll item gross = components + bonus and net = gross − employee contribution − other deductions",
-    sql: `SELECT id FROM "PayrollItem" WHERE "grossSalary" <> "basicSalary" + "housingAllowance" + "transportAllowance" + "otherAllowances" + "bonus"
-      OR "netSalary" <> "grossSalary" - "gosiEmployee" - "otherDeductions"` },
+  { area: "hr", name: "payroll item gross = fixed pay + bonus + overtime + shift allowance + commission; net = gross − contribution − all deductions",
+    sql: `SELECT id FROM "PayrollItem" WHERE "grossSalary" <> "basicSalary" + "housingAllowance" + "transportAllowance" + "otherAllowances" + "bonus" + "overtimePay" + "shiftAllowance" + "commission"
+      OR "netSalary" <> "grossSalary" - "gosiEmployee" - "absenceDeduction" - "leaveDeduction" - "latenessDeduction" - "otherDeductions" OR "netSalary" < 0` },
+  { area: "hr", name: "commission paid through payroll matches the salary line",
+    sql: `SELECT c.id FROM "CommissionPayout" c JOIN "PayrollItem" i ON i.id = c."payrollItemId" WHERE c.amount <> i.commission` },
+  { area: "hr", name: "leave requests charge days and half days cover a single day",
+    sql: `SELECT id FROM "LeaveRequest" WHERE status IN ('pending','approved') AND ("days" <= 0 OR ("dayPortion" <> 'full' AND "startDate"::date <> "endDate"::date))` },
   { area: "hr", name: "a user's signature is their latest approved drawn signature",
     sql: `SELECT u.email FROM "User" u JOIN LATERAL (SELECT "signatureUrl" FROM "SignatureChange" c WHERE c."userId" = u.id AND c.status = 'approved' ORDER BY c."decidedAt" DESC LIMIT 1) last ON true
       WHERE u."signatureUrl" IS DISTINCT FROM last."signatureUrl"` },
@@ -206,10 +210,11 @@ const RULES: Rule[] = [
     sql: `SELECT id FROM "SupportReimbursement" WHERE to_char("receivedOn", 'YYYY-MM') < "periodEnd" OR "receivedAmount" < 0` },
   { area: "hr", name: "payroll run totals equal the sum of its items",
     sql: `SELECT r.year, r.month FROM "PayrollRun" r JOIN "PayrollItem" i ON i."payrollRunId" = r.id GROUP BY r.id
-      HAVING r."totalGross" <> SUM(i."grossSalary") OR r."totalNet" <> SUM(i."netSalary") OR r."totalDeductions" <> SUM(i."gosiEmployee" + i."otherDeductions")` },
-  { area: "hr", name: "paid payroll runs have every item paid; unpaid runs have none",
+      HAVING r."totalGross" <> SUM(i."grossSalary") OR r."totalNet" <> SUM(i."netSalary")
+        OR r."totalDeductions" <> SUM(i."gosiEmployee" + i."absenceDeduction" + i."leaveDeduction" + i."latenessDeduction" + i."otherDeductions")` },
+  { area: "hr", name: "paid payroll runs have every salary paid; salaries are only paid once the run is approved",
     sql: `SELECT r.year, r.month, r.status FROM "PayrollRun" r JOIN "PayrollItem" i ON i."payrollRunId" = r.id GROUP BY r.id
-      HAVING (r.status = 'paid' AND BOOL_OR(i."paymentStatus" <> 'paid')) OR (r.status <> 'paid' AND BOOL_OR(i."paymentStatus" = 'paid'))` },
+      HAVING (r.status = 'paid' AND BOOL_OR(i."paymentStatus" <> 'paid')) OR (r.status NOT IN ('paid', 'approved', 'closed') AND BOOL_OR(i."paymentStatus" = 'paid'))` },
   { area: "hr", name: "payslips match their payroll run period",
     sql: `SELECT p.id FROM "Payslip" p JOIN "PayrollItem" i ON i.id = p."payrollItemId" JOIN "PayrollRun" r ON r.id = i."payrollRunId"
       WHERE p.month <> r.month OR p.year <> r.year OR p."employeeId" <> i."employeeId"` },
