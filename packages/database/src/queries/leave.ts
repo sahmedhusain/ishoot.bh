@@ -4,6 +4,16 @@ import { getHrPolicy, holidaySet, listLeaveTypeRules, toLeaveTypeRules, type Lea
 import { getLeaveBalance, refreshLeaveBalanceCache } from "./leave-balances";
 import { LeaveRequest } from "../types";
 
+type LeaveApprovedHook = (leaveRequestId: string, approverId: string) => Promise<unknown>;
+const leaveApprovedHooks: LeaveApprovedHook[] = [];
+/**
+ * Runs after a leave request is approved, inside the same transaction. Modules subscribe instead of being
+ * imported here, which would loop back through the approval engine.
+ */
+export function onLeaveApproved(hook: LeaveApprovedHook) {
+  if (!leaveApprovedHooks.includes(hook)) leaveApprovedHooks.push(hook);
+}
+
 /**
  * Checks if an employee (or linked User) has an overlapping approved leave.
  * Interval comparison: [requestStart, requestEnd] overlaps [leaveStart, leaveEnd]
@@ -336,9 +346,8 @@ export async function approveLeaveRequest(
     },
   });
   await refreshLeaveBalanceCache(leave.employeeId);
-  // Leave types that need a handover open one for HR (cases, assets, checklist) once the leave is approved.
-  const { openLeaveHandoverIfNeeded } = await import("./employee-handovers");
-  await openLeaveHandoverIfNeeded(requestId, approverId);
+  // E.g. leave types that need a handover open one for HR (see employee-handovers).
+  for (const hook of leaveApprovedHooks) await hook(requestId, approverId);
   const updated = await db.leaveRequest.findUniqueOrThrow({ where: { id: requestId }, include: { employee: true, leaveType: true } });
 
   return {

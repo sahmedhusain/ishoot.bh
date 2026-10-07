@@ -57,7 +57,8 @@ async function main() {
         },
         quotation: {
           make: async () => {
-            const q = await tx.quotation.findFirstOrThrow({ where: { status: { in: ["draft", "pending_approval"] } }, select: { id: true } });
+            // Any quotation will do: it is put back to awaiting approval inside the rolled-back transaction.
+            const q = await tx.quotation.findFirstOrThrow({ where: { status: { in: ["draft", "pending_approval", "submitted"] } }, select: { id: true } }).catch(() => tx.quotation.findFirstOrThrow({ select: { id: true } }));
             await tx.quotation.update({ where: { id: q.id }, data: { status: "pending_approval" } });
             return q.id;
           },

@@ -1160,11 +1160,23 @@ async function main() {
     },
   ];
 
+  // Client profiles: public bodies are government clients, the rest local Bahraini companies; the person on
+  // file is the primary point of contact.
+  const governmentTypes: Record<string, string> = { "contact-03": "authority", "contact-10": "semi_government", "contact-12": "authority" };
   for (const c of contacts) {
+    const profile = governmentTypes[c.id]
+      ? { clientKind: "government", governmentType: governmentTypes[c.id], companyOrigin: null, addressCountry: "BH", addressCity: "Manama" }
+      : { clientKind: "company", companyOrigin: "local", legalForm: "bsc_closed", registrationCountry: "BH", addressCountry: "BH", addressCity: "Manama" };
+    const record = { ...c, ...profile };
     await prisma.crmContact.upsert({
       where: { id: c.id },
-      update: c,
-      create: c,
+      update: record,
+      create: record,
+    });
+    await prisma.clientContactPerson.upsert({
+      where: { id: `${c.id}-primary` },
+      update: {},
+      create: { id: `${c.id}-primary`, contactId: c.id, fullName: `${c.firstName} ${c.lastName}`, position: c.jobTitle, email: c.email, phone: c.phone, isPrimary: true },
     });
   }
   console.log("✅ Seeded 16 Top Enterprise CRM Clients");
@@ -3098,16 +3110,20 @@ async function main() {
   }
 
   const leaveTypesData = [
-    { code: "annual", nameEn: "Annual Leave", nameAr: "إجازة سنوية", daysAllowedPerYear: 30, isPaid: true },
-    { code: "sick", nameEn: "Sick Leave", nameAr: "إجازة مرضية", daysAllowedPerYear: 15, isPaid: true },
-    { code: "emergency", nameEn: "Emergency Leave", nameAr: "إجازة طارئة", daysAllowedPerYear: 6, isPaid: true },
-    { code: "hajj", nameEn: "Hajj Leave", nameAr: "إجازة حج", daysAllowedPerYear: 21, isPaid: true },
+    // Bahrain labour law, as set by the hr_payroll_rework migration (which runs before this seed creates the rows).
+    { code: "annual", nameEn: "Annual Leave", nameAr: "إجازة سنوية", daysAllowedPerYear: 30, isPaid: true, accrual: "monthly", maxCarryOverDays: 15, sortOrder: 1 },
+    {
+      code: "sick", nameEn: "Sick Leave", nameAr: "إجازة مرضية", daysAllowedPerYear: 55, isPaid: true, sortOrder: 2,
+      payTiers: [{ upToDays: 15, percent: 100 }, { upToDays: 35, percent: 50 }, { upToDays: 55, percent: 0 }],
+    },
+    { code: "emergency", nameEn: "Emergency Leave", nameAr: "إجازة طارئة", daysAllowedPerYear: 6, isPaid: true, sortOrder: 3 },
+    { code: "hajj", nameEn: "Hajj Leave", nameAr: "إجازة حج", daysAllowedPerYear: 21, isPaid: true, allowHalfDay: false, countCalendarDays: true, eligibleAfterMonths: 12, sortOrder: 5 },
   ];
   const leaveTypeMap: Record<string, string> = {};
   for (const lt of leaveTypesData) {
     const created = await prisma.leaveType.upsert({
       where: { code: lt.code },
-      update: { nameEn: lt.nameEn, nameAr: lt.nameAr, daysAllowedPerYear: lt.daysAllowedPerYear, isPaid: lt.isPaid },
+      update: lt,
       create: lt,
     });
     leaveTypeMap[lt.code] = created.id;

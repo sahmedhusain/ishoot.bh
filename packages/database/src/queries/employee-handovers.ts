@@ -5,6 +5,7 @@ import { REQUEST_CLOSED_STATUSES, canTransitionRequest } from "../constants/requ
 import { isActiveDealStage } from "../constants/crm";
 import { getNextSequenceNumber } from "./sequence";
 import { assignConsolidatedRequest } from "./requests";
+import { onLeaveApproved } from "./leave";
 import { registerApprovalFinalizer, submitForApproval, cancelPendingApprovals } from "../services/approval-engine";
 
 export const HANDOVER_KINDS = ["exit", "leave"] as const;
@@ -263,6 +264,8 @@ export async function openLeaveHandoverIfNeeded(leaveRequestId: string, actorId:
     });
   return handover;
 }
+
+onLeaveApproved(openLeaveHandoverIfNeeded);
 
 export async function listEmployeeHandovers(filters: { status?: string; kind?: string; employeeId?: string } = {}) {
   const rows = await db.employeeHandover.findMany({

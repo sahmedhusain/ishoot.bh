@@ -10,6 +10,7 @@ const { transactionContext } = require("../packages/database/src/transaction-con
 const { createEmployee } = require("../packages/database/src/queries/hrms.ts");
 const handovers = require("../packages/database/src/queries/employee-handovers.ts");
 const assets = require("../packages/database/src/queries/assets.ts");
+const { approveLeaveRequest } = require("../packages/database/src/queries/leave.ts");
 const { decideApprovalRequest, findPendingApproval } = require("../packages/database/src/services/approval-engine.ts");
 
 const rollback = new Error("ROLLBACK_EMPLOYEE_HANDOVERS_TEST");
@@ -120,8 +121,10 @@ async function main() {
       // ---- leave types that need a handover open one when the leave is approved
       const other = await tx.employee.findFirstOrThrow({ where: { status: "active", id: { not: employee.id } } });
       const leaveType = await tx.leaveType.create({ data: { code: `eho_${stamp}`, nameEn: "Long leave", nameAr: "إجازة طويلة", requiresHandover: true } });
-      const leave = await tx.leaveRequest.create({ data: { employeeId: other.id, leaveTypeId: leaveType.id, startDate: new Date("2199-07-01"), endDate: new Date("2199-07-20"), days: 14, reason: "Long leave", status: "approved" } });
-      const opened = await handovers.openLeaveHandoverIfNeeded(leave.id, admin.id);
+      const leave = await tx.leaveRequest.create({ data: { employeeId: other.id, leaveTypeId: leaveType.id, startDate: new Date("2199-07-01"), endDate: new Date("2199-07-20"), days: 14, reason: "Long leave", status: "pending" } });
+      // Approving the leave opens the handover through the leave-approved hook.
+      await approveLeaveRequest(leave.id, admin.id);
+      const opened = await tx.employeeHandover.findUniqueOrThrow({ where: { leaveRequestId: leave.id } });
       assert.equal(opened.kind, "leave");
       assert.equal(opened.returnDate.toISOString().slice(0, 10), "2199-07-20");
       assert.equal(await handovers.openLeaveHandoverIfNeeded(leave.id, admin.id), null, "only once per leave");
