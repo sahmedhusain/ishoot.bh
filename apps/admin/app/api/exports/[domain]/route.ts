@@ -1,11 +1,12 @@
 import { measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
-import { getRequestExportBatch, iterateListExport, listDomains, type ClientListRow, type RequestListFilters } from "@ishoot/database";
+import { getDocumentArchiveExportBatch, getRequestExportBatch, iterateListExport, listDomains, type ClientListRow, type RequestListFilters } from "@ishoot/database";
+import { archiveKindsForCurrentUser } from "../../../../lib/archive-access";
 import { getCurrentUser, requirePermission } from "../../../../lib/auth";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 const columns = {
-  archive: ["id","file_name","file_url","file_size","mime_type","entity_type","entity_id","entity_label","uploaded_by","created_at"],
+  archive: ["id", "group", "kind", "file_name", "file_url", "file_size", "mime_type", "related_to", "uploaded_by", "created_at", "expires_on"],
   expenses: ["id", "description_en", "description_ar", "vendor_name", "expense_date", "currency", "amount", "category_id", "deal_id"],
   invoices: ["id", "invoice_number", "issue_date", "due_date", "status", "currency", "total_amount", "amount_paid", "amount_due", "customer"],
   payments: ["id", "receipt_number", "invoiceNumber", "customerName", "payment_date", "currency", "amount", "payment_method"],
@@ -46,6 +47,34 @@ function csv(value: unknown) {
   let text = value == null ? "" : String(value);
   if (typeof value === "string" && /^[\s]*[=+@-]/.test(text)) text = "'" + text;
   return '"' + text.replaceAll('"', '""') + '"';
+}
+/** The company archive export: every file the viewer may see and export, in the archive's filters. */
+async function exportArchive(req: NextRequest) {
+  const kinds = await archiveKindsForCurrentUser(["read", "export"]);
+  if (!kinds.length) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const input = Object.fromEntries(["q", "group", "kind", "expiry", "from", "to"].map((key) => [key, (req.nextUrl.searchParams.get(key) || "").slice(0, 200) || undefined]));
+  const encoder = new TextEncoder();
+  let after = "";
+  let header = false;
+  let done = false;
+  const stream = new ReadableStream({
+    async pull(controller) {
+      try {
+        if (!header) { controller.enqueue(encoder.encode("\uFEFF" + columns.archive.map(csv).join(",") + "\r\n")); header = true; return; }
+        if (done || req.signal.aborted) { controller.close(); return; }
+        const rows = await getDocumentArchiveExportBatch(input, kinds, after, 500);
+        if (!rows.length) { controller.close(); return; }
+        after = rows[rows.length - 1].id;
+        done = rows.length < 500;
+        const lines = rows.map((row) => {
+          const data: Record<string, unknown> = { ...row, related_to: row.owner_en, created_at: row.created_at.slice(0, 10) };
+          return columns.archive.map((key) => csv(data[key])).join(",");
+        });
+        controller.enqueue(encoder.encode(lines.join("\r\n") + "\r\n"));
+      } catch (error) { controller.error(error); }
+    },
+  });
+  return new NextResponse(stream, { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="archive-${new Date().toISOString().slice(0, 10)}.csv"`, "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
 }
 /** The request inbox export: the same filters as the inbox, every match walked by id. */
 async function exportRequests(req: NextRequest) {
@@ -88,6 +117,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ doma
   if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { domain } = await params;
   if (domain === "requests") return exportRequests(req);
+  if (domain === "archive") return exportArchive(req);
   if (!Object.hasOwn(listDomains, domain)) return new NextResponse(null, { status: 404 });
   const name = domain as keyof typeof listDomains;
   try { for (const resource of name === "archive" ? ["contacts","deals","invoices","payments","expenses","settings"] as const : name === "companyDocuments" ? ["settings"] : [name]) { await requirePermission(resource as any, "read"); await requirePermission(resource as any, "export"); } }

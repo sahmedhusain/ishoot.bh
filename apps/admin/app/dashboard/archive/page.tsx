@@ -1,11 +1,20 @@
-import { ROUTES } from "../../../constants/routes";
-import { requirePagePermission } from "../../../lib/auth";
-import { getAttachmentsPage, type ListParameters } from "@ishoot/database";
-import { ArchiveManagementView } from "../../../components/archive/ArchiveManagementView";
-import { ListControls } from "../../../components/shared/ListControls";
+import { getDocumentArchivePage } from "@ishoot/database";
+import { hasPermission, requireAuth } from "../../../lib/auth";
+import { archiveKindsForCurrentUser } from "../../../lib/archive-access";
+import { CompanyArchiveView } from "../../../components/archive/CompanyArchiveView";
+import { ForbiddenView } from "../../../components/shared/ForbiddenView";
+
 export const dynamic = "force-dynamic";
-export default async function ArchiveVaultPage({ searchParams }: { searchParams: Promise<ListParameters> }) {
-  for (const resource of ["contacts", "deals", "invoices", "payments", "expenses", "settings"] as const) await requirePagePermission(resource, "read");
-  const result = await getAttachmentsPage(await searchParams);
-  return <><ListControls exportDomain="archive" path={ROUTES.archive} {...result} statuses={["payment", "invoice", "contact", "customer_vault", "deal", "company_setting", "general"]} /><ArchiveManagementView key={JSON.stringify(result.filters) + result.page} initialAttachments={result.items} counts={result.counts} /></>;
+
+/** Every document the company keeps, limited to the kinds the viewer's permissions cover. */
+export default async function ArchiveVaultPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  await requireAuth();
+  const kinds = await archiveKindsForCurrentUser();
+  if (!kinds.length) return <ForbiddenView />;
+  const [result, exportKinds, canUpload] = await Promise.all([
+    getDocumentArchivePage(await searchParams, kinds),
+    archiveKindsForCurrentUser(["read", "export"]),
+    hasPermission("settings", "create"),
+  ]);
+  return <CompanyArchiveView {...result} kinds={kinds} canExport={exportKinds.length > 0} canUpload={canUpload} />;
 }
