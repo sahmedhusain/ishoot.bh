@@ -93,3 +93,4 @@ export * from "./services/expiry-reminders";
 export * from "./queries/recurring-pay";
 export * from "./queries/recurring-expenses";
 export * from "./queries/assets";
+export * from "./queries/employee-handovers";

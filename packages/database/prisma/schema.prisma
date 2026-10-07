@@ -1551,6 +1551,7 @@ model Employee {
   recurringPay      EmployeeRecurringPay[]
   assetsHeld        Asset[]            @relation("AssetHolder")
   assetHandovers    AssetHandover[]
+  workHandovers     EmployeeHandover[]
   jobTitleEn        String
   jobTitleAr        String
   hireDate          DateTime           @db.Date
@@ -1612,6 +1613,8 @@ model LeaveType {
   /// Count weekends and holidays inside the leave (e.g. maternity) instead of working days only.
   countCalendarDays   Boolean           @default(false)
   requiresAttachment  Boolean           @default(false)
+  /// Approved leave of this type opens a handover (cases, assets, checklist) for HR to complete.
+  requiresHandover    Boolean           @default(false)
   isActive            Boolean           @default(true)
   sortOrder           Int               @default(0)
   requests            LeaveRequest[]
@@ -2276,4 +2279,55 @@ model AssetHandover {
   @@index([assetId])
   @@index([employeeId])
   @@index([status])
+}
+
+/// Handing over an employee's work, cases and company assets before they leave the company or go on a long leave.
+model EmployeeHandover {
+  id             String                 @id @default(uuid())
+  reference      String                 @unique
+  employeeId     String
+  employee       Employee               @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  /// "exit" | "leave"
+  kind           String
+  leaveRequestId String?                @unique
+  /// Last working day (exit) or first day of leave.
+  effectiveDate  DateTime               @db.Date
+  returnDate     DateTime?              @db.Date
+  reason         String?
+  /// "open" | "pending_approval" | "completed" | "rejected" | "cancelled"
+  status         String                 @default("open")
+  /// "delegate" (all to one person) | "spread" (round robin across a team) | "manual" (one by one)
+  casesMode      String                 @default("manual")
+  delegateUserId String?
+  teamUserIds    String[]               @default([])
+  /// [{ key, labelEn?, labelAr?, done, notApplicable, note, byId, at }]
+  checklist      Json                   @default("[]")
+  notes          String?
+  createdById    String
+  decidedAt      DateTime?
+  decisionNotes  String?
+  cases          EmployeeHandoverCase[]
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+}
+
+/// One piece of work moved off the departing employee: a request, a deal or an approval waiting for them.
+model EmployeeHandoverCase {
+  id           String           @id @default(uuid())
+  handoverId   String
+  handover     EmployeeHandover @relation(fields: [handoverId], references: [id], onDelete: Cascade)
+  /// "request" | "deal" | "approval"
+  caseType     String
+  caseId       String
+  label        String
+  toUserId     String?
+  /// "pending" | "reassigned" | "closed"
+  status       String           @default("pending")
+  reassignedAt DateTime?
+  createdAt    DateTime         @default(now())
+
+  @@unique([handoverId, caseType, caseId])
 }

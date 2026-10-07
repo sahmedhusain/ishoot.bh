@@ -213,7 +213,7 @@ function PolicyForm({ policy, editable }: { policy: HrPolicyRules; editable: boo
 const emptyLeaveType = (order: number): LeaveTypeView => ({
   id: "", code: "", nameEn: "", nameAr: "", isPaid: true, payPercent: 100, payTiers: null, accrual: "annual", daysAllowedPerYear: 0,
   eligibleAfterMonths: 0, maxCarryOverDays: 0, maxDaysPerRequest: null, allowHalfDay: true, allowHours: false, countCalendarDays: false,
-  requiresAttachment: false, isActive: true, sortOrder: order,
+  requiresAttachment: false, requiresHandover: false, isActive: true, sortOrder: order,
 });
 
 function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () => void }) {
@@ -285,9 +285,9 @@ function LeaveTypeForm({ value, onClose }: { value: LeaveTypeView; onClose: () =
         </Button>
       </fieldset>
       <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-700 dark:text-slate-200">
-        {([["allowHalfDay", h.allowHalf], ["allowHours", h.allowHours], ["countCalendarDays", h.calendarDays], ["requiresAttachment", h.attachment], ["isActive", h.active]] as const).map(([key, label]) => (
+        {([["allowHalfDay", h.allowHalf], ["allowHours", h.allowHours], ["countCalendarDays", h.calendarDays], ["requiresAttachment", h.attachment], ["requiresHandover", h.handover], ["isActive", h.active]] as const).map(([key, label]) => (
           <label key={key} className="flex items-center gap-2">
-            <input type="checkbox" className="accent-accent" checked={form[key]} onChange={(e) => set(key, e.target.checked)} />
+            <input type="checkbox" className="accent-accent" checked={!!form[key]} onChange={(e) => set(key, e.target.checked)} />
             {label}
           </label>
         ))}

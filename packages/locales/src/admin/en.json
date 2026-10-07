@@ -2313,7 +2313,8 @@
       "expense_claim": "Expense claim",
       "signature_change": "Signature change",
       "account_change": "Account change",
-      "asset_handover": "Asset handover"
+      "asset_handover": "Asset handover",
+      "employee_handover": "Employee handover"
     },
     "kpis": {
       "awaiting": "Awaiting your decision",
@@ -4658,7 +4659,8 @@
       "Thursday",
       "Friday",
       "Saturday"
-    ]
+    ],
+    "handover": "Needs a handover"
   },
   "leaveForm": {
     "portion": "Duration",
@@ -5395,7 +5397,20 @@
       "thisHandoverIsNotWaitingFor": "This handover is not waiting for a signature",
       "onlyTheEmployeeCanSignThis": "Only the employee can sign this handover",
       "onlyOpenHandoversCanBeCancelled": "Only open handovers can be cancelled",
-      "thisHandoverIsNotWaitingFor2": "This handover is not waiting for approval"
+      "thisHandoverIsNotWaitingFor2": "This handover is not waiting for approval",
+      "theReturnDateCannotBeBeforeTheStartDate": "The return date cannot be before the start date",
+      "thisEmployeeHasAlreadyLeft": "This employee has already left",
+      "thisEmployeeAlreadyHasAnExitHandoverInProgress": "This employee already has an exit handover in progress",
+      "thisHandoverCanNoLongerBeChanged": "This handover can no longer be changed",
+      "chooseWhoTakesOverTheCases": "Choose who takes over the cases",
+      "chooseTheTeamMembersWhoShareTheCases": "Choose the team members who share the cases",
+      "chooseSomeoneOtherThanTheEmployee": "Choose someone other than the employee",
+      "chooseActiveTeamMembers": "Choose active team members",
+      "anApprovalCannotGoToThePersonWhoRequestedIt": "An approval cannot go to the person who requested it",
+      "sayWhyTheItemDoesNotApply": "Say why the item does not apply",
+      "everyCompanyAssetMustBeReturnedFirst": "Every company asset must be returned first",
+      "reassignEveryOpenCaseFirst": "Reassign every open case first",
+      "completeEveryChecklistItemFirst": "Complete every checklist item first"
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -6418,6 +6433,144 @@
       "signReturn": {
         "title": "Asset return to sign",
         "message": "Review and sign the return of {name}."
+      }
+    }
+  },
+  "employeeHandovers": {
+    "navTitle": "Handovers",
+    "title": "Employee handovers",
+    "subtitle": "What a leaving or absent employee hands over: open cases, company assets and HR's checks, approved before they go.",
+    "start": "Start a handover",
+    "started": "Handover opened",
+    "failed": "The handover could not be saved",
+    "employee": "Employee",
+    "select": "Select",
+    "kind": "Type",
+    "kinds": {
+      "exit": "Leaving the company",
+      "leave": "Going on leave"
+    },
+    "lastDay": "Last working day",
+    "leaveStart": "Leave starts",
+    "returnDate": "Back on",
+    "reason": "Reason",
+    "exitReasonHint": "Resignation, end of contract, termination",
+    "leaveReasonHint": "Annual leave, medical leave",
+    "exitHint": "Once approved the employee is marked as left. Their open cases, assets and accounts must be handed over first.",
+    "leaveHint": "Their open cases go to colleagues while they are away. Assets can stay with them unless you take them back.",
+    "filters": {
+      "active": "In progress",
+      "open": "Open",
+      "pending_approval": "Waiting for approval",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "all": "All",
+      "allKinds": "All types"
+    },
+    "statuses": {
+      "open": "Open",
+      "pending_approval": "Waiting for approval",
+      "completed": "Completed",
+      "rejected": "Returned",
+      "cancelled": "Cancelled"
+    },
+    "reference": "Reference",
+    "dates": "Dates",
+    "cases": "Cases",
+    "status": "Status",
+    "casesPending": "{n} to reassign",
+    "casesClear": "All {n} handed over",
+    "empty": "No handovers here.",
+    "employeeCardHint": "Exit and leave handovers for this employee.",
+    "exitTitle": "Exit handover",
+    "leaveTitle": "Leave handover",
+    "openedBy": "Opened by",
+    "cancel": "Cancel handover",
+    "cancelConfirm": "Cancel this handover? Cases already reassigned stay with their new owners.",
+    "cancelled": "Handover cancelled",
+    "returnedWithNote": "Returned by the approvers: {note}",
+    "casesTitle": "Open cases",
+    "casesHint": "Service requests, deals and approvals still with the employee. Choose how they are handed over.",
+    "refresh": "Refresh",
+    "casesRefreshed": "Cases refreshed",
+    "modeTitle": "How should the cases be handed over?",
+    "modes": {
+      "delegate": "One person",
+      "spread": "Share across a team",
+      "manual": "Case by case"
+    },
+    "modeHints": {
+      "delegate": "Everything goes to one colleague.",
+      "spread": "Cases are shared out evenly, in turn.",
+      "manual": "Choose who takes each case."
+    },
+    "delegate": "Takes over the cases",
+    "assignTo": "Choose who takes it",
+    "caseMovedTo": "Moved to {name}",
+    "caseTypes": {
+      "request": "Request",
+      "deal": "Deal",
+      "approval": "Approval"
+    },
+    "caseStatuses": {
+      "pending": "Waiting",
+      "reassigned": "Moved",
+      "closed": "Closed elsewhere"
+    },
+    "noCases": "The employee has no open cases.",
+    "reassignAll": "Reassign {n} cases",
+    "reassignChosen": "Reassign the chosen cases",
+    "casesMoved": "Cases reassigned",
+    "assetsTitle": "Company assets",
+    "assetsExitHint": "Everything the employee holds must be returned, checked and signed before they leave.",
+    "assetsLeaveHint": "Take back anything needed while the employee is away.",
+    "noAssets": "The employee holds no company assets.",
+    "returnAsset": "Take back",
+    "returnsTitle": "Returns in this handover",
+    "checklistTitle": "HR checklist",
+    "checklist": {
+      "knowledge_transfer": "Knowledge and files handed over",
+      "documents_returned": "Company documents returned",
+      "keys_and_cards": "Keys, cards and badges returned",
+      "accounts_closed": "Email and system access closed",
+      "final_settlement": "Final settlement calculated",
+      "exit_interview": "Exit interview held",
+      "clearance_letter": "Clearance letter issued",
+      "cover_arranged": "Cover arranged",
+      "out_of_office": "Out-of-office reply set",
+      "pending_work_reviewed": "Pending work reviewed with the manager"
+    },
+    "checkedBy": "{name} · {date}",
+    "note": "Note",
+    "done": "Done",
+    "undo": "Undo",
+    "notApplicable": "Not needed",
+    "saved": "Saved",
+    "approvalTitle": "Approval",
+    "ready": "Everything is handed over. Send it for approval.",
+    "blockers": {
+      "assets": "{n} company assets still held",
+      "returns": "{n} asset returns waiting for signature or approval",
+      "cases": "{n} cases still to reassign",
+      "checklist": "{n} checklist items open"
+    },
+    "approvedBy": "Approved by {name}",
+    "rejectedBy": "Returned by {name}",
+    "waiting": "Waiting for the approvers.",
+    "completedExit": "Approved. The employee is now marked as left.",
+    "completedLeave": "Approved. The leave handover is complete.",
+    "submit": "Send for approval",
+    "submitted": "Sent for approval",
+    "yourDecision": "Your decision",
+    "decisionNote": "Note (optional)",
+    "approve": "Approve",
+    "reject": "Return to HR",
+    "approved": "Approved",
+    "rejected": "Returned to HR",
+    "notifications": {
+      "leaveOpened": {
+        "title": "Leave handover to complete",
+        "message": "{name} starts leave on {date}. Complete the handover before then."
       }
     }
   }

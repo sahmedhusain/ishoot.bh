@@ -336,6 +336,9 @@ export async function approveLeaveRequest(
     },
   });
   await refreshLeaveBalanceCache(leave.employeeId);
+  // Leave types that need a handover open one for HR (cases, assets, checklist) once the leave is approved.
+  const { openLeaveHandoverIfNeeded } = await import("./employee-handovers");
+  await openLeaveHandoverIfNeeded(requestId, approverId);
   const updated = await db.leaveRequest.findUniqueOrThrow({ where: { id: requestId }, include: { employee: true, leaveType: true } });
 
   return {

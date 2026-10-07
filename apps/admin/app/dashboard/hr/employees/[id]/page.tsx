@@ -3,10 +3,11 @@ import { SalaryDocumentsView } from "../../../../../components/hr/SalaryDocument
 import { availablePayslipMonths, canManageSalaryDocuments, decidableSalaryDocumentIds } from "../../../../../lib/salary-documents";
 import { notFound } from "next/navigation";
 import { requirePagePermission, hasPermission } from "../../../../../lib/auth";
-import { getEmployeeById, getEmployeeAssets, getEmployeeResidency, listRecurringPay, listDepartments, db, getLeaveBalances, accountSnapshot, listAccountChangeRequests } from "@ishoot/database";
+import { getEmployeeById, getEmployeeAssets, getEmployeeResidency, listRecurringPay, listDepartments, db, getLeaveBalances, accountSnapshot, listAccountChangeRequests, listEmployeeHandovers } from "@ishoot/database";
 import { EmployeeResidencyPanel } from "../../../../../components/hr/EmployeeResidencyPanel";
 import { RecurringPayPanel } from "../../../../../components/hr/RecurringPayPanel";
 import { EmployeeAssetsCard } from "../../../../../components/assets/EmployeeAssetsCard";
+import { EmployeeHandoversCard } from "../../../../../components/handovers/EmployeeHandoversCard";
 import { EmployeeAccountCard } from "../../../../../components/hr/EmployeeAccountCard";
 import { LeaveBalancesCard } from "../../../../../components/hr/LeaveBalancesCard";
 import { EmployeePayHistory } from "../../../../../components/hr/EmployeePayHistory";
@@ -78,6 +79,7 @@ export default async function EmployeeDetailPage({
     />
     {residency && <EmployeeResidencyPanel employeeId={id} residency={residency} canEdit={canEdit} />}
     {(await hasPermission("assets", "read")) && <EmployeeAssetsCard {...(await getEmployeeAssets(id))} own={false} canOpenAssets />}
+    <EmployeeHandoversCard employeeId={id} items={await listEmployeeHandovers({ employeeId: id })} canStart={canEdit && (employee as { status?: string }).status !== "terminated"} />
     <EmployeeAccountCard
       account={account && linkedUserId ? { userId: linkedUserId, fullName: account.fullName, role: account.role, managerId: account.managerId, status: account.status, discountLimitPercent: account.discountLimitPercent, commissionRatePercent: account.commissionRatePercent } : null}
       email={account?.email ?? null}

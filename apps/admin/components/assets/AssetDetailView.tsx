@@ -24,8 +24,8 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
   const a = t.assets;
   const isAr = locale === "ar";
   const [mode, setMode] = React.useState<"view" | "edit" | "issue" | "return">("view");
-  const item = (label: string, value?: string | null, ltr?: boolean) => (
-    <div>
+  const item = (label: string, value?: string | null, ltr?: boolean, key?: string) => (
+    <div key={key}>
       <dt className="text-[11px] text-ink-muted mb-0.5">{label}</dt>
       <dd className="text-sm font-medium text-ink" dir={ltr ? "ltr" : undefined}>{value || "—"}</dd>
     </div>
@@ -92,7 +92,7 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
               <div className="border-t border-ink/10 pt-4">
                 <h2 className="mb-3 text-sm font-bold text-ink">{a.specsTitle.replace("{category}", isAr ? asset.category.name_ar : asset.category.name_en)}</h2>
                 <dl className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {asset.category.spec_fields.map((f) => item(isAr ? f.labelAr : f.labelEn, specValue(f.key, f.type), f.type !== "text"))}
+                  {asset.category.spec_fields.map((f) => item(isAr ? f.labelAr : f.labelEn, specValue(f.key, f.type), f.type !== "text", f.key))}
                 </dl>
               </div>
             ) : null}

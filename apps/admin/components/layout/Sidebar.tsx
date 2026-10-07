@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Laptop,
+  ArrowRightLeft,
   LayoutDashboard,
   Calendar,
   Kanban,
@@ -220,6 +221,13 @@ export function Sidebar() {
             label: t.assets.navTitle,
             icon: Laptop,
             resource: "assets",
+          },
+          {
+            href: ROUTES.hr.handovers(),
+            label: t.employeeHandovers.navTitle,
+            icon: ArrowRightLeft,
+            resource: "employees",
+            moduleKey: "hrms",
           },
           {
             href: ROUTES.hr.attendance,

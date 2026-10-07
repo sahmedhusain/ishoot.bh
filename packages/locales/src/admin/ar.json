@@ -2313,7 +2313,8 @@
       "expense_claim": "مطالبة مصروف",
       "signature_change": "تغيير التوقيع",
       "account_change": "تغيير حساب",
-      "asset_handover": "تسليم أصل"
+      "asset_handover": "تسليم أصل",
+      "employee_handover": "تسليم مهام موظف"
     },
     "kpis": {
       "awaiting": "بانتظار قرارك",
@@ -4658,7 +4659,8 @@
       "الخميس",
       "الجمعة",
       "السبت"
-    ]
+    ],
+    "handover": "يتطلب تسليم مهام"
   },
   "leaveForm": {
     "portion": "المدة",
@@ -5395,7 +5397,20 @@
       "thisHandoverIsNotWaitingFor": "محضر التسليم هذا لا ينتظر توقيعًا",
       "onlyTheEmployeeCanSignThis": "يوقّع هذا المحضر الموظف نفسه فقط",
       "onlyOpenHandoversCanBeCancelled": "يمكن إلغاء محاضر التسليم المفتوحة فقط",
-      "thisHandoverIsNotWaitingFor2": "محضر التسليم هذا لا ينتظر الاعتماد"
+      "thisHandoverIsNotWaitingFor2": "محضر التسليم هذا لا ينتظر الاعتماد",
+      "theReturnDateCannotBeBeforeTheStartDate": "لا يمكن أن يسبق تاريخ العودة تاريخ البداية",
+      "thisEmployeeHasAlreadyLeft": "هذا الموظف غادر الشركة بالفعل",
+      "thisEmployeeAlreadyHasAnExitHandoverInProgress": "لدى هذا الموظف تسليم مغادرة قيد التنفيذ",
+      "thisHandoverCanNoLongerBeChanged": "لم يعد بالإمكان تعديل هذا التسليم",
+      "chooseWhoTakesOverTheCases": "اختر من يتولى الحالات",
+      "chooseTheTeamMembersWhoShareTheCases": "اختر أعضاء الفريق الذين يتقاسمون الحالات",
+      "chooseSomeoneOtherThanTheEmployee": "اختر شخصا غير الموظف نفسه",
+      "chooseActiveTeamMembers": "اختر أعضاء فريق نشطين",
+      "anApprovalCannotGoToThePersonWhoRequestedIt": "لا يمكن إسناد الاعتماد إلى من طلبه",
+      "sayWhyTheItemDoesNotApply": "اذكر سبب عدم الحاجة إلى هذا البند",
+      "everyCompanyAssetMustBeReturnedFirst": "يجب إرجاع جميع أصول الشركة أولا",
+      "reassignEveryOpenCaseFirst": "أعد إسناد جميع الحالات المفتوحة أولا",
+      "completeEveryChecklistItemFirst": "أكمل جميع بنود القائمة أولا"
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -6418,6 +6433,144 @@
       "signReturn": {
         "title": "محضر إرجاع بانتظار توقيعك",
         "message": "راجع محضر إرجاع {name} ووقّعه."
+      }
+    }
+  },
+  "employeeHandovers": {
+    "navTitle": "التسليم",
+    "title": "تسليم مهام الموظفين",
+    "subtitle": "ما يسلمه الموظف المغادر أو الغائب: الحالات المفتوحة وأصول الشركة وتحققات الموارد البشرية، ويُعتمد قبل مغادرته.",
+    "start": "بدء تسليم",
+    "started": "فُتح التسليم",
+    "failed": "تعذر حفظ التسليم",
+    "employee": "الموظف",
+    "select": "اختر",
+    "kind": "النوع",
+    "kinds": {
+      "exit": "مغادرة الشركة",
+      "leave": "الخروج في إجازة"
+    },
+    "lastDay": "آخر يوم عمل",
+    "leaveStart": "بداية الإجازة",
+    "returnDate": "العودة في",
+    "reason": "السبب",
+    "exitReasonHint": "استقالة، انتهاء العقد، إنهاء الخدمة",
+    "leaveReasonHint": "إجازة سنوية، إجازة مرضية",
+    "exitHint": "بعد الاعتماد يُسجل الموظف كمغادر. يجب تسليم حالاته المفتوحة وأصوله وحساباته أولا.",
+    "leaveHint": "تنتقل حالاته المفتوحة إلى زملائه أثناء غيابه. تبقى الأصول معه إلا إذا استلمتها.",
+    "filters": {
+      "active": "قيد التنفيذ",
+      "open": "مفتوح",
+      "pending_approval": "بانتظار الاعتماد",
+      "completed": "مكتمل",
+      "cancelled": "ملغى",
+      "all": "الكل",
+      "allKinds": "كل الأنواع"
+    },
+    "statuses": {
+      "open": "مفتوح",
+      "pending_approval": "بانتظار الاعتماد",
+      "completed": "مكتمل",
+      "rejected": "معاد",
+      "cancelled": "ملغى"
+    },
+    "reference": "المرجع",
+    "dates": "التواريخ",
+    "cases": "الحالات",
+    "status": "الحالة",
+    "casesPending": "{n} بانتظار إعادة الإسناد",
+    "casesClear": "سُلمت جميعها ({n})",
+    "empty": "لا توجد عمليات تسليم هنا.",
+    "employeeCardHint": "عمليات تسليم المغادرة والإجازة لهذا الموظف.",
+    "exitTitle": "تسليم المغادرة",
+    "leaveTitle": "تسليم الإجازة",
+    "openedBy": "فتحه",
+    "cancel": "إلغاء التسليم",
+    "cancelConfirm": "إلغاء هذا التسليم؟ تبقى الحالات المعاد إسنادها مع أصحابها الجدد.",
+    "cancelled": "أُلغي التسليم",
+    "returnedWithNote": "أعاده المعتمدون: {note}",
+    "casesTitle": "الحالات المفتوحة",
+    "casesHint": "طلبات الخدمة والصفقات والاعتمادات التي ما زالت لدى الموظف. اختر طريقة تسليمها.",
+    "refresh": "تحديث",
+    "casesRefreshed": "حُدثت الحالات",
+    "modeTitle": "كيف تُسلم الحالات؟",
+    "modes": {
+      "delegate": "شخص واحد",
+      "spread": "توزيع على فريق",
+      "manual": "حالة بحالة"
+    },
+    "modeHints": {
+      "delegate": "تنتقل جميعها إلى زميل واحد.",
+      "spread": "توزع الحالات بالتساوي وبالتناوب.",
+      "manual": "اختر من يتولى كل حالة."
+    },
+    "delegate": "يتولى الحالات",
+    "assignTo": "اختر من يتولاها",
+    "caseMovedTo": "نُقلت إلى {name}",
+    "caseTypes": {
+      "request": "طلب",
+      "deal": "صفقة",
+      "approval": "اعتماد"
+    },
+    "caseStatuses": {
+      "pending": "بالانتظار",
+      "reassigned": "نُقلت",
+      "closed": "أُغلقت في مكان آخر"
+    },
+    "noCases": "لا توجد حالات مفتوحة لدى الموظف.",
+    "reassignAll": "إعادة إسناد {n} حالات",
+    "reassignChosen": "إعادة إسناد الحالات المختارة",
+    "casesMoved": "أعيد إسناد الحالات",
+    "assetsTitle": "أصول الشركة",
+    "assetsExitHint": "يجب إرجاع كل ما بحوزة الموظف وفحصه وتوقيعه قبل مغادرته.",
+    "assetsLeaveHint": "استلم ما تحتاجه الشركة أثناء غياب الموظف.",
+    "noAssets": "لا توجد أصول للشركة بحوزة الموظف.",
+    "returnAsset": "استلام",
+    "returnsTitle": "الإرجاعات ضمن هذا التسليم",
+    "checklistTitle": "قائمة تحقق الموارد البشرية",
+    "checklist": {
+      "knowledge_transfer": "تسليم المعرفة والملفات",
+      "documents_returned": "إرجاع مستندات الشركة",
+      "keys_and_cards": "إرجاع المفاتيح والبطاقات",
+      "accounts_closed": "إغلاق البريد وصلاحيات الأنظمة",
+      "final_settlement": "احتساب التسوية النهائية",
+      "exit_interview": "إجراء مقابلة المغادرة",
+      "clearance_letter": "إصدار خطاب إخلاء الطرف",
+      "cover_arranged": "ترتيب البديل",
+      "out_of_office": "ضبط الرد التلقائي",
+      "pending_work_reviewed": "مراجعة الأعمال المعلقة مع المدير"
+    },
+    "checkedBy": "{name} · {date}",
+    "note": "ملاحظة",
+    "done": "تم",
+    "undo": "تراجع",
+    "notApplicable": "غير مطلوب",
+    "saved": "تم الحفظ",
+    "approvalTitle": "الاعتماد",
+    "ready": "تم تسليم كل شيء. أرسله للاعتماد.",
+    "blockers": {
+      "assets": "{n} من أصول الشركة ما زالت بحوزته",
+      "returns": "{n} من إرجاعات الأصول بانتظار التوقيع أو الاعتماد",
+      "cases": "{n} من الحالات بانتظار إعادة الإسناد",
+      "checklist": "{n} من بنود القائمة مفتوحة"
+    },
+    "approvedBy": "اعتمده {name}",
+    "rejectedBy": "أعاده {name}",
+    "waiting": "بانتظار المعتمدين.",
+    "completedExit": "اعتُمد. سُجل الموظف كمغادر.",
+    "completedLeave": "اعتُمد. اكتمل تسليم الإجازة.",
+    "submit": "إرسال للاعتماد",
+    "submitted": "أُرسل للاعتماد",
+    "yourDecision": "قرارك",
+    "decisionNote": "ملاحظة (اختياري)",
+    "approve": "اعتماد",
+    "reject": "إعادة إلى الموارد البشرية",
+    "approved": "تم الاعتماد",
+    "rejected": "أعيد إلى الموارد البشرية",
+    "notifications": {
+      "leaveOpened": {
+        "title": "تسليم إجازة بانتظار الإكمال",
+        "message": "تبدأ إجازة {name} في {date}. أكمل التسليم قبلها."
       }
     }
   }

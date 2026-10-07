@@ -131,7 +131,9 @@ export async function assignConsolidatedRequest(
     await assertAssigneeAvailable(newAssigneeId, periodStart, periodEnd);
 
     const actor = await db.user.findUnique({ where: { id: actorId }, select: { fullName: true } });
-    const isFirstAssignment = canTransitionRequest(request.workflowStatus, "assign") && !request.assignedToId;
+    // Requests still being received or reviewed take an assignment even if someone was noted on them earlier.
+    const isFirstAssignment =
+      canTransitionRequest(request.workflowStatus, "assign") && (!request.assignedToId || !canTransitionRequest(request.workflowStatus, "reassign"));
     if (isFirstAssignment) {
       await assignRequest(id, {
         assignedToId: newAssigneeId,

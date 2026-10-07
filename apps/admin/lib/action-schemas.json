@@ -3215,6 +3215,151 @@
       }
     }
   },
+  "openEmployeeHandoverAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "employee_id": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "exit"
+              },
+              {
+                "kind": "literal",
+                "value": "leave"
+              }
+            ],
+            "optional": false
+          },
+          "effective_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "return_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "reason": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "setHandoverCaseModeAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "mode": {
+            "kind": "string",
+            "optional": false
+          },
+          "delegate_user_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "team_user_ids": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "applyHandoverCasesAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      },
+      "choices": {
+        "kind": "record",
+        "element": {
+          "kind": "string"
+        },
+        "optional": true
+      }
+    }
+  },
+  "refreshHandoverCasesAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateHandoverChecklistAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      },
+      "key": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "done": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "not_applicable": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "submitEmployeeHandoverAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "cancelEmployeeHandoverAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "createExpenseAction": {
     "kind": "object",
     "fields": {

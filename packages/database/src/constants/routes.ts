@@ -91,6 +91,8 @@ export const ROUTES = {
     payroll: (query?: HighlightQuery) => withQuery("/dashboard/hr/payroll", query),
     payrollItem: (id: string) => `/dashboard/hr/payroll/items/${encode(id)}`,
     attendance: "/dashboard/hr/attendance",
+    handovers: (query?: { status?: string | null; kind?: string | null; employeeId?: string | null }) => withQuery("/dashboard/hr/handovers", query),
+    handover: (id: string) => `/dashboard/hr/handovers/${encode(id)}`,
     settings: "/dashboard/hr/settings",
   },
   invoices: {

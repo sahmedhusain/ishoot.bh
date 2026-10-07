@@ -127,6 +127,8 @@ export interface LeaveTypeView extends LeaveTypeRules {
   nameAr: string;
   isPaid: boolean;
   requiresAttachment: boolean;
+  /** Approved leave of this type opens a handover for HR. */
+  requiresHandover?: boolean;
   isActive: boolean;
   sortOrder: number;
 }
@@ -151,6 +153,7 @@ export function toLeaveTypeRules(row: LeaveTypeRow): LeaveTypeView {
     allowHours: row.allowHours,
     countCalendarDays: row.countCalendarDays,
     requiresAttachment: row.requiresAttachment,
+    requiresHandover: row.requiresHandover,
     isActive: row.isActive,
     sortOrder: row.sortOrder,
   };
@@ -198,6 +201,7 @@ export async function saveLeaveType(input: LeaveTypeInput) {
     allowHours: input.allowHours,
     countCalendarDays: input.countCalendarDays,
     requiresAttachment: input.requiresAttachment,
+    requiresHandover: !!input.requiresHandover,
     isActive: input.isActive,
     sortOrder: input.sortOrder,
   };

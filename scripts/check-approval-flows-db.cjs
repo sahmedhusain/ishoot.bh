@@ -10,6 +10,7 @@ const { createEmployee } = require("../packages/database/src/queries/hrms.ts");
 const { submitForApproval, decideApprovalRequest } = require("../packages/database/src/services/approval-engine.ts");
 const { APPROVAL_TARGET_TYPES } = require("../packages/database/src/constants/approvals.ts");
 require("../packages/database/src/queries/assets.ts"); // registers the asset handover decision handler
+require("../packages/database/src/queries/employee-handovers.ts"); // and the employee handover one
 
 const rollback = new Error("ROLLBACK_APPROVAL_FLOWS_TEST");
 
@@ -107,6 +108,11 @@ async function main() {
           },
           state: async (id) => (await tx.assetHandover.findUniqueOrThrow({ where: { id } })).status,
           approved: "completed", rejected: "rejected",
+        },
+        employee_handover: {
+          make: async () => (await tx.employeeHandover.create({ data: { reference: `EHO-FLOW-${stamp}-${Math.random().toString(36).slice(2, 7)}`, employeeId: employee.id, kind: "leave", status: "pending_approval", effectiveDate: new Date("2199-02-01"), checklist: [], createdById: superAdmin.id } })).id,
+          state: async (id) => (await tx.employeeHandover.findUniqueOrThrow({ where: { id } })).status,
+          approved: "completed", rejected: "open",
         },
         signature_change: {
           make: async () => (await tx.signatureChange.create({ data: { userId: requester.id, signatureUrl: "/brand/signatures/guest.svg" } })).id,

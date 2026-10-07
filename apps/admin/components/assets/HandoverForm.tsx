@@ -19,7 +19,7 @@ type Employee = { id: string; name_en: string; name_ar: string };
  * Issue an asset to an employee or take it back. Every checklist item of the category is confirmed or noted,
  * damage is described (and optionally recovered from salary), and the employee signs now or from their profile.
  */
-export function HandoverForm({ asset, kind, employees, onCancel, offboardingId }: { asset: AssetRecord; kind: "issue" | "return"; employees: Employee[]; onCancel: () => void; offboardingId?: string }) {
+export function HandoverForm({ asset, kind, employees, onCancel, offboardingId, onDone }: { asset: AssetRecord; kind: "issue" | "return"; employees: Employee[]; onCancel: () => void; offboardingId?: string; onDone?: () => void }) {
   const { t, locale } = useAdminLocale();
   const a = t.assets;
   const h = a.handover;
@@ -65,7 +65,10 @@ export function HandoverForm({ asset, kind, employees, onCancel, offboardingId }
         signNow && signature ? { signature, signer_name: signer } : undefined,
       );
       toast.success(result.status === "pending_approval" ? h.sentForApproval : h.awaitingEmployee);
-      router.push(ROUTES.assets.handover(result.id));
+      if (onDone) {
+        onDone();
+        router.refresh();
+      } else router.push(ROUTES.assets.handover(result.id));
     } catch (error) {
       toast.error(errorMessage(error, t, a.failed));
       setSaving(false);
