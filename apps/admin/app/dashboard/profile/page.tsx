@@ -5,7 +5,10 @@ import {
   getPendingProfileChangesForManager,
   canDecideApproval,
   listSignatureChanges,
+  getEmployeeAssets,
 } from "@ishoot/database";
+import { hasPermission } from "../../../lib/auth";
+import { EmployeeAssetsCard } from "../../../components/assets/EmployeeAssetsCard";
 import { SignaturePad } from "../../../components/profile/SignaturePad";
 import { UserProfileView } from "../../../components/profile/UserProfileView";
 
@@ -61,6 +64,7 @@ export default async function ProfilePage() {
       myRequests={myRequests}
       pendingTeamRequests={pendingTeamRequests}
     />
+    {employeeRecord && <EmployeeAssetsCard {...(await getEmployeeAssets(employeeRecord.id))} own canOpenAssets={await hasPermission("assets", "read")} />}
     <SignaturePad currentUrl={user.signature_url} changes={await listSignatureChanges(user.id)} />
     </div>
   );

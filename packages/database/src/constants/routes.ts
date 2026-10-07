@@ -30,6 +30,13 @@ export const ROUTES = {
   approvals: (query?: { status?: string | null; type?: string | null; scope?: string | null }) =>
     withQuery("/dashboard/approvals", query),
   archive: "/dashboard/archive",
+  assets: {
+    list: (query?: { status?: string | null; holder?: string | null; category?: string | null }) => withQuery("/dashboard/assets", query),
+    detail: (id: string) => `/dashboard/assets/${encode(id)}`,
+    create: "/dashboard/assets/new",
+    categories: "/dashboard/assets/categories",
+    handover: (id: string) => `/dashboard/assets/handovers/${encode(id)}`,
+  },
   calendar: "/dashboard/calendar",
   directory: "/dashboard/directory",
   team: "/dashboard/team",

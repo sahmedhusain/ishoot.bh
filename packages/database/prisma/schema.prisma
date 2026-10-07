@@ -1549,6 +1549,8 @@ model Employee {
   passportExpiryDate DateTime?         @db.Date
   credentials       EmployeeCredential[]
   recurringPay      EmployeeRecurringPay[]
+  assetsHeld        Asset[]            @relation("AssetHolder")
+  assetHandovers    AssetHandover[]
   jobTitleEn        String
   jobTitleAr        String
   hireDate          DateTime           @db.Date
@@ -2179,4 +2181,99 @@ model RecurringExpense {
   updatedAt        DateTime         @updatedAt
 
   @@index([isActive, nextDueDate])
+}
+
+/// A kind of company asset (laptop, camera, lens, vehicle…) with its own spec fields and handover checklist.
+model AssetCategory {
+  id           String   @id @default(uuid())
+  code         String   @unique
+  nameEn       String
+  nameAr       String
+  /// [{ key, labelEn, labelAr, type: "text" | "number" | "date" | "boolean", required? }]
+  specFields   Json     @default("[]")
+  /// [{ key, labelEn, labelAr }] — what is checked at each handover.
+  checklist    Json     @default("[]")
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+  assets       Asset[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+/// Company equipment and property issued to staff.
+model Asset {
+  id               String          @id @default(uuid())
+  assetTag         String          @unique
+  categoryId       String
+  category         AssetCategory   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  name             String
+  brand            String?
+  model            String?
+  serialNumber     String?
+  purchaseDate     DateTime?       @db.Date
+  purchaseCost     Decimal?        @db.Decimal(12, 3)
+  currency         String          @default("BHD")
+  supplier         String?
+  invoiceReference String?
+  warrantyUntil    DateTime?       @db.Date
+  /// "new" | "excellent" | "good" | "fair" | "poor" | "damaged"
+  condition        String          @default("good")
+  /// "available" | "assigned" | "maintenance" | "lost" | "retired"
+  status           String          @default("available")
+  /// Values for the category's spec fields.
+  specs            Json            @default("{}")
+  location         String?
+  holderEmployeeId String?
+  holder           Employee?       @relation("AssetHolder", fields: [holderEmployeeId], references: [id], onDelete: SetNull)
+  notes            String?
+  createdById      String?
+  handovers        AssetHandover[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([holderEmployeeId])
+}
+
+/// Issuing an asset to an employee or taking it back: condition, checklist, damage, the employee's signature,
+/// then approval (line manager, HR, finance by default) before the asset changes hands.
+model AssetHandover {
+  id                 String    @id @default(uuid())
+  reference          String    @unique
+  assetId            String
+  asset              Asset     @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  employeeId         String
+  employee           Employee  @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  /// "issue" | "return"
+  kind               String
+  /// "awaiting_employee" | "pending_approval" | "completed" | "rejected" | "cancelled"
+  status             String    @default("awaiting_employee")
+  handoverDate       DateTime  @db.Date
+  condition          String
+  /// [{ key, labelEn, labelAr, ok, note }]
+  checklist          Json      @default("[]")
+  specsSnapshot      Json      @default("{}")
+  accessories        String?
+  damageNotes        String?
+  damageCharge       Decimal?  @db.Decimal(12, 3)
+  /// A damage charge recovered from the next salary.
+  deductFromSalary   Boolean   @default(false)
+  notes              String?
+  /// Set when the handover is part of an employee's exit or leave handover.
+  offboardingId      String?
+  createdById        String
+  creatorSignatureUrl String?
+  employeeSignature  String?
+  employeeSignerName String?
+  employeeSignedAt   DateTime?
+  signedInPerson     Boolean   @default(false)
+  decidedAt          DateTime?
+  decisionNotes      String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([assetId])
+  @@index([employeeId])
+  @@index([status])
 }

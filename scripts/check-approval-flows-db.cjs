@@ -9,6 +9,7 @@ const { transactionContext } = require("../packages/database/src/transaction-con
 const { createEmployee } = require("../packages/database/src/queries/hrms.ts");
 const { submitForApproval, decideApprovalRequest } = require("../packages/database/src/services/approval-engine.ts");
 const { APPROVAL_TARGET_TYPES } = require("../packages/database/src/constants/approvals.ts");
+require("../packages/database/src/queries/assets.ts"); // registers the asset handover decision handler
 
 const rollback = new Error("ROLLBACK_APPROVAL_FLOWS_TEST");
 
@@ -97,6 +98,15 @@ async function main() {
           },
           state: async (id) => (await tx.accountChangeRequest.findUniqueOrThrow({ where: { id } })).status,
           approved: "approved", rejected: "rejected",
+        },
+        asset_handover: {
+          make: async () => {
+            const category = await tx.assetCategory.findUniqueOrThrow({ where: { code: "other" } });
+            const asset = await tx.asset.create({ data: { assetTag: `AST-FLOW-${stamp}-${Math.random().toString(36).slice(2, 7)}`, categoryId: category.id, name: "Flow asset", condition: "good" } });
+            return (await tx.assetHandover.create({ data: { reference: `AHO-FLOW-${asset.id.slice(0, 8)}`, assetId: asset.id, employeeId: employee.id, kind: "issue", status: "pending_approval", handoverDate: new Date(), condition: "good", createdById: superAdmin.id, employeeSignature: "data:image/png;base64,x", employeeSignerName: "Flow", employeeSignedAt: new Date() } })).id;
+          },
+          state: async (id) => (await tx.assetHandover.findUniqueOrThrow({ where: { id } })).status,
+          approved: "completed", rejected: "rejected",
         },
         signature_change: {
           make: async () => (await tx.signatureChange.create({ data: { userId: requester.id, signatureUrl: "/brand/signatures/guest.svg" } })).id,

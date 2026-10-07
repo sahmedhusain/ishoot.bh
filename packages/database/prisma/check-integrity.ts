@@ -255,6 +255,11 @@ const RULES: Rule[] = [
       WHERE p.month <> r.month OR p.year <> r.year OR p."employeeId" <> i."employeeId"` },
 
   // ---------- Operations ----------
+  { area: "operations", name: "issued assets are held by the employee of their last completed handover",
+    sql: `WITH last AS (SELECT DISTINCT ON ("assetId") "assetId", kind, "employeeId" FROM "AssetHandover" WHERE status = 'completed' ORDER BY "assetId", "decidedAt" DESC)
+      SELECT a."assetTag", a.status, a."holderEmployeeId", l.kind, l."employeeId" FROM "Asset" a LEFT JOIN last l ON l."assetId" = a.id
+      WHERE (a.status = 'assigned' AND (l.kind IS DISTINCT FROM 'issue' OR l."employeeId" <> a."holderEmployeeId"))
+         OR (a.status <> 'assigned' AND l.kind = 'issue')` },
   { area: "operations", name: "calendar events end after they start",
     sql: `SELECT id, title FROM "CalendarEvent" WHERE "endDate" < "startDate"` },
   { area: "operations", name: "approved minutes of meeting record their approver",

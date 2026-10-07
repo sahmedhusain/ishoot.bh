@@ -5,6 +5,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Laptop,
   LayoutDashboard,
   Calendar,
   Kanban,
@@ -213,6 +214,12 @@ export function Sidebar() {
             label: t.claims.title,
             icon: HandCoins,
             resource: "self_service",
+          },
+          {
+            href: ROUTES.assets.list(),
+            label: t.assets.navTitle,
+            icon: Laptop,
+            resource: "assets",
           },
           {
             href: ROUTES.hr.attendance,

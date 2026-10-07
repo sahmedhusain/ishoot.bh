@@ -309,6 +309,316 @@
       }
     }
   },
+  "saveAssetCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "spec_fields": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "key": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "label_en": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "label_ar": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "type": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "required": {
+                  "kind": "boolean",
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
+          },
+          "checklist": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "key": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "label_en": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "label_ar": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      },
+      "categoryId": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "saveAssetAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "category_id": {
+            "kind": "string",
+            "optional": false
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "brand": {
+            "kind": "string",
+            "optional": true
+          },
+          "model": {
+            "kind": "string",
+            "optional": true
+          },
+          "serial_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "purchase_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "purchase_cost": {
+            "kind": "number",
+            "optional": true
+          },
+          "supplier": {
+            "kind": "string",
+            "optional": true
+          },
+          "invoice_reference": {
+            "kind": "string",
+            "optional": true
+          },
+          "warranty_until": {
+            "kind": "string",
+            "optional": true
+          },
+          "condition": {
+            "kind": "string",
+            "optional": false
+          },
+          "status": {
+            "kind": "string",
+            "optional": true
+          },
+          "location": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          },
+          "specs": {
+            "kind": "record",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      },
+      "assetId": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "startAssetHandoverAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "asset_id": {
+            "kind": "string",
+            "optional": false
+          },
+          "employee_id": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "issue"
+              },
+              {
+                "kind": "literal",
+                "value": "return"
+              }
+            ],
+            "optional": false
+          },
+          "handover_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "condition": {
+            "kind": "string",
+            "optional": false
+          },
+          "checklist": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "key": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "ok": {
+                  "kind": "boolean",
+                  "optional": false
+                },
+                "note": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
+          },
+          "accessories": {
+            "kind": "string",
+            "optional": true
+          },
+          "damage_notes": {
+            "kind": "string",
+            "optional": true
+          },
+          "damage_charge": {
+            "kind": "number",
+            "optional": true
+          },
+          "deduct_from_salary": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          },
+          "offboarding_id": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      },
+      "inPerson": {
+        "kind": "object",
+        "fields": {
+          "signature": {
+            "kind": "string",
+            "optional": false
+          },
+          "signer_name": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": true
+      }
+    }
+  },
+  "signAssetHandoverAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "signature": {
+            "kind": "string",
+            "optional": false
+          },
+          "signer_name": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "signAssetHandoverInPersonAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "signature": {
+            "kind": "string",
+            "optional": false
+          },
+          "signer_name": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "cancelAssetHandoverAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "createAttachmentAction": {
     "kind": "object",
     "fields": {

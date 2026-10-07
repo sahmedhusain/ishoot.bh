@@ -15,6 +15,7 @@ export const APPROVAL_TARGET_TYPES = [
   "expense_claim",
   "signature_change",
   "account_change",
+  "asset_handover",
 ] as const;
 export type ApprovalTargetType = (typeof APPROVAL_TARGET_TYPES)[number];
 
@@ -36,6 +37,7 @@ export const APPROVAL_CONDITION_FIELDS: Record<ApprovalTargetType, ApprovalCondi
   service_request: [],
   signature_change: [],
   account_change: [],
+  asset_handover: ["minAmount"],
 };
 
 export const APPROVAL_STATUSES = ["pending", "approved", "rejected", "superseded", "cancelled"] as const;
@@ -60,6 +62,7 @@ export const APPROVAL_TARGET_ROUTES: Record<ApprovalTargetType, (id: string) => 
   expense_claim: (id) => ROUTES.claims.list({ highlight: id }),
   signature_change: () => ROUTES.approvals(),
   account_change: () => ROUTES.approvals(),
+  asset_handover: ROUTES.assets.handover,
 };
 
 export const approvalTargetUrl = (targetType: string, targetId: string) =>

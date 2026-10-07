@@ -90,6 +90,10 @@ export async function approvalMetrics(targetType: string, targetId: string): Pro
       const l = await db.leaveRequest.findUnique({ where: { id: targetId }, select: { startDate: true, endDate: true, fullDay: true, hours: true } });
       return l ? { days: leaveDaysRequested(l.startDate, l.endDate, l.fullDay, l.hours ? Number(l.hours) : null) } : {};
     }
+    case "asset_handover": {
+      const h = await db.assetHandover.findUnique({ where: { id: targetId }, select: { asset: { select: { purchaseCost: true, currency: true } } } });
+      return h?.asset.purchaseCost != null ? { amount: await toBhd(Number(h.asset.purchaseCost), h.asset.currency) } : {};
+    }
     default:
       return {};
   }

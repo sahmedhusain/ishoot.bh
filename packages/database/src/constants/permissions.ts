@@ -32,6 +32,7 @@ export const ALL_RESOURCES = [
   "profile_changes",
   "self_service",
   "social",
+  "assets",
 ] as const;
 
 export const ALL_ACTIONS = [
@@ -106,6 +107,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     profile_changes: ["read", "approve"],
     self_service: SELF_SERVICE,
     social: [...CRUD, "export"],
+    assets: [...CRUD, "export", "approve"],
   },
   finance_manager: {
     invoices: ["read", "write", "create", "edit", "export"],
@@ -123,6 +125,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     payroll: ["read", "write", "create", "edit", "issue_send"],
     reports: ["read", "export"],
     self_service: SELF_SERVICE,
+    assets: ["read", "export", "approve"],
   },
   accountant: {
     invoices: ["read", "write", "create", "edit", "export"],
@@ -138,6 +141,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     payroll: ["read", "issue_send"],
     reports: ["read", "export"],
     self_service: SELF_SERVICE,
+    assets: ["read"],
   },
   production_manager: {
     deals: ["read", "write", "create", "edit", "export"],
@@ -153,6 +157,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     quotations: ["read"],
     employees: ["read"],
     self_service: SELF_SERVICE,
+    assets: ["read", "write", "create", "edit"],
   },
   producer: {
     deals: ["read", "write", "create", "edit"],
@@ -223,7 +228,7 @@ export const PERMISSION_GROUPS: ReadonlyArray<{ key: string; resources: readonly
   { key: "crm", resources: ["deals", "contacts", "leads", "contracts", "requests", "moms", "support"] },
   { key: "hr", resources: ["employees", "payroll", "benefits", "profile_changes", "self_service"] },
   { key: "cms", resources: ["banners", "portfolio", "clients", "equipment", "reviews", "faqs", "stats", "social"] },
-  { key: "operations", resources: ["calendar"] },
+  { key: "operations", resources: ["calendar", "assets"] },
   { key: "administration", resources: ["users", "settings", "audit_logs"] },
 ];
 
