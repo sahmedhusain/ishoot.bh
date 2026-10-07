@@ -5364,7 +5364,14 @@
       "everyLineNeedsAnAmountAbove": "Every line needs an amount above zero",
       "chooseTheFirstMonth": "Choose the first month",
       "theLastMonthCannotBeBefore": "The last month cannot be before the first month",
-      "recurringItemNotFound": "Recurring item not found"
+      "recurringItemNotFound": "Recurring item not found",
+      "enterTheBillSName": "Enter the bill's name",
+      "chooseHowOftenTheBillIs": "Choose how often the bill is due",
+      "theEndDateCannotBeBefore": "The end date cannot be before the start date",
+      "remindersCanBe0To60": "Reminders can be 0 to 60 days before",
+      "recurringExpenseNotFound": "Recurring expense not found",
+      "expensesWereAlreadyRecordedFromThis": "Expenses were already recorded from this bill. Pause it instead.",
+      "thisRecurringExpenseIsPaused": "This recurring expense is paused"
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -6090,6 +6097,90 @@
       "damage": "Damage or loss",
       "absence_adjustment": "Absence adjustment",
       "other": "Other"
+    }
+  },
+  "recurringExpenses": {
+    "title": "Recurring bills",
+    "subtitle": "Rent, electricity and water, phones, internet, subscriptions, insurance and other periodic costs: recorded automatically or with a reminder when due.",
+    "add": "Add recurring bill",
+    "edit": "Edit bill",
+    "delete": "Delete",
+    "save": "Save bill",
+    "saved": "Saved",
+    "failed": "Could not save",
+    "record": "Record",
+    "confirmRecord": "Record expense",
+    "recorded": "Expense recorded and sent for approval",
+    "actualAmount": "Actual amount",
+    "skip": "Skip this due date",
+    "skipped": "Due date skipped",
+    "pause": "Pause",
+    "resume": "Resume",
+    "deleted": "Bill deleted",
+    "paused": "Paused",
+    "dueToday": "Due today",
+    "dueIn": "Due in {days} days",
+    "overdueBy": "Overdue by {days} days",
+    "perMonth": "{amount} a month",
+    "recordedCount": "{n} recorded",
+    "empty": "No recurring bills yet.",
+    "emptyHint": "Add rent, utilities, phone lines, internet and subscriptions so they are never missed.",
+    "footnote": "Automatic bills are recorded on their due date and go through expense approval. Bills with reminders notify finance before they are due; record each with the actual amount.",
+    "stats": {
+      "active": "Active bills",
+      "monthly": "Per month",
+      "yearly": "Per year",
+      "dueSoon": "Due within 7 days"
+    },
+    "columns": {
+      "bill": "Bill",
+      "frequency": "Frequency",
+      "amount": "Amount",
+      "nextDue": "Next due",
+      "actions": "Actions"
+    },
+    "frequencies": {
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "quarterly": "Every 3 months",
+      "semiannual": "Every 6 months",
+      "yearly": "Yearly"
+    },
+    "modes": {
+      "auto": "Record automatically",
+      "autoHint": "For fixed amounts such as rent or subscriptions: the expense is recorded on each due date.",
+      "manual": "Remind me",
+      "manualHint": "For amounts that vary such as electricity or phone bills: finance is reminded and records the actual amount."
+    },
+    "fields": {
+      "titleEn": "Name (English)",
+      "titleAr": "Name (Arabic)",
+      "titlePlaceholder": "e.g. Office rent",
+      "category": "Category",
+      "select": "Select",
+      "vendor": "Vendor",
+      "reference": "Account or contract number",
+      "referenceHint": "Printed on the vendor's bill",
+      "amount": "Usual amount",
+      "inputVat": "VAT included",
+      "paymentMethod": "Paid by",
+      "frequency": "Frequency",
+      "startDate": "First due date",
+      "startHint": "Later due dates fall on the same day of the month",
+      "endDate": "Last due date (optional)",
+      "remind": "Remind days before",
+      "notes": "Notes",
+      "active": "Active"
+    },
+    "notifications": {
+      "due": {
+        "title": "Bill due",
+        "message": "{name} is due on {date}."
+      },
+      "overdue": {
+        "title": "Bill overdue",
+        "message": "{name} was due on {date}."
+      }
     }
   }
 }

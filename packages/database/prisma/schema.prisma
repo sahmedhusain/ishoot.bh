@@ -581,6 +581,7 @@ model ExpenseCategory {
   isActive     Boolean        @default(true)
   expenses     Expense[]
   claims       ExpenseClaim[]
+  recurringExpenses RecurringExpense[]
 }
 
 model Expense {
@@ -618,6 +619,9 @@ model Expense {
 
   claim            ExpenseClaim?
   commissionPayout CommissionPayout?
+  /// The recurring bill this expense was recorded from.
+  recurringExpenseId String?
+  recurringExpense   RecurringExpense? @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
 
   @@index([dealId])
   @@index([clientId])
@@ -2140,4 +2144,39 @@ model EmployeeRecurringPay {
   updatedAt  DateTime @updatedAt
 
   @@index([employeeId])
+}
+
+/// A periodic company cost (rent, electricity and water, phones, internet, subscriptions, insurance…).
+/// Each due date either records the expense automatically or reminds finance to record the actual bill.
+model RecurringExpense {
+  id               String           @id @default(uuid())
+  titleEn          String
+  titleAr          String?
+  categoryId       String?
+  category         ExpenseCategory? @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  vendorName       String?
+  /// Account, contract or subscriber number with the vendor.
+  reference        String?
+  amount           Decimal          @db.Decimal(12, 3)
+  inputVatAmount   Decimal          @default(0.000) @db.Decimal(12, 3)
+  isVatRecoverable Boolean          @default(true)
+  currency         String           @default("BHD")
+  paymentMethod    String?
+  /// "weekly" | "monthly" | "quarterly" | "semiannual" | "yearly"
+  frequency        String
+  startDate        DateTime         @db.Date
+  endDate          DateTime?        @db.Date
+  nextDueDate      DateTime         @db.Date
+  /// true: recorded automatically on the due date; false: finance records the actual bill.
+  autoRecord       Boolean          @default(false)
+  remindDaysBefore Int              @default(3)
+  isActive         Boolean          @default(true)
+  notes            String?
+  createdById      String?
+  lastRecordedAt   DateTime?
+  expenses         Expense[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([isActive, nextDueDate])
 }

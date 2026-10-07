@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import type { Expense, ExpenseCategory } from "@ishoot/database/types";
 import { Card, CurrencyDisplay, DateDisplay, ConfirmDestructiveModal, StatusBadge } from "@ishoot/ui";
-import { Plus, Receipt, Tag, TrendingDown, Trash2, Briefcase, UserRound, Building2, Paperclip, Settings2 } from "lucide-react";
+import { Plus, Receipt, Tag, TrendingDown, Trash2, Briefcase, UserRound, Building2, Paperclip, Settings2, Repeat } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -64,6 +64,12 @@ export function ExpensesManagementView({ initialExpenses, categories, totals, co
           <p className="text-xs text-ink-muted mt-1">{t.expensesView.subtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {can("expenses", "write") && (
+            <Link href={ROUTES.expenses.recurring} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-ink/15 text-xs font-semibold text-ink hover:bg-ink/5">
+              <Repeat className="w-3.5 h-3.5" />
+              {t.recurringExpenses.title}
+            </Link>
+          )}
           {can("expenses", "write") && (
             <Link href={ROUTES.expenses.categories} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-ink/15 text-xs font-semibold text-ink hover:bg-ink/5">
               <Settings2 className="w-3.5 h-3.5" />

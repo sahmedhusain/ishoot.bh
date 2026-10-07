@@ -68,6 +68,7 @@ export const ROUTES = {
     list: (query?: HighlightQuery) => withQuery("/dashboard/expenses", query),
     create: "/dashboard/expenses/new",
     categories: "/dashboard/expenses/categories",
+    recurring: "/dashboard/expenses/recurring",
   },
   finance: {
     overview: "/dashboard/finance",

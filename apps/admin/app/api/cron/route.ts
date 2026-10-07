@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, processEmailJobs, processRevalidationJobs, removeExpiredUploads, markOverdueInvoices, sendExpiryReminders } from "@ishoot/database";
+import { db, processEmailJobs, processRevalidationJobs, removeExpiredUploads, markOverdueInvoices, sendExpiryReminders, processRecurringExpenses } from "@ishoot/database";
 import { sendEmail } from "@ishoot/email";
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -14,7 +14,8 @@ export async function GET(req: Request) {
     await db.session.deleteMany({ where: { expiresAt: { lt: new Date() } } });
     const invoicesMarkedOverdue = await markOverdueInvoices();
     const expiryReminders = await sendExpiryReminders();
-    return NextResponse.json({ success: true, removedUploads, invoicesMarkedOverdue, expiryReminders });
+    const recurringExpenses = await processRecurringExpenses();
+    return NextResponse.json({ success: true, removedUploads, invoicesMarkedOverdue, expiryReminders, recurringExpenses });
   } catch {
     console.error("Scheduled maintenance failed");
     return NextResponse.json({ error: "Maintenance failed" }, { status: 500 });

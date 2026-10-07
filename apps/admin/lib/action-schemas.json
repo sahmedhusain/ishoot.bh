@@ -6089,6 +6089,138 @@
       }
     }
   },
+  "saveRecurringExpenseAction": {
+    "kind": "object",
+    "fields": {
+      "data": {
+        "kind": "object",
+        "fields": {
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "category_id": {
+            "kind": "string",
+            "optional": true
+          },
+          "vendor_name": {
+            "kind": "string",
+            "optional": true
+          },
+          "reference": {
+            "kind": "string",
+            "optional": true
+          },
+          "amount": {
+            "kind": "number",
+            "optional": false
+          },
+          "input_vat_amount": {
+            "kind": "number",
+            "optional": true
+          },
+          "is_vat_recoverable": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "currency": {
+            "kind": "string",
+            "optional": true
+          },
+          "payment_method": {
+            "kind": "string",
+            "optional": true
+          },
+          "frequency": {
+            "kind": "string",
+            "optional": false
+          },
+          "start_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "end_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "auto_record": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "remind_days_before": {
+            "kind": "number",
+            "optional": true
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      },
+      "recurringId": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "recordRecurringExpenseAction": {
+    "kind": "object",
+    "fields": {
+      "recurringId": {
+        "kind": "string",
+        "optional": false
+      },
+      "actual": {
+        "kind": "object",
+        "fields": {
+          "amount": {
+            "kind": "number",
+            "optional": true
+          },
+          "input_vat_amount": {
+            "kind": "number",
+            "optional": true
+          },
+          "receipt_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": true
+      }
+    }
+  },
+  "skipRecurringExpenseAction": {
+    "kind": "object",
+    "fields": {
+      "recurringId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "deleteRecurringExpenseAction": {
+    "kind": "object",
+    "fields": {
+      "recurringId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "assignRequestAction": {
     "kind": "object",
     "fields": {
