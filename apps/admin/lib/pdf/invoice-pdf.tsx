@@ -48,7 +48,7 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
 
   const clientName = invoice.contact?.full_name || invoice.contact_name || t.defaultClient;
   const clientCompany = (isAr && invoice.contact?.company_name_ar) || invoice.contact?.company || "";
-  const clientAddress = formatClientAddress(invoice.contact?.address_details, all.clients.addressParts, isAr ? "ar" : "en") || invoice.contact?.address || "";
+  const clientAddress = formatClientAddress(invoice.contact?.address_details, all.clients.addressParts, all.countries) || invoice.contact?.address || "";
   const statusLabel = (all.statusLabels as Record<string, string>)[invoice.status || "draft"] ?? invoice.status;
 
   const facts: Array<[string, string]> = [

@@ -19,6 +19,8 @@ interface EmployeesListViewProps {
   page: number;
   canViewPay?: boolean;
   canCreate?: boolean;
+  /** Shown under the page header (e.g. documents about to expire). */
+  notice?: React.ReactNode;
 }
 
 export function EmployeesListView({
@@ -30,6 +32,7 @@ export function EmployeesListView({
   search,
   canViewPay = false,
   canCreate = false,
+  notice,
 }: EmployeesListViewProps) {
   const { t, isRTL } = useAdminLocale();
   const router = useRouter();
@@ -98,6 +101,8 @@ export function EmployeesListView({
           </Link>}
         </div>
       </div>
+
+      {notice}
 
       {/* Metrics Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

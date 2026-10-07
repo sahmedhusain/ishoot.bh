@@ -2750,6 +2750,161 @@
       }
     }
   },
+  "updateEmployeeIdentityAction": {
+    "kind": "object",
+    "fields": {
+      "employeeId": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "nationality": {
+            "kind": "string",
+            "optional": true
+          },
+          "date_of_birth": {
+            "kind": "string",
+            "optional": true
+          },
+          "gender": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "male"
+              },
+              {
+                "kind": "literal",
+                "value": "female"
+              },
+              {
+                "kind": "literal",
+                "value": ""
+              }
+            ],
+            "optional": true
+          },
+          "cpr_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "cpr_expiry_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "passport_number": {
+            "kind": "string",
+            "optional": true
+          },
+          "passport_country": {
+            "kind": "string",
+            "optional": true
+          },
+          "passport_expiry_date": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveEmployeeCredentialAction": {
+    "kind": "object",
+    "fields": {
+      "employeeId": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "kind": {
+            "kind": "string",
+            "optional": false
+          },
+          "visa_type": {
+            "kind": "string",
+            "optional": true
+          },
+          "label": {
+            "kind": "string",
+            "optional": true
+          },
+          "number": {
+            "kind": "string",
+            "optional": true
+          },
+          "issuing_country": {
+            "kind": "string",
+            "optional": true
+          },
+          "issue_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "expiry_date": {
+            "kind": "string",
+            "optional": true
+          },
+          "sponsor": {
+            "kind": "string",
+            "optional": true
+          },
+          "cost_amount": {
+            "kind": "number",
+            "optional": true
+          },
+          "cost_frequency": {
+            "kind": "string",
+            "optional": true
+          },
+          "cost_term_months": {
+            "kind": "number",
+            "optional": true
+          },
+          "paid_by": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "company"
+              },
+              {
+                "kind": "literal",
+                "value": "employee"
+              }
+            ],
+            "optional": true
+          },
+          "file_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      },
+      "credentialId": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "deleteEmployeeCredentialAction": {
+    "kind": "object",
+    "fields": {
+      "credentialId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "createExpenseAction": {
     "kind": "object",
     "fields": {
@@ -4151,6 +4306,133 @@
           },
           "userId": {
             "kind": "string",
+            "optional": true
+          },
+          "identity": {
+            "kind": "object",
+            "fields": {
+              "nationality": {
+                "kind": "string",
+                "optional": true
+              },
+              "date_of_birth": {
+                "kind": "string",
+                "optional": true
+              },
+              "gender": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "male"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "female"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": ""
+                  }
+                ],
+                "optional": true
+              },
+              "cpr_number": {
+                "kind": "string",
+                "optional": true
+              },
+              "cpr_expiry_date": {
+                "kind": "string",
+                "optional": true
+              },
+              "passport_number": {
+                "kind": "string",
+                "optional": true
+              },
+              "passport_country": {
+                "kind": "string",
+                "optional": true
+              },
+              "passport_expiry_date": {
+                "kind": "string",
+                "optional": true
+              }
+            },
+            "optional": true
+          },
+          "credentials": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "kind": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "visa_type": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "label": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "number": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "issuing_country": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "issue_date": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "expiry_date": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "sponsor": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "cost_amount": {
+                  "kind": "number",
+                  "optional": true
+                },
+                "cost_frequency": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "cost_term_months": {
+                  "kind": "number",
+                  "optional": true
+                },
+                "paid_by": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "literal",
+                      "value": "company"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": "employee"
+                    }
+                  ],
+                  "optional": true
+                },
+                "file_url": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "notes": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
             "optional": true
           }
         },

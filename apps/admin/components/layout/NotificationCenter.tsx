@@ -106,11 +106,23 @@ export function NotificationCenter() {
       .reduce<unknown>((node, part) => (node && typeof node === "object" ? (node as Record<string, unknown>)[part] : undefined), t);
     if (!entry || typeof entry !== "object") return { title: n.title, message: n.message };
     const { title, message } = entry as { title?: string; message?: string };
-    const targetType = n.message_params?.targetType;
+    const params = n.message_params ?? {};
+    const targetType = params.targetType;
     const typeLabel = targetType ? (t.approvals.types[targetType as keyof typeof t.approvals.types] ?? targetType) : "";
+    // Expiry reminders: the person or document name and the document type in the interface language.
+    const docs = { ...t.employeeResidency.kinds, ...t.expiryReminders.documents } as Record<string, string>;
+    const values: Record<string, string> = {
+      ...params,
+      type: typeLabel,
+      name: (locale === "ar" ? params.nameAr : params.nameEn) ?? params.nameEn ?? "",
+      document: params.label || docs[params.document ?? ""] || params.document || "",
+      date: params.date ? formatDate(params.date, locale) : "",
+      days: params.days ? String(Math.abs(Number(params.days))) : "",
+    };
+    const fill = (text: string) => text.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match);
     return {
-      title: title ?? n.title,
-      message: (message ?? n.message).replace("{type}", typeLabel),
+      title: fill(title ?? n.title),
+      message: fill(message ?? n.message),
     };
   };
 

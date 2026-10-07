@@ -37,7 +37,7 @@ export const BAHRAIN_CR_PATTERN = /^\d{1,7}-\d{1,3}$/;
 /** A Bahrain VAT account number has 15 digits. */
 export const BAHRAIN_VAT_PATTERN = /^\d{15}$/;
 
-/** GCC first, then every other ISO 3166-1 country. Names come from Intl.DisplayNames in the interface language. */
+/** GCC first, then every other ISO 3166-1 country. Names live in the locale files. */
 export const COUNTRY_CODES = [
   "BH", "SA", "AE", "KW", "QA", "OM",
   "AF", "AL", "DZ", "AD", "AO", "AG", "AR", "AM", "AU", "AT", "AZ", "BS", "BD", "BB", "BY", "BE", "BZ", "BJ", "BT", "BO", "BA", "BW", "BR",
@@ -53,21 +53,16 @@ export const COUNTRY_CODES = [
 const COUNTRY_SET = new Set<string>(COUNTRY_CODES);
 export const isCountryCode = (value: unknown): value is string => typeof value === "string" && COUNTRY_SET.has(value);
 
-/** Country name in the interface language, falling back to the code. */
-export function countryName(code: string | null | undefined, locale: "ar" | "en"): string {
+/**
+ * Country names come from the locale files (`countries`), already sorted for each language with the GCC
+ * first, so the server and the browser always render the same list.
+ */
+export function countryName(code: string | null | undefined, names: Record<string, string>): string {
   if (!code) return "";
-  try {
-    return new Intl.DisplayNames([locale === "ar" ? "ar" : "en"], { type: "region" }).of(code) ?? code;
-  } catch {
-    return code;
-  }
+  return names[code] ?? code;
 }
 
-/** Countries sorted for a picker: GCC first, then alphabetical in the interface language. */
-export function countryOptions(locale: "ar" | "en"): Array<{ code: string; name: string }> {
-  const gcc = COUNTRY_CODES.slice(0, 6).map((code) => ({ code, name: countryName(code, locale) }));
-  const rest = COUNTRY_CODES.slice(6)
-    .map((code) => ({ code, name: countryName(code, locale) }))
-    .sort((a, b) => a.name.localeCompare(b.name, locale));
-  return [...gcc, ...rest];
+/** Countries for a picker, in the order of the locale file. */
+export function countryOptions(names: Record<string, string>): Array<{ code: string; name: string }> {
+  return Object.entries(names).map(([code, name]) => ({ code, name }));
 }

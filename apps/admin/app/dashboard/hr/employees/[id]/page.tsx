@@ -3,7 +3,8 @@ import { SalaryDocumentsView } from "../../../../../components/hr/SalaryDocument
 import { availablePayslipMonths, canManageSalaryDocuments, decidableSalaryDocumentIds } from "../../../../../lib/salary-documents";
 import { notFound } from "next/navigation";
 import { requirePagePermission, hasPermission } from "../../../../../lib/auth";
-import { getEmployeeById, listDepartments, db, getLeaveBalances, accountSnapshot, listAccountChangeRequests } from "@ishoot/database";
+import { getEmployeeById, getEmployeeResidency, listDepartments, db, getLeaveBalances, accountSnapshot, listAccountChangeRequests } from "@ishoot/database";
+import { EmployeeResidencyPanel } from "../../../../../components/hr/EmployeeResidencyPanel";
 import { EmployeeAccountCard } from "../../../../../components/hr/EmployeeAccountCard";
 import { LeaveBalancesCard } from "../../../../../components/hr/LeaveBalancesCard";
 import { EmployeePayHistory } from "../../../../../components/hr/EmployeePayHistory";
@@ -19,12 +20,13 @@ export default async function EmployeeDetailPage({
   const actor = await requirePagePermission("employees", "read");
   const { id } = await params;
 
-  const [found, departments, canEdit, canViewPay, canEditPay] = await Promise.all([
+  const [found, departments, canEdit, canViewPay, canEditPay, residency] = await Promise.all([
     getEmployeeById(id),
     listDepartments(),
     hasPermission("employees", "edit"),
     hasPermission("payroll", "read"),
     hasPermission("payroll", "edit"),
+    getEmployeeResidency(id),
   ]);
   // Salary history stays on the server for people without payroll access.
   const employee = found && !canViewPay ? { ...found, employmentRecords: [] } : found;
@@ -71,6 +73,7 @@ export default async function EmployeeDetailPage({
       canViewPay={canViewPay}
       canEditPay={canEditPay}
     />
+    {residency && <EmployeeResidencyPanel employeeId={id} residency={residency} canEdit={canEdit} />}
     <EmployeeAccountCard
       account={account && linkedUserId ? { userId: linkedUserId, fullName: account.fullName, role: account.role, managerId: account.managerId, status: account.status, discountLimitPercent: account.discountLimitPercent, commissionRatePercent: account.commissionRatePercent } : null}
       email={account?.email ?? null}

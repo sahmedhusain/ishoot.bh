@@ -10,7 +10,11 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Department } from "@ishoot/database/types";
-import { Card, Button } from "@ishoot/ui";
+import { Card, Button, Input, Select } from "@ishoot/ui";
+import type { EmployeeCredentialInput, EmployeeIdentityInput } from "@ishoot/database";
+import { needsWorkVisa } from "@ishoot/database/constants/employee-documents";
+import { countryOptions } from "@ishoot/database/constants/clients";
+import { CredentialFields, emptyCredential } from "./CredentialFields";
 import {
   ArrowLeft,
   ArrowRight,
@@ -47,6 +51,11 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
   const [email, setEmail] = React.useState(linkUser?.email ?? "");
   const [phone, setPhone] = React.useState("");
   const [cprNumber, setCprNumber] = React.useState("");
+  const [identity, setIdentity] = React.useState<EmployeeIdentityInput>({ nationality: "BH", gender: "", passport_country: "" });
+  const [visa, setVisa] = React.useState<EmployeeCredentialInput>(emptyCredential("visa"));
+  const countries = React.useMemo(() => countryOptions(t.countries), [t.countries]);
+  const visaRequired = needsWorkVisa(identity.nationality);
+  const setId = <K extends keyof EmployeeIdentityInput>(key: K, value: EmployeeIdentityInput[K]) => setIdentity((v) => ({ ...v, [key]: value }));
   const [jobTitleEn, setJobTitleEn] = React.useState("");
   const [jobTitleAr, setJobTitleAr] = React.useState("");
   const [departmentId, setDepartmentId] = React.useState(
@@ -93,13 +102,13 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
         contractType,
         ...(canSetPay && { basicSalary, housingAllowance, transportAllowance, otherAllowances, payrollSettings }),
         userId: linkUser?.id,
+        identity: { ...identity, cpr_number: cprNumber.trim() || undefined },
+        // A visa is recorded for nationals who need one, once any of its details are filled in.
+        credentials: visaRequired && (visa.number || visa.expiry_date || visa.cost_amount !== undefined) ? [visa] : [],
       });
 
       if (res.success && res.employee) {
-        toast.success(
-          `Employee ${res.employee.employeeNumber} created successfully`,
-          { id: toastId },
-        );
+        toast.success(t.employeeResidency.created.replace("{number}", res.employee.employeeNumber), { id: toastId });
         router.push(ROUTES.hr.employee(res.employee.id));
       } else {
         toast.error(t.newEmployeeForm.failedToOnboardEmployee, { id: toastId });
@@ -259,6 +268,64 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
         </Card>
 
         {/* Job & Department Details */}
+        <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2 border-b border-ink/10 pb-3">
+            <ShieldCheck className="w-4 h-4 text-accent" />
+            {t.employeeResidency.identity}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <label className="block">
+              <span className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">{t.employeeResidency.fields.nationality}</span>
+              <Select value={identity.nationality ?? ""} onChange={(e) => setId("nationality", e.target.value)}>
+                <option value="">{t.employeeResidency.fields.select}</option>
+                {countries.map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
+              </Select>
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">{t.employeeResidency.fields.dateOfBirth}</span>
+              <Input type="date" value={identity.date_of_birth ?? ""} onChange={(e) => setId("date_of_birth", e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">{t.employeeResidency.fields.gender}</span>
+              <Select value={identity.gender ?? ""} onChange={(e) => setId("gender", e.target.value as "male" | "female" | "")}>
+                <option value="">{t.employeeResidency.fields.select}</option>
+                <option value="male">{t.employeeResidency.genders.male}</option>
+                <option value="female">{t.employeeResidency.genders.female}</option>
+              </Select>
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">{t.employeeResidency.fields.cprExpiry}</span>
+              <Input type="date" value={identity.cpr_expiry_date ?? ""} onChange={(e) => setId("cpr_expiry_date", e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">{t.employeeResidency.fields.passportNumber}</span>
+              <Input dir="ltr" value={identity.passport_number ?? ""} onChange={(e) => setId("passport_number", e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">{t.employeeResidency.fields.passportCountry}</span>
+              <Select value={identity.passport_country || identity.nationality || ""} onChange={(e) => setId("passport_country", e.target.value)}>
+                <option value="">{t.employeeResidency.fields.select}</option>
+                {countries.map((o) => <option key={o.code} value={o.code}>{o.name}</option>)}
+              </Select>
+            </label>
+            <label className="block">
+              <span className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">{t.employeeResidency.fields.passportExpiry}</span>
+              <Input type="date" value={identity.passport_expiry_date ?? ""} onChange={(e) => setId("passport_expiry_date", e.target.value)} />
+            </label>
+          </div>
+          {visaRequired ? (
+            <div className="rounded-2xl border border-ink/10 bg-ink/[0.02] p-4 space-y-3">
+              <div>
+                <h3 className="text-sm font-bold text-ink">{t.employeeResidency.visaTitle}</h3>
+                <p className="text-[11px] text-ink-muted">{t.employeeResidency.visaHint}</p>
+              </div>
+              <CredentialFields value={visa} onChange={setVisa} />
+            </div>
+          ) : (
+            <p className="text-[11px] text-ink-muted">{t.employeeResidency.noVisaNeeded}</p>
+          )}
+        </Card>
+
         <Card className="p-6 bg-white dark:bg-surface-raised border border-ink/10 rounded-lg space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-900 dark:text-white font-mono flex items-center gap-2 border-b border-ink/10 pb-3">
             <Building className="w-4 h-4 text-accent" />

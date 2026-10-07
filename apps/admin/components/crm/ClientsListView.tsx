@@ -76,7 +76,7 @@ export function ClientsListView({
   const { can } = usePermissions();
   const router = useRouter();
   const c = t.clients;
-  const countries = React.useMemo(() => countryOptions(locale), [locale]);
+  const countries = React.useMemo(() => countryOptions(t.countries), [t.countries]);
   const [deleteTarget, setDeleteTarget] = React.useState<string | null>(null);
   const activeFilters = FILTER_KEYS.filter((key) => filters[key] !== "all").length;
   const [showMore, setShowMore] = React.useState(activeFilters > 0);
@@ -309,7 +309,7 @@ export function ClientsListView({
                       ) : null}
                     </td>
                     <td className="px-4 py-3 text-xs text-ink">
-                      <div>{country ? countryName(country, locale) : "—"}</div>
+                      <div>{country ? countryName(country, t.countries) : "—"}</div>
                       {row.address_details?.city ? <div className="text-ink-muted">{row.address_details.city}</div> : null}
                     </td>
                     <td className="px-4 py-3 text-end text-xs tabular-nums whitespace-nowrap">

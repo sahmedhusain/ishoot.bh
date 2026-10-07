@@ -1533,6 +1533,17 @@ model Employee {
   email             String?
   phone             String?
   cprNumber         String?
+  cprExpiryDate     DateTime?          @db.Date
+  /// ISO 3166 alpha-2.
+  nationality       String?
+  dateOfBirth       DateTime?          @db.Date
+  /// "male" | "female"
+  gender            String?
+  passportNumber    String?
+  /// ISO alpha-2 country that issued the passport.
+  passportCountry   String?
+  passportExpiryDate DateTime?         @db.Date
+  credentials       EmployeeCredential[]
   jobTitleEn        String
   jobTitleAr        String
   hireDate          DateTime           @db.Date
@@ -2052,4 +2063,37 @@ model DocumentTax {
 
   @@index([invoiceId])
   @@index([quotationId])
+}
+
+/// A visa, work or residence permit, licence, insurance or other document an employee holds, with its expiry
+/// and what it costs the company (one-off, monthly, yearly or per term).
+model EmployeeCredential {
+  id               String    @id @default(uuid())
+  employeeId       String
+  employee         Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  /// "visa", "work_permit", "residence_permit", "driving_license", "health_insurance", "medical_fitness", "professional_license", "other"
+  kind             String
+  /// Visas: "employment", "family", "investor", "flexi", "visit", "other"
+  visaType         String?
+  label            String?
+  number           String?
+  issuingCountry   String?
+  issueDate        DateTime? @db.Date
+  expiryDate       DateTime? @db.Date
+  sponsor          String?
+  costAmount       Decimal?  @db.Decimal(12, 3)
+  costCurrency     String    @default("BHD")
+  /// "one_time" | "monthly" | "yearly" | "term"
+  costFrequency    String?
+  /// Months a "term" cost covers, e.g. 24 for a two-year permit.
+  costTermMonths   Int?
+  /// "company" | "employee"
+  paidBy           String    @default("company")
+  fileUrl          String?
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([expiryDate])
 }

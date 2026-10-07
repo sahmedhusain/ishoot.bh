@@ -55,11 +55,11 @@ function Section({ title, children, aside }: { title: string; children: React.Re
 /** Create or edit a client: individual, company (local with CR, or foreign) or government entity. */
 export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contact?: CRMContact; defaultPaymentTermsDays: number }) {
   const router = useRouter();
-  const { t, locale } = useAdminLocale();
+  const { t } = useAdminLocale();
   const c = t.clients;
   const f = c.form;
   const vat = useCompanyVat();
-  const countries = React.useMemo(() => countryOptions(locale), [locale]);
+  const countries = React.useMemo(() => countryOptions(t.countries), [t.countries]);
 
   const [kind, setKind] = React.useState<ClientKind>(contact?.client_kind ?? "individual");
   const [values, setValues] = React.useState<ClientProfileInput>(() => ({

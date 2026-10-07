@@ -88,3 +88,5 @@ export * from "./queries/integrations";
 export * from "./queries/social-analytics";
 export * from "./constants/integrations";
 export * from "./queries/taxes";
+export * from "./queries/employee-credentials";
+export * from "./services/expiry-reminders";

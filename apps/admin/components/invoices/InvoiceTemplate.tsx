@@ -56,7 +56,7 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
           company: invoice.contact?.company,
           email: invoice.contact?.email,
           phone: invoice.contact?.phone,
-          address: formatClientAddress(invoice.contact?.address_details, t.clients.addressParts, isAr ? "ar" : "en") || invoice.contact?.address,
+          address: formatClientAddress(invoice.contact?.address_details, t.clients.addressParts, t.countries) || invoice.contact?.address,
           vatNumber: isVatActive ? invoice.contact?.vat_number : null,
         }}
       />

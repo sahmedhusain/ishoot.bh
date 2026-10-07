@@ -11,6 +11,10 @@ import {
   updateDepartment,
   createActivityLog,
   db,
+  saveEmployeeCredential,
+  updateEmployeeIdentity,
+  type EmployeeCredentialInput,
+  type EmployeeIdentityInput,
 } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { hasPermission, requirePermission } from "../../lib/auth";
@@ -43,6 +47,10 @@ export async function createEmployeeAction(data: {
   payrollSettings?: EmployeePayrollSettings;
   /** Links the new record to an existing user account that has no employee record yet. */
   userId?: string;
+  /** Nationality, date of birth, CPR expiry and passport. */
+  identity?: EmployeeIdentityInput;
+  /** Visa, work permit and other documents entered while onboarding. */
+  credentials?: EmployeeCredentialInput[];
 }) {
   return measureOperation("action:createEmployeeAction", async () => {
     const actor = await requirePermission("employees", "create");
@@ -55,9 +63,10 @@ export async function createEmployeeAction(data: {
         if (!user || !user.isActive) throw new Error("User account not found");
         if (user.employee) throw new Error("This user already has an employee record");
       }
+      const { identity, credentials, ...employeeData } = data;
       const employee = await createEmployee(
         {
-          ...data,
+          ...employeeData,
           firstNameAr: data.firstNameAr || data.firstNameEn,
           lastNameAr: data.lastNameAr || data.lastNameEn,
           jobTitleAr: data.jobTitleAr || data.jobTitleEn,
@@ -66,6 +75,9 @@ export async function createEmployeeAction(data: {
         },
         actor.id,
       );
+
+      if (identity) await updateEmployeeIdentity(employee.id, { ...identity, cpr_number: identity.cpr_number ?? data.cprNumber ?? undefined });
+      for (const credential of credentials ?? []) await saveEmployeeCredential(employee.id, credential);
 
       await createActivityLog({
         user_id: actor.id,

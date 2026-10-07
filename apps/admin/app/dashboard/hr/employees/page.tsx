@@ -1,5 +1,6 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { listEmployees, listDepartments } from "@ishoot/database";
+import { listEmployees, listDepartments, listExpiringEmployeeDocuments } from "@ishoot/database";
+import { ExpiringDocumentsCard } from "../../../../components/hr/ExpiringDocumentsCard";
 import { EmployeesListView } from "../../../../components/hr/EmployeesListView";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export default async function EmployeesPage({
   const search = typeof query.search === "string" ? query.search : undefined;
   const page = Math.max(1, Number(query.page) || 1);
 
-  const [{ items: listed, total }, departments, canViewPay, canCreate] = await Promise.all([
+  const [{ items: listed, total }, departments, canViewPay, canCreate, canEdit, expiring] = await Promise.all([
     listEmployees({
       departmentId,
       status,
@@ -27,12 +28,15 @@ export default async function EmployeesPage({
     listDepartments(),
     hasPermission("payroll", "read"),
     hasPermission("employees", "create"),
+    hasPermission("employees", "edit"),
+    listExpiringEmployeeDocuments(60),
   ]);
   // Salaries leave the server only for people who can read payroll.
   const employees = canViewPay ? listed : listed.map((e) => ({ ...e, employmentRecords: [] }));
 
   return (
     <EmployeesListView
+      notice={canEdit ? <ExpiringDocumentsCard rows={expiring} /> : null}
       employees={employees}
       departments={departments}
       total={total}

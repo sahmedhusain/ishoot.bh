@@ -57,7 +57,7 @@ export function ClientProfilePanel({ contact, standing, className = "" }: { cont
   const f = c.form;
   const kind = contact.client_kind ?? "individual";
   const Icon = kind === "company" ? Building2 : kind === "government" ? Landmark : User;
-  const address = formatClientAddress(contact.address_details, c.addressParts, locale);
+  const address = formatClientAddress(contact.address_details, c.addressParts, t.countries);
   const crExpiry = contact.cr_expiry_date ? new Date(`${contact.cr_expiry_date}T00:00:00Z`) : null;
   const daysToExpiry = crExpiry ? Math.floor((crExpiry.getTime() - Date.now()) / 86400000) : null;
   const persons = contact.contact_persons ?? [];
@@ -79,7 +79,7 @@ export function ClientProfilePanel({ contact, standing, className = "" }: { cont
           {kind === "individual" ? (
             <>
               <Item label={f.fullName} value={contact.full_name} />
-              <Item label={f.nationality} value={countryName(contact.nationality, locale)} />
+              <Item label={f.nationality} value={countryName(contact.nationality, t.countries)} />
               <Item label={f.jobTitle} value={contact.job_title} />
             </>
           ) : (
@@ -92,13 +92,13 @@ export function ClientProfilePanel({ contact, standing, className = "" }: { cont
                   <Item label={f.legalForm} value={contact.legal_form ? c.legalForms[contact.legal_form as keyof typeof c.legalForms] : null} />
                   <Item label={f.crNumber} value={contact.cr_number} ltr />
                   <Item label={f.crExpiry} value={contact.cr_expiry_date ? formatDate(contact.cr_expiry_date, locale) : null} />
-                  <Item label={f.registrationCountry} value={contact.company_origin === "foreign" ? countryName(contact.registration_country, locale) : null} />
+                  <Item label={f.registrationCountry} value={contact.company_origin === "foreign" ? countryName(contact.registration_country, t.countries) : null} />
                   <Item label={f.registrationNumber} value={contact.registration_number} ltr />
                 </>
               ) : (
                 <>
                   <Item label={f.governmentType} value={contact.government_type ? c.governmentTypes[contact.government_type as keyof typeof c.governmentTypes] : null} />
-                  <Item label={f.entityCountry} value={countryName(contact.registration_country, locale)} />
+                  <Item label={f.entityCountry} value={countryName(contact.registration_country, t.countries)} />
                   <Item label={f.supplierNumber} value={contact.supplier_number} ltr />
                 </>
               )}
