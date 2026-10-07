@@ -1544,6 +1544,7 @@ model Employee {
   passportCountry   String?
   passportExpiryDate DateTime?         @db.Date
   credentials       EmployeeCredential[]
+  recurringPay      EmployeeRecurringPay[]
   jobTitleEn        String
   jobTitleAr        String
   hireDate          DateTime           @db.Date
@@ -1804,6 +1805,8 @@ model PayrollItem {
   paymentReference    String?
   payslip             Payslip?
   commissionPayout    CommissionPayout?
+  /// Manual and recurring additions and deductions; bonus and otherDeductions hold their totals.
+  lines               PayrollItemLine[]
   createdAt           DateTime          @default(now())
 
   @@unique([payrollRunId, employeeId])
@@ -2096,4 +2099,45 @@ model EmployeeCredential {
 
   @@index([employeeId])
   @@index([expiryDate])
+}
+
+/// One named addition or deduction on a month's salary, entered by payroll or carried from a recurring item.
+model PayrollItemLine {
+  id            String      @id @default(uuid())
+  payrollItemId String
+  payrollItem   PayrollItem @relation(fields: [payrollItemId], references: [id], onDelete: Cascade)
+  /// "addition" | "deduction"
+  kind          String
+  category      String
+  label         String
+  amount        Decimal     @db.Decimal(12, 3)
+  note          String?
+  /// "manual" | "recurring"
+  source        String      @default("manual")
+  recurringId   String?
+  displayOrder  Int         @default(0)
+  createdById   String?
+  createdAt     DateTime    @default(now())
+
+  @@index([payrollItemId])
+}
+
+/// A custom addition or deduction paid every month between two months (e.g. phone allowance, loan repayment).
+model EmployeeRecurringPay {
+  id         String   @id @default(uuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  kind       String
+  category   String
+  label      String
+  amount     Decimal  @db.Decimal(12, 3)
+  /// YYYY-MM, inclusive.
+  startMonth String
+  endMonth   String?
+  isActive   Boolean  @default(true)
+  note       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([employeeId])
 }

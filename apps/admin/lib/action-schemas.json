@@ -5419,25 +5419,67 @@
       }
     }
   },
-  "updatePayrollItemAction": {
+  "setPayrollLinesAction": {
     "kind": "object",
     "fields": {
       "itemId": {
         "kind": "string",
         "optional": false
       },
-      "patch": {
+      "data": {
         "kind": "object",
         "fields": {
-          "bonus": {
-            "kind": "number",
-            "optional": true
+          "additions": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "category": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "label": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "amount": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "note": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
           },
-          "otherDeductions": {
-            "kind": "number",
-            "optional": true
+          "deductions": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "category": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "label": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "amount": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "note": {
+                  "kind": "string",
+                  "optional": true
+                }
+              }
+            },
+            "optional": false
           },
-          "adjustmentNote": {
+          "note": {
             "kind": "union",
             "variants": [
               {
@@ -5451,6 +5493,76 @@
             "optional": true
           }
         },
+        "optional": false
+      }
+    }
+  },
+  "saveRecurringPayAction": {
+    "kind": "object",
+    "fields": {
+      "employeeId": {
+        "kind": "string",
+        "optional": false
+      },
+      "data": {
+        "kind": "object",
+        "fields": {
+          "kind": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "addition"
+              },
+              {
+                "kind": "literal",
+                "value": "deduction"
+              }
+            ],
+            "optional": false
+          },
+          "category": {
+            "kind": "string",
+            "optional": false
+          },
+          "label": {
+            "kind": "string",
+            "optional": false
+          },
+          "amount": {
+            "kind": "number",
+            "optional": false
+          },
+          "start_month": {
+            "kind": "string",
+            "optional": false
+          },
+          "end_month": {
+            "kind": "string",
+            "optional": true
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      },
+      "recurringId": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "deleteRecurringPayAction": {
+    "kind": "object",
+    "fields": {
+      "recurringId": {
+        "kind": "string",
         "optional": false
       }
     }

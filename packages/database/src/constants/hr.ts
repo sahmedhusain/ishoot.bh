@@ -17,3 +17,11 @@ export function leaveDaysRequested(start: Date, end: Date, fullDay = true, hours
   }
   return days;
 }
+
+/** Categories of manual and recurring payroll lines; additions and deductions are kept apart. */
+export const PAY_LINE_CATEGORIES = {
+  addition: ["bonus", "incentive", "allowance", "reimbursement", "arrears", "overtime_adjustment", "other"],
+  deduction: ["advance_recovery", "loan_repayment", "penalty", "damage", "absence_adjustment", "other"],
+} as const;
+export type PayLineKind = keyof typeof PAY_LINE_CATEGORIES;
+export const MAX_PAY_LINES = 30;

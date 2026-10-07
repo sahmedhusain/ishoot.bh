@@ -22,7 +22,7 @@ import { createLeaveRequest } from "../src/queries/leave";
 import { storeFileBytes } from "../src/services/uploads";
 import { SAMPLE_RECEIPT_JPEG } from "../src/services/sample-files";
 import { createEmployee } from "../src/queries/hrms";
-import { createPayrollRun, submitPayrollRunForApproval, markPayrollAsPaid, updatePayrollItem } from "../src/queries/payroll";
+import { createPayrollRun, submitPayrollRunForApproval, markPayrollAsPaid, setPayrollItemLines } from "../src/queries/payroll";
 import { createCalendarEvent } from "../src/queries/calendar";
 import { createMinuteOfMeeting, approveAndSignMom } from "../src/queries/moms";
 import { submitForApproval, decideApprovalRequest, type ApprovalOutcome } from "../src/services/approval-engine";
@@ -569,7 +569,10 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     for (const item of shuffle(run.items ?? []).slice(0, int(1, 3))) {
       const bonus = chance(0.7) ? pick([50, 75, 100, 150, 250]) : 0;
       const deduction = bonus ? 0 : round3(Number(item.basicSalary) / 30 * int(1, 2));
-      await updatePayrollItem(item.id, { bonus, otherDeductions: deduction, adjustmentNote: bonus ? pick(["Project delivery bonus", "Overtime on festival week", "Client appreciation incentive"]) : "Unpaid leave days" }, finance.id);
+      await setPayrollItemLines(item.id, {
+        additions: bonus ? [{ category: "bonus", label: pick(["Project delivery bonus", "Overtime on festival week", "Client appreciation incentive"]), amount: bonus }] : [],
+        deductions: deduction ? [{ category: "absence_adjustment", label: "Unpaid leave days", amount: deduction }] : [],
+      }, finance.id);
       bump("payrollAdjustments");
     }
     if (m === 0) continue; // current month: calculated, not yet submitted

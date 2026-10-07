@@ -246,6 +246,10 @@ const RULES: Rule[] = [
   { area: "hr", name: "paid payroll runs have every salary paid; salaries are only paid once the run is approved",
     sql: `SELECT r.year, r.month, r.status FROM "PayrollRun" r JOIN "PayrollItem" i ON i."payrollRunId" = r.id GROUP BY r.id
       HAVING (r.status = 'paid' AND BOOL_OR(i."paymentStatus" <> 'paid')) OR (r.status NOT IN ('paid', 'approved', 'closed') AND BOOL_OR(i."paymentStatus" = 'paid'))` },
+  { area: "hr", name: "payroll additions and deductions add up to the line's bonus and other deductions",
+    sql: `WITH l AS (SELECT "payrollItemId" id, SUM(amount) FILTER (WHERE kind = 'addition') a, SUM(amount) FILTER (WHERE kind = 'deduction') d FROM "PayrollItemLine" GROUP BY 1)
+      SELECT p.id, p.bonus, p."otherDeductions", l.a, l.d FROM "PayrollItem" p LEFT JOIN l ON l.id = p.id
+      WHERE p.bonus <> COALESCE(l.a, 0) OR p."otherDeductions" <> COALESCE(l.d, 0)` },
   { area: "hr", name: "payslips match their payroll run period",
     sql: `SELECT p.id FROM "Payslip" p JOIN "PayrollItem" i ON i.id = p."payrollItemId" JOIN "PayrollRun" r ON r.id = i."payrollRunId"
       WHERE p.month <> r.month OR p.year <> r.year OR p."employeeId" <> i."employeeId"` },

@@ -36,6 +36,7 @@ interface Snapshot {
 }
 
 type PayslipItem = Record<string, unknown> & {
+  lines?: Array<{ kind: string; category: string; label: string; amount: unknown }>;
   payrollRun: { year: number; month: number; status: string; periodStart?: string; periodEnd?: string; attendanceStart?: string | null; attendanceEnd?: string | null; payDate?: string | null };
   attendanceSummary?: {
     workingDays?: number;
@@ -96,20 +97,33 @@ function EmployeeCard({ k, employee }: { k: DocKit; employee: Snapshot["employee
   );
 }
 
-function AmountTable({ k, title, keys, item, total, totalLabel, currency }: { k: DocKit; title: string; keys: readonly string[]; item: PayslipItem; total: number; totalLabel: string; currency: string }) {
+/** One row per amount; a month's named additions or deductions replace their total row (bonus, other deductions). */
+function AmountTable({ k, title, keys, item, total, totalLabel, currency, kind }: { k: DocKit; title: string; keys: readonly string[]; item: PayslipItem; total: number; totalLabel: string; currency: string; kind: "addition" | "deduction" }) {
   const { t, isAr, T, Row } = k;
   const lines = t.pdfDocs.payslip.lines as Record<string, string>;
-  const rows = keys.filter((key) => ALWAYS_SHOWN.has(key) || num(item[key]) !== 0);
+  const categories = t.payLines.categories as Record<string, string>;
+  const named = (Array.isArray(item.lines) ? item.lines : []).filter((l) => l.kind === kind);
+  const expanded = kind === "addition" ? "bonus" : "otherDeductions";
+  const rows: Array<{ key: string; label: string; detail?: string; amount: number }> = keys
+    .filter((key) => ALWAYS_SHOWN.has(key) || num(item[key]) !== 0)
+    .flatMap((key) =>
+      key === expanded && named.length
+        ? named.map((l, i) => ({ key: `${key}-${i}`, label: categories[l.category] ?? lines[key], detail: l.label, amount: num(l.amount) }))
+        : [{ key, label: lines[key], amount: num(item[key]) }],
+    );
   return (
     <View style={{ flex: 1, borderRadius: 6, overflow: "hidden", borderWidth: 0.8, borderColor: C.line }}>
       <Row style={{ backgroundColor: C.primary, paddingVertical: 6, paddingHorizontal: 10, justifyContent: "space-between" }}>
         <T style={{ color: "#FFFFFF", fontSize: 8, fontWeight: "bold" }}>{title}</T>
         <T style={{ color: "#FFFFFF", fontSize: 8, fontWeight: "bold" }}>{t.pdfDocs.payslip.amount}</T>
       </Row>
-      {rows.map((key, index) => (
-        <Row key={key} style={{ justifyContent: "space-between", paddingVertical: 5.5, paddingHorizontal: 10, borderTopWidth: index ? 0.6 : 0, borderTopColor: C.line }}>
-          <T style={{ fontSize: 8.5, color: C.body }}>{lines[key]}</T>
-          <T style={{ fontSize: 8.5 }}>{fmtMoney(num(item[key]), currency, isAr)}</T>
+      {rows.map((row, index) => (
+        <Row key={row.key} style={{ justifyContent: "space-between", alignItems: "flex-start", paddingVertical: 5.5, paddingHorizontal: 10, borderTopWidth: index ? 0.6 : 0, borderTopColor: C.line }}>
+          <View style={{ flex: 1 }}>
+            <T style={{ fontSize: 8.5, color: C.body }}>{row.label}</T>
+            {row.detail && row.detail !== row.label ? <T style={{ fontSize: 7, color: C.muted }}>{row.detail}</T> : null}
+          </View>
+          <T style={{ fontSize: 8.5 }}>{fmtMoney(row.amount, currency, isAr)}</T>
         </Row>
       ))}
       <View style={{ flexGrow: 1 }} />
@@ -168,8 +182,8 @@ function PayslipPage({ k, brand, item, employee, reference, issuedAt, signing, c
       </Row>
 
       <Row style={{ gap: 12, alignItems: "stretch" }}>
-        <AmountTable k={k} title={p.earnings} keys={EARNINGS} item={item} total={earnings} totalLabel={p.totalEarnings} currency={currency} />
-        <AmountTable k={k} title={p.deductions} keys={DEDUCTIONS} item={item} total={deductions} totalLabel={p.totalDeductions} currency={currency} />
+        <AmountTable k={k} title={p.earnings} keys={EARNINGS} item={item} total={earnings} totalLabel={p.totalEarnings} currency={currency} kind="addition" />
+        <AmountTable k={k} title={p.deductions} keys={DEDUCTIONS} item={item} total={deductions} totalLabel={p.totalDeductions} currency={currency} kind="deduction" />
       </Row>
 
       <Row style={{ marginTop: 12, backgroundColor: C.primary, borderRadius: 7, paddingVertical: 11, paddingHorizontal: 16, justifyContent: "space-between", alignItems: "center" }} wrap={false}>

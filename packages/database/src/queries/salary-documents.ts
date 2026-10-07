@@ -42,6 +42,7 @@ export async function salaryDocumentSnapshot(
     },
     include: {
       payrollRun: { select: { month: true, year: true, status: true, periodStart: true, periodEnd: true, attendanceStart: true, attendanceEnd: true, payDate: true } },
+      lines: { select: { kind: true, category: true, label: true, amount: true }, orderBy: [{ kind: "asc" }, { displayOrder: "asc" }] },
     },
     orderBy: { payrollRun: { periodStart: "asc" } },
   });

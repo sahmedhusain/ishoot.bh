@@ -10,7 +10,8 @@ import { Button, Card, DateDisplay } from "@ishoot/ui";
 import type { getPayrollItemDetail } from "@ishoot/database/queries/payroll";
 import { ROUTES } from "@ishoot/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { payPayrollItemAction, updatePayrollItemAction } from "../../app/actions/payroll";
+import { payPayrollItemAction, setPayrollLinesAction } from "../../app/actions/payroll";
+import { PayLinesEditor, toPayLineDraft, type PayLineDraft } from "./PayLinesEditor";
 
 type Detail = NonNullable<Awaited<ReturnType<typeof getPayrollItemDetail>>>;
 
@@ -76,8 +77,10 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
   const monthLabel = new Intl.DateTimeFormat(locale === "ar" ? "ar-BH-u-nu-latn" : "en-BH", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(run.year, run.month - 1, 1)));
   const hours = (minutes: number) => Math.round((minutes / 60) * 100) / 100;
 
-  const [bonus, setBonus] = React.useState(String(item.bonus || ""));
-  const [deduction, setDeduction] = React.useState(String(item.otherDeductions || ""));
+  const manual = detail.lines.filter((l) => l.source === "manual");
+  const recurringLines = detail.lines.filter((l) => l.source === "recurring");
+  const [additions, setAdditions] = React.useState<PayLineDraft[]>(() => manual.filter((l) => l.kind === "addition").map(toPayLineDraft));
+  const [deductions, setDeductions] = React.useState<PayLineDraft[]>(() => manual.filter((l) => l.kind === "deduction").map(toPayLineDraft));
   const [note, setNote] = React.useState(item.adjustmentNote ?? "");
   const [saving, setSaving] = React.useState(false);
   const [method, setMethod] = React.useState("bank_transfer");
@@ -93,7 +96,8 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
     event.preventDefault();
     setSaving(true);
     try {
-      await updatePayrollItemAction(item.id, { bonus: Number(bonus || 0), otherDeductions: Number(deduction || 0), adjustmentNote: note.trim() || null });
+      const pack = (lines: PayLineDraft[]) => lines.map((l) => ({ category: l.category, label: l.label, amount: Number(l.amount), ...(l.note.trim() ? { note: l.note.trim() } : {}) }));
+      await setPayrollLinesAction(item.id, { additions: pack(additions), deductions: pack(deductions), note: note.trim() || null });
       toast.success(p.saved);
       router.refresh();
     } catch (error) {
@@ -186,7 +190,10 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
             {item.commission > 0 && (
               <Line label={p.commission} tone="plus" detail={detail.commission ? fill(p.commissionDetail, { rate: detail.commission.ratePercent, basis: detail.commission.basis.toFixed(3) }) : null} value={money(item.commission)} />
             )}
-            {item.bonus > 0 && <Line label={p.bonus} tone="plus" detail={item.adjustmentNote} value={money(item.bonus)} />}
+            {detail.lines.filter((l) => l.kind === "addition").map((l) => (
+              <Line key={l.id} label={l.label} tone="plus" detail={[(t.payLines.categories as Record<string, string>)[l.category], l.source === "recurring" ? t.payLines.recurringTag : null, l.note].filter(Boolean).join(" · ")} value={money(l.amount)} />
+            ))}
+            {item.bonus > 0 && !detail.lines.some((l) => l.kind === "addition") && <Line label={p.bonus} tone="plus" detail={item.adjustmentNote} value={money(item.bonus)} />}
             <Line label={p.gross} strong value={money(item.grossSalary)} />
           </div>
         </Card>
@@ -217,7 +224,10 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
             {item.latenessDeduction > 0 && (
               <Line label={p.lateness} tone="minus" detail={summary ? fill(p.latenessDetail, { minutes: summary.deductibleLateMinutes }) : null} value={money(item.latenessDeduction)} />
             )}
-            {item.otherDeductions > 0 && <Line label={p.otherDeductions} tone="minus" detail={item.adjustmentNote} value={money(item.otherDeductions)} />}
+            {detail.lines.filter((l) => l.kind === "deduction").map((l) => (
+              <Line key={l.id} label={l.label} tone="minus" detail={[(t.payLines.categories as Record<string, string>)[l.category], l.source === "recurring" ? t.payLines.recurringTag : null, l.note].filter(Boolean).join(" · ")} value={money(l.amount)} />
+            ))}
+            {item.otherDeductions > 0 && !detail.lines.some((l) => l.kind === "deduction") && <Line label={p.otherDeductions} tone="minus" detail={item.adjustmentNote} value={money(item.otherDeductions)} />}
             <Line label={p.totalDeductions} strong value={money(totalDeductions)} />
           </div>
           <div className="mt-4 rounded-xl bg-surface-sunken p-3">
@@ -284,18 +294,11 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
             <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{p.adjustments}</h2>
             <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">{p.adjustmentsHint}</p>
             <form onSubmit={saveAdjustments} className="mt-3 space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
-                  {p.bonusLabel}
-                  <input type="number" min={0} step="0.001" inputMode="decimal" dir="ltr" className={fieldClass} value={bonus} onChange={(e) => setBonus(e.target.value)} />
-                </label>
-                <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
-                  {p.deductionLabel}
-                  <input type="number" min={0} step="0.001" inputMode="decimal" dir="ltr" className={fieldClass} value={deduction} onChange={(e) => setDeduction(e.target.value)} />
-                </label>
-              </div>
+              <PayLinesEditor kind="addition" lines={additions} onChange={setAdditions} />
+              <PayLinesEditor kind="deduction" lines={deductions} onChange={setDeductions} />
+              {recurringLines.length > 0 && <p className="text-[11px] text-slate-500">{t.payLines.recurringNote.replace("{count}", String(recurringLines.length))}</p>}
               <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
-                {p.reason}
+                {t.payLines.generalNote}
                 <input maxLength={500} className={fieldClass} value={note} onChange={(e) => setNote(e.target.value)} />
               </label>
               <div className="flex flex-wrap items-center gap-3">

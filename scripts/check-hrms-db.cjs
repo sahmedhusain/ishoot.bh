@@ -37,19 +37,26 @@ async function main() {
       assert.equal(run.totalEmployerCost, 682.5);
       assert.equal(Number((await tx.payrollItem.findFirstOrThrow({ where: { payrollRunId: run.id } })).externalSupport), 562.5);
       // A salary line can be adjusted before submission: bonus on top of gross (no GOSI), deductions off net.
-      const { updatePayrollItem } = require('../packages/database/src/queries/payroll.ts');
+      const { setPayrollItemLines } = require('../packages/database/src/queries/payroll.ts');
       const line = run.items[0];
-      const edited = await updatePayrollItem(line.id, { bonus: 100, otherDeductions: 25, adjustmentNote: 'Project bonus; late return' }, actor.id);
+      const edited = await setPayrollItemLines(line.id, {
+        additions: [{ category: 'bonus', label: 'Project bonus', amount: 60 }, { category: 'reimbursement', label: 'Taxi to location', amount: 40 }],
+        deductions: [{ category: 'advance_recovery', label: 'Salary advance', amount: 25 }],
+      }, actor.id);
+      assert.equal(edited.item.bonus, 100, 'additions add up');
+      assert.equal(edited.item.otherDeductions, 25, 'deductions add up separately');
+      assert.equal(await tx.payrollItemLine.count({ where: { payrollItemId: line.id } }), 3);
       assert.equal(edited.item.grossSalary, 1225, 'bonus raises gross');
       assert.equal(edited.item.gosiEmployee, Number(line.gosiEmployee), 'GOSI stays on fixed pay');
       assert.equal(edited.item.netSalary, Number(line.netSalary) + 100 - 25);
       const totals = await tx.payrollRun.findUniqueOrThrow({ where: { id: run.id } });
       assert.equal(Number(totals.totalGross), 1225, 'run totals follow the edit');
-      await assert.rejects(updatePayrollItem(line.id, { otherDeductions: 99999 }, actor.id), /Deductions cannot exceed/);
-      await assert.rejects(updatePayrollItem(line.id, { bonus: -1 }, actor.id), /must be zero or more/);
-      await updatePayrollItem(line.id, { bonus: 0, otherDeductions: 0, adjustmentNote: null }, actor.id);
+      await assert.rejects(setPayrollItemLines(line.id, { additions: [], deductions: [{ category: 'penalty', label: 'Too much', amount: 99999 }] }, actor.id), /Deductions cannot exceed/);
+      await assert.rejects(setPayrollItemLines(line.id, { additions: [{ category: 'bonus', label: 'Negative', amount: -1 }], deductions: [] }, actor.id), /amount above zero/);
+      await setPayrollItemLines(line.id, { additions: [], deductions: [], note: null }, actor.id);
+      assert.equal(await tx.payrollItemLine.count({ where: { payrollItemId: line.id } }), 0);
       const approval = await submitPayrollRunForApproval(run.id, actor.id);
-      await assert.rejects(updatePayrollItem(line.id, { bonus: 5 }, actor.id), /only be changed before it is submitted/);
+      await assert.rejects(setPayrollItemLines(line.id, { additions: [{ category: 'bonus', label: 'Late', amount: 5 }], deductions: [] }, actor.id), /only be changed before it is submitted/);
       const pending = await tx.approvalRequest.findUniqueOrThrow({ where: { id: approval.approvalRequestId } });
       if (pending.status === 'pending') {
         // The submitter never approves their own payroll; someone the policy names does.

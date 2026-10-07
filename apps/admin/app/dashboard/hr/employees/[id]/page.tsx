@@ -3,8 +3,9 @@ import { SalaryDocumentsView } from "../../../../../components/hr/SalaryDocument
 import { availablePayslipMonths, canManageSalaryDocuments, decidableSalaryDocumentIds } from "../../../../../lib/salary-documents";
 import { notFound } from "next/navigation";
 import { requirePagePermission, hasPermission } from "../../../../../lib/auth";
-import { getEmployeeById, getEmployeeResidency, listDepartments, db, getLeaveBalances, accountSnapshot, listAccountChangeRequests } from "@ishoot/database";
+import { getEmployeeById, getEmployeeResidency, listRecurringPay, listDepartments, db, getLeaveBalances, accountSnapshot, listAccountChangeRequests } from "@ishoot/database";
 import { EmployeeResidencyPanel } from "../../../../../components/hr/EmployeeResidencyPanel";
+import { RecurringPayPanel } from "../../../../../components/hr/RecurringPayPanel";
 import { EmployeeAccountCard } from "../../../../../components/hr/EmployeeAccountCard";
 import { LeaveBalancesCard } from "../../../../../components/hr/LeaveBalancesCard";
 import { EmployeePayHistory } from "../../../../../components/hr/EmployeePayHistory";
@@ -44,7 +45,7 @@ export default async function EmployeeDetailPage({
     db.user.findMany({ where: { isActive: true }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" } }),
   ]);
   const year = new Date().getUTCFullYear();
-  const [balances, payItems] = await Promise.all([
+  const [balances, payItems, recurringPay] = await Promise.all([
     getLeaveBalances(id, year),
     canViewPay
       ? db.payrollItem.findMany({
@@ -54,6 +55,7 @@ export default async function EmployeeDetailPage({
           select: { id: true, netSalary: true, paymentStatus: true, payrollRun: { select: { month: true, year: true, status: true } } },
         })
       : Promise.resolve([]),
+    canViewPay ? listRecurringPay(id) : Promise.resolve([]),
   ]);
   const attachments = await db.attachment.findMany({ where: { entityType: "employee", entityId: id }, select: { id: true, fileName: true, fileUrl: true }, orderBy: { createdAt: "desc" } });
   const canManage = await canManageSalaryDocuments(actor);
@@ -86,6 +88,7 @@ export default async function EmployeeDetailPage({
       canViewPay={canViewPay}
     />
     <LeaveBalancesCard balances={balances} year={year} employeeId={id} canAdjust={canEdit} />
+    {canViewPay && <RecurringPayPanel employeeId={id} items={recurringPay} canEdit={canEditPay} />}
     {canViewPay && <EmployeePayHistory rows={payItems.map((p) => ({ id: p.id, month: p.payrollRun.month, year: p.payrollRun.year, netSalary: Number(p.netSalary), paymentStatus: p.paymentStatus, runStatus: p.payrollRun.status }))} />}
     <EmployeeAttachments employeeId={id} attachments={attachments} canEdit={canEdit} canDelete={await hasPermission("employees", "delete")} />
     {canManage && <SalaryDocumentsView embedded employeeId={id} availableMonths={availableMonths} decidableIds={decidableIds} documents={documents.map(item => ({ id: item.id, kind: item.kind, status: item.status, months: item.months as string[], createdAt: item.createdAt.toISOString(), reviewNotes: item.reviewNotes, languages: item.languages }))} />}

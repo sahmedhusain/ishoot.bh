@@ -1,4 +1,5 @@
 import { calculateContributions, parsePayrollSettings } from "../payroll-calculation";
+import { MAX_PAY_LINES, PAY_LINE_CATEGORIES } from "../constants/hr";
 import { db, runAtomicMutation } from "../db";
 import { PayrollRun } from "../types";
 import { submitForApproval } from "../services/approval-engine";
@@ -34,6 +35,7 @@ function mapPayrollItem(it: any) {
   out.editedAt = it.editedAt ? it.editedAt.toISOString() : null;
   out.paidAt = it.paidAt ? it.paidAt.toISOString() : null;
   delete out.commissionPayout;
+  delete out.lines; // Decimal amounts; the detail returns them mapped.
   return out;
 }
 
@@ -202,6 +204,29 @@ interface Preserved {
   adjustmentNote: string | null;
 }
 
+type LineDraft = { kind: string; category: string; label: string; amount: number; note: string | null; source: string; recurringId: string | null; displayOrder: number };
+
+/** Recurring additions and deductions due in a month, per employee. */
+async function recurringPayFor(employeeIds: string[], monthKey: string) {
+  const rows = await db.employeeRecurringPay.findMany({
+    where: { employeeId: { in: employeeIds }, isActive: true, startMonth: { lte: monthKey }, OR: [{ endMonth: null }, { endMonth: { gte: monthKey } }] },
+    orderBy: { createdAt: "asc" },
+  });
+  const map = new Map<string, LineDraft[]>();
+  for (const r of rows) {
+    const list = map.get(r.employeeId) ?? [];
+    list.push({ kind: r.kind, category: r.category, label: r.label, amount: Number(r.amount), note: r.note, source: "recurring", recurringId: r.id, displayOrder: list.length });
+    map.set(r.employeeId, list);
+  }
+  return map;
+}
+
+/** Totals of a line set: additions are paid as `bonus`, deductions as `otherDeductions`. */
+function lineTotals(lines: Array<{ kind: string; amount: unknown }>) {
+  const sum = (kind: string) => r3(lines.filter((l) => l.kind === kind).reduce((total, l) => total + Number(l.amount), 0));
+  return { bonus: sum("addition"), otherDeductions: sum("deduction") };
+}
+
 function lineFor(employee: EligibleEmployee, ctx: RunContext, preserved: Preserved) {
   const record = employee.employmentRecords[0];
   const settings = parsePayrollSettings(record?.payrollSettings);
@@ -288,7 +313,11 @@ export async function createPayrollRun(month: number, year: number, actorId: str
   const window = payrollWindow(policy, year, month);
   const employees = await eligibleEmployees(window);
   const ctx = await buildContext(year, month, window, employees);
-  const lines = employees.map((employee) => ({ employee, ...lineFor(employee, ctx, { bonus: 0, otherDeductions: 0, adjustmentNote: null }) }));
+  const recurring = await recurringPayFor(employees.map((e) => e.id), ctx.month);
+  const lines = employees.map((employee) => {
+    const payLines = recurring.get(employee.id) ?? [];
+    return { employee, payLines, ...lineFor(employee, ctx, { ...lineTotals(payLines), adjustmentNote: null }) };
+  });
 
   const run = await runAtomicMutation(async () => {
     const created = await db.payrollRun.create({
@@ -305,6 +334,7 @@ export async function createPayrollRun(month: number, year: number, actorId: str
     });
     for (const line of lines) {
       const item = await db.payrollItem.create({ data: { payrollRunId: created.id, employeeId: line.employee.id, paymentStatus: "pending", ...line.data } });
+      if (line.payLines.length) await db.payrollItemLine.createMany({ data: line.payLines.map((l) => ({ ...l, payrollItemId: item.id })) });
       const rate = Number(line.employee.user?.commissionRatePercent ?? 0);
       await syncCommissionPayout(item.id, line.userId, ctx.month, line.commission, rate > 0 ? r3((line.commission * 100) / rate) : 0, rate, actorId);
     }
@@ -316,13 +346,14 @@ export async function createPayrollRun(month: number, year: number, actorId: str
 
 /** Recomputes a run that has not been submitted, after attendance, leave or salary changes. Manual bonus and deductions are kept. */
 export async function recalculatePayrollRun(runId: string, actorId: string): Promise<PayrollRun> {
-  const run = await db.payrollRun.findUniqueOrThrow({ where: { id: runId }, include: { items: true } });
+  const run = await db.payrollRun.findUniqueOrThrow({ where: { id: runId }, include: { items: { include: { lines: true } } } });
   if (!["draft", "calculated"].includes(run.status)) throw new Error(`Payroll is ${run.status}; it can only be recalculated before it is submitted`);
   const policy = await getHrPolicy();
   // The window follows the current policy, so a policy change takes effect on recalculation.
   const window = payrollWindow(policy, run.year, run.month);
   const employees = await eligibleEmployees(window);
   const ctx = await buildContext(run.year, run.month, window, employees);
+  const recurring = await recurringPayFor(employees.map((e) => e.id), ctx.month);
   await runAtomicMutation(async () => {
     await db.payrollRun.update({
       where: { id: runId },
@@ -331,14 +362,15 @@ export async function recalculatePayrollRun(runId: string, actorId: string): Pro
     const keep = new Set<string>();
     for (const employee of employees) {
       const existing = run.items.find((i) => i.employeeId === employee.id);
-      const line = lineFor(employee, ctx, {
-        bonus: existing ? Number(existing.bonus) : 0,
-        otherDeductions: existing ? Number(existing.otherDeductions) : 0,
-        adjustmentNote: existing?.adjustmentNote ?? null,
-      });
+      // Manual lines are kept; recurring ones are taken afresh from the employee's recurring pay.
+      const manual = (existing?.lines ?? []).filter((l) => l.source === "manual");
+      const fresh = recurring.get(employee.id) ?? [];
+      const line = lineFor(employee, ctx, { ...lineTotals([...manual, ...fresh]), adjustmentNote: existing?.adjustmentNote ?? null });
       const item = existing
         ? await db.payrollItem.update({ where: { id: existing.id }, data: line.data })
         : await db.payrollItem.create({ data: { payrollRunId: runId, employeeId: employee.id, paymentStatus: "pending", ...line.data } });
+      await db.payrollItemLine.deleteMany({ where: { payrollItemId: item.id, source: "recurring" } });
+      if (fresh.length) await db.payrollItemLine.createMany({ data: fresh.map((l) => ({ ...l, payrollItemId: item.id, displayOrder: manual.length + l.displayOrder })) });
       keep.add(item.id);
       const rate = Number(employee.user?.commissionRatePercent ?? 0);
       await syncCommissionPayout(item.id, line.userId, ctx.month, line.commission, rate > 0 ? r3((line.commission * 100) / rate) : 0, rate, actorId);
@@ -351,19 +383,38 @@ export async function recalculatePayrollRun(runId: string, actorId: string): Pro
   return mapRun(await db.payrollRun.findUniqueOrThrow({ where: { id: runId }, include: runInclude }));
 }
 
-/** Adds a bonus or a deduction to one employee's line before submission; the rest of the line is kept. */
-export async function updatePayrollItem(
+export interface PayLineInput {
+  category: string;
+  label: string;
+  amount: number;
+  note?: string;
+}
+
+/**
+ * Sets the manual additions and deductions of one employee's month before submission. Additions and
+ * deductions are separate lists of named lines; recurring lines stay as they are. The rest of the line is kept.
+ */
+export async function setPayrollItemLines(
   itemId: string,
-  patch: { bonus?: number; otherDeductions?: number; adjustmentNote?: string | null },
+  input: { additions: PayLineInput[]; deductions: PayLineInput[]; note?: string | null },
   actorId: string,
 ) {
-  const item = await db.payrollItem.findUniqueOrThrow({ where: { id: itemId }, include: { payrollRun: { select: { id: true, status: true, year: true, month: true } } } });
+  const item = await db.payrollItem.findUniqueOrThrow({ where: { id: itemId }, include: { payrollRun: { select: { id: true, status: true, year: true, month: true } }, lines: true } });
   if (!["draft", "calculated"].includes(item.payrollRun.status))
     throw new Error(`Payroll is ${item.payrollRun.status}; lines can only be changed before it is submitted`);
-  for (const [key, value] of Object.entries({ bonus: patch.bonus, otherDeductions: patch.otherDeductions }))
-    if (value !== undefined && !(Number.isFinite(value) && value >= 0 && value <= 1_000_000)) throw new Error(`${key} must be zero or more`);
-  const bonus = r3(patch.bonus ?? Number(item.bonus));
-  const otherDeductions = r3(patch.otherDeductions ?? Number(item.otherDeductions));
+  if (input.additions.length + input.deductions.length > MAX_PAY_LINES) throw new Error("A salary can have at most 30 manual lines");
+  const drafts = ([["addition", input.additions], ["deduction", input.deductions]] as const).flatMap(([kind, list]) =>
+    list.map((l, index) => {
+      const label = l.label?.trim().slice(0, 120);
+      if (!label) throw new Error("Every addition and deduction needs a description");
+      if (!(PAY_LINE_CATEGORIES[kind] as readonly string[]).includes(l.category)) throw new Error("Choose a category for every line");
+      const amount = r3(Number(l.amount));
+      if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000) throw new Error("Every line needs an amount above zero");
+      return { kind, category: l.category, label, amount, note: l.note?.trim().slice(0, 300) || null, source: "manual", recurringId: null, displayOrder: index, createdById: actorId };
+    }),
+  );
+  const recurring = item.lines.filter((l) => l.source === "recurring");
+  const { bonus, otherDeductions } = lineTotals([...drafts, ...recurring]);
   const fixedPay = r3(Number(item.basicSalary) + Number(item.housingAllowance) + Number(item.transportAllowance) + Number(item.otherAllowances));
   const totals = payrollTotals(
     {
@@ -379,14 +430,15 @@ export async function updatePayrollItem(
     },
     Number(item.gosiEmployee),
   );
-  const note = patch.adjustmentNote === undefined ? item.adjustmentNote : patch.adjustmentNote?.trim().slice(0, 500) || null;
-  if ((bonus > 0 || otherDeductions > 0) && !note) throw new Error("Explain the bonus or deduction in the note");
+  const note = input.note === undefined ? item.adjustmentNote : input.note?.trim().slice(0, 500) || null;
+  await db.payrollItemLine.deleteMany({ where: { payrollItemId: itemId, source: "manual" } });
+  if (drafts.length) await db.payrollItemLine.createMany({ data: drafts.map((d) => ({ ...d, payrollItemId: itemId })) });
   const updated = await db.payrollItem.update({
     where: { id: itemId },
     data: { bonus, otherDeductions, grossSalary: totals.gross, netSalary: totals.net, adjustmentNote: note, editedById: actorId, editedAt: new Date() },
   });
   await refreshPayrollTotals(item.payrollRun.id);
-  return { item: mapPayrollItem(updated), before: mapPayrollItem(item) };
+  return { item: mapPayrollItem(updated), before: mapPayrollItem(item), lines: drafts.length };
 }
 
 export async function submitPayrollRunForApproval(id: string, actorId: string): Promise<{ success: boolean; approvalRequestId: string }> {
@@ -473,6 +525,7 @@ export async function getPayrollItemDetail(itemId: string) {
       payrollRun: true,
       payslip: { select: { id: true, issuedAt: true } },
       commissionPayout: { select: { basisAmount: true, ratePercent: true, amount: true } },
+      lines: { orderBy: [{ kind: "asc" }, { displayOrder: "asc" }] },
       employee: {
         select: {
           id: true, employeeNumber: true, firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true,
@@ -505,6 +558,7 @@ export async function getPayrollItemDetail(itemId: string) {
     item: { ...mapPayrollItem(item), attendanceSummary: item.attendanceSummary ?? null },
     run: { id: run.id, month: run.month, year: run.year, status: run.status, periodStart: dayKey(run.periodStart), periodEnd: dayKey(run.periodEnd), attendanceStart: dayKey(start), attendanceEnd: dayKey(end), payDate: run.payDate ? dayKey(run.payDate) : null },
     employee: { ...item.employee, hireDate: dayKey(item.employee.hireDate) },
+    lines: item.lines.map((l) => ({ id: l.id, kind: l.kind as "addition" | "deduction", category: l.category, label: l.label, amount: Number(l.amount), note: l.note, source: l.source })),
     commission: item.commissionPayout ? { basis: Number(item.commissionPayout.basisAmount), ratePercent: Number(item.commissionPayout.ratePercent), amount: Number(item.commissionPayout.amount) } : null,
     attendance: attendance.map((a) => ({
       date: dayKey(a.date), status: a.status, lateMinutes: a.lateMinutes, overtimeMinutes: a.overtimeMinutes, overtimeNightMinutes: a.overtimeNightMinutes,

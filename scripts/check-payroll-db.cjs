@@ -123,9 +123,10 @@ async function main() {
       close(payout.amount, 50, "payout recorded against the salary line");
       await assert.rejects(recordCommissionPayout(seller.id, "2199-09", actor.id), /already recorded|on payroll/);
 
-      // Adjustments on the employee's page need a reason; recalculation keeps them.
-      await assert.rejects(payroll.updatePayrollItem(itemA.id, { bonus: 100 }, actor.id), /Explain/);
-      await payroll.updatePayrollItem(itemA.id, { bonus: 100, adjustmentNote: "Festival shoot" }, actor.id);
+      // Additions need a description and category; recalculation keeps manual lines.
+      await assert.rejects(payroll.setPayrollItemLines(itemA.id, { additions: [{ category: "bonus", label: " ", amount: 100 }], deductions: [] }, actor.id), /needs a description/);
+      await assert.rejects(payroll.setPayrollItemLines(itemA.id, { additions: [{ category: "loan_repayment", label: "X", amount: 100 }], deductions: [] }, actor.id), /Choose a category/);
+      await payroll.setPayrollItemLines(itemA.id, { additions: [{ category: "bonus", label: "Festival shoot", amount: 100 }], deductions: [], note: "Festival shoot" }, actor.id);
       await tx.attendanceEntry.update({ where: { employeeId_date: { employeeId: a.id, date: D(wd[0]) } }, data: { status: "present" } });
       run = await payroll.recalculatePayrollRun(run.id, actor.id);
       itemA = run.items.find((i) => i.employeeId === a.id);

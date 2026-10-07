@@ -9,7 +9,11 @@ import {
   decideApprovalRequest,
   markPayrollAsPaid,
   createActivityLog,
-  updatePayrollItem,
+  setPayrollItemLines,
+  saveRecurringPay,
+  deleteRecurringPay,
+  type PayLineInput,
+  type RecurringPayInput,
   recalculatePayrollRun,
   payPayrollItem,
   recordSupportReimbursement,
@@ -155,29 +159,57 @@ export async function recalculatePayrollRunAction(runId: string) {
 }
 
 /** Add a bonus or deduction (with a reason) to one employee's salary before the run is submitted. */
-export async function updatePayrollItemAction(
+/** Sets one employee's manual additions and deductions for the month, as separate named lines. */
+export async function setPayrollLinesAction(
   itemId: string,
-  patch: {
-    bonus?: number;
-    otherDeductions?: number;
-    adjustmentNote?: string | null;
-  },
+  data: { additions: PayLineInput[]; deductions: PayLineInput[]; note?: string | null },
 ) {
-  return measureOperation("action:updatePayrollItemAction", async () => {
+  return measureOperation("action:setPayrollLinesAction", async () => {
     const actor = await requirePermission("payroll", "edit");
-    validateActionArguments("updatePayrollItemAction", { itemId, patch });
+    validateActionArguments("setPayrollLinesAction", { itemId, data });
     const { item } = await runAtomicMutation(async () => {
-      const { item, before } = await updatePayrollItem(itemId, patch, actor.id);
-      const changed = Object.fromEntries(
-        (["bonus", "otherDeductions", "adjustmentNote"] as const)
-          .filter((key) => patch[key] !== undefined && before[key] !== item[key])
-          .map((key) => [key, { from: before[key], to: item[key] }]),
-      );
-      await createActivityLog({ user_id: actor.id, action: "update", entity_type: "payroll_item", entity_id: itemId, details: { payrollRunId: item.payrollRunId, employeeId: item.employeeId, changed } });
+      const { item, before, lines } = await setPayrollItemLines(itemId, data, actor.id);
+      await createActivityLog({
+        user_id: actor.id,
+        action: "update",
+        entity_type: "payroll_item",
+        entity_id: itemId,
+        details: { payrollRunId: item.payrollRunId, employeeId: item.employeeId, lines, bonus: { from: before.bonus, to: item.bonus }, otherDeductions: { from: before.otherDeductions, to: item.otherDeductions } },
+      });
       return { item };
     });
     revalidatePath(ROUTES.hr.payroll());
+    revalidatePath(ROUTES.hr.payrollItem(itemId));
     return { success: true, item };
+  });
+}
+
+/** Adds or edits a custom addition or deduction an employee receives every month. */
+export async function saveRecurringPayAction(employeeId: string, data: RecurringPayInput, recurringId?: string) {
+  return measureOperation("action:saveRecurringPayAction", async () => {
+    const actor = await requirePermission("payroll", "edit");
+    validateActionArguments("saveRecurringPayAction", { employeeId, data, recurringId });
+    const saved = await runAtomicMutation(async () => {
+      const saved = await saveRecurringPay(employeeId, data, recurringId);
+      await createActivityLog({ user_id: actor.id, action: recurringId ? "update" : "create", entity_type: "recurring_pay", entity_id: saved.id, details: { employeeId, kind: saved.kind, label: saved.label, amount: Number(saved.amount) } });
+      return saved;
+    });
+    revalidatePath(ROUTES.hr.employee(employeeId));
+    return { success: true, id: saved.id };
+  });
+}
+
+export async function deleteRecurringPayAction(recurringId: string) {
+  return measureOperation("action:deleteRecurringPayAction", async () => {
+    const actor = await requirePermission("payroll", "edit");
+    validateActionArguments("deleteRecurringPayAction", { recurringId });
+    const employeeId = await runAtomicMutation(async () => {
+      const employeeId = await deleteRecurringPay(recurringId);
+      await createActivityLog({ user_id: actor.id, action: "delete", entity_type: "recurring_pay", entity_id: recurringId, details: { employeeId } });
+      return employeeId;
+    });
+    revalidatePath(ROUTES.hr.employee(employeeId));
+    return { success: true };
   });
 }
 
