@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db } from "../db";
 import type { Prisma } from "@prisma/client";
 import {
@@ -78,21 +80,21 @@ export interface SaveIntegrationInput {
 
 export async function saveIntegrationSettings(providerId: string, input: SaveIntegrationInput, actorId: string) {
   const provider = integrationProvider(providerId);
-  if (!provider) throw new Error("Unknown integration");
+  if (!provider) throw new Error(serverMessages.unknownIntegration);
   const existing = await db.integrationSetting.findUnique({ where: { provider: provider.id } });
   const current = readCredentials(provider.id, existing?.credentials ?? null);
   const next: Credentials = {};
   for (const field of provider.fields) {
     const incoming = (input.values[field.key] ?? "").trim();
-    if (incoming.length > 2000) throw new Error("A value is too long");
+    if (incoming.length > 2000) throw new Error(serverMessages.aValueIsTooLong);
     const value = field.secret && !incoming ? current[field.key] ?? "" : incoming;
     if (value) next[field.key] = value;
   }
   if (provider.id === "resend" && next.fromEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(next.fromEmail))
-    throw new Error("Enter a valid sender e-mail");
+    throw new Error(serverMessages.enterAValidSenderEMail);
   if (input.isActive) {
     const missing = provider.fields.filter((field) => field.required && !next[field.key]);
-    if (missing.length) throw new Error(`Fill in ${missing.map((field) => field.key).join(", ")} before turning this on`);
+    if (missing.length) throw new Error(formatMessage(serverTemplates.fillIn0BeforeTurningThisOn, { 0: missing.map((field) => field.key).join(", ") }));
   }
   const changed = JSON.stringify(next) !== JSON.stringify(current);
   const data = {
@@ -112,7 +114,7 @@ export async function saveIntegrationSettings(providerId: string, input: SaveInt
 
 export async function unlinkIntegrationSettings(providerId: string, actorId: string) {
   const provider = integrationProvider(providerId);
-  if (!provider) throw new Error("Unknown integration");
+  if (!provider) throw new Error(serverMessages.unknownIntegration);
   await db.integrationSetting.upsert({
     where: { provider: provider.id },
     update: { isActive: false, credentials: null, healthStatus: "unknown", lastError: null, accountName: null, updatedById: actorId },
@@ -123,9 +125,9 @@ export async function unlinkIntegrationSettings(providerId: string, actorId: str
 /** Checks the stored credentials against the provider and records the result. */
 export async function testIntegration(providerId: string) {
   const provider = integrationProvider(providerId);
-  if (!provider) throw new Error("Unknown integration");
+  if (!provider) throw new Error(serverMessages.unknownIntegration);
   const record = await db.integrationSetting.findUnique({ where: { provider: provider.id } });
-  if (!record?.credentials) throw new Error("Save the credentials first");
+  if (!record?.credentials) throw new Error(serverMessages.saveTheCredentialsFirst);
   const result = await checkConnection(provider.id, readCredentials(provider.id, record.credentials));
   await db.integrationSetting.update({
     where: { provider: provider.id },
@@ -142,9 +144,9 @@ export async function testIntegration(providerId: string) {
 /** Pulls follower counts and recent posts for one social integration into SocialMetric/SocialPost. */
 export async function syncSocialIntegration(providerId: string, now = new Date()) {
   const provider = integrationProvider(providerId);
-  if (!provider || provider.kind !== "social") throw new Error("This integration has no social data to sync");
+  if (!provider || provider.kind !== "social") throw new Error(serverMessages.thisIntegrationHasNoSocialDataTo);
   const record = await db.integrationSetting.findUnique({ where: { provider: provider.id } });
-  if (!record?.isActive || !record.credentials) throw new Error("Turn this integration on first");
+  if (!record?.isActive || !record.credentials) throw new Error(serverMessages.turnThisIntegrationOnFirst);
   try {
     const snapshot = await fetchSocialSnapshot(provider.id, readCredentials(provider.id, record.credentials));
     for (const post of snapshot.posts) {
@@ -215,7 +217,7 @@ export async function syncDueSocialIntegrations(maxAgeHours = 6, now = new Date(
 
 export async function sendWhatsAppTestMessage(to: string, body: string) {
   const credentials = await getActiveIntegrationCredentials("whatsapp");
-  if (!credentials) throw new Error("Turn WhatsApp on first");
+  if (!credentials) throw new Error(serverMessages.turnWhatsappOnFirst);
   try {
     return await sendWhatsAppText(credentials, to, body);
   } catch (error) {

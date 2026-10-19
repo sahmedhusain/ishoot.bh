@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
 import type { Prisma } from "@prisma/client";
 import {
@@ -232,7 +233,7 @@ export async function updateMinuteOfMeeting(
         select: { status: true },
       });
       if (!current || ["approved", "shared"].includes(current.status))
-        throw new Error("Signed meetings cannot be edited");
+        throw new Error(serverMessages.signedMeetingsCannotBeEdited);
       return tx.minuteOfMeeting.update({
         where: { id },
         data: updateData,

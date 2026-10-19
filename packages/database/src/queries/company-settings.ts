@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { assertSupportedCurrency } from "../constants/finance";
 import { db } from "../db";
 import { CompanySettings, SupportedCurrency } from "../types";
@@ -76,18 +77,18 @@ export async function getCompanySettings(): Promise<CompanySettings> {
 export async function updateCompanySettings(
   updates: Partial<CompanySettings>,
 ): Promise<CompanySettings> {
-  if (updates.company_name_en !== undefined && !updates.company_name_en.trim()) throw new Error("Company English name is required");
-  if (updates.company_name_ar !== undefined && !updates.company_name_ar.trim()) throw new Error("Company Arabic name is required");
+  if (updates.company_name_en !== undefined && !updates.company_name_en.trim()) throw new Error(serverMessages.companyEnglishNameIsRequired);
+  if (updates.company_name_ar !== undefined && !updates.company_name_ar.trim()) throw new Error(serverMessages.companyArabicNameIsRequired);
   if (updates.default_currency !== undefined) assertSupportedCurrency(updates.default_currency);
   if (updates.default_discount_limit_percent !== undefined && !(updates.default_discount_limit_percent >= 0 && updates.default_discount_limit_percent <= 100))
-    throw new Error("The discount limit must be between 0 and 100%");
+    throw new Error(serverMessages.theDiscountLimitMustBeBetween0);
   const current = await getCompanySettings();
   // Moving a counter backwards would reissue numbers that already exist.
   for (const field of ["invoice_next_number", "receipt_next_number"] as const) {
     const next = updates[field];
     if (next === undefined) continue;
-    if (!Number.isInteger(next) || next < 1) throw new Error("Sequence numbers must be positive whole numbers");
-    if (next < current[field]) throw new Error("A sequence can only move forward");
+    if (!Number.isInteger(next) || next < 1) throw new Error(serverMessages.sequenceNumbersMustBePositiveWholeNumbers);
+    if (next < current[field]) throw new Error(serverMessages.aSequenceCanOnlyMoveForward);
   }
   // Private uploads may become company artwork only through the owned asset workflow.
   for(const field of ["logo_url","dark_logo_url","icon_url","dark_icon_url","stamp_url","signature_url"] as const){
@@ -95,11 +96,11 @@ export async function updateCompanySettings(
     if(value && value!==current[field] && value.startsWith("/api/files/")){
       const upload=await db.uploadObject.findUnique({where:{fileUrl:value},select:{isPublic:true}});
       const asset=await db.attachment.findFirst({where:{fileUrl:value,entityType:"company_asset"},select:{id:true}});
-      if(!upload || !asset || (!["stamp_url","signature_url"].includes(field) && !upload.isPublic)) throw new Error("Choose artwork from registered company assets");
+      if(!upload || !asset || (!["stamp_url","signature_url"].includes(field) && !upload.isPublic)) throw new Error(serverMessages.chooseArtworkFromRegisteredCompanyAssets);
     }
   }
 
-  if ((updates.vat_enabled ?? current.vat_enabled) && !(updates.vat_id ?? current.vat_id)?.trim()) throw new Error("VAT registration is required when VAT is enabled");
+  if ((updates.vat_enabled ?? current.vat_enabled) && !(updates.vat_id ?? current.vat_id)?.trim()) throw new Error(serverMessages.vatRegistrationIsRequiredWhenVatIs);
   const updated = await db.companySetting.update({
     where: { id: current.id },
     data: {

@@ -1,6 +1,7 @@
+import { serverMessages } from "@ishoot/locales";
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
-import { REQUEST_CLOSED_STATUSES, REQUEST_SORTS, REQUEST_SOURCES, canTransitionRequest, requestKindOf, type RequestKind, type RequestSort } from "../constants/requests";
+import { REQUEST_CLOSED_STATUSES, REQUEST_SORTS, REQUEST_SOURCES, canTransitionRequest, referencePrefixFor, requestKindOf, type RequestKind, type RequestSort } from "../constants/requests";
 import { cancelPendingApprovals } from "../services/approval-engine";
 import { assignRequest, reassignRequest } from "./inquiries";
 import { getNextSequenceNumber } from "./sequence";
@@ -31,9 +32,10 @@ export async function createConsolidatedRequest(
 
   // Generate sequence reference e.g. SR-2026-000001 or CR-2026-000001
   // Change requests (CR) are retired: client feedback arrives as inquiries and is triaged in the inbox.
-  if ((data.requestType as string) === "CR") throw new Error("Change requests are no longer created; log a service request or an inquiry");
-  const prefix = data.requestType === "SR" ? "SR" : "INQ";
-  const reference = await getNextSequenceNumber(prefix);
+  if ((data.requestType as string) === "CR") throw new Error(serverMessages.changeRequestsAreNoLongerCreatedLog);
+  const reference = await getNextSequenceNumber(
+    referencePrefixFor({ requestType: data.requestType, intent: data.requestType === "quote_request" ? "quote_request" : "inquiry" }),
+  );
 
   if (data.assignedToId) {
     const periodStart = new Date();
@@ -124,7 +126,7 @@ export async function assignConsolidatedRequest(
       where: { id },
       select: { id: true, slaDueDate: true, assignedToId: true, workflowStatus: true },
     });
-    if (!request) throw new Error("Request not found");
+    if (!request) throw new Error(serverMessages.requestNotFound);
 
     const periodStart = new Date();
     const periodEnd = request.slaDueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);

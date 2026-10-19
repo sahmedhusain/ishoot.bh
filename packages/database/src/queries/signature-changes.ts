@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db, runAtomicMutation } from "../db";
 import { claimUpload } from "../services/uploads";
 
@@ -28,9 +30,9 @@ export async function requestSignatureChange(userId: string, fileUrl: string) {
   return runAtomicMutation(async () => {
     const upload = await db.uploadObject.findUnique({ where: { fileUrl } });
     if (!upload || upload.isPublic || upload.ownerId !== userId || upload.mimeType !== "image/png")
-      throw new Error("Draw your signature on the pad and save it");
+      throw new Error(serverMessages.drawYourSignatureOnThePadAnd);
     if (await db.signatureChange.findFirst({ where: { userId, status: "pending" }, select: { id: true } }))
-      throw new Error("You already have a signature change waiting for approval");
+      throw new Error(serverMessages.youAlreadyHaveASignatureChangeWaiting);
     await claimUpload(db, fileUrl, userId);
     const user = await db.user.findUniqueOrThrow({ where: { id: userId }, select: { signatureUrl: true } });
     const change = await db.signatureChange.create({ data: { userId, signatureUrl: fileUrl, previousUrl: user.signatureUrl } });
@@ -44,22 +46,22 @@ export async function requestSignatureChange(userId: string, fileUrl: string) {
 /** Applies an approved signature to the user. */
 export async function approveSignatureChange(id: string, deciderId: string, notes?: string | null) {
   const change = await db.signatureChange.findUniqueOrThrow({ where: { id } });
-  if (change.status !== "pending") throw new Error(`Signature change is ${change.status}`);
+  if (change.status !== "pending") throw new Error(formatMessage(serverTemplates.signatureChangeIs0, { 0: change.status }));
   await db.signatureChange.update({ where: { id }, data: { status: "approved", reviewedById: deciderId, reviewNotes: notes || null, decidedAt: new Date() } });
   await db.user.update({ where: { id: change.userId }, data: { signatureUrl: change.signatureUrl } });
 }
 
 export async function rejectSignatureChange(id: string, deciderId: string, notes?: string | null) {
   const change = await db.signatureChange.findUniqueOrThrow({ where: { id }, select: { status: true } });
-  if (change.status !== "pending") throw new Error(`Signature change is ${change.status}`);
+  if (change.status !== "pending") throw new Error(formatMessage(serverTemplates.signatureChangeIs0, { 0: change.status }));
   await db.signatureChange.update({ where: { id }, data: { status: "rejected", reviewedById: deciderId, reviewNotes: notes || null, decidedAt: new Date() } });
 }
 
 export async function cancelSignatureChange(id: string, userId: string) {
   return runAtomicMutation(async () => {
     const change = await db.signatureChange.findUniqueOrThrow({ where: { id }, select: { status: true, userId: true } });
-    if (change.userId !== userId) throw new Error("Only the owner can withdraw this signature change");
-    if (change.status !== "pending") throw new Error("Only pending changes can be withdrawn");
+    if (change.userId !== userId) throw new Error(serverMessages.onlyTheOwnerCanWithdrawThisSignature);
+    if (change.status !== "pending") throw new Error(serverMessages.onlyPendingChangesCanBeWithdrawn);
     await db.approvalRequest.updateMany({ where: { targetType: "signature_change", targetId: id, status: "pending" }, data: { status: "cancelled" } });
     await db.signatureChange.update({ where: { id }, data: { status: "cancelled", decidedAt: new Date() } });
   });

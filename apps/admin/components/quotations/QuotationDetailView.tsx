@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -112,14 +113,14 @@ export function QuotationDetailView({
 
   // Status mapping
   const statusMeta: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-    draft: { label: "Draft", color: "bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300", icon: Clock },
+    draft: { label: t.statusLabels.draft, color: "bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-neutral-300", icon: Clock },
     submitted: { label: t.quotationDetail.pendingApproval, color: "bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300", icon: Clock },
     approved: { label: t.quotationDetail.approvedBySuperAdmin, color: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300", icon: CheckCircle2 },
     issued: { label: t.quotationDetail.issuedToClient, color: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300", icon: Send },
     accepted: { label: t.quotationDetail.acceptedByClient, color: "bg-teal-50 text-teal-800 border border-teal-200 dark:bg-teal-950/40 dark:text-teal-300", icon: FileCheck },
     converted: { label: t.quotationDetail.convertedToInvoice, color: "bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300", icon: Receipt },
-    rejected: { label: "Rejected", color: "bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/40 dark:text-red-300", icon: XCircle },
-    expired: { label: "Expired", color: "bg-stone-100 text-stone-600 dark:bg-neutral-800 dark:text-neutral-400", icon: AlertCircle },
+    rejected: { label: t.statusLabels.rejected, color: "bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/40 dark:text-red-300", icon: XCircle },
+    expired: { label: t.statusLabels.expired, color: "bg-stone-100 text-stone-600 dark:bg-neutral-800 dark:text-neutral-400", icon: AlertCircle },
   };
 
   const currentStatusMeta = statusMeta[quotation.status] || statusMeta.draft;
@@ -201,7 +202,7 @@ export function QuotationDetailView({
     try {
       const res = await issueQuotationAction(quotation.id, deliveryChannel);
       if (res.success) {
-        toast.success(t.newQuotationForm.issuedVia.replace("{channel}", deliveryChannel), { id: toastId });
+        toast.success(formatMessage(t.newQuotationForm.issuedVia, { channel: deliveryChannel }), { id: toastId });
         setShowIssueModal(false);
         router.refresh();
       } else {
@@ -255,8 +256,8 @@ export function QuotationDetailView({
       if (res.success && res.invoice) {
         toast.success(
           res.invoice.isExisting
-            ? `Retrieved existing invoice ${res.invoice.invoiceNumber}`
-            : `Invoice ${res.invoice.invoiceNumber} generated!`,
+            ? formatMessage(t.copy.existingInvoice, { number: res.invoice.invoiceNumber })
+            : formatMessage(t.copy.generatedInvoice, { number: res.invoice.invoiceNumber }),
           { id: toastId },
         );
         router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
@@ -471,7 +472,7 @@ export function QuotationDetailView({
                 <div>
                   <span className="text-slate-500">{qdT.rawMarketRate}</span>
                   <div className="font-mono font-semibold text-slate-800 dark:text-neutral-200">
-                    {quotation.rawRate ? Number(quotation.rawRate).toFixed(4) : "N/A"}
+                    {quotation.rawRate ? Number(quotation.rawRate).toFixed(4) : t.copy.notAvailable}
                   </div>
                 </div>
                 <div>
@@ -483,12 +484,12 @@ export function QuotationDetailView({
                 <div>
                   <span className="text-slate-500">{qdT.effectiveRate}</span>
                   <div className="font-mono font-semibold text-slate-900 dark:text-white">
-                    {quotation.effectiveRate ? Number(quotation.effectiveRate).toFixed(4) : "—"} {quotation.currency}/BHD
+                    {quotation.effectiveRate ? Number(quotation.effectiveRate).toFixed(4) : "—"} {quotation.currency}{formatMessage(t.copy.currencyRate, { currency: "BHD" })}
                   </div>
                 </div>
               </div>
               <p className="text-[11px] text-amber-700 dark:text-amber-400 leading-relaxed pt-1 border-t border-amber-200/60 dark:border-amber-900/40">
-                {qdT.fxNotice}
+                {formatMessage(qdT.fxNotice, { rate: Number(quotation.fxMarginPercent) })}
               </p>
             </div>
           )}
@@ -668,7 +669,7 @@ export function QuotationDetailView({
                   {approvalRequest.decisions.map((dec) => (
                     <div key={dec.id} className="p-2 rounded bg-white dark:bg-neutral-800 border border-slate-200 dark:border-white/5 text-[11px]">
                       <div className="font-semibold text-slate-900 dark:text-white capitalize">
-                        {dec.decision} by {dec.decidedBy?.fullName || t.quotationDetail.superAdmin}
+                        {dec.decision} {t.copy.by}{dec.decidedBy?.fullName || t.quotationDetail.superAdmin}
                       </div>
                       <div className="text-slate-400 font-mono text-[10px]">
                         {formatDate(dec.decidedAt, locale, "time")}

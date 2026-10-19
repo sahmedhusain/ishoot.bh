@@ -1,4 +1,5 @@
 "use client";
+import { useUiCopy } from "../copy/use-ui-copy";
 
 
 export interface CashFlowDataPoint {
@@ -17,9 +18,11 @@ interface CashFlowChartProps {
 export function CashFlowChart({
   data,
   height = 240,
-  inflowLabel = "Inflow (Revenue)",
-  outflowLabel = "Outflow (Expenses)",
+  inflowLabel,
+  outflowLabel,
 }: CashFlowChartProps) {
+  const copy = useUiCopy();
+  inflowLabel ??= copy.inflow; outflowLabel ??= copy.outflow;
   if (!data || data.length === 0) return null;
 
   const maxVal = Math.max(...data.flatMap((d) => [d.inflow, d.outflow]), 1000);

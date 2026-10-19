@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db, runAtomicMutation } from "../db";
 
 /** A tax the company is registered for besides VAT, as the settings screen shows it. */
@@ -77,13 +78,13 @@ export async function listTaxRates(): Promise<TaxRateRecord[]> {
 export async function saveTaxRate(input: TaxRateInput) {
   const nameEn = input.name_en?.trim().slice(0, 80);
   const nameAr = input.name_ar?.trim().slice(0, 80);
-  if (!nameEn || !nameAr) throw new Error("Enter the tax name in English and Arabic");
-  if (/^(vat|value added tax)$/i.test(nameEn)) throw new Error("VAT is set up in the VAT section above");
+  if (!nameEn || !nameAr) throw new Error(serverMessages.enterTheTaxNameInEnglish);
+  if (/^(vat|value added tax)$/i.test(nameEn)) throw new Error(serverMessages.vatIsSetUpInThe);
   const rate = Math.round(Number(input.rate) * 100) / 100;
-  if (!Number.isFinite(rate) || rate <= 0 || rate > 100) throw new Error("Enter a tax rate between 0.01% and 100%");
-  if (!input.applies_to_invoices && !input.applies_to_quotations) throw new Error("Choose where the tax applies: invoices, quotations or both");
+  if (!Number.isFinite(rate) || rate <= 0 || rate > 100) throw new Error(serverMessages.enterATaxRateBetween0);
+  if (!input.applies_to_invoices && !input.applies_to_quotations) throw new Error(serverMessages.chooseWhereTheTaxAppliesInvoices);
   const validUntil = input.certificate_valid_until?.trim();
-  if (validUntil && !Number.isFinite(Date.parse(validUntil))) throw new Error("Invalid date");
+  if (validUntil && !Number.isFinite(Date.parse(validUntil))) throw new Error(serverMessages.invalidDate);
   const data = {
     nameEn,
     nameAr,
@@ -98,7 +99,7 @@ export async function saveTaxRate(input: TaxRateInput) {
   return runAtomicMutation(async () => {
     if (input.id) {
       const existing = await db.taxRate.findUnique({ where: { id: input.id }, select: { id: true } });
-      if (!existing) throw new Error("Tax not found");
+      if (!existing) throw new Error(serverMessages.taxNotFound);
       return db.taxRate.update({ where: { id: input.id }, data });
     }
     const base = slug(nameEn) === VAT_TAX_CODE ? "tax" : slug(nameEn);
@@ -113,7 +114,7 @@ export async function saveTaxRate(input: TaxRateInput) {
 export async function deleteTaxRate(id: string) {
   return runAtomicMutation(async () => {
     const used = await db.documentTax.count({ where: { taxRateId: id } });
-    if (used) throw new Error("This tax is on existing documents. Deactivate it instead.");
+    if (used) throw new Error(serverMessages.thisTaxIsOnExistingDocuments);
     await db.taxRate.delete({ where: { id } });
   });
 }

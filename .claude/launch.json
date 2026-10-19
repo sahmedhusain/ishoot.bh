@@ -4,8 +4,27 @@
     {
       "name": "admin",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@ishoot/admin", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@ishoot/admin",
+        "dev"
+      ],
       "port": 3001
+    },
+    {
+      "name": "admin-verify",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@ishoot/admin",
+        "exec",
+        "next",
+        "dev",
+        "--turbopack",
+        "-p",
+        "3002"
+      ],
+      "port": 3002
     }
   ]
 }

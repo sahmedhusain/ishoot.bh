@@ -6,6 +6,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Laptop,
+  Bell,
+  Megaphone,
+  ChevronDown,
+  Settings,
   ArrowRightLeft,
   LayoutDashboard,
   Calendar,
@@ -35,10 +39,18 @@ import {
   BadgeDollarSign,
   Contact,
   Gauge,
+  Landmark,
+  HandHeart,
+  FileCheck2,
+  ClipboardList,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import {
+  sidebarGroupOrder,
+  activeNavigationHref,
+} from "../../lib/sidebar-navigation";
 import { useFeatureToggles } from "../../hooks/useFeatureToggles";
 
 interface NavItem {
@@ -56,23 +68,59 @@ interface NavItem {
 }
 
 interface NavSection {
+  id: string;
   title: string;
   items: NavItem[];
 }
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { can, loading, managesTeam, role } = usePermissions();
+  const { can, managesTeam, role, user } = usePermissions();
   const { isMobileOpen, setIsMobileOpen } = useSidebar();
   const { t } = useAdminLocale();
   const { isFeatureEnabled } = useFeatureToggles();
+  const [folded, setFolded] = React.useState<Record<string, boolean>>({});
+  const storageKey = `ishoot_navigation_${user?.id ?? "guest"}`;
+  React.useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) ?? "{}");
+      setFolded(
+        saved && typeof saved === "object" && !Array.isArray(saved)
+          ? (Object.fromEntries(
+              Object.entries(saved).filter(
+                ([, value]) => typeof value === "boolean",
+              ),
+            ) as Record<string, boolean>)
+          : {},
+      );
+    } catch {
+      setFolded({});
+    }
+  }, [storageKey]);
 
-  const sections = React.useMemo<NavSection[]>(
-    () => [
+  const sections = React.useMemo<NavSection[]>(() => {
+    const existing: Omit<NavSection, "id">[] = [
       {
         title: t.nav.overview,
         items: [
           { href: ROUTES.home, label: t.nav.dashboard, icon: LayoutDashboard },
+          {
+            href: ROUTES.notifications(),
+            label: t.communications.notifications,
+            icon: FileText,
+          },
+          {
+            href: ROUTES.announcements.list(),
+            label: t.communications.announcements,
+            icon: FileText,
+            resource: "announcements",
+          },
+          {
+            href: ROUTES.letters.list(),
+            label: t.communications.letters,
+            icon: FileSignature,
+            resource: "letters",
+          },
           {
             href: ROUTES.directory,
             label: t.directory.title,
@@ -223,6 +271,13 @@ export function Sidebar() {
             resource: "assets",
           },
           {
+            href: ROUTES.hr.requests(),
+            label: t.hrRequests.navTitle,
+            icon: ClipboardList,
+            resource: "employees",
+            moduleKey: "hrms",
+          },
+          {
             href: ROUTES.hr.handovers(),
             label: t.employeeHandovers.navTitle,
             icon: ArrowRightLeft,
@@ -240,6 +295,27 @@ export function Sidebar() {
             href: ROUTES.hr.payroll(),
             label: t.sidebar.payrollAndGosi,
             icon: CreditCard,
+            resource: "payroll",
+            moduleKey: "payroll",
+          },
+          {
+            href: ROUTES.hr.gosi,
+            label: t.gosi.title,
+            icon: Landmark,
+            resource: "payroll",
+            moduleKey: "payroll",
+          },
+          {
+            href: ROUTES.hr.supports(),
+            label: t.supports.title,
+            icon: HandHeart,
+            resource: "payroll",
+            moduleKey: "payroll",
+          },
+          {
+            href: ROUTES.hr.settlements(),
+            label: t.settlements.title,
+            icon: FileCheck2,
             resource: "payroll",
             moduleKey: "payroll",
           },
@@ -377,13 +453,151 @@ export function Sidebar() {
           },
         ],
       },
-    ],
-    [t],
-  );
+    ];
+    const all = existing.flatMap((group) => group.items);
+    const take = (urls: string[]) =>
+      urls
+        .map((href) => all.find((item) => item.href === href))
+        .filter((item): item is NavItem => !!item);
+    const groups: NavSection[] = [
+      {
+        id: "workspace",
+        title: t.navigationGroups.workspace,
+        items: take([
+          ROUTES.home,
+          ROUTES.approvals(),
+          ROUTES.calendar,
+          ROUTES.team,
+        ]),
+      },
+      {
+        id: "sales",
+        title: t.navigationGroups.sales,
+        items: take([
+          ROUTES.crm.deals,
+          ROUTES.crm.contacts,
+          ROUTES.requests.list,
+          ROUTES.quotations.list,
+          ROUTES.services,
+        ]),
+      },
+      {
+        id: "operations",
+        title: t.navigationGroups.operations,
+        items: take([
+          ROUTES.moms.list,
+          ROUTES.assets.list(),
+          ROUTES.hr.handovers(),
+          ROUTES.cms.equipment,
+        ]),
+      },
+      {
+        id: "finance",
+        title: t.nav.finance,
+        items: take([
+          ROUTES.finance.overview,
+          ROUTES.invoices.list,
+          ROUTES.payments.list,
+          ROUTES.expenses.list(),
+          ROUTES.finance.commissions(),
+          ROUTES.finance.reports,
+        ]),
+      },
+      {
+        id: "people",
+        title: t.navigationGroups.people,
+        items: take([
+          ROUTES.hr.employees,
+          ROUTES.hr.attendance,
+          ROUTES.hr.payroll(),
+          ROUTES.hr.settlements(),
+          ROUTES.hr.gosi,
+          ROUTES.hr.supports(),
+          ROUTES.hr.settings,
+        ]),
+      },
+      {
+        id: "personal",
+        title: t.navigationGroups.personal,
+        items: take([
+          ROUTES.hr.leave(),
+          ROUTES.hr.documents(),
+          ROUTES.claims.list(),
+        ]),
+      },
+      {
+        id: "communications",
+        title: t.navigationGroups.communications,
+        items: [
+          ...take([
+            ROUTES.announcements.list(),
+            ROUTES.notifications(),
+            ROUTES.letters.list(),
+            ROUTES.directory,
+          ]),
+          {
+            href: ROUTES.archive,
+            label: t.companyArchive.title,
+            icon: FolderOpen,
+          },
+        ],
+      },
+      {
+        id: "content",
+        title: t.navigationGroups.content,
+        items: take([
+          ROUTES.analytics,
+          ROUTES.cms.website,
+          ROUTES.cms.portfolio,
+          ROUTES.cms.banners,
+          ROUTES.cms.clients,
+          ROUTES.cms.reviews,
+          ROUTES.cms.faqs,
+          ROUTES.cms.stats,
+        ]),
+      },
+      {
+        id: "administration",
+        title: t.navigationGroups.administration,
+        items: [
+          ...take([
+            ROUTES.settings.company,
+            ROUTES.users.list,
+            ROUTES.settings.roles,
+          ]),
+          {
+            href: ROUTES.settings.approvals,
+            label: t.settingsTabs.approvals,
+            icon: ShieldCheck,
+            superAdminOnly: true,
+            resource: "settings",
+            action: "edit",
+          },
+          {
+            href: ROUTES.settings.integrations,
+            label: t.navigationGroups.integrations,
+            icon: Settings,
+            resource: "settings",
+            action: "edit",
+          },
+          ...take([
+            ROUTES.settings.web,
+            ROUTES.settings.modules,
+            ROUTES.settings.audit,
+          ]),
+        ],
+      },
+    ];
+    // Use task-specific symbols for communication destinations.
+    for (const group of groups)
+      for (const item of group.items) {
+        if (item.href === ROUTES.notifications()) item.icon = Bell;
+        if (item.href === ROUTES.announcements.list()) item.icon = Megaphone;
+      }
+    return groups;
+  }, [t]);
 
   const visibleSections = React.useMemo(() => {
-    if (loading) return sections;
-
     return sections
       .map((section) => ({
         ...section,
@@ -395,61 +609,90 @@ export function Sidebar() {
           return can(item.resource, item.action ?? "read");
         }),
       }))
-      .filter((section) => section.items.length > 0);
-  }, [sections, can, loading, isFeatureEnabled, managesTeam, role]);
+      .filter((section) => section.items.length > 0)
+      .sort(
+        (a, b) =>
+          sidebarGroupOrder(role).indexOf(a.id) -
+          sidebarGroupOrder(role).indexOf(b.id),
+      );
+  }, [sections, can, isFeatureEnabled, managesTeam, role]);
 
-  // Only the most specific matching link is active (/finance/reports must not also light up /finance).
-  const activeHref = React.useMemo(() => {
-    const matches = visibleSections
-      .flatMap((section) => section.items.map((item) => item.href))
-      .filter((href) => pathname === href || (href !== ROUTES.home && pathname.startsWith(href + "/")));
-    return matches.sort((a, b) => b.length - a.length)[0];
-  }, [visibleSections, pathname]);
+  const activeHref = activeNavigationHref(
+    visibleSections.flatMap((section) =>
+      section.items.map((item) => item.href),
+    ),
+    pathname,
+  );
+  const toggleSection = (id: string, current: boolean) => {
+    const next = { ...folded, [id]: !current };
+    setFolded(next);
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(next));
+    } catch {}
+  };
 
   const navContent = (
-    <nav className="h-full overflow-y-auto py-2.5 space-y-3 select-none">
-      {visibleSections.map((section, idx) => (
-        <div
-          key={section.title}
-          className={
-            idx > 0
-              ? "pt-2 border-t border-slate-100 dark:border-neutral-800"
-              : ""
-          }
-        >
-          <div className="px-4 py-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-            {section.title}
-          </div>
-          <div className="space-y-0.5">
-            {section.items.map((item) => {
-              const Icon = item.icon;
-              const isActive = item.href === activeHref;
+    <nav
+      aria-label={t.topbar.toggleNavigationMenu}
+      className="h-full overflow-y-auto overscroll-contain py-3 space-y-2 select-none"
+    >
+      {visibleSections.map((section, idx) => {
+        const active = section.items.some((item) => item.href === activeHref);
+        const collapsed = folded[section.id] ?? (!active && idx > 3);
+        return (
+          <div
+            key={section.id}
+            className={
+              idx > 0
+                ? "pt-2 border-t border-slate-100 dark:border-neutral-800"
+                : ""
+            }
+          >
+            <button
+              type="button"
+              onClick={() => toggleSection(section.id, collapsed)}
+              aria-expanded={!collapsed}
+              className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+            >
+              <span>{section.title}</span>
+              <ChevronDown
+                aria-hidden
+                className={`h-3 w-3 transition-transform ${collapsed ? "-rotate-90 rtl:rotate-90" : ""}`}
+              />
+            </button>
+            <div hidden={collapsed} className="space-y-0.5">
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = item.href === activeHref;
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileOpen(false)}
-                  className={`flex items-center gap-3 mx-2 px-3 h-9 rounded-full text-[13px] font-medium transition-colors ${
-                    isActive
-                      ? "bg-[#e6f5f2] text-primary dark:bg-[#004d40]/40 dark:text-mint font-semibold"
-                      : "text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
-                  }`}
-                >
-                  <Icon
-                    className={`w-4 h-4 shrink-0 transition-colors ${
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={isActive ? "page" : undefined}
+                    title={item.label}
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`flex items-center gap-3 mx-2 px-3 h-9 rounded-xl text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                       isActive
-                        ? "text-primary dark:text-mint"
-                        : "text-slate-500 dark:text-neutral-400"
+                        ? "bg-[#e6f5f2] text-primary dark:bg-[#004d40]/40 dark:text-mint font-semibold"
+                        : "text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
                     }`}
-                  />
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              );
-            })}
+                  >
+                    <Icon
+                      className={`w-4 h-4 shrink-0 transition-colors ${
+                        isActive
+                          ? "text-primary dark:text-mint"
+                          : "text-slate-500 dark:text-neutral-400"
+                      }`}
+                    />
+                    <span className="truncate">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </nav>
   );
 
@@ -464,7 +707,7 @@ export function Sidebar() {
       {isMobileOpen && (
         <div className="lg:hidden fixed inset-0 top-14 z-50 flex">
           <div
-            className="fixed inset-0 top-14 bg-black/50 backdrop-blur-xs animate-fade-in"
+            className="fixed inset-0 top-14 modal-scrim"
             onClick={() => setIsMobileOpen(false)}
           />
           <div className="relative w-64 max-w-[80vw] h-full bg-white dark:bg-surface-raised border-e border-ink/15 dark:border-ink/15 shadow-xl flex flex-col z-10 animate-in slide-in-from-start duration-150">

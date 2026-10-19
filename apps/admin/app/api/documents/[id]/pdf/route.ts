@@ -1,3 +1,5 @@
+import { serverMessages, getTranslations } from "@ishoot/locales";
+
 import { measureOperation } from "@ishoot/database";
 import { NextRequest,NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../../lib/auth";
@@ -8,7 +10,7 @@ getQuotationById,
 getCompanySettings,
 hasPermission,
 } from "@ishoot/database";
-import { getTranslations } from "@ishoot/locales";
+
 import {
 generateInvoicePdfBuffer,
 generateReceiptPdfBuffer,
@@ -24,14 +26,14 @@ export async function GET(
   const trans = getTranslations(request.nextUrl.searchParams.get("locale") === "ar" ? "ar" : "en");
   const user = await getCurrentUser();
   if (!user)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
   try {
     const { id } = await context.params;
     const url = new URL(request.url);
     const docType = url.searchParams.get("type") || "invoice";
     if (!["invoice", "receipt", "quotation"].includes(docType))
       return NextResponse.json(
-        { error: "Invalid document type" },
+        { error: serverMessages.runtimeInvalidDocumentType },
         { status: 400 },
       );
     const resource = docType === "receipt" ? "payments" : docType === "quotation" ? "quotations" : "invoices";
@@ -41,7 +43,7 @@ export async function GET(
       (isDownload &&
         !(await hasPermission(user.role, resource, "export", user.permissions)))
     )
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: serverMessages.runtimeForbidden }, { status: 403 });
 
     const company = await getCompanySettings();
 

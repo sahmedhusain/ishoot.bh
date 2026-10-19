@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import type { NextRequest } from "next/server";
 
 import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database/services/abuse-limits";
@@ -5,9 +6,9 @@ export async function readLoginInput(req: NextRequest): Promise<Record<string, u
   const ip = trustedClientIp(req.headers);
   await consumeAbuseLimit("login-ip", ip || "untrusted-ingress", ip ? 10 : 300);
   if (Number(req.headers.get("content-length")) > 4096)
-    throw new Error("INVALID_INPUT");
+    throw new Error(serverMessages.invalidInput);
   const reader = req.body?.getReader();
-  if (!reader) throw new Error("INVALID_INPUT");
+  if (!reader) throw new Error(serverMessages.invalidInput);
   const chunks: Uint8Array[] = [];
   let bytes = 0;
   while (true) {
@@ -16,7 +17,7 @@ export async function readLoginInput(req: NextRequest): Promise<Record<string, u
     bytes += chunk.value.byteLength;
     if (bytes > 4096) {
       await reader.cancel();
-      throw new Error("INVALID_INPUT");
+      throw new Error(serverMessages.invalidInput);
     }
     chunks.push(chunk.value);
   }
@@ -26,6 +27,6 @@ export async function readLoginInput(req: NextRequest): Promise<Record<string, u
       throw new Error();
     return data;
   } catch {
-    throw new Error("INVALID_INPUT");
+    throw new Error(serverMessages.invalidInput);
   }
 }

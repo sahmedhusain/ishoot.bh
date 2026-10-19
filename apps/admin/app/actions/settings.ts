@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
@@ -67,7 +68,7 @@ export async function saveCompanyAssetAction(
           "icon",
         ].includes(assetKey);
         if (!upload || (publicKey && !upload.isPublic))
-          throw new Error("Choose a registered public brand image");
+          throw new Error(serverMessages.chooseARegisteredPublicBrandImage);
         const attached = await db.attachment.findFirst({
           where: {
             fileUrl: data.fileUrl,

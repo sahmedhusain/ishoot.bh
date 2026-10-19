@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -42,7 +43,7 @@ export async function saveAccountSettingsAction(
   return measureOperation("action:saveAccountSettingsAction", async () => {
     const actor = await requireAuth();
     const [canManageUsers, canEditEmployees] = await Promise.all([hasPermission("users", "write"), hasPermission("employees", "edit")]);
-    if (!canManageUsers && !canEditEmployees) throw new Error("You do not have permission to change account settings");
+    if (!canManageUsers && !canEditEmployees) throw new Error(serverMessages.youDoNotHavePermissionToChange);
     const input = { ...changes, status: changes.status as AccountChanges["status"] };
     const employee = await db.employee.findFirst({ where: { userId }, select: { id: true } });
 
@@ -72,8 +73,8 @@ export async function cancelAccountChangeAction(requestId: string) {
   return measureOperation("action:cancelAccountChangeAction", async () => {
     const actor = await requireAuth();
     const request = await db.accountChangeRequest.findUniqueOrThrow({ where: { id: requestId }, select: { status: true, requestedById: true, userId: true } });
-    if (request.status !== "pending") throw new Error("Only pending changes can be withdrawn");
-    if (request.requestedById !== actor.id && !(await hasPermission("users", "write"))) throw new Error("Only the person who filed it can withdraw this change");
+    if (request.status !== "pending") throw new Error(serverMessages.onlyPendingChangesCanBeWithdrawn);
+    if (request.requestedById !== actor.id && !(await hasPermission("users", "write"))) throw new Error(serverMessages.onlyThePersonWhoFiledItCan);
     await runAtomicMutation(async () => {
       await db.accountChangeRequest.update({ where: { id: requestId }, data: { status: "cancelled", decidedAt: new Date() } });
       await cancelPendingApprovals("account_change", requestId);

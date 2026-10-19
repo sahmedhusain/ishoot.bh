@@ -1,4 +1,6 @@
 "use server";
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -39,12 +41,12 @@ export async function createLeaveRequestAction(data: {
         where: { userId: actor.id },
         select: { id: true },
       });
-      if (!emp) throw new Error("Your HR profile is not set up yet. Ask HR to create your employee record.");
+      if (!emp) throw new Error(serverMessages.yourHrProfileIsNotSetUp);
       targetEmployeeId = emp.id;
     }
 
     const target = await db.employee.findUnique({ where: { id: targetEmployeeId }, select: { userId: true } });
-    if (!target) throw new Error("Employee not found");
+    if (!target) throw new Error(serverMessages.employeeNotFound);
     if (target.userId === actor.id) await requirePermission("self_service", "create");
     else await requirePermission("employees", "create");
     const { leaveRequest, approval } = await runAtomicMutation(async () => {
@@ -97,7 +99,7 @@ export async function decideLeaveRequestAction(
 
     const result = await runAtomicMutation(async () => {
       const pending = await findPendingApproval("leave_request", requestId);
-      if (!pending) throw new Error("This leave request has no pending approval");
+      if (!pending) throw new Error(serverMessages.thisLeaveRequestHasNoPendingApproval);
       const outcome = await decideApprovalRequest(pending.id, actor.id, decision, notes);
       const conflicts =
         decision === "approved"
@@ -134,12 +136,12 @@ export async function cancelLeaveRequestAction(requestId: string) {
       where: { id: requestId },
       include: { employee: true },
     });
-    if (!leave) throw new Error("Leave request not found");
-    if (leave.status !== "pending") throw new Error(`Cannot cancel leave with status: ${leave.status}`);
+    if (!leave) throw new Error(serverMessages.leaveRequestNotFound);
+    if (leave.status !== "pending") throw new Error(formatMessage(serverTemplates.cannotCancelLeaveWithStatus0, { 0: leave.status }));
 
     // Your own pending request, or anyone's if you manage employee records.
     if (leave.employee.userId !== actor.id && !(await hasPermission("employees", "edit"))) {
-      throw new Error("You can only cancel your own pending leave requests");
+      throw new Error(serverMessages.youCanOnlyCancelYourOwnPending);
     }
 
     await runAtomicMutation(async () => {

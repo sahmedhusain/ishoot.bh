@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db, runAtomicMutation } from "../db";
 import { ROUTES } from "../constants/routes";
 import { hasPermission } from "./permissions";
@@ -74,17 +75,17 @@ export function nextDueAfter(date: Date, frequency: ExpenseFrequency, anchorDay 
 
 function normalize(input: RecurringExpenseInput) {
   const titleEn = input.title_en?.trim().slice(0, 150);
-  if (!titleEn) throw new Error("Enter the bill's name");
-  if (!(EXPENSE_FREQUENCIES as readonly string[]).includes(input.frequency)) throw new Error("Choose how often the bill is due");
+  if (!titleEn) throw new Error(serverMessages.enterTheBillSName);
+  if (!(EXPENSE_FREQUENCIES as readonly string[]).includes(input.frequency)) throw new Error(serverMessages.chooseHowOftenTheBillIs);
   const amount = Math.round(Number(input.amount) * 1000) / 1000;
-  if (!Number.isFinite(amount) || amount <= 0) throw new Error("Expense amount must be positive");
+  if (!Number.isFinite(amount) || amount <= 0) throw new Error(serverMessages.expenseAmountMustBePositive);
   const vat = Math.round(Number(input.input_vat_amount ?? 0) * 1000) / 1000;
-  if (!Number.isFinite(vat) || vat < 0 || vat >= amount) throw new Error("Input VAT must be less than the expense amount");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.start_date ?? "") || !Number.isFinite(Date.parse(input.start_date))) throw new Error("Invalid date");
+  if (!Number.isFinite(vat) || vat < 0 || vat >= amount) throw new Error(serverMessages.inputVatMustBeLessThanThe);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.start_date ?? "") || !Number.isFinite(Date.parse(input.start_date))) throw new Error(serverMessages.invalidDate);
   const end = input.end_date?.trim() || null;
-  if (end && (!/^\d{4}-\d{2}-\d{2}$/.test(end) || end < input.start_date)) throw new Error("The end date cannot be before the start date");
+  if (end && (!/^\d{4}-\d{2}-\d{2}$/.test(end) || end < input.start_date)) throw new Error(serverMessages.theEndDateCannotBeBefore);
   const remind = Math.round(Number(input.remind_days_before ?? 3));
-  if (!Number.isFinite(remind) || remind < 0 || remind > 60) throw new Error("Reminders can be 0 to 60 days before");
+  if (!Number.isFinite(remind) || remind < 0 || remind > 60) throw new Error(serverMessages.remindersCanBe0To60);
   return {
     titleEn,
     titleAr: input.title_ar?.trim().slice(0, 150) || null,
@@ -153,11 +154,11 @@ export async function saveRecurringExpense(input: RecurringExpenseInput, actorId
   return runAtomicMutation(async () => {
     if (data.categoryId) {
       const category = await db.expenseCategory.findUnique({ where: { id: data.categoryId }, select: { isActive: true } });
-      if (!category?.isActive) throw new Error("Choose an active expense category");
+      if (!category?.isActive) throw new Error(serverMessages.chooseAnActiveExpenseCategory);
     }
     if (id) {
       const existing = await db.recurringExpense.findUnique({ where: { id }, include: { _count: { select: { expenses: true } } } });
-      if (!existing) throw new Error("Recurring expense not found");
+      if (!existing) throw new Error(serverMessages.recurringExpenseNotFound);
       // Before anything is recorded the schedule restarts from the start date; afterwards it continues.
       const nextDueDate = existing._count.expenses === 0 ? data.startDate : existing.nextDueDate;
       return db.recurringExpense.update({ where: { id }, data: { ...data, nextDueDate } });
@@ -168,8 +169,8 @@ export async function saveRecurringExpense(input: RecurringExpenseInput, actorId
 
 export async function deleteRecurringExpense(id: string) {
   const existing = await db.recurringExpense.findUnique({ where: { id }, include: { _count: { select: { expenses: true } } } });
-  if (!existing) throw new Error("Recurring expense not found");
-  if (existing._count.expenses) throw new Error("Expenses were already recorded from this bill. Pause it instead.");
+  if (!existing) throw new Error(serverMessages.recurringExpenseNotFound);
+  if (existing._count.expenses) throw new Error(serverMessages.expensesWereAlreadyRecordedFromThis);
   await db.recurringExpense.delete({ where: { id } });
 }
 
@@ -189,8 +190,8 @@ export async function recordRecurringExpense(
 ) {
   return runAtomicMutation(async () => {
     const r = await db.recurringExpense.findUnique({ where: { id } });
-    if (!r) throw new Error("Recurring expense not found");
-    if (!r.isActive) throw new Error("This recurring expense is paused");
+    if (!r) throw new Error(serverMessages.recurringExpenseNotFound);
+    if (!r.isActive) throw new Error(serverMessages.thisRecurringExpenseIsPaused);
     const dueDate = iso(r.nextDueDate);
     const expense = await createExpense(
       {
@@ -222,7 +223,7 @@ export async function recordRecurringExpense(
 /** Skips the current due date (e.g. a waived bill) without recording an expense. */
 export async function skipRecurringExpense(id: string) {
   const r = await db.recurringExpense.findUnique({ where: { id } });
-  if (!r) throw new Error("Recurring expense not found");
+  if (!r) throw new Error(serverMessages.recurringExpenseNotFound);
   await db.recurringExpense.update({ where: { id }, data: advance(r) });
   return iso(r.nextDueDate);
 }

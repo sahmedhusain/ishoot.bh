@@ -30,7 +30,7 @@ export function ForgotPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandi
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setMessage(data.message || t.forgotPasswordForm.resetLinkSent);
+      setMessage(t.copy.resetLinkSent);
     } catch(err: any) {
       setError(errorMessage(err, t, t.forgotPasswordForm.failedToSendResetLink));
     } finally {
@@ -61,11 +61,11 @@ export function ForgotPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandi
               <label className="text-xs font-medium text-[#9EADA9]">{t.forgotPasswordForm.emailAddress}</label>
               <div className="relative">
                 <Mail className="w-4 h-4 absolute top-3.5 start-3.5 text-[#9EADA9]" />
-                <Input type="email" required placeholder="admin@ishoot.bh" className="ps-10" value={email} onChange={e => setEmail(e.target.value)} />
+                <Input type="email" required placeholder={t.copy.emailExample} className="ps-10" value={email} onChange={e => setEmail(e.target.value)} />
               </div>
             </div>
             <Button type="submit" disabled={loading} variant="primary" size="lg" className="w-full gap-2 mt-4">
-              <span>{loading ? "Sending..." : t.forgotPasswordForm.sendResetLink}</span>
+              <span>{loading ? t.copy.sending : t.forgotPasswordForm.sendResetLink}</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </form>

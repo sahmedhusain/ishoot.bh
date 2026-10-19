@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -17,16 +18,21 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "../../lib/auth";
 
 export async function updateMyProfileAction(data: {
-  phone?: string;
-}): Promise<{ success: boolean; user?: any }> {
+  phone?: string | null;
+}): Promise<{ success: boolean }> {
   return measureOperation("action:updateMyProfileAction", async () => {
     const user = await requireAuth();
     validateActionArguments("updateMyProfileAction", { data });
+    if (data.phone === undefined) return { success: true };
 
-    const { updatedUser } = await runAtomicMutation(async () => {
-      const updated = await db.user.update({
+    await runAtomicMutation(async () => {
+      const phone = data.phone?.trim() || null;
+      if (phone && (phone.length > 40 || !/^[+0-9() .-]+$/.test(phone)))
+        throw new Error(serverMessages.profilePhoneInvalid);
+      await db.user.update({
         where: { id: user.id },
-        data: { phone: data.phone },
+        data: { phone },
+        select: { id: true },
       });
 
       await createActivityLog({
@@ -37,11 +43,14 @@ export async function updateMyProfileAction(data: {
         details: { updatedFields: Object.keys(data) },
       });
 
-      return { updatedUser: updated };
+      await db.employee.updateMany({
+        where: { userId: user.id },
+        data: { phone },
+      });
     });
 
     revalidatePath(ROUTES.profile());
-    return { success: true, user: updatedUser };
+    return { success: true };
   });
 }
 
@@ -55,7 +64,7 @@ export async function requestIdentityChangeAction(data: {
     validateActionArguments("requestIdentityChangeAction", { data });
 
     if (!data.fullName && !data.email) {
-      throw new Error("Must provide either a new name or a new email");
+      throw new Error(serverMessages.mustProvideEitherANewNameOr);
     }
 
     const { changeRequest, approval } = await runAtomicMutation(async () => {
@@ -64,7 +73,8 @@ export async function requestIdentityChangeAction(data: {
         where: { userId: user.id, status: "pending" },
         select: { id: true },
       });
-      for (const { id } of superseded) await cancelPendingApprovals("profile_change", id);
+      for (const { id } of superseded)
+        await cancelPendingApprovals("profile_change", id);
       const changeRequest = await requestProfileChange(
         user.id,
         {
@@ -85,7 +95,12 @@ export async function requestIdentityChangeAction(data: {
         targetType: "profile_change",
         targetId: changeRequest.id,
         requesterId: user.id,
-        diffPayload: { before: changeRequest.oldValues, after: changeRequest.newValues },
+        // The reason travels with the request so the approver sees why the name or e-mail changes.
+        diffPayload: {
+          before: changeRequest.oldValues,
+          after: changeRequest.newValues,
+          reason: data.reason?.trim().slice(0, 500) || null,
+        },
       });
 
       return { changeRequest, approval };
@@ -104,12 +119,22 @@ export async function decideProfileChangeAction(
 ) {
   return measureOperation("action:decideProfileChangeAction", async () => {
     const actor = await requireAuth();
-    validateActionArguments("decideProfileChangeAction", { requestId, decision, notes });
+    validateActionArguments("decideProfileChangeAction", {
+      requestId,
+      decision,
+      notes,
+    });
 
     const { outcome } = await runAtomicMutation(async () => {
       const pending = await findPendingApproval("profile_change", requestId);
-      if (!pending) throw new Error("This profile change has no pending approval");
-      const outcome = await decideApprovalRequest(pending.id, actor.id, decision, notes);
+      if (!pending)
+        throw new Error(serverMessages.thisProfileChangeHasNoPendingApproval);
+      const outcome = await decideApprovalRequest(
+        pending.id,
+        actor.id,
+        decision,
+        notes,
+      );
 
       await createActivityLog({
         user_id: actor.id,
@@ -136,8 +161,19 @@ export async function requestSignatureChangeAction(fileUrl: string) {
     validateActionArguments("requestSignatureChangeAction", { fileUrl });
     const result = await runAtomicMutation(async () => {
       const change = await requestSignatureChange(user.id, fileUrl);
-      const approval = await submitForApproval({ targetType: "signature_change", targetId: change.id, requesterId: user.id, policySnapshot: { previous: change.previousUrl ? "replaced" : "first" } });
-      await createActivityLog({ user_id: user.id, action: "request", entity_type: "signature_change", entity_id: change.id, details: { approvalStatus: approval.status } });
+      const approval = await submitForApproval({
+        targetType: "signature_change",
+        targetId: change.id,
+        requesterId: user.id,
+        policySnapshot: { previous: change.previousUrl ? "replaced" : "first" },
+      });
+      await createActivityLog({
+        user_id: user.id,
+        action: "request",
+        entity_type: "signature_change",
+        entity_id: change.id,
+        details: { approvalStatus: approval.status },
+      });
       return { change, approvalStatus: approval.status };
     });
     revalidatePath(ROUTES.profile());
@@ -152,9 +188,44 @@ export async function cancelSignatureChangeAction(id: string) {
     validateActionArguments("cancelSignatureChangeAction", { id });
     await runAtomicMutation(async () => {
       await cancelSignatureChange(id, user.id);
-      await createActivityLog({ user_id: user.id, action: "cancel", entity_type: "signature_change", entity_id: id });
+      await createActivityLog({
+        user_id: user.id,
+        action: "cancel",
+        entity_type: "signature_change",
+        entity_id: id,
+      });
     });
     revalidatePath(ROUTES.profile());
     return { success: true };
   });
+}
+
+/** Withdraw only the signed-in person's pending identity edit and its approval. */
+export async function cancelMyProfileChangeAction(id: string) {
+  validateActionArguments("cancelMyProfileChangeAction", { id });
+  const user = await requireAuth();
+  await runAtomicMutation(async () => {
+    await db.$queryRaw`SELECT id FROM "ProfileChangeRequest" WHERE id=${id} FOR UPDATE`;
+    const request = await db.profileChangeRequest.findUnique({
+      where: { id },
+      select: { userId: true, status: true },
+    });
+    if (!request || request.userId !== user.id)
+      throw new Error(serverMessages.profileChangeRequestNotFound);
+    if (request.status !== "pending")
+      throw new Error(serverMessages.profileSecurityError6);
+    await cancelPendingApprovals("profile_change", id);
+    await db.profileChangeRequest.update({
+      where: { id },
+      data: { status: "cancelled" },
+    });
+    await createActivityLog({
+      user_id: user.id,
+      action: "cancel",
+      entity_type: "profile_change_request",
+      entity_id: id,
+    });
+  });
+  revalidatePath(ROUTES.profile());
+  revalidatePath(ROUTES.approvals());
 }

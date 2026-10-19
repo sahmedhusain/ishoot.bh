@@ -1,5 +1,11 @@
-import { claimUpload } from "../services/uploads";
-import { paymentStatusFor, roundMoney, sumMoney, toMinorUnits } from "../finance/money";
+import { serverMessages } from "@ishoot/locales";
+import { claimUploadOrLink } from "../services/uploads";
+import {
+  paymentStatusFor,
+  roundMoney,
+  sumMoney,
+  toMinorUnits,
+} from "../finance/money";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { PAYABLE_INVOICE_STATUSES } from "../constants/finance";
 import { advanceDealForEvent } from "./crm";
@@ -88,25 +94,27 @@ function mapPayment(p: any): Payment {
 export async function getAllPayments(options?: {
   limit?: number;
   offset?: number;
-  invoiceId?:string;
+  invoiceId?: string;
 }): Promise<Payment[]> {
   try {
     const payments = await db.payment.findMany({
-      where: options?.invoiceId ? {invoiceId:options.invoiceId} : undefined,
+      where: options?.invoiceId ? { invoiceId: options.invoiceId } : undefined,
       take: options?.limit,
       skip: options?.offset,
-      include: options?.invoiceId ? undefined : {
-        invoice: {
-          include: {
-            client: true,
-            payments: true,
-            taxes: { orderBy: { displayOrder: "asc" } },
-            deal: {
-              include: { contact: true },
+      include: options?.invoiceId
+        ? undefined
+        : {
+            invoice: {
+              include: {
+                client: true,
+                payments: true,
+                taxes: { orderBy: { displayOrder: "asc" } },
+                deal: {
+                  include: { contact: true },
+                },
+              },
             },
           },
-        },
-      },
       orderBy: { paymentDate: "desc" },
     });
     return payments.map(mapPayment);
@@ -230,29 +238,48 @@ export async function createPayment(paymentData: {
   }>;
 }): Promise<Payment> {
   if (!Number.isFinite(paymentData.amount) || paymentData.amount <= 0)
-    throw new Error("Payment amount must be positive");
+    throw new Error(serverMessages.paymentAmountMustBePositive);
   if (
     paymentData.payment_method &&
     !["bank_transfer", "cash", "cheque", "card", "online"].includes(
       paymentData.payment_method,
     )
   )
-    throw new Error("Invalid payment method");
+    throw new Error(serverMessages.invalidPaymentMethod);
   const createdId = await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${paymentData.invoice_id} FOR UPDATE`;
     const payable = await tx.invoice.findUnique({
       where: { id: paymentData.invoice_id },
       include: { payments: true },
     });
-    if (!payable || !(PAYABLE_INVOICE_STATUSES as readonly string[]).includes(payable.status))
-      throw new Error(payable?.status === "draft" ? "Mark the invoice as sent before recording payments" : "Invoice is not payable");
+    if (
+      !payable ||
+      !(PAYABLE_INVOICE_STATUSES as readonly string[]).includes(payable.status)
+    )
+      throw new Error(
+        payable?.status === "draft"
+          ? "Mark the invoice as sent before recording payments"
+          : "Invoice is not payable",
+      );
     if (paymentData.currency && paymentData.currency !== payable.currency)
-      throw new Error("Payment currency must match invoice");
-    const paid = sumMoney(payable.payments.map((p) => p.amount), payable.currency);
-    if (toMinorUnits(paid + paymentData.amount, payable.currency) > toMinorUnits(Number(payable.totalAmount), payable.currency))
-      throw new Error("Payment exceeds outstanding balance");
-    const paymentDate = paymentData.payment_date ? new Date(paymentData.payment_date) : new Date();
-    const receiptNumber = await allocateDocumentNumber("receipt", paymentDate, tx);
+      throw new Error(serverMessages.paymentCurrencyMustMatchInvoice);
+    const paid = sumMoney(
+      payable.payments.map((p) => p.amount),
+      payable.currency,
+    );
+    if (
+      toMinorUnits(paid + paymentData.amount, payable.currency) >
+      toMinorUnits(Number(payable.totalAmount), payable.currency)
+    )
+      throw new Error(serverMessages.paymentExceedsOutstandingBalance);
+    const paymentDate = paymentData.payment_date
+      ? new Date(paymentData.payment_date)
+      : new Date();
+    const receiptNumber = await allocateDocumentNumber(
+      "receipt",
+      paymentDate,
+      tx,
+    );
 
     const payment = await tx.payment.create({
       data: {
@@ -275,7 +302,11 @@ export async function createPayment(paymentData: {
       paymentData.proof_attachments.length > 0
     ) {
       for (const att of paymentData.proof_attachments) {
-        const upload = await claimUpload(tx, att.fileUrl, paymentData.created_by);
+        const upload = await claimUploadOrLink(
+          tx,
+          att.fileUrl,
+          paymentData.created_by,
+        );
         await tx.attachment.create({
           data: {
             fileName: att.fileName,
@@ -297,7 +328,7 @@ export async function createPayment(paymentData: {
 
   const result = await getPaymentById(createdId);
   if (!result) {
-    throw new Error("Failed to retrieve created payment record");
+    throw new Error(serverMessages.failedToRetrieveCreatedPaymentRecord);
   }
   return result;
 }
@@ -310,7 +341,7 @@ export async function deletePayment(id: string): Promise<boolean> {
         select: { invoiceId: true },
       });
 
-      if (!payment) throw new Error("Payment not found");
+      if (!payment) throw new Error(serverMessages.paymentNotFound);
       await tx.$queryRaw`SELECT id FROM "Invoice" WHERE id = ${payment.invoiceId} FOR UPDATE`;
       await tx.payment.delete({ where: { id } });
 
@@ -331,12 +362,24 @@ async function reconcileInvoicePaymentStatus(
   tx: Pick<typeof db, "invoice" | "crmDeal">,
   invoiceId: string,
 ): Promise<void> {
-  const invoice = await tx.invoice.findUnique({ where: { id: invoiceId }, include: { payments: true } });
-  if (!invoice || invoice.status === "void" || invoice.status === "draft") return;
-  const paid = sumMoney(invoice.payments.map((p) => p.amount), invoice.currency);
+  const invoice = await tx.invoice.findUnique({
+    where: { id: invoiceId },
+    include: { payments: true },
+  });
+  if (!invoice || invoice.status === "void" || invoice.status === "draft")
+    return;
+  const paid = sumMoney(
+    invoice.payments.map((p) => p.amount),
+    invoice.currency,
+  );
   const next =
     paymentStatusFor(Number(invoice.totalAmount), paid, invoice.currency) ??
     (invoice.dueDate < new Date() ? "overdue" : "sent");
-  if (next !== invoice.status) await tx.invoice.update({ where: { id: invoiceId }, data: { status: next } });
-  if (next === "paid") await advanceDealForEvent(tx, invoice.dealId, "invoice_paid");
+  if (next !== invoice.status)
+    await tx.invoice.update({
+      where: { id: invoiceId },
+      data: { status: next },
+    });
+  if (next === "paid")
+    await advanceDealForEvent(tx, invoice.dealId, "invoice_paid");
 }

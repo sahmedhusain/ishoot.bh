@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import {
@@ -53,7 +54,7 @@ export async function saveSocialPlanAction(id: string | null, input: PlanInput) 
     const user = await requirePermission("social", id ? "edit" : "create");
     if (input.assigneeId) {
       const assignee = await db.user.findFirst({ where: { id: input.assigneeId, isActive: true }, select: { id: true } });
-      if (!assignee) throw new Error("Choose an active team member");
+      if (!assignee) throw new Error(serverMessages.chooseAnActiveTeamMember);
     }
     const plan = id ? await updateSocialPlan(id, input) : await createSocialPlan(input, user.id);
     revalidatePath(ROUTES.analytics);

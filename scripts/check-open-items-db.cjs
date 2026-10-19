@@ -9,7 +9,8 @@ const mfa = require('../packages/database/src/services/mfa.ts');
 const {claimUpload} = require('../packages/database/src/services/uploads.ts');
 const {consumeAbuseLimit} = require('../packages/database/src/services/abuse-limits.ts');
 const {processEmailJobs} = require('../packages/database/src/services/email-outbox.ts');
-const {getContactsPage,iterateListExport} = require('../packages/database/src/queries/list-pages.ts');
+const {iterateListExport} = require('../packages/database/src/queries/list-pages.ts');
+const {getClientsPage} = require('../packages/database/src/queries/client-profiles.ts');
 const {hasPermission} = require('../packages/database/src/queries/permissions.ts');
 const prefix='open-'+randomUUID(); let actor, mom, toggle, toggleChanged=false, companyCreated=false;
 function decode32(value) {let bits=0,n=0,bytes=[];for(const c of value){n=(n<<5)|'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'.indexOf(c);bits+=5;if(bits>=8){bits-=8;bytes.push((n>>>bits)&255);}}return Buffer.from(bytes);}
@@ -23,9 +24,9 @@ async function main() {
   assert.equal(await db.crmContact.count({where:{firstName:prefix+'rollback'}}),0);
   console.log('PASS: role foreign keys and mutation/audit rollback');
   await db.crmContact.createMany({data:Array.from({length:505},(_,i)=>({firstName:prefix,lastName:String(i).padStart(3,'0'),notes:'private-large-notes'.repeat(1000)}))});
-  const ids=new Set();for(let page=1;page<=11;page++){const r=await getContactsPage({q:prefix,page:String(page)});assert.equal(r.total,505);assert(r.items.length<=50);for(const row of r.items){assert(!row.notes);ids.add(row.id);}}
+  const ids=new Set();for(let page=1;page<=11;page++){const r=await getClientsPage({q:prefix,page:String(page)});assert.equal(r.total,505);assert(r.items.length<=50);for(const row of r.items){assert(!row.notes);ids.add(row.id);}}
   assert.equal(ids.size,505);const exported=new Set();for await(const rows of iterateListExport('contacts',{q:prefix})){assert(rows.length<=500);rows.forEach(r=>exported.add(r.id));}assert.equal(exported.size,505);
-  assert.equal((await getContactsPage({q:prefix,page:'99999'})).page,11);
+  assert.equal((await getClientsPage({q:prefix,page:'99999'})).page,11);
   const movingExport=iterateListExport('contacts',{q:prefix});const firstBatch=await movingExport.next();await db.crmContact.delete({where:{id:firstBatch.value.at(-1).id}});assert.equal((await movingExport.next()).value.length,5);await movingExport.return();
   console.log('PASS: all 505 records reachable, clamped pages, narrow DTOs and complete batched export');
   const contact=await db.crmContact.findFirstOrThrow({where:{firstName:prefix}});
@@ -54,7 +55,11 @@ async function main() {
   const email=prefix+'shared@example.invalid';await db.crmContact.createMany({data:[{firstName:prefix+'a',email,emailNorm:email},{firstName:prefix+'b',email,emailNorm:email}]});
   const resolution=await require('../packages/database/src/services/lead-resolver.ts').resolveIncomingLead({name:'Shared mailbox fixture',email,message:prefix,intent:'inquiry'});assert.equal(resolution.resolution,'merge_conflict');assert.equal(resolution.customerId,null);
   console.log('PASS: singleton/required identity and ambiguous contacts flagged without arbitrary linking');
-  const fileUrl='/api/files/vault/'+prefix+'.pdf';await db.uploadObject.create({data:{fileUrl,ownerId:actor.id,fileName:'fixture.pdf',fileSize:7,mimeType:'application/pdf',expiresAt:new Date(Date.now()+60000)}});
+  const fileUrl='/api/files/vault/'+prefix+'.pdf';
+  const {writeLocalUpload,localUploadPath} = require('../packages/database/src/services/storage.ts');
+  const {uploadRoot} = require('../packages/database/src/services/uploads.ts');
+  await writeLocalUpload(fileUrl, uploadRoot(), Buffer.from('%PDF-1\n'));
+  await db.uploadObject.create({data:{fileUrl,ownerId:actor.id,fileName:'fixture.pdf',fileSize:7,mimeType:'application/pdf',expiresAt:new Date(Date.now()+60000)}});
   await assert.rejects(runAtomicMutation(()=>claimUpload(db,fileUrl,'other-user')),/belongs/);
   const claims=await Promise.allSettled([runAtomicMutation(()=>claimUpload(db,fileUrl,actor.id)),runAtomicMutation(()=>claimUpload(db,fileUrl,actor.id))]);assert.equal(claims.filter(x=>x.status==='fulfilled').length,1);
   await db.uploadObject.update({where:{fileUrl},data:{claimedAt:null,expiresAt:new Date(0)}});await assert.rejects(runAtomicMutation(()=>claimUpload(db,fileUrl,actor.id)),/expired/);
@@ -79,6 +84,7 @@ main().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{
   await db.emailJob.deleteMany({where:{eventKey:prefix}});if(mom)await db.minuteOfMeeting.delete({where:{id:mom.id}});
   await db.attachment.deleteMany({where:{fileName:{startsWith:prefix}}});await db.payment.deleteMany({where:{receiptNumber:{startsWith:prefix}}});await db.invoice.deleteMany({where:{invoiceNumber:{startsWith:prefix}}});await db.crmDeal.deleteMany({where:{title:{startsWith:prefix}}});await db.expense.deleteMany({where:{descriptionEn:{startsWith:prefix}}});await db.inquiry.deleteMany({where:{message:prefix}});if(companyCreated)await db.companySetting.deleteMany({where:{companyNameEn:prefix}});
   await db.crmContact.deleteMany({where:{firstName:{startsWith:prefix}}});await db.uploadObject.deleteMany({where:{ownerId:actor?.id||prefix}});await db.abuseWindow.deleteMany({where:{key:{startsWith:prefix}}});
+  try { const {localUploadPath} = require('../packages/database/src/services/storage.ts'); const {uploadRoot} = require('../packages/database/src/services/uploads.ts'); require('node:fs').unlinkSync(localUploadPath('/api/files/vault/'+prefix+'.pdf', uploadRoot())); } catch {}
   if(actor){await db.activityLog.deleteMany({where:{userId:actor.id}});await db.user.delete({where:{id:actor.id}});}
   if(toggleChanged && toggle)await db.featureToggle.update({where:{moduleKey:'crm_deals'},data:{isEnabled:toggle.isEnabled}});else if(toggleChanged) await db.featureToggle.deleteMany({where:{moduleKey:'crm_deals',nameEn:'CRM'}});
   await db.$disconnect();

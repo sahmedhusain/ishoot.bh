@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
 import { normalizeToE164 } from "../services/lead-resolver";
@@ -71,16 +72,16 @@ export function normalizeClientProfile(input: ClientProfileInput) {
   const kind = oneOf(CLIENT_KINDS, input.client_kind) ?? (clean(input.company) ? "company" : "individual");
   const address = input.address ?? {};
   const addressCountry = clean(address.country, 2);
-  if (addressCountry && !isCountryCode(addressCountry)) throw new Error("Choose a country from the list");
+  if (addressCountry && !isCountryCode(addressCountry)) throw new Error(serverMessages.chooseACountryFromTheList);
   const nationality = clean(input.nationality, 2);
-  if (nationality && !isCountryCode(nationality)) throw new Error("Choose a country from the list");
+  if (nationality && !isCountryCode(nationality)) throw new Error(serverMessages.chooseACountryFromTheList);
   const preferredLanguage = input.preferred_language === "ar" || input.preferred_language === "en" ? input.preferred_language : null;
   const terms = input.payment_terms_days;
   if (terms !== undefined && terms !== null && (!Number.isInteger(terms) || terms < 0 || terms > 365))
-    throw new Error("Payment terms must be between 0 and 365 days");
+    throw new Error(serverMessages.paymentTermsMustBeBetween0);
   const website = clean(input.website, 300);
   const email = clean(input.email, 254)?.toLowerCase() ?? null;
-  if (email && !looksLikeEmail(email)) throw new Error("Enter a valid e-mail address");
+  if (email && !looksLikeEmail(email)) throw new Error(serverMessages.enterAValidEMailAddress);
 
   const companyName = clean(input.company);
   let companyOrigin: "local" | "foreign" | null = null;
@@ -88,27 +89,27 @@ export function normalizeClientProfile(input: ClientProfileInput) {
   let registrationNumber: string | null = null;
   let registrationCountry: string | null = null;
   if (kind === "company") {
-    if (!companyName) throw new Error("Company name is required");
+    if (!companyName) throw new Error(serverMessages.companyNameIsRequired);
     companyOrigin = input.company_origin === "foreign" ? "foreign" : "local";
     if (companyOrigin === "local") {
       crNumber = clean(input.cr_number, 20)?.replace(/\s+/g, "") ?? null;
-      if (!crNumber || !BAHRAIN_CR_PATTERN.test(crNumber)) throw new Error("Enter the commercial registration (CR) number, e.g. 142859-1");
+      if (!crNumber || !BAHRAIN_CR_PATTERN.test(crNumber)) throw new Error(serverMessages.enterTheCommercialRegistrationCRNumber);
       registrationCountry = "BH";
     } else {
       registrationCountry = clean(input.registration_country, 2);
       if (!registrationCountry || !isCountryCode(registrationCountry) || registrationCountry === "BH")
-        throw new Error("Choose the country where the company is registered");
+        throw new Error(serverMessages.chooseTheCountryWhereTheCompany);
       registrationNumber = clean(input.registration_number, 60);
-      if (!registrationNumber) throw new Error("Enter the company's registration number");
+      if (!registrationNumber) throw new Error(serverMessages.enterTheCompanySRegistrationNumber);
     }
   } else if (kind === "government") {
-    if (!companyName) throw new Error("Enter the government entity's name");
+    if (!companyName) throw new Error(serverMessages.enterTheGovernmentEntitySName);
     registrationCountry = clean(input.registration_country, 2) ?? "BH";
-    if (!isCountryCode(registrationCountry)) throw new Error("Choose a country from the list");
+    if (!isCountryCode(registrationCountry)) throw new Error(serverMessages.chooseACountryFromTheList);
   }
   const vatNumber = clean(input.vat_number, 30)?.replace(/\s+/g, "") ?? null;
   if (vatNumber && kind !== "individual" && registrationCountry === "BH" && !BAHRAIN_VAT_PATTERN.test(vatNumber))
-    throw new Error("A Bahrain VAT number has 15 digits");
+    throw new Error(serverMessages.aBahrainVATNumberHas15);
 
   // Points of contact.
   const persons =
@@ -116,9 +117,9 @@ export function normalizeClientProfile(input: ClientProfileInput) {
       ? []
       : (input.contact_persons ?? []).slice(0, MAX_CONTACT_PERSONS + 1).map((p, index) => {
           const fullName = clean(p.full_name, 150);
-          if (!fullName) throw new Error("Every point of contact needs a name");
+          if (!fullName) throw new Error(serverMessages.everyPointOfContactNeedsA);
           const personEmail = clean(p.email, 254)?.toLowerCase() ?? null;
-          if (personEmail && !looksLikeEmail(personEmail)) throw new Error("Enter a valid e-mail address");
+          if (personEmail && !looksLikeEmail(personEmail)) throw new Error(serverMessages.enterAValidEMailAddress);
           return {
             fullName,
             position: clean(p.position, 120),
@@ -130,8 +131,8 @@ export function normalizeClientProfile(input: ClientProfileInput) {
             displayOrder: index,
           };
         });
-  if (persons.length > MAX_CONTACT_PERSONS) throw new Error("A client can have at most 20 points of contact");
-  if (kind !== "individual" && !persons.length) throw new Error("Add at least one point of contact");
+  if (persons.length > MAX_CONTACT_PERSONS) throw new Error(serverMessages.aClientCanHaveAtMost);
+  if (kind !== "individual" && !persons.length) throw new Error(serverMessages.addAtLeastOnePointOf);
   const primaryIndex = Math.max(0, persons.findIndex((p) => p.isPrimary));
   persons.forEach((p, index) => (p.isPrimary = index === primaryIndex));
   const primary = persons[primaryIndex];
@@ -151,7 +152,7 @@ export function normalizeClientProfile(input: ClientProfileInput) {
       firstName = first;
       lastName = rest.join(" ") || null;
     }
-    if (!firstName) throw new Error("Client name is required");
+    if (!firstName) throw new Error(serverMessages.clientNameIsRequired);
   }
   const phone = primary ? primary.phone : clean(input.phone, 40);
   const contactEmail = primary ? primary.email : email;
@@ -196,14 +197,14 @@ export function normalizeClientProfile(input: ClientProfileInput) {
     addressPostalCode: clean(address.postal_code, 20),
     addressPoBox: clean(address.po_box, 20),
   };
-  if (data.crExpiryDate && Number.isNaN(data.crExpiryDate.getTime())) throw new Error("Invalid date");
+  if (data.crExpiryDate && Number.isNaN(data.crExpiryDate.getTime())) throw new Error(serverMessages.invalidDate);
   return { data, persons: persons.map(({ ...p }) => p) };
 }
 
 async function assertUniqueCr(crNumber: string | null, exceptId?: string) {
   if (!crNumber) return;
   const other = await db.crmContact.findFirst({ where: { crNumber, ...(exceptId ? { id: { not: exceptId } } : {}) }, select: { id: true } });
-  if (other) throw new Error("Another client is already registered with this CR number");
+  if (other) throw new Error(serverMessages.anotherClientIsAlreadyRegisteredWith);
 }
 
 export async function getClientProfile(id: string): Promise<CRMContact | null> {
@@ -226,7 +227,7 @@ export async function createClientProfile(input: ClientProfileInput): Promise<CR
 export async function updateClientProfile(id: string, input: ClientProfileInput): Promise<CRMContact> {
   return runAtomicMutation(async () => {
     const existing = await getClientProfile(id);
-    if (!existing) throw new Error("Contact not found");
+    if (!existing) throw new Error(serverMessages.contactNotFound);
     const defined = Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined)) as ClientProfileInput;
     const merged: ClientProfileInput = { ...storedProfile(existing), ...defined };
     // A changed type starts from the new type's own fields: a full name typed for an individual replaces the stored one.
@@ -419,8 +420,10 @@ async function hydrate(rows: StandingRow[]): Promise<ClientListRow[]> {
   return rows.flatMap((r) => {
     const contact = byId.get(r.id);
     if (!contact) return [];
+    const mapped = mapContact(contact);
+    delete (mapped as any).notes;
     return [{
-      ...mapContact(contact),
+      ...mapped,
       rank: r.rank === null ? null : Number(r.rank),
       tier: r.tier,
       billed: Number(r.billed),

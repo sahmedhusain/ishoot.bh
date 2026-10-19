@@ -69,7 +69,7 @@ export function ModulesManagementView({ initialToggles }: ModulesManagementViewP
                   {isRTL ? toggle.nameAr : toggle.nameEn}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-ink-muted  mt-1">
-                  ID: {toggle.moduleKey}
+                  {t.copy.idLabel}{toggle.moduleKey}
                 </p>
                 {toggle.description && (
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">

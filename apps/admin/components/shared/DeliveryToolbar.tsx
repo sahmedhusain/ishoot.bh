@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import { Button } from "@ishoot/ui";
 import { Mail, MessageCircle, Printer, Download, Check } from "lucide-react";
@@ -63,14 +64,10 @@ export function DeliveryToolbar({
           ? t.deliveryToolbar.invoice
           : t.deliveryToolbar.receipt;
       const subject = encodeURIComponent(
-        `${docLabel} ${documentNumber} - ${companyName}`,
+        formatMessage(t.copy.documentSubject, { documentLabel: docLabel, number: documentNumber, companyName }),
       );
       const body = encodeURIComponent(
-        (t.deliveryToolbar.emailBody ?? "")
-          .replace("{clientName}", clientName)
-          .replace("{docLabel}", docLabel)
-          .replace("{documentNumber}", documentNumber)
-          .replace("{amountFormatted}", amountFormatted),
+        formatMessage((t.deliveryToolbar.emailBody ?? ""), { clientName: clientName, docLabel: docLabel, documentNumber: documentNumber, amountFormatted: amountFormatted, companyName }),
       );
       window.open(
         `mailto:${encodeURIComponent(clientEmail ?? "")}?subject=${subject}&body=${body}`,
@@ -87,11 +84,7 @@ export function DeliveryToolbar({
         : t.deliveryToolbar.receipt;
 
     const message = encodeURIComponent(
-      (t.deliveryToolbar.whatsappBody ?? "")
-        .replace("{clientName}", clientName)
-        .replace("{docLabel}", docLabel)
-        .replace("{documentNumber}", documentNumber)
-        .replace("{amountFormatted}", amountFormatted),
+      formatMessage((t.deliveryToolbar.whatsappBody ?? ""), { clientName: clientName, docLabel: docLabel, documentNumber: documentNumber, amountFormatted: amountFormatted, companyName }),
     );
     const waUrl = cleanPhone
       ? `https://wa.me/${cleanPhone}?text=${message}`

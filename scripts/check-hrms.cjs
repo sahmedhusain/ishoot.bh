@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 function load(file, mocks = {}) {
+  if (mocks["@ishoot/locales"]) mocks["@ishoot/locales"] = { ...realConstants(file, "@ishoot/locales"), ...mocks["@ishoot/locales"] };
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   vm.runInNewContext(code, { module, exports: module.exports, require(id) { id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks); if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error('Unmocked dependency ' + id); } return mocks[id]; }, Date, Intl, Set, Array, JSON, Number, Math, Blob, FormData, AbortSignal });

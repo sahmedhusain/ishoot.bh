@@ -1,13 +1,11 @@
-import { Metadata } from "next";
+import { getTranslations } from "@ishoot/locales";
 import { getCRMContactById } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { NewDealFormView } from "../../../../../components/crm/NewDealFormView";
 import type { NewDealQuery } from "../../../../../constants/routes";
 
-export const metadata: Metadata = {
-  title: "New Deal | CRM",
-};
+export const metadata = { title: getTranslations("ar").admin.copy.newDeal };
 
 export default async function NewDealPage({
   searchParams,

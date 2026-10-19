@@ -43,7 +43,7 @@ export default async function HomePage() {
     });
   return (
     <div className="home-page flex flex-col w-full">
-      <CinemaHero banners={website.banners} />
+      <CinemaHero banners={website.banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} />
       {sections.map((section) => (
         <div key={section.id} data-slope={section.slope}>
           {components[section.id]}

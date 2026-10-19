@@ -1,4 +1,5 @@
 "use client";
+import { useAdminLocale } from "../hooks/useAdminLocale";
 
 export default function ErrorPage({
   reset,
@@ -6,24 +7,24 @@ export default function ErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useAdminLocale();
   return (
     <main
       role="alert"
       className="mx-auto max-w-xl space-y-4 p-8 text-slate-900 dark:text-white"
     >
       <h1 className="text-xl font-semibold">
-        Data is temporarily unavailable / البيانات غير متاحة مؤقتًا
+        {t.copy.errorTitle}
       </h1>
       <p>
-        The records could not be loaded. Retry to refresh the page. / تعذر تحميل
-        السجلات. أعد المحاولة لتحديث الصفحة.
+        {t.copy.errorDescription}
       </p>
       <button
         type="button"
         onClick={reset}
         className="rounded-lg bg-emerald-900 px-4 py-2 text-white"
       >
-        Retry / إعادة المحاولة
+        {t.copy.retry}
       </button>
     </main>
   );

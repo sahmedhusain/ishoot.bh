@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 
 import { errorMessage } from "../../lib/error-text";
@@ -175,7 +176,7 @@ export function NewInvoiceFormView({
       }
 
       toast.success(
-        t.newInvoiceForm.importedFromQuotation.replace("{number}", q.quotationNumber),
+        formatMessage(t.newInvoiceForm.importedFromQuotation, { number: q.quotationNumber }),
       );
     },
     [contacts, t],
@@ -197,7 +198,7 @@ export function NewInvoiceFormView({
       const res = await convertQuotationToInvoiceAction(quoteId);
       if (res.success && res.invoice) {
         toast.success(
-          t.newInvoiceForm.createdWithNumber.replace("{number}", res.invoice.invoiceNumber),
+          formatMessage(t.newInvoiceForm.createdWithNumber, { number: res.invoice.invoiceNumber }),
           { id: toastId },
         );
         router.push(ROUTES.invoices.detail(res.invoice.invoiceId));
@@ -716,7 +717,7 @@ export function NewInvoiceFormView({
                 {totals.discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                     <span>
-                      {t.finance.discount} ({discountType === "percentage" ? `${discountValue}%` : "Fixed"})
+                      {t.finance.discount} ({discountType === "percentage" ? `${discountValue}%` : t.finance.discountFixed})
                     </span>
                     <span className="font-mono font-medium">
                       -{totals.discountAmount.toFixed(3)} {currency}

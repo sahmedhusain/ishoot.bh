@@ -1,3 +1,4 @@
+import { serverTemplates, formatMessage } from "@ishoot/locales";
 import type { IntegrationProviderId, SocialPlatformId } from "../constants/integrations";
 
 /**
@@ -334,8 +335,8 @@ async function checkResend(c: Credentials): Promise<ConnectionCheck> {
   const domains = await request<{ data?: Array<{ name: string; status: string }> }>("https://api.resend.com/domains", { token: c.apiKey });
   const sender = c.fromEmail.split("@")[1]?.toLowerCase();
   const domain = (domains.data ?? []).find((d) => d.name.toLowerCase() === sender);
-  if (!domain) return { ok: false, error: `The sender domain ${sender ?? ""} is not added in Resend` };
-  if (domain.status !== "verified") return { ok: false, accountName: domain.name, error: `The sender domain ${domain.name} is ${domain.status}` };
+  if (!domain) return { ok: false, error: formatMessage(serverTemplates.senderDomainNotAdded, { 0: sender ?? "" }) };
+  if (domain.status !== "verified") return { ok: false, accountName: domain.name, error: formatMessage(serverTemplates.senderDomainStatus, { 0: domain.name, 1: domain.status }) };
   return { ok: true, accountName: domain.name };
 }
 

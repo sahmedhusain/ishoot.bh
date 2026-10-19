@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import Link from "next/link";
 import { AlertTriangle, CalendarClock } from "lucide-react";
 import { formatDate } from "@ishoot/ui";
@@ -32,7 +33,7 @@ export function ExpiringDocumentsCard({ rows }: { rows: ExpiringDocumentRow[] })
           {c.expiringTitle}
         </h2>
         <span className="text-xs text-ink-muted">
-          {c.expiringSummary.replace("{count}", String(rows.length)).replace("{expired}", String(expired))}
+          {formatMessage(c.expiringSummary, { count: String(rows.length), expired: String(expired) })}
         </span>
       </div>
       <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -45,7 +46,7 @@ export function ExpiringDocumentsCard({ rows }: { rows: ExpiringDocumentRow[] })
               </span>
               <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${r.days < 0 ? "bg-rose-500/10 text-rose-700 dark:text-rose-300" : "bg-amber-500/10 text-amber-700 dark:text-amber-300"}`}>
                 <AlertTriangle className="h-3 w-3" />
-                {r.days < 0 ? c.status.expired : c.status.expiresIn.replace("{days}", String(r.days))}
+                {r.days < 0 ? c.status.expired : formatMessage(c.status.expiresIn, { days: String(r.days) })}
               </span>
             </Link>
           </li>

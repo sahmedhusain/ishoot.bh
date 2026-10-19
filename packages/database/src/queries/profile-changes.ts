@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db } from "../db";
 import { ProfileChangeRequest } from "../types";
 import { assertActorNotOnLeave } from "./leave";
@@ -14,15 +16,38 @@ export async function requestProfileChange(
     select: { id: true, fullName: true, email: true, managerId: true },
   });
 
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error(serverMessages.userNotFound);
+
+  if (
+    proposed.fullName !== undefined &&
+    (!proposed.fullName.trim() || proposed.fullName.trim().length > 150)
+  )
+    throw new Error(serverMessages.profileSecurityError7);
+  if (
+    proposed.email !== undefined &&
+    (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(proposed.email.trim()) ||
+      proposed.email.trim().length > 254)
+  )
+    throw new Error(serverMessages.enterAValidEMailAddress);
+  if (
+    (!proposed.fullName || proposed.fullName.trim() === user.fullName) &&
+    (!proposed.email ||
+      proposed.email.trim().toLowerCase() === user.email.toLowerCase())
+  )
+    throw new Error(serverMessages.profileSecurityError8);
 
   // Check email uniqueness if email is changing
-  if (proposed.email && proposed.email.toLowerCase().trim() !== user.email.toLowerCase().trim()) {
+  if (
+    proposed.email &&
+    proposed.email.toLowerCase().trim() !== user.email.toLowerCase().trim()
+  ) {
     const existing = await db.user.findUnique({
       where: { email: proposed.email.toLowerCase().trim() },
     });
     if (existing) {
-      throw new Error("The proposed email is already in use by another account");
+      throw new Error(
+        serverMessages.theProposedEmailIsAlreadyInUse,
+      );
     }
   }
 
@@ -74,13 +99,17 @@ export async function approveProfileChange(
   const req = await db.profileChangeRequest.findUnique({
     where: { id: requestId },
     include: {
-      user: { select: { id: true, managerId: true, fullName: true, email: true } },
+      user: {
+        select: { id: true, managerId: true, fullName: true, email: true },
+      },
     },
   });
 
-  if (!req) throw new Error("Profile change request not found");
+  if (!req) throw new Error(serverMessages.profileChangeRequestNotFound);
   if (req.status !== "pending") {
-    throw new Error(`Profile change request cannot be approved (current status: ${req.status})`);
+    throw new Error(
+      formatMessage(serverTemplates.profileChangeRequestCannotBeApprovedCurrent, { 0: req.status }),
+    );
   }
 
   const newVals = req.newValues as { fullName?: string; email?: string };
@@ -92,7 +121,9 @@ export async function approveProfileChange(
         where: { email: newVals.email, id: { not: req.userId } },
       });
       if (emailConflict) {
-        throw new Error("Email conflict: the proposed email was claimed by another account in the interim");
+        throw new Error(
+          serverMessages.emailConflictTheProposedEmailWasClaimed,
+        );
       }
     }
 
@@ -150,8 +181,8 @@ export async function rejectProfileChange(
     where: { id: requestId },
   });
 
-  if (!req) throw new Error("Profile change request not found");
-  if (req.status !== "pending") throw new Error("Request is not pending");
+  if (!req) throw new Error(serverMessages.profileChangeRequestNotFound);
+  if (req.status !== "pending") throw new Error(serverMessages.requestIsNotPending);
 
   const updated = await db.profileChangeRequest.update({
     where: { id: requestId },
@@ -178,10 +209,7 @@ export async function getPendingProfileChangesForManager(
   const requests = await db.profileChangeRequest.findMany({
     where: {
       status: "pending",
-      OR: [
-        { managerId },
-        { user: { managerId } },
-      ],
+      OR: [{ managerId }, { user: { managerId } }],
     },
     include: {
       user: { select: { id: true, fullName: true, email: true } },
@@ -216,5 +244,3 @@ export async function getProfileChangeRequestsForUser(
     updatedAt: r.updatedAt.toISOString(),
   }));
 }
-
-

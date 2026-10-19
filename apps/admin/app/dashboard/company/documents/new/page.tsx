@@ -1,10 +1,8 @@
 import { requirePagePermission } from "../../../../../lib/auth";
-import { Metadata } from "next";
+import { getTranslations } from "@ishoot/locales";
 import { NewCompanyDocumentFormView } from "../../../../../components/company/NewCompanyDocumentFormView";
 
-export const metadata: Metadata = {
-  title: "New Legal Document | Company Registry",
-};
+export const metadata = { title: getTranslations("ar").admin.copy.newLegalDocument };
 
 export default async function NewCompanyDocumentPage() {
   await requirePagePermission("settings", "write");

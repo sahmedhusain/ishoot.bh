@@ -50,6 +50,15 @@ export function requestKindOf(record: { requestType?: string | null; intent?: st
   return "inquiry";
 }
 
+/** Reference prefix per kind of request: SR-2026-000001, INQ-…, RFQ-… (quote), CMP-… (complaint), SUG-… (suggestion). */
+export function referencePrefixFor(record: { requestType?: string | null; intent?: string | null }): string {
+  if (record.requestType === "SR") return "SR";
+  if (record.intent === "complaint") return "CMP";
+  if (record.intent === "suggestion") return "SUG";
+  if (record.requestType === "quote_request" || record.intent === "quote_request") return "RFQ";
+  return "INQ";
+}
+
 /** Request inbox sort orders, due-date filters and intake channels. */
 export const REQUEST_SORTS = ["urgency", "newest", "oldest", "sla_asc", "sla_desc", "priority", "customer_asc"] as const;
 export type RequestSort = (typeof REQUEST_SORTS)[number];

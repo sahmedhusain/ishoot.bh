@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -122,7 +123,7 @@ export function EmployeeAccountCard({
         <div className="space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
           <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-amber-800 dark:text-amber-300">
             <Clock className="w-3.5 h-3.5" />{a.pendingTitle}
-            <span className="font-normal">· {a.pendingBy.replace("{name}", pending.requestedBy)} · <DateDisplay date={pending.createdAt} locale={locale} /></span>
+            <span className="font-normal">· {formatMessage(a.pendingBy, { name: pending.requestedBy })} · <DateDisplay date={pending.createdAt} locale={locale} /></span>
             <Button type="button" size="sm" variant="ghost" className="ms-auto" onClick={() => withdraw(pending.id)}>{a.withdraw}</Button>
           </div>
           <ul className="space-y-1 text-xs text-slate-700 dark:text-slate-200">

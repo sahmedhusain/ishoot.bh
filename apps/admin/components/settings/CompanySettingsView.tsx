@@ -403,7 +403,7 @@ export function CompanySettingsView({
 
       {/* Save Confirmation Modal with Diff Summary */}
       {isSaveConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-scrim animate-in fade-in duration-150">
           <div {...saveDialog} className="relative w-full max-w-xl bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-2xl shadow-2xl overflow-hidden">
             <div className="p-4 border-b border-ink/15 dark:border-ink/15 flex items-center justify-between bg-slate-50/70 dark:bg-neutral-900/40">
               <div className="flex items-center gap-2.5">

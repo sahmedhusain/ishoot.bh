@@ -210,7 +210,7 @@ async function main() {
   if (director && createdUsers["viewer"]) {
     await prisma.user.update({ where: { id: createdUsers["viewer"].id }, data: { managerId: director.id } });
   }
-  console.log("✅ Created 10 RBAC Users with Signatures & Hierarchy (Password: Admin123!)");
+  console.log(`✅ Created ${usersData.length} RBAC Users with Signatures & Hierarchy (passwords use the configured SUPER_ADMIN_PASSWORD)`);
 
   // Seed resets every system role to the shared defaults (packages/database/src/constants/permissions.ts).
   for (const role of ALL_ROLES) {
@@ -1166,7 +1166,7 @@ async function main() {
   for (const c of contacts) {
     const profile = governmentTypes[c.id]
       ? { clientKind: "government", governmentType: governmentTypes[c.id], companyOrigin: null, addressCountry: "BH", addressCity: "Manama" }
-      : { clientKind: "company", companyOrigin: "local", legalForm: "bsc_closed", registrationCountry: "BH", addressCountry: "BH", addressCity: "Manama" };
+      : { clientKind: "company", companyOrigin: "local", crNumber: `${900000 + Number(c.id.split("-")[1])}-1`, legalForm: "bsc_closed", registrationCountry: "BH", addressCountry: "BH", addressCity: "Manama" };
     const record = { ...c, ...profile };
     await prisma.crmContact.upsert({
       where: { id: c.id },
@@ -2595,11 +2595,20 @@ async function main() {
     },
   ];
 
+  const inquiryReferences: Record<string, string> = {
+    "inq-01": "INQ-2026-000001",
+    "inq-02": "RFQ-2026-000001",
+    "inq-03": "RFQ-2026-000002",
+    "inq-04": "RFQ-2026-000003",
+    "inq-05": "CMP-2026-000001",
+    "inq-06": "RFQ-2026-000004",
+  };
   for (const inq of inquiries) {
+    const withReference = { ...inq, reference: inquiryReferences[inq.id] };
     await prisma.inquiry.upsert({
       where: { id: inq.id },
-      update: inq,
-      create: inq,
+      update: withReference,
+      create: withReference,
     });
   }
   console.log("✅ Seeded 6 Production Inquiries / Service Requests & Complaints (SR/CR)");
@@ -3045,6 +3054,9 @@ async function main() {
   // 1. Reference Sequences
   const refSequences = [
     { id: "SR_2026", prefix: "SR", year: 2026, lastNumber: 2 },
+    { id: "INQ_2026", prefix: "INQ", year: 2026, lastNumber: 1 },
+    { id: "RFQ_2026", prefix: "RFQ", year: 2026, lastNumber: 4 },
+    { id: "CMP_2026", prefix: "CMP", year: 2026, lastNumber: 1 },
     { id: "QTE_2026", prefix: "QTE", year: 2026, lastNumber: 6 },
     { id: "EMP_2026", prefix: "EMP", year: 2026, lastNumber: 9 },
   ];

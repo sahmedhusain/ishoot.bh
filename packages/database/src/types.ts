@@ -1,4 +1,8 @@
-import { getCurrencySymbol, getCurrencyDecimals } from "@ishoot/config/currency";
+import { serverMessages } from "@ishoot/locales";
+import {
+  getCurrencySymbol,
+  getCurrencyDecimals,
+} from "@ishoot/config/currency";
 import { SUPPORTED_CURRENCIES } from "./constants/finance";
 export type UserRole =
   | "super_admin"
@@ -38,17 +42,40 @@ export interface Profile {
   updated_at: string;
 }
 
-export type SupportedCurrency = "BHD" | "SAR" | "AED" | "KWD" | "OMR" | "QAR" | "USD" | "EUR" | "GBP";
+export type SupportedCurrency =
+  "BHD" | "SAR" | "AED" | "KWD" | "OMR" | "QAR" | "USD" | "EUR" | "GBP";
 
 export interface CurrencyConfig {
-  code: SupportedCurrency; symbolEn: string; symbolAr: string; standardCode: string; unicodePoint?: string; decimals: number;
+  code: SupportedCurrency;
+  symbolEn: string;
+  symbolAr: string;
+  standardCode: string;
+  unicodePoint?: string;
+  decimals: number;
 }
 
-const SUPPORTED_CURRENCY_CODES: readonly SupportedCurrency[] = SUPPORTED_CURRENCIES;
-export const CURRENCY_CONFIGS = Object.fromEntries(SUPPORTED_CURRENCY_CODES.map(code => {
-  const symbol = getCurrencySymbol(code);
-  return [code, { code, symbolEn: symbol, symbolAr: symbol, standardCode: getCurrencySymbol(code, false), decimals: getCurrencyDecimals(code), unicodePoint: Array.from(symbol).length === 1 && symbol !== code ? "U+" + symbol.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0") : undefined }];
-})) as Record<SupportedCurrency, CurrencyConfig>;
+const SUPPORTED_CURRENCY_CODES: readonly SupportedCurrency[] =
+  SUPPORTED_CURRENCIES;
+export const CURRENCY_CONFIGS = Object.fromEntries(
+  SUPPORTED_CURRENCY_CODES.map((code) => {
+    const symbol = getCurrencySymbol(code);
+    return [
+      code,
+      {
+        code,
+        symbolEn: symbol,
+        symbolAr: symbol,
+        standardCode: getCurrencySymbol(code, false),
+        decimals: getCurrencyDecimals(code),
+        unicodePoint:
+          Array.from(symbol).length === 1 && symbol !== code
+            ? "U+" +
+              symbol.codePointAt(0)!.toString(16).toUpperCase().padStart(4, "0")
+            : undefined,
+      },
+    ];
+  }),
+) as Record<SupportedCurrency, CurrencyConfig>;
 
 export function getCurrencyDisplayLabel(
   code: SupportedCurrency,
@@ -58,7 +85,11 @@ export function getCurrencyDisplayLabel(
   if (!cfg) return code;
   if (cfg.symbolEn === code && cfg.symbolAr === code) return code;
   const symbol = locale === "ar" ? cfg.symbolAr : cfg.symbolEn;
-  if (cfg.standardCode && cfg.standardCode !== code && cfg.standardCode !== symbol) {
+  if (
+    cfg.standardCode &&
+    cfg.standardCode !== code &&
+    cfg.standardCode !== symbol
+  ) {
     return `${code} (${symbol} / ${cfg.standardCode})`;
   }
   return `${code} (${symbol})`;
@@ -461,7 +492,7 @@ export interface CRMContact {
 }
 
 export interface CustomerDossier {
-  pagination?: Record<string, {page:number;total:number}>;
+  pagination?: Record<string, { page: number; total: number }>;
   contact: CRMContact;
   inquiries: Inquiry[];
   deals: CRMDeal[];
@@ -571,22 +602,27 @@ export function calculateInvoiceTotals(
   /** Taxes besides VAT (company tax registry), each charged on the amount after discount. */
   otherTaxes: Array<{ code: string; rate: number }> = [],
 ) {
-  if (!CURRENCY_CONFIGS[currency]) throw new Error("Unsupported currency");
-  if (otherTaxes.some((tax) => !Number.isFinite(tax.rate) || tax.rate <= 0 || tax.rate > 100)) throw new Error("Invalid tax rate");
+  if (!CURRENCY_CONFIGS[currency]) throw new Error(serverMessages.unsupportedCurrency);
+  if (
+    otherTaxes.some(
+      (tax) => !Number.isFinite(tax.rate) || tax.rate <= 0 || tax.rate > 100,
+    )
+  )
+    throw new Error(serverMessages.invalidTaxRate);
   if (!["none", "percentage", "fixed"].includes(discountType))
-    throw new Error("Invalid discount type");
+    throw new Error(serverMessages.invalidDiscountType);
   if (
     !Number.isFinite(discountValue) ||
     discountValue < 0 ||
     (discountType === "percentage" && discountValue > 100)
   )
-    throw new Error("Invalid discount");
+    throw new Error(serverMessages.invalidDiscount);
   if (
     !Number.isFinite(vatPercentage) ||
     vatPercentage < 0 ||
     vatPercentage > 100
   )
-    throw new Error("Invalid VAT percentage");
+    throw new Error(serverMessages.invalidVatPercentage);
   if (
     !lineItems.length ||
     lineItems.some(
@@ -597,7 +633,7 @@ export function calculateInvoiceTotals(
         item.unit_price < 0,
     )
   )
-    throw new Error("Invalid invoice line items");
+    throw new Error(serverMessages.invalidInvoiceLineItems);
   const currencyConfig = CURRENCY_CONFIGS[currency] || CURRENCY_CONFIGS.BHD;
   const factor = Math.pow(10, currencyConfig.decimals);
 
@@ -630,9 +666,15 @@ export function calculateInvoiceTotals(
       Math.round(((afterDiscount * vatPercentage) / 100) * factor) / factor;
   }
 
-  const taxes = otherTaxes.map((tax) => ({ code: tax.code, amount: Math.round(((afterDiscount * tax.rate) / 100) * factor) / factor }));
-  const otherTaxAmount = Math.round(taxes.reduce((sum, tax) => sum + tax.amount, 0) * factor) / factor;
-  const totalAmount = Math.round((afterDiscount + vatAmount + otherTaxAmount) * factor) / factor;
+  const taxes = otherTaxes.map((tax) => ({
+    code: tax.code,
+    amount: Math.round(((afterDiscount * tax.rate) / 100) * factor) / factor,
+  }));
+  const otherTaxAmount =
+    Math.round(taxes.reduce((sum, tax) => sum + tax.amount, 0) * factor) /
+    factor;
+  const totalAmount =
+    Math.round((afterDiscount + vatAmount + otherTaxAmount) * factor) / factor;
 
   return {
     subtotal,
@@ -790,7 +832,35 @@ export interface CalendarEvent {
   created_at: string;
   updated_at: string;
   deal?: CRMDeal;
+  /** Who sees the event: "private" | "team" | "department" | "company" | "custom". */
+  visibility?: CalendarVisibility;
+  audience_user_ids?: string[];
+  audience_department_ids?: string[];
+  audience_roles?: string[];
+  /** "event": created in the calendar; "system": shown from leave, deals, invoices, payroll… (read only). */
+  source?: "event" | "system";
+  /** The calendar layer it belongs to, for filtering and colour. */
+  layer?: CalendarLayer;
+  /** Page of the record behind a system event. */
+  href?: string;
+  /** The viewer may change or delete it. */
+  editable?: boolean;
+  created_by_name?: string;
 }
+
+export type CalendarVisibility =
+  "private" | "team" | "department" | "company" | "custom";
+export type CalendarLayer =
+  | "own"
+  | "shared"
+  | "leave"
+  | "holidays"
+  | "sales"
+  | "finance"
+  | "hr"
+  | "payroll"
+  | "meetings"
+  | "requests";
 
 export interface ActivityLog {
   id: string;
@@ -1002,9 +1072,38 @@ export type PublicCompanySettings = Pick<
   | "rules_ar"
 >;
 
-export type WebSettingsInput = Partial<Pick<CompanySettings,
-  "company_name_en" | "company_name_ar" | "address_en" | "address_ar" | "phone" | "whatsapp_phone" | "email" | "website" | "instagram_url" | "linkedin_url" | "youtube_url" | "ceo_name_en" | "ceo_name_ar" | "ceo_title_en" | "ceo_title_ar" | "ceo_quote_en" | "ceo_quote_ar" | "mission_en" | "mission_ar" | "vision_en" | "vision_ar" | "about_text_en" | "about_text_ar" | "terms_en" | "terms_ar" | "rules_en" | "rules_ar"
->>;
+export type WebSettingsInput = Partial<
+  Pick<
+    CompanySettings,
+    | "company_name_en"
+    | "company_name_ar"
+    | "address_en"
+    | "address_ar"
+    | "phone"
+    | "whatsapp_phone"
+    | "email"
+    | "website"
+    | "instagram_url"
+    | "linkedin_url"
+    | "youtube_url"
+    | "ceo_name_en"
+    | "ceo_name_ar"
+    | "ceo_title_en"
+    | "ceo_title_ar"
+    | "ceo_quote_en"
+    | "ceo_quote_ar"
+    | "mission_en"
+    | "mission_ar"
+    | "vision_en"
+    | "vision_ar"
+    | "about_text_en"
+    | "about_text_ar"
+    | "terms_en"
+    | "terms_ar"
+    | "rules_en"
+    | "rules_ar"
+  >
+>;
 
 export type { QuotationStatus } from "./constants/finance";
 import type { QuotationStatus } from "./constants/finance";
@@ -1064,7 +1163,8 @@ export interface Quotation {
 }
 
 export type MessageDirection = "inbound" | "outbound";
-export type MessageStatus = "queued" | "accepted" | "delivered" | "bounced" | "failed";
+export type MessageStatus =
+  "queued" | "accepted" | "delivered" | "bounced" | "failed";
 
 export interface CommunicationThread {
   id: string;
@@ -1263,7 +1363,13 @@ export interface Employee {
   id: string;
   employeeNumber: string;
   userId?: string | null;
-  user?: { id: string; fullName: string; email: string; role: string; isActive: boolean } | null;
+  user?: {
+    id: string;
+    fullName: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+  } | null;
   departmentId?: string | null;
   department?: Department | null;
   firstNameEn: string;
@@ -1311,7 +1417,15 @@ export interface LeaveType {
 export interface LeaveRequest {
   id: string;
   employeeId: string;
-  employee?: Employee | { id: string; employeeNumber: string; firstNameEn: string; lastNameEn: string; [key: string]: any };
+  employee?:
+    | Employee
+    | {
+        id: string;
+        employeeNumber: string;
+        firstNameEn: string;
+        lastNameEn: string;
+        [key: string]: any;
+      };
   leaveTypeId: string;
   leaveType?: LeaveType;
   startDate: Date | string;
@@ -1363,7 +1477,14 @@ export interface PayrollRun {
   attendanceStart?: string | null;
   attendanceEnd?: string | null;
   payDate?: string | null;
-  status: "draft" | "calculated" | "submitted" | "approved" | "paid" | "closed" | string;
+  status:
+    | "draft"
+    | "calculated"
+    | "submitted"
+    | "approved"
+    | "paid"
+    | "closed"
+    | string;
   totalGross: number;
   totalDeductions: number;
   totalNet: number;
@@ -1380,7 +1501,15 @@ export interface PayrollItem {
   id: string;
   payrollRunId: string;
   employeeId: string;
-  employee?: Employee | { id: string; employeeNumber: string; firstNameEn: string; lastNameEn: string; [key: string]: any };
+  employee?:
+    | Employee
+    | {
+        id: string;
+        employeeNumber: string;
+        firstNameEn: string;
+        lastNameEn: string;
+        [key: string]: any;
+      };
   basicSalary: number;
   housingAllowance: number;
   transportAllowance: number;

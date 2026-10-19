@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import * as React from "react";
@@ -53,7 +54,7 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
             <Gauge className="w-7 h-7 text-accent" />
             {k.title}
           </h1>
-          <p className="text-xs text-ink-muted mt-1">{k.subtitle.replace("{from}", from).replace("{to}", to)}</p>
+          <p className="text-xs text-ink-muted mt-1">{formatMessage(k.subtitle, { from: from, to: to })}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {managers && managers.length > 0 && (
@@ -95,23 +96,23 @@ export function TeamPerformanceView({ period, from, to, members, history, manage
               <button type="button" aria-expanded={open === m.userId} onClick={() => setOpen(open === m.userId ? null : m.userId)} className="w-full text-start p-5 grid gap-4 md:grid-cols-[1.2fr_repeat(3,1fr)_auto] items-center">
                 <div>
                   <div className="font-bold text-ink">{m.name}</div>
-                  <div className="text-[11px] text-ink-muted">{m.role.replace("_", " ")} · {k.leaveDays.replace("{days}", String(m.leaveDays))}</div>
+                  <div className="text-[11px] text-ink-muted">{m.role.replace("_", " ")} · {formatMessage(k.leaveDays, { days: String(m.leaveDays) })}</div>
                 </div>
                 <div className="text-xs">
                   <div className="text-ink-muted flex items-center gap-1"><FileText className="w-3.5 h-3.5" />{k.quotations}</div>
-                  <div className="text-ink font-semibold mt-0.5">{k.quoteLine.replace("{issued}", String(m.quotations.issued)).replace("{accepted}", String(m.quotations.accepted)).replace("{rate}", String(m.quotations.winRate))}</div>
+                  <div className="text-ink font-semibold mt-0.5">{formatMessage(k.quoteLine, { issued: String(m.quotations.issued), accepted: String(m.quotations.accepted), rate: String(m.quotations.winRate) })}</div>
                   <div className="text-ink-muted">{bhd} {fmt(m.quotations.acceptedValue)} / {fmt(m.quotations.value)}</div>
                 </div>
                 <div className="text-xs">
                   <div className="text-ink-muted flex items-center gap-1"><Receipt className="w-3.5 h-3.5" />{k.sales}</div>
                   <div className="text-ink font-semibold mt-0.5">{bhd} {fmt(m.sales.collectedNet)} {k.collectedShort}</div>
-                  <div className="text-ink-muted">{k.invoicedLine.replace("{count}", String(m.sales.invoices)).replace("{amount}", fmt(m.sales.invoicedNet))}</div>
+                  <div className="text-ink-muted">{formatMessage(k.invoicedLine, { count: String(m.sales.invoices), amount: fmt(m.sales.invoicedNet) })}</div>
                 </div>
                 <div className="text-xs">
                   <div className="text-ink-muted flex items-center gap-1"><LifeBuoy className="w-3.5 h-3.5" />{k.requests}</div>
-                  <div className="text-ink font-semibold mt-0.5">{k.srLine.replace("{resolved}", String(m.requests.resolved)).replace("{open}", String(m.requests.open))}</div>
+                  <div className="text-ink font-semibold mt-0.5">{formatMessage(k.srLine, { resolved: String(m.requests.resolved), open: String(m.requests.open) })}</div>
                   <div className={m.requests.overdue ? "text-rose-600" : "text-ink-muted"}>
-                    {k.srDetail.replace("{overdue}", String(m.requests.overdue)).replace("{days}", m.requests.avgResolutionDays === null ? "—" : String(m.requests.avgResolutionDays))}
+                    {formatMessage(k.srDetail, { overdue: String(m.requests.overdue), days: m.requests.avgResolutionDays === null ? "—" : String(m.requests.avgResolutionDays) })}
                   </div>
                 </div>
                 {open === m.userId ? <ChevronUp className="w-4 h-4 text-ink-muted" /> : <ChevronDown className="w-4 h-4 text-ink-muted" />}

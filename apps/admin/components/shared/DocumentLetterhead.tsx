@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import {ContentImage} from "./ContentImage";
 
@@ -88,7 +89,7 @@ export function DocumentLetterhead({
                 company.dark_icon_url ||
                 company.icon_url
               }
-              alt={t.brandIconAlt}
+              alt={isAr ? company.company_name_ar : company.company_name_en}
               className="h-10 w-auto object-contain shrink-0"
              width={40} height={40} />
             <ContentImage
@@ -262,7 +263,7 @@ export function DocumentFooter({
             <div className="font-semibold text-gray-900">{companyName}</div>
             {signerName && (
               <div className="text-[11px] font-medium text-slate-700">
-                {t.signedBy.replace("{name}", signerName)}
+                {formatMessage(t.signedBy, { name: signerName })}
               </div>
             )}
             {isAr && company.company_name_en && (
@@ -306,7 +307,7 @@ export function DocumentFooter({
         <div className="font-medium text-gray-700">
           {thankYouMessage
             ? thankYouMessage
-            : t.thankYou.replace("{companyName}", companyName)}
+            : formatMessage(t.thankYou, { companyName: companyName })}
         </div>
         <div className="flex flex-wrap items-center gap-3  text-[11px] text-gray-500">
           {company.website && (

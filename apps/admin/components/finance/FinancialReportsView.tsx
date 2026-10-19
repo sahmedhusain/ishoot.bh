@@ -65,6 +65,7 @@ export function FinancialReportsView({
     const toastId = toast.loading(t.financialReports.generatingFormulaSafeCsvFinancial);
     try {
       const res = await exportFinancialReportCsvAction({
+        locale,
         basis: currentBasis,
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
@@ -158,7 +159,7 @@ export function FinancialReportsView({
             onChange={(e) => setFilterDateFrom(e.target.value)}
             className="text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 px-2.5 py-1 text-slate-800 dark:text-neutral-200"
           />
-          <span className="text-xs text-slate-400">to</span>
+          <span className="text-xs text-slate-400">{t.copy.to}</span>
           <input
             type="date"
             value={filterDateTo}

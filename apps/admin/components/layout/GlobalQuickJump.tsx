@@ -124,13 +124,12 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
           <span className="truncate">{t.quickJump.navigate}...</span>
         </span>
         <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 text-[10px]  text-slate-400">
-          ⌘K
-        </kbd>
+          {t.copy.shortcut}</kbd>
       </button>
 
       {/* Modal Dialog */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 modal-scrim animate-fade-in">
           <div className="fixed inset-0" onClick={() => setIsOpen(false)} />
 
           <div className="relative w-full max-w-xl bg-white dark:bg-surface-raised rounded-2xl border border-slate-200 dark:border-white/15 shadow-2xl overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
@@ -232,8 +231,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                 </span>
                 <span>
                   <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">
-                    esc
-                  </kbd>{" "}
+                    {t.copy.escape}</kbd>{" "}
                   {t.actions.cancel}
                 </span>
               </span>

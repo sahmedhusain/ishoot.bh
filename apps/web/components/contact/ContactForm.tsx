@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import { ArrowUpRight, Check, Star } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -448,10 +449,7 @@ export function ContactForm({
                     type="radio"
                     name="rating"
                     value={value}
-                    aria-label={t("contact.ratingOption").replace(
-                      "{value}",
-                      String(value),
-                    )}
+                    aria-label={formatMessage(t("contact.ratingOption"), { value: String(value) })}
                     checked={rating === value}
                     onChange={() => setRating(value)}
                     required

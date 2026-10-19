@@ -1,11 +1,9 @@
 import { requirePagePermission } from "../../../../lib/auth";
 import { db } from "@ishoot/database";
-import { Metadata } from "next";
+import { getTranslations } from "@ishoot/locales";
 import { NewUserFormView } from "@/components/users/NewUserFormView";
 
-export const metadata: Metadata = {
-  title: "New User | Access Management",
-};
+export const metadata = { title: getTranslations("ar").admin.copy.newUser };
 
 export default async function NewUserPage() {
   await requirePagePermission("users", "write");

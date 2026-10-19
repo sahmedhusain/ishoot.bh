@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../../lib/error-text";
 import { uploadFileDirectly } from "../../../lib/upload-client";
 import {ContentImage} from "../../shared/ContentImage";
@@ -37,7 +38,7 @@ interface AssetSlotDef {
   titleKey: keyof Translations["branding"]["assets"];
   descKey: keyof Translations["branding"]["assets"];
   accept: string;
-  recommended: string;
+  recommended: keyof Translations["copy"];
   themeContext?: "light" | "dark" | "any";
 }
 
@@ -47,7 +48,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "logoLight",
     descKey: "logoLightDesc",
     accept: "image/svg+xml,image/png,image/webp",
-    recommended: "Vector SVG or transparent PNG (Dark Text for Light Surfaces)",
+    recommended: "formatVectorDark",
     themeContext: "light",
   },
   {
@@ -55,7 +56,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "logoDark",
     descKey: "logoDarkDesc",
     accept: "image/svg+xml,image/png,image/webp",
-    recommended: "Vector SVG or white monochrome PNG (Light Text for Dark Surfaces)",
+    recommended: "formatVectorLight",
     themeContext: "dark",
   },
   {
@@ -63,7 +64,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "iconLight",
     descKey: "iconLightDesc",
     accept: "image/svg+xml,image/png",
-    recommended: "Square 1:1 or 310x470 SVG or transparent PNG (Light Background)",
+    recommended: "formatIconLight",
     themeContext: "light",
   },
   {
@@ -71,7 +72,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "iconDark",
     descKey: "iconDarkDesc",
     accept: "image/svg+xml,image/png",
-    recommended: "Square 1:1 or 310x470 SVG or transparent PNG (Dark Background)",
+    recommended: "formatIconDark",
     themeContext: "dark",
   },
   {
@@ -79,7 +80,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "favicon",
     descKey: "faviconDesc",
     accept: "image/svg+xml,image/png,image/x-icon",
-    recommended: "Square 64x64px or 32x32px .png or .ico file",
+    recommended: "formatFavicon",
     themeContext: "any",
   },
   {
@@ -87,7 +88,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "stamp",
     descKey: "stampDesc",
     accept: "image/png,image/webp",
-    recommended: "High-resolution circular or oval transparent PNG",
+    recommended: "formatStamp",
     themeContext: "light",
   },
   {
@@ -95,7 +96,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "signature",
     descKey: "signatureDesc",
     accept: "image/png,image/webp",
-    recommended: "High-contrast clean transparent PNG with minimal padding",
+    recommended: "formatSignature",
     themeContext: "light",
   },
   {
@@ -103,7 +104,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "letterheadHeader",
     descKey: "letterheadHeaderDesc",
     accept: "image/png,image/jpeg,image/webp",
-    recommended: "Full-width landscape banner (approx 2480x350px for A4 print)",
+    recommended: "formatHeader",
     themeContext: "light",
   },
   {
@@ -111,7 +112,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "letterheadFooter",
     descKey: "letterheadFooterDesc",
     accept: "image/png,image/jpeg,image/webp",
-    recommended: "Full-width landscape footer banner (approx 2480x250px)",
+    recommended: "formatFooter",
     themeContext: "light",
   },
   {
@@ -119,7 +120,7 @@ const ASSET_SLOTS: AssetSlotDef[] = [
     titleKey: "watermark",
     descKey: "watermarkDesc",
     accept: "image/png,image/svg+xml",
-    recommended: "Large monochrome watermark with 10-15% transparency",
+    recommended: "formatWatermark",
     themeContext: "light",
   },
 ];
@@ -258,8 +259,7 @@ export function BrandAssetsTab({
                 />
               </div>
               <div className="text-[10px] text-slate-400 text-center ">
-                icon_light (mark) + logo_light (dark text)
-              </div>
+                {t.copy.logoLightPreview}</div>
             </div>
 
             {/* Dark Theme Surface */}
@@ -281,8 +281,7 @@ export function BrandAssetsTab({
                 />
               </div>
               <div className="text-[10px] text-ink/40 text-center ">
-                icon_dark (mark) + logo_dark (light text)
-              </div>
+                {t.copy.logoDarkPreview}</div>
             </div>
           </div>
         </div>
@@ -342,7 +341,7 @@ export function BrandAssetsTab({
                   </div>
 
                   <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-2">
-                    {slot.recommended}
+                    {formatMessage(t.copy[slot.recommended], { sizes: "64 × 64 / 32 × 32", dimensions: slot.key === "letterhead_header" ? "2480 × 350" : "2480 × 250", percent: "10–15" })}
                   </p>
                 </div>
 

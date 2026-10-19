@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -57,7 +58,7 @@ export async function publishWebsiteAction(revision: number) {
     validateActionArguments("publishWebsiteAction", { revision });
     const content = await getWebsiteEditor();
     if (content.revision !== revision)
-      throw new Error("Content changed. Refresh before publishing.");
+      throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
     const snapshot = await collectWebsiteDraft(
       validateWebsiteConfig(content.draft),
     );
@@ -72,7 +73,7 @@ export async function publishWebsiteAction(revision: number) {
         },
       });
       if (!updated.count)
-        throw new Error("Content changed. Refresh before publishing.");
+        throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
       await tx.revalidationJob.create({
         data: {
           eventKey: `website:publish:${revision + 1}`,
@@ -125,7 +126,7 @@ export async function restoreWebsiteAction(revision: number) {
         where: { id: "main" },
       });
       if (!content.previous || content.revision !== revision)
-        throw new Error("No previous publication available or content changed");
+        throw new Error(serverMessages.noPreviousPublicationAvailableOrContentChanged);
       const result = await tx.websiteContent.updateMany({
         where: { id: "main", revision },
         data: {
@@ -136,7 +137,7 @@ export async function restoreWebsiteAction(revision: number) {
         },
       });
       if (!result.count)
-        throw new Error("Content changed. Refresh before restoring.");
+        throw new Error(serverMessages.contentChangedRefreshBeforeRestoring);
       await tx.revalidationJob.create({
         data: {
           eventKey: `website:restore:${revision + 1}`,
@@ -215,7 +216,7 @@ export async function updateWebsiteServiceAction(
       imageUrl.length > 2000 ||
       (imageUrl && !safeWebsiteUrl(imageUrl))
     )
-      throw new Error("Invalid service image URL");
+      throw new Error(serverMessages.invalidServiceImageUrl);
     await runAtomicMutation(async () => {
       await db.service.update({
         where: { id },

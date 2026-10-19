@@ -85,7 +85,7 @@ export function InvoiceDetailView({
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-primary dark:bg-[#152B27] dark:text-mint border border-accent/30 hover:underline transition-colors"
                 title={t.invoiceDetail.viewClient360Dossier}
               >
-                <span>Client: {clientName}</span>
+                <span>{t.copy.clientLabel}{clientName}</span>
                 <span className="text-[10px] opacity-70">↗</span>
               </Link>
             )}

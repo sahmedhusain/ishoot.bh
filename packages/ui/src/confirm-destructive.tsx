@@ -1,3 +1,4 @@
+import { useUiCopy } from "./copy/use-ui-copy";
 import * as React from "react";
 import { Modal } from "./modal";
 import { Button } from "./button";
@@ -26,12 +27,14 @@ export function ConfirmDestructiveModal({
   description,
   confirmMatchText,
   typePromptLabel,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
-  loadingLabel = "...",
+  confirmLabel,
+  cancelLabel,
+  loadingLabel,
   loading = false,
   variant = "danger",
 }: ConfirmDestructiveModalProps) {
+  const copy = useUiCopy();
+  confirmLabel ??= copy.confirm; cancelLabel ??= copy.cancel; loadingLabel ??= copy.loading;
   const [typedInput, setTypedInput] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 

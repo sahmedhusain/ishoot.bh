@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -130,7 +131,7 @@ export function RequestDetailView({
     );
     try {
       const res = await confirmRequestAction(request.id, {
-        notes: "Confirmed for execution",
+        notes: t.copy.confirmedExecution,
       });
       if (res.success) {
         toast.success(
@@ -288,7 +289,7 @@ export function RequestDetailView({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
-              {t.requestDetail.titleWithReference.replace("{reference}", request.reference)}
+              {formatMessage(t.requestDetail.titleWithReference, { reference: request.reference })}
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-1.5">
@@ -811,7 +812,7 @@ export function RequestDetailView({
                       {(t.statusLabels as Record<string, string>)[ev.eventType] ?? ev.eventType.replace(/_/g, " ")}
                     </span>
                     <span className="text-slate-400 font-normal">
-                      {t.shared.byName.replace("{name}", ev.actor?.fullName || t.shared.system)}
+                      {formatMessage(t.shared.byName, { name: ev.actor?.fullName || t.shared.system })}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono ml-auto rtl:mr-auto">
                       {new Date(ev.createdAt).toLocaleString(
@@ -921,7 +922,7 @@ export function RequestDetailView({
 
       {/* Action Modals */}
       {modalType && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4">
           <div {...actionDialog} className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <div className="space-y-0.5">

@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 import { getCurrencyLabel } from "@ishoot/config/currency";
 
@@ -279,7 +280,7 @@ export function NewQuotationFormView({
 
       if (res.success && res.quotation) {
         toast.success(
-          t.newQuotationForm.createdWithNumber.replace("{number}", res.quotation.quotationNumber),
+          formatMessage(t.newQuotationForm.createdWithNumber, { number: res.quotation.quotationNumber }),
           { id: toastId },
         );
         router.push(ROUTES.quotations.detail(res.quotation.id));
@@ -366,8 +367,8 @@ export function NewQuotationFormView({
                   <div className="font-semibold text-slate-900 dark:text-white text-sm">
                     {selectedContact.company || selectedContact.full_name}
                   </div>
-                  <div>Email: {selectedContact.email || "N/A"}</div>
-                  <div>Phone: {selectedContact.phone || "N/A"}</div>
+                  <div>{t.copy.emailLabel}{selectedContact.email || t.copy.notAvailable}</div>
+                  <div>{t.copy.phoneLabel}{selectedContact.phone || t.copy.notAvailable}</div>
                   {selectedContact.vat_number && <div>{t.newQuotationForm.vatTaxId} {selectedContact.vat_number}</div>}
                 </div>
               )}
@@ -616,21 +617,19 @@ export function NewQuotationFormView({
                 <div className="font-semibold flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
                     <Globe2 className="w-3.5 h-3.5" />
-                    <span>{qfT.fxNoticeTitle}</span>
+                    <span>{formatMessage(qfT.fxNoticeTitle, { rate: fxMarginPercent })}</span>
                   </div>
                   <span className="font-mono text-[11px]">
                     1 {bhd} = {currentRawRate.toFixed(4)} → {effectiveRate.toFixed(4)} {currency}
                   </span>
                 </div>
                 <p className="text-[11px] leading-relaxed text-amber-700 dark:text-amber-400">
-                  {qfT.fxNoticeDesc}
+                  {formatMessage(qfT.fxNoticeDesc, { rate: fxMarginPercent })}
                 </p>
                 {fxRow && (
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px]">
                     <span>
-                      {(fxRow.isFallback ? qfT.fxSourceFallback : qfT.fxSource)
-                        .replace("{provider}", fxRow.provider)
-                        .replace("{date}", fxRow.effectiveDate)}
+                      {formatMessage((fxRow.isFallback ? qfT.fxSourceFallback : qfT.fxSource), { provider: fxRow.provider, date: fxRow.effectiveDate })}
                     </span>
                     <button
                       type="button"
@@ -688,9 +687,7 @@ export function NewQuotationFormView({
                   if (pct <= 0) return null;
                   return (
                     <p className={`text-[11px] mt-1 ${over ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"}`}>
-                      {(over ? qfT.discountOverLimit : discountLimit === null ? qfT.discountUnlimited : qfT.discountWithinLimit)
-                        .replace("{pct}", String(pct))
-                        .replace("{limit}", String(discountLimit ?? ""))}
+                      {formatMessage((over ? qfT.discountOverLimit : discountLimit === null ? qfT.discountUnlimited : qfT.discountWithinLimit), { pct: String(pct), limit: String(discountLimit ?? "") })}
                     </p>
                   );
                 })()}
@@ -717,7 +714,7 @@ export function NewQuotationFormView({
               )}
               {vatEnabled && (
                 <div className="flex justify-between text-white/80">
-                  <span>{qfT.vat}</span>
+                  <span>{formatMessage(qfT.vat, { rate: vatPercentage })}</span>
                   <span className="font-mono font-medium">+{vatAmount.toFixed(3)} {currency}</span>
                 </div>
               )}

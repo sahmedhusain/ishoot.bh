@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import { getEffectivePermissions } from "@ishoot/database";
@@ -8,7 +9,7 @@ export async function GET(req: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
     }
 
     return NextResponse.json({

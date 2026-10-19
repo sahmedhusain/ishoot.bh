@@ -2,6 +2,7 @@
 import { errorMessage } from "../../../lib/error-text";
 import { ROUTES } from "../../../constants/routes";
 import { uploadFileDirectly } from "../../../lib/upload-client";
+import { LinkOrUploadField } from "../../shared/LinkOrUploadField";
 
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
@@ -12,10 +13,6 @@ import {
   ExternalLink,
   FileCheck,
   ShieldCheck,
-  UploadCloud,
-  FileText,
-  Loader2,
-  Trash2,
   FolderArchive,
   AlertTriangle,
   X,
@@ -38,39 +35,15 @@ export function TaxVatSettingsTab({
   locale,
   isRTL,
 }: TaxVatSettingsTabProps) {
-  const [vatUploading, setVatUploading] = React.useState(false);
-  const [vatUploadError, setVatUploadError] = React.useState<string | null>(null);
-  const vatFileInputRef = React.useRef<HTMLInputElement>(null);
-  const [pendingVatToggle, setPendingVatToggle] = React.useState<boolean | null>(null);
-  const vatDialog = useDialog(pendingVatToggle !== null, () => setPendingVatToggle(null));
-
-  const handleVatFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setVatUploading(true);
-    setVatUploadError(null);
-
-    try {
-      const data = await uploadFileDirectly(file, { entityType: "company_setting", entityId: "company-settings", documentType: "vat_certificate" });
-        const res = { ok: true }; // polyfill for following code
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || t.taxVatSettingsTab.uploadFailed);
-      }
-
-      const updated = {
-        ...settings,
-        vat_certificate_url: data.fileUrl,
-      };
-      setSettings(updated);
-      await updateCompanySettingsAction(updated);
-    } catch (err: any) {
-      setVatUploadError(errorMessage(err, t, t.taxVatSettingsTab.failedToUploadCertificate));
-    } finally {
-      setVatUploading(false);
-      if (vatFileInputRef.current) vatFileInputRef.current.value = "";
-    }
-  };
+  const [vatUploadError, setVatUploadError] = React.useState<string | null>(
+    null,
+  );
+  const [pendingVatToggle, setPendingVatToggle] = React.useState<
+    boolean | null
+  >(null);
+  const vatDialog = useDialog(pendingVatToggle !== null, () =>
+    setPendingVatToggle(null),
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -203,124 +176,51 @@ export function TaxVatSettingsTab({
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
                   <FileCheck className="w-4 h-4 text-primary dark:text-mint" />
-                  <span>
-                    {t.companySettingsTabs.certificateTitle}
-                  </span>
+                  <span>{t.companySettingsTabs.certificateTitle}</span>
                 </label>
                 <span className="text-[10px]  text-slate-500 dark:text-neutral-400">
                   {t.taxVatSettingsTab.nbrOfficialCertificatePdfImage}
                 </span>
               </div>
 
-              <input
-                ref={vatFileInputRef}
-                type="file"
-                accept="application/pdf,image/png,image/jpeg,image/webp"
-                className="hidden"
-                onChange={handleVatFileUpload}
+              {/* Upload the certificate, or link to it where it is published (e.g. the NBR portal). */}
+              <LinkOrUploadField
+                value={settings.vat_certificate_url ?? ""}
+                hint={t.taxVatSettingsTab.pdfPngOrJpgUp}
+                upload={(file) =>
+                  uploadFileDirectly(file, {
+                    entityType: "company_setting",
+                    entityId: "company-settings",
+                    documentType: "vat_certificate",
+                  })
+                }
+                onChange={async (url) => {
+                  const updated = { ...settings, vat_certificate_url: url };
+                  setSettings(updated);
+                  try {
+                    await updateCompanySettingsAction(updated);
+                  } catch (err) {
+                    setVatUploadError(
+                      errorMessage(
+                        err,
+                        t,
+                        t.taxVatSettingsTab.failedToUploadCertificate,
+                      ),
+                    );
+                  }
+                }}
               />
-
               {settings.vat_certificate_url ? (
-                <div className="p-3.5 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                          {t.taxVatSettingsTab.vatCertificateDocument}
-                        </p>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-200 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
-                          {t.companySettingsTabs.archivedInVault}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-500 dark:text-neutral-400  truncate">
-                        {settings.vat_certificate_url}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <a
-                      href={settings.vat_certificate_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-3 py-1.5 rounded-lg bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 text-slate-800 dark:text-neutral-200 hover:text-primary dark:hover:text-mint text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
-                    >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      <span>{t.actions.view}</span>
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => vatFileInputRef.current?.click()}
-                      disabled={vatUploading}
-                      className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-xs"
-                    >
-                      {vatUploading ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>{t.companySettingsTabs.uploading}</span>
-                        </>
-                      ) : (
-                        <>
-                          <UploadCloud className="w-3.5 h-3.5" />
-                          <span>{t.companySettingsTabs.replaceCert}</span>
-                        </>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const updated = { ...settings, vat_certificate_url: "" };
-                        setSettings(updated);
-                        await updateCompanySettingsAction(updated);
-                      }}
-                      className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-100/50 dark:hover:bg-rose-950/40 transition-colors"
-                      title={t.companySettingsTabs.assetRemove}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  onClick={() => !vatUploading && vatFileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all duration-200 ${
-                    vatUploading
-                      ? "border-primary bg-primary/5"
-                      : "border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint bg-slate-50/70 hover:bg-slate-50 dark:bg-neutral-800/40 dark:hover:bg-neutral-800/70"
-                  }`}
+                <a
+                  href={settings.vat_certificate_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary dark:text-mint hover:underline"
                 >
-                  <div className="flex flex-col items-center justify-center space-y-2">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
-                      {vatUploading ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <UploadCloud className="w-5 h-5" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-900 dark:text-white">
-                        {vatUploading ? (
-                          t.companySettingsTabs.uploading
-                        ) : (
-                          <>
-                            <span className="text-primary dark:text-mint underline font-bold">
-                              {t.companySettingsTabs.clickToUpload}
-                            </span>{" "}
-                            {t.taxVatSettingsTab.orDragAndDropVat}
-                          </>
-                        )}
-                      </p>
-                      <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                        {t.taxVatSettingsTab.pdfPngOrJpgUp}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>{t.taxVatSettingsTab.vatCertificateDocument}</span>
+                </a>
+              ) : null}
               {vatUploadError && (
                 <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">
                   {vatUploadError}
@@ -328,9 +228,7 @@ export function TaxVatSettingsTab({
               )}
 
               <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-400 pt-1">
-                <span>
-                  {t.companySettingsTabs.certificateRequirement}
-                </span>
+                <span>{t.companySettingsTabs.certificateRequirement}</span>
                 <a
                   href={ROUTES.archive}
                   target="_blank"
@@ -347,8 +245,11 @@ export function TaxVatSettingsTab({
 
       {/* VAT Status Confirmation Modal */}
       {pendingVatToggle !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
-          <div {...vatDialog} className="relative w-full max-w-lg bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-2xl shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-scrim animate-in fade-in duration-150">
+          <div
+            {...vatDialog}
+            className="relative w-full max-w-lg bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 rounded-2xl shadow-2xl overflow-hidden"
+          >
             <div
               className={`p-4 border-b border-ink/15 dark:border-ink/15 flex items-center justify-between ${
                 pendingVatToggle
@@ -395,10 +296,11 @@ export function TaxVatSettingsTab({
                 <div className="space-y-3">
                   <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 space-y-2">
                     <div className="flex items-center justify-between font-bold text-xs">
-                      <span>{t.companySettingsTabs.vatModalNewStatusEnabled}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 ">
-                        {settings.vat_percentage}% VAT
+                      <span>
+                        {t.companySettingsTabs.vatModalNewStatusEnabled}
                       </span>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 ">
+                        {settings.vat_percentage}{t.copy.vatPercent}</span>
                     </div>
                     <ul className="list-disc list-inside space-y-1 text-[11px] text-emerald-800/90 dark:text-emerald-300/90 leading-relaxed">
                       <li>{t.companySettingsTabs.vatModalNotice1}</li>

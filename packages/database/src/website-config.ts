@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import websiteDefaultCopy from "./website-default-copy.json";
 
 export const websiteSections = [
@@ -42,7 +44,7 @@ export const defaultWebsiteConfig: WebsiteConfig = {
 };
 export function validateWebsiteConfig(value: unknown): WebsiteConfig {
   if (!value || typeof value !== "object")
-    throw new Error("Invalid website content");
+    throw new Error(serverMessages.invalidWebsiteContent);
   const data = value as Record<string, unknown>;
   if (
     !Array.isArray(data.sections) ||
@@ -53,7 +55,7 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
       (s) => !websiteSections.includes(s.id) || typeof s.visible !== "boolean",
     )
   )
-    throw new Error("Invalid section order");
+    throw new Error(serverMessages.invalidSectionOrder);
 
   const defaultPages: { id: WebsitePage; visible: boolean }[] = [
     { id: "works", visible: true },
@@ -82,16 +84,16 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
     (k) => k !== "sections" && k !== "pages",
   ) as Exclude<keyof WebsiteConfig, "sections" | "pages" | "pillars" | "aboutImageUrl">[]) {
     if (typeof data[key] !== "string" || (data[key] as string).length > 1500)
-      throw new Error(`Invalid ${key}`);
+      throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
     result[key] = (data[key] as string).trim();
   }
-  if (data.aboutImageUrl !== undefined) { if (typeof data.aboutImageUrl !== "string" || data.aboutImageUrl.length > 2000 || (data.aboutImageUrl && !safeWebsiteUrl(data.aboutImageUrl))) throw new Error("Invalid about image"); result.aboutImageUrl = data.aboutImageUrl; }
+  if (data.aboutImageUrl !== undefined) { if (typeof data.aboutImageUrl !== "string" || data.aboutImageUrl.length > 2000 || (data.aboutImageUrl && !safeWebsiteUrl(data.aboutImageUrl))) throw new Error(serverMessages.invalidAboutImage); result.aboutImageUrl = data.aboutImageUrl; }
   if (data.pillars !== undefined) {
-    if(!Array.isArray(data.pillars) || data.pillars.length > 12) throw new Error("Invalid studio history");
-    result.pillars = data.pillars.map((p:any) => { const entry = {} as WebsitePillar; for(const key of ["titleEn","titleAr","textEn","textAr"] as const){if(typeof p?.[key] !== "string" || p[key].length > 1500) throw new Error("Invalid studio history text");entry[key]=p[key].trim();}return entry;});
+    if(!Array.isArray(data.pillars) || data.pillars.length > 12) throw new Error(serverMessages.invalidStudioHistory);
+    result.pillars = data.pillars.map((p:any) => { const entry = {} as WebsitePillar; for(const key of ["titleEn","titleAr","textEn","textAr"] as const){if(typeof p?.[key] !== "string" || p[key].length > 1500) throw new Error(serverMessages.invalidStudioHistoryText);entry[key]=p[key].trim();}return entry;});
   }
   if (!result.contactTitleEn || !result.contactTitleAr)
-    throw new Error("Contact titles are required in both languages");
+    throw new Error(serverMessages.contactTitlesAreRequiredInBothLanguages);
   return result;
 }
 export interface PublicService {

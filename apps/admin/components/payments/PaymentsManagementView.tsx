@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import Link from "next/link";
 import type { PaymentListRow } from "@ishoot/database";
@@ -47,7 +48,7 @@ export function PaymentsManagementView({ initialPayments, totals, receiptCount, 
             <div key={v.currency}><CurrencyDisplay amount={v.amount} currency={v.currency as never} /></div>
           )) : <CurrencyDisplay amount={0} currency="BHD" />}
         </Kpi>
-        <Kpi icon={Receipt} tone="bg-sky-500/10 text-sky-600 dark:text-sky-400" label={t.paymentsView.issuedReceipts} hint={t.paymentsView.receiptsCount.replace("{n}", String(receiptCount))}>
+        <Kpi icon={Receipt} tone="bg-sky-500/10 text-sky-600 dark:text-sky-400" label={t.paymentsView.issuedReceipts} hint={formatMessage(t.paymentsView.receiptsCount, { n: String(receiptCount) })}>
           {receiptCount}
         </Kpi>
         <Kpi icon={FileText} tone="bg-amber-500/10 text-amber-600 dark:text-amber-400" label={t.paymentsView.invoicesInPlay} hint={t.paymentsView.activeBilling}>

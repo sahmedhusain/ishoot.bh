@@ -22,9 +22,11 @@ import type { MomAttendee, MomDiscussionPoint, MomActionItem } from "@ishoot/dat
 interface NewMomFormViewProps {
   clients: Array<{ id: string; name: string; company?: string | null }>;
   deals: Array<{ id: string; title: string }>;
+  companyName: string;
+  initialAttendee: { name: string; email: string };
 }
 
-export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
+export function NewMomFormView({ clients, deals, companyName, initialAttendee }: NewMomFormViewProps) {
   const router = useRouter();
   const { t, isRTL } = useAdminLocale();
 
@@ -37,16 +39,16 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
   const [meetingDate, setMeetingDate] = React.useState(
     new Date().toISOString().split("T")[0]
   );
-  const [startTime, setStartTime] = React.useState("10:00 AM");
-  const [endTime, setEndTime] = React.useState("11:30 AM");
-  const [location, setLocation] = React.useState("ishoot Studio & Headquarters");
+  const [startTime, setStartTime] = React.useState("");
+  const [endTime, setEndTime] = React.useState("");
+  const [location, setLocation] = React.useState("");
   const [clientId, setClientId] = React.useState("");
   const [dealId, setDealId] = React.useState("");
   const [status, setStatus] = React.useState("draft");
 
   // Dynamic Attendees
   const [attendees, setAttendees] = React.useState<MomAttendee[]>([
-    { name: "", role: "Lead Producer", email: "", organization: "iShoot", attended: true },
+    { ...initialAttendee, role: "", organization: companyName, attended: true },
   ]);
 
   // Agenda
@@ -262,7 +264,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           <div className="space-y-1.5">
             <label className="text-ink-muted font-medium">{t.newMomForm.startTime}</label>
             <Input
-              placeholder="10:00 AM"
+              placeholder={t.copy.timeStartExample}
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
             />
@@ -271,7 +273,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           <div className="space-y-1.5">
             <label className="text-ink-muted font-medium">{t.newMomForm.endTime}</label>
             <Input
-              placeholder="11:30 AM"
+              placeholder={t.copy.timeEndExample}
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
             />
@@ -280,7 +282,7 @@ export function NewMomFormView({ clients, deals }: NewMomFormViewProps) {
           <div className="space-y-1.5">
             <label className="text-ink-muted font-medium">{t.newMomForm.location}</label>
             <Input
-              placeholder={t.newMomForm.ishootStudioStageAZoom}
+              placeholder={t.newMomForm.locationExample}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             />

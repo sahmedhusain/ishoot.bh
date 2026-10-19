@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { RelatedListControls } from "../shared/RelatedListControls";
 
@@ -234,7 +235,7 @@ export function Customer360DossierView({
           <div className="text-2xl font-bold  text-slate-900 dark:text-white flex items-baseline gap-2">
             <span>{metrics.winRate}%</span>
             <span className="text-xs font-normal text-slate-500">
-              ({t.customer360.dealsCount.replace("{n}", String(dossier.pagination?.deals.total ?? deals.length))})
+              ({formatMessage(t.customer360.dealsCount, { n: String(dossier.pagination?.deals.total ?? deals.length) })})
             </span>
           </div>
           <div className="text-[11px] text-slate-500 dark:text-slate-400  flex items-center justify-between">
@@ -423,7 +424,7 @@ export function Customer360DossierView({
                       {deal.title}
                     </Link>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400  mt-0.5">
-                      Stage: {deal.stage} {t.customer360Dossier.prob} {deal.probability}%
+                      {formatMessage(t.copy.stageValue, { stage: (t.statusLabels as Record<string, string>)[deal.stage] ?? deal.stage, percent: deal.probability })}
                     </p>
                   </div>
                   <div className=" text-end font-bold text-slate-900 dark:text-white">

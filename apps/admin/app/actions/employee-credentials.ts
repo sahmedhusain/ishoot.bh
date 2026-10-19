@@ -15,13 +15,25 @@ import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";
 
 /** Nationality, date of birth, CPR and passport details of an employee. */
-export async function updateEmployeeIdentityAction(employeeId: string, data: EmployeeIdentityInput) {
+export async function updateEmployeeIdentityAction(
+  employeeId: string,
+  data: EmployeeIdentityInput,
+) {
   return measureOperation("action:updateEmployeeIdentityAction", async () => {
     const actor = await requirePermission("employees", "edit");
-    validateActionArguments("updateEmployeeIdentityAction", { employeeId, data });
+    validateActionArguments("updateEmployeeIdentityAction", {
+      employeeId,
+      data,
+    });
     await runAtomicMutation(async () => {
       await updateEmployeeIdentity(employeeId, data);
-      await createActivityLog({ user_id: actor.id, action: "update", entity_type: "employee", entity_id: employeeId, details: { section: "identity", fields: Object.keys(data) } });
+      await createActivityLog({
+        user_id: actor.id,
+        action: "update",
+        entity_type: "employee",
+        entity_id: employeeId,
+        details: { section: "identity", fields: Object.keys(data) },
+      });
     });
     revalidatePath(ROUTES.hr.employee(employeeId));
     return { success: true };
@@ -29,18 +41,34 @@ export async function updateEmployeeIdentityAction(employeeId: string, data: Emp
 }
 
 /** Adds or edits a visa, permit, licence, insurance or other document of an employee, with its cost. */
-export async function saveEmployeeCredentialAction(employeeId: string, data: EmployeeCredentialInput, credentialId?: string) {
+export async function saveEmployeeCredentialAction(
+  employeeId: string,
+  data: EmployeeCredentialInput,
+  credentialId?: string,
+) {
   return measureOperation("action:saveEmployeeCredentialAction", async () => {
     const actor = await requirePermission("employees", "edit");
-    validateActionArguments("saveEmployeeCredentialAction", { employeeId, data, credentialId });
+    validateActionArguments("saveEmployeeCredentialAction", {
+      employeeId,
+      data,
+      credentialId,
+    });
     const saved = await runAtomicMutation(async () => {
-      const saved = await saveEmployeeCredential(employeeId, { ...data, id: credentialId });
+      const saved = await saveEmployeeCredential(
+        employeeId,
+        { ...data, id: credentialId },
+        actor.id,
+      );
       await createActivityLog({
         user_id: actor.id,
         action: credentialId ? "update" : "create",
         entity_type: "employee_credential",
         entity_id: saved.id,
-        details: { employeeId, kind: saved.kind, expiryDate: saved.expiryDate?.toISOString().slice(0, 10) ?? null },
+        details: {
+          employeeId,
+          kind: saved.kind,
+          expiryDate: saved.expiryDate?.toISOString().slice(0, 10) ?? null,
+        },
       });
       return saved;
     });
@@ -55,7 +83,13 @@ export async function deleteEmployeeCredentialAction(credentialId: string) {
     validateActionArguments("deleteEmployeeCredentialAction", { credentialId });
     const employeeId = await runAtomicMutation(async () => {
       const employeeId = await deleteEmployeeCredential(credentialId);
-      await createActivityLog({ user_id: actor.id, action: "delete", entity_type: "employee_credential", entity_id: credentialId, details: { employeeId } });
+      await createActivityLog({
+        user_id: actor.id,
+        action: "delete",
+        entity_type: "employee_credential",
+        entity_id: credentialId,
+        details: { employeeId },
+      });
       return employeeId;
     });
     revalidatePath(ROUTES.hr.employee(employeeId));

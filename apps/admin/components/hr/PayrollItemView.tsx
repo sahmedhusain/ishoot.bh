@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
@@ -296,7 +297,7 @@ export function PayrollItemView({ detail, canEdit, canPay }: { detail: Detail; c
             <form onSubmit={saveAdjustments} className="mt-3 space-y-3">
               <PayLinesEditor kind="addition" lines={additions} onChange={setAdditions} />
               <PayLinesEditor kind="deduction" lines={deductions} onChange={setDeductions} />
-              {recurringLines.length > 0 && <p className="text-[11px] text-slate-500">{t.payLines.recurringNote.replace("{count}", String(recurringLines.length))}</p>}
+              {recurringLines.length > 0 && <p className="text-[11px] text-slate-500">{formatMessage(t.payLines.recurringNote, { count: String(recurringLines.length) })}</p>}
               <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
                 {t.payLines.generalNote}
                 <input maxLength={500} className={fieldClass} value={note} onChange={(e) => setNote(e.target.value)} />

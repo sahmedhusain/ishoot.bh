@@ -2,13 +2,10 @@
 
 import * as React from "react";
 import type { CompanySettings } from "@ishoot/database/types";
-import { Card,Input,Button } from "@ishoot/ui";
+import { Card,Input } from "@ishoot/ui";
 import {
 Building2,
-Phone,Calendar,
-Copy,
-ExternalLink,
-Check
+Phone,
 } from "lucide-react";
 import type { Translations } from "../../../lib/translations";
 
@@ -27,12 +24,6 @@ export function GeneralInfoTab({
   locale,
   isRTL,
 }: GeneralInfoTabProps) {
-  React.useState(true);
-  const [feedCopied, setFeedCopied] = React.useState(false);
-  // The absolute feed URL needs the browser origin; set it after mount so server and client markup match.
-  const [feedOrigin, setFeedOrigin] = React.useState("");
-  React.useEffect(() => setFeedOrigin(window.location.origin), []);
-
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Legal & Corporate Registration Card */}
@@ -199,75 +190,6 @@ export function GeneralInfoTab({
               }
               className=" rounded-lg"
             />
-          </div>
-        </div>
-      </Card>
-
-      {/* Google Workspace & Production Calendar Live Sync */}
-      <Card className="p-6 bg-white dark:bg-[#202124] border border-ink/15 dark:border-ink/15 shadow-xs rounded-2xl space-y-5">
-        <div className="flex items-center justify-between pb-3 border-b border-ink/15 dark:border-ink/15">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                {t.companySettingsView.googleTitle}
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {t.companySettingsView.googleSubtitle}
-              </p>
-            </div>
-          </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-primary dark:text-mint border border-emerald-200 dark:border-emerald-800">
-            <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-            <span>{t.generalInfoTab.liveProductionSyncActive}</span>
-          </span>
-        </div>
-
-        <div className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#282a2d] border border-ink/15 dark:border-ink/15 space-y-4">
-          <div className="space-y-1">
-            <div className="text-xs font-bold text-slate-900 dark:text-white">
-              {t.generalInfoTab.productionAndShootLiveFeed}
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {t.generalInfoTab.allScheduledShootsClientMeetings}
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <div className="flex-1 bg-white dark:bg-surface-raised border border-ink/15 dark:border-ink/15 px-3 py-2 rounded-xl text-xs font-mono text-slate-700 dark:text-slate-300 truncate select-all">
-              {`${feedOrigin}/api/calendar/feed`}
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const url = `${window.location.origin}/api/calendar/feed`;
-                navigator.clipboard.writeText(url);
-                setFeedCopied(true);
-                setTimeout(() => setFeedCopied(false), 2500);
-              }}
-              className="gap-1.5 text-xs rounded-xl shrink-0"
-            >
-              {feedCopied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{feedCopied ? (t.generalInfoTab.copied) : (t.generalInfoTab.copyFeedUrl)}</span>
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                const feedUrl = `${window.location.origin}/api/calendar/feed`;
-                const gcalUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(feedUrl)}`;
-                window.open(gcalUrl, "_blank");
-              }}
-              className="gap-1.5 text-xs rounded-xl shrink-0 bg-accent text-white"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>{t.generalInfoTab.addToGoogleCalendar}</span>
-            </Button>
           </div>
         </div>
       </Card>

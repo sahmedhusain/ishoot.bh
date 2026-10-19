@@ -28,6 +28,8 @@ import { createMinuteOfMeeting, approveAndSignMom } from "../src/queries/moms";
 import { submitForApproval, decideApprovalRequest, type ApprovalOutcome } from "../src/services/approval-engine";
 import type { ApprovalTargetType } from "../src/constants/approvals";
 import { lineTotal } from "../src/finance/money";
+import { saveAsset } from "../src/queries/assets";
+import { resolveIncomingLead } from "../src/services/lead-resolver";
 
 let seedPrisma: PrismaClient;
 
@@ -224,9 +226,12 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     let phone;
     do phone = `+973 3${int(200, 999)} ${int(1000, 9999)}`; while (usedPhones.has(phone));
     usedPhones.add(phone);
+    const jobTitle = pick(JOB_TITLES);
     const contact = await createCRMContact({
-      first_name: first[0], last_name: last[0], email, phone, company: companyName, job_title: pick(JOB_TITLES),
-      vat_number: chance(0.6) ? `2${int(10000000, 99999999)}0000${int(1, 9)}` : undefined,
+      client_kind: "company", company_origin: "local", cr_number: `${100000 + contacts.length}-1`,
+      first_name: first[0], last_name: last[0], email, phone, company: companyName, job_title: jobTitle,
+      contact_persons: [{full_name: `${first[0]} ${last[0]}`,position: jobTitle,email,phone,is_primary:true}],
+      vat_number: chance(0.6) ? `2${int(10000000, 99999999)}00000${int(1, 9)}` : undefined,
       contact_type: chance(0.9) ? "client" : "agency",
       notes: chance(0.3) ? "Prefers WhatsApp for scheduling; finance contact copied on invoices." : undefined,
     });
@@ -355,7 +360,8 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     const age = (TODAY.getTime() - plan.issueDate.getTime()) / DAY;
     if (age < 6 && chance(0.4)) continue; // draft
     if (age > 30 && chance(0.03)) { await updateInvoiceStatus(invoice.id, "void"); bump("invoicesVoid"); continue; }
-    await requestInvoiceApproval(invoice.id, issuer.id);
+    // Invoices above the policy threshold wait for an approver; the seed takes them through every step.
+    await decideFully(await requestInvoiceApproval(invoice.id, issuer.id), "approved", "Invoice checked against the signed scope.");
     await signDocument("invoice", invoice.id, await signerFor(plan.salesOwnerId ?? issuer.id));
     await updateInvoiceStatus(invoice.id, "sent");
 
@@ -712,6 +718,94 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   await prisma.socialMetric.createMany({ data: metricRows });
   bump("socialMetrics", metricRows.length);
 
+  // ============================================================ 10. company assets (every status and condition)
+  {
+    const categoriesByCode = Object.fromEntries((await prisma.assetCategory.findMany()).map((c) => [c.code, c]));
+    const catalog: Array<[string, string, string, string, number]> = [
+      ["camera", "Cinema camera body", "Sony", "FX6", 2900], ["camera", "Mirrorless camera", "Sony", "A7S III", 1500], ["camera", "Cinema camera body", "Canon", "C70", 2800],
+      ["camera", "Mirrorless camera", "Canon", "R5", 1700], ["lens", "Cinema prime 35mm", "Sigma", "35mm T1.5", 1650], ["lens", "Zoom lens 24-70", "Sony", "GM II", 900],
+      ["lens", "Telephoto 70-200", "Canon", "RF 70-200 f/2.8", 1050], ["laptop", "Editing laptop", "Apple", "MacBook Pro 16", 1250], ["laptop", "Office laptop", "Dell", "Latitude 7440", 520],
+      ["laptop", "Editing laptop", "Apple", "MacBook Pro 14", 980], ["phone", "Company phone", "Apple", "iPhone 15", 340], ["phone", "Company phone", "Samsung", "Galaxy S24", 280],
+      ["tablet", "Client presentation tablet", "Apple", "iPad Pro", 420], ["drone", "Aerial drone", "DJI", "Mavic 3 Pro", 1000], ["drone", "Aerial drone", "DJI", "Inspire 3", 4800],
+      ["lighting", "LED light panel", "Aputure", "600d Pro", 750], ["lighting", "LED light panel", "Aputure", "300x", 450], ["lighting", "Softbox kit", "Godox", "SL-60W", 120],
+      ["audio", "Wireless lavalier set", "Sennheiser", "EW-DP", 850], ["audio", "Shotgun microphone", "Rode", "NTG5", 480], ["audio", "Field recorder", "Zoom", "F6", 590],
+      ["memory_card", "CFexpress card", "ProGrade", "Type B 512GB", 210], ["memory_card", "SD card V90", "Angelbird", "256GB", 120], ["vehicle", "Production van", "Toyota", "Hiace", 11500],
+      ["other", "Tripod fluid head", "Sachtler", "Ace XL", 640], ["other", "Gimbal stabiliser", "DJI", "RS 3 Pro", 560], ["other", "Monitor 17 inch", "SmallHD", "Cine 17", 2400],
+    ];
+    // The state each asset ends in: mostly available, some issued by hand, a few in service, and damaged ones that stay available.
+    const plan = ["available", "available", "assigned", "available", "available", "assigned", "available", "assigned", "available", "available", "maintenance", "available", "assigned", "available", "maintenance", "available", "lost", "available", "assigned", "available", "retired", "available", "available", "assigned", "available", "maintenance", "available"];
+    const holders = (await prisma.employee.findMany({ where: { status: { not: "terminated" } }, select: { id: true } })).map((e) => e.id);
+    for (const [index, [code, name, brand, model, cost]] of catalog.entries()) {
+      const category = categoriesByCode[code];
+      if (!category) continue;
+      const specs: Record<string, string> = {};
+      for (const f of (category.specFields as Array<{ key: string; type: string }>) ?? []) {
+        specs[f.key] = f.type === "number" ? String(int(2, 64)) : f.type === "date" ? iso(daysAgo(int(10, 900))) : f.type === "boolean" ? "yes" : `${brand.slice(0, 3).toUpperCase()}-${int(1000, 9999)}`;
+      }
+      const state = plan[index % plan.length];
+      const damagedButUsable = state === "available" && chance(0.14);
+      const base = {
+        category_id: category.id, name, brand, model, serial_number: `${brand.slice(0, 2).toUpperCase()}${int(10000000, 99999999)}`,
+        purchase_date: iso(daysAgo(int(60, 1100))), purchase_cost: cost, supplier: pick(["Gulf Pro Audio Visual", "Jarir Bahrain", "B&H Photo (import)", "Lulu Technology"]),
+        invoice_reference: `PUR-${int(1000, 9999)}`, warranty_until: iso(addDays(TODAY, int(-200, 700))),
+        condition: damagedButUsable ? "damaged" : state === "maintenance" ? pick(["poor", "damaged"]) : state === "lost" || state === "retired" ? "poor" : pick(["new", "excellent", "good", "good", "fair"]),
+        location: pick(["Studio A cage", "Gear room", "Edit suite", "Reception", "Van"]), specs,
+        notes: damagedButUsable ? "Cosmetic damage after a shoot; still works and stays in the pool until someone decides it needs servicing." : undefined,
+      };
+      const created = await saveAsset(base, owner.id);
+      bump("assets");
+      if (state === "available") continue;
+      await saveAsset({ ...base, status: state, ...(state === "assigned" ? { holder_employee_id: pick(holders) } : {}) }, owner.id, created.id);
+      bump(`assets_${state}`);
+    }
+  }
+
+  // ============================================================ 10b. salary documents (payslips and certificates)
+  {
+    const months = (await prisma.payrollItem.findMany({ where: { payrollRun: { status: { in: ["approved", "paid", "closed"] } } }, select: { employeeId: true, payrollRun: { select: { year: true, month: true } } } }));
+    const monthsByEmployee = new Map<string, string[]>();
+    for (const m of months) {
+      const key = `${m.payrollRun.year}-${String(m.payrollRun.month).padStart(2, "0")}`;
+      monthsByEmployee.set(m.employeeId, [...(monthsByEmployee.get(m.employeeId) ?? []), key]);
+    }
+    for (const employee of shuffle(employees.filter((e) => e.userId && e.user?.role !== "super_admin")).slice(0, 22)) {
+      const available = (monthsByEmployee.get(employee.id) ?? []).sort();
+      const wantsPayslip = available.length > 0 && chance(0.6);
+      const picked = wantsPayslip ? available.slice(-int(1, Math.min(3, available.length))) : [];
+      const document = await prisma.salaryDocument.create({
+        data: { employeeId: employee.id, kind: wantsPayslip ? "payslip" : "salary_certificate", months: picked, languages: pick([["ar"], ["en"], ["ar", "en"]]), requestedById: employee.userId!, status: "pending" },
+      });
+      const outcome = await submit("salary_document", document.id, employee.userId!, { kind: document.kind, months: picked });
+      bump("salaryDocuments");
+      if (outcome.status !== "pending" || chance(0.25)) continue; // some wait for HR
+      await decideFully(outcome, chance(0.08) ? "rejected" : "approved", "Checked against payroll records.");
+    }
+  }
+
+  // ============================================================ 10c. website enquiries, complaints and suggestions
+  {
+    const voices: Array<[string, string, "inquiry" | "quote_request" | "complaint" | "suggestion", string]> = [
+      ["Khalid Al-Mannai", "khalid@alsafwa-trading.bh", "complaint", "The edited video was delivered two days after the date we agreed, and we missed our campaign launch."],
+      ["Noora Al-Zayani", "noora.z@seef-mall.example", "complaint", "Subtitles in the Arabic version have several spelling mistakes. Please correct and resend."],
+      ["Hasan Jaffar", "hasan.jaffar@gulfbuild.example", "complaint", "The invoice shows a day rate we did not agree on in the quotation."],
+      ["Maryam Al-Dosari", "maryam@dosari-events.example", "complaint", "The crew arrived 45 minutes late to our conference shoot."],
+      ["Yusuf Kanoo", "yusuf@kanoo-motors.example", "suggestion", "Please add a client portal where we can review cuts and leave timecoded comments."],
+      ["Fatima Bucheeri", "fatima@bucheeri-group.example", "suggestion", "A monthly content report with views per platform would help us plan the next campaign."],
+      ["Ali Salman", "ali.salman@tamkeen-partner.example", "suggestion", "Offering vertical versions by default would save us a lot of back and forth."],
+      ["Reem Al-Khalifa", "reem@khalifa-jewels.example", "quote_request", "We need a quote for a 60-second product film and 10 social cutdowns for our new collection."],
+      ["Omar Fakhro", "omar@fakhro-holding.example", "quote_request", "Looking for pricing on a corporate documentary, around 12 minutes, shooting in March."],
+      ["Layla Mattar", "layla@mattar-clinic.example", "quote_request", "Monthly social media content, two shoot days a month. Please quote."],
+      ["Jassim Al-Aali", "jassim@aali-realestate.example", "inquiry", "Do you offer drone shoots with a licensed pilot for a property launch?"],
+      ["Sara Al-Hammadi", "sara@hammadi-cafe.example", "inquiry", "What is the lead time for a short brand video?"],
+      ["Tariq Al-Sayed", "tariq@alsayed-law.example", "inquiry", "Can the studio be hired for a two-hour interview recording?"],
+      ["Dana Al-Ansari", "dana@ansari-fashion.example", "complaint", "The colours in the final lookbook video do not match the brand guide we supplied."],
+    ];
+    for (const [name, email, intent, message] of voices) {
+      await resolveIncomingLead({ name, email, intent, message, locale: chance(0.5) ? "en" : "ar", source: pick(["website", "website", "email", "whatsapp"] as const) });
+      bump(`web_${intent}`);
+    }
+  }
+
   console.log(`✅ Volume data (${Math.round((Date.now() - started) / 1000)}s): ${Object.entries(counts).map(([k, v]) => `${k} ${v}`).join(", ")}`);
 }
 
@@ -757,7 +851,7 @@ export async function reconcileSeed(prisma: PrismaClient) {
   const used = await prisma.$queryRaw<Array<{ id: string; prefix: string; yr: number; max: number }>>`
     SELECT prefix || '_' || yr AS id, prefix, yr, MAX(n)::int AS max FROM (
       SELECT split_part("quotationNumber", '-', 1) AS prefix, split_part("quotationNumber", '-', 2)::int AS yr, split_part("quotationNumber", '-', 3)::int AS n FROM "Quotation"
-      UNION ALL SELECT split_part(reference, '-', 1), split_part(reference, '-', 2)::int, split_part(reference, '-', 3)::int FROM "Inquiry" WHERE reference ~ '^(SR|CR)-[0-9]{4}-[0-9]+$'
+      UNION ALL SELECT split_part(reference, '-', 1), split_part(reference, '-', 2)::int, split_part(reference, '-', 3)::int FROM "Inquiry" WHERE reference ~ '^(SR|CR|INQ|RFQ|CMP|SUG)-[0-9]{4}-[0-9]+$'
       UNION ALL SELECT split_part("employeeNumber", '-', 1), split_part("employeeNumber", '-', 2)::int, split_part("employeeNumber", '-', 3)::int FROM "Employee" WHERE "employeeNumber" ~ '^EMP-[0-9]{4}-[0-9]+$'
     ) x GROUP BY prefix, yr`;
   for (const s of used) {

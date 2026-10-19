@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -152,7 +153,7 @@ export function HandoversListView({ items, status, kind, startFor, employees, ca
                     {formatDate(h.effective_date, locale)}
                     {h.return_date ? <span className="text-ink-muted"> → {formatDate(h.return_date, locale)}</span> : null}
                   </td>
-                  <td className="px-4 py-3 text-xs text-ink">{h.cases_pending ? e.casesPending.replace("{n}", String(h.cases_pending)) : e.casesClear.replace("{n}", String(h.cases_total))}</td>
+                  <td className="px-4 py-3 text-xs text-ink">{h.cases_pending ? formatMessage(e.casesPending, { n: String(h.cases_pending) }) : formatMessage(e.casesClear, { n: String(h.cases_total) })}</td>
                   <td className="px-4 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${HANDOVER_STATUS_STYLE[h.status] ?? ""}`}>{e.statuses[h.status as keyof typeof e.statuses]}</span></td>
                 </tr>
               ))}

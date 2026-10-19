@@ -3,14 +3,15 @@ import { ROUTES } from "../../constants/routes";
 import { ContentImage } from "../shared/ContentImage";
 
 import Link from "next/link";
-import { Calendar,Sun,Moon,Menu } from "lucide-react";
+import { Calendar, Sun, Moon, Menu } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useAdminTheme } from "../../hooks/useAdminTheme";
+import { usePermissions } from "../../hooks/usePermissions";
 import { NotificationCenter } from "./NotificationCenter";
 import { AdminProfileDropdown } from "./AdminProfileDropdown";
 import { GlobalQuickJump } from "./GlobalQuickJump";
 import { useSidebar } from "./SidebarContext";
-import type { CRMContact,CompanySettings } from "@ishoot/database/types";
+import type { CRMContact, CompanySettings } from "@ishoot/database/types";
 
 interface TopbarProps {
   contacts?: CRMContact[];
@@ -27,6 +28,7 @@ interface TopbarProps {
 
 export function Topbar({ contacts = [], company }: TopbarProps) {
   const { t, isRTL } = useAdminLocale();
+  const { can } = usePermissions();
   const { resolvedTheme, setTheme } = useAdminTheme();
   const { toggleMobileOpen } = useSidebar();
 
@@ -66,7 +68,9 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
             }
             alt={companyTitle}
             className="w-7 h-7 object-contain shrink-0"
-           width={40} height={40} />
+            width={40}
+            height={40}
+          />
           <ContentImage
             src={
               resolvedTheme === "dark"
@@ -75,13 +79,11 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
             }
             alt={companyTitle}
             className="hidden sm:block h-6 w-auto object-contain"
-           fallbackText={companyTitle}  width={240} height={60} />
+            fallbackText={companyTitle}
+            width={240}
+            height={60}
+          />
         </Link>
-
-        <div className="flex items-center gap-2.5 ms-2">
-          <div className="h-5 w-px bg-slate-200 dark:bg-neutral-700" />
-          <AdminProfileDropdown />
-        </div>
       </div>
 
       {/* Center: Google Cloud Style Minimalist Search Bar */}
@@ -93,21 +95,23 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
       {/* End: Action Cluster */}
       <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
         {/* Calendar Shortcut */}
-        <Link
-          href={ROUTES.calendar}
-          className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
-          title={t.nav.calendar}
-          aria-label={t.nav.calendar}
-        >
-          <Calendar className="w-4 h-4" />
-        </Link>
+        {can("calendar", "read") && (
+          <Link
+            href={ROUTES.calendar}
+            className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
+            title={t.nav.calendar}
+            aria-label={t.nav.calendar}
+          >
+            <Calendar className="w-4 h-4" />
+          </Link>
+        )}
 
         {/* Theme Switcher */}
         <button
           type="button"
           onClick={toggleTheme}
           className="w-9 h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800 transition-colors"
-          title={`Switch to ${resolvedTheme === "dark" ? "Light" : "Dark"} Mode`}
+          title={t.topbar.toggleTheme}
           aria-label={t.topbar.toggleTheme}
         >
           {resolvedTheme === "dark" ? (
@@ -119,6 +123,8 @@ export function Topbar({ contacts = [], company }: TopbarProps) {
 
         {/* Notifications Popover */}
         <NotificationCenter />
+        <span className="mx-1 h-5 w-px bg-ink/10" aria-hidden />
+        <AdminProfileDropdown />
       </div>
     </header>
   );

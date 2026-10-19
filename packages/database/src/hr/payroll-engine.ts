@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 /**
  * Payroll and leave arithmetic with no database access, so every rule can be unit tested.
  *
@@ -148,28 +150,28 @@ export function leaveDaysCharged(
   policy: Pick<HrPolicyRules, "weekendDays" | "workdayHours">,
   holidays: ReadonlySet<string>,
 ): number {
-  if (input.end < input.start) throw new Error("The leave cannot end before it starts");
+  if (input.end < input.start) throw new Error(serverMessages.theLeaveCannotEndBeforeItStarts);
   if (input.portion !== "full") {
-    if (dayKey(input.start) !== dayKey(input.end)) throw new Error("Half-day and hourly leave cover a single day");
-    if (!type.countCalendarDays && !isWorkingDay(input.start, policy, holidays)) throw new Error("The selected day is not a working day");
+    if (dayKey(input.start) !== dayKey(input.end)) throw new Error(serverMessages.halfDayAndHourlyLeaveCoverA);
+    if (!type.countCalendarDays && !isWorkingDay(input.start, policy, holidays)) throw new Error(serverMessages.theSelectedDayIsNotAWorking);
   }
   let days: number;
   if (input.portion === "half_am" || input.portion === "half_pm") {
-    if (!type.allowHalfDay) throw new Error("This leave type cannot be taken as a half day");
+    if (!type.allowHalfDay) throw new Error(serverMessages.thisLeaveTypeCannotBeTakenAs);
     days = 0.5;
   } else if (input.portion === "hours") {
-    if (!type.allowHours) throw new Error("This leave type cannot be taken by the hour");
+    if (!type.allowHours) throw new Error(serverMessages.thisLeaveTypeCannotBeTakenBy);
     const hours = Number(input.hours ?? 0);
-    if (!(hours > 0) || hours >= policy.workdayHours) throw new Error(`Hourly leave must be between 0 and ${policy.workdayHours} hours`);
+    if (!(hours > 0) || hours >= policy.workdayHours) throw new Error(formatMessage(serverTemplates.hourlyLeaveMustBeBetween0And, { 0: policy.workdayHours }));
     days = r2(hours / policy.workdayHours);
   } else {
     days = type.countCalendarDays
       ? eachDay(input.start, input.end).length
       : workingDaysBetween(input.start, input.end, policy, holidays);
   }
-  if (days <= 0) throw new Error("The selected period has no working days");
+  if (days <= 0) throw new Error(serverMessages.theSelectedPeriodHasNoWorkingDays);
   if (type.maxDaysPerRequest != null && days > type.maxDaysPerRequest)
-    throw new Error(`At most ${type.maxDaysPerRequest} day(s) can be requested at once for this leave type`);
+    throw new Error(formatMessage(serverTemplates.atMost0DaySCanBe, { 0: type.maxDaysPerRequest }));
   return days;
 }
 
@@ -456,6 +458,6 @@ export function payrollTotals(b: Pick<PayrollBreakdown, "fixedPay" | "overtimePa
   const gross = r3(b.fixedPay + b.overtimePay + b.shiftAllowance + b.commission + b.bonus);
   const deductions = r3(employeeContribution + b.absenceDeduction + b.leaveDeduction + b.latenessDeduction + b.otherDeductions);
   const net = r3(gross - deductions);
-  if (net < 0) throw new Error("Deductions cannot exceed the month's pay");
+  if (net < 0) throw new Error(serverMessages.deductionsCannotExceedTheMonthSPay);
   return { gross, deductions, net };
 }

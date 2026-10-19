@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
@@ -113,7 +114,7 @@ export function CommissionsView({ month, rows, canRecord, canSetRates }: { month
                     {r.payout ? (
                       <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        {r.payout.viaPayroll ? c.paidWithSalary : c.recordedOn.replace("{date}", r.payout.recordedAt.slice(0, 10))}
+                        {r.payout.viaPayroll ? c.paidWithSalary : formatMessage(c.recordedOn, { date: r.payout.recordedAt.slice(0, 10) })}
                       </span>
                     ) : r.onPayroll && r.commission > 0 ? (
                       <span className="text-ink-muted">{c.inPayroll}</span>

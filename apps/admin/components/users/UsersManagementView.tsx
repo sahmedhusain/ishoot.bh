@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import * as React from "react";
 import type { Profile, UserRole } from "@ishoot/database/types";
 import { createUserAction, deleteUserAction } from "../../app/actions/users";
 import { RolePermissionMatrix } from "./RolePermissionMatrix";
+import { UserPermissionOverrides } from "./UserPermissionOverrides";
 import { AccountSettingsDialog, type AccountSettingsValue } from "../shared/AccountSettingsDialog";
 import { toast } from "sonner";
 import {
@@ -26,8 +28,7 @@ import {
   Building,
   CheckCircle2,
   Lock,
-  Pencil,
-} from "lucide-react";
+  Pencil, KeyRound } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
 
@@ -72,6 +73,7 @@ export function UsersManagementView({
 
   const [employeeId, setEmployeeId] = React.useState("");
   const [editing, setEditing] = React.useState<AccountSettingsValue | null>(null);
+  const [overridesFor, setOverridesFor] = React.useState<Profile | null>(null);
   const [confirmCreate, setConfirmCreate] = React.useState(false);
   const [error, setError] = React.useState("");
   const [fullName, setFullName] = React.useState("");
@@ -349,10 +351,18 @@ export function UsersManagementView({
                             {t.accountSettings.lockedRow}
                           </span>
                         ) : canWrite ? (
-                          <Button type="button" size="sm" variant="outline" onClick={() => setEditing(accountValue(u))}>
-                            <Pencil className="w-3.5 h-3.5" />
-                            {t.accountSettings.editShort}
-                          </Button>
+                          <span className="inline-flex gap-1.5">
+                            <Button type="button" size="sm" variant="outline" onClick={() => setEditing(accountValue(u))}>
+                              <Pencil className="w-3.5 h-3.5" />
+                              {t.accountSettings.editShort}
+                            </Button>
+                            {actorRole === "super_admin" && (
+                              <Button type="button" size="sm" variant="ghost" onClick={() => setOverridesFor(u)} title={t.permissionOverrides.open}>
+                                <KeyRound className="w-3.5 h-3.5" />
+                                {Object.keys(u.permissions ?? {}).filter((k) => !k.endsWith(":write")).length ? t.permissionOverrides.customized : t.permissionOverrides.open}
+                              </Button>
+                            )}
+                          </span>
                         ) : null}
                         {canDelete && u.role !== "super_admin" && (
                           <button
@@ -374,6 +384,14 @@ export function UsersManagementView({
       )}
 
       {activeTab === "matrix" && <RolePermissionMatrix roles={allRoles} rolePermissions={rolePermissions} />}
+
+      {overridesFor && (
+        <UserPermissionOverrides
+          user={{ id: overridesFor.id, name: overridesFor.full_name, role: overridesFor.role, permissions: overridesFor.permissions as Record<string, boolean> | null }}
+          roleGrants={rolePermissions[overridesFor.role] ?? {}}
+          onClose={() => setOverridesFor(null)}
+        />
+      )}
 
       <Modal closeLabel={t.actions.close}
         isOpen={showCreateModal}
@@ -550,10 +568,7 @@ export function UsersManagementView({
 
       <Modal closeLabel={t.actions.close} isOpen={confirmCreate} onClose={() => setConfirmCreate(false)} title={t.accountSettings.confirmCreateTitle}>
         <p className="text-sm text-ink">
-          {t.accountSettings.confirmCreateBody
-            .replace("{name}", fullName)
-            .replace("{email}", email)
-            .replace("{role}", allRoles.find((r) => r.key === role)?.name ?? role)}
+          {formatMessage(t.accountSettings.confirmCreateBody, { name: fullName, email: email, role: allRoles.find((r) => r.key === role)?.name ?? role })}
         </p>
         <div className="mt-5 flex justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmCreate(false)}>{t.actions.cancel}</Button>

@@ -81,7 +81,7 @@ export function ResetPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandin
               </div>
             </div>
             <Button type="submit" disabled={loading} variant="primary" size="lg" className="w-full gap-2 mt-4">
-              <span>{loading ? "Resetting..." : t.resetPasswordForm.resetPassword}</span>
+              <span>{loading ? t.shared.saving : t.resetPasswordForm.resetPassword}</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </form>

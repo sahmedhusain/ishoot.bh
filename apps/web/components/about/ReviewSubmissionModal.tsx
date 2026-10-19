@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import {
   Star,
@@ -195,10 +196,7 @@ export function ReviewSubmissionModal({
                     <button
                       key={star}
                       type="button"
-                      aria-label={t("contact.ratingOption").replace(
-                        "{value}",
-                        String(star),
-                      )}
+                      aria-label={formatMessage(t("contact.ratingOption"), { value: String(star) })}
                       aria-pressed={rating === star}
                       onClick={() => setRating(star)}
                       onMouseEnter={() => setHoverRating(star)}

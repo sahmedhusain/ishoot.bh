@@ -1,3 +1,4 @@
+import { formatMessage } from "@ishoot/locales";
 import { Document, Page, View } from "@react-pdf/renderer";
 import type { Payment } from "@ishoot/database/types";
 import {
@@ -90,7 +91,7 @@ function ReceiptBody({ k, payment, brand, signing, certificates = [] }: ReceiptP
 
       <View style={{ marginTop: 16, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: "#ECFDF5", borderRadius: 6 }} wrap={false}>
         <T style={{ fontSize: 8, color: C.success, fontWeight: "bold" }}>{t.verifiedNotice.replace(/^✓\s*/, "")}</T>
-        <T style={{ fontSize: 7.5, color: C.body, marginTop: 2 }}>{t.electronicNotice.replace("{companyName}", companyName)}</T>
+        <T style={{ fontSize: 7.5, color: C.body, marginTop: 2 }}>{formatMessage(t.electronicNotice, { companyName: companyName })}</T>
       </View>
 
       <ClosingRow certificates={certificates} end={<CompanySignatureBlock brand={brand} signing={signing} pending={t.awaitingSignature} label={t.cashier} />} />

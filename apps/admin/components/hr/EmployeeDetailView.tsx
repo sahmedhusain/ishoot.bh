@@ -400,7 +400,7 @@ export function EmployeeDetailView({
                     className="font-semibold text-slate-900 dark:text-white text-sm"
                     dir="rtl"
                   >
-                    {employee.jobTitleAr || "N/A"}
+                    {employee.jobTitleAr || t.copy.notAvailable}
                   </div>
                 </div>
 

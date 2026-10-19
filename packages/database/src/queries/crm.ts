@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../constants/routes";
 import { DEAL_STAGE_ON_EVENT, DEAL_STAGE_PROBABILITY, dealStagesBefore, isActiveDealStage, type DealProgressEvent } from "../constants/crm";
 import { getCompanySettings } from "./company-settings";
@@ -469,7 +470,7 @@ export async function deleteCRMContact(id: string): Promise<boolean> {
       db.quotation.count({ where: { clientId: id } }),
     ]);
     if (invoices || quotations)
-      throw new Error("This contact has invoices or quotations and cannot be deleted");
+      throw new Error(serverMessages.thisContactHasInvoicesOrQuotationsAnd);
     await db.crmContact.delete({ where: { id } });
     return true;
   } catch (e) {
@@ -567,12 +568,12 @@ export async function updateCRMDeal(
       updateData.assignedTo = data.assigned_to;
 
     const existing = await db.crmDeal.findUnique({ where: { id } });
-    if (!existing) throw new Error("Deal not found");
+    if (!existing) throw new Error(serverMessages.dealNotFound);
     if (
       (data.stage || existing.dealStage) === "closed_lost" &&
       !(data.lost_reason ?? existing.lostReason)?.trim()
     )
-      throw new Error("Lost reason is required");
+      throw new Error(serverMessages.lostReasonIsRequired);
     if (
       data.assigned_to &&
       !(await db.user.findFirst({
@@ -580,7 +581,7 @@ export async function updateCRMDeal(
         select: { id: true },
       }))
     )
-      throw new Error("Invalid deal owner");
+      throw new Error(serverMessages.invalidDealOwner);
     const updated = await db.crmDeal.update({
       where: { id },
       data: updateData,
@@ -684,7 +685,7 @@ export async function globalAdminSearch(
     limit < 1 ||
     limit > 50
   )
-    throw new Error("Invalid search");
+    throw new Error(serverMessages.invalidSearch);
   const clean = query.trim();
   if (!clean || clean.length < 2) return [];
 

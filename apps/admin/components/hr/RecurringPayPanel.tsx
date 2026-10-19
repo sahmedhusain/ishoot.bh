@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -104,7 +105,7 @@ export function RecurringPayPanel({ employeeId, items, canEdit }: { employeeId: 
                 <div className="min-w-0">
                   <div className="text-sm font-semibold text-ink">{r.label}</div>
                   <div className="text-[11px] text-ink-muted">
-                    {(c.categories as Record<string, string>)[r.category]} · {c.period.replace("{from}", r.start_month).replace("{to}", r.end_month || c.openEnded)}
+                    {(c.categories as Record<string, string>)[r.category]} · {formatMessage(c.period, { from: r.start_month, to: r.end_month || c.openEnded })}
                     {!r.is_active ? ` · ${c.inactive}` : ""}
                   </div>
                 </div>
@@ -123,7 +124,7 @@ export function RecurringPayPanel({ employeeId, items, canEdit }: { employeeId: 
             ))}
           </ul>
           <p className="text-[11px] text-ink-muted">
-            {c.recurringTotals.replace("{additions}", money(monthly("addition"))).replace("{deductions}", money(monthly("deduction")))}
+            {formatMessage(c.recurringTotals, { additions: money(monthly("addition")), deductions: money(monthly("deduction")) })}
           </p>
         </>
       ) : null}

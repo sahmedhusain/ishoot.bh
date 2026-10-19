@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -24,7 +26,7 @@ export function getStorageClient() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
-    throw new Error('Supabase Storage is not configured. Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.');
+    throw new Error(serverMessages.supabaseStorageIsNotConfiguredMissingSupabase);
   }
   supabase = createClient(url, key, {
     auth: { persistSession: false },
@@ -39,27 +41,27 @@ export function getStorageClient() {
 export async function generateUploadUrl(bucket: string, path: string) {
   const client = getStorageClient();
   const { data, error } = await client.storage.from(bucket).createSignedUploadUrl(path);
-  if (error) throw new Error(`Failed to generate upload URL: ${error.message}`);
+  if (error) throw new Error(formatMessage(serverTemplates.failedToGenerateUploadUrl0, { 0: error.message }));
   return { signedUrl: data.signedUrl, path: data.path, token: data.token };
 }
 
 export async function generateDownloadUrl(bucket: string, path: string, expiresIn: number = 60) {
   const client = getStorageClient();
   const { data, error } = await client.storage.from(bucket).createSignedUrl(path, expiresIn);
-  if (error) throw new Error(`Failed to generate download URL: ${error.message}`);
+  if (error) throw new Error(formatMessage(serverTemplates.failedToGenerateDownloadUrl0, { 0: error.message }));
   return data.signedUrl;
 }
 
 // Metadata lookup avoids downloading the complete object into the application heap.
 export async function getObjectMetadata(bucket: string, path: string) {
   const { data, error } = await getStorageClient().storage.from(bucket).info(path);
-  if (error) throw new Error(`Object metadata unavailable: ${error.message}`);
+  if (error) throw new Error(formatMessage(serverTemplates.objectMetadataUnavailable0, { 0: error.message }));
   return { size: data.size, type: data.contentType };
 }
 
 export function uploadStorageLocation(fileUrl: string, isPublic: boolean) {
   if (!/^\/api\/files\/(payments|invoices|certificates|vault|deals|general|brand)\/[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(fileUrl))
-    throw new Error("Invalid upload path");
+    throw new Error(serverMessages.invalidUploadPath);
   return { bucket: isPublic ? "public-assets" : "private-assets", path: fileUrl.slice("/api/files/".length) };
 }
 
@@ -67,7 +69,7 @@ export function uploadStorageLocation(fileUrl: string, isPublic: boolean) {
 export function localUploadPath(fileUrl: string, root: string) {
   const location = uploadStorageLocation(fileUrl, false);
   const target = path.resolve(root, location.path);
-  if (!target.startsWith(path.resolve(root) + path.sep)) throw new Error("Invalid upload path");
+  if (!target.startsWith(path.resolve(root) + path.sep)) throw new Error(serverMessages.invalidUploadPath);
   return target;
 }
 
@@ -81,7 +83,7 @@ export async function writeLocalUpload(fileUrl: string, root: string, bytes: Uin
 
 export async function verifyStoredUpload(upload: { fileUrl: string; isPublic: boolean; fileSize: number; mimeType: string }, localRoot?: string) {
   if (!isSupabaseStorageConfigured()) {
-    if (!localRoot) throw new Error("Upload storage is not configured");
+    if (!localRoot) throw new Error(serverMessages.uploadStorageIsNotConfigured);
     const target = localUploadPath(upload.fileUrl, localRoot);
     const handle = await fs.open(target, "r");
     try {
@@ -89,7 +91,7 @@ export async function verifyStoredUpload(upload: { fileUrl: string; isPublic: bo
       const head = new Uint8Array(12);
       await handle.read(head, 0, 12, 0);
       if (size !== upload.fileSize || size <= 0 || size > 10 * 1024 * 1024 || detectFileType(head) !== upload.mimeType)
-        throw new Error("Uploaded object does not match the registered size and type");
+        throw new Error(serverMessages.uploadedObjectDoesNotMatchTheRegistered);
       return { size, type: upload.mimeType };
     } finally {
       await handle.close();
@@ -98,6 +100,6 @@ export async function verifyStoredUpload(upload: { fileUrl: string; isPublic: bo
   const location = uploadStorageLocation(upload.fileUrl, upload.isPublic);
   const metadata = await getObjectMetadata(location.bucket, location.path);
   if (!Number.isInteger(metadata.size) || metadata.size !== upload.fileSize || metadata.size! <= 0 || metadata.size! > 10 * 1024 * 1024 || metadata.type !== upload.mimeType)
-    throw new Error("Uploaded object does not match the registered size and type");
+    throw new Error(serverMessages.uploadedObjectDoesNotMatchTheRegistered);
   return metadata;
 }

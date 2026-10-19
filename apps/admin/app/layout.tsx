@@ -1,17 +1,10 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import { companyMetadata } from "../lib/company-metadata";
 import { AdminLocaleProvider } from "../hooks/useAdminLocale";
 import { AdminThemeProvider } from "../hooks/useAdminTheme";
 import { Toaster } from "sonner";
 
-export const metadata: Metadata = {
-  title: "ishoot | Enterprise Operations Portal",
-  description:
-    "Enterprise operations portal for ishoot Cinema Production House.",
-  icons: {
-    icon: "/brand/icon-dark.svg",
-  },
-};
+export const generateMetadata = () => companyMetadata();
 
 export default function RootLayout({
   children,

@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 function load(file, mocks) {
+  if (mocks["@ishoot/locales"]) mocks["@ishoot/locales"] = { ...realConstants(file, "@ishoot/locales"), ...mocks["@ishoot/locales"] };
   if (mocks["@ishoot/database"]) { mocks["@ishoot/database"].requireFeatureEnabled ??= async () => {}; mocks["@ishoot/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@ishoot/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@ishoot/database"].db) mocks["@ishoot/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
   mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };
@@ -63,6 +64,7 @@ async function main() {
       createActivityLog: async () => {
         touched = true;
       },
+      getSignatureMode: async () => "stored",
       approveAndSignMom: async () => {
         touched = true;
       },
@@ -243,10 +245,13 @@ async function main() {
   }
   const feed = load("apps/admin/app/api/calendar/feed/route.ts", {
     "next/server": { NextResponse: Response },
-    "../../../../lib/auth": { getCurrentUser: async () => user },
+    "../../../../lib/auth": { getCurrentUser: async () => user, hasPermission: async () => allowed },
+    "../../../../lib/ics": require("../apps/admin/lib/ics.ts"),
+    "../../../../lib/public-origin": { publicOrigin: async () => "https://portal.example.com" },
     "@ishoot/database": {
       hasPermission: async () => allowed,
-      getCalendarEvents: async () => {
+      getCompanySettings: async () => ({ company_name_en: "Test Company", company_name_ar: "شركة اختبار" }),
+      getCalendarFor: async () => {
         fetched = true;
         return [
           {

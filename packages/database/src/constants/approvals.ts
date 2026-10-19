@@ -17,16 +17,29 @@ export const APPROVAL_TARGET_TYPES = [
   "account_change",
   "asset_handover",
   "employee_handover",
+  "final_settlement",
+  "announcement",
+  "official_letter",
 ] as const;
 export type ApprovalTargetType = (typeof APPROVAL_TARGET_TYPES)[number];
 
-export const APPROVER_MODES = ["manager", "department_manager", "role", "user", "permission"] as const;
+export const APPROVER_MODES = [
+  "manager",
+  "department_manager",
+  "role",
+  "user",
+  "permission",
+] as const;
 export type ApproverMode = (typeof APPROVER_MODES)[number];
 
-export type ApprovalConditionField = "minAmount" | "minDays" | "minDiscountPercent";
+export type ApprovalConditionField =
+  "minAmount" | "minDays" | "minDiscountPercent";
 
 /** Which conditions make sense for each request type. */
-export const APPROVAL_CONDITION_FIELDS: Record<ApprovalTargetType, ApprovalConditionField[]> = {
+export const APPROVAL_CONDITION_FIELDS: Record<
+  ApprovalTargetType,
+  ApprovalConditionField[]
+> = {
   quotation: ["minAmount", "minDiscountPercent"],
   invoice: ["minAmount", "minDiscountPercent"],
   expense: ["minAmount"],
@@ -40,9 +53,18 @@ export const APPROVAL_CONDITION_FIELDS: Record<ApprovalTargetType, ApprovalCondi
   account_change: [],
   asset_handover: ["minAmount"],
   employee_handover: [],
+  final_settlement: ["minAmount"],
+  announcement: [],
+  official_letter: [],
 };
 
-export const APPROVAL_STATUSES = ["pending", "approved", "rejected", "superseded", "cancelled"] as const;
+export const APPROVAL_STATUSES = [
+  "pending",
+  "approved",
+  "rejected",
+  "superseded",
+  "cancelled",
+] as const;
 export type ApprovalStatus = (typeof APPROVAL_STATUSES)[number];
 
 /** A pending approval older than this many days is flagged as stale on dashboards. */
@@ -51,22 +73,34 @@ export const STALE_APPROVAL_DAYS = 3;
 /** Roles that receive a request when no configured step yields an approver other than the requester. */
 export const APPROVAL_FALLBACK_ROLES = ["admin", "super_admin"] as const;
 
-/** Where each target type is reviewed in the dashboard. */
-export const APPROVAL_TARGET_ROUTES: Record<ApprovalTargetType, (id: string) => string> = {
-  leave_request: (id) => ROUTES.hr.leave({ highlight: id }),
-  salary_document: (id) => ROUTES.hr.documents({ highlight: id }),
-  profile_change: (id) => ROUTES.profile({ highlight: id }),
-  service_request: ROUTES.requests.detail,
+/**
+ * Where each request is reviewed: always the item itself. Records with their own decision screen (quotations,
+ * asset and employee handovers) open there; everything else opens its own approval page with the full details.
+ */
+const item = (type: ApprovalTargetType) => (id: string) =>
+  ROUTES.approvalItem(type, id);
+export const APPROVAL_TARGET_ROUTES: Record<
+  ApprovalTargetType,
+  (id: string) => string
+> = {
+  leave_request: item("leave_request"),
+  salary_document: item("salary_document"),
+  profile_change: item("profile_change"),
+  service_request: item("service_request"),
   quotation: ROUTES.quotations.detail,
-  payroll_run: (id) => ROUTES.hr.payroll({ highlight: id }),
-  expense: (id) => ROUTES.expenses.list({ highlight: id }),
-  invoice: ROUTES.invoices.detail,
-  expense_claim: (id) => ROUTES.claims.list({ highlight: id }),
-  signature_change: () => ROUTES.approvals(),
-  account_change: () => ROUTES.approvals(),
+  payroll_run: item("payroll_run"),
+  expense: item("expense"),
+  invoice: item("invoice"),
+  expense_claim: item("expense_claim"),
+  signature_change: item("signature_change"),
+  account_change: item("account_change"),
   asset_handover: ROUTES.assets.handover,
   employee_handover: ROUTES.hr.handover,
+  final_settlement: ROUTES.hr.settlement,
+  announcement: ROUTES.announcements.detail,
+  official_letter: ROUTES.letters.detail,
 };
 
 export const approvalTargetUrl = (targetType: string, targetId: string) =>
-  APPROVAL_TARGET_ROUTES[targetType as ApprovalTargetType]?.(targetId) ?? ROUTES.approvals();
+  APPROVAL_TARGET_ROUTES[targetType as ApprovalTargetType]?.(targetId) ??
+  ROUTES.approvals();

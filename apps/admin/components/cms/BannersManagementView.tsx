@@ -389,15 +389,14 @@ export function BannersManagementView({
               <Input value={ctaEn} onChange={(e) => setCtaEn(e.target.value)} />
             </label>
             <label className="text-sm">
-              نص الزر (عربي)
-              <Input value={ctaAr} onChange={(e) => setCtaAr(e.target.value)} />
+              {t.copy.buttonArabic}<Input value={ctaAr} onChange={(e) => setCtaAr(e.target.value)} />
             </label>
             <label className="text-sm">
               {t.bannersManagement.ctaDestination}
               <Input
                 value={ctaLink}
                 onChange={(e) => setCtaLink(e.target.value)}
-                placeholder="/contact?intent=quote_request"
+                placeholder={t.copy.routeExample}
               />
             </label>
             <label className="text-sm">

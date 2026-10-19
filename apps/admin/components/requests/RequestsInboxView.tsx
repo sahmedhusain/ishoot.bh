@@ -216,7 +216,7 @@ export function RequestsInboxView({
               {rows.map((row) => (
                 <tr key={row.id} onClick={() => router.push(ROUTES.requests.detail(row.id))} className="cursor-pointer hover:bg-ink/5">
                   <td className="px-4 py-3 align-top">
-                    <div className="font-mono text-xs text-ink">{row.reference.length > 20 ? row.reference.slice(0, 10) + "…" : row.reference}</div>
+                    <div className="font-mono text-xs text-ink">{row.reference}</div>
                     <div className="mt-1"><RequestTypeBadge type={KIND_TO_TYPE[row.kind]} size="sm" /></div>
                   </td>
                   <td className="px-4 py-3 align-top">

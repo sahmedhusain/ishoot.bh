@@ -14,8 +14,8 @@ interface PlatformOption {
 
 const PLATFORM_PRESETS: PlatformOption[] = [
   ...SOCIAL_PLATFORMS.map((p) => ({ id: p.id, name: p.name, defaultIcon: p.id })),
-  { id: "website", name: "Website / Blog", defaultIcon: "website" },
-  { id: "custom", name: "+ Custom Platform...", defaultIcon: "link" },
+  { id: "website", name: "website", defaultIcon: "website" },
+  { id: "custom", name: "custom", defaultIcon: "link" },
 ];
 
 /** Brand mark for a stored platform name, falling back to a generic link icon. */
@@ -37,6 +37,7 @@ interface PlatformPickerProps {
 export function PlatformPicker({ platform, onPlatformChange }: PlatformPickerProps) {
   const { t } = useAdminLocale();
   const [selectedPreset, setSelectedPreset] = React.useState<string>(() => {
+    if (/^website(?:\s*\/\s*blog)?$/i.test(platform)) return "website";
     const found = PLATFORM_PRESETS.find(
       (p) => p.name.toLowerCase() === platform.toLowerCase() || p.id === platform.toLowerCase()
     ) ?? findSocialPlatform(platform);
@@ -55,7 +56,7 @@ export function PlatformPicker({ platform, onPlatformChange }: PlatformPickerPro
         onPlatformChange(preset.name, preset.defaultIcon);
       }
     } else {
-      onPlatformChange(customName || "Custom");
+      onPlatformChange(customName);
     }
   };
 
@@ -78,7 +79,7 @@ export function PlatformPicker({ platform, onPlatformChange }: PlatformPickerPro
         >
           {PLATFORM_PRESETS.map((preset) => (
             <option key={preset.id} value={preset.id} className="bg-white dark:bg-surface-raised text-slate-800 dark:text-white">
-              {preset.name}
+              {preset.id === "website" ? t.platformPicker.website : preset.id === "custom" ? t.platformPicker.custom : preset.name}
             </option>
           ))}
         </select>

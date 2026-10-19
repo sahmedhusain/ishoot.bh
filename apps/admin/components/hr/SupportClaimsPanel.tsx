@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
@@ -103,7 +104,7 @@ function ClaimRow({ row, canRecord }: { row: SupportClaimRow; canRecord: boolean
           {row.status === "received" && row.receipt ? (
             <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold" title={row.receipt.reference ?? undefined}>
               <CheckCircle2 className="w-3.5 h-3.5" />
-              {c.receivedOn.replace("{amount}", fmt(row.receipt.amount)).replace("{date}", row.receipt.receivedOn)}
+              {formatMessage(c.receivedOn, { amount: fmt(row.receipt.amount), date: row.receipt.receivedOn })}
             </span>
           ) : row.status === "claimable" ? (
             canRecord ? (

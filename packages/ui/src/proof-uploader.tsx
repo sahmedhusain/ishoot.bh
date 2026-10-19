@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useCurrencyLocale } from "./currency-display";
+import en from "./copy/en.json";
+import ar from "./copy/ar.json";
 import {
   Upload,
   X,
@@ -30,12 +33,14 @@ interface ProofUploaderProps {
 export function ProofUploader({
   label,
   hint,
-  clickText = "Click to upload",
-  dropText = "or drag and drop files",
+  clickText,
+  dropText,
   value = [],
   onChange,
   maxFiles = 5,
 }: ProofUploaderProps) {
+  const locale = useCurrencyLocale();
+  const copy = locale.startsWith("ar") ? ar : en;
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,9 +94,9 @@ export function ProofUploader({
           <div>
             <p className="text-xs font-medium text-ink">
               <span className="text-accent underline font-bold">
-                {clickText}
+                {clickText ?? copy.clickToUpload}
               </span>{" "}
-              {dropText}
+              {dropText ?? copy.dropFiles}
             </p>
             {hint && <p className="text-[11px] text-ink-muted mt-1">{hint}</p>}
           </div>
@@ -122,7 +127,7 @@ export function ProofUploader({
                     <p className="font-semibold truncate">{file.name}</p>
                     {file.size && (
                       <p className="text-[10px] text-ink-muted font-mono">
-                        {(file.size / 1024).toFixed(1)} KB
+                        {(file.size / 1024).toFixed(1)} {copy.kilobytes}
                       </p>
                     )}
                   </div>

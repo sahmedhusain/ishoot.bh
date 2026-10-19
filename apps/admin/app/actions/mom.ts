@@ -1,6 +1,11 @@
 "use server";
+import { getTranslations, serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@ishoot/database";
+import {
+  measureOperation,
+  getSignatureMode,
+  resolveSigningSignature,
+} from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
 
@@ -37,7 +42,8 @@ export async function createMomAction(data: {
   status?: string;
 }) {
   return measureOperation("action:createMomAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const actor = await requirePermission("moms", "write");
+    await requireFeatureEnabled("crm_deals");
+    const actor = await requirePermission("moms", "write");
     validateActionArguments("createMomAction", { data });
     if (data.dealId) await requirePermission("deals", "read");
     if (data.clientId) await requirePermission("contacts", "read");
@@ -89,7 +95,8 @@ export async function updateMomAction(
   }>,
 ) {
   return measureOperation("action:updateMomAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const actor = await requirePermission("moms", "write");
+    await requireFeatureEnabled("crm_deals");
+    const actor = await requirePermission("moms", "write");
     validateActionArguments("updateMomAction", { id, data });
     if (data.dealId) await requirePermission("deals", "read");
     if (data.clientId) await requirePermission("contacts", "read");
@@ -98,19 +105,19 @@ export async function updateMomAction(
       data.status !== undefined &&
       !["draft", "in_review"].includes(data.status)
     )
-      throw new Error("Use the approval action to sign a meeting");
+      throw new Error(serverMessages.useTheApprovalActionToSignA);
     if (
       data.approvedById !== undefined ||
       data.signatureUrl !== undefined ||
       data.pdfStoragePath !== undefined
     )
-      throw new Error("Approval fields cannot be edited directly");
+      throw new Error(serverMessages.approvalFieldsCannotBeEditedDirectly);
     const current = await getMinuteOfMeetingById(id);
     if (!current || ["approved", "shared"].includes(current.status))
-      throw new Error("Signed meetings cannot be edited");
+      throw new Error(serverMessages.signedMeetingsCannotBeEdited);
     const { mom } = await runAtomicMutation(async () => {
       const mom = await updateMinuteOfMeeting(id, data);
-      if (!mom) throw new Error("Meeting update failed");
+      if (!mom) throw new Error(serverMessages.meetingUpdateFailed);
       await createActivityLog({
         user_id: actor.id,
         action: "update",
@@ -129,12 +136,13 @@ export async function updateMomAction(
 
 export async function deleteMomAction(id: string) {
   return measureOperation("action:deleteMomAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const actor = await requirePermission("moms", "delete");
+    await requireFeatureEnabled("crm_deals");
+    const actor = await requirePermission("moms", "delete");
     validateActionArguments("deleteMomAction", { id });
 
     await runAtomicMutation(async () => {
       if (!(await deleteMinuteOfMeeting(id)))
-        throw new Error("Meeting deletion failed");
+        throw new Error(serverMessages.meetingDeletionFailed);
       await createActivityLog({
         user_id: actor.id,
         action: "delete",
@@ -149,22 +157,32 @@ export async function deleteMomAction(id: string) {
   });
 }
 
-export async function approveAndSignMomAction(id: string) {
+/** Approves and signs the minutes with the saved signature, or one drawn now when minutes are signed on the spot. */
+export async function approveAndSignMomAction(id: string, signature?: string) {
   return measureOperation("action:approveAndSignMomAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("moms", "approve");
-    validateActionArguments("approveAndSignMomAction", { id });
-    if (!user.signature_url)
-      throw new Error("Configure your signature before signing a meeting");
-    const signatureUrl = user.signature_url;
+    await requireFeatureEnabled("crm_deals");
+    const user = await requirePermission("moms", "approve");
+    validateActionArguments("approveAndSignMomAction", { id, signature });
+    if (
+      !signature &&
+      !user.signature_url &&
+      (await getSignatureMode("mom")) === "stored"
+    )
+      throw new Error(serverMessages.configureYourSignatureBeforeSigningAMeeting);
+    const signatureUrl = await resolveSigningSignature(
+      "mom",
+      user.id,
+      signature,
+    );
     const { mom } = await runAtomicMutation(async () => {
       const mom = await approveAndSignMom(id, user.id, signatureUrl);
-      if (!mom) throw new Error("Meeting approval failed");
+      if (!mom) throw new Error(serverMessages.meetingApprovalFailed);
       await createActivityLog({
         user_id: user.id,
         action: "approve",
         entity_type: "mom",
         entity_id: id,
-        details: { signedBy: user.full_name, signatureUrl },
+        details: { signedBy: user.full_name, drawnNow: !!signature },
       });
       return { mom };
     });
@@ -180,7 +198,8 @@ export async function shareMomViaEmailAction(
   recipientEmail: string,
 ) {
   return measureOperation("action:shareMomViaEmailAction", async () => {
-    await requireFeatureEnabled("crm_deals"); const user = await requirePermission("moms", "export");
+    await requireFeatureEnabled("crm_deals");
+    const user = await requirePermission("moms", "export");
     validateActionArguments("shareMomViaEmailAction", { id, recipientEmail });
     await requirePermission("moms", "read");
     const { db, getCompanySettings } = await import("@ishoot/database");
@@ -188,7 +207,7 @@ export async function shareMomViaEmailAction(
     const { generateMomPdf } = await import("../../lib/pdf/mom-pdf");
     const mom = await getMinuteOfMeetingById(id);
     if (!mom || !["approved", "shared"].includes(mom.status))
-      throw new Error("Approve the meeting before sharing it");
+      throw new Error(serverMessages.approveTheMeetingBeforeSharingIt);
     const recipient = recipientEmail.trim().toLowerCase();
     const company = await getCompanySettings();
     const eventKey = createHash("sha256")
@@ -203,11 +222,11 @@ export async function shareMomViaEmailAction(
         success: true,
         status: existing.status,
         jobId: existing.id,
-        message: "Existing delivery request",
+        message: getTranslations("en").admin.copy.existingDelivery,
       };
     const attachment = await generateMomPdf(mom, company);
     if (attachment.length > 2 * 1024 * 1024)
-      throw new Error("Meeting PDF exceeds the email attachment limit");
+      throw new Error(serverMessages.meetingPdfExceedsTheEmailAttachmentLimit);
     const escape = (v: string) =>
       v.replace(
         /[&<>"']/g,
@@ -229,7 +248,7 @@ export async function shareMomViaEmailAction(
         current.updatedAt.toISOString() !== mom.updated_at ||
         !["approved", "shared"].includes(current.status)
       )
-        throw new Error("Meeting changed. Refresh before sharing");
+        throw new Error(serverMessages.meetingChangedRefreshBeforeSharing);
       const prior = await tx.emailJob.findUnique({
         where: { eventKey },
         select: { id: true, status: true },
@@ -263,7 +282,7 @@ export async function shareMomViaEmailAction(
       success: true,
       status: job.status,
       jobId: job.id,
-      message: "Email queued",
+      message: getTranslations("en").admin.copy.emailQueued,
     };
   });
 }

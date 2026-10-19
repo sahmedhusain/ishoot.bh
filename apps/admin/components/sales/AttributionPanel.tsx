@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -103,10 +104,7 @@ export function AttributionPanel({ entityType, entityId, info, salesPeople, canR
           <ol className="space-y-2">
             {info.history.map((h) => (
               <li key={h.id} className="text-[11px] text-ink">
-                {a.historyLine
-                  .replace("{from}", h.from ?? "—")
-                  .replace("{to}", h.to)
-                  .replace("{by}", h.changedBy)}
+                {formatMessage(a.historyLine, { from: h.from ?? "—", to: h.to, by: h.changedBy })}
                 <span className="text-ink-muted"> · {new Date(h.at).toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}</span>
                 {h.reason && <div className="text-ink-muted italic">“{h.reason}”</div>}
               </li>

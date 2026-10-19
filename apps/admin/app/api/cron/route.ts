@@ -1,10 +1,12 @@
+import { serverMessages } from "@ishoot/locales";
+
 import { NextResponse } from "next/server";
 import { db, processEmailJobs, processRevalidationJobs, removeExpiredUploads, markOverdueInvoices, sendExpiryReminders, processRecurringExpenses } from "@ishoot/database";
 import { sendEmail } from "@ishoot/email";
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
   try {
     if (process.env.RESEND_API_KEY && process.env.FROM_EMAIL) await processEmailJobs(sendEmail);
     if (process.env.WEB_URL && process.env.REVALIDATION_SECRET)
@@ -18,6 +20,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ success: true, removedUploads, invoicesMarkedOverdue, expiryReminders, recurringExpenses });
   } catch {
     console.error("Scheduled maintenance failed");
-    return NextResponse.json({ error: "Maintenance failed" }, { status: 500 });
+    return NextResponse.json({ error: serverMessages.runtimeMaintenanceFailed }, { status: 500 });
   }
 }

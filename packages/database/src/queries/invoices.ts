@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db } from "../db";
 import {
   Invoice,
@@ -270,8 +272,8 @@ export async function createInvoice(data: {
   assertSupportedCurrency(currency);
   const issueDate = new Date(data.issue_date);
   const dueDate = new Date(data.due_date);
-  if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) throw new Error("Invalid invoice dates");
-  if (dueDate < issueDate) throw new Error("The due date cannot be before the issue date");
+  if (Number.isNaN(issueDate.getTime()) || Number.isNaN(dueDate.getTime())) throw new Error(serverMessages.invalidInvoiceDates);
+  if (dueDate < issueDate) throw new Error(serverMessages.theDueDateCannotBeBeforeThe);
   const vat = await companyVat();
   const otherTaxes = await companyTaxes("invoice");
   const totals = calculateInvoiceTotals(
@@ -296,11 +298,11 @@ export async function createInvoice(data: {
         where: { id: data.quotation_id },
         select: { status: true, invoiceId: true, dealId: true, clientId: true, currency: true, salesOwnerId: true },
       });
-      if (!quotation) throw new Error("Quotation not found");
+      if (!quotation) throw new Error(serverMessages.quotationNotFound);
       if (quotation.invoiceId || quotation.status === "converted")
-        throw new Error("This quotation has already been invoiced");
-      if (quotation.status !== "accepted") throw new Error("Only accepted quotations can be invoiced");
-      if (quotation.currency !== currency) throw new Error("Invoice currency must match the quotation");
+        throw new Error(serverMessages.thisQuotationHasAlreadyBeenInvoiced);
+      if (quotation.status !== "accepted") throw new Error(serverMessages.onlyAcceptedQuotationsCanBeInvoiced);
+      if (quotation.currency !== currency) throw new Error(serverMessages.invoiceCurrencyMustMatchTheQuotation);
       dealId = dealId || quotation.dealId;
       quotationOwner = quotation.salesOwnerId;
     }
@@ -399,14 +401,14 @@ export async function updateInvoice(
       });
       if (!existing) return null;
       if (existing.status === "void" || existing.payments.length > 0)
-        throw new Error("Void or paid invoices cannot be edited");
+        throw new Error(serverMessages.voidOrPaidInvoicesCannotBeEdited);
 
       const currency =
         data.currency || (existing.currency as SupportedCurrency) || "BHD";
       if (data.currency) assertSupportedCurrency(data.currency);
       const nextIssue = data.issue_date ? new Date(data.issue_date) : existing.issueDate;
       const nextDue = data.due_date ? new Date(data.due_date) : existing.dueDate;
-      if (nextDue < nextIssue) throw new Error("The due date cannot be before the issue date");
+      if (nextDue < nextIssue) throw new Error(serverMessages.theDueDateCannotBeBeforeThe);
       const lineItemsToCalc =
         data.line_items ||
         existing.lineItems.map((li) => ({
@@ -512,13 +514,13 @@ export async function updateInvoiceStatus(
         where: { id },
         include: { payments: true },
       });
-      if (!invoice) throw new Error("Invoice not found");
+      if (!invoice) throw new Error(serverMessages.invoiceNotFound);
       if (status === "void" && invoice.payments.length)
         throw new Error(
           "Paid invoices require a credit adjustment before voiding",
         );
       if (!(INVOICE_STATUS_TRANSITIONS[invoice.status] ?? []).includes(status))
-        throw new Error(`An invoice cannot move from ${invoice.status} to ${status}`);
+        throw new Error(formatMessage(serverTemplates.anInvoiceCannotMoveFrom0To, { 0: invoice.status, 1: status }));
       // Approved, then signed and stamped, before it goes to the client.
       if (status === "sent" && invoice.status === "draft" && !invoice.signedAt)
         throw new Error(invoice.approvalStatus === "approved" ? "Sign and stamp this invoice before sending it to the client" : "Get this invoice approved, then sign and stamp it, before sending it");

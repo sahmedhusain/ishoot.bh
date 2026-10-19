@@ -319,6 +319,7 @@ async function main() {
     "../../lib/auth": { requirePermission: async () => ({ id: actor.id }) },
     "next/cache": { revalidatePath: () => {} },
     "../../lib/revalidate-web": { revalidatePublicSite: async () => false },
+    "@ishoot/locales": require("../packages/locales/src/index.ts"),
     "../../constants/routes": require("../packages/database/src/constants/routes.ts"),
   };
   require("node:vm").runInNewContext(compiled, {

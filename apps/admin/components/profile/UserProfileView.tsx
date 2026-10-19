@@ -1,11 +1,13 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
+import Link from "next/link";
+import { ROUTES } from "../../constants/routes";
 import { errorMessage } from "../../lib/error-text";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  User,
   Mail,
   Phone,
   Building,
@@ -13,20 +15,16 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
-  ArrowRight,
   Send,
   Users,
-  Check,
-  X,
   FileText,
 } from "lucide-react";
-import { Button, Card, StatusBadge, useDialog, formatDate } from "@ishoot/ui";
+import { Button, StatusBadge, formatDate } from "@ishoot/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateMyProfileAction,
   requestIdentityChangeAction,
-  decideProfileChangeAction,
+  cancelMyProfileChangeAction,
 } from "../../app/actions/profile";
 import type { Profile, ProfileChangeRequest } from "@ishoot/database";
 
@@ -42,7 +40,6 @@ interface UserProfileViewProps {
   manager: ManagerInfo | null;
   employeeRecord: any | null;
   myRequests: ProfileChangeRequest[];
-  pendingTeamRequests: ProfileChangeRequest[];
 }
 
 export function UserProfileView({
@@ -50,7 +47,6 @@ export function UserProfileView({
   manager,
   employeeRecord,
   myRequests,
-  pendingTeamRequests,
 }: UserProfileViewProps) {
   const router = useRouter();
   const { isRTL, t, locale } = useAdminLocale();
@@ -64,15 +60,7 @@ export function UserProfileView({
   const [proposedEmail, setProposedEmail] = React.useState("");
   const [changeReason, setChangeReason] = React.useState("");
   const [isSubmittingRequest, setIsSubmittingRequest] = React.useState(false);
-
-  // Manager Decision state
-  const [decidingId, setDecidingId] = React.useState<string | null>(null);
-  const [rejectModalReqId, setRejectModalReqId] = React.useState<string | null>(
-    null,
-  );
-  const rejectDialog = useDialog(!!rejectModalReqId, () => setRejectModalReqId(null));
-  const [rejectReason, setRejectReason] = React.useState("");
-  const [isSubmittingDecision, setIsSubmittingDecision] = React.useState(false);
+  const [withdrawing, setWithdrawing] = React.useState<string | null>(null);
 
   // Handle Immediate Contact Update
   const handleUpdateContact = async (e: React.FormEvent) => {
@@ -82,17 +70,21 @@ export function UserProfileView({
 
     try {
       const res = await updateMyProfileAction({
-        phone: phone.trim() || undefined,
+        phone: phone.trim() || null,
       });
 
       if (res.success) {
-        toast.success(t.userProfile.contactDetailsUpdatedSuccessfully, { id: toastId });
+        toast.success(t.userProfile.contactDetailsUpdatedSuccessfully, {
+          id: toastId,
+        });
         router.refresh();
       } else {
         toast.error(t.userProfile.failedToUpdateProfile, { id: toastId });
       }
     } catch (err: any) {
-      toast.error(errorMessage(err, t, t.userProfile.anErrorOccurred), { id: toastId });
+      toast.error(errorMessage(err, t, t.userProfile.anErrorOccurred), {
+        id: toastId,
+      });
     } finally {
       setIsUpdatingContact(false);
     }
@@ -108,7 +100,9 @@ export function UserProfileView({
     }
 
     setIsSubmittingRequest(true);
-    const toastId = toast.loading(t.userProfile.submittingIdentityChangeRequest);
+    const toastId = toast.loading(
+      t.userProfile.submittingIdentityChangeRequest,
+    );
 
     try {
       const res = await requestIdentityChangeAction({
@@ -118,7 +112,14 @@ export function UserProfileView({
       });
 
       if (res.success) {
-        toast.success(t.userProfile.requestSubmittedSuccessfullyForManager, { id: toastId });
+        toast.success(
+          res.approvalStatus === "approved"
+            ? t.profileWorkspace.identitySaved
+            : t.userProfile.requestSubmittedSuccessfullyForManager,
+          {
+            id: toastId,
+          },
+        );
         setProposedFullName("");
         setProposedEmail("");
         setChangeReason("");
@@ -127,44 +128,14 @@ export function UserProfileView({
         toast.error(t.userProfile.failedToSubmitChangeRequest, { id: toastId });
       }
     } catch (err: any) {
-      toast.error(errorMessage(err, t, t.userProfile.failedToSubmitChangeRequest2), {
-        id: toastId,
-      });
+      toast.error(
+        errorMessage(err, t, t.userProfile.failedToSubmitChangeRequest2),
+        {
+          id: toastId,
+        },
+      );
     } finally {
       setIsSubmittingRequest(false);
-    }
-  };
-
-  // Handle Manager Decision
-  const handleDecide = async (
-    requestId: string,
-    decision: "approved" | "rejected",
-    notes?: string,
-  ) => {
-    setDecidingId(requestId);
-    setIsSubmittingDecision(true);
-    const toastId = toast.loading(
-      decision === "approved" ? t.userProfile.approvingIdentityChange : t.userProfile.rejectingRequest,
-    );
-
-    try {
-      const res = await decideProfileChangeAction(requestId, decision, notes);
-      if (res.success) {
-        toast.success(
-          decision === "approved" ? t.userProfile.identityUpdateApprovedAndApplied : t.userProfile.identityChangeRejected,
-          { id: toastId },
-        );
-        setRejectModalReqId(null);
-        setRejectReason("");
-        router.refresh();
-      } else {
-        toast.error(t.userProfile.decisionCouldNotBeApplied, { id: toastId });
-      }
-    } catch (err: any) {
-      toast.error(errorMessage(err, t, t.userProfile.failedToApplyDecision), { id: toastId });
-    } finally {
-      setDecidingId(null);
-      setIsSubmittingDecision(false);
     }
   };
 
@@ -194,7 +165,7 @@ export function UserProfileView({
       case "cancelled":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400">
-            <span>{t.userProfile.superseded}</span>
+            <span>{t.profileWorkspace.withdrawn}</span>
           </span>
         );
       default:
@@ -203,7 +174,7 @@ export function UserProfileView({
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-24">
+    <div id="details" className="scroll-mt-20 space-y-6">
       {/* Profile Header Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
@@ -212,11 +183,11 @@ export function UserProfileView({
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
                 {user.full_name}
-              </h1>
+              </h2>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300">
-                {user.role.replace("_", " ")}
+                {(t.roles as Record<string, string>)[user.role] ?? user.role}
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
@@ -247,115 +218,13 @@ export function UserProfileView({
             </span>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span>{t.userProfile.activeAndVerified}</span>
+              <span>
+                {user.is_active ? t.roles.statusActive : t.roles.statusInactive}
+              </span>
             </span>
           </div>
         </div>
       </div>
-
-      {/* Pending Team Requests for Manager (Maker-Checker Review Queue) */}
-      {pendingTeamRequests.length > 0 && (
-        <Card className="p-6 bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/30 rounded-2xl space-y-4">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-600" />
-            <div>
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                {t.userProfile.pendingIdentityChangesAwaitingYour}
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {t.userProfile.asReportingManagerCorporatePolicy}
-              </p>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {pendingTeamRequests.map((req: any) => {
-              const oldVals = req.oldValues || {};
-              const newVals = req.newValues || {};
-              return (
-                <div
-                  key={req.id}
-                  className="p-4 rounded-xl bg-white dark:bg-surface-raised border border-amber-200 dark:border-white/10 space-y-3"
-                >
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                      <User className="w-4 h-4 text-accent" />
-                      <span>{req.user?.fullName || t.shared.employee}</span>
-                      <span className="text-slate-400 font-normal">
-                        ({req.user?.email})
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {formatDate(req.createdAt, locale)}
-                    </span>
-                  </div>
-
-                  {/* Diff Box */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    {newVals.fullName && (
-                      <div className="p-3 rounded-lg bg-slate-50 dark:bg-black/30 border border-slate-200/60 dark:border-white/5 space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                          {t.userProfile.fullNameChange}
-                        </span>
-                        <div className="line-through text-slate-400 text-xs">
-                          {oldVals.fullName}
-                        </div>
-                        <div className="font-bold text-emerald-600 text-xs flex items-center gap-1">
-                          <ArrowRight className="w-3 h-3 rtl:rotate-180" />
-                          <span>{newVals.fullName}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {newVals.email && (
-                      <div className="p-3 rounded-lg bg-slate-50 dark:bg-black/30 border border-slate-200/60 dark:border-white/5 space-y-1">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase block">
-                          {t.userProfile.emailChange}
-                        </span>
-                        <div className="line-through text-slate-400 text-xs font-mono">
-                          {oldVals.email}
-                        </div>
-                        <div className="font-bold text-emerald-600 text-xs font-mono flex items-center gap-1">
-                          <ArrowRight className="w-3 h-3 rtl:rotate-180" />
-                          <span>{newVals.email}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-100 dark:border-white/5">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setRejectModalReqId(req.id)}
-                      disabled={isSubmittingDecision}
-                      className="gap-1 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
-                    >
-                      <X className="w-3 h-3" />
-                      <span>{t.shared.reject}</span>
-                    </Button>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleDecide(req.id, "approved")}
-                      disabled={isSubmittingDecision}
-                      className="gap-1 text-xs bg-accent hover:bg-accent-pressed text-white"
-                    >
-                      <Check className="w-3 h-3" />
-                      <span>
-                        {decidingId === req.id
-                          ? t.userProfile.approving
-                          : t.userProfile.approveAndApply}
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      )}
 
       {/* Grid: Contact Updates (Immediate) & Governance Profile */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -366,21 +235,27 @@ export function UserProfileView({
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
               <Phone className="w-4 h-4 text-accent" />
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                {t.userProfile.n1ContactAndSignatureDirect}
+                {t.profileWorkspace.contact}
               </h2>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {t.userProfile.phoneNumberAndAuthorizedSignature}
+              {t.profileWorkspace.contactHint}
             </p>
 
             <form onSubmit={handleUpdateContact} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="profile-phone"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   {t.shared.phoneNumber}
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 rtl:right-3 rtl:left-auto" />
                   <input
+                    id="profile-phone"
+                    maxLength={40}
+                    autoComplete="tel"
                     type="tel"
                     dir="ltr"
                     value={phone}
@@ -391,15 +266,29 @@ export function UserProfileView({
                 </div>
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isUpdatingContact || phone === (user.phone ?? "")}
+                  onClick={() => setPhone(user.phone ?? "")}
+                >
+                  {t.shared.cancel}
+                </Button>
                 <Button
                   type="submit"
                   variant="primary"
                   size="sm"
-                  disabled={isUpdatingContact}
+                  disabled={
+                    isUpdatingContact ||
+                    phone.trim() === (user.phone ?? "").trim()
+                  }
                   className="bg-accent hover:bg-accent-pressed text-white text-xs font-semibold"
                 >
-                  {isUpdatingContact ? t.shared.saving : t.userProfile.saveContactInfo}
+                  {isUpdatingContact
+                    ? t.shared.saving
+                    : t.userProfile.saveContactInfo}
                 </Button>
               </div>
             </form>
@@ -410,59 +299,77 @@ export function UserProfileView({
             <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
               <ShieldCheck className="w-4 h-4 text-accent" />
               <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                {t.userProfile.n2IdentityChangeRequestManager}
+                {t.profileWorkspace.identity}
               </h2>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/5 text-xs text-slate-600 dark:text-slate-400 space-y-1">
               <span className="font-semibold text-slate-800 dark:text-slate-200 block">
-                {t.userProfile.corporateGovernanceInvariant}
+                {t.profileWorkspace.approvalRequired}
               </span>
-              <p className="leading-relaxed">{t.userProfile.nameAndEmailModificationsCreate}</p>
+              <p className="leading-relaxed">
+                {t.userProfile.nameAndEmailModificationsCreate}
+              </p>
             </div>
 
             <form onSubmit={handleSubmitIdentityChange} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label
+                    htmlFor="profile-name"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
                     {t.userProfile.proposedFullName}
                   </label>
                   <input
+                    id="profile-name"
                     type="text"
+                    maxLength={150}
                     value={proposedFullName}
                     onChange={(e) => setProposedFullName(e.target.value)}
                     placeholder={user.full_name}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                   <span className="text-[10px] text-slate-400 mt-1 block">
-                    {t.userProfile.current}
-                    {user.full_name}
+                    {formatMessage(t.profileWorkspace.currentName, {
+                      name: user.full_name,
+                    })}
                   </span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  <label
+                    htmlFor="profile-email"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                  >
                     {t.userProfile.proposedEmail}
                   </label>
                   <input
+                    id="profile-email"
                     type="email"
+                    maxLength={254}
                     value={proposedEmail}
                     onChange={(e) => setProposedEmail(e.target.value)}
                     placeholder={user.email}
                     className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent font-mono"
                   />
                   <span className="text-[10px] text-slate-400 mt-1 block font-mono">
-                    {t.userProfile.current}
-                    {user.email}
+                    {formatMessage(t.profileWorkspace.currentEmail, {
+                      email: user.email,
+                    })}
                   </span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="profile-reason"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1"
+                >
                   {t.userProfile.reasonForIdentityChange}
                 </label>
                 <textarea
+                  id="profile-reason"
                   rows={2}
                   value={changeReason}
                   onChange={(e) => setChangeReason(e.target.value)}
@@ -471,20 +378,46 @@ export function UserProfileView({
                 />
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={
+                    isSubmittingRequest ||
+                    (!proposedFullName && !proposedEmail && !changeReason)
+                  }
+                  onClick={() => {
+                    setProposedFullName("");
+                    setProposedEmail("");
+                    setChangeReason("");
+                  }}
+                >
+                  {t.shared.cancel}
+                </Button>
                 <Button
                   type="submit"
                   variant="primary"
                   size="sm"
                   disabled={
                     isSubmittingRequest ||
-                    (!proposedFullName.trim() && !proposedEmail.trim())
+                    (!(
+                      proposedFullName.trim() &&
+                      proposedFullName.trim() !== user.full_name
+                    ) &&
+                      !(
+                        proposedEmail.trim() &&
+                        proposedEmail.trim().toLowerCase() !==
+                          user.email.toLowerCase()
+                      ))
                   }
                   className="bg-accent hover:bg-accent-pressed text-white text-xs font-semibold gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>
-                    {isSubmittingRequest ? t.shared.submitting : t.userProfile.submitForManagerReview}
+                    {isSubmittingRequest
+                      ? t.shared.submitting
+                      : t.userProfile.submitForManagerReview}
                   </span>
                 </Button>
               </div>
@@ -495,7 +428,7 @@ export function UserProfileView({
           <div className="p-6 rounded-2xl bg-white dark:bg-surface-raised border border-slate-200/80 dark:border-white/10 shadow-sm space-y-4">
             <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
               <Clock className="w-4 h-4 text-accent" />
-              <span>{t.userProfile.n3MyIdentityChangeHistory}</span>
+              <span>{t.profileWorkspace.requests}</span>
             </h2>
 
             {myRequests.length > 0 ? (
@@ -517,29 +450,76 @@ export function UserProfileView({
                         <div className="text-slate-700 dark:text-slate-300">
                           {newVals.fullName && (
                             <span>
-                              {t.userProfile.newName}
-                              <strong>{newVals.fullName}</strong>{" "}
+                              {formatMessage(t.profileWorkspace.requestedName, {
+                                name: newVals.fullName,
+                              })}
                             </span>
                           )}
                           {newVals.email && (
                             <span className="font-mono">
-                              {t.userProfile.newEmail}
-                              <strong>{newVals.email}</strong>
+                              {formatMessage(
+                                t.profileWorkspace.requestedEmail,
+                                { email: newVals.email },
+                              )}
                             </span>
                           )}
                         </div>
                         {req.reviewNotes && (
                           <p className="text-[11px] text-slate-400 italic">
-                            {t.userProfile.text}
-                            {req.reviewNotes}
-                            {t.userProfile.text2}
+                            {formatMessage(t.profileWorkspace.reviewNote, {
+                              note: req.reviewNotes,
+                            })}
                           </p>
                         )}
                       </div>
                       <div className="text-end text-[11px] text-slate-400">
                         {req.reviewedAt
-                          ? `${t.userProfile.reviewed}${formatDate(req.reviewedAt, locale)}`
-                          : t.userProfile.awaitingAction}
+                          ? formatMessage(t.profileWorkspace.reviewedDate, {
+                              date: formatDate(req.reviewedAt, locale),
+                            })
+                          : req.status === "pending"
+                            ? t.userProfile.awaitingAction
+                            : ""}
+                        {req.status === "pending" && (
+                          <div className="mt-2 flex justify-end gap-3">
+                            <Link
+                              href={ROUTES.approvalItem(
+                                "profile_change",
+                                req.id,
+                              )}
+                              className="text-accent hover:underline"
+                            >
+                              {t.communications.open}
+                            </Link>
+                            <button
+                              type="button"
+                              disabled={withdrawing !== null}
+                              onClick={async () => {
+                                setWithdrawing(req.id);
+                                try {
+                                  await cancelMyProfileChangeAction(req.id);
+                                  toast.success(
+                                    t.profileWorkspace.requestWithdrawn,
+                                  );
+                                  router.refresh();
+                                } catch (err) {
+                                  toast.error(
+                                    errorMessage(
+                                      err,
+                                      t,
+                                      t.userProfile.failedToUpdateProfile,
+                                    ),
+                                  );
+                                } finally {
+                                  setWithdrawing(null);
+                                }
+                              }}
+                              className="text-ink-muted hover:text-ink disabled:opacity-50"
+                            >
+                              {t.profileWorkspace.withdraw}
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -585,7 +565,8 @@ export function UserProfileView({
                     {t.userProfile.role}
                   </span>
                   <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300 font-semibold capitalize mt-0.5 inline-block">
-                    {manager.role.replace("_", " ")}
+                    {(t.roles as Record<string, string>)[manager.role] ??
+                      manager.role}
                   </span>
                 </div>
               </div>
@@ -621,7 +602,9 @@ export function UserProfileView({
                     {t.shared.department}
                   </span>
                   <div className="font-semibold text-slate-700 dark:text-slate-300 mt-0.5">
-                    {employeeRecord.department?.nameEn ||
+                    {(isRTL
+                      ? employeeRecord.department?.nameAr
+                      : employeeRecord.department?.nameEn) ||
                       employeeRecord.departmentName ||
                       "—"}
                   </div>
@@ -651,48 +634,6 @@ export function UserProfileView({
           )}
         </div>
       </div>
-
-      {/* Reject Modal */}
-      {rejectModalReqId && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div {...rejectDialog} className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 className="font-bold text-base text-slate-900 dark:text-white">
-              {t.userProfile.reasonForRejection}
-            </h3>
-
-            <textarea
-              rows={3}
-              required
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder={t.userProfile.stateReasonForRejectingThis}
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
-            />
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setRejectModalReqId(null)}
-                disabled={isSubmittingDecision}
-              >
-                {t.shared.cancel}
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                disabled={isSubmittingDecision || !rejectReason.trim()}
-                onClick={() =>
-                  handleDecide(rejectModalReqId, "rejected", rejectReason)
-                }
-                className="bg-rose-600 hover:bg-rose-700 text-white"
-              >
-                {isSubmittingDecision ? t.userProfile.rejecting : t.shared.confirmRejection}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

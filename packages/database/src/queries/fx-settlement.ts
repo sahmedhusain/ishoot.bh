@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db } from "../db";
 import { BankSettlement, PaymentAllocation } from "../types";
 
@@ -107,7 +109,7 @@ export async function getLatestExchangeRate(baseCurrency: string, quoteCurrency:
     return { rate: 1.0, isFallback: false, provider: "parity", effectiveDate: new Date() };
   }
   if (!isSupportedCurrency(baseCurrency) || !isSupportedCurrency(quoteCurrency) || (baseCurrency !== "BHD" && quoteCurrency !== "BHD"))
-    throw new Error(`No exchange rate is available for ${baseCurrency} → ${quoteCurrency}`);
+    throw new Error(formatMessage(serverTemplates.noExchangeRateIsAvailableFor0, { 0: baseCurrency, 1: quoteCurrency }));
 
   const today = utcDay();
   const todays = await storedRate(baseCurrency, quoteCurrency, today);
@@ -161,7 +163,7 @@ export async function recordBankSettlement(input: {
     include: { invoice: true },
   });
 
-  if (!payment) throw new Error("Payment record not found");
+  if (!payment) throw new Error(serverMessages.paymentRecordNotFound);
 
   const faceAmountBhd = payment.currency === "BHD" ? Number(payment.amount) : input.settledAmountBhd;
   const fxGainLossBhd = Math.round((input.settledAmountBhd - bankFee - faceAmountBhd) * 1000) / 1000;

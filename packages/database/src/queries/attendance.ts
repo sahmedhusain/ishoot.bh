@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db } from "../db";
 import { dayKey, eachDay, isWorkingDay, utcDay, daysInMonth, type HrPolicyRules } from "../hr/payroll-engine";
 import { getHrPolicy, holidaySet, listPublicHolidays, listShiftTypes } from "./hr-settings";
@@ -74,7 +76,7 @@ export async function attendanceLockedThrough(): Promise<Date | null> {
 }
 
 export async function getAttendanceSheet(year: number, month: number): Promise<AttendanceSheet> {
-  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) throw new Error("Choose a month");
+  if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) throw new Error(serverMessages.chooseAMonth);
   const start = utcDay(year, month - 1, 1);
   const end = utcDay(year, month - 1, daysInMonth(year, month));
   const [policy, holidays, holidayRows, employees, entries, leaves, shiftTypes, locked] = await Promise.all([
@@ -149,7 +151,7 @@ const minutesOf = (hhmm: string) => {
 
 async function assertUnlocked(date: Date) {
   const locked = await attendanceLockedThrough();
-  if (locked && date <= locked) throw new Error(`Attendance up to ${dayKey(locked)} is part of a submitted payroll and can no longer change`);
+  if (locked && date <= locked) throw new Error(formatMessage(serverTemplates.attendanceUpTo0IsPartOf, { 0: dayKey(locked) }));
 }
 
 /**
@@ -157,17 +159,17 @@ async function assertUnlocked(date: Date) {
  * or all time worked on a weekend (rest-day) or public holiday, unless entered explicitly.
  */
 export async function saveAttendanceEntry(input: AttendanceInput, actorId: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error("Choose a date");
-  if (!(ATTENDANCE_STATUSES as readonly string[]).includes(input.status)) throw new Error("Choose a status");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error(serverMessages.chooseADate);
+  if (!(ATTENDANCE_STATUSES as readonly string[]).includes(input.status)) throw new Error(serverMessages.chooseAStatus);
   const date = new Date(`${input.date}T00:00:00Z`);
   await assertUnlocked(date);
   const employee = await db.employee.findUniqueOrThrow({ where: { id: input.employeeId }, select: { hireDate: true } });
-  if (date < employee.hireDate) throw new Error("The employee had not joined on that date");
-  if (date.getTime() > Date.now() + 86_400_000) throw new Error("Attendance cannot be recorded for future days");
-  for (const t of [input.checkIn, input.checkOut]) if (t && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) throw new Error("Times must be HH:MM");
+  if (date < employee.hireDate) throw new Error(serverMessages.theEmployeeHadNotJoinedOnThat);
+  if (date.getTime() > Date.now() + 86_400_000) throw new Error(serverMessages.attendanceCannotBeRecordedForFutureDays);
+  for (const t of [input.checkIn, input.checkOut]) if (t && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) throw new Error(serverMessages.timesMustBeHhMm);
   const minutes = (value: number | null | undefined, label: string) => {
     if (value == null) return null;
-    if (!Number.isInteger(value) || value < 0 || value > 24 * 60) throw new Error(`${label} must be whole minutes within a day`);
+    if (!Number.isInteger(value) || value < 0 || value > 24 * 60) throw new Error(formatMessage(serverTemplates["0MustBeWholeMinutesWithinA"], { 0: label }));
     return value;
   };
   const policy = await getHrPolicy();

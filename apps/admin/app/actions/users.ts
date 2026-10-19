@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
@@ -25,16 +26,16 @@ async function checkUserManagement(
   role?: string,
 ) {
   const target = id ? await getUserById(id) : null;
-  if (id && !target) throw new Error("User not found");
+  if (id && !target) throw new Error(serverMessages.userNotFound);
   // Super Admin accounts are protected: nobody changes, suspends, archives or deletes them from user management.
-  if (target?.role === "super_admin") throw new Error("Super Admin accounts are protected and cannot be changed");
+  if (target?.role === "super_admin") throw new Error(serverMessages.superAdminAccountsAreProtectedAndCannot);
   if (actor.role !== "super_admin" && role === "super_admin")
-    throw new Error("Only super administrators can make someone a Super Admin");
+    throw new Error(serverMessages.onlySuperAdministratorsCanMakeSomeoneA);
   if (
     role &&
     !(await db.role.findUnique({ where: { id: role }, select: { id: true } }))
   )
-    throw new Error("Role not found");
+    throw new Error(serverMessages.roleNotFound);
   if (actor.role !== "super_admin") {
     const [own, requested] = await Promise.all([
       getEffectivePermissions(actor.role, actor.permissions),
@@ -46,7 +47,7 @@ async function checkUserManagement(
     if (
       Object.entries(requested).some(([key, granted]) => granted && !own[key])
     )
-      throw new Error("Cannot manage a user with permissions above your own");
+      throw new Error(serverMessages.cannotManageAUserWithPermissionsAbove);
   }
 }
 
@@ -86,7 +87,7 @@ export async function createUserAction(data: {
         employee.userId ||
         !["active", "on_leave"].includes(employee.status)
       )
-        throw new Error("Select an active employee without a user account");
+        throw new Error(serverMessages.selectAnActiveEmployeeWithoutAUser);
       const user = await createUser({
         ...data,
         password: initialPassword,
@@ -125,7 +126,7 @@ export async function updateUserRoleAction(id: string, role: UserRole) {
 
       const before = await getUserById(id);
       const user = await updateUserRole(id, role);
-      if (!user) throw new Error("User role update failed");
+      if (!user) throw new Error(serverMessages.userRoleUpdateFailed);
       await createActivityLog({
         user_id: actor.id,
         action: "update",
@@ -182,7 +183,7 @@ export async function updateUserAction(
         is_active: data.is_active,
         password: data.password,
       });
-      if (!user) throw new Error("User update failed");
+      if (!user) throw new Error(serverMessages.userUpdateFailed);
       await createActivityLog({
         user_id: actor.id,
         action: "update",
@@ -217,16 +218,16 @@ export async function suspendUserAction(id: string, reason: string) {
   return measureOperation("action:suspendUserAction", async () => {
     const actor = await requirePermission("users", "write");
     validateActionArguments("suspendUserAction", { id, reason });
-    if (id === actor.id) throw new Error("Cannot suspend your own account");
+    if (id === actor.id) throw new Error(serverMessages.cannotSuspendYourOwnAccount);
     if (!reason || reason.trim().length === 0)
-      throw new Error("Suspension reason is required");
+      throw new Error(serverMessages.suspensionReasonIsRequired);
 
     await runAtomicMutation(async () => {
       await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id);
 
       const target = await getUserById(id);
-      if (!target) throw new Error("User not found");
+      if (!target) throw new Error(serverMessages.userNotFound);
 
       if (target.role === "super_admin") {
         const activeSuperAdmins = await db.user.count({
@@ -238,7 +239,7 @@ export async function suspendUserAction(id: string, reason: string) {
           },
         });
         if (activeSuperAdmins <= 1) {
-          throw new Error("Cannot suspend the last active Super Admin");
+          throw new Error(serverMessages.cannotSuspendTheLastActiveSuperAdmin);
         }
       }
 
@@ -289,7 +290,7 @@ export async function reactivateUserAction(id: string) {
       await checkUserManagement(actor, id);
 
       const target = await getUserById(id);
-      if (!target) throw new Error("User not found");
+      if (!target) throw new Error(serverMessages.userNotFound);
 
       await db.user.update({
         where: { id },
@@ -330,14 +331,14 @@ export async function archiveUserAction(id: string) {
   return measureOperation("action:archiveUserAction", async () => {
     const actor = await requirePermission("users", "write");
     validateActionArguments("archiveUserAction", { id });
-    if (id === actor.id) throw new Error("Cannot archive your own account");
+    if (id === actor.id) throw new Error(serverMessages.cannotArchiveYourOwnAccount);
 
     await runAtomicMutation(async () => {
       await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id);
 
       const target = await getUserById(id);
-      if (!target) throw new Error("User not found");
+      if (!target) throw new Error(serverMessages.userNotFound);
 
       if (target.role === "super_admin") {
         const activeSuperAdmins = await db.user.count({
@@ -349,7 +350,7 @@ export async function archiveUserAction(id: string) {
           },
         });
         if (activeSuperAdmins <= 1) {
-          throw new Error("Cannot archive the last active Super Admin");
+          throw new Error(serverMessages.cannotArchiveTheLastActiveSuperAdmin);
         }
       }
 
@@ -388,13 +389,13 @@ export async function deleteUserAction(id: string) {
   return measureOperation("action:deleteUserAction", async () => {
     const actor = await requirePermission("users", "delete");
     validateActionArguments("deleteUserAction", { id });
-    if (id === actor.id) throw new Error("Cannot delete your own account");
+    if (id === actor.id) throw new Error(serverMessages.cannotDeleteYourOwnAccount);
     await runAtomicMutation(async () => {
       await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
       await checkUserManagement(actor, id);
 
       const target = await getUserById(id);
-      if (!target) throw new Error("User not found");
+      if (!target) throw new Error(serverMessages.userNotFound);
 
       if (target.role === "super_admin") {
         const activeSuperAdmins = await db.user.count({
@@ -406,7 +407,7 @@ export async function deleteUserAction(id: string) {
           },
         });
         if (activeSuperAdmins <= 1) {
-          throw new Error("Cannot delete the last active Super Admin");
+          throw new Error(serverMessages.cannotDeleteTheLastActiveSuperAdmin);
         }
       }
 
@@ -430,7 +431,7 @@ export async function deleteUserAction(id: string) {
         );
       }
 
-      if (!(await deleteUser(id))) throw new Error("User deletion failed");
+      if (!(await deleteUser(id))) throw new Error(serverMessages.userDeletionFailed);
       await createActivityLog({
         user_id: actor.id,
         action: "delete",

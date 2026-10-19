@@ -1,5 +1,10 @@
 import type { MetadataRoute } from "next";
-export default function robots(): MetadataRoute.Robots {
-  const base = (process.env.WEB_URL || "https://ishoot.bh").replace(/\/$/, "");
-  return { rules: { userAgent: "*", allow: "/", disallow: "/api/" }, sitemap: `${base}/sitemap.xml` };
+import { publicSiteUrl } from "../lib/site-url";
+export const dynamic = "force-dynamic";
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const base = (await publicSiteUrl()).href.replace(/\/$/, "");
+  return {
+    rules: { userAgent: "*", allow: "/", disallow: "/api/" },
+    sitemap: `${base}/sitemap.xml`,
+  };
 }

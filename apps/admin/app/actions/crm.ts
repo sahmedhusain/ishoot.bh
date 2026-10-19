@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
@@ -106,7 +107,7 @@ export async function updateDealAction(
     if (data.assigned_to) await requirePermission("users", "read");
     const { deal } = await runAtomicMutation(async () => {
       const deal = await updateCRMDeal(id, data);
-      if (!deal) throw new Error("Deal update failed");
+      if (!deal) throw new Error(serverMessages.dealUpdateFailed);
       await createActivityLog({
         user_id: user.id,
         action: "update",
@@ -154,7 +155,7 @@ export async function updateContactAction(
     validateActionArguments("updateContactAction", { id, data });
     const { contact } = await runAtomicMutation(async () => {
       const contact = await updateCRMContact(id, data);
-      if (!contact) throw new Error("Contact update failed");
+      if (!contact) throw new Error(serverMessages.contactUpdateFailed);
       await createActivityLog({
         user_id: user.id,
         action: "update",
@@ -177,7 +178,7 @@ export async function deleteContactAction(id: string) {
     validateActionArguments("deleteContactAction", { id });
     await runAtomicMutation(async () => {
       if (!(await deleteCRMContact(id)))
-        throw new Error("Contact deletion failed");
+        throw new Error(serverMessages.contactDeletionFailed);
       await createActivityLog({
         user_id: user.id,
         action: "delete",
@@ -257,17 +258,17 @@ export async function updateInquiryStatusAction(
         "resolved",
       ].includes(status)
     )
-      throw new Error("Invalid status");
+      throw new Error(serverMessages.invalidStatus);
     const { db } = await import("@ishoot/database");
     const current = await db.inquiry.findUniqueOrThrow({ where: { id } });
     if (
       ["complaint", "suggestion"].includes(current.intent) &&
       ["contacted", "qualified"].includes(status)
     )
-      throw new Error("Invalid feedback status");
+      throw new Error(serverMessages.invalidFeedbackStatus);
     const { inquiry } = await runAtomicMutation(async () => {
       const inquiry = await updateInquiryStatus(id, status);
-      if (!inquiry) throw new Error("Could not save request status");
+      if (!inquiry) throw new Error(serverMessages.couldNotSaveRequestStatus);
       await createActivityLog({
         user_id: user.id,
         action: "update",
@@ -300,7 +301,7 @@ export async function convertInquiryToClientAction(inquiryId: string) {
       });
 
       if (!inquiry) {
-        throw new Error("Inquiry not found");
+        throw new Error(serverMessages.inquiryNotFound);
       }
 
       if (inquiry.mergeFlag)
@@ -308,7 +309,7 @@ export async function convertInquiryToClientAction(inquiryId: string) {
           "Resolve the contact conflict before converting this inquiry",
         );
       if (!["inquiry", "quote_request"].includes(inquiry.intent))
-        throw new Error("Only sales requests can be converted");
+        throw new Error(serverMessages.onlySalesRequestsCanBeConverted);
       const priorConversion = await tx.crmDeal.findUnique({
         where: { sourceInquiryId: inquiryId },
         select: { id: true, contactId: true },
@@ -452,16 +453,16 @@ export async function manageInquiryAction(
     validateActionArguments("manageInquiryAction", { id, data });
     const { db } = await import("@ishoot/database");
     if (data.priority && !(REQUEST_PRIORITIES as readonly string[]).includes(data.priority))
-      throw new Error("Invalid priority");
+      throw new Error(serverMessages.invalidPriority);
     const slaDueDate = data.slaDueDate === undefined ? undefined : data.slaDueDate === null || data.slaDueDate === "" ? null : new Date(data.slaDueDate);
-    if (slaDueDate && Number.isNaN(slaDueDate.getTime())) throw new Error("Invalid SLA date");
+    if (slaDueDate && Number.isNaN(slaDueDate.getTime())) throw new Error(serverMessages.invalidSlaDate);
     if (
       data.note !== undefined &&
       (typeof data.note !== "string" ||
         !data.note.trim() ||
         data.note.length > 5000)
     )
-      throw new Error("Invalid note");
+      throw new Error(serverMessages.invalidNote);
     await db.$transaction(async (tx) => {
       await tx.inquiry.update({
         where: { id },
@@ -518,14 +519,14 @@ export async function linkInquiryCustomerAction(
         select: { intent: true },
       });
       if (!["inquiry", "quote_request"].includes(inquiry.intent))
-        throw new Error("Only sales requests can be linked here");
+        throw new Error(serverMessages.onlySalesRequestsCanBeLinkedHere);
       if (
         await tx.crmDeal.findUnique({
           where: { sourceInquiryId: inquiryId },
           select: { id: true },
         })
       )
-        throw new Error("Converted inquiries cannot be relinked");
+        throw new Error(serverMessages.convertedInquiriesCannotBeRelinked);
       await tx.crmContact.findUniqueOrThrow({
         where: { id: customerId },
         select: { id: true },

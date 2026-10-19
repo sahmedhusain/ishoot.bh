@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
 import { getStorageClient, isSupabaseStorageConfigured, uploadStorageLocation } from "./storage";
 import { uploadRoot } from "./uploads";
@@ -10,14 +11,14 @@ export async function removeExpiredUploads() {
     const locations = rows.map((row) => uploadStorageLocation(row.fileUrl, false));
     if (rows.length && isSupabaseStorageConfigured()) {
       const { error } = await getStorageClient().storage.from("private-assets").remove(locations.map((location) => location.path));
-      if (error) throw new Error("Expired upload removal failed; database records retained");
+      if (error) throw new Error(serverMessages.expiredUploadRemovalFailedDatabaseRecordsRetained);
     } else {
       for (const location of locations) {
         const root = path.resolve(uploadRoot());
         try {
           const canonicalRoot = await fs.realpath(root);
           const canonicalFile = await fs.realpath(path.join(root, location.path));
-          if (!canonicalFile.startsWith(canonicalRoot + path.sep)) throw new Error("Upload escaped storage root");
+          if (!canonicalFile.startsWith(canonicalRoot + path.sep)) throw new Error(serverMessages.uploadEscapedStorageRoot);
           await fs.unlink(canonicalFile);
         } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
       }

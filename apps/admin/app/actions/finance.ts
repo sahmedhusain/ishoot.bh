@@ -1,4 +1,6 @@
 "use server";
+import { getCompanySettings } from "@ishoot/database";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation, submitForApproval } from "@ishoot/database";
@@ -78,7 +80,7 @@ export async function deleteExpenseAction(id: string) {
     validateActionArguments("deleteExpenseAction", { id });
     await runAtomicMutation(async () => {
       if (!(await deleteExpense(id)))
-        throw new Error("Expense deletion failed");
+        throw new Error(serverMessages.expenseDeletionFailed);
       await createActivityLog({
         user_id: user.id,
         action: "delete",
@@ -232,7 +234,7 @@ export async function updateInvoiceAction(
     const { invoice } = await runAtomicMutation(async () => {
       const before = await getInvoiceByIdOrNumber(id);
       const invoice = await updateInvoice(id, data as any);
-      if (!invoice) throw new Error("Invoice update failed");
+      if (!invoice) throw new Error(serverMessages.invoiceUpdateFailed);
       await createActivityLog({
         user_id: user.id,
         action: "update",
@@ -279,7 +281,7 @@ export async function voidInvoiceAction(id: string) {
     validateActionArguments("voidInvoiceAction", { id });
     await runAtomicMutation(async () => {
       if (!(await updateInvoiceStatus(id, "void")))
-        throw new Error("Invoice void failed");
+        throw new Error(serverMessages.invoiceVoidFailed);
       await createActivityLog({
         user_id: user.id,
         action: "void",
@@ -298,6 +300,7 @@ export async function voidInvoiceAction(id: string) {
 }
 
 export async function exportFinancialReportCsvAction(filters: {
+  locale?: "en" | "ar";
   basis?: "cash" | "accrual";
   dateFrom?: string;
   dateTo?: string;
@@ -313,10 +316,11 @@ export async function exportFinancialReportCsvAction(filters: {
       dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
       dateTo: filters.dateTo ? new Date(`${filters.dateTo}T23:59:59.999Z`) : undefined,
     };
-    const [report, detail, vat] = await Promise.all([getFinancialSummaryReport(range), getFinancialReportDetail(range), companyVat()]);
+    const [report, detail, vat, company] = await Promise.all([getFinancialSummaryReport(range), getFinancialReportDetail(range), companyVat(), getCompanySettings()]);
+    const options = { locale: filters.locale ?? "en", companyName: filters.locale === "ar" ? company.company_name_ar : company.company_name_en, currency: report.reportingCurrency };
 
-    const csvContent = generateFinancialSummaryCsv(report) + "\n" + generateFinancialDetailCsv(detail, vat.vatEnabled || detail.vat.hasVatDocuments);
-    return { success: true, csvContent, filename: `ishoot_financial_report_${report.basis}_${Date.now()}.csv` };
+    const csvContent = generateFinancialSummaryCsv(report, options) + "\n" + generateFinancialDetailCsv(detail, vat.vatEnabled || detail.vat.hasVatDocuments, options);
+    return { success: true, csvContent, filename: `financial_report_${report.basis}_${Date.now()}.csv` };
   });
 }
 

@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { toLeaveTypeRules } from "./hr-settings";
 import { parsePayrollSettings } from "../payroll-calculation";
 import type { Prisma } from "@prisma/client";
@@ -326,6 +327,6 @@ export async function updateEmployee(
   });
 
   const emp = await getEmployeeById(id);
-  if (!emp) throw new Error("Employee not found");
+  if (!emp) throw new Error(serverMessages.employeeNotFound);
   return emp;
 }

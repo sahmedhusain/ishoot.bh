@@ -1,10 +1,10 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import type {
   CompanySettings,
@@ -21,8 +21,6 @@ import { Button, StatusBadge, useDialog } from "@ishoot/ui";
 import {
   ArrowLeft,
   ArrowRight,
-  Printer,
-  Download,
   Share2,
   Mail,
   CheckCircle2,
@@ -36,12 +34,15 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { momPdfUrl, printPdfUrl } from "../../lib/pdf-print";
+import { momPdfUrl } from "../../lib/pdf-print";
+import { BilingualPdfActions } from "../shared/BilingualPdfActions";
 import { usePermissions } from "../../hooks/usePermissions";
 import {
   approveAndSignMomAction,
   shareMomViaEmailAction,
 } from "../../app/actions/mom";
+import { getSignatureModeAction } from "../../app/actions/signatures";
+import { SignatureCanvas } from "../shared/SignatureCanvas";
 
 interface MomDetailViewProps {
   mom: MinuteOfMeetingItem;
@@ -61,11 +62,13 @@ export function MomDetailView({
   currentUser,
 }: MomDetailViewProps) {
   const router = useRouter();
-  const { t, isRTL, locale } = useAdminLocale();
+  const { t, isRTL } = useAdminLocale();
   const { can } = usePermissions();
   const [isApproving, setIsApproving] = React.useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
-  const emailDialog = useDialog(isEmailModalOpen, () => setIsEmailModalOpen(false));
+  const emailDialog = useDialog(isEmailModalOpen, () =>
+    setIsEmailModalOpen(false),
+  );
   const [recipientEmail, setRecipientEmail] = React.useState("");
   const [emailNote, setEmailNote] = React.useState("");
   const [isSendingEmail, setIsSendingEmail] = React.useState(false);
@@ -77,8 +80,7 @@ export function MomDetailView({
   const BackIcon = isRTL ? ArrowRight : ArrowLeft;
   const isAr = Boolean(mom.title_ar && (!mom.title || isRTL));
 
-  const clientName =
-    mom.client_name || (t.momDetail.generalInternalMeeting);
+  const clientName = mom.client_name || t.momDetail.generalInternalMeeting;
 
   const formattedDate = new Date(mom.meeting_date).toLocaleDateString(
     isAr ? "ar-BH-u-nu-latn" : "en-US",
@@ -99,18 +101,6 @@ export function MomDetailView({
     .filter(Boolean)
     .join(" • ");
 
-  const [printing, setPrinting] = React.useState(false);
-  const handlePrint = async () => {
-    setPrinting(true);
-    try {
-      await printPdfUrl(momPdfUrl(mom.id, locale));
-    } catch {
-      toast.error(t.pdfActions.failed);
-    } finally {
-      setPrinting(false);
-    }
-  };
-
   const handleShareWhatsApp = () => {
     const textLines = [
       `*${t.momDetail.minutesOfMeeting} — ${mom.mom_number}*`,
@@ -119,9 +109,7 @@ export function MomDetailView({
       timeLocationString
         ? `*${t.momDetail.timeLocation}* ${timeLocationString}`
         : "",
-      mom.deal_title
-        ? `*${t.momDetail.projectDeal}* ${mom.deal_title}`
-        : "",
+      mom.deal_title ? `*${t.momDetail.projectDeal}* ${mom.deal_title}` : "",
       "",
       `*${t.momDetail.keyDecisions}*`,
       ...(mom.decisions && mom.decisions.length > 0
@@ -133,12 +121,12 @@ export function MomDetailView({
         ? mom.action_items.map(
             (item: MomActionItem, i: number) =>
               `${i + 1}. [${(t.statusLabels as Record<string, string>)[item.status] ?? item.status}] ${item.task} — ${item.assignee || t.shared.unassigned}${
-                item.dueDate ? ` (Due: ${item.dueDate})` : ""
+                item.dueDate ? ` (${formatMessage(t.copy.dueDate, { date: item.dueDate })})` : ""
               }`,
           )
         : [t.momDetail.none]),
       "",
-      `_iShoot Official Document Reference: ${mom.mom_number}_`,
+      `_${formatMessage(t.copy.documentReference, { number: mom.mom_number })}_`,
     ]
       .filter(Boolean)
       .join("\n");
@@ -147,12 +135,22 @@ export function MomDetailView({
     window.open(url, "_blank");
   };
 
+  // Minutes signed on the spot: the approver draws now instead of applying their saved signature.
+  const [signLive, setSignLive] = React.useState(false);
+  const [signPadOpen, setSignPadOpen] = React.useState(false);
+  const [liveSignature, setLiveSignature] = React.useState<string | null>(null);
+
   const handleApproveAndSign = async () => {
     if (!currentUser) return;
+    if (signLive && !liveSignature) return setSignPadOpen(true);
+    setSignPadOpen(false);
     setIsApproving(true);
     setFeedbackMessage(null);
     try {
-      const res = await approveAndSignMomAction(mom.id);
+      const res = await approveAndSignMomAction(
+        mom.id,
+        liveSignature ?? undefined,
+      );
 
       if (res.success) {
         setFeedbackMessage({
@@ -186,7 +184,10 @@ export function MomDetailView({
       if (res.success && res.status !== "failed") {
         setFeedbackMessage({
           type: "success",
-          text: (res.status === "accepted" ? t.momDetail.emailAccepted : t.momDetail.emailQueued).replace("{email}", recipientEmail),
+          text: formatMessage((res.status === "accepted"
+            ? t.momDetail.emailAccepted
+            : t.momDetail.emailQueued
+          ), { email: recipientEmail }),
         });
         setIsEmailModalOpen(false);
       } else {
@@ -205,7 +206,14 @@ export function MomDetailView({
     }
   };
 
-  const canSign = mom.status !== "approved" && !!currentUser && can("moms", "approve");
+  const canSign =
+    mom.status !== "approved" && !!currentUser && can("moms", "approve");
+  React.useEffect(() => {
+    if (canSign)
+      getSignatureModeAction("mom")
+        .then((r) => setSignLive(r.mode === "live"))
+        .catch(() => undefined);
+  }, [canSign]);
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-24">
@@ -217,9 +225,7 @@ export function MomDetailView({
             className="inline-flex items-center gap-2 text-xs text-ink-muted hover:text-accent transition-colors mb-2 font-medium"
           >
             <BackIcon className="w-4 h-4" />
-            <span>
-              {t.momDetail.backToMinutesOfMeetings}
-            </span>
+            <span>{t.momDetail.backToMinutesOfMeetings}</span>
           </Link>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
@@ -238,7 +244,7 @@ export function MomDetailView({
             )}
             {mom.deal_title && (
               <span className="text-xs px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300 font-mono">
-                Deal: {mom.deal_title}
+                {t.copy.dealLabel}{mom.deal_title}
               </span>
             )}
           </div>
@@ -246,25 +252,12 @@ export function MomDetailView({
 
         {/* Toolbar Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrint}
-            disabled={printing}
-            className="gap-1.5 border-slate-300 dark:border-white/20 text-slate-700 dark:text-slate-200"
-          >
-            <Printer className="w-4 h-4" />
-            <span>{printing ? t.pdfActions.preparing : t.pdfActions.print}</span>
-          </Button>
-          {can("moms", "export") && (
-            <a
-              href={momPdfUrl(mom.id, locale, true)}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-slate-300 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-white/20 dark:text-slate-200 dark:hover:bg-white/5"
-            >
-              <Download className="w-4 h-4" />
-              <span>{t.pdfActions.download}</span>
-            </a>
-          )}
+          <BilingualPdfActions
+            pdfUrl={(language, download) =>
+              momPdfUrl(mom.id, language, download)
+            }
+            canDownload={can("moms", "export")}
+          />
 
           <Button
             variant="outline"
@@ -273,7 +266,7 @@ export function MomDetailView({
             className="gap-1.5 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
           >
             <Share2 className="w-4 h-4" />
-            <span>WhatsApp</span>
+            <span>{t.copy.whatsapp}</span>
           </Button>
 
           <Button
@@ -296,14 +289,40 @@ export function MomDetailView({
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>
-                {isApproving
-                  ? t.momDetail.signing
-                  : t.momDetail.approveSign}
+                {isApproving ? t.momDetail.signing : t.momDetail.approveSign}
               </span>
             </Button>
           )}
         </div>
       </div>
+
+      {signPadOpen && signLive ? (
+        <section className="rounded-2xl border border-accent/30 bg-accent/5 p-4 space-y-2 no-print">
+          <p className="text-xs text-ink-muted">{t.signing.signLiveHint}</p>
+          <SignatureCanvas
+            onChange={setLiveSignature}
+            clearLabel={t.signaturePad.clear}
+            hint={t.signaturePad.hint}
+          />
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSignPadOpen(false)}
+            >
+              {t.actions.cancel}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={!liveSignature || isApproving}
+              onClick={handleApproveAndSign}
+            >
+              {t.momDetail.approveSign}
+            </Button>
+          </div>
+        </section>
+      ) : null}
 
       {/* Feedback Banner */}
       {feedbackMessage && (
@@ -346,14 +365,10 @@ export function MomDetailView({
             secondaryDate={timeLocationString || undefined}
             statusLabel={t.momDetail.documentStatus}
             statusValue={mom.status.toUpperCase()}
-            clientSectionTitle={
-              t.momDetail.meetingContextEntity
-            }
+            clientSectionTitle={t.momDetail.meetingContextEntity}
             client={{
               id: mom.client_id,
-              name:
-                mom.client_name ||
-                (t.momDetail.internalSession),
+              name: mom.client_name || t.momDetail.internalSession,
             }}
           />
 
@@ -406,8 +421,7 @@ export function MomDetailView({
                   className="font-semibold text-slate-800 truncate"
                   title={mom.location || ""}
                 >
-                  {mom.location ||
-                    (t.momDetail.ishootHqRemote)}
+                  {mom.location || t.momDetail.locationMissing}
                 </p>
               </div>
 
@@ -427,9 +441,7 @@ export function MomDetailView({
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-2">
                   <Users className="w-4 h-4 text-accent" />
-                  <span>
-                    {t.momDetail.attendeesStakeholders}
-                  </span>
+                  <span>{t.momDetail.attendeesStakeholders}</span>
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-start text-xs border-collapse">
@@ -498,9 +510,7 @@ export function MomDetailView({
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-200 pb-1.5">
                     <FileText className="w-3.5 h-3.5 text-accent" />
-                    <span>
-                      {t.momDetail.administrativeNotes}
-                    </span>
+                    <span>{t.momDetail.administrativeNotes}</span>
                   </h3>
                   <div className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 whitespace-pre-line">
                     {mom.notes}
@@ -548,9 +558,7 @@ export function MomDetailView({
               <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/80 border-2 border-emerald-500/30 space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-accent" />
-                  <span>
-                    {t.momDetail.agreedDecisionsCommitments}
-                  </span>
+                  <span>{t.momDetail.agreedDecisionsCommitments}</span>
                 </h3>
                 <ul className="space-y-2 text-xs text-slate-900 font-medium">
                   {mom.decisions.map((dec: string, i: number) => (
@@ -567,9 +575,7 @@ export function MomDetailView({
             {mom.action_items && mom.action_items.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 border-b border-slate-200 pb-1.5 flex items-center justify-between">
-                  <span>
-                    {t.momDetail.actionItemsAccountabilities}
-                  </span>
+                  <span>{t.momDetail.actionItemsAccountabilities}</span>
                   <span className="text-[10px] text-slate-500 font-mono">
                     {mom.action_items.length} {t.momDetail.items}
                   </span>
@@ -623,7 +629,9 @@ export function MomDetailView({
                                     : "bg-amber-100 text-amber-800"
                               }`}
                             >
-                              {(t.statusLabels as Record<string, string>)[act.status] ?? act.status}
+                              {(t.statusLabels as Record<string, string>)[
+                                act.status
+                              ] ?? act.status}
                             </span>
                           </td>
                         </tr>
@@ -639,16 +647,14 @@ export function MomDetailView({
           <DocumentFooter
             company={company}
             language={isAr ? "ar" : "en"}
-            thankYouMessage={
-              t.momDetail.officialRecordOfProceedingsCommitments
-            }
+            thankYouMessage={formatMessage(t.momDetail.officialRecordOfProceedingsCommitments, { companyName: isRTL ? company.company_name_ar : company.company_name_en })}
             showSignature={true}
             stampUrl={company.stamp_url}
             signatureUrl={mom.signature_url || null}
             signerName={
               mom.approved_by_name ||
               mom.created_by_name ||
-              (t.momDetail.sessionLeadExecutiveOfficer)
+              t.momDetail.sessionLeadExecutiveOfficer
             }
             signatureTitle={t.momDetail.recorderApprover}
             signatureTitleAr={t.momDetail.recorderApprover}
@@ -658,14 +664,15 @@ export function MomDetailView({
 
       {/* Share Via Email Modal */}
       {isEmailModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 no-print">
-          <div {...emailDialog} className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4 no-print">
+          <div
+            {...emailDialog}
+            className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
               <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Mail className="w-4 h-4 text-accent" />
-                <span>
-                  {t.momDetail.shareMomViaEmail}
-                </span>
+                <span>{t.momDetail.shareMomViaEmail}</span>
               </h3>
               <button
                 onClick={() => setIsEmailModalOpen(false)}
@@ -685,7 +692,7 @@ export function MomDetailView({
                   required
                   value={recipientEmail}
                   onChange={(e) => setRecipientEmail(e.target.value)}
-                  placeholder="partner@client.com"
+                  placeholder={t.copy.clientEmailExample}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
@@ -698,9 +705,7 @@ export function MomDetailView({
                   rows={3}
                   value={emailNote}
                   onChange={(e) => setEmailNote(e.target.value)}
-                  placeholder={
-                    t.momDetail.pleaseFindAttachedTheOfficial
-                  }
+                  placeholder={t.momDetail.pleaseFindAttachedTheOfficial}
                   className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
@@ -721,9 +726,7 @@ export function MomDetailView({
                   disabled={isSendingEmail}
                   className="bg-accent hover:bg-accent-pressed text-white"
                 >
-                  {isSendingEmail
-                    ? t.momDetail.sending
-                    : t.momDetail.sendEmail}
+                  {isSendingEmail ? t.momDetail.sending : t.momDetail.sendEmail}
                 </Button>
               </div>
             </form>

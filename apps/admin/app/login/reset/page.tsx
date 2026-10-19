@@ -1,12 +1,10 @@
+import { companyMetadata } from "../../../lib/company-metadata";
 import * as React from "react";
-import { Metadata } from "next";
 import { getCompanySettings } from "@ishoot/database";
 import { adminTranslations } from "../../../lib/translations-bilingual";
 import { ResetPasswordForm } from "../../../components/auth/ResetPasswordForm";
 
-export const metadata: Metadata = {
-  title: adminTranslations.ar.brandName,
-};
+export const generateMetadata = () => companyMetadata(adminTranslations.ar.resetPasswordForm.resetPassword);
 
 export const dynamic = "force-dynamic";
 

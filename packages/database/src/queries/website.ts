@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db, runAtomicMutation } from "../db";
 import {
   defaultWebsiteConfig,
@@ -71,7 +72,7 @@ export async function getWebsiteSnapshot(
   const content = await db.websiteContent.findUnique({ where: { id: "main" } });
   if (!preview && content?.published)
     return content.published as unknown as WebsiteSnapshot;
-  if (!preview || !content) throw new Error("Website setup is incomplete. Save and publish website content in the admin app.");
+  if (!preview || !content) throw new Error(serverMessages.websiteSetupIsIncompleteSaveAndPublish);
   return collectWebsiteDraft(validateWebsiteConfig(content.draft));
 }
 

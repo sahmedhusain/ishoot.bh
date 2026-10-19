@@ -7,8 +7,6 @@ export interface IntegrationField {
   key: string;
   secret?: boolean;
   required?: boolean;
-  /** Example shown as the input placeholder. */
-  placeholder?: string;
 }
 
 export interface IntegrationProvider {
@@ -32,9 +30,9 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     kind: "social",
     platforms: ["facebook", "instagram"],
     fields: [
-      { key: "pageId", required: true, placeholder: "104857392846" },
-      { key: "instagramAccountId", placeholder: "17841400000000000" },
-      { key: "accessToken", secret: true, required: true, placeholder: "EAAG…" },
+      { key: "pageId", required: true },
+      { key: "instagramAccountId" },
+      { key: "accessToken", secret: true, required: true },
     ],
     docsUrl: "https://developers.facebook.com/docs/pages-api/getting-started",
   },
@@ -43,9 +41,9 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     kind: "messaging",
     platforms: [],
     fields: [
-      { key: "phoneId", required: true, placeholder: "109876543210987" },
-      { key: "businessId", placeholder: "102938475610293" },
-      { key: "token", secret: true, required: true, placeholder: "EAAG…" },
+      { key: "phoneId", required: true },
+      { key: "businessId" },
+      { key: "token", secret: true, required: true },
     ],
     docsUrl: "https://developers.facebook.com/docs/whatsapp/cloud-api/get-started",
   },
@@ -54,8 +52,8 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     kind: "social",
     platforms: ["youtube"],
     fields: [
-      { key: "channelId", required: true, placeholder: "UC…" },
-      { key: "apiKey", secret: true, required: true, placeholder: "AIza…" },
+      { key: "channelId", required: true },
+      { key: "apiKey", secret: true, required: true },
     ],
     docsUrl: "https://developers.google.com/youtube/v3/getting-started",
   },
@@ -63,7 +61,7 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     id: "tiktok",
     kind: "social",
     platforms: ["tiktok"],
-    fields: [{ key: "accessToken", secret: true, required: true, placeholder: "act.…" }],
+    fields: [{ key: "accessToken", secret: true, required: true }],
     docsUrl: "https://developers.tiktok.com/doc/display-api-overview",
   },
   {
@@ -71,8 +69,8 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     kind: "social",
     platforms: ["x"],
     fields: [
-      { key: "username", required: true, placeholder: "ishootbh" },
-      { key: "bearerToken", secret: true, required: true, placeholder: "AAAA…" },
+      { key: "username", required: true },
+      { key: "bearerToken", secret: true, required: true },
     ],
     docsUrl: "https://developer.x.com/en/docs/x-api/getting-started/about-x-api",
   },
@@ -81,8 +79,8 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     kind: "social",
     platforms: ["linkedin"],
     fields: [
-      { key: "organizationId", required: true, placeholder: "12345678" },
-      { key: "accessToken", secret: true, required: true, placeholder: "AQV…" },
+      { key: "organizationId", required: true },
+      { key: "accessToken", secret: true, required: true },
     ],
     docsUrl: "https://learn.microsoft.com/en-us/linkedin/marketing/community-management/organizations",
   },
@@ -91,8 +89,8 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     kind: "email",
     platforms: [],
     fields: [
-      { key: "apiKey", secret: true, required: true, placeholder: "re_…" },
-      { key: "fromEmail", required: true, placeholder: "billing@ishoot.bh" },
+      { key: "apiKey", secret: true, required: true },
+      { key: "fromEmail", required: true },
     ],
     docsUrl: "https://resend.com/docs/dashboard/domains/introduction",
   },

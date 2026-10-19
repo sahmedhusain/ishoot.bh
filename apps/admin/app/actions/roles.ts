@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -21,7 +22,7 @@ export async function upsertRoleAction(data: {
     const actor = await requirePermission("users", "write");
     validateActionArguments("upsertRoleAction", { data });
     if (actor.role !== "super_admin")
-      throw new Error("Only super administrators can manage role permissions");
+      throw new Error(serverMessages.onlySuperAdministratorsCanManageRolePermissions);
     if (
       !data ||
       typeof data.nameEn !== "string" ||
@@ -34,13 +35,13 @@ export async function upsertRoleAction(data: {
       typeof data.grants !== "object" ||
       Array.isArray(data.grants)
     )
-      throw new Error("Invalid role");
+      throw new Error(serverMessages.invalidRole);
     const validKeys = new Set(
       ALL_RESOURCES.flatMap((resource) => ALL_ACTIONS.map((action) => `${resource}:${action}`)),
     );
     for (const [key, allowed] of Object.entries(data.grants)) {
-      if (!validKeys.has(key) || key.endsWith(":write")) throw new Error("Invalid permission resource");
-      if (typeof allowed !== "boolean") throw new Error("Invalid permission value");
+      if (!validKeys.has(key) || key.endsWith(":write")) throw new Error(serverMessages.invalidPermissionResource);
+      if (typeof allowed !== "boolean") throw new Error(serverMessages.invalidPermissionValue);
     }
     await db.$transaction(async (tx) => {
       const role = data.id
@@ -104,14 +105,14 @@ export async function deleteRoleAction(id: string) {
     const actor = await requirePermission("users", "delete");
     validateActionArguments("deleteRoleAction", { id });
     if (actor.role !== "super_admin")
-      throw new Error("Only super administrators can manage roles");
+      throw new Error(serverMessages.onlySuperAdministratorsCanManageRoles);
     await db.$transaction(async (tx) => {
       const role = await tx.role.findUnique({ where: { id } });
-      if (!role) throw new Error("Role not found");
+      if (!role) throw new Error(serverMessages.roleNotFound);
       if (role.isSystem || id === "super_admin")
-        throw new Error("Cannot delete system roles");
+        throw new Error(serverMessages.cannotDeleteSystemRoles);
       if (await tx.user.count({ where: { role: id } }))
-        throw new Error("Cannot delete role currently assigned to users");
+        throw new Error(serverMessages.cannotDeleteRoleCurrentlyAssignedToUsers);
       await tx.permission.deleteMany({ where: { role: id } });
       await tx.role.delete({ where: { id } });
       await tx.activityLog.create({

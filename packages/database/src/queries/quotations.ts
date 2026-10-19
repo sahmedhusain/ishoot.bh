@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db, runAtomicMutation } from "../db";
 import { Quotation, calculateInvoiceTotals } from "../types";
 import { getNextSequenceNumber } from "./sequence";
@@ -177,9 +179,9 @@ export async function updateQuotation(
     where: { id },
     include: { lineItems: true, taxes: { orderBy: { displayOrder: "asc" } } },
   });
-  if (!existing) throw new Error("Quotation not found");
+  if (!existing) throw new Error(serverMessages.quotationNotFound);
   if (existing.status !== "draft") {
-    throw new Error(`Only draft quotations can be edited (current status: ${existing.status})`);
+    throw new Error(formatMessage(serverTemplates.onlyDraftQuotationsCanBeEditedCurrent, { 0: existing.status }));
   }
 
   const currency = data.currency || existing.currency;
@@ -263,7 +265,7 @@ export async function updateQuotation(
   });
 
   const updated = await getQuotationById(id);
-  if (!updated) throw new Error("Failed to load updated quotation");
+  if (!updated) throw new Error(serverMessages.failedToLoadUpdatedQuotation);
   return updated;
 }
 
@@ -284,15 +286,15 @@ export async function submitQuotationForApproval(
     },
   });
 
-  if (!quotation) throw new Error("Quotation not found");
+  if (!quotation) throw new Error(serverMessages.quotationNotFound);
   if (quotation.status !== "draft") {
-    throw new Error(`Quotation cannot be submitted: status is ${quotation.status}`);
+    throw new Error(formatMessage(serverTemplates.quotationCannotBeSubmittedStatusIs0, { 0: quotation.status }));
   }
 
   // Discounts within the issuer's limit need no approval; above it the issuer must explain why.
   const discount = await discountDecision(actorId, Number(quotation.subtotal), Number(quotation.discountAmount));
   if (!discount.withinLimit && !customDiscountReason?.trim())
-    throw new Error(`This ${discount.percent}% discount is above your ${discount.limit}% limit; explain it for the approver`);
+    throw new Error(formatMessage(serverTemplates.this0DiscountIsAboveYour1, { 0: discount.percent, 1: discount.limit }));
   const hasDiscount = Number(quotation.discountAmount) > 0;
   const discountReason = customDiscountReason?.trim() || (hasDiscount
     ? `Quotation #${quotation.quotationNumber} includes a ${discount.percent}% discount (${quotation.discountAmount} ${quotation.currency}), within the ${discount.limit ?? "unlimited"}% limit.`
@@ -348,13 +350,13 @@ export async function issueQuotation(
     include: { lineItems: true, client: true, taxes: { orderBy: { displayOrder: "asc" } } },
   });
 
-  if (!quotation) throw new Error("Quotation not found");
+  if (!quotation) throw new Error(serverMessages.quotationNotFound);
 
   // Gating: Must be Super Admin approved before issue/send
   if (quotation.status !== "approved") {
-    throw new Error("Quotation delivery blocked: Super Admin approval is strictly required before issuing to the customer");
+    throw new Error(serverMessages.quotationDeliveryBlockedSuperAdminApprovalIs);
   }
-  if (!quotation.signedAt) throw new Error("Sign and stamp this quotation before sending it to the client");
+  if (!quotation.signedAt) throw new Error(serverMessages.signAndStampThisQuotationBeforeSending);
 
   const updated = await db.$transaction(async (tx) => {
     const issued = await tx.quotation.update({
@@ -410,13 +412,13 @@ export async function acceptQuotation(
   await assertActorNotOnLeave(actorId);
 
   const quotation = await db.quotation.findUnique({ where: { id } });
-  if (!quotation) throw new Error("Quotation not found");
+  if (!quotation) throw new Error(serverMessages.quotationNotFound);
   if (quotation.status !== "issued") {
-    throw new Error(`Quotation cannot be accepted: current status is ${quotation.status}`);
+    throw new Error(formatMessage(serverTemplates.quotationCannotBeAcceptedCurrentStatusIs, { 0: quotation.status }));
   }
   if (isQuotationExpired(quotation.validUntilDate)) {
     await db.quotation.update({ where: { id }, data: { status: "expired" } });
-    throw new Error("This quotation has expired. Issue a new revision to the client.");
+    throw new Error(serverMessages.thisQuotationHasExpiredIssueANew);
   }
 
   const updated = await db.$transaction(async (tx) => {
@@ -472,9 +474,9 @@ export async function rejectQuotation(
   await assertActorNotOnLeave(actorId);
 
   const quotation = await db.quotation.findUnique({ where: { id } });
-  if (!quotation) throw new Error("Quotation not found");
+  if (!quotation) throw new Error(serverMessages.quotationNotFound);
   if (!["issued", "accepted"].includes(quotation.status))
-    throw new Error(`Only issued or accepted quotations can be rejected (current status: ${quotation.status})`);
+    throw new Error(formatMessage(serverTemplates.onlyIssuedOrAcceptedQuotationsCanBe, { 0: quotation.status }));
 
   await db.quotation.update({
     where: { id },
@@ -485,7 +487,7 @@ export async function rejectQuotation(
   });
 
   const updated = await getQuotationById(id);
-  if (!updated) throw new Error("Quotation not found");
+  if (!updated) throw new Error(serverMessages.quotationNotFound);
   return updated;
 }
 
@@ -506,7 +508,7 @@ export async function convertQuotationToInvoice(
       where: { id: quotationId },
       include: { lineItems: { orderBy: { orderIndex: "asc" } }, taxes: { orderBy: { displayOrder: "asc" } } },
     });
-    if (!quotation) throw new Error("Quotation not found");
+    if (!quotation) throw new Error(serverMessages.quotationNotFound);
 
     // Idempotency: an already linked quotation returns its invoice.
     if (quotation.invoiceId) {
@@ -517,7 +519,7 @@ export async function convertQuotationToInvoice(
       if (existingInv) return { invoiceId: existingInv.id, invoiceNumber: existingInv.invoiceNumber, isExisting: true };
     }
     if (quotation.status !== "accepted") {
-      throw new Error(`Only accepted quotations can be converted to invoices (current status: ${quotation.status})`);
+      throw new Error(formatMessage(serverTemplates.onlyAcceptedQuotationsCanBeConvertedTo, { 0: quotation.status }));
     }
 
     const company = await db.companySetting.findFirst({ select: { paymentTermsDays: true } });

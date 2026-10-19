@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
@@ -251,13 +252,13 @@ function PlanForm({
         </label>
         <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
           {p.media}
-          <input type="url" dir="ltr" className={fieldClass} placeholder="https://" value={form.mediaUrl} onChange={(e) => set("mediaUrl", e.target.value)} />
+          <input type="url" dir="ltr" className={fieldClass} placeholder={t.copy.urlExample} value={form.mediaUrl} onChange={(e) => set("mediaUrl", e.target.value)} />
         </label>
       </div>
       {form.status === "published" && (
         <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-slate-200">
           {p.publishedUrl}
-          <input type="url" dir="ltr" className={fieldClass} placeholder="https://" value={form.publishedUrl} onChange={(e) => set("publishedUrl", e.target.value)} />
+          <input type="url" dir="ltr" className={fieldClass} placeholder={t.copy.urlExample} value={form.publishedUrl} onChange={(e) => set("publishedUrl", e.target.value)} />
         </label>
       )}
       <div className="flex justify-end gap-2 pt-2">
@@ -491,7 +492,7 @@ export function SocialAnalyticsView({
               value={number.compact(totalFollowers)}
               footer={followersChange !== 0 && (
                 <span className={`text-[11px] font-medium ${followersChange > 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}>
-                  {s.followersGained.replace("{n}", `${followersChange > 0 ? "+" : ""}${number.full(followersChange)}`)}
+                  {formatMessage(s.followersGained, { n: `${followersChange > 0 ? "+" : ""}${number.full(followersChange)}` })}
                 </span>
               )}
             />

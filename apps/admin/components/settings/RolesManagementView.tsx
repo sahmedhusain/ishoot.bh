@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Shield, Users } from "lucide-react";
@@ -122,7 +123,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
               </div>
               <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
                 <Users className="w-4 h-4" />
-                {t.rolesView.usersAssigned.replace("{count}", String(role.userCount))}
+                {formatMessage(t.rolesView.usersAssigned, { count: String(role.userCount) })}
               </div>
             </div>
             <div className="flex items-center gap-2 mt-6 pt-4 border-t border-slate-100 dark:border-white/10">
@@ -215,7 +216,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
                 </Button>
               )}
               {editingRole && changedKeys.length > 0 && (
-                <span role="status">{t.rolesView.unsavedChanges.replace("{count}", String(changedKeys.length))}</span>
+                <span role="status">{formatMessage(t.rolesView.unsavedChanges, { count: String(changedKeys.length) })}</span>
               )}
             </div>
             <div className="flex gap-2">

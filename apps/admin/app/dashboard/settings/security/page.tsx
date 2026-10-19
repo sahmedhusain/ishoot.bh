@@ -1,8 +1,7 @@
+import { redirect } from "next/navigation";
 import { requireAuth } from "../../../../lib/auth";
-import { db } from "@ishoot/database";
-import { SecuritySettingsView } from "../../../../components/settings/SecuritySettingsView";
+import { ROUTES } from "../../../../constants/routes";
 export default async function SecuritySettingsPage() {
-  const user = await requireAuth();
-  const settings = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { mfaEnabled: true } });
-  return <SecuritySettingsView enabled={settings.mfaEnabled} />;
+  await requireAuth();
+  redirect(ROUTES.profile() + "#security");
 }

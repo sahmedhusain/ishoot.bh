@@ -15,7 +15,7 @@ interface IconPickerProps {
 const ALL_ICON_NAMES = Object.keys(PICKABLE_ICONS);
 const POPULAR_ICONS: readonly string[] = POPULAR_ICON_NAMES;
 
-export function IconPicker({ value, onChange, placeholder = "Select icon", initialOpen=false }: IconPickerProps) {
+export function IconPicker({ value, onChange, placeholder, initialOpen=false }: IconPickerProps) {
   const { t } = useAdminLocale();
   const [isOpen, setIsOpen] = React.useState(initialOpen);
   const [page,setPage]=React.useState(0);
@@ -59,7 +59,7 @@ export function IconPicker({ value, onChange, placeholder = "Select icon", initi
             )}
           </div>
           <span className="font-semibold text-slate-800 dark:text-neutral-200">
-            {value || placeholder}
+            {value || placeholder || t.copy.selectIcon}
           </span>
         </div>
         <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-accent" : ""}`} />

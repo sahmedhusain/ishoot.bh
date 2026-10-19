@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRightLeft, Pencil, Undo2, UserPlus } from "lucide-react";
@@ -64,12 +65,12 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
       {asset.open_handover ? (
         <Link href={ROUTES.assets.handover(asset.open_handover.id)} className="flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-semibold text-amber-800 dark:text-amber-200">
           <ArrowRightLeft className="h-4 w-4" />
-          {a.openHandover.replace("{reference}", asset.open_handover.reference).replace("{status}", a.handoverStatuses[asset.open_handover.status as keyof typeof a.handoverStatuses])}
+          {formatMessage(a.openHandover, { reference: asset.open_handover.reference, status: a.handoverStatuses[asset.open_handover.status as keyof typeof a.handoverStatuses] })}
         </Link>
       ) : null}
 
       {mode === "edit" ? (
-        <div className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5"><AssetForm categories={categories} asset={asset} onDone={() => setMode("view")} /></div>
+        <div className="rounded-3xl border border-ink/10 bg-white dark:bg-surface-raised p-5"><AssetForm categories={categories} asset={asset} employees={employees} onDone={() => setMode("view")} /></div>
       ) : mode === "issue" || mode === "return" ? (
         <HandoverForm asset={asset} kind={mode} employees={employees} onCancel={() => setMode("view")} />
       ) : (
@@ -90,7 +91,7 @@ export function AssetDetailView({ asset, handovers, categories, employees, canEd
             </dl>
             {asset.category.spec_fields.length ? (
               <div className="border-t border-ink/10 pt-4">
-                <h2 className="mb-3 text-sm font-bold text-ink">{a.specsTitle.replace("{category}", isAr ? asset.category.name_ar : asset.category.name_en)}</h2>
+                <h2 className="mb-3 text-sm font-bold text-ink">{formatMessage(a.specsTitle, { category: isAr ? asset.category.name_ar : asset.category.name_en })}</h2>
                 <dl className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {asset.category.spec_fields.map((f) => item(isAr ? f.labelAr : f.labelEn, specValue(f.key, f.type), f.type !== "text", f.key))}
                 </dl>

@@ -1,7 +1,7 @@
 import { isWebsitePreview,getWebsite } from "../../lib/website";
 import { getPublicCompanySettings } from "../../lib/company";
 import * as React from "react";
-import { getTranslations } from "@ishoot/locales";
+import { getTranslations, formatMessage } from "@ishoot/locales";
 import { notFound } from "next/navigation";
 import { isValidLocale } from "../../lib/i18n";
 import { Navbar } from "../../components/layout/Navbar";
@@ -81,11 +81,13 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
   const { seo } = getTranslations(locale);
+  const company = await getPublicCompanySettings();
+  const title = formatMessage(seo.title, { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en });
   return {
-    title: seo.title,
+    title,
     description: seo.description,
     openGraph: {
-      title: seo.title,
+      title,
       description: seo.description,
       locale: locale === "ar" ? "ar_BH" : "en_US",
     },

@@ -1,3 +1,4 @@
+import catalog from "./branding-slots.json";
 export type AssetType =
   | "LOGO_LIGHT"
   | "LOGO_DARK"
@@ -20,85 +21,5 @@ export interface AssetSlotConfig {
   isVectorRecommended: boolean;
 }
 
-export const BRANDING_ASSET_SLOTS: AssetSlotConfig[] = [
-  {
-    key: "LOGO_LIGHT",
-    translationKey: "branding.assets.logoLight",
-    descriptionKey: "branding.assets.logoLightDesc",
-    recommendedFormat: "SVG / PNG",
-    recommendedDimensions: "486x136px",
-    isVectorRecommended: true,
-  },
-  {
-    key: "LOGO_DARK",
-    translationKey: "branding.assets.logoDark",
-    descriptionKey: "branding.assets.logoDarkDesc",
-    recommendedFormat: "SVG / PNG",
-    recommendedDimensions: "486x136px",
-    isVectorRecommended: true,
-  },
-  {
-    key: "ICON_LIGHT",
-    translationKey: "branding.assets.iconLight",
-    descriptionKey: "branding.assets.iconLightDesc",
-    recommendedFormat: "SVG / PNG",
-    recommendedDimensions: "310x470px or 1:1",
-    isVectorRecommended: true,
-  },
-  {
-    key: "ICON_DARK",
-    translationKey: "branding.assets.iconDark",
-    descriptionKey: "branding.assets.iconDarkDesc",
-    recommendedFormat: "SVG / PNG",
-    recommendedDimensions: "310x470px or 1:1",
-    isVectorRecommended: true,
-  },
-  {
-    key: "FAVICON",
-    translationKey: "branding.assets.favicon",
-    descriptionKey: "branding.assets.faviconDesc",
-    recommendedFormat: "ICO / PNG / SVG",
-    recommendedDimensions: "32x32px or 64x64px",
-    isVectorRecommended: false,
-  },
-  {
-    key: "STAMP",
-    translationKey: "branding.assets.stamp",
-    descriptionKey: "branding.assets.stampDesc",
-    recommendedFormat: "PNG (Transparent) / SVG",
-    recommendedDimensions: "300x300px",
-    isVectorRecommended: true,
-  },
-  {
-    key: "SIGNATURE",
-    translationKey: "branding.assets.signature",
-    descriptionKey: "branding.assets.signatureDesc",
-    recommendedFormat: "PNG (Transparent) / SVG",
-    recommendedDimensions: "400x150px",
-    isVectorRecommended: true,
-  },
-  {
-    key: "LETTERHEAD_HEADER",
-    translationKey: "branding.assets.letterheadHeader",
-    descriptionKey: "branding.assets.letterheadHeaderDesc",
-    recommendedFormat: "PNG / SVG",
-    recommendedDimensions: "1200x200px",
-    isVectorRecommended: true,
-  },
-  {
-    key: "LETTERHEAD_FOOTER",
-    translationKey: "branding.assets.letterheadFooter",
-    descriptionKey: "branding.assets.letterheadFooterDesc",
-    recommendedFormat: "PNG / SVG",
-    recommendedDimensions: "1200x120px",
-    isVectorRecommended: true,
-  },
-  {
-    key: "WATERMARK",
-    translationKey: "branding.assets.watermark",
-    descriptionKey: "branding.assets.watermarkDesc",
-    recommendedFormat: "PNG (Semi-transparent) / SVG",
-    recommendedDimensions: "800x800px",
-    isVectorRecommended: true,
-  },
-];
+export const BRANDING_ASSET_SLOTS: AssetSlotConfig[] =
+  catalog as AssetSlotConfig[];

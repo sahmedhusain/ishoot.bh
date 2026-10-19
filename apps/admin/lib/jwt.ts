@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { SignJWT } from "jose/jwt/sign";
 import { jwtVerify } from "jose/jwt/verify";
 
@@ -8,7 +9,7 @@ if (
   !JWT_SECRET_STRING ||
   new TextEncoder().encode(JWT_SECRET_STRING).length < 32
 ) {
-  throw new Error("JWT_SECRET must contain at least 32 UTF-8 bytes");
+  throw new Error(serverMessages.jwtSecretMustContainAtLeast32);
 }
 const key = new TextEncoder().encode(JWT_SECRET_STRING);
 

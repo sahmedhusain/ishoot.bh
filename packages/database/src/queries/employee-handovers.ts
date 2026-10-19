@@ -1,3 +1,5 @@
+import { getTranslations, formatMessage, serverMessages } from "@ishoot/locales";
+
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
 import { ROUTES } from "../constants/routes";
@@ -31,7 +33,7 @@ const clean = (v: unknown, max = 500) => (typeof v === "string" && v.trim() ? v.
 const day = (value: unknown) => {
   const text = clean(value, 10);
   if (!text) return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(text) || !Number.isFinite(Date.parse(text))) throw new Error("Invalid date");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text) || !Number.isFinite(Date.parse(text))) throw new Error(serverMessages.invalidDate);
   return new Date(`${text}T00:00:00Z`);
 };
 const freshChecklist = (kind: "exit" | "leave"): ChecklistEntry[] =>
@@ -39,18 +41,18 @@ const freshChecklist = (kind: "exit" | "leave"): ChecklistEntry[] =>
 
 /** Opens an exit or leave handover; the employee's open cases are gathered straight away. */
 export async function openEmployeeHandover(input: EmployeeHandoverInput, actorId: string, leaveRequestId?: string) {
-  if (!(HANDOVER_KINDS as readonly string[]).includes(input.kind)) throw new Error("INVALID_INPUT");
+  if (!(HANDOVER_KINDS as readonly string[]).includes(input.kind)) throw new Error(serverMessages.invalidInput);
   const effectiveDate = day(input.effective_date);
-  if (!effectiveDate) throw new Error("Invalid date");
+  if (!effectiveDate) throw new Error(serverMessages.invalidDate);
   const returnDate = day(input.return_date);
-  if (returnDate && returnDate < effectiveDate) throw new Error("The return date cannot be before the start date");
+  if (returnDate && returnDate < effectiveDate) throw new Error(serverMessages.theReturnDateCannotBeBeforeTheStartDate);
   return runAtomicMutation(async () => {
     const employee = await db.employee.findUnique({ where: { id: input.employee_id }, select: { id: true, status: true } });
-    if (!employee) throw new Error("Employee not found");
-    if (employee.status === "terminated") throw new Error("This employee has already left");
+    if (!employee) throw new Error(serverMessages.employeeNotFound);
+    if (employee.status === "terminated") throw new Error(serverMessages.thisEmployeeHasAlreadyLeft);
     if (input.kind === "exit") {
       const open = await db.employeeHandover.findFirst({ where: { employeeId: employee.id, kind: "exit", status: { in: ["open", "pending_approval"] } }, select: { id: true } });
-      if (open) throw new Error("This employee already has an exit handover in progress");
+      if (open) throw new Error(serverMessages.thisEmployeeAlreadyHasAnExitHandoverInProgress);
     }
     const handover = await db.employeeHandover.create({
       data: {
@@ -101,16 +103,16 @@ export async function refreshHandoverCases(handoverId: string) {
 /** How cases are to be reassigned: all to one delegate, spread across a team, or chosen one by one. */
 export async function setHandoverCaseMode(handoverId: string, input: { mode: string; delegate_user_id?: string; team_user_ids?: string[] }) {
   const h = await db.employeeHandover.findUnique({ where: { id: handoverId }, include: { employee: { select: { userId: true } } } });
-  if (!h) throw new Error("Handover not found");
-  if (h.status !== "open") throw new Error("This handover can no longer be changed");
-  if (!(CASE_MODES as readonly string[]).includes(input.mode)) throw new Error("INVALID_INPUT");
+  if (!h) throw new Error(serverMessages.handoverNotFound);
+  if (h.status !== "open") throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
+  if (!(CASE_MODES as readonly string[]).includes(input.mode)) throw new Error(serverMessages.invalidInput);
   const team = Array.from(new Set(input.team_user_ids ?? [])).filter((id) => id !== h.employee.userId).slice(0, 30);
-  if (input.mode === "delegate" && !input.delegate_user_id) throw new Error("Choose who takes over the cases");
-  if (input.mode === "spread" && team.length < 1) throw new Error("Choose the team members who share the cases");
-  if (input.delegate_user_id && input.delegate_user_id === h.employee.userId) throw new Error("Choose someone other than the employee");
+  if (input.mode === "delegate" && !input.delegate_user_id) throw new Error(serverMessages.chooseWhoTakesOverTheCases);
+  if (input.mode === "spread" && team.length < 1) throw new Error(serverMessages.chooseTheTeamMembersWhoShareTheCases);
+  if (input.delegate_user_id && input.delegate_user_id === h.employee.userId) throw new Error(serverMessages.chooseSomeoneOtherThanTheEmployee);
   const ids = [...(input.delegate_user_id ? [input.delegate_user_id] : []), ...team];
   const active = await db.user.count({ where: { id: { in: ids }, isActive: true } });
-  if (active !== ids.length) throw new Error("Choose active team members");
+  if (active !== ids.length) throw new Error(serverMessages.chooseActiveTeamMembers);
   await db.employeeHandover.update({ where: { id: handoverId }, data: { casesMode: input.mode, delegateUserId: input.mode === "delegate" ? input.delegate_user_id! : null, teamUserIds: input.mode === "spread" ? team : [] } });
 }
 
@@ -132,7 +134,7 @@ async function reassignCase(c: { caseType: string; caseId: string }, toUserId: s
     if (!approval || approval.status !== "pending") return;
     const from = await db.employeeHandoverCase.findFirst({ where: { caseId: c.caseId }, select: { handover: { select: { employee: { select: { userId: true } } } } } });
     const leaving = from?.handover.employee.userId;
-    if (toUserId === approval.requestedById) throw new Error("An approval cannot go to the person who requested it");
+    if (toUserId === approval.requestedById) throw new Error(serverMessages.anApprovalCannotGoToThePersonWhoRequestedIt);
     const approverIds = Array.from(new Set(approval.approverIds.filter((id) => id !== leaving).concat(toUserId)));
     await db.approvalRequest.update({ where: { id: c.caseId }, data: { approverIds } });
   }
@@ -146,7 +148,7 @@ export async function applyHandoverCases(handoverId: string, actorId: string, ch
   return runAtomicMutation(async () => {
     await refreshHandoverCases(handoverId);
     const h = await db.employeeHandover.findUniqueOrThrow({ where: { id: handoverId }, include: { cases: { where: { status: "pending" }, orderBy: { createdAt: "asc" } } } });
-    if (h.status !== "open") throw new Error("This handover can no longer be changed");
+    if (h.status !== "open") throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
     const reason = h.kind === "exit" ? `Handover ${h.reference}: employee leaving` : `Handover ${h.reference}: employee on leave`;
     let index = 0;
     let moved = 0;
@@ -166,13 +168,13 @@ export async function applyHandoverCases(handoverId: string, actorId: string, ch
 
 export async function updateHandoverChecklist(handoverId: string, key: string, input: { done: boolean; not_applicable: boolean; note?: string }, actorId: string) {
   const h = await db.employeeHandover.findUnique({ where: { id: handoverId } });
-  if (!h) throw new Error("Handover not found");
-  if (h.status !== "open") throw new Error("This handover can no longer be changed");
+  if (!h) throw new Error(serverMessages.handoverNotFound);
+  if (h.status !== "open") throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
   const list = (Array.isArray(h.checklist) ? h.checklist : []) as unknown as ChecklistEntry[];
   const entry = list.find((e) => e.key === key);
-  if (!entry) throw new Error("INVALID_INPUT");
+  if (!entry) throw new Error(serverMessages.invalidInput);
   const note = clean(input.note);
-  if (input.not_applicable && !note) throw new Error("Say why the item does not apply");
+  if (input.not_applicable && !note) throw new Error(serverMessages.sayWhyTheItemDoesNotApply);
   Object.assign(entry, { done: !!input.done && !input.not_applicable, notApplicable: !!input.not_applicable, note, byId: actorId, at: new Date().toISOString() });
   await db.employeeHandover.update({ where: { id: handoverId }, data: { checklist: list as unknown as Prisma.InputJsonValue } });
 }
@@ -197,12 +199,12 @@ export async function submitEmployeeHandover(handoverId: string, actorId: string
   return runAtomicMutation(async () => {
     await refreshHandoverCases(handoverId);
     const h = await db.employeeHandover.findUnique({ where: { id: handoverId }, include: { employee: { select: { userId: true } } } });
-    if (!h) throw new Error("Handover not found");
-    if (h.status !== "open") throw new Error("This handover can no longer be changed");
+    if (!h) throw new Error(serverMessages.handoverNotFound);
+    if (h.status !== "open") throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
     const b = await handoverBlockers(handoverId);
-    if (b.assetsHeld || b.returnsInProgress) throw new Error("Every company asset must be returned first");
-    if (b.casesPending) throw new Error("Reassign every open case first");
-    if (b.checklistOpen) throw new Error("Complete every checklist item first");
+    if (b.assetsHeld || b.returnsInProgress) throw new Error(serverMessages.everyCompanyAssetMustBeReturnedFirst);
+    if (b.casesPending) throw new Error(serverMessages.reassignEveryOpenCaseFirst);
+    if (b.checklistOpen) throw new Error(serverMessages.completeEveryChecklistItemFirst);
     await db.employeeHandover.update({ where: { id: handoverId }, data: { status: "pending_approval" } });
     await submitForApproval({ targetType: "employee_handover", targetId: handoverId, requesterId: actorId, policySnapshot: { kind: h.kind, employeeId: h.employeeId } });
   });
@@ -210,8 +212,8 @@ export async function submitEmployeeHandover(handoverId: string, actorId: string
 
 export async function cancelEmployeeHandover(handoverId: string) {
   const h = await db.employeeHandover.findUnique({ where: { id: handoverId }, select: { status: true } });
-  if (!h) throw new Error("Handover not found");
-  if (!["open", "pending_approval"].includes(h.status)) throw new Error("This handover can no longer be changed");
+  if (!h) throw new Error(serverMessages.handoverNotFound);
+  if (!["open", "pending_approval"].includes(h.status)) throw new Error(serverMessages.thisHandoverCanNoLongerBeChanged);
   await cancelPendingApprovals("employee_handover", handoverId);
   await db.employeeHandover.update({ where: { id: handoverId }, data: { status: "cancelled", decidedAt: new Date() } });
 }
@@ -219,7 +221,7 @@ export async function cancelEmployeeHandover(handoverId: string) {
 registerApprovalFinalizer("employee_handover", {
   async approve(id, _decider, reason) {
     const h = await db.employeeHandover.findUniqueOrThrow({ where: { id } });
-    if (h.status !== "pending_approval") throw new Error("This handover is not waiting for approval");
+    if (h.status !== "pending_approval") throw new Error(serverMessages.thisHandoverIsNotWaitingFor2);
     await db.employeeHandover.update({ where: { id }, data: { status: "completed", decidedAt: new Date(), decisionNotes: reason || null } });
     if (h.kind === "exit") await db.employee.update({ where: { id: h.employeeId }, data: { status: "terminated" } });
   },
@@ -247,8 +249,8 @@ export async function openLeaveHandoverIfNeeded(leaveRequestId: string, actorId:
     await db.notification.createMany({
       data: hr.map((u) => ({
         userId: u.id,
-        title: "Leave handover to complete",
-        message: `${leave.employee.firstNameEn} ${leave.employee.lastNameEn} starts leave on ${iso(leave.startDate)}. Complete the handover ${handover.reference}.`,
+        title: getTranslations("en").admin.employeeHandovers.notifications.leaveOpened.title,
+        message: formatMessage(getTranslations("en").admin.employeeHandovers.notifications.leaveOpened.message, { name: `${leave.employee.firstNameEn} ${leave.employee.lastNameEn}`, date: iso(leave.startDate) }),
         type: "action",
         entityType: "employee_handover",
         entityId: handover.id,

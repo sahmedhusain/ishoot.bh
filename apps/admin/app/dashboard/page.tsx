@@ -1,5 +1,14 @@
-import { getCurrentPermissions,requireAuth } from "../../lib/auth";
-import { getFinancialSummary, getMonthlyCashflow, getCRMDealOverview, db, getCalendarEvents, getApprovalWorkload, getRequestWorkload, getComplaintWorkload } from "@ishoot/database";
+import { getCurrentPermissions, requireAuth } from "../../lib/auth";
+import {
+  getFinancialSummary,
+  getMonthlyCashflow,
+  getCRMDealOverview,
+  db,
+  getUpcomingEventsFor,
+  getApprovalWorkload,
+  getRequestWorkload,
+  getComplaintWorkload,
+} from "@ishoot/database";
 import { readableApprovalTypes } from "../../lib/approval-access";
 import { dashboardFocus } from "../../lib/dashboard-focus";
 import { getCachedCompanySettings } from "../../lib/cached-queries";
@@ -14,8 +23,12 @@ export default async function DashboardPage() {
   const canComplaints = grants["support:read"] === true;
   const now = new Date();
   const [approvals, requests, complaints] = await Promise.all([
-    readableApprovalTypes().then((types) => getApprovalWorkload(user.id, types, now)),
-    canRequests ? getRequestWorkload(user.id, { includeComplaints: canComplaints }, now) : Promise.resolve(null),
+    readableApprovalTypes().then((types) =>
+      getApprovalWorkload(user.id, types, now),
+    ),
+    canRequests
+      ? getRequestWorkload(user.id, { includeComplaints: canComplaints }, now)
+      : Promise.resolve(null),
     canComplaints ? getComplaintWorkload(now) : Promise.resolve(null),
   ]);
   const canFinance = grants["finance_analytics:read"] === true;
@@ -55,14 +68,20 @@ export default async function DashboardPage() {
           })
         : Promise.resolve(0),
       getCachedCompanySettings(),
-      canCalendar
-        ? getCalendarEvents(new Date(), undefined, 3)
-        : Promise.resolve([]),
+      canCalendar ? getUpcomingEventsFor(user.id, 3) : Promise.resolve([]),
     ]);
 
   return (
     <ExecutiveDashboardView
-      capabilities={{ finance: canFinance, deals: canDeals, leads: canLeads, calendar: canCalendar, createInvoice: grants["invoices:write"] === true && grants["contacts:read"] === true, settings: grants["settings:read"] === true }}
+      capabilities={{
+        finance: canFinance,
+        deals: canDeals,
+        leads: canLeads,
+        calendar: canCalendar,
+        createInvoice:
+          grants["invoices:write"] === true && grants["contacts:read"] === true,
+        settings: grants["settings:read"] === true,
+      }}
       finance={finance}
       monthlyCashflow={monthlyCashflow}
       dealOverview={deals}
@@ -83,7 +102,12 @@ export default async function DashboardPage() {
       }
       upcomingEvents={upcomingEvents}
       focus={dashboardFocus(user.role, grants)}
-      workload={{ approvals, requests, complaints, generatedAt: now.toISOString() }}
+      workload={{
+        approvals,
+        requests,
+        complaints,
+        generatedAt: now.toISOString(),
+      }}
     />
   );
 }

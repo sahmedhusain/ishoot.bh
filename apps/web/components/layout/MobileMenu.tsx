@@ -71,7 +71,7 @@ export function MobileMenu({
               company.dark_icon_url ||
               company.icon_url
             }
-            alt={t("common.brandIconAlt")}
+            alt={t("common.brandIconAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
             className="h-8 w-auto object-contain"
            width={40} height={40} />
           <ContentImage
@@ -79,7 +79,7 @@ export function MobileMenu({
               company.dark_logo_url ||
               company.logo_url
             }
-            alt={t("common.brandLogoAlt")}
+            alt={t("common.brandLogoAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
             className="h-6 w-auto object-contain"
            fallbackText={company.company_name_en}  width={240} height={60} />
         </Link>

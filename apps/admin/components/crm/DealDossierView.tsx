@@ -96,7 +96,7 @@ export function DealDossierView({
               </Badge>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 ">
-              ID: {deal.id} •{" "}
+              {t.copy.idLabel}{deal.id} •{" "}
               <DateDisplay date={deal.created_at} locale={locale} />
             </p>
           </div>
@@ -500,8 +500,7 @@ export function DealDossierView({
               {t.dealDossier.linkedInvoices}
             </h2>
             <span className="text-xs text-slate-500 dark:text-slate-400  font-semibold">
-              {invoicePage?.total ?? invoices.length} Invoice(s)
-            </span>
+              {invoicePage?.total ?? invoices.length} {t.copy.invoiceCountLabel}</span>
           </div>
 
           {invoicePage ? (

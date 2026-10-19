@@ -544,7 +544,7 @@ export function PayrollManagementView({
 
       {/* Generate Run Modal */}
       {showGenerateModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4">
           <form {...generateDialog}
             onSubmit={handleGenerate}
             className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl"

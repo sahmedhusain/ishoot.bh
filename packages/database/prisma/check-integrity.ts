@@ -148,10 +148,10 @@ const RULES: Rule[] = [
     sql: `SELECT title FROM "CrmDeal" WHERE probability NOT BETWEEN 0 AND 100 OR "dealValue" < 0` },
 
   // ---------- Requests ----------
-  { area: "requests", name: "SR/CR references use the sequence format and the sequence is ahead",
-    sql: `SELECT q.reference FROM "Inquiry" q LEFT JOIN "ReferenceSequence" s ON s.id = q."requestType" || '_' || split_part(q.reference, '-', 2)
-      WHERE q."requestType" IN ('SR','CR') AND (q.reference !~ ('^' || q."requestType" || '-[0-9]{4}-[0-9]{6}$')
-         OR s."lastNumber" IS NULL OR split_part(q.reference, '-', 3)::int > s."lastNumber")` },
+  { area: "requests", name: "every request reference uses the sequence format and the sequence is ahead",
+    sql: `SELECT q.reference FROM "Inquiry" q LEFT JOIN "ReferenceSequence" s ON s.id = split_part(q.reference, '-', 1) || '_' || split_part(q.reference, '-', 2)
+      WHERE q.reference !~ '^(SR|CR|INQ|RFQ|CMP|SUG)-[0-9]{4}-[0-9]{6}$'
+         OR s."lastNumber" IS NULL OR split_part(q.reference, '-', 3)::int > s."lastNumber"` },
   { area: "requests", name: "assigned requests have an assignee",
     sql: `SELECT reference FROM "Inquiry" WHERE "workflowStatus" IN ('assigned','pending_approval','approved','confirmed') AND "assignedToId" IS NULL AND "requestType" IN ('SR','CR')` },
   { area: "requests", name: "resolved requests have a resolution date",
@@ -171,15 +171,22 @@ const RULES: Rule[] = [
         WHEN 'salary_document' THEN EXISTS (SELECT 1 FROM "SalaryDocument" t WHERE t.id = a."targetId" AND t.status = 'pending')
         WHEN 'invoice' THEN EXISTS (SELECT 1 FROM "Invoice" t WHERE t.id = a."targetId" AND t."approvalStatus" = 'submitted')
         WHEN 'account_change' THEN EXISTS (SELECT 1 FROM "AccountChangeRequest" t WHERE t.id = a."targetId" AND t.status = 'pending')
+        WHEN 'asset_handover' THEN EXISTS (SELECT 1 FROM "AssetHandover" t WHERE t.id = a."targetId" AND t.status = 'pending_approval')
+        WHEN 'employee_handover' THEN EXISTS (SELECT 1 FROM "EmployeeHandover" t WHERE t.id = a."targetId" AND t.status = 'pending_approval')
+        WHEN 'final_settlement' THEN EXISTS (SELECT 1 FROM "FinalSettlement" t WHERE t.id = a."targetId" AND t.status = 'submitted')
+        WHEN 'announcement' THEN EXISTS (SELECT 1 FROM "Announcement" t WHERE t.id = a."targetId" AND t.status = 'pending_approval')
+        WHEN 'official_letter' THEN EXISTS (SELECT 1 FROM "OfficialLetter" t WHERE t.id = a."targetId" AND t.status = 'pending_approval')
         ELSE false END` },
   { area: "sales", name: "company and government clients have exactly one primary point of contact; individuals have none",
     sql: `SELECT c.id, c."clientKind", COUNT(p.id) persons, COUNT(p.id) FILTER (WHERE p."isPrimary") primaries
       FROM "CrmContact" c LEFT JOIN "ClientContactPerson" p ON p."contactId" = c.id GROUP BY c.id
       HAVING (c."clientKind" = 'individual' AND COUNT(p.id) > 0)
-          OR (c."clientKind" <> 'individual' AND COUNT(p.id) > 0 AND COUNT(p.id) FILTER (WHERE p."isPrimary") <> 1)` },
+          OR (c."clientKind" <> 'individual' AND COUNT(p.id) FILTER (WHERE p."isPrimary") <> 1)` },
   { area: "sales", name: "client registration matches its type (local companies in Bahrain, foreign ones abroad)",
     sql: `SELECT id, "clientKind", "companyOrigin", "registrationCountry", "crNumber" FROM "CrmContact"
-      WHERE ("clientKind" = 'company' AND "companyOrigin" = 'foreign' AND ("registrationCountry" = 'BH' OR "crNumber" IS NOT NULL))
+      WHERE ("clientKind" = 'company' AND "companyOrigin" = 'local' AND ("registrationCountry" IS DISTINCT FROM 'BH' OR "crNumber" IS NULL OR "crNumber" !~ '^[0-9]{1,7}-[0-9]{1,3}$'))
+         OR ("clientKind" = 'company' AND "companyOrigin" = 'foreign' AND ("registrationCountry" IS NULL OR "registrationCountry" = 'BH' OR "crNumber" IS NOT NULL OR NULLIF(BTRIM("registrationNumber"),'') IS NULL))
+         OR ("clientKind" = 'company' AND "companyOrigin" IS NULL)
          OR ("clientKind" <> 'company' AND ("crNumber" IS NOT NULL OR "companyOrigin" IS NOT NULL))
          OR ("clientKind" = 'individual' AND NULLIF(BTRIM("companyName"), '') IS NOT NULL)` },
   { area: "sales", name: "a quotation the client signed is accepted (or later)",
@@ -201,6 +208,30 @@ const RULES: Rule[] = [
   { area: "approvals", name: "decided approvals carry a matching decision",
     sql: `SELECT a.id, a.status FROM "ApprovalRequest" a WHERE a.status IN ('approved','rejected')
       AND NOT EXISTS (SELECT 1 FROM "ApprovalDecision" d WHERE d."approvalRequestId" = a.id AND d.decision = a.status)` },
+
+  { area: "approvals", name: "new workflow items waiting for approval have the matching pending request",
+    sql: `WITH targets AS (
+      SELECT 'asset_handover' kind,id FROM "AssetHandover" WHERE status='pending_approval'
+      UNION ALL SELECT 'employee_handover',id FROM "EmployeeHandover" WHERE status='pending_approval'
+      UNION ALL SELECT 'final_settlement',id FROM "FinalSettlement" WHERE status='submitted'
+      UNION ALL SELECT 'announcement',id FROM "Announcement" WHERE status='pending_approval'
+      UNION ALL SELECT 'official_letter',id FROM "OfficialLetter" WHERE status='pending_approval')
+      SELECT t.* FROM targets t WHERE NOT EXISTS (SELECT 1 FROM "ApprovalRequest" a WHERE a."targetType"=t.kind AND a."targetId"=t.id AND a.status='pending')` },
+  { area: "hr", name: "final settlement totals match additions and deductions",
+    sql: `WITH lines AS (SELECT "settlementId" id,COALESCE(SUM(amount) FILTER(WHERE kind='addition'),0) additions,COALESCE(SUM(amount) FILTER(WHERE kind='deduction'),0) deductions FROM "FinalSettlementLine" GROUP BY 1)
+      SELECT s.reference FROM "FinalSettlement" s LEFT JOIN lines l ON l.id=s.id
+      WHERE s."totalAdditions"<>COALESCE(l.additions,0) OR s."totalDeductions"<>COALESCE(l.deductions,0) OR s."netAmount"<>s."totalAdditions"-s."totalDeductions"` },
+  { area: "hr", name: "paid final settlements record who paid, when and how",
+    sql: `SELECT reference FROM "FinalSettlement" WHERE status='paid' AND ("paidAt" IS NULL OR "paidById" IS NULL OR "paymentMethod" IS NULL)` },
+  { area: "hr", name: "employee social insurance registrations do not overlap",
+    sql: `SELECT a.id,a."employeeId" FROM "EmployeeGosiRecord" a JOIN "EmployeeGosiRecord" b ON a."employeeId"=b."employeeId" AND a.id<b.id AND a."effectiveFrom"<=COALESCE(b."effectiveTo",'infinity'::date) AND b."effectiveFrom"<=COALESCE(a."effectiveTo",'infinity'::date)` },
+  { area: "hr", name: "active component rates have nonoverlapping effective dates",
+    sql: `SELECT a.code,a.id FROM "GosiComponent" a JOIN "GosiComponent" b ON a.code=b.code AND a.id<b.id AND a."isActive" AND b."isActive" AND a."effectiveFrom"<=COALESCE(b."effectiveTo",'infinity'::date) AND b."effectiveFrom"<=COALESCE(a."effectiveTo",'infinity'::date)` },
+  { area: "hr", name: "partial support approvals specify their approved amount or percentage",
+    sql: `SELECT id FROM "EmployeeSupport" WHERE status='partially_approved' AND "approvedPercent" IS NULL AND "approvedAmount" IS NULL` },
+  { area: "communications", name: "issued official communications retain their required signature",
+    sql: `SELECT 'letter' kind,reference FROM "OfficialLetter" WHERE status='approved' AND "showSignature" AND ("signatureUrl" IS NULL OR "signerId" IS NULL OR "signedAt" IS NULL)
+      UNION ALL SELECT 'announcement',reference FROM "Announcement" WHERE status='published' AND official AND ("signatureUrl" IS NULL OR "signedById" IS NULL OR "signedAt" IS NULL OR "publishedAt" IS NULL)` },
 
   // ---------- HR ----------
   // Read-only "viewer" logins are external (auditors, guests) and are not staff.
@@ -237,7 +268,7 @@ const RULES: Rule[] = [
   { area: "hr", name: "signature changes awaiting approval have a pending approval request",
     sql: `SELECT c.id FROM "SignatureChange" c WHERE c.status = 'pending'
       AND NOT EXISTS (SELECT 1 FROM "ApprovalRequest" a WHERE a."targetType" = 'signature_change' AND a."targetId" = c.id AND a.status = 'pending')` },
-  { area: "hr", name: "support reimbursements are received after their six-month period",
+  { area: "hr", name: "support reimbursements are received after their recorded claim period",
     sql: `SELECT id FROM "SupportReimbursement" WHERE to_char("receivedOn", 'YYYY-MM') < "periodEnd" OR "receivedAmount" < 0` },
   { area: "hr", name: "payroll run totals equal the sum of its items",
     sql: `SELECT r.year, r.month FROM "PayrollRun" r JOIN "PayrollItem" i ON i."payrollRunId" = r.id GROUP BY r.id
@@ -255,11 +286,10 @@ const RULES: Rule[] = [
       WHERE p.month <> r.month OR p.year <> r.year OR p."employeeId" <> i."employeeId"` },
 
   // ---------- Operations ----------
-  { area: "operations", name: "issued assets are held by the employee of their last completed handover",
-    sql: `WITH last AS (SELECT DISTINCT ON ("assetId") "assetId", kind, "employeeId" FROM "AssetHandover" WHERE status = 'completed' ORDER BY "assetId", "decidedAt" DESC)
-      SELECT a."assetTag", a.status, a."holderEmployeeId", l.kind, l."employeeId" FROM "Asset" a LEFT JOIN last l ON l."assetId" = a.id
-      WHERE (a.status = 'assigned' AND (l.kind IS DISTINCT FROM 'issue' OR l."employeeId" <> a."holderEmployeeId"))
-         OR (a.status <> 'assigned' AND l.kind = 'issue')` },
+  // Status can be set by hand, so a handover history is not required; an issued asset still needs a holder and others must not keep one.
+  { area: "operations", name: "issued assets have a holder and other assets do not",
+    sql: `SELECT "assetTag", status, "holderEmployeeId" FROM "Asset"
+      WHERE (status = 'assigned' AND "holderEmployeeId" IS NULL) OR (status <> 'assigned' AND "holderEmployeeId" IS NOT NULL)` },
   { area: "operations", name: "calendar events end after they start",
     sql: `SELECT id, title FROM "CalendarEvent" WHERE "endDate" < "startDate"` },
   { area: "operations", name: "approved minutes of meeting record their approver",

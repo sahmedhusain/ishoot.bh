@@ -7,6 +7,7 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 function load(file, mocks) {
+  if (mocks["@ishoot/locales"]) mocks["@ishoot/locales"] = { ...realConstants(file, "@ishoot/locales"), ...mocks["@ishoot/locales"] };
   if (mocks["@ishoot/database"]) { mocks["@ishoot/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@ishoot/database"].memoizeOperation ??= async(_key,fn)=>fn(); mocks["@ishoot/database"].requireFeatureEnabled ??= async()=>{}; mocks["@ishoot/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@ishoot/database"].db) mocks["@ishoot/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
   mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };

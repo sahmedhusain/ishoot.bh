@@ -3,7 +3,8 @@ import dynamic from "next/dynamic";
 import {useState} from "react";
 import {Sparkles} from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-const Picker=dynamic(()=>import("./IconPicker").then(module=>module.IconPicker),{ssr:false,loading:()=> <p role="status">Loading icons…</p>});
+function LoadingIcons(){ const { t } = useAdminLocale(); return <p role="status">{t.copy.loadingIcons}</p>; }
+const Picker=dynamic(()=>import("./IconPicker").then(module=>module.IconPicker),{ssr:false,loading:LoadingIcons});
 export function IconPicker(props:{value:string;onChange:(value:string)=>void;placeholder?:string}){
  const { t } = useAdminLocale();
  const [opened,setOpened]=useState(false);

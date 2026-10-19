@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import { Mail, Phone, MessageCircle, Search, Users, Plane } from "lucide-react";
 import type { DirectoryEntry } from "@ishoot/database/queries/directory";
@@ -41,7 +42,7 @@ export function DirectoryView({ entries }: { entries: DirectoryEntry[] }) {
             <Users className="w-7 h-7 text-accent" />
             {d.title}
           </h1>
-          <p className="text-xs text-ink-muted mt-1">{d.subtitle.replace("{count}", String(entries.length))}</p>
+          <p className="text-xs text-ink-muted mt-1">{formatMessage(d.subtitle, { count: String(entries.length) })}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <label className="relative">
@@ -89,7 +90,7 @@ export function DirectoryView({ entries }: { entries: DirectoryEntry[] }) {
                     </div>
                   </div>
                 </div>
-                {e.manager && <div className="text-[11px] text-ink-muted">{d.reportsTo.replace("{name}", e.manager)}</div>}
+                {e.manager && <div className="text-[11px] text-ink-muted">{formatMessage(d.reportsTo, { name: e.manager })}</div>}
                 <div className="flex flex-wrap gap-2 mt-auto">
                   {phone && (
                     <a href={`tel:${phone}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-accent text-white text-xs font-semibold">
@@ -100,8 +101,7 @@ export function DirectoryView({ entries }: { entries: DirectoryEntry[] }) {
                   {phone && (
                     <a href={`https://wa.me/${phone.replace(/^\+/, "")}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#25D366]/40 text-[#128C7E] dark:text-[#25D366] text-xs font-semibold">
                       <MessageCircle className="w-3.5 h-3.5" />
-                      WhatsApp
-                    </a>
+                      {t.copy.whatsapp}</a>
                   )}
                   {e.email && (
                     <a href={`mailto:${e.email}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-ink/15 text-ink text-xs font-semibold" title={e.email}>

@@ -23,11 +23,24 @@ const flat = (o, p = "", acc = {}) => {
   return acc;
 };
 const EASTERN = /[٠-٩۰-۹]/;
-for (const base of ["packages/locales/src", "packages/locales/src/admin"]) {
+// These existing error messages deliberately redact technical/provider details in Arabic.
+const redactedTemplates = new Set([
+  "actionProhibited0EmployeesOnApprovedLeave", "assignmentConflict0", "failedToGenerateDownloadUrl0",
+  "failedToGenerateUploadUrl0", "invalidInputFor0", "invalidationHttp0", "noApprovalHandlerRegisteredFor0",
+  "objectMetadataUnavailable0", "publicSiteRevalidationFailed0", "storageUploadFailed0", "unknownStatisticPreset0",
+]);
+const placeholders = (text) => [...String(text).matchAll(/\{([A-Za-z0-9_]+)\}/g)].map((match) => match[1]).sort();
+for (const base of ["packages/locales/src", "packages/locales/src/admin", "packages/ui/src/copy"]) {
   const en = flat(JSON.parse(fs.readFileSync(path.join(root, base, "en.json"), "utf8")));
   const ar = flat(JSON.parse(fs.readFileSync(path.join(root, base, "ar.json"), "utf8")));
   for (const k of Object.keys(en)) if (!(k in ar)) fail("missing Arabic", `${base} ${k}`);
   for (const k of Object.keys(ar)) if (!(k in en)) fail("missing English", `${base} ${k}`);
+  for (const [k, value] of Object.entries(en)) {
+    const a = placeholders(value), b = placeholders(ar[k]);
+    if (base.endsWith("/admin") && k.startsWith("serverErrors.templates.") && redactedTemplates.has(k.split(".").pop())) {
+      if (b.some((key) => !a.includes(key))) fail("unknown redacted placeholder", `${base} ${k}`);
+    } else if (JSON.stringify(a) !== JSON.stringify(b)) fail("placeholder mismatch", `${base} ${k}`);
+  }
   for (const [k, v] of Object.entries(ar)) if (EASTERN.test(String(v))) fail("Eastern digits", `${base} ${k}`);
   for (const [k, v] of Object.entries(en)) if (EASTERN.test(String(v))) fail("Eastern digits", `${base} ${k}`);
   // Arabic labels must not carry English glosses such as "مسودة (Draft)".

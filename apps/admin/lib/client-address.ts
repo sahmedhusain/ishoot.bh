@@ -1,3 +1,4 @@
+import { formatMessage } from "@ishoot/locales";
 import type { ClientAddress } from "@ishoot/database/types";
 import { countryName } from "@ishoot/database/constants/clients";
 
@@ -16,7 +17,7 @@ export interface AddressLabels {
  */
 export function formatClientAddress(address: ClientAddress | undefined, labels: AddressLabels, countries: Record<string, string>): string {
   if (!address) return "";
-  const label = (template: string, value?: string) => (value ? template.replace("{v}", value) : "");
+  const label = (template: string, value?: string) => (value ? formatMessage(template, { v: value }) : "");
   const parts =
     (address.country || "BH") === "BH"
       ? [label(labels.building, address.building), label(labels.unit, address.unit), label(labels.road, address.road), label(labels.block, address.block), address.area, address.city]

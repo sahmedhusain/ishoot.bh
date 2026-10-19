@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
 import { formatDocumentNumber } from "../constants/finance";
 
@@ -9,7 +10,7 @@ type Client = Pick<typeof db, "companySetting">;
  */
 export async function allocateDocumentNumber(kind: "invoice" | "receipt", documentDate: Date, client: Client = db): Promise<string> {
   const company = await client.companySetting.findFirst({ select: { id: true } });
-  if (!company) throw new Error("Configure company settings before creating financial records");
+  if (!company) throw new Error(serverMessages.configureCompanySettingsBeforeCreatingFinancialRecords);
   const updated = await client.companySetting.update({
     where: { id: company.id },
     data: kind === "invoice" ? { invoiceNextNumber: { increment: 1 } } : { receiptNextNumber: { increment: 1 } },

@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
 
 export async function getFeatureToggles() {
@@ -21,5 +22,5 @@ export async function updateFeatureToggle(moduleKey: string, isEnabled: boolean)
 
 export async function requireFeatureEnabled(moduleKey:string) {
   const feature=await db.featureToggle.findUnique({where:{moduleKey},select:{isEnabled:true}});
-  if(feature?.isEnabled === false) throw new Error("FEATURE_DISABLED");
+  if(feature?.isEnabled === false) throw new Error(serverMessages.featureDisabled);
 }

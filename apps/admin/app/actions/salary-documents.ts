@@ -1,6 +1,8 @@
 "use server";
+import { serverTemplates, formatMessage, serverMessages, getTranslations } from "@ishoot/locales";
+
 import { ROUTES } from "../../constants/routes";
-import { getTranslations } from "@ishoot/locales";
+
 import {
   db,
   runAtomicMutation,
@@ -16,6 +18,7 @@ import { validateActionArguments } from "../../lib/action-input";
 import {
   availablePayslipMonths,
   canManageSalaryDocuments,
+  canShareSalaryDocument,
   getAccessibleSalaryDocument,
 } from "../../lib/salary-documents";
 import { revalidatePath } from "next/cache";
@@ -34,9 +37,10 @@ export async function requestSalaryDocumentAction(data: {
     const employee = await db.employee.findUniqueOrThrow({
       where: { id: data.employeeId },
     });
-    if (employee.userId === actor.id) await requirePermission("self_service", "create");
+    if (employee.userId === actor.id)
+      await requirePermission("self_service", "create");
     else if (!(await canManageSalaryDocuments(actor)))
-      throw new Error("You can only request your own documents");
+      throw new Error(serverMessages.youCanOnlyRequestYourOwnDocuments);
     const months = Array.from(new Set(data.months)).sort();
     if (
       data.kind === "payslip" &&
@@ -44,13 +48,19 @@ export async function requestSalaryDocumentAction(data: {
         months.length > 24 ||
         months.some((value) => !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)))
     )
-      throw new Error("Select between one and 24 valid months");
-    const languages = (["ar", "en"] as const).filter((language) => data.languages.includes(language));
-    if (!languages.length) throw new Error("Choose the document language: Arabic, English or both");
+      throw new Error(serverMessages.selectBetweenOneAnd24ValidMonths);
+    const languages = (["ar", "en"] as const).filter((language) =>
+      data.languages.includes(language),
+    );
+    if (!languages.length)
+      throw new Error(serverMessages.chooseTheDocumentLanguageArabicEnglish);
     if (data.kind === "payslip") {
       const available = await availablePayslipMonths(employee.id);
       const missing = months.filter((month) => !available.includes(month));
-      if (missing.length) throw new Error(`Payroll is not approved yet for: ${missing.join(", ")}`);
+      if (missing.length)
+        throw new Error(
+          formatMessage(serverTemplates.payrollIsNotApprovedYetFor0, { 0: missing.join(", ") }),
+        );
     }
     const { id, approvalStatus } = await runAtomicMutation(async () => {
       const document = await db.salaryDocument.create({
@@ -75,7 +85,13 @@ export async function requestSalaryDocumentAction(data: {
         action: "request",
         entity_type: "salary_document",
         entity_id: document.id,
-        details: { kind: data.kind, months, languages, employeeId: employee.id, approvalStatus: approval.status },
+        details: {
+          kind: data.kind,
+          months,
+          languages,
+          employeeId: employee.id,
+          approvalStatus: approval.status,
+        },
       });
       return { id: document.id, approvalStatus: approval.status };
     });
@@ -94,11 +110,15 @@ export async function reviewSalaryDocumentAction(
 ) {
   return measureOperation("action:reviewSalaryDocumentAction", async () => {
     const actor = await requireAuth();
-    validateActionArguments("reviewSalaryDocumentAction", { id, decision, notes });
+    validateActionArguments("reviewSalaryDocumentAction", {
+      id,
+      decision,
+      notes,
+    });
     // Who may issue is defined by the salary document approval policy and enforced by the engine.
     await runAtomicMutation(async () => {
       const pending = await findPendingApproval("salary_document", id);
-      if (!pending) throw new Error("Request has already been reviewed");
+      if (!pending) throw new Error(serverMessages.requestHasAlreadyBeenReviewed);
       const outcome = await decideApprovalRequest(
         pending.id,
         actor.id,
@@ -128,11 +148,16 @@ export async function emailSalaryDocumentAction(
   const actor = await requireAuth();
   validateActionArguments("emailSalaryDocumentAction", { id, locale });
   const document = await getAccessibleSalaryDocument(id, actor);
+  if (!(await canShareSalaryDocument(document, actor)))
+    throw new Error(
+      serverMessages.youCanViewDownloadOrPrintYourOwn,
+    );
   if (document.status !== "issued")
-    throw new Error("Only issued documents can be sent");
-  if (!document.languages.includes(locale)) throw new Error("This document was not requested in that language");
+    throw new Error(serverMessages.onlyIssuedDocumentsCanBeSent);
+  if (!document.languages.includes(locale))
+    throw new Error(serverMessages.thisDocumentWasNotRequestedIn);
   const recipient = document.employee.email;
-  if (!recipient) throw new Error("Add the employee email before sending");
+  if (!recipient) throw new Error(serverMessages.addTheEmployeeEmailBeforeSending);
   const h = getTranslations(locale).admin.hrExtensions;
   const attachment = await generateSalaryDocumentPdf(
     document,
@@ -140,7 +165,7 @@ export async function emailSalaryDocumentAction(
     locale,
   );
   if (attachment.length > 2 * 1024 * 1024)
-    throw new Error("PDF exceeds the email attachment limit");
+    throw new Error(serverMessages.pdfExceedsTheEmailAttachmentLimit);
   const job = await runAtomicMutation(async () => {
     const job = await db.emailJob.upsert({
       where: { eventKey: `salary:${id}:${locale}` },
@@ -175,9 +200,14 @@ export async function whatsappSalaryDocumentAction(
   validateActionArguments("whatsappSalaryDocumentAction", { id, locale });
   const h = getTranslations(locale).admin.hrExtensions;
   const document = await getAccessibleSalaryDocument(id, actor);
+  if (!(await canShareSalaryDocument(document, actor)))
+    throw new Error(
+      serverMessages.youCanViewDownloadOrPrintYourOwn,
+    );
   if (document.status !== "issued")
-    throw new Error("Only issued documents can be sent");
-  if (!document.languages.includes(locale)) throw new Error("This document was not requested in that language");
+    throw new Error(serverMessages.onlyIssuedDocumentsCanBeSent);
+  if (!document.languages.includes(locale))
+    throw new Error(serverMessages.thisDocumentWasNotRequestedIn);
   const integration = await db.integrationSetting.findUnique({
     where: { provider: "whatsapp" },
   });
@@ -225,4 +255,17 @@ export async function whatsappSalaryDocumentAction(
     details: { messageId: result.messageId },
   });
   return { fallback: false, messageId: result.messageId };
+}
+
+/** HR filing a payslip for someone else needs that employee's payroll months. */
+export async function payslipMonthsForEmployeeAction(employeeId: string) {
+  validateActionArguments("payslipMonthsForEmployeeAction", { employeeId });
+  const actor = await requireAuth();
+  const employee = await db.employee.findUniqueOrThrow({
+    where: { id: employeeId },
+    select: { userId: true },
+  });
+  if (employee.userId !== actor.id && !(await canManageSalaryDocuments(actor)))
+    throw new Error(serverMessages.youCanOnlyRequestYourOwnDocuments);
+  return availablePayslipMonths(employeeId);
 }

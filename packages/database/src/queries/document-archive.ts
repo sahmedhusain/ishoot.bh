@@ -2,7 +2,15 @@ import { Prisma } from "@prisma/client";
 import { db } from "../db";
 import { ROUTES } from "../constants/routes";
 import type { PermissionResource } from "../constants/permissions";
-import { ARCHIVE_EXPIRY_FILTERS, ARCHIVE_EXPIRING_DAYS, ARCHIVE_GROUPS, ARCHIVE_KINDS, ARCHIVE_SORTS, type ArchiveGroup, type ArchiveKind } from "../constants/archive";
+import {
+  ARCHIVE_EXPIRY_FILTERS,
+  ARCHIVE_EXPIRING_DAYS,
+  ARCHIVE_GROUPS,
+  ARCHIVE_KINDS,
+  ARCHIVE_SORTS,
+  type ArchiveGroup,
+  type ArchiveKind,
+} from "../constants/archive";
 
 export * from "../constants/archive";
 
@@ -18,18 +26,26 @@ export interface ArchiveFilters {
   page: number;
 }
 
-export function archiveParameters(input: Record<string, string | string[] | undefined>): ArchiveFilters {
-  const pick = (key: string) => (typeof input[key] === "string" ? (input[key] as string).trim() : "");
-  const date = (v: string) => (/^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) ? v : "");
+export function archiveParameters(
+  input: Record<string, string | string[] | undefined>,
+): ArchiveFilters {
+  const pick = (key: string) =>
+    typeof input[key] === "string" ? (input[key] as string).trim() : "";
+  const date = (v: string) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) ? v : "";
   const group = pick("group");
   const kind = pick("kind");
   const expiry = pick("expiry");
   const sort = pick("sort");
   return {
     q: pick("q").slice(0, 120),
-    group: (ARCHIVE_GROUPS as readonly string[]).includes(group) ? group : "all",
+    group: (ARCHIVE_GROUPS as readonly string[]).includes(group)
+      ? group
+      : "all",
     kind: kind in ARCHIVE_KINDS ? kind : "all",
-    expiry: (ARCHIVE_EXPIRY_FILTERS as readonly string[]).includes(expiry) ? expiry : "all",
+    expiry: (ARCHIVE_EXPIRY_FILTERS as readonly string[]).includes(expiry)
+      ? expiry
+      : "all",
     from: date(pick("from")),
     to: date(pick("to")),
     sort: (ARCHIVE_SORTS as readonly string[]).includes(sort) ? sort : "newest",
@@ -38,8 +54,12 @@ export function archiveParameters(input: Record<string, string | string[] | unde
 }
 
 /** The kinds a person may see, from their permissions. */
-export function archiveKindsFor(can: (resource: PermissionResource) => boolean): ArchiveKind[] {
-  return (Object.keys(ARCHIVE_KINDS) as ArchiveKind[]).filter((k) => can(ARCHIVE_KINDS[k].resource));
+export function archiveKindsFor(
+  can: (resource: PermissionResource) => boolean,
+): ArchiveKind[] {
+  return (Object.keys(ARCHIVE_KINDS) as ArchiveKind[]).filter((k) =>
+    can(ARCHIVE_KINDS[k].resource),
+  );
 }
 
 type Row = {
@@ -128,6 +148,14 @@ UNION ALL
     concat_ws(' · ', h.reference, ast.name, ${employeeName}), concat_ws(' · ', h.reference, ast.name, ${employeeNameAr}), u."fullName", COALESCE(h."decidedAt", h."createdAt"), NULL
   FROM "AssetHandover" h JOIN "Asset" ast ON ast.id = h."assetId" JOIN "Employee" e ON e.id = h."employeeId" LEFT JOIN "User" u ON u.id = h."createdById"
   WHERE h.status = 'completed'
+UNION ALL
+  SELECT 'official_letter', l.id, l.reference, '/api/letters/' || l.id || '/pdf', 'application/pdf', NULL, 'official_letter', l.id,
+    l."subjectEn", l."subjectAr", NULL, COALESCE(l."signedAt", l."createdAt"), NULL
+  FROM "OfficialLetter" l WHERE l.status = 'approved'
+UNION ALL
+  SELECT 'final_settlement', f.id, f.reference, '/api/hr/settlements/' || f.id || '/pdf', 'application/pdf', NULL, 'final_settlement', f.id,
+    ${employeeName}, ${employeeNameAr}, NULL, COALESCE(f."approvedAt", f."createdAt"), NULL
+  FROM "FinalSettlement" f JOIN "Employee" e ON e.id = f."employeeId" WHERE f.status IN ('approved', 'paid')
 `;
 
 export type ArchiveDocument = {
@@ -150,8 +178,13 @@ export type ArchiveDocument = {
 };
 
 function ownerLink(kind: string, ownerId: string | null): string | undefined {
-  if (!ownerId || ownerId === "pending" || ownerId === "general-vault") return undefined;
+  if (!ownerId || ownerId === "pending" || ownerId === "general-vault")
+    return undefined;
   switch (kind) {
+    case "official_letter":
+      return ROUTES.letters.detail(ownerId);
+    case "final_settlement":
+      return ROUTES.hr.settlement(ownerId);
     case "contact":
     case "customer_vault":
       return ROUTES.crm.customer(ownerId);
@@ -201,15 +234,21 @@ function mapRow(r: Row): ArchiveDocument {
     owner_link: ownerLink(kind, r.owner_id),
     uploaded_by: r.uploaded_by ?? undefined,
     created_at: r.created_at.toISOString(),
-    expires_on: r.expires_on ? r.expires_on.toISOString().slice(0, 10) : undefined,
+    expires_on: r.expires_on
+      ? r.expires_on.toISOString().slice(0, 10)
+      : undefined,
     deletable: r.source === "attachment",
   };
 }
 
 function conditions(f: ArchiveFilters, kinds: ArchiveKind[]) {
   const pattern = `%${f.q.replace(/[\\%_]/g, "\\$&")}%`;
-  const groupKinds = f.group === "all" ? kinds : kinds.filter((k) => ARCHIVE_KINDS[k].group === f.group);
-  const visible = f.kind === "all" ? groupKinds : groupKinds.filter((k) => k === f.kind);
+  const groupKinds =
+    f.group === "all"
+      ? kinds
+      : kinds.filter((k) => ARCHIVE_KINDS[k].group === f.group);
+  const visible =
+    f.kind === "all" ? groupKinds : groupKinds.filter((k) => k === f.kind);
   const soon = new Date(Date.now() + ARCHIVE_EXPIRING_DAYS * 86_400_000);
   const today = new Date(new Date().toISOString().slice(0, 10));
   return Prisma.sql`
@@ -233,12 +272,20 @@ const ORDER: Record<string, Prisma.Sql> = {
 };
 
 /** A page of the archive, with counts per group and the expiry summary for what the viewer may see. */
-export async function getDocumentArchivePage(input: Record<string, string | string[] | undefined>, kinds: ArchiveKind[], pageSize = 50) {
+export async function getDocumentArchivePage(
+  input: Record<string, string | string[] | undefined>,
+  kinds: ArchiveKind[],
+  pageSize = 50,
+) {
   const f = archiveParameters(input);
   const where = conditions(f, kinds);
   const [countRows, groupRows, expiryRows] = await Promise.all([
-    db.$queryRaw<Array<{ count: bigint }>>(Prisma.sql`SELECT count(*) AS count FROM (${documents}) doc ${where}`),
-    db.$queryRaw<Array<{ kind: string; count: bigint }>>(Prisma.sql`SELECT doc.kind, count(*) AS count FROM (${documents}) doc WHERE doc.kind = ANY(${kinds.length ? kinds : ["__none__"]}::text[]) GROUP BY doc.kind`),
+    db.$queryRaw<Array<{ count: bigint }>>(
+      Prisma.sql`SELECT count(*) AS count FROM (${documents}) doc ${where}`,
+    ),
+    db.$queryRaw<Array<{ kind: string; count: bigint }>>(
+      Prisma.sql`SELECT doc.kind, count(*) AS count FROM (${documents}) doc WHERE doc.kind = ANY(${kinds.length ? kinds : ["__none__"]}::text[]) GROUP BY doc.kind`,
+    ),
     db.$queryRaw<Array<{ expired: bigint; expiring: bigint }>>(Prisma.sql`
       SELECT count(*) FILTER (WHERE doc.expires_on < current_date) AS expired,
              count(*) FILTER (WHERE doc.expires_on >= current_date AND doc.expires_on <= current_date + ${ARCHIVE_EXPIRING_DAYS}::int) AS expiring
@@ -246,22 +293,40 @@ export async function getDocumentArchivePage(input: Record<string, string | stri
   ]);
   const total = Number(countRows[0]?.count ?? 0);
   const page = Math.min(f.page, Math.max(1, Math.ceil(total / pageSize)));
-  const rows = await db.$queryRaw<Row[]>(Prisma.sql`SELECT * FROM (${documents}) doc ${where} ORDER BY ${ORDER[f.sort] ?? ORDER.newest} LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`);
-  const byKind = Object.fromEntries(groupRows.map((r) => [r.kind, Number(r.count)]));
-  const byGroup = Object.fromEntries(ARCHIVE_GROUPS.map((g) => [g, 0])) as Record<ArchiveGroup, number>;
-  for (const [kind, n] of Object.entries(byKind)) if (kind in ARCHIVE_KINDS) byGroup[ARCHIVE_KINDS[kind as ArchiveKind].group] += n;
+  const rows = await db.$queryRaw<Row[]>(
+    Prisma.sql`SELECT * FROM (${documents}) doc ${where} ORDER BY ${ORDER[f.sort] ?? ORDER.newest} LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`,
+  );
+  const byKind = Object.fromEntries(
+    groupRows.map((r) => [r.kind, Number(r.count)]),
+  );
+  const byGroup = Object.fromEntries(
+    ARCHIVE_GROUPS.map((g) => [g, 0]),
+  ) as Record<ArchiveGroup, number>;
+  for (const [kind, n] of Object.entries(byKind))
+    if (kind in ARCHIVE_KINDS)
+      byGroup[ARCHIVE_KINDS[kind as ArchiveKind].group] += n;
   return {
     items: rows.map(mapRow),
     total,
     page,
     pageSize,
     filters: f,
-    counts: { byKind, byGroup, expired: Number(expiryRows[0]?.expired ?? 0), expiring: Number(expiryRows[0]?.expiring ?? 0) },
+    counts: {
+      byKind,
+      byGroup,
+      expired: Number(expiryRows[0]?.expired ?? 0),
+      expiring: Number(expiryRows[0]?.expiring ?? 0),
+    },
   };
 }
 
 /** Export batches in the archive's current filter and order (keyset on the row id for stable paging). */
-export async function getDocumentArchiveExportBatch(input: Record<string, string | string[] | undefined>, kinds: ArchiveKind[], after: string, batchSize: number) {
+export async function getDocumentArchiveExportBatch(
+  input: Record<string, string | string[] | undefined>,
+  kinds: ArchiveKind[],
+  after: string,
+  batchSize: number,
+) {
   const f = archiveParameters(input);
   const rows = await db.$queryRaw<Row[]>(
     Prisma.sql`SELECT * FROM (${documents}) doc ${conditions(f, kinds)} AND (doc.source || ':' || doc.id) > ${after || ""} ORDER BY (doc.source || ':' || doc.id) ASC LIMIT ${Math.min(500, batchSize)}`,

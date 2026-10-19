@@ -8,7 +8,8 @@ const withQuery = (path: string, query?: Record<string, QueryValue>) => {
   if (!query) return path;
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined && value !== null && value !== "") params.set(key, String(value));
+    if (value !== undefined && value !== null && value !== "")
+      params.set(key, String(value));
   }
   const search = params.toString();
   return search ? `${path}?${search}` : path;
@@ -17,8 +18,16 @@ const withQuery = (path: string, query?: Record<string, QueryValue>) => {
 const encode = (id: string) => encodeURIComponent(id);
 
 export type NewDealQuery = { clientId?: string | null };
-export type NewQuotationQuery = { clientId?: string | null; dealId?: string | null; inquiryId?: string | null };
-export type NewInvoiceQuery = { clientId?: string | null; quotationId?: string | null; dealId?: string | null };
+export type NewQuotationQuery = {
+  clientId?: string | null;
+  dealId?: string | null;
+  inquiryId?: string | null;
+};
+export type NewInvoiceQuery = {
+  clientId?: string | null;
+  quotationId?: string | null;
+  dealId?: string | null;
+};
 export type NewPaymentQuery = { clientId?: string | null };
 export type NewEmployeeQuery = { userId?: string | null };
 export type HighlightQuery = { highlight?: string | null };
@@ -27,17 +36,45 @@ export const ROUTES = {
   home: "/dashboard",
   login: "/login",
   analytics: "/dashboard/analytics",
-  approvals: (query?: { status?: string | null; type?: string | null; scope?: string | null }) =>
-    withQuery("/dashboard/approvals", query),
+  approvals: (query?: {
+    status?: string | null;
+    type?: string | null;
+    scope?: string | null;
+  }) => withQuery("/dashboard/approvals", query),
+  /** One request under review: the record itself, its approval steps and the decision. */
+  approvalItem: (targetType: string, targetId: string) =>
+    `/dashboard/approvals/${encode(targetType)}/${encode(targetId)}`,
   archive: "/dashboard/archive",
   assets: {
-    list: (query?: { status?: string | null; holder?: string | null; category?: string | null }) => withQuery("/dashboard/assets", query),
+    list: (query?: {
+      status?: string | null;
+      holder?: string | null;
+      category?: string | null;
+    }) => withQuery("/dashboard/assets", query),
     detail: (id: string) => `/dashboard/assets/${encode(id)}`,
     create: "/dashboard/assets/new",
     categories: "/dashboard/assets/categories",
     handover: (id: string) => `/dashboard/assets/handovers/${encode(id)}`,
   },
   calendar: "/dashboard/calendar",
+  announcements: {
+    list: (query?: { view?: string | null; category?: string | null }) =>
+      withQuery("/dashboard/announcements", query),
+    detail: (id: string) => `/dashboard/announcements/${encode(id)}`,
+    create: "/dashboard/announcements/new",
+  },
+  notifications: (query?: { filter?: string | null; page?: number | null }) =>
+    withQuery("/dashboard/notifications", query),
+  letters: {
+    list: (query?: { status?: string | null }) =>
+      withQuery("/dashboard/letters", query),
+    detail: (id: string) => `/dashboard/letters/${encode(id)}`,
+    create: (query?: {
+      templateId?: string | null;
+      employeeId?: string | null;
+    }) => withQuery("/dashboard/letters/new", query),
+    templates: "/dashboard/letters/templates",
+  },
   directory: "/dashboard/directory",
   team: "/dashboard/team",
   profile: (query?: HighlightQuery) => withQuery("/dashboard/profile", query),
@@ -64,11 +101,13 @@ export const ROUTES = {
     deals: "/dashboard/crm/deals",
     deal: (id: string) => `/dashboard/crm/deals/${encode(id)}`,
     dealEdit: (id: string) => `/dashboard/crm/deals/${encode(id)}/edit`,
-    newDeal: (query?: NewDealQuery) => withQuery("/dashboard/crm/deals/new", query),
+    newDeal: (query?: NewDealQuery) =>
+      withQuery("/dashboard/crm/deals/new", query),
     leads: "/dashboard/crm/leads",
   },
   claims: {
-    list: (query?: HighlightQuery & { view?: "mine" | "finance" }) => withQuery("/dashboard/claims", query),
+    list: (query?: HighlightQuery & { view?: "mine" | "finance" }) =>
+      withQuery("/dashboard/claims", query),
     create: "/dashboard/claims/new",
   },
   expenses: {
@@ -80,26 +119,47 @@ export const ROUTES = {
   finance: {
     overview: "/dashboard/finance",
     reports: "/dashboard/finance/reports",
-    commissions: (query?: { month?: string }) => withQuery("/dashboard/finance/commissions", query),
+    commissions: (query?: { month?: string }) =>
+      withQuery("/dashboard/finance/commissions", query),
   },
   hr: {
-    documents: (query?: HighlightQuery) => withQuery("/dashboard/hr/documents", query),
+    documents: (query?: HighlightQuery) =>
+      withQuery("/dashboard/hr/documents", query),
     employees: "/dashboard/hr/employees",
     employee: (id: string) => `/dashboard/hr/employees/${encode(id)}`,
-    newEmployee: (query?: NewEmployeeQuery) => withQuery("/dashboard/hr/employees/new", query),
+    newEmployee: (query?: NewEmployeeQuery) =>
+      withQuery("/dashboard/hr/employees/new", query),
     leave: (query?: HighlightQuery) => withQuery("/dashboard/hr/leave", query),
-    payroll: (query?: HighlightQuery) => withQuery("/dashboard/hr/payroll", query),
+    requests: (query?: { type?: string | null; status?: string | null; employeeId?: string | null }) =>
+      withQuery("/dashboard/hr/requests", query),
+    payroll: (query?: HighlightQuery) =>
+      withQuery("/dashboard/hr/payroll", query),
     payrollItem: (id: string) => `/dashboard/hr/payroll/items/${encode(id)}`,
     attendance: "/dashboard/hr/attendance",
-    handovers: (query?: { status?: string | null; kind?: string | null; employeeId?: string | null }) => withQuery("/dashboard/hr/handovers", query),
+    handovers: (query?: {
+      status?: string | null;
+      kind?: string | null;
+      employeeId?: string | null;
+    }) => withQuery("/dashboard/hr/handovers", query),
     handover: (id: string) => `/dashboard/hr/handovers/${encode(id)}`,
     settings: "/dashboard/hr/settings",
+    gosi: "/dashboard/hr/gosi",
+    supports: (query?: { program?: string | null; status?: string | null }) =>
+      withQuery("/dashboard/hr/supports", query),
+    settlements: (query?: { status?: string | null }) =>
+      withQuery("/dashboard/hr/settlements", query),
+    settlement: (id: string) => `/dashboard/hr/settlements/${encode(id)}`,
+    newSettlement: (query?: {
+      employeeId?: string | null;
+      handoverId?: string | null;
+    }) => withQuery("/dashboard/hr/settlements/new", query),
   },
   invoices: {
     list: "/dashboard/invoices",
     detail: (id: string) => `/dashboard/invoices/${encode(id)}`,
     edit: (id: string) => `/dashboard/invoices/${encode(id)}/edit`,
-    create: (query?: NewInvoiceQuery) => withQuery("/dashboard/invoices/new", query),
+    create: (query?: NewInvoiceQuery) =>
+      withQuery("/dashboard/invoices/new", query),
   },
   moms: {
     list: "/dashboard/moms",
@@ -109,12 +169,14 @@ export const ROUTES = {
   payments: {
     list: "/dashboard/payments",
     detail: (id: string) => `/dashboard/payments/${encode(id)}`,
-    create: (query?: NewPaymentQuery) => withQuery("/dashboard/payments/new", query),
+    create: (query?: NewPaymentQuery) =>
+      withQuery("/dashboard/payments/new", query),
   },
   quotations: {
     list: "/dashboard/quotations",
     detail: (id: string) => `/dashboard/quotations/${encode(id)}`,
-    create: (query?: NewQuotationQuery) => withQuery("/dashboard/quotations/new", query),
+    create: (query?: NewQuotationQuery) =>
+      withQuery("/dashboard/quotations/new", query),
   },
   requests: {
     list: "/dashboard/requests",
@@ -162,8 +224,12 @@ export const ENTITY_ROUTES: Record<string, (id: string) => string> = {
   company_document: () => ROUTES.company.documents,
   company_asset: () => ROUTES.company.documents,
   mom: ROUTES.moms.detail,
+  announcement: ROUTES.announcements.detail,
+  official_letter: ROUTES.letters.detail,
   company_setting: () => ROUTES.settings.company,
 };
 
-export const entityRoute = (entityType: string, entityId: string): string | undefined =>
-  ENTITY_ROUTES[entityType]?.(entityId);
+export const entityRoute = (
+  entityType: string,
+  entityId: string,
+): string | undefined => ENTITY_ROUTES[entityType]?.(entityId);

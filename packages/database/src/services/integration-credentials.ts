@@ -1,7 +1,8 @@
+import { serverMessages } from "@ishoot/locales";
 import crypto from "node:crypto";
 function encryptionKey() {
   const key = process.env.ENCRYPTION_KEY;
-  if (!key || Buffer.byteLength(key, "utf8") !== 32) throw new Error("Configure a separate 32-byte ENCRYPTION_KEY");
+  if (!key || Buffer.byteLength(key, "utf8") !== 32) throw new Error(serverMessages.configureASeparate32ByteEncryptionKey);
   return Buffer.from(key, "utf8");
 }
 export function encryptIntegrationCredentials(credentials: Record<string, string>) {

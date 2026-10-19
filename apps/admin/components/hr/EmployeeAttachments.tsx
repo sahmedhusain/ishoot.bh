@@ -4,8 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { uploadFileDirectly } from "../../lib/upload-client";
-import { deleteAttachmentAction } from "../../app/actions/attachments";
+import { uploadForClaim } from "../../lib/upload-client";
+import {
+  createAttachmentAction,
+  deleteAttachmentAction,
+} from "../../app/actions/attachments";
+import { LinkOrUploadField } from "../shared/LinkOrUploadField";
 export function EmployeeAttachments({
   employeeId,
   attachments,
@@ -22,6 +26,9 @@ export function EmployeeAttachments({
   const h = t.hrExtensions;
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  const [fileUrl, setFileUrl] = useState("");
+  const [name, setName] = useState("");
+  const [formKey, setFormKey] = useState(0);
   async function run(work: () => Promise<unknown>) {
     setBusy(true);
     try {
@@ -38,25 +45,62 @@ export function EmployeeAttachments({
     <section className="rounded-lg border border-slate-200 dark:border-white/10 p-5 space-y-4">
       <h2 className="font-semibold">{h.documents}</h2>
       {canEdit && (
-        <label className="block">
-          {h.upload}
-          <input
+        <form
+          key={formKey}
+          className="space-y-3 rounded-lg bg-slate-50 p-3 dark:bg-white/[0.03]"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!fileUrl || !name.trim()) return;
+            void run(async () => {
+              const result = await createAttachmentAction({
+                fileName: name.trim(),
+                fileUrl,
+                entityType: "employee",
+                entityId: employeeId,
+              });
+              if (!result.success) throw new Error(result.error);
+              setFileUrl("");
+              setName("");
+              setFormKey((k) => k + 1);
+            });
+          }}
+        >
+          {/* Upload the file, or link to it (e.g. a permit on a government portal). */}
+          <LinkOrUploadField
+            label={h.upload}
+            value={fileUrl}
             disabled={busy}
-            type="file"
-            accept="application/pdf,image/png,image/jpeg,image/webp"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file)
-                void run(() =>
-                  uploadFileDirectly(file, {
-                    entityType: "employee",
-                    entityId: employeeId,
-                  }),
-                );
-              e.target.value = "";
+            onChange={(url, meta) => {
+              setFileUrl(url);
+              if (url && !name && meta?.fileName)
+                setName(meta.fileName.replace(/\.[^.]+$/, ""));
             }}
+            upload={(file) =>
+              uploadForClaim(file, {
+                entityType: "employee",
+                entityId: employeeId,
+              })
+            }
           />
-        </label>
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="min-w-0 flex-1 text-xs font-semibold">
+              {t.linkOrUpload.documentName}
+              <input
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1 block w-full rounded border border-slate-300 bg-transparent p-2 text-sm font-normal"
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={busy || !fileUrl || !name.trim()}
+              className="h-10 rounded-lg bg-accent px-4 text-xs font-semibold text-white disabled:opacity-50"
+            >
+              {t.linkOrUpload.addDocument}
+            </button>
+          </div>
+        </form>
       )}
       {!attachments.length && <p className="text-slate-500">{h.empty}</p>}
       {attachments.map((file) => (

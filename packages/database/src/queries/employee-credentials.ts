@@ -1,6 +1,15 @@
+import { serverMessages } from "@ishoot/locales";
+import { claimUploadOrLink } from "../services/uploads";
 import { db, runAtomicMutation } from "../db";
 import { isCountryCode } from "../constants/clients";
-import { COST_FREQUENCIES, CREDENTIAL_KINDS, VISA_TYPES, expiryStatus, monthlyCost, type ExpiryStatus } from "../constants/employee-documents";
+import {
+  COST_FREQUENCIES,
+  CREDENTIAL_KINDS,
+  VISA_TYPES,
+  expiryStatus,
+  monthlyCost,
+  type ExpiryStatus,
+} from "../constants/employee-documents";
 
 export interface EmployeeIdentityInput {
   nationality?: string;
@@ -70,30 +79,38 @@ export interface EmployeeResidency {
   oneTimeCost: number;
 }
 
-const clean = (value: unknown, max = 120) => (typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null);
+const clean = (value: unknown, max = 120) =>
+  typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
 const day = (value: unknown) => {
   const text = clean(value, 10);
   if (!text) return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(text) || !Number.isFinite(Date.parse(text))) throw new Error("Invalid date");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text) || !Number.isFinite(Date.parse(text)))
+    throw new Error(serverMessages.invalidDate);
   return new Date(`${text}T00:00:00Z`);
 };
-const iso = (date: Date | null | undefined) => (date ? date.toISOString().slice(0, 10) : undefined);
+const iso = (date: Date | null | undefined) =>
+  date ? date.toISOString().slice(0, 10) : undefined;
 const country = (value: unknown) => {
   const code = clean(value, 2);
-  if (code && !isCountryCode(code)) throw new Error("Choose a country from the list");
+  if (code && !isCountryCode(code))
+    throw new Error(serverMessages.chooseACountryFromTheList);
   return code;
 };
 
 /** Identity columns for an employee; a Bahrain CPR has 9 digits. */
 export function normalizeEmployeeIdentity(input: EmployeeIdentityInput) {
   const cpr = clean(input.cpr_number, 20)?.replace(/\s+/g, "") ?? null;
-  if (cpr && !/^\d{9}$/.test(cpr)) throw new Error("A CPR number has 9 digits");
+  if (cpr && !/^\d{9}$/.test(cpr)) throw new Error(serverMessages.aCPRNumberHas9Digits);
   const birth = day(input.date_of_birth);
-  if (birth && (birth > new Date() || birth.getUTCFullYear() < 1920)) throw new Error("Enter a valid date of birth");
+  if (birth && (birth > new Date() || birth.getUTCFullYear() < 1920))
+    throw new Error(serverMessages.enterAValidDateOfBirth);
   return {
     nationality: country(input.nationality),
     dateOfBirth: birth,
-    gender: input.gender === "male" || input.gender === "female" ? input.gender : null,
+    gender:
+      input.gender === "male" || input.gender === "female"
+        ? input.gender
+        : null,
     cprNumber: cpr,
     cprExpiryDate: day(input.cpr_expiry_date),
     passportNumber: clean(input.passport_number, 30)?.toUpperCase() ?? null,
@@ -103,20 +120,49 @@ export function normalizeEmployeeIdentity(input: EmployeeIdentityInput) {
 }
 
 export function normalizeEmployeeCredential(input: EmployeeCredentialInput) {
-  if (!(CREDENTIAL_KINDS as readonly string[]).includes(input.kind)) throw new Error("Choose the document type");
+  if (!(CREDENTIAL_KINDS as readonly string[]).includes(input.kind))
+    throw new Error(serverMessages.chooseTheDocumentType);
   const issueDate = day(input.issue_date);
   const expiryDate = day(input.expiry_date);
-  if (issueDate && expiryDate && expiryDate < issueDate) throw new Error("The expiry date cannot be before the issue date");
-  const amount = input.cost_amount === undefined || input.cost_amount === null || Number.isNaN(input.cost_amount) ? null : Math.round(Number(input.cost_amount) * 1000) / 1000;
-  if (amount !== null && (!Number.isFinite(amount) || amount < 0 || amount > 1_000_000)) throw new Error("Enter a valid cost");
-  const frequency = amount === null ? null : (COST_FREQUENCIES as readonly string[]).includes(input.cost_frequency ?? "") ? input.cost_frequency! : null;
-  if (amount !== null && !frequency) throw new Error("Choose how often the cost is paid");
-  const termMonths = frequency === "term" ? Number(input.cost_term_months) : null;
-  if (frequency === "term" && (!Number.isInteger(termMonths) || termMonths! < 1 || termMonths! > 120)) throw new Error("Enter the number of months the cost covers (1 to 120)");
-  if (input.kind === "other" && !clean(input.label)) throw new Error("Name the document");
+  if (issueDate && expiryDate && expiryDate < issueDate)
+    throw new Error(serverMessages.theExpiryDateCannotBeBefore);
+  const amount =
+    input.cost_amount === undefined ||
+    input.cost_amount === null ||
+    Number.isNaN(input.cost_amount)
+      ? null
+      : Math.round(Number(input.cost_amount) * 1000) / 1000;
+  if (
+    amount !== null &&
+    (!Number.isFinite(amount) || amount < 0 || amount > 1_000_000)
+  )
+    throw new Error(serverMessages.enterAValidCost);
+  const frequency =
+    amount === null
+      ? null
+      : (COST_FREQUENCIES as readonly string[]).includes(
+            input.cost_frequency ?? "",
+          )
+        ? input.cost_frequency!
+        : null;
+  if (amount !== null && !frequency)
+    throw new Error(serverMessages.chooseHowOftenTheCostIs);
+  const termMonths =
+    frequency === "term" ? Number(input.cost_term_months) : null;
+  if (
+    frequency === "term" &&
+    (!Number.isInteger(termMonths) || termMonths! < 1 || termMonths! > 120)
+  )
+    throw new Error(serverMessages.enterTheNumberOfMonthsThe);
+  if (input.kind === "other" && !clean(input.label))
+    throw new Error(serverMessages.nameTheDocument);
   return {
     kind: input.kind,
-    visaType: input.kind === "visa" && (VISA_TYPES as readonly string[]).includes(input.visa_type ?? "") ? input.visa_type! : null,
+    visaType:
+      input.kind === "visa" &&
+      (VISA_TYPES as readonly string[]).includes(input.visa_type ?? "")
+        ? input.visa_type!
+        : null,
     label: clean(input.label),
     number: clean(input.number, 60),
     issuingCountry: country(input.issuing_country),
@@ -132,8 +178,12 @@ export function normalizeEmployeeCredential(input: EmployeeCredentialInput) {
   };
 }
 
-type CredentialRow = Awaited<ReturnType<typeof db.employeeCredential.findMany>>[number];
-export function mapEmployeeCredential(c: CredentialRow): EmployeeCredentialRecord {
+type CredentialRow = Awaited<
+  ReturnType<typeof db.employeeCredential.findMany>
+>[number];
+export function mapEmployeeCredential(
+  c: CredentialRow,
+): EmployeeCredentialRecord {
   const expiry = expiryStatus(c.expiryDate);
   const amount = c.costAmount === null ? undefined : Number(c.costAmount);
   return {
@@ -155,14 +205,26 @@ export function mapEmployeeCredential(c: CredentialRow): EmployeeCredentialRecor
     notes: c.notes ?? undefined,
     status: expiry.status,
     days_left: expiry.days,
-    monthly_cost: c.paidBy === "company" ? monthlyCost(amount, c.costFrequency, c.costTermMonths) : 0,
+    monthly_cost:
+      c.paidBy === "company"
+        ? monthlyCost(amount, c.costFrequency, c.costTermMonths)
+        : 0,
   };
 }
 
-export async function getEmployeeResidency(employeeId: string): Promise<EmployeeResidency | null> {
+export async function getEmployeeResidency(
+  employeeId: string,
+): Promise<EmployeeResidency | null> {
   const employee = await db.employee.findUnique({
     where: { id: employeeId },
-    include: { credentials: { orderBy: [{ expiryDate: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }] } },
+    include: {
+      credentials: {
+        orderBy: [
+          { expiryDate: { sort: "asc", nulls: "last" } },
+          { createdAt: "asc" },
+        ],
+      },
+    },
   });
   if (!employee) return null;
   const credentials = employee.credentials.map(mapEmployeeCredential);
@@ -181,36 +243,62 @@ export async function getEmployeeResidency(employeeId: string): Promise<Employee
     credentials,
     monthlyCost: Math.round(monthly * 1000) / 1000,
     yearlyCost: Math.round(monthly * 12 * 1000) / 1000,
-    oneTimeCost: credentials.filter((c) => c.cost_frequency === "one_time" && c.paid_by === "company").reduce((sum, c) => sum + (c.cost_amount ?? 0), 0),
+    oneTimeCost: credentials
+      .filter((c) => c.cost_frequency === "one_time" && c.paid_by === "company")
+      .reduce((sum, c) => sum + (c.cost_amount ?? 0), 0),
   };
 }
 
-export async function updateEmployeeIdentity(employeeId: string, input: EmployeeIdentityInput) {
+export async function updateEmployeeIdentity(
+  employeeId: string,
+  input: EmployeeIdentityInput,
+) {
   const data = normalizeEmployeeIdentity(input);
   return runAtomicMutation(async () => {
-    const exists = await db.employee.findUnique({ where: { id: employeeId }, select: { id: true } });
-    if (!exists) throw new Error("Employee not found");
+    const exists = await db.employee.findUnique({
+      where: { id: employeeId },
+      select: { id: true },
+    });
+    if (!exists) throw new Error(serverMessages.employeeNotFound);
     await db.employee.update({ where: { id: employeeId }, data });
   });
 }
 
-export async function saveEmployeeCredential(employeeId: string, input: EmployeeCredentialInput & { id?: string }) {
+export async function saveEmployeeCredential(
+  employeeId: string,
+  input: EmployeeCredentialInput & { id?: string },
+  actorId?: string,
+) {
   const data = normalizeEmployeeCredential(input);
   return runAtomicMutation(async () => {
-    if (input.id) {
-      const existing = await db.employeeCredential.findUnique({ where: { id: input.id }, select: { employeeId: true } });
-      if (!existing || existing.employeeId !== employeeId) throw new Error("Document not found");
+    const existing = input.id
+      ? await db.employeeCredential.findUnique({
+          where: { id: input.id },
+          select: { employeeId: true, fileUrl: true },
+        })
+      : null;
+    if (input.id && (!existing || existing.employeeId !== employeeId))
+      throw new Error(serverMessages.documentNotFound);
+    // A new file is an uploaded copy (claimed now) or a link to where the document is kept.
+    if (data.fileUrl && data.fileUrl !== existing?.fileUrl)
+      await claimUploadOrLink(db, data.fileUrl, actorId);
+    if (input.id)
       return db.employeeCredential.update({ where: { id: input.id }, data });
-    }
-    const exists = await db.employee.findUnique({ where: { id: employeeId }, select: { id: true } });
-    if (!exists) throw new Error("Employee not found");
+    const exists = await db.employee.findUnique({
+      where: { id: employeeId },
+      select: { id: true },
+    });
+    if (!exists) throw new Error(serverMessages.employeeNotFound);
     return db.employeeCredential.create({ data: { ...data, employeeId } });
   });
 }
 
 export async function deleteEmployeeCredential(id: string) {
-  const existing = await db.employeeCredential.findUnique({ where: { id }, select: { employeeId: true } });
-  if (!existing) throw new Error("Document not found");
+  const existing = await db.employeeCredential.findUnique({
+    where: { id },
+    select: { employeeId: true },
+  });
+  if (!existing) throw new Error(serverMessages.documentNotFound);
   await db.employeeCredential.delete({ where: { id } });
   return existing.employeeId;
 }
@@ -228,17 +316,50 @@ export async function listExpiringEmployeeDocuments(days = 60) {
       ],
     },
     select: {
-      id: true, employeeNumber: true, firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true,
-      passportExpiryDate: true, cprExpiryDate: true,
-      credentials: { where: { expiryDate: { lte: until } }, select: { id: true, kind: true, label: true, expiryDate: true } },
+      id: true,
+      employeeNumber: true,
+      firstNameEn: true,
+      lastNameEn: true,
+      firstNameAr: true,
+      lastNameAr: true,
+      passportExpiryDate: true,
+      cprExpiryDate: true,
+      credentials: {
+        where: { expiryDate: { lte: until } },
+        select: { id: true, kind: true, label: true, expiryDate: true },
+      },
     },
   });
-  const rows: Array<{ employeeId: string; employeeNumber: string; nameEn: string; nameAr: string; document: string; label?: string; expiryDate: string; days: number }> = [];
+  const rows: Array<{
+    employeeId: string;
+    employeeNumber: string;
+    nameEn: string;
+    nameAr: string;
+    document: string;
+    label?: string;
+    expiryDate: string;
+    days: number;
+  }> = [];
   for (const e of employees) {
-    const base = { employeeId: e.id, employeeNumber: e.employeeNumber, nameEn: `${e.firstNameEn} ${e.lastNameEn}`, nameAr: `${e.firstNameAr} ${e.lastNameAr}` };
-    const push = (document: string, date: Date | null, label?: string | null) => {
+    const base = {
+      employeeId: e.id,
+      employeeNumber: e.employeeNumber,
+      nameEn: `${e.firstNameEn} ${e.lastNameEn}`,
+      nameAr: `${e.firstNameAr} ${e.lastNameAr}`,
+    };
+    const push = (
+      document: string,
+      date: Date | null,
+      label?: string | null,
+    ) => {
       if (!date || date > until) return;
-      rows.push({ ...base, document, label: label ?? undefined, expiryDate: iso(date)!, days: expiryStatus(date).days! });
+      rows.push({
+        ...base,
+        document,
+        label: label ?? undefined,
+        expiryDate: iso(date)!,
+        days: expiryStatus(date).days!,
+      });
     };
     push("passport", e.passportExpiryDate);
     push("cpr", e.cprExpiryDate);

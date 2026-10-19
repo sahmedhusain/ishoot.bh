@@ -98,6 +98,8 @@ model User {
   accountChanges             AccountChangeRequest[] @relation("AccountChangeTarget")
   accountChangesFiled        AccountChangeRequest[] @relation("AccountChangeRequester")
   clientSignaturesCreated    ClientSignature[]      @relation("ClientSignatureCreator")
+  calendarFeed               CalendarFeedToken?
+  announcementReceipts       AnnouncementReceipt[]
 
   @@index([role])
 }
@@ -270,7 +272,7 @@ model Inquiry {
   customerId             String? // FK to resolved CrmContact
   customer               CrmContact?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
   intent                 String                @default("inquiry")
-  reference              String                @unique @default(cuid())
+  reference              String                @unique // SR-2026-000001, INQ-…, RFQ-…, CMP-…, SUG-… from ReferenceSequence
   submissionKey          String?               @unique
   requestHash            String?
   serviceIds             String[]              @default([])
@@ -650,6 +652,11 @@ model CalendarEvent {
   recurrence       String?
   reminders        Json?
   attendees        Json?
+  /// "private" | "team" | "department" | "company" | "custom" — see queries/calendar.ts for who sees what.
+  visibility            String   @default("company")
+  audienceUserIds       String[] @default([])
+  audienceDepartmentIds String[] @default([])
+  audienceRoles         String[] @default([])
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -657,6 +664,7 @@ model CalendarEvent {
 
   @@index([dealId])
   @@index([startDate])
+  @@index([createdById])
 }
 
 model ActivityLog {
@@ -691,9 +699,12 @@ model Notification {
   actionUrl     String?
   eventKey      String?
   isRead        Boolean  @default(false)
+  /// Hidden from the person's inbox (kept for the audit trail until they delete it).
+  hiddenAt      DateTime?
   createdAt     DateTime @default(now())
 
   @@index([userId, isRead, createdAt])
+  @@index([userId, hiddenAt, createdAt])
   @@index([eventKey])
 }
 
@@ -1350,6 +1361,8 @@ model ApprovalDecision {
   decidedBy         User            @relation("ApprovalDecider", fields: [decidedById], references: [id], onDelete: Restrict)
   reason            String?         @db.Text
   step              Int             @default(1)
+  /// The approver's signature drawn at the moment of approving (PNG data URL), when the document requires it.
+  signatureData     String?
   decidedAt         DateTime        @default(now())
 
   @@index([approvalRequestId])
@@ -1568,6 +1581,10 @@ model Employee {
   updatedAt         DateTime           @updatedAt
 
   supportReimbursements SupportReimbursement[]
+  gosiRecords           EmployeeGosiRecord[]
+  supports              EmployeeSupport[]
+  finalSettlements      FinalSettlement[]
+  officialLetters       OfficialLetter[]
 
   @@index([departmentId])
   @@index([status])
@@ -1663,6 +1680,10 @@ model HrPolicy {
   unmarkedDays        String   @default("present")
   prorateJoiners      Boolean  @default(true)
   commissionInPayroll Boolean  @default(true)
+  /// Leaving indemnity for staff outside the SIO end-of-service scheme (see GratuityRules in hr/final-settlement.ts).
+  gratuityRules       Json     @default("{\"enabled\": true, \"appliesTo\": [\"expat\"], \"wageBasis\": \"basic\", \"firstYears\": 3, \"firstYearsMonths\": 0.5, \"laterYearsMonths\": 1, \"minServiceMonths\": 0, \"serviceUntil\": \"2024-02-29\"}")
+  /// Pay used for the daily rate of unused annual leave paid out on leaving: "basic" or "fixed".
+  leaveEncashmentBase String   @default("fixed")
   updatedById         String?
   updatedAt           DateTime @updatedAt
 }
@@ -2259,6 +2280,8 @@ model AssetHandover {
   specsSnapshot      Json      @default("{}")
   accessories        String?
   damageNotes        String?
+  /// Where a returned asset goes once the return is approved: available | maintenance | lost | retired.
+  returnStatus       String?
   damageCharge       Decimal?  @db.Decimal(12, 3)
   /// A damage charge recovered from the next salary.
   deductFromSalary   Boolean   @default(false)
@@ -2330,4 +2353,359 @@ model EmployeeHandoverCase {
   createdAt    DateTime         @default(now())
 
   @@unique([handoverId, caseType, caseId])
+}
+
+/// How a document is signed: "stored" applies the signer's approved saved signature, "live" requires drawing it
+/// at the moment of signing or approving.
+model SignaturePolicy {
+  documentType String   @id
+  mode         String   @default("stored")
+  updatedById  String?
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+/// A one-time link someone opens to sign a document on their own device (e.g. an employee receiving an asset).
+/// The token is stored only as a SHA-256 hash.
+model SignatureRequest {
+  id              String    @id @default(uuid())
+  /// "asset_handover"
+  documentType    String
+  documentId      String
+  tokenHash       String    @unique
+  /// pending | signed | revoked | expired
+  status          String    @default("pending")
+  expiresAt       DateTime
+  recipientEmail  String?
+  recipientPhone  String?
+  signerName      String?
+  signatureData   String?
+  signedAt        DateTime?
+  signedIp        String?
+  signedUserAgent String?
+  viewedAt        DateTime?
+  revokedAt       DateTime?
+  createdById     String
+  createdAt       DateTime  @default(now())
+
+  @@index([documentType, documentId])
+}
+
+/// Company-wide social insurance rules (single row "default").
+model GosiSettings {
+  id               String   @id @default("default")
+  /// Due in full for a month the employee is employed on its 1st day; not due for a month joined after the 1st.
+  firstOfMonthRule Boolean  @default(true)
+  /// "contract" pay, or the wage "registered" with GOSI when an employee has one.
+  wageSource       String   @default("registered")
+  updatedById      String?
+  updatedAt        DateTime @default(now()) @updatedAt
+}
+
+/// One social insurance contribution (pension, unemployment, occupational hazards…) in force between two dates.
+/// A rate change is a new row for the same code from its effective date; history is never edited away.
+model GosiComponent {
+  id              String    @id @default(uuid())
+  code            String
+  nameEn          String
+  nameAr          String
+  /// Insured categories it applies to: "bahraini", "gcc", "expat".
+  appliesTo       String[]  @default([])
+  employeePercent Decimal   @default(0) @db.Decimal(6, 3)
+  employerPercent Decimal   @default(0) @db.Decimal(6, 3)
+  /// Rates by completed years of service: [{ fromYears, employeePercent, employerPercent }].
+  serviceTiers    Json      @default("[]")
+  /// "basic" | "basic_housing" | "fixed" (basic + all fixed allowances)
+  wageBasis       String    @default("fixed")
+  minWage         Decimal?  @db.Decimal(12, 3)
+  maxWage         Decimal?  @db.Decimal(12, 3)
+  effectiveFrom   DateTime  @db.Date
+  effectiveTo     DateTime? @db.Date
+  isActive        Boolean   @default(true)
+  notes           String?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @default(now()) @updatedAt
+
+  @@index([code, effectiveFrom])
+}
+
+/// An employee's social insurance registration from a date: category, GOSI number, registered wage and
+/// per-component exceptions. A change is a new record from its effective date.
+model EmployeeGosiRecord {
+  id                 String    @id @default(uuid())
+  employeeId         String
+  employee           Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  /// "bahraini" | "gcc" | "expat" | "exempt"
+  category           String
+  registrationNumber String?
+  registeredWage     Decimal?  @db.Decimal(12, 3)
+  /// [{ code, employeePercent?, employerPercent?, exempt? }]
+  overrides          Json      @default("[]")
+  effectiveFrom      DateTime  @db.Date
+  effectiveTo        DateTime? @db.Date
+  notes              String?
+  createdById        String?
+  createdAt          DateTime  @default(now())
+
+  @@index([employeeId, effectiveFrom])
+}
+
+/// A wage-support programme (e.g. Tamkeen) whose terms are kept as dated rules.
+model SupportProgram {
+  id                String               @id @default(uuid())
+  code              String               @unique
+  nameEn            String
+  nameAr            String
+  provider          String
+  claimPeriodMonths Int                  @default(6)
+  prorate           Boolean              @default(true)
+  isActive          Boolean              @default(true)
+  notes             String?
+  rules             SupportProgramRule[]
+  enrolments        EmployeeSupport[]
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @default(now()) @updatedAt
+}
+
+/// The programme's terms from a date: share of the wage by year of support, wage and monthly caps.
+model SupportProgramRule {
+  id                String         @id @default(uuid())
+  programId         String
+  program           SupportProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  effectiveFrom     DateTime       @db.Date
+  effectiveTo       DateTime?      @db.Date
+  wageBasis         String         @default("fixed")
+  /// [{ year, percent }]
+  schedule          Json           @default("[]")
+  wageCap           Decimal?       @db.Decimal(12, 3)
+  monthlyCap        Decimal?       @db.Decimal(12, 3)
+  /// [{ qualification, cap }]
+  qualificationCaps Json           @default("[]")
+  notes             String?
+  createdById       String?
+  createdAt         DateTime       @default(now())
+
+  @@index([programId, effectiveFrom])
+}
+
+/// An employee's application to and support from a programme, with its decision and any partial approval.
+model EmployeeSupport {
+  id              String                 @id @default(uuid())
+  employeeId      String
+  employee        Employee               @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  programId       String
+  program         SupportProgram         @relation(fields: [programId], references: [id], onDelete: Restrict)
+  /// applied | approved | partially_approved | rejected | suspended | ended
+  status          String                 @default("applied")
+  qualification   String?
+  applicationRef  String?
+  appliedOn       DateTime?              @db.Date
+  decidedOn       DateTime?              @db.Date
+  /// YYYY-MM
+  startMonth      String
+  endMonth        String?
+  approvedPercent Decimal?               @db.Decimal(5, 2)
+  approvedAmount  Decimal?               @db.Decimal(12, 3)
+  monthlyCap      Decimal?               @db.Decimal(12, 3)
+  notes           String?
+  createdById     String?
+  events          EmployeeSupportEvent[]
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @default(now()) @updatedAt
+
+  @@index([employeeId])
+  @@index([programId, status])
+}
+
+/// Every change to an enrolment: applied, decided, partially approved, suspended, ended, edited.
+model EmployeeSupportEvent {
+  id        String          @id @default(uuid())
+  supportId String
+  support   EmployeeSupport @relation(fields: [supportId], references: [id], onDelete: Cascade)
+  action    String
+  details   Json?
+  actorId   String?
+  createdAt DateTime        @default(now())
+
+  @@index([supportId, createdAt])
+}
+
+/// Everything owed to and by an employee who leaves: final salary, commission, unused leave, claims, indemnity,
+/// loans and charges, social insurance for the last month. Approved, signed and paid like payroll.
+model FinalSettlement {
+  id                    String                @id @default(uuid())
+  reference             String                @unique
+  employeeId            String
+  employee              Employee              @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  handoverId            String?
+  /// resignation | termination | end_of_contract | retirement | death | other
+  reason                String
+  lastWorkingDay        DateTime              @db.Date
+  /// draft | submitted | approved | rejected | paid | cancelled
+  status                String                @default("draft")
+  currency              String                @default("BHD")
+  totalAdditions        Decimal               @default(0) @db.Decimal(12, 3)
+  totalDeductions       Decimal               @default(0) @db.Decimal(12, 3)
+  netAmount             Decimal               @default(0) @db.Decimal(12, 3)
+  employerContributions Decimal               @default(0) @db.Decimal(12, 3)
+  calculation           Json                  @default("{}")
+  notes                 String?
+  createdById           String
+  calculatedAt          DateTime?
+  approvedAt            DateTime?
+  paidAt                DateTime?
+  paidById              String?
+  paymentMethod         String?
+  paymentReference      String?
+  employeeSignature     String?
+  employeeSignerName    String?
+  employeeSignedAt      DateTime?
+  lines                 FinalSettlementLine[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @default(now()) @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+}
+
+model FinalSettlementLine {
+  id           String          @id @default(uuid())
+  settlementId String
+  settlement   FinalSettlement @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+  /// "addition" | "deduction"
+  kind         String
+  category     String
+  labelEn      String
+  labelAr      String
+  amount       Decimal         @db.Decimal(12, 3)
+  /// "auto" lines are recalculated; "manual" lines are kept.
+  source       String          @default("auto")
+  details      Json?
+  displayOrder Int             @default(0)
+
+  @@index([settlementId])
+}
+
+/// A personal calendar subscription link (Google Calendar, Outlook, Apple): lists only what the user may see.
+model CalendarFeedToken {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  layers     String[]  @default([])
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+/// Who may announce beyond the permission (single row "default").
+model CommunicationSettings {
+  id                     String   @id @default("default")
+  /// Reporting managers may post announcements to their own team.
+  managersAnnounceToTeam Boolean  @default(true)
+  updatedById            String?
+  updatedAt              DateTime @default(now()) @updatedAt
+}
+
+/// An announcement to the company, a team, departments, roles or people. Official ones are also issued as a
+/// signed and stamped document on the letterhead once approved.
+model Announcement {
+  id                      String                @id @default(uuid())
+  reference               String                @unique
+  titleEn                 String
+  titleAr                 String
+  bodyEn                  String
+  bodyAr                  String
+  category                String                @default("general")
+  priority                String                @default("normal")
+  /// company | team | departments | roles | people
+  audience                String                @default("company")
+  audienceDepartmentIds   String[]              @default([])
+  audienceRoles           String[]              @default([])
+  audienceUserIds         String[]              @default([])
+  official                Boolean               @default(false)
+  requiresAcknowledgement Boolean               @default(false)
+  pinned                  Boolean               @default(false)
+  /// draft | pending_approval | published | rejected | archived
+  status                  String                @default("draft")
+  publishAt               DateTime?
+  expiresAt               DateTime?
+  publishedAt             DateTime?
+  createdById             String
+  signedById              String?
+  signatureUrl            String?
+  signedAt                DateTime?
+  decisionNotes           String?
+  receipts                AnnouncementReceipt[]
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @default(now()) @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+/// One person's copy of an announcement: read, acknowledged, hidden.
+model AnnouncementReceipt {
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt         DateTime?
+  acknowledgedAt DateTime?
+  hiddenAt       DateTime?
+
+  @@id([announcementId, userId])
+  @@index([userId])
+}
+
+/// A reusable official letter with {{placeholders}} filled from the company, the recipient and an employee.
+model LetterTemplate {
+  id            String           @id @default(uuid())
+  key           String           @unique
+  nameEn        String
+  nameAr        String
+  subjectEn     String           @default("")
+  subjectAr     String           @default("")
+  bodyEn        String           @default("")
+  bodyAr        String           @default("")
+  aboutEmployee Boolean          @default(false)
+  isActive      Boolean          @default(true)
+  displayOrder  Int              @default(0)
+  letters       OfficialLetter[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @default(now()) @updatedAt
+}
+
+/// An official letter for external use on the letterhead, approved, signed and stamped, with a verification code.
+model OfficialLetter {
+  id                    String          @id @default(uuid())
+  reference             String          @unique
+  templateId            String?
+  template              LetterTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  employeeId            String?
+  employee              Employee?       @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  languages             String[]        @default(["ar", "en"])
+  recipientName         String?
+  recipientTitle        String?
+  recipientOrganization String?
+  recipientAddress      String?
+  subjectEn             String          @default("")
+  subjectAr             String          @default("")
+  bodyEn                String          @default("")
+  bodyAr                String          @default("")
+  letterDate            DateTime        @db.Date
+  /// confidential | internal | external
+  classification        String          @default("external")
+  showSignature         Boolean         @default(true)
+  showStamp             Boolean         @default(true)
+  /// draft | pending_approval | approved | rejected | cancelled
+  status                String          @default("draft")
+  createdById           String
+  signerId              String?
+  signatureUrl          String?
+  signedAt              DateTime?
+  verificationCode      String          @unique
+  decisionNotes         String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @default(now()) @updatedAt
+
+  @@index([status])
 }

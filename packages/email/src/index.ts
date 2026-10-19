@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { Resend } from "resend";
 
 const resendApiKey = process.env.RESEND_API_KEY;
@@ -28,7 +29,7 @@ export async function sendEmail({
   attachments,
   idempotencyKey,
 }: SendEmailOptions) {
-  if (!resend || !from) return { success: false, error: "Email service is not configured" };
+  if (!resend || !from) return { success: false, error: serverMessages.runtimeEmailServiceIsNotConfigured };
 
   try {
     const { data, error } = await resend.emails.send({

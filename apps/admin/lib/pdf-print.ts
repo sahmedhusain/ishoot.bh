@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 export type PdfDocumentType = "invoice" | "receipt" | "quotation";
 
 export function documentPdfUrl(type: PdfDocumentType, id: string, locale: string, download = false) {
@@ -22,7 +23,7 @@ export const momPdfUrl = (id: string, locale: string, download = false) =>
 export async function printPdfUrl(pdfUrl: string): Promise<void> {
   const response = await fetch(pdfUrl, { cache: "no-store" });
   if (!response.ok || !response.headers.get("content-type")?.includes("application/pdf"))
-    throw new Error("PDF unavailable");
+    throw new Error(serverMessages.pdfUnavailable);
   const url = URL.createObjectURL(await response.blob());
   const frame = document.createElement("iframe");
   frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";

@@ -33,6 +33,8 @@ export const ALL_RESOURCES = [
   "self_service",
   "social",
   "assets",
+  "announcements",
+  "letters",
 ] as const;
 
 export const ALL_ACTIONS = [
@@ -68,15 +70,22 @@ export type RoleKey = (typeof ALL_ROLES)[number];
 export type PermissionKey = `${PermissionResource}:${PermissionAction}`;
 export type PermissionMap = Record<string, boolean>;
 
-export const permissionKey = (resource: PermissionResource, action: PermissionAction): PermissionKey =>
-  `${resource}:${action}`;
+export const permissionKey = (
+  resource: PermissionResource,
+  action: PermissionAction,
+): PermissionKey => `${resource}:${action}`;
 
 /** Every staff member can view their own HR records and file their own requests. */
 const SELF_SERVICE: PermissionAction[] = ["read", "create"];
 const CRUD: PermissionAction[] = ["read", "write", "create", "edit", "delete"];
 
-export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResource, PermissionAction[]>>> = {
-  super_admin: Object.fromEntries(ALL_RESOURCES.map((resource) => [resource, [...ALL_ACTIONS]])),
+export const DEFAULT_ROLE_RULES: Record<
+  RoleKey,
+  Partial<Record<PermissionResource, PermissionAction[]>>
+> = {
+  super_admin: Object.fromEntries(
+    ALL_RESOURCES.map((resource) => [resource, [...ALL_ACTIONS]]),
+  ),
   admin: {
     support: CRUD,
     reviews: CRUD,
@@ -101,15 +110,27 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     moms: [...CRUD, "export", "approve"],
     requests: [...CRUD, "export", "assign", "approve"],
     quotations: ["read", "write", "create", "edit", "export"],
-    employees: ["read", "write", "create", "edit", "assign", "export", "approve"],
+    employees: [
+      "read",
+      "write",
+      "create",
+      "edit",
+      "assign",
+      "export",
+      "approve",
+    ],
     benefits: ["read", "write", "create", "edit"],
     reports: ["read", "export"],
     profile_changes: ["read", "approve"],
     self_service: SELF_SERVICE,
     social: [...CRUD, "export"],
     assets: [...CRUD, "export", "approve"],
+    announcements: [...CRUD, "export", "approve"],
+    letters: [...CRUD, "export", "approve", "issue_send"],
   },
   finance_manager: {
+    announcements: ["read", "write", "create", "edit"],
+    letters: ["read"],
     invoices: ["read", "write", "create", "edit", "export"],
     payments: ["read", "write", "create", "edit", "export"],
     expenses: ["read", "write", "create", "edit", "export", "approve"],
@@ -128,6 +149,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     assets: ["read", "export", "approve"],
   },
   accountant: {
+    announcements: ["read"],
     invoices: ["read", "write", "create", "edit", "export"],
     payments: ["read", "write", "create", "edit", "export"],
     expenses: ["read", "write", "create", "edit", "export"],
@@ -144,6 +166,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     assets: ["read"],
   },
   production_manager: {
+    announcements: ["read", "write", "create", "edit"],
     deals: ["read", "write", "create", "edit", "export"],
     contacts: ["read", "write", "create", "edit"],
     leads: ["read", "write", "create", "edit"],
@@ -160,6 +183,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     assets: ["read", "write", "create", "edit"],
   },
   producer: {
+    announcements: ["read"],
     deals: ["read", "write", "create", "edit"],
     contacts: ["read", "write", "create", "edit"],
     leads: ["read", "write", "create", "edit"],
@@ -171,6 +195,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     self_service: SELF_SERVICE,
   },
   sales: {
+    announcements: ["read"],
     deals: [...CRUD, "export"],
     contacts: [...CRUD, "export"],
     leads: [...CRUD, "export"],
@@ -182,6 +207,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     self_service: SELF_SERVICE,
   },
   marketing: {
+    announcements: ["read"],
     banners: CRUD,
     portfolio: CRUD,
     clients: CRUD,
@@ -193,6 +219,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     social: [...CRUD, "export"],
   },
   editor: {
+    announcements: ["read"],
     portfolio: ["read", "write", "create", "edit"],
     banners: ["read"],
     equipment: ["read"],
@@ -201,6 +228,7 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
     self_service: SELF_SERVICE,
   },
   viewer: {
+    announcements: ["read"],
     deals: ["read"],
     contacts: ["read"],
     leads: ["read"],
@@ -215,25 +243,97 @@ export const DEFAULT_ROLE_RULES: Record<RoleKey, Partial<Record<PermissionResour
 
 // Feature toggles limit ordinary roles; Super Admin retains administrative access.
 export const RESOURCE_FEATURES: Partial<Record<PermissionResource, string>> = {
-  contacts: "crm_deals", deals: "crm_deals", leads: "crm_deals", moms: "crm_deals", requests: "crm_deals", contracts: "crm_deals",
-  invoices: "invoicing", payments: "invoicing", expenses: "invoicing", finance_analytics: "invoicing", quotations: "invoicing", reports: "invoicing",
-  calendar: "calendar", banners: "cms", portfolio: "cms", clients: "cms", faqs: "cms", stats: "cms",
-  equipment: "equipment", reviews: "reviews",
-  employees: "hrms", payroll: "payroll", benefits: "hrms", profile_changes: "hrms", self_service: "hrms",
+  contacts: "crm_deals",
+  deals: "crm_deals",
+  leads: "crm_deals",
+  moms: "crm_deals",
+  requests: "crm_deals",
+  contracts: "crm_deals",
+  invoices: "invoicing",
+  payments: "invoicing",
+  expenses: "invoicing",
+  finance_analytics: "invoicing",
+  quotations: "invoicing",
+  reports: "invoicing",
+  calendar: "calendar",
+  banners: "cms",
+  portfolio: "cms",
+  clients: "cms",
+  faqs: "cms",
+  stats: "cms",
+  equipment: "equipment",
+  reviews: "reviews",
+  employees: "hrms",
+  payroll: "payroll",
+  benefits: "hrms",
+  profile_changes: "hrms",
+  self_service: "hrms",
 };
 
 /** Roles matrix layout. Every resource must appear exactly once (checked by scripts/check-permissions.cjs). */
-export const PERMISSION_GROUPS: ReadonlyArray<{ key: string; resources: readonly PermissionResource[] }> = [
-  { key: "finance", resources: ["invoices", "quotations", "payments", "expenses", "finance_analytics", "reports"] },
-  { key: "crm", resources: ["deals", "contacts", "leads", "contracts", "requests", "moms", "support"] },
-  { key: "hr", resources: ["employees", "payroll", "benefits", "profile_changes", "self_service"] },
-  { key: "cms", resources: ["banners", "portfolio", "clients", "equipment", "reviews", "faqs", "stats", "social"] },
+export const PERMISSION_GROUPS: ReadonlyArray<{
+  key: string;
+  resources: readonly PermissionResource[];
+}> = [
+  {
+    key: "finance",
+    resources: [
+      "invoices",
+      "quotations",
+      "payments",
+      "expenses",
+      "finance_analytics",
+      "reports",
+    ],
+  },
+  {
+    key: "crm",
+    resources: [
+      "deals",
+      "contacts",
+      "leads",
+      "contracts",
+      "requests",
+      "moms",
+      "support",
+    ],
+  },
+  {
+    key: "hr",
+    resources: [
+      "employees",
+      "payroll",
+      "benefits",
+      "profile_changes",
+      "self_service",
+    ],
+  },
+  {
+    key: "cms",
+    resources: [
+      "banners",
+      "portfolio",
+      "clients",
+      "equipment",
+      "reviews",
+      "faqs",
+      "stats",
+      "social",
+    ],
+  },
   { key: "operations", resources: ["calendar", "assets"] },
+  { key: "communications", resources: ["announcements", "letters"] },
   { key: "administration", resources: ["users", "settings", "audit_logs"] },
 ];
 
 /** Default grant for a role, used by seed/bootstrap and the "reset to defaults" action. */
-export function isDefaultAllowed(role: string, resource: PermissionResource, action: PermissionAction): boolean {
+export function isDefaultAllowed(
+  role: string,
+  resource: PermissionResource,
+  action: PermissionAction,
+): boolean {
   if (role === "super_admin") return true;
-  return (DEFAULT_ROLE_RULES[role as RoleKey]?.[resource] ?? []).includes(action);
+  return (DEFAULT_ROLE_RULES[role as RoleKey]?.[resource] ?? []).includes(
+    action,
+  );
 }

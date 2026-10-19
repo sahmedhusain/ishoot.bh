@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import {
@@ -108,7 +109,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
       });
 
       if (res.success && res.employee) {
-        toast.success(t.employeeResidency.created.replace("{number}", res.employee.employeeNumber), { id: toastId });
+        toast.success(formatMessage(t.employeeResidency.created, { number: res.employee.employeeNumber }), { id: toastId });
         router.push(ROUTES.hr.employee(res.employee.id));
       } else {
         toast.error(t.newEmployeeForm.failedToOnboardEmployee, { id: toastId });
@@ -248,7 +249,7 @@ export function NewEmployeeFormView({ departments, linkUser, canSetPay = false }
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={t.newEmployeeForm.employeeIshootBh}
+                placeholder={t.newEmployeeForm.employeeEmailExample}
                 className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
               />
             </div>

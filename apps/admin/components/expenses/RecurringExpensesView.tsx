@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -78,7 +79,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
   const overdue = active.filter((i) => i.days_until < 0 && !i.auto_record);
   const title = (r: RecurringExpenseRecord) => (isAr && r.title_ar) || r.title_en;
   const dueText = (r: RecurringExpenseRecord) =>
-    r.days_until < 0 ? c.overdueBy.replace("{days}", String(-r.days_until)) : r.days_until === 0 ? c.dueToday : c.dueIn.replace("{days}", String(r.days_until));
+    r.days_until < 0 ? formatMessage(c.overdueBy, { days: String(-r.days_until) }) : r.days_until === 0 ? c.dueToday : formatMessage(c.dueIn, { days: String(r.days_until) });
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16">
@@ -211,7 +212,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
                     </td>
                     <td className="px-4 py-3 text-end text-xs whitespace-nowrap tabular-nums">
                       <div className="font-semibold text-ink">{money(r.amount, r.currency)}</div>
-                      {r.frequency !== "monthly" ? <div className="text-ink-muted">{c.perMonth.replace("{amount}", money(r.monthly_equivalent, r.currency))}</div> : null}
+                      {r.frequency !== "monthly" ? <div className="text-ink-muted">{formatMessage(c.perMonth, { amount: money(r.monthly_equivalent, r.currency) })}</div> : null}
                     </td>
                     <td className="px-4 py-3 text-xs whitespace-nowrap">
                       {r.is_active ? (
@@ -222,7 +223,7 @@ export function RecurringExpensesView({ items, categories, canWrite, canDelete }
                       ) : (
                         <span className="text-ink-muted">{c.paused}</span>
                       )}
-                      {r.recorded_count ? <div className="text-ink-muted">{c.recordedCount.replace("{n}", String(r.recorded_count))}</div> : null}
+                      {r.recorded_count ? <div className="text-ink-muted">{formatMessage(c.recordedCount, { n: String(r.recorded_count) })}</div> : null}
                     </td>
                     <td className="px-4 py-3 text-end whitespace-nowrap">
                       {canWrite ? (

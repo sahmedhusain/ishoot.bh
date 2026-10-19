@@ -1,3 +1,4 @@
+import { formatMessage } from "@ishoot/locales";
 import { Document, Page, View } from "@react-pdf/renderer";
 import type { Invoice } from "@ishoot/database/types";
 import {
@@ -104,7 +105,7 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
               <Field label={bare(t.iban)} value={company.bank_iban} strong />
               <Field label={bare(t.accountNo)} value={company.bank_account_number} />
               <Field label={bare(t.swift)} value={company.bank_swift} />
-              <T style={{ fontSize: 7, color: C.muted, marginTop: 4 }}>{t.wireRefNotice.replace("{invNum}", invoice.invoice_number)}</T>
+              <T style={{ fontSize: 7, color: C.muted, marginTop: 4 }}>{formatMessage(t.wireRefNotice, { invNum: invoice.invoice_number })}</T>
             </>
           )}
         </Card>
@@ -132,10 +133,10 @@ function InvoiceBody({ k, invoice, brand, variant = "invoice", quotationTerms, s
             ) : null
           ) : (
             <T style={{ fontSize: 7.5, color: C.body, lineHeight: 1.55 }}>
-              {t.termsNotice.replace("{days}", String(company.payment_terms_days)).replace("{date}", fmtDate(invoice.due_date, isAr))}
+              {formatMessage(t.termsNotice, { days: String(company.payment_terms_days), date: fmtDate(invoice.due_date, isAr) })}
             </T>
           )}
-          <T style={{ fontSize: 7.5, color: C.muted, marginTop: 6 }}>{t.thankYou.replace("{companyName}", companyName).replace(/\.\.$/, ".")}</T>
+          <T style={{ fontSize: 7.5, color: C.muted, marginTop: 6 }}>{formatMessage(t.thankYou, { companyName: companyName }).replace(/\.\.$/, ".")}</T>
           {notes ? (
             <T style={{ fontSize: 7.5, color: C.ink, marginTop: 6, lineHeight: 1.55 }}>
               {d.note}: {notes}

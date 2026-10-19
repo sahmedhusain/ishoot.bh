@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -305,7 +306,7 @@ export function ClientsListView({
                         </a>
                       ) : null}
                       {row.contact_persons_count > 1 ? (
-                        <div className="mt-0.5 text-[11px] text-accent">{c.contactsCount.replace("{n}", String(row.contact_persons_count))}</div>
+                        <div className="mt-0.5 text-[11px] text-accent">{formatMessage(c.contactsCount, { n: String(row.contact_persons_count) })}</div>
                       ) : null}
                     </td>
                     <td className="px-4 py-3 text-xs text-ink">
@@ -314,7 +315,7 @@ export function ClientsListView({
                     </td>
                     <td className="px-4 py-3 text-end text-xs tabular-nums whitespace-nowrap">
                       <div className="font-semibold text-ink">{row.billed ? money(row.billed) : "—"}</div>
-                      {row.invoice_count ? <div className="text-ink-muted">{c.invoicesCount.replace("{n}", String(row.invoice_count))}</div> : null}
+                      {row.invoice_count ? <div className="text-ink-muted">{formatMessage(c.invoicesCount, { n: String(row.invoice_count) })}</div> : null}
                     </td>
                     <td className="px-4 py-3 text-end text-xs tabular-nums whitespace-nowrap">
                       <div className={row.outstanding > 0 ? "font-semibold text-rose-600 dark:text-rose-300" : "text-ink-muted"}>
@@ -347,10 +348,10 @@ export function ClientsListView({
           </table>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 px-4 py-3 text-xs text-ink-muted">
-          <span>{c.rankingNote.replace("{currency}", currency)}</span>
+          <span>{formatMessage(c.rankingNote, { currency: currency })}</span>
           <nav aria-label={t.listControls.listPages} className="flex items-center gap-2">
             <span className="tabular-nums">
-              {t.listControls.page.replace("{page}", String(page)).replace("{pages}", String(pages))} · {total} {t.listControls.records}
+              {formatMessage(t.listControls.page, { page: String(page), pages: String(pages) })} · {total} {t.listControls.records}
             </span>
             {page > 1 ? (
               <Link href={href({ page: page - 1 })} aria-label={t.listControls.previous} className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-ink/15 hover:bg-ink/5">

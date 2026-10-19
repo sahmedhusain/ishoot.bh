@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db } from "../db";
 import { Prisma } from "@prisma/client";
 import { DEFAULT_HR_POLICY, type HrPolicyRules, type LeaveTypeRules } from "../hr/payroll-engine";
@@ -31,21 +33,21 @@ export async function getHrPolicy(): Promise<HrPolicyRules> {
 
 export function validateHrPolicy(input: HrPolicyRules): HrPolicyRules {
   const int = (value: number, min: number, max: number, label: string) => {
-    if (!Number.isInteger(value) || value < min || value > max) throw new Error(`${label} must be between ${min} and ${max}`);
+    if (!Number.isInteger(value) || value < min || value > max) throw new Error(formatMessage(serverTemplates["0MustBeBetween1And2"], { 0: label, 1: min, 2: max }));
     return value;
   };
   const rate = (value: number, label: string) => {
-    if (!Number.isFinite(value) || value < 1 || value > 5) throw new Error(`${label} must be between 1 and 5`);
+    if (!Number.isFinite(value) || value < 1 || value > 5) throw new Error(formatMessage(serverTemplates["0MustBeBetween1And5"], { 0: label }));
     return Math.round(value * 100) / 100;
   };
-  if (!["arrears", "current"].includes(input.salaryTiming)) throw new Error("Choose when salaries are paid");
-  if (!["30", "calendar_days", "working_days"].includes(input.dailyRateBasis)) throw new Error("Choose how the daily rate is worked out");
-  if (!["basic", "fixed"].includes(input.deductionBase) || !["basic", "fixed"].includes(input.overtimeBase)) throw new Error("Choose the pay used for deductions and overtime");
-  if (!["present", "absent"].includes(input.unmarkedDays)) throw new Error("Choose how unmarked days count");
+  if (!["arrears", "current"].includes(input.salaryTiming)) throw new Error(serverMessages.chooseWhenSalariesArePaid);
+  if (!["30", "calendar_days", "working_days"].includes(input.dailyRateBasis)) throw new Error(serverMessages.chooseHowTheDailyRateIsWorked);
+  if (!["basic", "fixed"].includes(input.deductionBase) || !["basic", "fixed"].includes(input.overtimeBase)) throw new Error(serverMessages.chooseThePayUsedForDeductionsAnd);
+  if (!["present", "absent"].includes(input.unmarkedDays)) throw new Error(serverMessages.chooseHowUnmarkedDaysCount);
   const weekendDays = Array.from(new Set(input.weekendDays)).sort();
-  if (weekendDays.length > 3 || weekendDays.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) throw new Error("Choose up to three weekend days");
-  if (!(input.workdayHours >= 1 && input.workdayHours <= 16)) throw new Error("Working hours must be between 1 and 16");
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.workdayStart ?? "")) throw new Error("The working day start must be HH:MM");
+  if (weekendDays.length > 3 || weekendDays.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) throw new Error(serverMessages.chooseUpToThreeWeekendDays);
+  if (!(input.workdayHours >= 1 && input.workdayHours <= 16)) throw new Error(serverMessages.workingHoursMustBeBetween1And);
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.workdayStart ?? "")) throw new Error(serverMessages.theWorkingDayStartMustBeHh);
   return {
     ...input,
     payDay: int(input.payDay, 1, 31, "Pay day"),
@@ -86,13 +88,13 @@ export async function holidaySet(start: Date, end: Date): Promise<Set<string>> {
 }
 
 export async function savePublicHoliday(input: { id?: string | null; date: string; nameEn: string; nameAr: string }) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error("Choose a date");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date)) throw new Error(serverMessages.chooseADate);
   const nameEn = input.nameEn.trim();
   const nameAr = input.nameAr.trim() || nameEn;
-  if (!nameEn || nameEn.length > 120 || nameAr.length > 120) throw new Error("Give the holiday a name");
+  if (!nameEn || nameEn.length > 120 || nameAr.length > 120) throw new Error(serverMessages.giveTheHolidayAName);
   const data = { date: new Date(`${input.date}T00:00:00Z`), nameEn, nameAr };
   const clash = await db.publicHoliday.findUnique({ where: { date: data.date } });
-  if (clash && clash.id !== input.id) throw new Error("There is already a holiday on that date");
+  if (clash && clash.id !== input.id) throw new Error(serverMessages.thereIsAlreadyAHolidayOnThat);
   return input.id ? db.publicHoliday.update({ where: { id: input.id }, data }) : db.publicHoliday.create({ data });
 }
 
@@ -111,11 +113,11 @@ export async function listShiftTypes(): Promise<ShiftTypeView[]> {
 
 export async function saveShiftType(input: Omit<ShiftTypeView, "id"> & { id?: string | null }) {
   const code = input.code.trim().toLowerCase().replace(/[^a-z0-9_]+/g, "_").slice(0, 40);
-  if (!code) throw new Error("Give the shift a code");
-  if (!input.nameEn.trim()) throw new Error("Give the shift a name");
-  if (!["fixed", "percent"].includes(input.allowanceMode)) throw new Error("Choose how the allowance is paid");
+  if (!code) throw new Error(serverMessages.giveTheShiftACode);
+  if (!input.nameEn.trim()) throw new Error(serverMessages.giveTheShiftAName);
+  if (!["fixed", "percent"].includes(input.allowanceMode)) throw new Error(serverMessages.chooseHowTheAllowanceIsPaid);
   if (!(input.allowanceValue >= 0) || (input.allowanceMode === "percent" && input.allowanceValue > 200) || input.allowanceValue > 100000)
-    throw new Error("Enter a valid allowance");
+    throw new Error(serverMessages.enterAValidAllowance);
   const data = { code, nameEn: input.nameEn.trim(), nameAr: input.nameAr.trim() || input.nameEn.trim(), allowanceMode: input.allowanceMode, allowanceValue: Math.round(input.allowanceValue * 1000) / 1000, isActive: input.isActive };
   return input.id ? db.shiftType.update({ where: { id: input.id }, data }) : db.shiftType.create({ data });
 }
@@ -168,20 +170,20 @@ export type LeaveTypeInput = Omit<LeaveTypeView, "id" | "isPaid"> & { id?: strin
 
 export async function saveLeaveType(input: LeaveTypeInput) {
   const code = input.code.trim().toLowerCase().replace(/[^a-z0-9_]+/g, "_").slice(0, 40);
-  if (!code || !input.nameEn.trim()) throw new Error("Give the leave type a code and a name");
-  if (!["annual", "monthly", "none"].includes(input.accrual)) throw new Error("Choose how the balance is earned");
-  if (!Number.isInteger(input.payPercent) || input.payPercent < 0 || input.payPercent > 100) throw new Error("Pay must be 0–100%");
-  if (!(input.daysAllowedPerYear >= 0 && input.daysAllowedPerYear <= 366)) throw new Error("Days per year must be 0–366");
-  if (!Number.isInteger(input.eligibleAfterMonths) || input.eligibleAfterMonths < 0 || input.eligibleAfterMonths > 120) throw new Error("Eligibility must be 0–120 months");
-  if (!(input.maxCarryOverDays >= 0 && input.maxCarryOverDays <= 366)) throw new Error("Carry-over must be 0–366 days");
-  if (input.maxDaysPerRequest != null && !(input.maxDaysPerRequest > 0 && input.maxDaysPerRequest <= 366)) throw new Error("Maximum per request must be 1–366 days");
+  if (!code || !input.nameEn.trim()) throw new Error(serverMessages.giveTheLeaveTypeACodeAnd);
+  if (!["annual", "monthly", "none"].includes(input.accrual)) throw new Error(serverMessages.chooseHowTheBalanceIsEarned);
+  if (!Number.isInteger(input.payPercent) || input.payPercent < 0 || input.payPercent > 100) throw new Error(serverMessages.payMustBe0100);
+  if (!(input.daysAllowedPerYear >= 0 && input.daysAllowedPerYear <= 366)) throw new Error(serverMessages.daysPerYearMustBe0366);
+  if (!Number.isInteger(input.eligibleAfterMonths) || input.eligibleAfterMonths < 0 || input.eligibleAfterMonths > 120) throw new Error(serverMessages.eligibilityMustBe0120Months);
+  if (!(input.maxCarryOverDays >= 0 && input.maxCarryOverDays <= 366)) throw new Error(serverMessages.carryOverMustBe0366Days);
+  if (input.maxDaysPerRequest != null && !(input.maxDaysPerRequest > 0 && input.maxDaysPerRequest <= 366)) throw new Error(serverMessages.maximumPerRequestMustBe1366);
   let tiers: Array<{ upToDays: number; percent: number }> | null = null;
   if (input.payTiers?.length) {
     tiers = [...input.payTiers].sort((a, b) => a.upToDays - b.upToDays);
     let previous = 0;
     for (const tier of tiers) {
       if (!(tier.upToDays > previous) || !Number.isInteger(tier.percent) || tier.percent < 0 || tier.percent > 100)
-        throw new Error("Pay bands need increasing day limits and a 0–100% pay each");
+        throw new Error(serverMessages.payBandsNeedIncreasingDayLimitsAnd);
       previous = tier.upToDays;
     }
   }
@@ -206,7 +208,7 @@ export async function saveLeaveType(input: LeaveTypeInput) {
     sortOrder: input.sortOrder,
   };
   const clash = await db.leaveType.findUnique({ where: { code } });
-  if (clash && clash.id !== input.id) throw new Error("Another leave type uses this code");
+  if (clash && clash.id !== input.id) throw new Error(serverMessages.anotherLeaveTypeUsesThisCode);
   if (input.id) {
     return db.leaveType.update({ where: { id: input.id }, data: { ...data, payTiers: tiers ? (tiers as Prisma.InputJsonValue) : Prisma.DbNull } });
   }

@@ -2,25 +2,28 @@
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
+import { AddLinkInline } from "../shared/LinkOrUploadField";
+import { createAttachmentAction } from "../../app/actions/attachments";
 
 import * as React from "react";
 import Link from "next/link";
-import type { Payment,CompanySettings } from "@ishoot/database/types";
+import type { Payment, CompanySettings } from "@ishoot/database/types";
 import { ReceiptTemplate } from "./ReceiptTemplate";
 import { DeliveryToolbar } from "../shared/DeliveryToolbar";
 import { Button } from "@ishoot/ui";
 import {
-ArrowLeft,
-ArrowRight,
-Receipt,
-FileText,
-User,ExternalLink,
-ShieldCheck,
-FileCheck,
-FolderArchive,
-UploadCloud,
-Loader2,
-Landmark
+  ArrowLeft,
+  ArrowRight,
+  Receipt,
+  FileText,
+  User,
+  ExternalLink,
+  ShieldCheck,
+  FileCheck,
+  FolderArchive,
+  UploadCloud,
+  Loader2,
+  Landmark,
 } from "lucide-react";
 import { printDocumentPdf } from "../../lib/pdf-print";
 import { toast } from "sonner";
@@ -53,8 +56,11 @@ export function PaymentDetailView({
 
     setUploading(true);
     try {
-      const data = await uploadFileDirectly(file, { entityType: "payment", entityId: payment.id });
-        const res = { ok: true }; // polyfill for following code
+      const data = await uploadFileDirectly(file, {
+        entityType: "payment",
+        entityId: payment.id,
+      });
+      const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
         throw new Error(data.error || t.paymentDetail.uploadFailed);
       }
@@ -148,7 +154,9 @@ export function PaymentDetailView({
             variant="outline"
             size="sm"
             onClick={() =>
-              printDocumentPdf("receipt", payment.receipt_number, locale).catch(() => toast.error(t.pdfActions.failed))
+              printDocumentPdf("receipt", payment.receipt_number, locale).catch(
+                () => toast.error(t.pdfActions.failed),
+              )
             }
             className="gap-2 text-xs font-semibold"
           >
@@ -225,6 +233,40 @@ export function PaymentDetailView({
                 </>
               )}
             </button>
+            <AddLinkInline
+              disabled={uploading}
+              onLink={async (url) => {
+                const fileName = new URL(url).hostname;
+                const result = await createAttachmentAction({
+                  fileName,
+                  fileUrl: url,
+                  entityType: "payment",
+                  entityId: payment.id,
+                });
+                if (!result.success || !result.attachment)
+                  return alert(
+                    errorMessage(
+                      result.error,
+                      t,
+                      t.paymentDetail.failedToUploadDocument,
+                    ),
+                  );
+                setPayment((prev) => ({
+                  ...prev,
+                  proof_attachments: [
+                    {
+                      id: result.attachment.id,
+                      file_name: fileName,
+                      file_url: url,
+                      entity_type: "payment",
+                      entity_id: payment.id,
+                      created_at: new Date().toISOString(),
+                    },
+                    ...(prev.proof_attachments || []),
+                  ],
+                }));
+              }}
+            />
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { AlertTriangle, Building2, FileBadge, Landmark, Mail, MapPin, Phone, Star, Trophy, User } from "lucide-react";
 import { Card, formatCurrencyValue, formatDate } from "@ishoot/ui";
 import type { CRMContact } from "@ishoot/database/types";
@@ -29,12 +30,12 @@ export function ClientTierBadge({ standing }: { standing: ClientStanding }) {
   const c = t.clients;
   const label =
     standing.rank && standing.tier !== "none"
-      ? c.profile.rankLine.replace("{rank}", String(standing.rank)).replace("{total}", String(standing.rankedClients))
+      ? formatMessage(c.profile.rankLine, { rank: String(standing.rank), total: String(standing.rankedClients) })
       : c.profile.notRanked;
   return (
     <span title={`${c.tierHints[standing.tier]} · ${label}`} className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${TIER_STYLE[standing.tier]}`}>
       <Trophy className="h-3.5 w-3.5" />
-      {standing.tier === "none" ? c.tierNames.none : c.profile.tierLabel.replace("{tier}", standing.tier)}
+      {standing.tier === "none" ? c.tierNames.none : formatMessage(c.profile.tierLabel, { tier: standing.tier })}
       {standing.rank ? <span className="font-medium opacity-80">· #{standing.rank}</span> : null}
     </span>
   );
@@ -72,7 +73,7 @@ export function ClientProfilePanel({ contact, standing, className = "" }: { cont
         {daysToExpiry !== null && daysToExpiry <= 30 ? (
           <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-800 dark:text-amber-200">
             <AlertTriangle className="h-4 w-4 shrink-0" />
-            {daysToExpiry < 0 ? c.profile.crExpired : c.profile.crExpiresSoon.replace("{days}", String(daysToExpiry))}
+            {daysToExpiry < 0 ? c.profile.crExpired : formatMessage(c.profile.crExpiresSoon, { days: String(daysToExpiry) })}
           </div>
         ) : null}
         <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -108,7 +109,7 @@ export function ClientProfilePanel({ contact, standing, className = "" }: { cont
           <Item label={contact.registration_country && contact.registration_country !== "BH" ? f.taxNumber : f.vatNumber} value={contact.vat_number} ltr />
           <Item label={f.classification} value={t.crm.contactTypes[contact.contact_type ?? "client"]} />
           <Item label={f.preferredLanguage} value={contact.preferred_language === "ar" ? f.languageAr : contact.preferred_language === "en" ? f.languageEn : null} />
-          <Item label={f.paymentTerms} value={contact.payment_terms_days !== undefined ? c.profile.days.replace("{n}", String(contact.payment_terms_days)) : null} />
+          <Item label={f.paymentTerms} value={contact.payment_terms_days !== undefined ? formatMessage(c.profile.days, { n: String(contact.payment_terms_days) }) : null} />
           {contact.website ? (
             <div>
               <dt className="text-[11px] text-ink-muted mb-0.5">{f.website}</dt>
@@ -124,7 +125,7 @@ export function ClientProfilePanel({ contact, standing, className = "" }: { cont
         ) : null}
         {standing && standing.billed > 0 ? (
           <p className="text-xs text-ink-muted border-t border-ink/10 pt-3">
-            {standing.rank ? c.profile.rankLine.replace("{rank}", String(standing.rank)).replace("{total}", String(standing.rankedClients)) : c.profile.notRanked}
+            {standing.rank ? formatMessage(c.profile.rankLine, { rank: String(standing.rank), total: String(standing.rankedClients) }) : c.profile.notRanked}
             {" · "}
             {c.columns.billed}: {formatCurrencyValue(standing.billed, standing.currency, locale === "ar")}
           </p>

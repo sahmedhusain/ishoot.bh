@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import type { Invoice,CompanySettings } from "@ishoot/database/types";
 import { formatCurrencyValue } from "@ishoot/ui";
 import { adminTranslations } from "../../lib/translations-bilingual";
@@ -130,8 +131,8 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
                 {t.documentLetterhead.termsNotes}
               </h3>
               <div className="text-[11px] leading-relaxed text-slate-600 space-y-1.5 bg-slate-50 p-4 rounded-xl border border-slate-200 print:bg-white print:border-slate-300 print:text-[10px]">
-                <p>1. {inv.terms1.replace("{days}", String(company.payment_terms_days || 30)).replace("{date}", invoice.due_date)}</p>
-                <p>2. {inv.terms2.replace("{number}", invoice.invoice_number)}</p>
+                <p>1. {formatMessage(inv.terms1, { days: String(company.payment_terms_days || 30), date: invoice.due_date })}</p>
+                <p>2. {formatMessage(inv.terms2, { number: invoice.invoice_number })}</p>
                 <p>3. {inv.terms3}</p>
                 {invoice.notes_en && (
                   <p className="pt-1.5 border-t border-slate-200/80 font-medium text-slate-800">
@@ -234,7 +235,7 @@ export function InvoiceTemplate({ invoice, company, signing = null }: InvoiceTem
           )}
           {(invoice.other_taxes ?? []).map((tax) => (
             <a key={tax.code} href={`/certificates/${tax.code}?lang=${invoice.language}`} target="_blank" rel="noreferrer" className="font-semibold text-primary hover:underline">
-              {t.taxCertificate.certificateOf.replace("{tax}", isAr ? tax.name_ar : tax.name_en)}
+              {formatMessage(t.taxCertificate.certificateOf, { tax: isAr ? tax.name_ar : tax.name_en })}
             </a>
           ))}
         </div>

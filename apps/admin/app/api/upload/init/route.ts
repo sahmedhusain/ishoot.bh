@@ -1,3 +1,6 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
+
 import { measureOperation,db } from "@ishoot/database";
 import { NextRequest,NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../lib/auth";
@@ -5,26 +8,27 @@ import { requireAttachmentAccess } from "../../../../lib/attachment-access";
 import { randomUUID } from "crypto";
 import { getStorageClient, isSupabaseStorageConfigured } from "@ishoot/database";
 
+const maxUploadMb = 10;
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   return measureOperation("admin:upload/init:POST", async () => {
     try {
       const user = await getCurrentUser();
-      if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      if (!user) return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
 
       const input: unknown = await req.json();
-      if (!input || typeof input !== "object" || Array.isArray(input)) return NextResponse.json({ error: "Invalid upload input" }, { status: 400 });
+      if (!input || typeof input !== "object" || Array.isArray(input)) return NextResponse.json({ error: serverMessages.runtimeInvalidUploadInput }, { status: 400 });
       const { fileName, fileType, fileSize, entityType = "general", entityId = "" } = input as Record<string, unknown>;
 
       if (typeof fileName !== "string" || !fileName.trim() || typeof fileType !== "string" || typeof fileSize !== "number" || !Number.isInteger(fileSize) || fileSize <= 0 || typeof entityType !== "string" || typeof entityId !== "string")
-        return NextResponse.json({ error: "Invalid upload input" }, { status: 400 });
-      if (fileSize > 10 * 1024 * 1024) return NextResponse.json({ error: "Maximum file size is 10 MB" }, { status: 413 });
+        return NextResponse.json({ error: serverMessages.runtimeInvalidUploadInput }, { status: 400 });
+      if (fileSize > maxUploadMb * 1024 * 1024) return NextResponse.json({ error: formatMessage(serverTemplates.maximumFileSize, { 0: maxUploadMb }) }, { status: 413 });
       const extensions: Record<string, string> = { "application/pdf": ".pdf", "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" };
-      if (!Object.hasOwn(extensions, fileType)) return NextResponse.json({ error: "Unsupported file type" }, { status: 415 });
+      if (!Object.hasOwn(extensions, fileType)) return NextResponse.json({ error: serverMessages.runtimeUnsupportedFileType }, { status: 415 });
 
       try { await requireAttachmentAccess(entityType, entityId, "write"); }
-      catch { return NextResponse.json({ error: "Upload access denied" }, { status: 403 }); }
+      catch { return NextResponse.json({ error: serverMessages.runtimeUploadAccessDenied }, { status: 403 }); }
 
       let subfolder = "general";
       if (entityType === "payment" || entityType === "bank") subfolder = "payments";
@@ -34,7 +38,7 @@ export async function POST(req: NextRequest) {
       else if (entityType === "deal") subfolder = "deals";
 
       const publicBrand = (entityType === "company_asset" && ["logo_light", "logo_dark", "icon_light", "icon_dark", "icon"].includes(entityId)) || entityType === "cms_asset";
-      if (publicBrand && fileType === "application/pdf") return NextResponse.json({ error: "Brand assets must be images" }, { status: 415 });
+      if (publicBrand && fileType === "application/pdf") return NextResponse.json({ error: serverMessages.runtimeBrandAssetsMustBeImages }, { status: 415 });
       if (publicBrand) subfolder = "brand";
 
       const ext = extensions[fileType];
@@ -50,7 +54,7 @@ export async function POST(req: NextRequest) {
         const { data, error } = await getStorageClient().storage.from(bucket).createSignedUploadUrl(filePath);
         if (error) {
           console.error("Upload init storage error:", error.message);
-          return NextResponse.json({ error: "File storage is unavailable. Try again shortly." }, { status: 503 });
+          return NextResponse.json({ error: serverMessages.runtimeFileStorageIsUnavailableTryAgainShortly }, { status: 503 });
         }
         signed = { signedUrl: data.signedUrl, token: data.token };
       } else {
@@ -79,7 +83,7 @@ export async function POST(req: NextRequest) {
       });
     } catch (err: unknown) {
       console.error("Upload init error:", err);
-      return NextResponse.json({ success: false, error: "Failed to initialize upload" }, { status: 500 });
+      return NextResponse.json({ success: false, error: serverMessages.runtimeFailedToInitializeUpload }, { status: 500 });
     }
   });
 }

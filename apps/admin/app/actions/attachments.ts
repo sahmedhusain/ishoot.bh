@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES, entityRoute } from "../../constants/routes";
 import { runAtomicMutation, measureOperation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -70,7 +71,7 @@ export async function deleteAttachmentAction(id: string) {
     validateActionArguments("deleteAttachmentAction", { id });
     try {
       const attachment = await db.attachment.findUnique({ where: { id } });
-      if (!attachment) throw new Error("Attachment not found");
+      if (!attachment) throw new Error(serverMessages.attachmentNotFound);
       const user = await requireAttachmentAccess(
         attachment.entityType,
         attachment.entityId,

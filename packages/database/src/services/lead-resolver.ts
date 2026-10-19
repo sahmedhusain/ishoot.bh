@@ -1,4 +1,7 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
+import { referencePrefixFor } from "../constants/requests";
+import { getNextSequenceNumber } from "../queries/sequence";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 export function normalizeToE164(
@@ -52,7 +55,7 @@ export async function resolveIncomingLead(
 ): Promise<ResolvedLeadResult> {
   const emailNorm = data.email.trim().toLowerCase();
   const phoneE164 = data.phone ? normalizeToE164(data.phone, "BH") : null;
-  if (data.phone && !phoneE164) throw new Error("Invalid phone number");
+  if (data.phone && !phoneE164) throw new Error(serverMessages.invalidPhoneNumber);
   const intent = data.intent || "inquiry";
   return db.$transaction(async (tx) => {
     if (data.submissionKey) {
@@ -62,7 +65,7 @@ export async function resolveIncomingLead(
       });
       if (prior) {
         if (prior.requestHash !== data.requestHash)
-          throw new Error("Submission key already used");
+          throw new Error(serverMessages.submissionKeyAlreadyUsed);
         return {
           customerId: prior.customerId,
           inquiryId: prior.id,
@@ -124,6 +127,7 @@ export async function resolveIncomingLead(
     }
     const inquiry = await tx.inquiry.create({
       data: {
+        reference: await getNextSequenceNumber(referencePrefixFor({ intent }), undefined, tx),
         name: data.name,
         email: data.email,
         emailNorm: emailNorm || null,

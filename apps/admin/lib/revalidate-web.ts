@@ -1,3 +1,4 @@
+import { serverTemplates, formatMessage } from "@ishoot/locales";
 export async function revalidatePublicSite(
   tags: string[] = [],
   paths: string[] = ["/"],
@@ -23,7 +24,7 @@ export async function revalidatePublicSite(
       signal: AbortSignal.timeout(3000),
     });
     if (!response.ok)
-      throw new Error(`Public site revalidation failed (${response.status})`);
+      throw new Error(formatMessage(serverTemplates.publicSiteRevalidationFailed0, { 0: response.status }));
     return true;
   } catch (err) {
     console.warn("Failed to revalidate public site cache:", err);

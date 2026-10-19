@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db, runAtomicMutation } from "../db";
 import { APPROVAL_CONDITION_FIELDS, APPROVAL_TARGET_TYPES, APPROVER_MODES, type ApprovalTargetType, type ApproverMode } from "../constants/approvals";
 import { ALL_ACTIONS, ALL_RESOURCES, ALL_ROLES } from "../constants/permissions";
@@ -60,25 +61,25 @@ export async function listApprovalPolicies(): Promise<ApprovalPolicyView[]> {
 }
 
 function validateStep(step: ApprovalPolicyStepInput) {
-  if (!(APPROVER_MODES as readonly string[]).includes(step.approverMode)) throw new Error("Invalid approver type");
+  if (!(APPROVER_MODES as readonly string[]).includes(step.approverMode)) throw new Error(serverMessages.invalidApproverType);
   if (step.approverMode === "role" && !(ALL_ROLES as readonly string[]).includes(step.roleKey ?? ""))
-    throw new Error("Choose a role for this step");
-  if (step.approverMode === "user" && !step.userId) throw new Error("Choose a user for this step");
+    throw new Error(serverMessages.chooseARoleForThisStep);
+  if (step.approverMode === "user" && !step.userId) throw new Error(serverMessages.chooseAUserForThisStep);
   if (step.approverMode === "permission") {
     const [resource, action] = (step.permission ?? "").split(":");
     if (!(ALL_RESOURCES as readonly string[]).includes(resource) || !(ALL_ACTIONS as readonly string[]).includes(action))
-      throw new Error("Choose a permission for this step");
+      throw new Error(serverMessages.chooseAPermissionForThisStep);
   }
   for (const [value, max] of [[step.minAmount, 1e11], [step.minDays, 9999], [step.minDiscountPercent, 100]] as const) {
-    if (value != null && (!Number.isFinite(value) || value < 0 || value > max)) throw new Error("Step conditions must be positive numbers");
+    if (value != null && (!Number.isFinite(value) || value < 0 || value > max)) throw new Error(serverMessages.stepConditionsMustBePositiveNumbers);
   }
   if (step.escalateAfterHours != null) {
     if (!Number.isInteger(step.escalateAfterHours) || step.escalateAfterHours < 1 || step.escalateAfterHours > 720)
-      throw new Error("Escalate after 1 to 720 hours");
+      throw new Error(serverMessages.escalateAfter1To720Hours);
     if (step.escalateMode === "role" && !(ALL_ROLES as readonly string[]).includes(step.escalateRoleKey ?? ""))
-      throw new Error("Choose a role to escalate to");
-    if (step.escalateMode === "user" && !step.escalateUserId) throw new Error("Choose a person to escalate to");
-    if (step.escalateMode !== "role" && step.escalateMode !== "user") throw new Error("Choose who to escalate to");
+      throw new Error(serverMessages.chooseARoleToEscalateTo);
+    if (step.escalateMode === "user" && !step.escalateUserId) throw new Error(serverMessages.chooseAPersonToEscalateTo);
+    if (step.escalateMode !== "role" && step.escalateMode !== "user") throw new Error(serverMessages.chooseWhoToEscalateTo);
   }
 }
 
@@ -87,16 +88,16 @@ export async function updateApprovalPolicy(
   targetType: ApprovalTargetType,
   input: Omit<ApprovalPolicyView, "targetType" | "steps" | "reminderAfterHours"> & { reminderAfterHours?: number | null; steps: ApprovalPolicyStepInput[] },
 ): Promise<void> {
-  if (!(APPROVAL_TARGET_TYPES as readonly string[]).includes(targetType)) throw new Error("Unknown approval type");
+  if (!(APPROVAL_TARGET_TYPES as readonly string[]).includes(targetType)) throw new Error(serverMessages.unknownApprovalType);
   const reminderAfterHours = input.reminderAfterHours ?? null;
   if (reminderAfterHours != null && (!Number.isInteger(reminderAfterHours) || reminderAfterHours < 1 || reminderAfterHours > 720))
-    throw new Error("Remind after 1 to 720 hours");
+    throw new Error(serverMessages.remindAfter1To720Hours);
   const allowed = APPROVAL_CONDITION_FIELDS[targetType];
   for (const step of input.steps)
     for (const field of ["minAmount", "minDays", "minDiscountPercent"] as const)
-      if (step[field] != null && !allowed.includes(field)) throw new Error("This condition does not apply to this request type");
-  if (input.steps.length > 5) throw new Error("A policy can have at most five steps");
-  if (input.enabled && input.steps.length === 0) throw new Error("An enabled policy needs at least one approval step");
+      if (step[field] != null && !allowed.includes(field)) throw new Error(serverMessages.thisConditionDoesNotApplyToThis);
+  if (input.steps.length > 5) throw new Error(serverMessages.aPolicyCanHaveAtMostFive);
+  if (input.enabled && input.steps.length === 0) throw new Error(serverMessages.anEnabledPolicyNeedsAtLeastOne);
   input.steps.forEach(validateStep);
   const autoApproveRoles = input.autoApproveRoles.filter((role) => (ALL_ROLES as readonly string[]).includes(role));
   if (input.steps.some((step) => step.approverMode === "user" || step.escalateMode === "user")) {
@@ -105,7 +106,7 @@ export async function updateApprovalPolicy(
       ...(step.escalateMode === "user" && step.escalateAfterHours != null ? [step.escalateUserId!] : []),
     ]);
     const active = await db.user.count({ where: { id: { in: ids }, isActive: true } });
-    if (active !== new Set(ids).size) throw new Error("Choose active users for user steps");
+    if (active !== new Set(ids).size) throw new Error(serverMessages.chooseActiveUsersForUserSteps);
   }
 
   await runAtomicMutation(async () => {

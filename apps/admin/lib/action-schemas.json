@@ -1,4 +1,40 @@
 {
+  "changeMyPasswordAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "currentPassword": {
+            "kind": "string",
+            "optional": false
+          },
+          "newPassword": {
+            "kind": "string",
+            "optional": false
+          },
+          "code": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "revokeMySessionAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "revokeOtherSessionsAction": {
+    "kind": "object",
+    "fields": {}
+  },
   "saveAccountSettingsAction": {
     "kind": "object",
     "fields": {
@@ -306,6 +342,10 @@
       "reason": {
         "kind": "string",
         "optional": true
+      },
+      "signature": {
+        "kind": "string",
+        "optional": true
       }
     }
   },
@@ -440,6 +480,10 @@
             "kind": "string",
             "optional": true
           },
+          "holder_employee_id": {
+            "kind": "string",
+            "optional": true
+          },
           "location": {
             "kind": "string",
             "optional": true
@@ -537,6 +581,10 @@
             "kind": "boolean",
             "optional": true
           },
+          "status_after_return": {
+            "kind": "string",
+            "optional": true
+          },
           "notes": {
             "kind": "string",
             "optional": true
@@ -560,6 +608,10 @@
             "optional": false
           }
         },
+        "optional": true
+      },
+      "issuerSignature": {
+        "kind": "string",
         "optional": true
       }
     }
@@ -738,6 +790,53 @@
           "google_calendar_id": {
             "kind": "string",
             "optional": true
+          },
+          "visibility": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "private"
+              },
+              {
+                "kind": "literal",
+                "value": "team"
+              },
+              {
+                "kind": "literal",
+                "value": "department"
+              },
+              {
+                "kind": "literal",
+                "value": "company"
+              },
+              {
+                "kind": "literal",
+                "value": "custom"
+              }
+            ],
+            "optional": true
+          },
+          "audience_user_ids": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "audience_department_ids": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "audience_roles": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
           }
         },
         "optional": false
@@ -820,6 +919,53 @@
               }
             ],
             "optional": true
+          },
+          "visibility": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "private"
+              },
+              {
+                "kind": "literal",
+                "value": "team"
+              },
+              {
+                "kind": "literal",
+                "value": "department"
+              },
+              {
+                "kind": "literal",
+                "value": "company"
+              },
+              {
+                "kind": "literal",
+                "value": "custom"
+              }
+            ],
+            "optional": true
+          },
+          "audience_user_ids": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "audience_department_ids": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "audience_roles": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
           }
         },
         "optional": false
@@ -831,6 +977,43 @@
     "fields": {
       "id": {
         "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createCalendarFeedAction": {
+    "kind": "object",
+    "fields": {
+      "layers": {
+        "kind": "array",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateCalendarFeedLayersAction": {
+    "kind": "object",
+    "fields": {
+      "layers": {
+        "kind": "array",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      }
+    }
+  },
+  "revokeCalendarFeedAction": {
+    "kind": "object",
+    "fields": {}
+  },
+  "setCalendarSyncEnabledAction": {
+    "kind": "object",
+    "fields": {
+      "enabled": {
+        "kind": "boolean",
         "optional": false
       }
     }
@@ -2022,6 +2205,406 @@
             "optional": true
           }
         },
+        "optional": false
+      }
+    }
+  },
+  "saveAnnouncementAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "body_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "body_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "category": {
+            "kind": "string",
+            "optional": false
+          },
+          "priority": {
+            "kind": "string",
+            "optional": false
+          },
+          "audience": {
+            "kind": "string",
+            "optional": false
+          },
+          "audience_department_ids": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "audience_roles": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "audience_user_ids": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "official": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "requires_acknowledgement": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "pinned": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "publish_at": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "expires_at": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      },
+      "id": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "submitAnnouncementAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "archiveAnnouncementAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "announcementReceiptAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "change": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "read"
+          },
+          {
+            "kind": "literal",
+            "value": "unread"
+          },
+          {
+            "kind": "literal",
+            "value": "acknowledge"
+          },
+          {
+            "kind": "literal",
+            "value": "hide"
+          },
+          {
+            "kind": "literal",
+            "value": "unhide"
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "saveOfficialLetterAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "template_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "employee_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "languages": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "recipient_name": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "recipient_title": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "recipient_organization": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "recipient_address": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "subject_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "subject_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "body_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "body_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "letter_date": {
+            "kind": "string",
+            "optional": false
+          },
+          "classification": {
+            "kind": "string",
+            "optional": false
+          },
+          "show_signature": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "show_stamp": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      },
+      "id": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "submitOfficialLetterAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "cancelOfficialLetterAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveLetterTemplateAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "key": {
+            "kind": "string",
+            "optional": true
+          },
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "subject_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "subject_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "body_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "body_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "about_employee": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      },
+      "id": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "draftLetterTemplateAction": {
+    "kind": "object",
+    "fields": {
+      "templateId": {
+        "kind": "string",
+        "optional": false
+      },
+      "employeeId": {
+        "kind": "string",
+        "optional": true
+      },
+      "purpose": {
+        "kind": "string",
+        "optional": true
+      },
+      "recipient": {
+        "kind": "object",
+        "fields": {
+          "name": {
+            "kind": "string",
+            "optional": true
+          },
+          "title": {
+            "kind": "string",
+            "optional": true
+          },
+          "organization": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": true
+      }
+    }
+  },
+  "communicationSettingsAction": {
+    "kind": "object",
+    "fields": {
+      "managersAnnounceToTeam": {
+        "kind": "boolean",
         "optional": false
       }
     }
@@ -3360,6 +3943,323 @@
       }
     }
   },
+  "createFinalSettlementAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "employee_id": {
+            "kind": "string",
+            "optional": false
+          },
+          "reason": {
+            "kind": "string",
+            "optional": false
+          },
+          "last_working_day": {
+            "kind": "string",
+            "optional": false
+          },
+          "handover_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "notes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "recalculateFinalSettlementAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "last_working_day": {
+            "kind": "string",
+            "optional": true
+          },
+          "reason": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": true
+      }
+    }
+  },
+  "setFinalSettlementLinesAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "lines": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "kind": {
+              "kind": "union",
+              "variants": [
+                {
+                  "kind": "literal",
+                  "value": "addition"
+                },
+                {
+                  "kind": "literal",
+                  "value": "deduction"
+                }
+              ],
+              "optional": false
+            },
+            "category": {
+              "kind": "string",
+              "optional": false
+            },
+            "label_en": {
+              "kind": "string",
+              "optional": false
+            },
+            "label_ar": {
+              "kind": "string",
+              "optional": false
+            },
+            "amount": {
+              "kind": "number",
+              "optional": false
+            },
+            "note": {
+              "kind": "union",
+              "variants": [
+                {
+                  "kind": "string"
+                },
+                {
+                  "kind": "literal",
+                  "value": null
+                }
+              ],
+              "optional": true
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "submitFinalSettlementAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "cancelFinalSettlementAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "signFinalSettlementAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "signature": {
+            "kind": "string",
+            "optional": false
+          },
+          "signer_name": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "payFinalSettlementAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "method": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "paid_on": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateSettlementRulesAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "gratuity": {
+            "kind": "object",
+            "fields": {
+              "enabled": {
+                "kind": "boolean",
+                "optional": false
+              },
+              "appliesTo": {
+                "kind": "array",
+                "element": {
+                  "kind": "string"
+                },
+                "optional": false
+              },
+              "wageBasis": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "basic"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "fixed"
+                  }
+                ],
+                "optional": false
+              },
+              "firstYears": {
+                "kind": "number",
+                "optional": false
+              },
+              "firstYearsMonths": {
+                "kind": "number",
+                "optional": false
+              },
+              "laterYearsMonths": {
+                "kind": "number",
+                "optional": false
+              },
+              "minServiceMonths": {
+                "kind": "number",
+                "optional": false
+              },
+              "serviceUntil": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "string"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": null
+                  }
+                ],
+                "optional": false
+              }
+            },
+            "optional": false
+          },
+          "leaveEncashmentBase": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "basic"
+              },
+              {
+                "kind": "literal",
+                "value": "fixed"
+              }
+            ],
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "createExpenseAction": {
     "kind": "object",
     "fields": {
@@ -3942,6 +4842,20 @@
       "filters": {
         "kind": "object",
         "fields": {
+          "locale": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "en"
+              },
+              {
+                "kind": "literal",
+                "value": "ar"
+              }
+            ],
+            "optional": true
+          },
           "basis": {
             "kind": "union",
             "variants": [
@@ -5710,6 +6624,10 @@
       "id": {
         "kind": "string",
         "optional": false
+      },
+      "signature": {
+        "kind": "string",
+        "optional": true
       }
     }
   },
@@ -5741,6 +6659,41 @@
       "userId": {
         "kind": "string",
         "optional": true
+      }
+    }
+  },
+  "updateNotificationAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "change": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "read"
+          },
+          {
+            "kind": "literal",
+            "value": "unread"
+          },
+          {
+            "kind": "literal",
+            "value": "hide"
+          },
+          {
+            "kind": "literal",
+            "value": "unhide"
+          },
+          {
+            "kind": "literal",
+            "value": "delete"
+          }
+        ],
+        "optional": false
       }
     }
   },
@@ -6066,6 +7019,22 @@
       }
     }
   },
+  "setUserPermissionOverridesAction": {
+    "kind": "object",
+    "fields": {
+      "userId": {
+        "kind": "string",
+        "optional": false
+      },
+      "overrides": {
+        "kind": "record",
+        "element": {
+          "kind": "boolean"
+        },
+        "optional": false
+      }
+    }
+  },
   "updateMyProfileAction": {
     "kind": "object",
     "fields": {
@@ -6073,7 +7042,16 @@
         "kind": "object",
         "fields": {
           "phone": {
-            "kind": "string",
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
             "optional": true
           }
         },
@@ -6141,6 +7119,15 @@
     }
   },
   "cancelSignatureChangeAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "cancelMyProfileChangeAction": {
     "kind": "object",
     "fields": {
       "id": {
@@ -7122,6 +8109,15 @@
       }
     }
   },
+  "payslipMonthsForEmployeeAction": {
+    "kind": "object",
+    "fields": {
+      "employeeId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "reassignSalesOwnerAction": {
     "kind": "object",
     "fields": {
@@ -7974,6 +8970,82 @@
       }
     }
   },
+  "getSignatureModeAction": {
+    "kind": "object",
+    "fields": {
+      "documentType": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "setSignaturePolicyAction": {
+    "kind": "object",
+    "fields": {
+      "documentType": {
+        "kind": "string",
+        "optional": false
+      },
+      "mode": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "stored"
+          },
+          {
+            "kind": "literal",
+            "value": "live"
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "createHandoverSigningLinkAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      },
+      "days": {
+        "kind": "number",
+        "optional": false
+      },
+      "recipientEmail": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "string"
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": true
+      }
+    }
+  },
+  "revokeHandoverSigningLinkAction": {
+    "kind": "object",
+    "fields": {
+      "requestId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "openMyHandoverSigningPageAction": {
+    "kind": "object",
+    "fields": {
+      "handoverId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "signDocumentAction": {
     "kind": "object",
     "fields": {
@@ -7998,10 +9070,718 @@
       "id": {
         "kind": "string",
         "optional": false
+      },
+      "signature": {
+        "kind": "string",
+        "optional": true
       }
     }
   },
   "requestInvoiceApprovalAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateGosiRulesAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "firstOfMonthRule": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "wageSource": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "contract"
+              },
+              {
+                "kind": "literal",
+                "value": "registered"
+              }
+            ],
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "scheduleGosiComponentAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "applies_to": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "employee_percent": {
+            "kind": "number",
+            "optional": false
+          },
+          "employer_percent": {
+            "kind": "number",
+            "optional": false
+          },
+          "service_tiers": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "from_years": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "employee_percent": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "employer_percent": {
+                  "kind": "number",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "wage_basis": {
+            "kind": "string",
+            "optional": false
+          },
+          "min_wage": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "max_wage": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "effective_from": {
+            "kind": "string",
+            "optional": false
+          },
+          "notes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "updateGosiComponentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "applies_to": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "employee_percent": {
+            "kind": "number",
+            "optional": false
+          },
+          "employer_percent": {
+            "kind": "number",
+            "optional": false
+          },
+          "service_tiers": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "from_years": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "employee_percent": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "employer_percent": {
+                  "kind": "number",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "wage_basis": {
+            "kind": "string",
+            "optional": false
+          },
+          "min_wage": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "max_wage": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "notes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "endGosiComponentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "endsOn": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveEmployeeGosiRecordAction": {
+    "kind": "object",
+    "fields": {
+      "employeeId": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "category": {
+            "kind": "string",
+            "optional": false
+          },
+          "registration_number": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "registered_wage": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "overrides": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "code": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "employee_percent": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "number"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "employer_percent": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "number"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "wage": {
+                  "kind": "union",
+                  "variants": [
+                    {
+                      "kind": "number"
+                    },
+                    {
+                      "kind": "literal",
+                      "value": null
+                    }
+                  ],
+                  "optional": true
+                },
+                "exempt": {
+                  "kind": "boolean",
+                  "optional": true
+                }
+              }
+            },
+            "optional": true
+          },
+          "effective_from": {
+            "kind": "string",
+            "optional": false
+          },
+          "notes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteEmployeeGosiRecordAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "registerUnregisteredEmployeesAction": {
+    "kind": "object",
+    "fields": {
+      "effectiveFrom": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveSupportProgramAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "code": {
+            "kind": "string",
+            "optional": true
+          },
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "provider": {
+            "kind": "string",
+            "optional": false
+          },
+          "claim_period_months": {
+            "kind": "number",
+            "optional": false
+          },
+          "prorate": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "notes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      },
+      "id": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "scheduleSupportRuleAction": {
+    "kind": "object",
+    "fields": {
+      "programId": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "effective_from": {
+            "kind": "string",
+            "optional": false
+          },
+          "wage_basis": {
+            "kind": "string",
+            "optional": false
+          },
+          "schedule": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "year": {
+                  "kind": "number",
+                  "optional": false
+                },
+                "percent": {
+                  "kind": "number",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "wage_cap": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "monthly_cap": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "qualification_caps": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "qualification": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "cap": {
+                  "kind": "number",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "notes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteSupportRuleAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveEmployeeSupportAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "employee_id": {
+            "kind": "string",
+            "optional": false
+          },
+          "program_id": {
+            "kind": "string",
+            "optional": false
+          },
+          "status": {
+            "kind": "string",
+            "optional": false
+          },
+          "qualification": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "application_ref": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "applied_on": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "decided_on": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "start_month": {
+            "kind": "string",
+            "optional": false
+          },
+          "end_month": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "approved_percent": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "approved_amount": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "monthly_cap": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "notes": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          }
+        },
+        "optional": false
+      },
+      "id": {
+        "kind": "string",
+        "optional": true
+      }
+    }
+  },
+  "deleteEmployeeSupportAction": {
     "kind": "object",
     "fields": {
       "id": {

@@ -1,3 +1,4 @@
+import { formatMessage, getTranslations } from "@ishoot/locales";
 /* eslint-disable jsx-a11y/alt-text -- React PDF images are PDF primitives, not DOM images. */
 /**
  * Building blocks shared by every generated document (invoices, quotations, receipts, payslips,
@@ -7,7 +8,7 @@
 import * as React from "react";
 import { Image, Text, View, type Styles } from "@react-pdf/renderer";
 import { getCurrencyDecimals, getCurrencyLabel } from "@ishoot/config/currency";
-import { getTranslations } from "@ishoot/locales";
+
 import { db } from "@ishoot/database";
 import type { CompanySettings } from "@ishoot/database/types";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
@@ -205,7 +206,7 @@ export function docKit(locale: DocLocale) {
     align === "center" ? "center" : align === "end" ? (isAr ? "left" : "right") : isAr ? "right" : "left";
   const money = (value: number, code: string) => fmtMoney(value, code, isAr);
   const date = (value: string | Date | null | undefined, month: "long" | "short" = "long") => fmtDate(value, isAr, month);
-  const pageLabel = (n: number, total: number) => d.page.replace("{n}", String(n)).replace("{total}", String(total));
+  const pageLabel = (n: number, total: number) => formatMessage(d.page, { n: String(n), total: String(total) });
 
   /**
    * Text that follows the document direction; `align="end"` puts it on the trailing side. Values with
@@ -437,7 +438,7 @@ export function docKit(locale: DocLocale) {
         <View style={{ width: 180, height: 0.8, backgroundColor: C.body }} />
         <T align="center" style={{ fontSize: 8.5, fontWeight: "bold", color: C.ink, marginTop: 4 }}>{signing?.signerName || companyName}</T>
         {signing?.signerTitle ? <T align="center" style={{ fontSize: 7.5, color: C.muted }}>{signing.signerTitle}</T> : null}
-        {signing?.signedAt ? <T align="center" style={{ fontSize: 7, color: C.muted, marginTop: 1 }}>{d.signedOn.replace("{date}", date(signing.signedAt))}</T> : null}
+        {signing?.signedAt ? <T align="center" style={{ fontSize: 7, color: C.muted, marginTop: 1 }}>{formatMessage(d.signedOn, { date: date(signing.signedAt) })}</T> : null}
       </View>
     );
   }
@@ -456,7 +457,7 @@ export function docKit(locale: DocLocale) {
     return (
       <View wrap={false} style={{ width }}>
         <T style={{ fontSize: 8.5, fontWeight: "bold", color: C.primary }}>{c.title}</T>
-        <T style={{ fontSize: 7, color: C.muted, marginTop: 1 }}>{c.statement.replace("{document}", documentKind === "quotation" ? c.quotation : c.invoice)}</T>
+        <T style={{ fontSize: 7, color: C.muted, marginTop: 1 }}>{formatMessage(c.statement, { document: documentKind === "quotation" ? c.quotation : c.invoice })}</T>
         {line(c.name, acceptance ? [acceptance.signerName, acceptance.signerTitle].filter(Boolean).join(isAr ? "، " : ", ") : null)}
         <Row style={{ alignItems: "flex-end", marginTop: 7 }}>
           <T style={{ fontSize: 7.5, color: C.muted, width: 52 }}>{c.signature}</T>

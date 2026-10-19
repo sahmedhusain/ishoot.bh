@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db, runAtomicMutation } from "../db";
 import { FUNCTIONAL_CURRENCY } from "../constants/finance";
 
@@ -8,7 +9,7 @@ export async function resolveSalesOwner(requested: string | null | undefined, is
   const id = requested || issuerId || null;
   if (!id) return null;
   const user = await db.user.findUnique({ where: { id }, select: { isActive: true } });
-  if (!user?.isActive) throw new Error("Credit the document to an active team member");
+  if (!user?.isActive) throw new Error(serverMessages.creditTheDocumentToAnActiveTeam);
   return id;
 }
 
@@ -79,7 +80,7 @@ export async function getAttribution(entityType: AttributedDocument, entityId: s
 }
 
 export async function setUserCommissionRate(userId: string, rate: number | null) {
-  if (rate !== null && !(Number.isFinite(rate) && rate >= 0 && rate <= 100)) throw new Error("The commission rate must be between 0 and 100%");
+  if (rate !== null && !(Number.isFinite(rate) && rate >= 0 && rate <= 100)) throw new Error(serverMessages.theCommissionRateMustBeBetween0);
   const updated = await db.user.update({
     where: { id: userId },
     data: { commissionRatePercent: rate === null ? null : Math.round(rate * 100) / 100 },
@@ -102,7 +103,7 @@ export interface CommissionRow {
 }
 
 function monthRange(month: string) {
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error("Choose a month");
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error(serverMessages.chooseAMonth);
   const [y, m] = month.split("-").map(Number);
   return { gte: new Date(Date.UTC(y, m - 1, 1)), lt: new Date(Date.UTC(y, m, 1)) };
 }
@@ -179,15 +180,15 @@ export async function getCommissionStatement(month: string): Promise<CommissionR
 export async function recordCommissionPayout(userId: string, month: string, actorId: string) {
   return runAtomicMutation(async () => {
     const row = (await getCommissionStatement(month)).find((r) => r.userId === userId);
-    if (!row) throw new Error("No commission for this person in that month");
-    if (row.payout) throw new Error("This month's commission is already recorded");
-    if (!(row.commission > 0)) throw new Error("There is no commission to pay for this month");
+    if (!row) throw new Error(serverMessages.noCommissionForThisPersonInThat);
+    if (row.payout) throw new Error(serverMessages.thisMonthSCommissionIsAlreadyRecorded);
+    if (!(row.commission > 0)) throw new Error(serverMessages.thereIsNoCommissionToPayFor);
     // Staff on payroll receive commission with their salary when the HR policy says so.
     const [policy, employee] = await Promise.all([
       db.hrPolicy.findUnique({ where: { id: "default" }, select: { commissionInPayroll: true } }),
       db.employee.findFirst({ where: { userId, status: { not: "terminated" } }, select: { id: true } }),
     ]);
-    if ((policy?.commissionInPayroll ?? true) && employee) throw new Error("This person is on payroll; their commission is paid with their salary");
+    if ((policy?.commissionInPayroll ?? true) && employee) throw new Error(serverMessages.thisPersonIsOnPayrollTheirCommission);
     const category = await db.expenseCategory.findUnique({ where: { slug: "commissions" }, select: { id: true } });
     const range = monthRange(month);
     const lastDay = new Date(range.lt.getTime() - 86400000);

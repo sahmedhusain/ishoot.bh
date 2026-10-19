@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db } from "../db";
 import { STATISTIC_PRESETS, type StatisticPreset } from "../constants/statistics";
 
@@ -33,19 +35,19 @@ type StatisticSettings = {
 /** Normalises and checks a statistic; manual rows carry no preset settings. */
 export function validateStatisticInput<T extends Partial<StatisticInput>>(data: T, now = new Date()): T {
   const source = data.source ?? "manual";
-  if (source !== "manual" && source !== "preset") throw new Error("Choose manual or computed for the value");
-  if (data.suffix != null && data.suffix.length > 10) throw new Error("The suffix can be at most 10 characters");
+  if (source !== "manual" && source !== "preset") throw new Error(serverMessages.chooseManualOrComputedForTheValue);
+  if (data.suffix != null && data.suffix.length > 10) throw new Error(serverMessages.theSuffixCanBeAtMost10);
   if (data.roundTo != null && (!Number.isInteger(data.roundTo) || data.roundTo < 1 || data.roundTo > 1_000_000))
-    throw new Error("Round to must be a whole number of at least 1");
+    throw new Error(serverMessages.roundToMustBeAWholeNumber);
   if (source === "manual") {
-    if (!data.value?.trim() || data.value.length > 20) throw new Error("Enter a value of up to 20 characters");
+    if (!data.value?.trim() || data.value.length > 20) throw new Error(serverMessages.enterAValueOfUpTo20);
     return { ...data, source, preset: null, presetParam: null, roundTo: null, suffix: null } as T;
   }
-  if (!data.preset || !STATISTIC_PRESETS.includes(data.preset)) throw new Error("Choose what to count");
+  if (!data.preset || !STATISTIC_PRESETS.includes(data.preset)) throw new Error(serverMessages.chooseWhatToCount);
   if (data.preset === "years_in_business") {
     const year = data.presetParam;
     if (year == null || !Number.isInteger(year) || year < 1900 || year > now.getFullYear())
-      throw new Error("Enter the founding year");
+      throw new Error(serverMessages.enterTheFoundingYear);
   }
   return {
     ...data,
@@ -78,7 +80,7 @@ async function countPreset(preset: string, presetParam: number | null, now: Date
     case "years_in_business":
       return presetParam == null ? 0 : Math.max(0, now.getFullYear() - presetParam);
     default:
-      throw new Error(`Unknown statistic preset: ${preset}`);
+      throw new Error(formatMessage(serverTemplates.unknownStatisticPreset0, { 0: preset }));
   }
 }
 

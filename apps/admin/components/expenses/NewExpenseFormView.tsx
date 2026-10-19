@@ -8,9 +8,21 @@ import * as React from "react";
 import { businessDateString } from "../../lib/dates";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input, ProofUploader, ProofFile } from "@ishoot/ui";
-import { ArrowLeft, CheckCircle2, Receipt, Settings2, Briefcase, UserRound, Building2 } from "lucide-react";
-import type { ExpenseCategory, SupportedCurrency } from "@ishoot/database/types";
+import { Card, Button, Input } from "@ishoot/ui";
+import { LinkOrUploadField } from "../shared/LinkOrUploadField";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Receipt,
+  Settings2,
+  Briefcase,
+  UserRound,
+  Building2,
+} from "lucide-react";
+import type {
+  ExpenseCategory,
+  SupportedCurrency,
+} from "@ishoot/database/types";
 import {
   EXPENSE_CATEGORY_KINDS,
   EXPENSE_PAYMENT_METHODS,
@@ -36,28 +48,40 @@ const SCOPE_ICONS: Record<ExpenseScope, React.ReactNode> = {
   internal: <Building2 className="w-4 h-4" />,
 };
 
-export function NewExpenseFormView({ categories, defaultCurrency, dealId, clientId, canManageCategories }: NewExpenseFormViewProps) {
+export function NewExpenseFormView({
+  categories,
+  defaultCurrency,
+  dealId,
+  clientId,
+  canManageCategories,
+}: NewExpenseFormViewProps) {
   const router = useRouter();
   const { t, locale } = useAdminLocale();
   const vat = useCompanyVat();
   const nT = t.expensesNew;
 
-  const [scope, setScope] = React.useState<ExpenseScope>(dealId ? "deal" : clientId ? "client" : "internal");
+  const [scope, setScope] = React.useState<ExpenseScope>(
+    dealId ? "deal" : clientId ? "client" : "internal",
+  );
   const [deal, setDeal] = React.useState(dealId ?? "");
   const [client, setClient] = React.useState(clientId ?? "");
   const [categoryId, setCategoryId] = React.useState("");
   const [descriptionEn, setDescriptionEn] = React.useState("");
   const [descriptionAr, setDescriptionAr] = React.useState("");
   const [amount, setAmount] = React.useState<number>(0);
-  const [currency, setCurrency] = React.useState<SupportedCurrency>(defaultCurrency);
+  const [currency, setCurrency] =
+    React.useState<SupportedCurrency>(defaultCurrency);
   const [inputVat, setInputVat] = React.useState<number>(0);
   const [vatRecoverable, setVatRecoverable] = React.useState(true);
   const [vendorName, setVendorName] = React.useState("");
-  const [paymentMethod, setPaymentMethod] = React.useState<string>("bank_transfer");
+  const [paymentMethod, setPaymentMethod] =
+    React.useState<string>("bank_transfer");
   const [billable, setBillable] = React.useState(false);
   const [notes, setNotes] = React.useState("");
-  const [expenseDate, setExpenseDate] = React.useState(() => businessDateString());
-  const [proofFiles, setProofFiles] = React.useState<ProofFile[]>([]);
+  const [expenseDate, setExpenseDate] = React.useState(() =>
+    businessDateString(),
+  );
+  const [receiptUrl, setReceiptUrl] = React.useState("");
   const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
@@ -75,11 +99,7 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
     setSaving(true);
 
     try {
-      let receipt_url: string | undefined;
-      if (proofFiles[0]?.file) {
-        const uploaded = await uploadFileDirectly(proofFiles[0].file, { entityType: "expense", entityId: "pending" });
-        receipt_url = uploaded.fileUrl;
-      }
+      const receipt_url = receiptUrl || undefined;
       const res = await createExpenseAction({
         scope,
         deal_id: scope === "deal" ? deal : undefined,
@@ -99,7 +119,11 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
         expense_date: expenseDate || undefined,
       });
 
-      router.push(scope === "deal" && res.expense.deal_id ? ROUTES.crm.deal(res.expense.deal_id) : ROUTES.expenses.list({ highlight: res.expense.id }));
+      router.push(
+        scope === "deal" && res.expense.deal_id
+          ? ROUTES.crm.deal(res.expense.deal_id)
+          : ROUTES.expenses.list({ highlight: res.expense.id }),
+      );
     } catch (err) {
       setError(errorMessage(err, t, nT.saveError));
     } finally {
@@ -108,14 +132,19 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
   };
 
   const label = "text-xs font-semibold text-ink mb-1.5 block";
-  const select = "w-full rounded-xl border border-ink/15 bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30";
+  const select =
+    "w-full rounded-xl border border-ink/15 bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent/30";
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-16">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Link href={ROUTES.expenses.list()}>
-            <Button variant="outline" size="sm" className="gap-1.5 text-ink-muted">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-ink-muted"
+            >
               <ArrowLeft className="w-4 h-4 rtl:-scale-x-100" />
               <span>{t.actions.back}</span>
             </Button>
@@ -129,7 +158,10 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
           </div>
         </div>
         {canManageCategories && (
-          <Link href={ROUTES.expenses.categories} className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline">
+          <Link
+            href={ROUTES.expenses.categories}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
+          >
             <Settings2 className="w-4 h-4" />
             {nT.manageCategories}
           </Link>
@@ -137,11 +169,21 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {error ? <p role="alert" className="p-3 rounded-xl bg-rose-500/10 text-rose-600 text-sm">{error}</p> : null}
+        {error ? (
+          <p
+            role="alert"
+            className="p-3 rounded-xl bg-rose-500/10 text-rose-600 text-sm"
+          >
+            {error}
+          </p>
+        ) : null}
 
         <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-5">
           <span className={label}>{nT.scopeLabel}</span>
-          <div role="radiogroup" className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div
+            role="radiogroup"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+          >
             {(["deal", "client", "internal"] as const).map((s) => (
               <button
                 key={s}
@@ -153,10 +195,18 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
               >
                 <span className="flex items-center gap-2 text-sm font-bold text-ink">
                   {SCOPE_ICONS[s]}
-                  {s === "deal" ? nT.scopeDeal : s === "client" ? nT.scopeClient : nT.scopeInternal}
+                  {s === "deal"
+                    ? nT.scopeDeal
+                    : s === "client"
+                      ? nT.scopeClient
+                      : nT.scopeInternal}
                 </span>
                 <span className="block text-[11px] text-ink-muted mt-1 leading-relaxed">
-                  {s === "deal" ? nT.scopeDealHint : s === "client" ? nT.scopeClientHint : nT.scopeInternalHint}
+                  {s === "deal"
+                    ? nT.scopeDealHint
+                    : s === "client"
+                      ? nT.scopeClientHint
+                      : nT.scopeInternalHint}
                 </span>
               </button>
             ))}
@@ -170,7 +220,11 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
           {scope === "client" && (
             <div>
               <span className={label}>{nT.clientLabel}</span>
-              <EntityLookup domain="contacts" value={client} onChange={setClient} />
+              <EntityLookup
+                domain="contacts"
+                value={client}
+                onChange={setClient}
+              />
             </div>
           )}
         </Card>
@@ -178,41 +232,99 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
         <Card className="p-6 sm:p-8 bg-surface border border-ink/10 rounded-3xl space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className={label} htmlFor="expense-category">{nT.categoryLabel}</label>
-              <select id="expense-category" required className={select} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+              <label className={label} htmlFor="expense-category">
+                {nT.categoryLabel}
+              </label>
+              <select
+                id="expense-category"
+                required
+                className={select}
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
                 <option value="">{nT.chooseCategory}</option>
                 {grouped.map((g) => (
                   <optgroup key={g.kind} label={t.expenseMeta.kinds[g.kind]}>
                     {g.items.map((c) => (
-                      <option key={c.id} value={c.id}>{locale === "ar" ? c.name_ar : c.name_en}</option>
+                      <option key={c.id} value={c.id}>
+                        {locale === "ar" ? c.name_ar : c.name_en}
+                      </option>
                     ))}
                   </optgroup>
                 ))}
               </select>
             </div>
             <div>
-              <label className={label} htmlFor="expense-date">{nT.dateLabel}</label>
-              <Input id="expense-date" type="date" required value={expenseDate} onChange={(e) => setExpenseDate(e.target.value)} />
+              <label className={label} htmlFor="expense-date">
+                {nT.dateLabel}
+              </label>
+              <Input
+                id="expense-date"
+                type="date"
+                required
+                value={expenseDate}
+                onChange={(e) => setExpenseDate(e.target.value)}
+              />
             </div>
             <div>
-              <label className={label} htmlFor="expense-desc-en">{nT.descriptionEnLabel}</label>
-              <Input id="expense-desc-en" required placeholder={nT.descriptionPlaceholder} value={descriptionEn} onChange={(e) => setDescriptionEn(e.target.value)} />
+              <label className={label} htmlFor="expense-desc-en">
+                {nT.descriptionEnLabel}
+              </label>
+              <Input
+                id="expense-desc-en"
+                required
+                placeholder={nT.descriptionPlaceholder}
+                value={descriptionEn}
+                onChange={(e) => setDescriptionEn(e.target.value)}
+              />
             </div>
             <div>
-              <label className={label} htmlFor="expense-desc-ar">{nT.descriptionArLabel}</label>
-              <Input id="expense-desc-ar" dir="rtl" placeholder={nT.descriptionArPlaceholder} value={descriptionAr} onChange={(e) => setDescriptionAr(e.target.value)} />
+              <label className={label} htmlFor="expense-desc-ar">
+                {nT.descriptionArLabel}
+              </label>
+              <Input
+                id="expense-desc-ar"
+                dir="rtl"
+                placeholder={nT.descriptionArPlaceholder}
+                value={descriptionAr}
+                onChange={(e) => setDescriptionAr(e.target.value)}
+              />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div className="sm:col-span-2">
-              <label className={label} htmlFor="expense-amount">{nT.amountLabel}</label>
-              <Input id="expense-amount" type="number" required min={0} step="0.001" placeholder={nT.amountPlaceholder} value={amount || ""} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} />
+              <label className={label} htmlFor="expense-amount">
+                {nT.amountLabel}
+              </label>
+              <Input
+                id="expense-amount"
+                type="number"
+                required
+                min={0}
+                step="0.001"
+                placeholder={nT.amountPlaceholder}
+                value={amount || ""}
+                onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+              />
             </div>
             <div>
-              <label className={label} htmlFor="expense-currency">{nT.currencyLabel}</label>
-              <select id="expense-currency" className={select} value={currency} onChange={(e) => setCurrency(e.target.value as SupportedCurrency)}>
-                {SUPPORTED_CURRENCIES.map((code) => <option key={code} value={code}>{code}</option>)}
+              <label className={label} htmlFor="expense-currency">
+                {nT.currencyLabel}
+              </label>
+              <select
+                id="expense-currency"
+                className={select}
+                value={currency}
+                onChange={(e) =>
+                  setCurrency(e.target.value as SupportedCurrency)
+                }
+              >
+                {SUPPORTED_CURRENCIES.map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -220,12 +332,28 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
           {vat.enabled && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className={label} htmlFor="expense-vat">{nT.inputVatLabel}</label>
-                <Input id="expense-vat" type="number" min={0} step="0.001" value={inputVat || ""} onChange={(e) => setInputVat(parseFloat(e.target.value) || 0)} />
-                <p className="text-[11px] text-ink-muted mt-1">{nT.inputVatHint}</p>
+                <label className={label} htmlFor="expense-vat">
+                  {nT.inputVatLabel}
+                </label>
+                <Input
+                  id="expense-vat"
+                  type="number"
+                  min={0}
+                  step="0.001"
+                  value={inputVat || ""}
+                  onChange={(e) => setInputVat(parseFloat(e.target.value) || 0)}
+                />
+                <p className="text-[11px] text-ink-muted mt-1">
+                  {nT.inputVatHint}
+                </p>
               </div>
               <label className="flex items-center gap-2 text-xs text-ink self-center">
-                <input type="checkbox" className="accent-accent" checked={vatRecoverable} onChange={(e) => setVatRecoverable(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  className="accent-accent"
+                  checked={vatRecoverable}
+                  onChange={(e) => setVatRecoverable(e.target.checked)}
+                />
                 {nT.vatRecoverable}
               </label>
             </div>
@@ -233,26 +361,51 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className={label} htmlFor="expense-vendor">{nT.vendorLabel}</label>
-              <Input id="expense-vendor" placeholder={nT.vendorPlaceholder} value={vendorName} onChange={(e) => setVendorName(e.target.value)} />
+              <label className={label} htmlFor="expense-vendor">
+                {nT.vendorLabel}
+              </label>
+              <Input
+                id="expense-vendor"
+                placeholder={nT.vendorPlaceholder}
+                value={vendorName}
+                onChange={(e) => setVendorName(e.target.value)}
+              />
             </div>
             <div>
-              <label className={label} htmlFor="expense-method">{nT.paymentMethodLabel}</label>
-              <select id="expense-method" className={select} value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-                {EXPENSE_PAYMENT_METHODS.map((m) => <option key={m} value={m}>{t.expenseMeta.methods[m]}</option>)}
+              <label className={label} htmlFor="expense-method">
+                {nT.paymentMethodLabel}
+              </label>
+              <select
+                id="expense-method"
+                className={select}
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              >
+                {EXPENSE_PAYMENT_METHODS.map((m) => (
+                  <option key={m} value={m}>
+                    {t.expenseMeta.methods[m]}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
           {scope !== "internal" && (
             <label className="flex items-center gap-2 text-xs text-ink">
-              <input type="checkbox" className="accent-accent" checked={billable} onChange={(e) => setBillable(e.target.checked)} />
+              <input
+                type="checkbox"
+                className="accent-accent"
+                checked={billable}
+                onChange={(e) => setBillable(e.target.checked)}
+              />
               {nT.billableLabel}
             </label>
           )}
 
           <div>
-            <label className={label} htmlFor="expense-notes">{nT.notesLabel}</label>
+            <label className={label} htmlFor="expense-notes">
+              {nT.notesLabel}
+            </label>
             <textarea
               id="expense-notes"
               rows={3}
@@ -263,14 +416,33 @@ export function NewExpenseFormView({ categories, defaultCurrency, dealId, client
             />
           </div>
 
-          <ProofUploader label={nT.proofLabel} hint={nT.proofHint} value={proofFiles} onChange={setProofFiles} maxFiles={1} />
+          <LinkOrUploadField
+            label={nT.proofLabel}
+            hint={nT.proofHint}
+            value={receiptUrl}
+            onChange={(url) => setReceiptUrl(url)}
+            upload={(file) =>
+              uploadFileDirectly(file, {
+                entityType: "expense",
+                entityId: "pending",
+              })
+            }
+          />
         </Card>
 
         <div className="flex items-center justify-end gap-3">
           <Link href={ROUTES.expenses.list()}>
-            <Button type="button" variant="outline" size="sm">{t.actions.cancel}</Button>
+            <Button type="button" variant="outline" size="sm">
+              {t.actions.cancel}
+            </Button>
           </Link>
-          <Button type="submit" variant="primary" size="sm" disabled={saving} className="gap-2">
+          <Button
+            type="submit"
+            variant="primary"
+            size="sm"
+            disabled={saving}
+            className="gap-2"
+          >
             <CheckCircle2 className="w-4 h-4" />
             <span>{saving ? nT.saving : nT.submit}</span>
           </Button>

@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 export interface UploadOptions {
   entityType?: string;
   entityId?: string;
@@ -32,9 +33,9 @@ export async function uploadFileDirectly(file: File, options: UploadOptions = {}
       },
       body: file
     });
-    if (!uploadRes.ok) throw new Error("Failed to upload file to storage bucket");
+    if (!uploadRes.ok) throw new Error(serverMessages.failedToUploadFileToStorageBucket);
   } else {
-    throw new Error("No signed URL returned from init");
+    throw new Error(serverMessages.noSignedUrlReturnedFromInit);
   }
 
   // 3. Finalize upload
@@ -68,6 +69,6 @@ export async function uploadForClaim(file: File, options: Pick<UploadOptions, "e
   const initData = await initRes.json();
   if (!initRes.ok || !initData.signedUrl) throw new Error(initData.error || "Failed to initialize upload");
   const uploadRes = await fetch(initData.signedUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-  if (!uploadRes.ok) throw new Error("Failed to upload file to storage bucket");
+  if (!uploadRes.ok) throw new Error(serverMessages.failedToUploadFileToStorageBucket);
   return { fileUrl: initData.fileUrl as string, fileName: file.name };
 }

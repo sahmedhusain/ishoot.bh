@@ -1,6 +1,7 @@
+import { formatMessage, getTranslations } from "@ishoot/locales";
 import type { Metadata } from "next";
 import { getCompanySettings, getTaxCertificate } from "@ishoot/database";
-import { getTranslations } from "@ishoot/locales";
+
 import { formatDate } from "@ishoot/ui";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +48,7 @@ export default async function TaxCertificatePage({ params, searchParams }: { par
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-slate-900">{taxName}</h2>
-                <p className="mt-1 text-sm text-slate-500">{c.subtitle.replace("{company}", companyName)}</p>
+                <p className="mt-1 text-sm text-slate-500">{formatMessage(c.subtitle, { company: companyName })}</p>
               </div>
               <span className={`rounded-full px-3 py-1 text-xs font-bold ${certificate.active && !expired ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
                 {certificate.active && !expired ? c.active : expired ? c.expired : c.inactive}

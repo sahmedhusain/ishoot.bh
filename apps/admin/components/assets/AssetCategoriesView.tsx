@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -123,7 +124,7 @@ export function AssetCategoriesView({ categories }: { categories: AssetCategoryR
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="text-sm font-bold text-ink">{isAr ? cat.name_ar : cat.name_en}</div>
-                <div className="text-[11px] text-ink-muted">{c.summary.replace("{fields}", String(cat.spec_fields.length)).replace("{items}", String(cat.checklist.length)).replace("{assets}", String(cat.assets))}</div>
+                <div className="text-[11px] text-ink-muted">{formatMessage(c.summary, { fields: String(cat.spec_fields.length), items: String(cat.checklist.length), assets: String(cat.assets) })}</div>
               </div>
               <button type="button" aria-label={c.edit} title={c.edit} onClick={() => setEditing({ id: cat.id, value: toInput(cat) })} className="rounded-lg p-1.5 text-ink-muted hover:text-ink hover:bg-ink/5"><Pencil className="h-3.5 w-3.5" /></button>
             </div>

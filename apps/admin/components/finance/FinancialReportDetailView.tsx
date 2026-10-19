@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { getCurrencyLabel } from "@ishoot/config/currency";
 
 import * as React from "react";
@@ -146,7 +147,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
         {register.length > 25 && (
           <div className="p-3 text-center border-t border-ink/5">
             <button type="button" onClick={() => setShowAll(!showAll)} className="text-xs font-semibold text-accent hover:underline">
-              {showAll ? d.showLess : d.showAll.replace("{count}", String(register.length))}
+              {showAll ? d.showLess : formatMessage(d.showAll, { count: String(register.length) })}
             </button>
           </div>
         )}
@@ -191,7 +192,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
               <div className="rounded-2xl border border-ink/10 p-3 col-span-2">
                 <dt className="text-ink-muted">{d.claims}</dt>
                 <dd className="text-sm text-ink mt-1">
-                  {d.claimsPaid.replace("{count}", String(detail.claims.paidCount))}: <strong>{bhd} {fmt(detail.claims.paidAmount)}</strong>
+                  {formatMessage(d.claimsPaid, { count: String(detail.claims.paidCount) })}: <strong>{bhd} {fmt(detail.claims.paidAmount)}</strong>
                   {" · "}
                   {d.claimsOutstanding}: <strong>{bhd} {fmt(detail.claims.outstandingAmount)}</strong>
                 </dd>
@@ -220,7 +221,7 @@ export function FinancialReportDetailView({ detail, showVat }: { detail: Financi
                 <tr key={c.clientId}>
                   <td className="p-3 ps-5 text-ink-muted w-8">{i + 1}</td>
                   <td className="p-3"><Link href={ROUTES.crm.customer(c.clientId)} className="text-ink hover:text-accent">{c.name}</Link></td>
-                  <td className="p-3 text-ink-muted">{d.invoiceCount.replace("{count}", String(c.invoices))}</td>
+                  <td className="p-3 text-ink-muted">{formatMessage(d.invoiceCount, { count: String(c.invoices) })}</td>
                   <td className="p-3 pe-5 text-end font-semibold text-ink">{bhd} {fmt(c.net)}</td>
                 </tr>
               ))}

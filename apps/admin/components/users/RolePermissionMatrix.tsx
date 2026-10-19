@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import { BadgeCheck, Download, Eye, Lock, PencilLine, ShieldCheck } from "lucide-react";
 import { ALL_ACTIONS, PERMISSION_GROUPS, type PermissionAction, type PermissionResource } from "@ishoot/database/constants/permissions";
@@ -75,7 +76,7 @@ export function RolePermissionMatrix({
                   <th key={role.key} scope="col" className="sticky top-0 z-20 min-w-[112px] border-b border-ink/10 bg-surface px-2 py-3 text-center align-bottom">
                     <span className="block font-semibold leading-tight text-ink">{role.name}</span>
                     <span className="mt-1.5 block text-[10px] font-normal text-ink-muted">
-                      {u.coverage.replace("{count}", String(covered)).replace("{total}", String(totalModules))}
+                      {formatMessage(u.coverage, { count: String(covered), total: String(totalModules) })}
                     </span>
                     <span className="mx-auto mt-1 block h-1 w-14 overflow-hidden rounded-full bg-ink/10" aria-hidden>
                       <span className="block h-full rounded-full bg-accent" style={{ width: `${Math.round((covered / totalModules) * 100)}%` }} />

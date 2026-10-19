@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
 import {
   INTEGRATION_PROVIDERS,
@@ -188,16 +189,16 @@ export interface SocialPlanView {
 
 function validatePlan(input: SocialPlanInput) {
   const title = input.title?.trim();
-  if (!title || title.length > 200) throw new Error("Give the post a title (up to 200 characters)");
-  if ((input.caption ?? "").length > 5000) throw new Error("The caption is too long");
+  if (!title || title.length > 200) throw new Error(serverMessages.giveThePostATitleUpTo);
+  if ((input.caption ?? "").length > 5000) throw new Error(serverMessages.theCaptionIsTooLong);
   const platforms = Array.from(new Set(input.platforms));
-  if (!platforms.length || platforms.some((p) => !(SOCIAL_PLATFORM_IDS as readonly string[]).includes(p))) throw new Error("Choose at least one platform");
-  if (!(SOCIAL_PLAN_STATUSES as readonly string[]).includes(input.status)) throw new Error("Invalid status");
+  if (!platforms.length || platforms.some((p) => !(SOCIAL_PLATFORM_IDS as readonly string[]).includes(p))) throw new Error(serverMessages.chooseAtLeastOnePlatform);
+  if (!(SOCIAL_PLAN_STATUSES as readonly string[]).includes(input.status)) throw new Error(serverMessages.invalidStatus);
   const scheduledFor = input.scheduledFor ? new Date(input.scheduledFor) : null;
-  if (scheduledFor && Number.isNaN(scheduledFor.getTime())) throw new Error("Invalid date");
-  if (input.status === "scheduled" && !scheduledFor) throw new Error("Pick a date to schedule the post");
+  if (scheduledFor && Number.isNaN(scheduledFor.getTime())) throw new Error(serverMessages.invalidDate);
+  if (input.status === "scheduled" && !scheduledFor) throw new Error(serverMessages.pickADateToScheduleThePost);
   for (const url of [input.mediaUrl, input.publishedUrl]) {
-    if (url && !/^(https?:\/\/|\/)/.test(url)) throw new Error("Links must start with https:// or /");
+    if (url && !/^(https?:\/\/|\/)/.test(url)) throw new Error(serverMessages.linksMustStartWithHttpsOr);
   }
   return {
     title,

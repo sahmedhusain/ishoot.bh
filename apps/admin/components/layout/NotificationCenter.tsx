@@ -1,259 +1,318 @@
 "use client";
-
-import { ROUTES } from "../../constants/routes";
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import Link from "next/link";
 import {
-Bell,
-CheckCircle2,
-AlertTriangle,
-Info,
-Calendar,
-CreditCard,
-Inbox,
-Check,
-ExternalLink,
+  Bell,
+  Check,
+  CheckCheck,
+  EyeOff,
+  ArrowRight,
+  RefreshCw,
+  AlertCircle,
+  Inbox,
 } from "lucide-react";
+import { toast } from "sonner";
 import type { Notification } from "@ishoot/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { useHeaderPopover } from "../../hooks/useHeaderPopover";
+import { ROUTES } from "../../constants/routes";
 import {
-markNotificationReadAction,
-markAllNotificationsReadAction,
+  notificationText,
+  notificationHref,
+  notificationAge,
+} from "../../lib/notification-display";
+import { errorMessage } from "../../lib/error-text";
+import {
+  updateNotificationAction,
+  markAllNotificationsReadAction,
 } from "../../app/actions/notifications";
-import { formatDate } from "@ishoot/ui";
-
-const NOTIFICATION_POLL_MS = 30_000;
-
 export function NotificationCenter() {
   const { t, locale } = useAdminLocale();
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [notifications, setNotifications] = React.useState<Notification[]>([]);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
-
-  const fetchNotifications = React.useCallback(async () => {
-    try {
-      const res = await fetch("/api/notifications", { cache: "no-store" });
-      if (!res.ok) return;
-      setNotifications(await res.json());
-    } catch (err) {
-      console.error("Failed to load notifications:", err);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(() => {
-      if (document.visibilityState === "visible") fetchNotifications();
-    }, NOTIFICATION_POLL_MS);
-    return () => clearInterval(interval);
-  }, [fetchNotifications]);
-
-  React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
+  const p = t.notificationMenu;
+  const menu = useHeaderPopover("notifications");
+  const [items, setItems] = React.useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = React.useState(0);
+  const [filter, setFilter] = React.useState<"all" | "unread">("all");
+  const [loading, setLoading] = React.useState(true);
+  const [failed, setFailed] = React.useState(false);
+  const [busy, setBusy] = React.useState<string | null>(null);
+  const request = React.useRef<AbortController | null>(null);
+  const initialized = React.useRef(false);
+  const refresh = React.useCallback(
+    async (showLoading = false) => {
+      request.current?.abort();
+      const controller = new AbortController();
+      request.current = controller;
+      if (showLoading || !initialized.current) setLoading(true);
+      try {
+        const response = await fetch(
+          `/api/notifications?preview=1&filter=${filter}`,
+          { cache: "no-store", signal: controller.signal },
+        );
+        if (!response.ok) throw Error();
+        const data = await response.json();
+        setItems(data.items);
+        setUnreadCount(data.unreadCount);
+        setFailed(false);
+        initialized.current = true;
+      } catch {
+        if (!controller.signal.aborted) setFailed(true);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
-    }
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
+    },
+    [filter],
+  );
+  React.useEffect(() => {
+    void refresh(true);
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") void refresh();
+    }, 30000);
+    const resume = () => {
+      if (document.visibilityState === "visible") void refresh();
     };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscape);
-    }
+    const update = () => {
+      void refresh();
+    };
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("ishoot:notifications-changed", update);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
+      clearInterval(timer);
+      request.current?.abort();
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("ishoot:notifications-changed", update);
     };
-  }, [isOpen]);
-
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
-
-  const handleMarkAsRead = async (id: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
-    );
-    await markNotificationReadAction(id);
+  }, [refresh]);
+  React.useEffect(() => {
+    if (menu.open) void refresh();
+  }, [menu.open, refresh]);
+  const change = async (id: string, action: "read" | "unread" | "hide") => {
+    setBusy(id);
+    try {
+      await updateNotificationAction(id, action);
+      window.dispatchEvent(new Event("ishoot:notifications-changed"));
+    } catch (err) {
+      toast.error(errorMessage(err, t, p.failed));
+    } finally {
+      setBusy(null);
+    }
   };
-
-  const handleMarkAllRead = async () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    await markAllNotificationsReadAction();
+  const allRead = async () => {
+    setBusy("all");
+    try {
+      const result = await markAllNotificationsReadAction();
+      if (!result.success) throw Error();
+      window.dispatchEvent(new Event("ishoot:notifications-changed"));
+    } catch {
+      toast.error(p.failed);
+    } finally {
+      setBusy(null);
+    }
   };
-
-  const getNotificationIcon = (type: string, entityType?: string) => {
-    if (entityType === "payment")
-      return <CreditCard className="w-4 h-4 text-emerald-400" />;
-    if (entityType === "calendar")
-      return <Calendar className="w-4 h-4 text-amber-400" />;
-    if (entityType === "lead")
-      return <Inbox className="w-4 h-4 text-accent" />;
-    if (type === "success")
-      return <CheckCircle2 className="w-4 h-4 text-emerald-400" />;
-    if (type === "action" || type === "warning")
-      return <AlertTriangle className="w-4 h-4 text-amber-400" />;
-    return <Info className="w-4 h-4 text-accent" />;
-  };
-
-  /** Localized title/message for notifications that carry a message key (e.g. approval events). */
-  const localize = (n: Notification) => {
-    const entry = n.message_key
-      ?.split(".")
-      .reduce<unknown>((node, part) => (node && typeof node === "object" ? (node as Record<string, unknown>)[part] : undefined), t);
-    if (!entry || typeof entry !== "object") return { title: n.title, message: n.message };
-    const { title, message } = entry as { title?: string; message?: string };
-    const params = n.message_params ?? {};
-    const targetType = params.targetType;
-    const typeLabel = targetType ? (t.approvals.types[targetType as keyof typeof t.approvals.types] ?? targetType) : "";
-    // Expiry reminders: the person or document name and the document type in the interface language.
-    const docs = { ...t.employeeResidency.kinds, ...t.expiryReminders.documents } as Record<string, string>;
-    const values: Record<string, string> = {
-      ...params,
-      type: typeLabel,
-      name: (locale === "ar" ? params.nameAr : params.nameEn) ?? params.nameEn ?? "",
-      document: params.label || docs[params.document ?? ""] || params.document || "",
-      date: params.date ? formatDate(params.date, locale) : "",
-      days: params.days ? String(Math.abs(Number(params.days))) : "",
-    };
-    const fill = (text: string) => text.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match);
-    return {
-      title: fill(title ?? n.title),
-      message: fill(message ?? n.message),
-    };
-  };
-
-  const getEntityLink = (entityType?: string, entityId?: string) => {
-    if (!entityType) return null;
-    if (entityType === "payment") return ROUTES.payments.list;
-    if (entityType === "calendar") return ROUTES.calendar;
-    if (entityType === "lead" || entityType === "inquiry") return entityId ? ROUTES.requests.detail(entityId) : ROUTES.requests.list;
-    if (entityType === "invoice")
-      return ROUTES.invoices.detail(entityId || "");
-    if (entityType === "deal") return ROUTES.crm.deal(entityId || "");
-    return null;
-  };
-
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div ref={menu.containerRef} className="relative">
       <button
+        ref={menu.triggerRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:border-accent/40 transition-colors relative"
         aria-label={t.actions.notifications}
-        aria-expanded={isOpen}
+        aria-haspopup="dialog"
+        aria-expanded={menu.open}
+        aria-controls="notification-preview"
+        onClick={() => menu.setOpen(!menu.open)}
+        className="relative flex h-9 w-9 items-center justify-center rounded-full text-ink-muted hover:bg-ink/5 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
-        <Bell className="w-4 h-4" />
+        <Bell aria-hidden className="h-[18px] w-[18px]" />
         {unreadCount > 0 && (
-          <span className="min-w-4 h-4 px-1 rounded-full bg-accent text-white text-[9px]  font-bold flex items-center justify-center absolute -top-1 -end-1 ring-2 ring-white dark:ring-[#070C0A] animate-pulse">
-            {unreadCount > 9 ? "9+" : unreadCount}
+          <span className="absolute -end-1 -top-1 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] leading-4 text-white ring-2 ring-white dark:ring-surface-raised">
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
-
-      {isOpen && (
+      {menu.open && (
         <div
-          className="absolute top-full end-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-surface border border-slate-200 dark:border-white/10 shadow-2xl z-50 overflow-hidden flex flex-col"
-          style={{ maxHeight: "80vh" }}
+          id="notification-preview"
+          role="dialog"
+          aria-label={t.notificationsCenter.title}
+          ref={menu.panelRef}
+          className="absolute end-0 top-full z-50 mt-3 flex max-h-[min(36rem,calc(100dvh-5rem))] w-96 flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-xl dark:bg-surface-raised max-sm:fixed max-sm:inset-x-3 max-sm:top-16 max-sm:mt-0 max-sm:w-auto"
         >
-          <div className="p-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02]">
-            <div className="flex items-center gap-2">
-              <Bell className="w-4 h-4 text-accent" />
-              <span className="text-xs font-bold text-slate-900 dark:text-white">
+          <header className="flex items-center justify-between gap-3 px-4 pb-3 pt-4">
+            <div>
+              <h2 className="text-sm font-semibold text-ink">
                 {t.notificationsCenter.title}
-              </span>
-              {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded text-[10px]  font-bold bg-accent/15 text-accent">
-                  {unreadCount} {t.notificationsCenter.new}
-                </span>
-              )}
+              </h2>
+              <p className="mt-1 text-xs text-ink-muted">
+                {formatMessage(p.unreadCount, { count: String(unreadCount) })}
+              </p>
             </div>
-
-            {unreadCount > 0 && (
+            <button
+              type="button"
+              disabled={busy !== null || unreadCount === 0}
+              onClick={allRead}
+              title={t.notificationsCenter.markAllRead}
+              aria-label={t.notificationsCenter.markAllRead}
+              className="rounded-lg p-2 text-ink-muted hover:bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-30"
+            >
+              <CheckCheck aria-hidden className="h-4 w-4" />
+            </button>
+          </header>
+          <div
+            className="flex gap-1 border-b border-ink/10 px-4 pb-3"
+            aria-label={p.filter}
+          >
+            {(["all", "unread"] as const).map((value) => (
               <button
+                key={value}
                 type="button"
-                onClick={handleMarkAllRead}
-                className="text-[11px] font-medium text-accent hover:underline flex items-center gap-1"
+                aria-pressed={filter === value}
+                onClick={() => setFilter(value)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${filter === value ? "bg-accent/10 text-primary dark:text-mint" : "text-ink-muted hover:bg-ink/5"}`}
               >
-                <Check className="w-3 h-3" />
-                <span>{t.notificationsCenter.markAllRead}</span>
+                {t.communications[value]}
               </button>
-            )}
+            ))}
           </div>
-
-          <div className="overflow-y-auto divide-y divide-slate-100 dark:divide-white/5 max-h-[380px]">
-            {notifications.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400 dark:text-ink-muted space-y-1">
-                <Bell className="w-8 h-8 text-slate-300 dark:text-ink-muted/30 mx-auto mb-2" />
-                <div className="font-semibold text-slate-800 dark:text-white">
-                  {t.notificationsCenter.noNotifications}
-                </div>
-                <div>{t.notificationsCenter.allUpToDate}</div>
+          <div
+            className="min-h-28 overflow-y-auto overscroll-contain"
+            aria-busy={loading}
+          >
+            {failed && (
+              <div
+                role="alert"
+                className="flex items-center gap-2 border-b border-ink/10 px-4 py-3 text-xs text-ink-muted"
+              >
+                <AlertCircle aria-hidden className="h-4 w-4" />
+                <span className="flex-1">{p.failed}</span>
+                <button
+                  type="button"
+                  onClick={() => refresh(true)}
+                  className="rounded-md p-1 hover:bg-ink/5"
+                  aria-label={p.retry}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </button>
               </div>
-            ) : (
-              notifications.map((n) => {
-                const link = n.action_url ?? getEntityLink(n.entity_type, n.entity_id);
-                const text = localize(n);
-                return (
+            )}
+            {loading ? (
+              <div className="space-y-4 p-4" aria-label={p.loading}>
+                {[0, 1, 2].map((i) => (
                   <div
-                    key={n.id}
-                    onClick={() => handleMarkAsRead(n.id)}
-                    className={`p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors cursor-pointer flex items-start gap-3 relative ${!n.is_read ? "bg-accent/[0.06]" : ""
-                      }`}
+                    key={i}
+                    className="flex animate-pulse gap-3 motion-reduce:animate-none"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                      {getNotificationIcon(n.type, n.entity_type)}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          className={`text-xs font-bold truncate ${!n.is_read ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-ink-muted"}`}
-                        >
-                          {text.title}
-                        </span>
-                        {!n.is_read && (
-                          <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 dark:text-ink-muted mt-0.5 line-clamp-2 leading-relaxed">
-                        {text.message}
-                      </p>
-                      <div className="flex items-center justify-between mt-2 pt-1 text-[10px]  text-slate-400 dark:text-ink-muted/70">
-                        <span>{formatDate(n.created_at, locale, "time")}</span>
-                        {link && (
-                          <Link
-                            href={link}
-                            onClick={(e) => {
-                              handleMarkAsRead(n.id, e);
-                              setIsOpen(false);
-                            }}
-                            className="text-accent hover:underline flex items-center gap-1 font-sans font-medium"
-                          >
-                            <span>{t.notificationsCenter.view}</span>
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </Link>
-                        )}
-                      </div>
+                    <div className="h-8 w-8 rounded-lg bg-ink/5" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 w-3/4 rounded bg-ink/5" />
+                      <div className="h-3 rounded bg-ink/5" />
+                      <div className="h-2 w-1/3 rounded bg-ink/5" />
                     </div>
                   </div>
-                );
-              })
+                ))}
+              </div>
+            ) : !items.length ? (
+              <div className="px-6 py-9 text-center">
+                <Inbox
+                  aria-hidden
+                  className="mx-auto mb-3 h-7 w-7 text-ink-muted/50"
+                />
+                <p className="text-sm font-medium text-ink">
+                  {filter === "unread"
+                    ? p.noUnread
+                    : t.notificationsCenter.noNotifications}
+                </p>
+                <p className="mt-1 text-xs text-ink-muted">
+                  {filter === "unread"
+                    ? p.caughtUp
+                    : t.notificationsCenter.allUpToDate}
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-ink/5">
+                {items.map((n) => {
+                  const text = notificationText(n, t, locale);
+                  const href = notificationHref(n);
+                  const content = (
+                    <>
+                      <p className="line-clamp-2 text-sm font-medium leading-snug text-ink">
+                        {text.title}
+                      </p>
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-muted">
+                        {text.message}
+                      </p>
+                      <time
+                        dateTime={n.created_at}
+                        className="mt-2 block text-[11px] text-ink-muted"
+                      >
+                        {notificationAge(n.created_at, locale)}
+                      </time>
+                    </>
+                  );
+                  return (
+                    <li
+                      key={n.id}
+                      className={`flex gap-3 px-4 py-3.5 ${n.is_read ? "" : "bg-accent/[0.04]"}`}
+                    >
+                      <span
+                        aria-hidden
+                        className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${n.is_read ? "bg-transparent" : "bg-accent"}`}
+                      />
+                      <div className="min-w-0 flex-1">
+                        {href ? (
+                          <Link
+                            href={href}
+                            onClick={() => {
+                              if (!n.is_read) void change(n.id, "read");
+                              menu.setOpen(false);
+                            }}
+                            className="block rounded-md hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                          >
+                            {content}
+                          </Link>
+                        ) : (
+                          content
+                        )}
+                        <div className="mt-2 flex gap-3">
+                          <button
+                            type="button"
+                            disabled={busy !== null}
+                            onClick={() =>
+                              change(n.id, n.is_read ? "unread" : "read")
+                            }
+                            className="flex items-center gap-1 text-[11px] text-ink-muted hover:text-accent disabled:opacity-40"
+                          >
+                            <Check aria-hidden className="h-3 w-3" />
+                            {n.is_read
+                              ? t.communications.unread
+                              : t.communications.read}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy !== null}
+                            onClick={() => change(n.id, "hide")}
+                            className="flex items-center gap-1 text-[11px] text-ink-muted hover:text-accent disabled:opacity-40"
+                          >
+                            <EyeOff aria-hidden className="h-3 w-3" />
+                            {t.communications.hide}
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
           </div>
-
-          <div className="p-2.5 border-t border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] text-center">
+          <footer className="border-t border-ink/10 p-3">
             <Link
-              href={ROUTES.settings.audit}
-              onClick={() => setIsOpen(false)}
-              className="text-[11px] text-slate-500 dark:text-ink-muted hover:text-accent transition-colors font-medium inline-block"
+              href={ROUTES.notifications()}
+              onClick={() => menu.setOpen(false)}
+              className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm font-medium text-primary hover:bg-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:text-mint"
             >
-              {t.notificationsCenter.viewAudit}
+              {p.viewAll}
+              <ArrowRight aria-hidden className="h-4 w-4 rtl:rotate-180" />
             </Link>
-          </div>
+          </footer>
         </div>
       )}
     </div>

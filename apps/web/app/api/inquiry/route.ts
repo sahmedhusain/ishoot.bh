@@ -1,3 +1,6 @@
+import { serverMessages, formatMessage, getTranslations } from "@ishoot/locales";
+
+
 import {requireFeatureEnabled, measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
@@ -9,7 +12,7 @@ import {
   normalizeToE164,
 } from "@ishoot/database";
 import { sendEmail } from "@ishoot/email";
-import { getTranslations } from "@ishoot/locales";
+
 import {
   readSubmission,
   textField,
@@ -27,15 +30,15 @@ const escape = (value: string) =>
 export async function POST(req: NextRequest) {
   return measureOperation("web:inquiry:POST", async () => {
   try {
-    try { await requireFeatureEnabled("crm_deals"); } catch { return NextResponse.json({error:"Submissions are temporarily unavailable"},{status:503}); }
+    try { await requireFeatureEnabled("crm_deals"); } catch { return NextResponse.json({error:serverMessages.runtimeSubmissionsAreTemporarilyUnavailable},{status:503}); }
     const body = await readSubmission(req);
     const intent = textField(body, "intent") || "inquiry";
     if (
       !["inquiry", "quote_request", "complaint", "suggestion"].includes(intent)
     )
-      throw new Error("INVALID_INPUT");
+      throw new Error(serverMessages.invalidInput);
     const locale = textField(body, "locale") || "en";
-    if (!["en", "ar"].includes(locale)) throw new Error("INVALID_INPUT");
+    if (!["en", "ar"].includes(locale)) throw new Error(serverMessages.invalidInput);
     const name =
       textField(body, "fullName", 200, intent !== "suggestion") ||
       getTranslations(locale === "ar" ? "ar" : "en").contact.anonymousSuggestion;
@@ -46,20 +49,20 @@ export async function POST(req: NextRequest) {
       (phone && !normalizeToE164(phone)) ||
       (intent !== "suggestion" && !email && !phone)
     )
-      throw new Error("INVALID_INPUT");
+      throw new Error(serverMessages.invalidInput);
     const serviceIds = body.services ?? [];
     if (
       !Array.isArray(serviceIds) ||
       serviceIds.length > 20 ||
       serviceIds.some((id) => typeof id !== "string")
     )
-      throw new Error("INVALID_INPUT");
+      throw new Error(serverMessages.invalidInput);
     const available = (await getWebsiteSnapshot()).services;
     const selected = available.filter((service) =>
       serviceIds.includes(service.id),
     );
     if (selected.length !== new Set(serviceIds).size)
-      throw new Error("INVALID_INPUT");
+      throw new Error(serverMessages.invalidInput);
     const services = selected.map((service) =>
       locale === "ar" ? service.nameAr : service.nameEn,
     );
@@ -74,7 +77,7 @@ export async function POST(req: NextRequest) {
         "5000_plus",
       ].includes(budget)
     )
-      throw new Error("INVALID_INPUT");
+      throw new Error(serverMessages.invalidInput);
     const data = {
       name,
       email,
@@ -119,7 +122,7 @@ export async function POST(req: NextRequest) {
           email
             ? sendEmail({
                 to: email,
-                subject: getTranslations(locale === "ar" ? "ar" : "en").email.inquiryReceived.subject.replace("{reference}", resolved.reference),
+                subject: formatMessage(getTranslations(locale === "ar" ? "ar" : "en").email.inquiryReceived.subject, { reference: resolved.reference }),
                 html: `<div dir="${locale === "ar" ? "rtl" : "ltr"}"><p>${getTranslations(locale === "ar" ? "ar" : "en").email.inquiryReceived.body}</p><p>${reference}</p></div>`,
               })
             : Promise.resolve(null),

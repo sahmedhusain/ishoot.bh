@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 import { getCurrencyLabel } from "@ishoot/config/currency";
 
@@ -823,7 +824,7 @@ export function InvoiceEditFormView({
         onConfirm={handleConfirmedSave}
         changes={changes}
         isSaving={submitting}
-        title={t.invoiceEdit.confirmEditTitle.replace("{number}", invoice.invoice_number)}
+        title={formatMessage(t.invoiceEdit.confirmEditTitle, { number: invoice.invoice_number })}
         description={t.invoiceEditForm.reviewTheUpdatedInvoiceValues}
       />
     </div>

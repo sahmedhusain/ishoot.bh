@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
@@ -140,7 +141,7 @@ export function WebSettingsView({
     }
   };
 
-  const webUrl = process.env.NEXT_PUBLIC_WEB_URL || "https://ishoot.bh";
+  const webUrl = process.env.NEXT_PUBLIC_WEB_URL || settings.website || "";
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-fade-in select-none">
@@ -296,10 +297,7 @@ export function WebSettingsView({
                   className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-neutral-300 inline-flex items-center gap-1.5 transition-colors"
                 >
                   <span>
-                    {t.webSettingsView.manageBanners.replace(
-                      "{count}",
-                      String(cmsCounts.banners),
-                    )}
+                    {formatMessage(t.webSettingsView.manageBanners, { count: String(cmsCounts.banners) })}
                   </span>
                   <ExternalLink className="w-3 h-3 text-slate-400" />
                 </Link>
@@ -649,10 +647,9 @@ export function WebSettingsView({
                   </div>
                   <div className="flex-1 space-y-1">
                     <label className="text-[10px] uppercase font-bold text-slate-500">
-                      URL
-                    </label>
+                      {t.copy.url}</label>
                     <Input
-                      placeholder="https://..."
+                      placeholder={t.copy.urlExample}
                       value={newLink.url}
                       onChange={(e) =>
                         setNewLink({ ...newLink, url: e.target.value })
@@ -868,10 +865,7 @@ export function WebSettingsView({
                         {t.webSettingsView.manageShowcaseBanners}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsSlidesConfigured.replace(
-                          "{count}",
-                          String(cmsCounts.banners),
-                        )}
+                        {formatMessage(t.webSettingsView.cmsSlidesConfigured, { count: String(cmsCounts.banners) })}
                       </div>
                     </div>
                   </div>
@@ -891,10 +885,7 @@ export function WebSettingsView({
                         {t.webSettingsView.managePortfolio}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsProjectsPublished.replace(
-                          "{count}",
-                          String(cmsCounts.portfolio),
-                        )}
+                        {formatMessage(t.webSettingsView.cmsProjectsPublished, { count: String(cmsCounts.portfolio) })}
                       </div>
                     </div>
                   </div>
@@ -914,10 +905,7 @@ export function WebSettingsView({
                         {t.webSettingsView.manageClients}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsPartnerLogos.replace(
-                          "{count}",
-                          String(cmsCounts.clients),
-                        )}
+                        {formatMessage(t.webSettingsView.cmsPartnerLogos, { count: String(cmsCounts.clients) })}
                       </div>
                     </div>
                   </div>
@@ -937,10 +925,7 @@ export function WebSettingsView({
                         {t.webSettingsView.manageEquipment}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsCameraSystems.replace(
-                          "{count}",
-                          String(cmsCounts.equipment),
-                        )}
+                        {formatMessage(t.webSettingsView.cmsCameraSystems, { count: String(cmsCounts.equipment) })}
                       </div>
                     </div>
                   </div>
@@ -960,18 +945,12 @@ export function WebSettingsView({
                         <span>{t.webSettingsView.manageReviews}</span>
                         {cmsCounts.pendingReviews > 0 && (
                           <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500 text-white">
-                            {t.webSettingsView.cmsNewBadge.replace(
-                              "{count}",
-                              String(cmsCounts.pendingReviews),
-                            )}
+                            {formatMessage(t.webSettingsView.cmsNewBadge, { count: String(cmsCounts.pendingReviews) })}
                           </span>
                         )}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsClientReviews.replace(
-                          "{count}",
-                          String(cmsCounts.reviews),
-                        )}
+                        {formatMessage(t.webSettingsView.cmsClientReviews, { count: String(cmsCounts.reviews) })}
                       </div>
                     </div>
                   </div>
@@ -991,10 +970,7 @@ export function WebSettingsView({
                         {t.webSettingsView.manageFaqs}
                       </div>
                       <div className="text-[11px] text-slate-400 ">
-                        {t.webSettingsView.cmsQuestionsConfigured.replace(
-                          "{count}",
-                          String(cmsCounts.faqs),
-                        )}
+                        {formatMessage(t.webSettingsView.cmsQuestionsConfigured, { count: String(cmsCounts.faqs) })}
                       </div>
                     </div>
                   </div>

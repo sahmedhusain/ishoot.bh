@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import type { EmployeePayrollSettings } from "./types";
 
 export function parsePayrollSettings(
@@ -20,7 +21,7 @@ export function parsePayrollSettings(
   validate(settings.employee);
   validate(settings.employer);
   if (!Array.isArray(settings.supports) || settings.supports.length > 30)
-    throw new Error("Invalid support programs");
+    throw new Error(serverMessages.invalidSupportPrograms);
   for (const support of settings.supports) {
     validate(support);
     if (
@@ -52,7 +53,7 @@ export function calculateContributions(
   const employee = amount(settings.employee);
   const employer = amount(settings.employer);
   if (employee > gross)
-    throw new Error("Employee contribution cannot exceed gross salary");
+    throw new Error(serverMessages.employeeContributionCannotExceedGrossSalary);
   const support = round(
     Math.min(
       gross + employer,

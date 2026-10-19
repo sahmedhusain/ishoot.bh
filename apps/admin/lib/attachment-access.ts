@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import {
   db,
   type PermissionAction,
@@ -29,11 +30,11 @@ export async function requireAttachmentAccess(
   entityId: string,
   action: PermissionAction,
 ) {
-  if (entityType === "employee" && (!entityId || entityId === "pending")) throw new Error("Create the employee before attaching documents");
+  if (entityType === "employee" && (!entityId || entityId === "pending")) throw new Error(serverMessages.createTheEmployeeBeforeAttachingDocuments);
   if (entityType === "user_signature" && (entityId === "pending" || !entityId)) {
     // Anyone may upload a drawn signature for themselves; it only applies after approval.
     const user = await getCurrentUser();
-    if (!user) throw new Error("Unauthorized");
+    if (!user) throw new Error(serverMessages.unauthorized);
     if (action === "read") return requirePermission("users", "read");
     return user;
   }
@@ -45,18 +46,18 @@ export async function requireAttachmentAccess(
     // Every staff member files claims; receipts are visible to the claimant and to finance.
     if (action !== "read") return requirePermission("self_service", "create");
     const user = await getCurrentUser();
-    if (!user) throw new Error("Unauthorized");
+    if (!user) throw new Error(serverMessages.unauthorized);
     const claim = entityId && entityId !== "pending" ? await db.expenseClaim.findUnique({ where: { id: entityId }, select: { claimantId: true } }) : null;
     if (claim?.claimantId === user.id) return user;
     return requirePermission("expenses", "read");
   }
   if (entityType === "cms_asset") {
     const resource = CMS_ASSET_RESOURCES.find((r) => r === entityId);
-    if (!resource) throw new Error("Unsupported attachment type");
+    if (!resource) throw new Error(serverMessages.unsupportedAttachmentType);
     return requirePermission(resource, action);
   }
   const resource = resources[entityType];
-  if (!resource) throw new Error("Unsupported attachment type");
+  if (!resource) throw new Error(serverMessages.unsupportedAttachmentType);
   const user = await requirePermission(resource, action);
   if (entityId && entityId !== "pending" && entityId !== "company_setting") {
     const exists =
@@ -95,7 +96,7 @@ export async function requireAttachmentAccess(
                       select: { id: true },
                     })
                   : true;
-    if (!exists) throw new Error("Attachment target not found");
+    if (!exists) throw new Error(serverMessages.attachmentTargetNotFound);
   }
   return user;
 }

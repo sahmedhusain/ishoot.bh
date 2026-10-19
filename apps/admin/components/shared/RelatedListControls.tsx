@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
@@ -42,7 +43,7 @@ export function RelatedListControls({ pagination }: { pagination: Record<string,
             const label = (r.domains as Record<string, string>)[domain] ?? domain;
             return (
               <nav key={domain} aria-label={label} className="flex items-center gap-1.5">
-                <span className="tabular-nums">{r.pageOf.replace("{domain}", label).replace("{page}", String(value.page)).replace("{pages}", String(pages))}</span>
+                <span className="tabular-nums">{formatMessage(r.pageOf, { domain: label, page: String(value.page), pages: String(pages) })}</span>
                 {value.page > 1 && (
                   <Link href={href(domain, value.page - 1)} className={chip} aria-label={r.previous}>
                     <ChevronLeft className="w-4 h-4 rtl:-scale-x-100" aria-hidden />

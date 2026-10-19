@@ -1,3 +1,4 @@
+import { getTranslations, formatMessage, type Locale } from "@ishoot/locales";
 import { db } from "../db";
 import { FUNCTIONAL_CURRENCY } from "../constants/finance";
 
@@ -260,34 +261,22 @@ export function escapeCsvField(val: unknown): string {
   return str;
 }
 
-export function generateFinancialSummaryCsv(report: FinancialSummaryReport): string {
-  const lines: string[] = [
-    `"ishoot Media - Financial Summary Report"`,
-    `"Basis",${escapeCsvField(report.basis)}`,
-    `"Currency",${escapeCsvField(report.reportingCurrency)}`,
-    `"Period Start",${escapeCsvField(report.periodStart || "All time")}`,
-    `"Period End",${escapeCsvField(report.periodEnd || "Present")}`,
-    "",
-    `"Metric","Amount (BHD)"`,
-    `"Invoiced Sales (Gross)",${report.invoicedGross.toFixed(3)}`,
-    `"Invoiced Sales (Net of VAT)",${report.invoicedNet.toFixed(3)}`,
-    `"Output VAT Invoiced",${report.invoicedOutputVat.toFixed(3)}`,
-    `"Cash Receipts (Gross)",${report.cashGrossReceipts.toFixed(3)}`,
-    `"Cash Receipts (Net of VAT)",${report.cashNetReceipts.toFixed(3)}`,
-    `"Cash Output VAT Collected",${report.cashOutputVat.toFixed(3)}`,
-    `"Operating Expenses (Gross)",${report.totalExpensesGross.toFixed(3)}`,
-    `"Operating Expenses (Net of VAT)",${report.expensesNet.toFixed(3)}`,
-    `"Input VAT (Total Paid)",${report.inputVatTotal.toFixed(3)}`,
-    `"Input VAT (Recoverable)",${report.inputVatRecoverable.toFixed(3)}`,
-    `"Input VAT (Non-Recoverable Cost)",${report.inputVatNonRecoverable.toFixed(3)}`,
-    `"Payroll & Benefits Costs",${report.payrollCostsTotal.toFixed(3)}`,
-    `"Bank Fees",${report.bankFeesTotal.toFixed(3)}`,
-    `"Realized FX Gain/Loss",${report.realizedFxGainLoss.toFixed(3)}`,
-    `"Operating Net Profit",${report.operatingProfit.toFixed(3)}`,
-    `"Net Profit Margin (%)",${report.netMarginPercentage.toFixed(2)}%`,
-  ];
-
-  return lines.join("\n");
+export interface FinancialCsvOptions { locale?: Locale; companyName?: string; currency?: string; }
+export function generateFinancialSummaryCsv(report: FinancialSummaryReport, options: FinancialCsvOptions = {}): string {
+  const t = getTranslations(options.locale ?? "en").admin;
+  const c = t.financialCsv;
+  const row = (...cells: unknown[]) => cells.map(escapeCsvField).join(",");
+  const keys = ["invoicedGross", "invoicedNet", "invoicedOutputVat", "cashGrossReceipts", "cashNetReceipts", "cashOutputVat", "totalExpensesGross", "expensesNet", "inputVatTotal", "inputVatRecoverable", "inputVatNonRecoverable", "payrollCostsTotal", "bankFeesTotal", "realizedFxGainLoss", "operatingProfit"] as const;
+  return [
+    row(formatMessage(c.title, { companyName: options.companyName ?? t.copy.genericCompany })),
+    row(c.basis, report.basis === "cash" ? c.cash : c.accrual),
+    row(c.currency, report.reportingCurrency),
+    row(c.periodStart, report.periodStart || c.allTime),
+    row(c.periodEnd, report.periodEnd || c.present), "",
+    row(c.metric, formatMessage(c.amountHeader, { currency: report.reportingCurrency })),
+    ...keys.map((key) => row(c[key], report[key].toFixed(3))),
+    row(c.netMarginPercentage, report.netMarginPercentage.toFixed(2) + "%"),
+  ].join("\n");
 }
 
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
@@ -505,23 +494,26 @@ export async function getFinancialReportDetail(filters: { dateFrom?: Date; dateT
 }
 
 /** Detail sections appended to the summary CSV: monthly results, invoice register and costs by category. */
-export function generateFinancialDetailCsv(detail: FinancialReportDetail, showVat: boolean): string {
+export function generateFinancialDetailCsv(detail: FinancialReportDetail, showVat: boolean, options: FinancialCsvOptions = {}): string {
+  const t = getTranslations(options.locale ?? "en").admin;
+  const c = t.financialCsv;
+  const currency = options.currency ?? "BHD";
   const row = (...cells: unknown[]) => cells.map(escapeCsvField).join(",");
-  const lines = ["", row("Monthly results (BHD, net of VAT)"), row("Month", "Revenue", "Project costs", "Operating", "Payroll", "Profit")];
+  const lines = ["", row(formatMessage(c.monthlyResults, { currency })), row(c.month, c.revenue, c.projectCosts, c.operating, c.payroll, c.profit)];
   for (const m of detail.monthly) lines.push(row(m.month, m.revenueNet.toFixed(3), m.costOfSales.toFixed(3), m.operating.toFixed(3), m.payroll.toFixed(3), m.profit.toFixed(3)));
-  lines.push("", row("Invoice register"));
-  lines.push(showVat ? row("Invoice", "Date", "Client", "Status", "Currency", "VAT applied", "Net", "VAT", "Gross", "Paid", "Due") : row("Invoice", "Date", "Client", "Status", "Currency", "Amount", "Paid", "Due"));
+  lines.push("", row(c.invoiceRegister));
+  lines.push(showVat ? row(c.invoice, c.date, c.client, c.status, c.currency, c.vatApplied, c.net, c.vat, c.gross, c.paid, c.due) : row(c.invoice, c.date, c.client, c.status, c.currency, c.amount, c.paid, c.due));
   for (const i of detail.invoices)
     lines.push(
       showVat
-        ? row(i.number, i.issueDate, i.client, i.status, i.currency, i.vatApplied ? "yes" : "no", i.net.toFixed(3), i.vat.toFixed(3), i.gross.toFixed(3), i.paid.toFixed(3), i.due.toFixed(3))
-        : row(i.number, i.issueDate, i.client, i.status, i.currency, i.gross.toFixed(3), i.paid.toFixed(3), i.due.toFixed(3)),
+        ? row(i.number, i.issueDate, i.client, (t.statusLabels as Record<string, string>)[i.status] ?? i.status, i.currency, i.vatApplied ? c.yes : c.no, i.net.toFixed(3), i.vat.toFixed(3), i.gross.toFixed(3), i.paid.toFixed(3), i.due.toFixed(3))
+        : row(i.number, i.issueDate, i.client, (t.statusLabels as Record<string, string>)[i.status] ?? i.status, i.currency, i.gross.toFixed(3), i.paid.toFixed(3), i.due.toFixed(3)),
     );
-  lines.push("", row("Costs by category (BHD)"), row("Category", "Type", "Expenses", "Net", ...(showVat ? ["Input VAT", "Gross"] : [])));
-  for (const c of detail.expensesByCategory) lines.push(row(c.nameEn, c.kind, c.count, c.net.toFixed(3), ...(showVat ? [c.inputVat.toFixed(3), c.gross.toFixed(3)] : [])));
+  lines.push("", row(formatMessage(c.costsByCategory, { currency })), row(c.category, c.type, c.expenses, c.net, ...(showVat ? [c.inputVat, c.gross] : [])));
+  for (const c of detail.expensesByCategory) lines.push(row(options.locale === "ar" ? c.nameAr : c.nameEn, c.kind, c.count, c.net.toFixed(3), ...(showVat ? [c.inputVat.toFixed(3), c.gross.toFixed(3)] : [])));
   if (showVat) {
-    lines.push("", row("VAT position (BHD)"));
-    lines.push(row("Output VAT", detail.vat.output.toFixed(3)), row("Recoverable input VAT", detail.vat.inputRecoverable.toFixed(3)), row("Net VAT payable", detail.vat.netPayable.toFixed(3)));
+    lines.push("", row(formatMessage(c.vatPosition, { currency })));
+    lines.push(row(c.outputVat, detail.vat.output.toFixed(3)), row(c.recoverableInput, detail.vat.inputRecoverable.toFixed(3)), row(c.netPayable, detail.vat.netPayable.toFixed(3)));
   }
   return lines.join("\n");
 }

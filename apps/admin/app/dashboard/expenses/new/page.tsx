@@ -1,12 +1,10 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
-import { Metadata } from "next";
+import { getTranslations } from "@ishoot/locales";
 import { getExpenseCategories } from "@ishoot/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewExpenseFormView } from "@/components/expenses/NewExpenseFormView";
 
-export const metadata: Metadata = {
-  title: "New expense | Finance",
-};
+export const metadata = { title: getTranslations("ar").admin.copy.newExpense };
 
 export default async function NewExpensePage({ searchParams }: { searchParams: Promise<{ dealId?: string; clientId?: string }> }) {
   await requirePagePermission("expenses", "write");

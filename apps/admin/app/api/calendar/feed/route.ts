@@ -1,91 +1,49 @@
-import { measureOperation } from "@ishoot/database";
+import { serverMessages, getTranslations, formatMessage } from "@ishoot/locales";
+
+
+import { getCompanySettings } from "@ishoot/database";
+import { measureOperation, getCalendarFor } from "@ishoot/database";
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "../../../../lib/auth";
-import { hasPermission } from "@ishoot/database";
-import { getCalendarEvents } from "@ishoot/database";
+import { getCurrentUser, hasPermission } from "../../../../lib/auth";
+import { buildIcs } from "../../../../lib/ics";
+import { publicOrigin } from "../../../../lib/public-origin";
 
-function formatIcsDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d
-    .toISOString()
-    .replace(/[-:]/g, "")
-    .replace(/\.\d{3}/, "");
-}
-
-function escapeIcsText(value: string): string {
-  return value
-    .replace(/\\/g, "\\\\")
-    .replace(/\r\n|\r|\n/g, "\\n")
-    .replace(/;/g, "\\;")
-    .replace(/,/g, "\\,");
-}
-
-export async function GET(request: Request) {
+/** Downloads the signed-in user's calendar as an .ics file (only what they may see). */
+export async function GET() {
   return measureOperation("admin:calendar/feed:GET", async () => {
-  const user = await getCurrentUser();
-  if (!user) return new NextResponse("Unauthorized", { status: 401 });
-  if (
-    !(await hasPermission(
-      user.role,
-      "calendar",
-      "read",
-      user.permissions as Record<string, boolean> | undefined,
-    ))
-  )
-    return new NextResponse("Forbidden", { status: 403 });
-  try {
-    const events = await getCalendarEvents();
-
-    let icsLines: string[] = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "PRODID:-//ishoot.bh//Production Calendar//EN",
-      "CALSCALE:GREGORIAN",
-      "METHOD:PUBLISH",
-      "X-WR-CALNAME:ishoot Production Calendar",
-      "X-WR-TIMEZONE:Asia/Bahrain",
-    ];
-
-    for (const ev of events) {
-      const dtStart = formatIcsDate(ev.start_date);
-      const dtEnd = formatIcsDate(ev.end_date);
-      const summary = escapeIcsText(ev.title || "Production Event");
-      const desc = escapeIcsText(
-        ev.description || (ev.deal ? `Deal: ${ev.deal.title}` : ""),
+    const user = await getCurrentUser();
+    if (!user) return new NextResponse(serverMessages.unauthorized, { status: 401 });
+    if (!(await hasPermission("calendar", "read")))
+      return new NextResponse(serverMessages.runtimeForbidden, { status: 403 });
+    try {
+      const now = Date.now();
+      const events = await getCalendarFor(
+        user.id,
+        new Date(now - 60 * 86_400_000),
+        new Date(now + 365 * 86_400_000),
       );
-      const loc = escapeIcsText(ev.location || "");
-
-      icsLines.push(
-        "BEGIN:VEVENT",
-        `UID:${ev.id}@ishoot.bh`,
-        `DTSTAMP:${formatIcsDate(new Date().toISOString())}`,
-        `DTSTART:${dtStart}`,
-        `DTEND:${dtEnd}`,
-        `SUMMARY:${summary}`,
-        `DESCRIPTION:${desc}`,
-        `LOCATION:${loc}`,
-        "STATUS:CONFIRMED",
-        "END:VEVENT",
+      const company = await getCompanySettings();
+      return new NextResponse(
+        buildIcs(events, {
+          name: formatMessage(getTranslations("en").admin.copy.calendarName, { companyName: company.company_name_en }),
+          language: "en",
+          origin: await publicOrigin(),
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "text/calendar; charset=utf-8",
+            "Content-Disposition": 'inline; filename="company-calendar.ics"',
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+          },
+        },
       );
+    } catch (error) {
+      console.error("Failed to generate iCal feed:", error);
+      return new NextResponse("Error generating calendar feed", {
+        status: 500,
+      });
     }
-
-    icsLines.push("END:VCALENDAR");
-
-    const icsContent = icsLines.join("\r\n");
-
-    return new NextResponse(icsContent, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/calendar; charset=utf-8",
-        "Content-Disposition": 'inline; filename="ishoot-calendar.ics"',
-        "Cache-Control": "private, no-store",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
-  } catch (error) {
-    console.error("Failed to generate iCal feed:", error);
-    return new NextResponse("Error generating calendar feed", { status: 500 });
-  }
-
   });
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -69,8 +70,8 @@ export function LeaveBalancesCard({ balances, year, employeeId, canAdjust = fals
                 <th scope="row" className="py-2 pe-3 text-start font-medium text-slate-800 dark:text-slate-100">
                   {locale === "ar" ? b.nameAr : b.nameEn}
                   <span className="block text-[10px] font-normal text-slate-500">
-                    {b.hasPayBands ? l.bands : l.paidAt.replace("{percent}", String(b.payPercent))}
-                    {!b.eligible && b.eligibleFrom ? ` · ${l.eligibleFrom.replace("{date}", b.eligibleFrom)}` : ""}
+                    {b.hasPayBands ? l.bands : formatMessage(l.paidAt, { percent: String(b.payPercent) })}
+                    {!b.eligible && b.eligibleFrom ? ` · ${formatMessage(l.eligibleFrom, { date: b.eligibleFrom })}` : ""}
                   </span>
                 </th>
                 <td className="py-2 px-2 text-end text-slate-700 dark:text-slate-300">{b.entitled == null ? "—" : n(b.entitled)}</td>

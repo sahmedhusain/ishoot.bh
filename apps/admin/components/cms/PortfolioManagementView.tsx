@@ -390,17 +390,13 @@ export function PortfolioManagementView({
                 onChange={(e) => setAspectRatio(e.target.value)}
               >
                 <option value="16:9" className="bg-surface text-ink">
-                  16:9 (Standard UHD)
-                </option>
+                  {t.copy.aspectStandard}</option>
                 <option value="2.39:1" className="bg-surface text-ink">
-                  2.39:1 (Anamorphic Scope)
-                </option>
+                  {t.copy.aspectScope}</option>
                 <option value="9:16" className="bg-surface text-ink">
-                  9:16 (Vertical Social)
-                </option>
+                  {t.copy.aspectVertical}</option>
                 <option value="4:3" className="bg-surface text-ink">
-                  4:3 (Academy)
-                </option>
+                  {t.copy.aspectAcademy}</option>
               </Select>
             </div>
             <div>
@@ -461,8 +457,7 @@ export function PortfolioManagementView({
               />
             </label>
             <label className="text-sm">
-              الوصف (عربي)
-              <textarea
+              {t.copy.descriptionArabic}<textarea
                 className="w-full rounded-lg bg-ink/5 border border-ink/20 p-3"
                 rows={3}
                 value={descriptionAr}

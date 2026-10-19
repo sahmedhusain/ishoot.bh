@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
 import { leaveEntitlement, monthsOfService, utcDay } from "../hr/payroll-engine";
 import { listLeaveTypeRules, type LeaveTypeView } from "./hr-settings";
@@ -101,7 +102,7 @@ export async function getLeaveBalances(employeeId: string, year?: number, asOf?:
 export async function getLeaveBalance(employeeId: string, leaveTypeId: string, year: number, asOf?: Date): Promise<LeaveBalance> {
   const balance = (await getLeaveBalances(employeeId, year, asOf ?? (year === new Date().getUTCFullYear() ? new Date() : utcDay(year, 11, 31))))
     .find((b) => b.leaveTypeId === leaveTypeId);
-  if (!balance) throw new Error("This leave type is not available");
+  if (!balance) throw new Error(serverMessages.thisLeaveTypeIsNotAvailable);
   return balance;
 }
 
@@ -122,13 +123,13 @@ export async function refreshLeaveBalanceCache(employeeId: string) {
 }
 
 export async function addLeaveAdjustment(input: { employeeId: string; leaveTypeId: string; year: number; days: number; reason: string }, actorId: string) {
-  if (!Number.isInteger(input.year) || input.year < 2000 || input.year > 2200) throw new Error("Choose a year");
-  if (!Number.isFinite(input.days) || input.days === 0 || Math.abs(input.days) > 366) throw new Error("Enter the days to add (or a negative number to remove)");
-  if (Math.round(input.days * 2) !== input.days * 2) throw new Error("Use whole or half days");
+  if (!Number.isInteger(input.year) || input.year < 2000 || input.year > 2200) throw new Error(serverMessages.chooseAYear);
+  if (!Number.isFinite(input.days) || input.days === 0 || Math.abs(input.days) > 366) throw new Error(serverMessages.enterTheDaysToAddOrA);
+  if (Math.round(input.days * 2) !== input.days * 2) throw new Error(serverMessages.useWholeOrHalfDays);
   const reason = input.reason.trim();
-  if (!reason || reason.length > 300) throw new Error("Give a reason for the adjustment");
+  if (!reason || reason.length > 300) throw new Error(serverMessages.giveAReasonForTheAdjustment);
   const type = await db.leaveType.findUniqueOrThrow({ where: { id: input.leaveTypeId }, select: { accrual: true } });
-  if (type.accrual === "none") throw new Error("This leave type has no balance to adjust");
+  if (type.accrual === "none") throw new Error(serverMessages.thisLeaveTypeHasNoBalanceTo);
   const adjustment = await db.leaveAdjustment.create({ data: { ...input, reason, createdById: actorId } });
   await refreshLeaveBalanceCache(input.employeeId);
   return adjustment;

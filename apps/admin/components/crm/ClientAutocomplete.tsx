@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -164,7 +165,7 @@ export function ClientAutocomplete({
         setContacts((prev) => [created, ...prev.filter((c) => c.id !== created.id)]);
         handleSelect(created);
         toast.success(
-          t.clientAutocomplete.addedAndSelected.replace("{name}", created.company || created.full_name),
+          formatMessage(t.clientAutocomplete.addedAndSelected, { name: created.company || created.full_name }),
         );
         // Reset form
         setNewFullName("");
@@ -349,7 +350,7 @@ export function ClientAutocomplete({
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="client@company.com"
+                  placeholder={t.copy.clientEmailExample}
                   className="pl-8 rtl:pl-3 rtl:pr-8"
                 />
                 <Mail className="w-3.5 h-3.5 absolute left-2.5 rtl:left-auto rtl:right-2.5 top-3 text-slate-400 pointer-events-none" />

@@ -1,13 +1,10 @@
+import { companyMetadata } from "../../lib/company-metadata";
 import * as React from "react";
-import { Metadata } from "next";
 import { AdminLoginFormView } from "../../components/auth/AdminLoginFormView";
 import { getCachedCompanySettings } from "../../lib/cached-queries";
 import { adminTranslations } from "../../lib/translations-bilingual";
 
-export const metadata: Metadata = {
-  title: `${adminTranslations.en.loginView.title} | ${adminTranslations.en.brandName}`,
-  description: adminTranslations.en.loginView.subtitle,
-};
+export const generateMetadata = () => companyMetadata(adminTranslations.ar.loginView.title);
 
 export const dynamic = "force-dynamic";
 export default async function LoginPage() {

@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db } from "../db";
 
 export async function processRevalidationJobs(options: {
@@ -9,11 +11,11 @@ export async function processRevalidationJobs(options: {
 }) {
   const url = new URL(options.webUrl);
   if (!["http:", "https:"].includes(url.protocol) || !options.secret)
-    throw new Error("Configure WEB_URL and REVALIDATION_SECRET for the worker");
+    throw new Error(serverMessages.configureWebUrlAndRevalidationSecretFor);
   const now = options.now || new Date();
   const size = options.batchSize || 5;
   if (!Number.isInteger(size) || size < 1 || size > 25)
-    throw new Error("Invalid batch size");
+    throw new Error(serverMessages.invalidBatchSize);
   const jobs = await db.$transaction(async (tx) => {
     await tx.revalidationJob.updateMany({
       where: {
@@ -59,7 +61,7 @@ export async function processRevalidationJobs(options: {
           signal: AbortSignal.timeout(3000),
         },
       );
-      if (!response.ok) throw new Error(`Invalidation HTTP ${response.status}`);
+      if (!response.ok) throw new Error(formatMessage(serverTemplates.invalidationHttp0, { 0: response.status }));
       await txResult(job.id, job.attempts, {
         status: "delivered",
         deliveredAt: new Date(),

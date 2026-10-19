@@ -1,35 +1,35 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { getTranslations } from "@ishoot/locales";
+import { getTranslations, formatMessage } from "@ishoot/locales";
+import { getPublicCompanySettings } from "../lib/company";
+import { publicSiteUrl } from "../lib/site-url";
 
-const { seo } = getTranslations("en");
-
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.WEB_URL || "https://ishoot.bh"),
-  title: seo.title,
-  description: seo.description,
-  icons: {
-    icon: "/brand/icon-dark.svg",
-    shortcut: "/brand/icon-dark.svg",
-    apple: "/brand/icon-dark.svg",
-  },
-  openGraph: {
-    title: seo.title,
+export async function generateMetadata(): Promise<Metadata> {
+  const [company, metadataBase] = await Promise.all([
+    getPublicCompanySettings(),
+    publicSiteUrl(),
+  ]);
+  const { seo } = getTranslations("en");
+  const values = { companyName: company.company_name_en };
+  const title = formatMessage(seo.title, values);
+  return {
+    metadataBase,
+    title,
     description: seo.description,
-    url: "https://ishoot.bh",
-    siteName: "ishoot.bh",
-    images: [
-      {
-        url: "/images/logo-full.png",
-        width: 1200,
-        height: 630,
-        alt: seo.imageAlt,
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-};
+    ...(company.icon_url ? { icons: { icon: company.icon_url } } : {}),
+    openGraph: {
+      title,
+      description: seo.description,
+      url: metadataBase.href,
+      siteName: company.company_name_en,
+      images: company.logo_url
+        ? [{ url: company.logo_url, alt: formatMessage(seo.imageAlt, values) }]
+        : [],
+      locale: "en_US",
+      type: "website",
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#014842",

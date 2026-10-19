@@ -20,7 +20,7 @@ grep DATABASE_URL .env
 
 # 2. Drop everything and re-apply all migrations (deletes ALL data in that database)
 pnpm --filter @ishoot/database exec prisma migrate reset --force --skip-seed
-
+ 
 # 3. Seed and verify
 pnpm db:seed
 pnpm db:check-integrity

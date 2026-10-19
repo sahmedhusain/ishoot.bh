@@ -1,5 +1,5 @@
 import { ROUTES } from "../constants/routes";
-import { claimUpload } from "../services/uploads";
+import { claimUploadOrLink } from "../services/uploads";
 import { db } from "../db";
 import type { Attachment } from "../types";
 
@@ -9,7 +9,9 @@ export interface EnrichedAttachment extends Attachment {
   uploader_name?: string;
 }
 
-export async function getAllAttachments(options?: { ids?: string[] }): Promise<EnrichedAttachment[]> {
+export async function getAllAttachments(options?: {
+  ids?: string[];
+}): Promise<EnrichedAttachment[]> {
   const records = await db.attachment.findMany({
     where: options?.ids ? { id: { in: options.ids } } : undefined,
     include: {
@@ -21,7 +23,9 @@ export async function getAllAttachments(options?: { ids?: string[] }): Promise<E
   });
 
   const contactIds = records
-    .filter((r) => r.entityType === "contact" || r.entityType === "customer_vault")
+    .filter(
+      (r) => r.entityType === "contact" || r.entityType === "customer_vault",
+    )
     .map((r) => r.entityId);
   const invoiceIds = records
     .filter((r) => r.entityType === "invoice")
@@ -37,7 +41,12 @@ export async function getAllAttachments(options?: { ids?: string[] }): Promise<E
     contactIds.length > 0
       ? db.crmContact.findMany({
           where: { id: { in: contactIds } },
-          select: { id: true, firstName: true, lastName: true, companyName: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            companyName: true,
+          },
         })
       : [],
     invoiceIds.length > 0
@@ -62,12 +71,20 @@ export async function getAllAttachments(options?: { ids?: string[] }): Promise<E
               select: {
                 invoiceNumber: true,
                 client: {
-                  select: { firstName: true, lastName: true, companyName: true },
+                  select: {
+                    firstName: true,
+                    lastName: true,
+                    companyName: true,
+                  },
                 },
                 deal: {
                   select: {
                     contact: {
-                      select: { firstName: true, lastName: true, companyName: true },
+                      select: {
+                        firstName: true,
+                        lastName: true,
+                        companyName: true,
+                      },
                     },
                   },
                 },
@@ -114,7 +131,8 @@ export async function getAllAttachments(options?: { ids?: string[] }): Promise<E
       entityLink = ROUTES.crm.deal(r.entityId);
     } else if (r.entityType === "payment") {
       entityLabel =
-        paymentMap.get(r.entityId) || `Payment Receipt (${r.entityId.slice(0, 8)})`;
+        paymentMap.get(r.entityId) ||
+        `Payment Receipt (${r.entityId.slice(0, 8)})`;
       entityLink = ROUTES.payments.detail(r.entityId);
     } else if (r.entityType === "company_setting") {
       entityLabel = "NBR VAT Registration Certificate";
@@ -136,7 +154,6 @@ export async function getAllAttachments(options?: { ids?: string[] }): Promise<E
     };
   });
 
-
   return mapped;
 }
 
@@ -150,18 +167,18 @@ export async function createAttachment(data: {
   uploadedById?: string;
 }) {
   return db.$transaction(async (tx) => {
-    const upload = await claimUpload(tx, data.fileUrl, data.uploadedById);
+    const upload = await claimUploadOrLink(tx, data.fileUrl, data.uploadedById);
     return tx.attachment.create({
-    data: {
-      fileName: data.fileName,
-      fileUrl: data.fileUrl,
-      fileSize: upload.fileSize,
-      mimeType: upload.mimeType,
-      entityType: data.entityType,
-      entityId: data.entityId,
-      uploadedById: data.uploadedById,
-    },
-  });
+      data: {
+        fileName: data.fileName,
+        fileUrl: data.fileUrl,
+        fileSize: upload.fileSize,
+        mimeType: upload.mimeType,
+        entityType: data.entityType,
+        entityId: data.entityId,
+        uploadedById: data.uploadedById,
+      },
+    });
   });
 }
 

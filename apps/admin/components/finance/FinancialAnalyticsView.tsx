@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import Link from "next/link";
 import { Card, CurrencyDisplay } from "@ishoot/ui";
 import { CalendarClock, Percent, Receipt, Wallet } from "lucide-react";
@@ -39,7 +40,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
     { icon: Percent, label: copy.collectionRate, value: `${insight.collectionRate.toFixed(1)}%`, hint: copy.collectionRateHint },
     { icon: CalendarClock, label: copy.daysToCollect, value: `${insight.averageDaysToCollect} ${copy.days}`, hint: copy.daysToCollectHint },
     { icon: Wallet, label: copy.outstanding, value: <CurrencyDisplay amount={finance.outstanding} currency="BHD" />, hint: copy.outstandingHint },
-    { icon: Receipt, label: copy.averageInvoice, value: <CurrencyDisplay amount={insight.averageInvoiceValue} currency="BHD" />, hint: copy.averageInvoiceHint.replace("{count}", String(insight.invoicesIssued)) },
+    { icon: Receipt, label: copy.averageInvoice, value: <CurrencyDisplay amount={insight.averageInvoiceValue} currency="BHD" />, hint: formatMessage(copy.averageInvoiceHint, { count: String(insight.invoicesIssued) }) },
   ];
 
   return (
@@ -89,7 +90,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
                     <span className="flex items-center gap-2 text-ink">
                       <span className={`h-2.5 w-2.5 rounded-full ${AGING_COLORS[i]}`} />
                       {copy.agingBuckets[bucket.bucket]}
-                      <span className="text-xs text-ink-muted">· {copy.invoicesCount.replace("{count}", String(bucket.count))}</span>
+                      <span className="text-xs text-ink-muted">· {formatMessage(copy.invoicesCount, { count: String(bucket.count) })}</span>
                     </span>
                     <span className="font-semibold text-ink"><CurrencyDisplay amount={bucket.amount} currency="BHD" /></span>
                   </li>
@@ -110,7 +111,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
                   <Link href={ROUTES.crm.customer(client.clientId)} className="flex items-center gap-3 text-ink hover:text-accent">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-xs font-bold text-accent">{i + 1}</span>
                     <span className="font-medium">{client.name}</span>
-                    <span className="text-xs text-ink-muted">· {copy.invoicesCount.replace("{count}", String(client.invoices))}</span>
+                    <span className="text-xs text-ink-muted">· {formatMessage(copy.invoicesCount, { count: String(client.invoices) })}</span>
                   </Link>
                   <span className="font-semibold text-ink"><CurrencyDisplay amount={client.collected} currency="BHD" /></span>
                 </li>

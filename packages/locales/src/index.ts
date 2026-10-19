@@ -2,6 +2,10 @@ import enBase from "./en.json";
 import arBase from "./ar.json";
 import adminEn from "./admin/en.json";
 import adminAr from "./admin/ar.json";
+export { formatMessage, type MessageValues } from "./format-message";
+/** Canonical server messages; clients render their localized equivalents through the error catalog. */
+export const serverMessages = adminEn.serverErrors.messages;
+export const serverTemplates = adminEn.serverErrors.templates;
 
 export type Locale = "en" | "ar";
 

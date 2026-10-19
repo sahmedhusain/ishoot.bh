@@ -1,9 +1,20 @@
+import { serverMessages } from "@ishoot/locales";
 import { db, runAtomicMutation } from "../db";
-import { assertSupportedCurrency, EXPENSE_PAYMENT_METHODS } from "../constants/finance";
-import { claimUpload } from "../services/uploads";
+import {
+  assertSupportedCurrency,
+  EXPENSE_PAYMENT_METHODS,
+} from "../constants/finance";
+import { claimUploadOrLink } from "../services/uploads";
 import { getNextSequenceNumber } from "./sequence";
 
-export const EXPENSE_CLAIM_STATUSES = ["submitted", "approved", "rejected", "scheduled", "paid", "cancelled"] as const;
+export const EXPENSE_CLAIM_STATUSES = [
+  "submitted",
+  "approved",
+  "rejected",
+  "scheduled",
+  "paid",
+  "cancelled",
+] as const;
 export type ExpenseClaimStatus = (typeof EXPENSE_CLAIM_STATUSES)[number];
 
 export interface ExpenseClaimRow {
@@ -52,14 +63,26 @@ function mapClaim(c: any): ExpenseClaimRow {
     expenseDate: c.expenseDate.toISOString().slice(0, 10),
     reason: c.reason,
     categoryId: c.categoryId,
-    categoryName: c.category ? { en: c.category.nameEn, ar: c.category.nameAr } : null,
+    categoryName: c.category
+      ? { en: c.category.nameEn, ar: c.category.nameAr }
+      : null,
     deal: c.deal ? { id: c.deal.id, title: c.deal.title } : null,
-    invoice: c.invoice ? { id: c.invoice.id, number: c.invoice.invoiceNumber } : null,
-    meeting: c.calendarEvent ? { id: c.calendarEvent.id, title: c.calendarEvent.title, startDate: c.calendarEvent.startDate.toISOString() } : null,
+    invoice: c.invoice
+      ? { id: c.invoice.id, number: c.invoice.invoiceNumber }
+      : null,
+    meeting: c.calendarEvent
+      ? {
+          id: c.calendarEvent.id,
+          title: c.calendarEvent.title,
+          startDate: c.calendarEvent.startDate.toISOString(),
+        }
+      : null,
     receiptUrl: c.receiptUrl,
     status: c.status,
     reviewNotes: c.reviewNotes,
-    scheduledForDate: c.scheduledForDate ? c.scheduledForDate.toISOString().slice(0, 10) : null,
+    scheduledForDate: c.scheduledForDate
+      ? c.scheduledForDate.toISOString().slice(0, 10)
+      : null,
     paidAt: c.paidAt ? c.paidAt.toISOString() : null,
     paidByName: c.paidBy?.fullName ?? null,
     paymentMethod: c.paymentMethod,
@@ -82,23 +105,56 @@ export interface ExpenseClaimInput {
 }
 
 /** Files a claim with its receipt; the caller submits it for approval in the same transaction. */
-export async function createExpenseClaim(input: ExpenseClaimInput, claimantId: string): Promise<ExpenseClaimRow> {
-  if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error("Claim amount must be positive");
+export async function createExpenseClaim(
+  input: ExpenseClaimInput,
+  claimantId: string,
+): Promise<ExpenseClaimRow> {
+  if (!Number.isFinite(input.amount) || input.amount <= 0)
+    throw new Error(serverMessages.claimAmountMustBePositive);
   const reason = input.reason?.trim();
-  if (!reason || reason.length > 1000) throw new Error("Explain what the expense was for");
+  if (!reason || reason.length > 1000)
+    throw new Error(serverMessages.explainWhatTheExpenseWasFor);
   const currency = input.currency || "BHD";
   assertSupportedCurrency(currency);
-  if (!input.receiptUrl) throw new Error("Attach a photo or scan of the receipt");
+  if (!input.receiptUrl)
+    throw new Error(serverMessages.attachAPhotoOrScanOfThe);
   const date = new Date(input.expenseDate);
-  if (Number.isNaN(date.getTime()) || date > new Date(Date.now() + 86400000)) throw new Error("Enter the date you paid");
+  if (Number.isNaN(date.getTime()) || date > new Date(Date.now() + 86400000))
+    throw new Error(serverMessages.enterTheDateYouPaid);
   return runAtomicMutation(async () => {
-    if (input.categoryId && !(await db.expenseCategory.findFirst({ where: { id: input.categoryId, isActive: true }, select: { id: true } })))
-      throw new Error("Choose an active expense category");
-    if (input.dealId && !(await db.crmDeal.findUnique({ where: { id: input.dealId }, select: { id: true } }))) throw new Error("Deal not found");
-    if (input.invoiceId && !(await db.invoice.findUnique({ where: { id: input.invoiceId }, select: { id: true } }))) throw new Error("Invoice not found");
-    if (input.calendarEventId && !(await db.calendarEvent.findUnique({ where: { id: input.calendarEventId }, select: { id: true } })))
-      throw new Error("Meeting not found");
-    const upload = await claimUpload(db, input.receiptUrl, claimantId);
+    if (
+      input.categoryId &&
+      !(await db.expenseCategory.findFirst({
+        where: { id: input.categoryId, isActive: true },
+        select: { id: true },
+      }))
+    )
+      throw new Error(serverMessages.chooseAnActiveExpenseCategory);
+    if (
+      input.dealId &&
+      !(await db.crmDeal.findUnique({
+        where: { id: input.dealId },
+        select: { id: true },
+      }))
+    )
+      throw new Error(serverMessages.dealNotFound);
+    if (
+      input.invoiceId &&
+      !(await db.invoice.findUnique({
+        where: { id: input.invoiceId },
+        select: { id: true },
+      }))
+    )
+      throw new Error(serverMessages.invoiceNotFound);
+    if (
+      input.calendarEventId &&
+      !(await db.calendarEvent.findUnique({
+        where: { id: input.calendarEventId },
+        select: { id: true },
+      }))
+    )
+      throw new Error(serverMessages.meetingNotFound);
+    const upload = await claimUploadOrLink(db, input.receiptUrl, claimantId);
     const claim = await db.expenseClaim.create({
       data: {
         claimNumber: await getNextSequenceNumber("CLM", date.getUTCFullYear()),
@@ -117,37 +173,77 @@ export async function createExpenseClaim(input: ExpenseClaimInput, claimantId: s
     });
     if (upload)
       await db.attachment.create({
-        data: { entityType: "expense_claim", entityId: claim.id, fileName: upload.fileName, fileUrl: upload.fileUrl, fileSize: upload.fileSize, mimeType: upload.mimeType, uploadedById: claimantId },
+        data: {
+          entityType: "expense_claim",
+          entityId: claim.id,
+          fileName: upload.fileName,
+          fileUrl: upload.fileUrl,
+          fileSize: upload.fileSize,
+          mimeType: upload.mimeType,
+          uploadedById: claimantId,
+        },
       });
     return mapClaim(claim);
   });
 }
 
 export async function getExpenseClaim(id: string) {
-  const claim = await db.expenseClaim.findUnique({ where: { id }, include: claimInclude });
+  const claim = await db.expenseClaim.findUnique({
+    where: { id },
+    include: claimInclude,
+  });
   return claim ? mapClaim(claim) : null;
 }
 
 export interface ExpenseClaimListResult {
   items: ExpenseClaimRow[];
-  stats: { submitted: number; approved: number; scheduled: number; paidThisMonth: number; outstanding: { currency: string; amount: number }[] };
+  stats: {
+    submitted: number;
+    approved: number;
+    scheduled: number;
+    paidThisMonth: number;
+    outstanding: { currency: string; amount: number }[];
+  };
 }
 
 /** A claimant's own claims, or (for finance) everyone's. */
-export async function listExpenseClaims(options: { claimantId?: string; status?: string; take?: number }): Promise<ExpenseClaimListResult> {
+export async function listExpenseClaims(options: {
+  claimantId?: string;
+  status?: string;
+  take?: number;
+}): Promise<ExpenseClaimListResult> {
   const base = options.claimantId ? { claimantId: options.claimantId } : {};
   const where = {
     ...base,
-    ...(options.status && options.status !== "all" && { status: options.status }),
+    ...(options.status &&
+      options.status !== "all" && { status: options.status }),
   };
-  const monthStart = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
+  const monthStart = new Date(
+    Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1),
+  );
   const [rows, grouped, paidThisMonth, outstanding] = await Promise.all([
-    db.expenseClaim.findMany({ where, include: claimInclude, orderBy: [{ createdAt: "desc" }], take: options.take ?? 200 }),
-    db.expenseClaim.groupBy({ by: ["status"], where: base, _count: { _all: true } }),
-    db.expenseClaim.count({ where: { ...base, status: "paid", paidAt: { gte: monthStart } } }),
-    db.expenseClaim.groupBy({ by: ["currency"], where: { ...base, status: { in: ["approved", "scheduled"] } }, _sum: { amount: true } }),
+    db.expenseClaim.findMany({
+      where,
+      include: claimInclude,
+      orderBy: [{ createdAt: "desc" }],
+      take: options.take ?? 200,
+    }),
+    db.expenseClaim.groupBy({
+      by: ["status"],
+      where: base,
+      _count: { _all: true },
+    }),
+    db.expenseClaim.count({
+      where: { ...base, status: "paid", paidAt: { gte: monthStart } },
+    }),
+    db.expenseClaim.groupBy({
+      by: ["currency"],
+      where: { ...base, status: { in: ["approved", "scheduled"] } },
+      _sum: { amount: true },
+    }),
   ]);
-  const count = (status: string) => grouped.find((g) => g.status === status)?._count._all ?? 0;
+  const count = (status: string) =>
+    grouped.find((g) => g.status === status)?._count._all ?? 0;
   return {
     items: rows.map(mapClaim),
     stats: {
@@ -155,22 +251,39 @@ export async function listExpenseClaims(options: { claimantId?: string; status?:
       approved: count("approved"),
       scheduled: count("scheduled"),
       paidThisMonth,
-      outstanding: outstanding.map((o) => ({ currency: o.currency, amount: Number(o._sum.amount ?? 0) })),
+      outstanding: outstanding.map((o) => ({
+        currency: o.currency,
+        amount: Number(o._sum.amount ?? 0),
+      })),
     },
   };
 }
 
 /** Finance stages an approved claim for the next payment run. */
-export async function scheduleExpenseClaim(id: string, actorId: string, payOn?: string | null) {
+export async function scheduleExpenseClaim(
+  id: string,
+  actorId: string,
+  payOn?: string | null,
+) {
   return runAtomicMutation(async () => {
-    const claim = await db.expenseClaim.findUniqueOrThrow({ where: { id }, select: { status: true } });
-    if (claim.status !== "approved") throw new Error("Only approved claims can be scheduled for payment");
+    const claim = await db.expenseClaim.findUniqueOrThrow({
+      where: { id },
+      select: { status: true },
+    });
+    if (claim.status !== "approved")
+      throw new Error(serverMessages.onlyApprovedClaimsCanBeScheduledFor);
     const date = payOn ? new Date(payOn) : null;
-    if (date && Number.isNaN(date.getTime())) throw new Error("Invalid payment date");
+    if (date && Number.isNaN(date.getTime()))
+      throw new Error(serverMessages.invalidPaymentDate);
     return mapClaim(
       await db.expenseClaim.update({
         where: { id },
-        data: { status: "scheduled", scheduledAt: new Date(), scheduledById: actorId, scheduledForDate: date },
+        data: {
+          status: "scheduled",
+          scheduledAt: new Date(),
+          scheduledById: actorId,
+          scheduledForDate: date,
+        },
         include: claimInclude,
       }),
     );
@@ -184,17 +297,27 @@ export async function scheduleExpenseClaim(id: string, actorId: string, payOn?: 
 export async function payExpenseClaim(
   id: string,
   actorId: string,
-  payment: { method: string; reference?: string | null; categoryId?: string | null },
+  payment: {
+    method: string;
+    reference?: string | null;
+    categoryId?: string | null;
+  },
 ) {
-  if (!(EXPENSE_PAYMENT_METHODS as readonly string[]).includes(payment.method)) throw new Error("Choose how the claim was paid");
+  if (!(EXPENSE_PAYMENT_METHODS as readonly string[]).includes(payment.method))
+    throw new Error(serverMessages.chooseHowTheClaimWasPaid);
   return runAtomicMutation(async () => {
     const claim = await db.expenseClaim.findUniqueOrThrow({
       where: { id },
-      include: { claimant: { select: { fullName: true } }, deal: { select: { contactId: true } } },
+      include: {
+        claimant: { select: { fullName: true } },
+        deal: { select: { contactId: true } },
+      },
     });
-    if (!["approved", "scheduled"].includes(claim.status)) throw new Error("Only approved claims can be paid");
+    if (!["approved", "scheduled"].includes(claim.status))
+      throw new Error(serverMessages.onlyApprovedClaimsCanBePaid);
     const categoryId = payment.categoryId || claim.categoryId;
-    if (!categoryId) throw new Error("Choose the expense category before paying");
+    if (!categoryId)
+      throw new Error(serverMessages.chooseTheExpenseCategoryBeforePaying);
     const expense = await db.expense.create({
       data: {
         categoryId,
@@ -211,7 +334,9 @@ export async function payExpenseClaim(
         vendorName: claim.claimant.fullName,
         receiptUrl: claim.receiptUrl,
         paymentMethod: "staff_reimbursement",
-        notes: payment.reference ? `Reimbursed via ${payment.method}: ${payment.reference}` : `Reimbursed via ${payment.method}`,
+        notes: payment.reference
+          ? `Reimbursed via ${payment.method}: ${payment.reference}`
+          : `Reimbursed via ${payment.method}`,
         status: "approved",
         createdById: actorId,
       },
@@ -237,10 +362,24 @@ export async function payExpenseClaim(
 /** A claimant can withdraw a claim that has not been decided yet. */
 export async function cancelExpenseClaim(id: string, actorId: string) {
   return runAtomicMutation(async () => {
-    const claim = await db.expenseClaim.findUniqueOrThrow({ where: { id }, select: { status: true, claimantId: true } });
-    if (claim.claimantId !== actorId) throw new Error("Only the claimant can withdraw this claim");
-    if (claim.status !== "submitted") throw new Error("Only claims awaiting approval can be withdrawn");
-    await db.approvalRequest.updateMany({ where: { targetType: "expense_claim", targetId: id, status: "pending" }, data: { status: "cancelled" } });
-    return mapClaim(await db.expenseClaim.update({ where: { id }, data: { status: "cancelled" }, include: claimInclude }));
+    const claim = await db.expenseClaim.findUniqueOrThrow({
+      where: { id },
+      select: { status: true, claimantId: true },
+    });
+    if (claim.claimantId !== actorId)
+      throw new Error(serverMessages.onlyTheClaimantCanWithdrawThisClaim);
+    if (claim.status !== "submitted")
+      throw new Error(serverMessages.onlyClaimsAwaitingApprovalCanBeWithdrawn);
+    await db.approvalRequest.updateMany({
+      where: { targetType: "expense_claim", targetId: id, status: "pending" },
+      data: { status: "cancelled" },
+    });
+    return mapClaim(
+      await db.expenseClaim.update({
+        where: { id },
+        data: { status: "cancelled" },
+        include: claimInclude,
+      }),
+    );
   });
 }

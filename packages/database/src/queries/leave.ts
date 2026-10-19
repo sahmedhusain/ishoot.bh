@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import { db } from "../db";
 import { leaveDaysCharged, type DayPortion } from "../hr/payroll-engine";
 import { getHrPolicy, holidaySet, listLeaveTypeRules, toLeaveTypeRules, type LeaveTypeView } from "./hr-settings";
@@ -149,7 +151,7 @@ export async function assertActorNotOnLeave(actorId: string, workDate?: Date): P
   const targetDate = workDate || new Date();
   const availability = await checkEmployeeAvailability(actorId, targetDate, targetDate);
   if (!availability.isAvailable) {
-    throw new Error(`Action prohibited: ${availability.conflictReason} Employees on approved leave cannot perform operational mutations.`);
+    throw new Error(formatMessage(serverTemplates.actionProhibited0EmployeesOnApprovedLeave, { 0: availability.conflictReason }));
   }
 }
 
@@ -163,7 +165,7 @@ export async function assertAssigneeAvailable(
 ): Promise<void> {
   const availability = await checkEmployeeAvailability(assigneeId, periodStart, periodEnd);
   if (!availability.isAvailable) {
-    throw new Error(`Assignment conflict: ${availability.conflictReason}`);
+    throw new Error(formatMessage(serverTemplates.assignmentConflict0, { 0: availability.conflictReason }));
   }
 }
 
@@ -180,7 +182,7 @@ export async function createLeaveRequest(data: {
   reason: string;
 }): Promise<LeaveRequest> {
   if (data.endDate < data.startDate) {
-    throw new Error("Invalid leave period: end date cannot be earlier than start date");
+    throw new Error(serverMessages.invalidLeavePeriodEndDateCannotBe);
   }
   const portion: DayPortion = data.dayPortion ?? (data.fullDay === false ? "hours" : "full");
 
@@ -198,7 +200,7 @@ export async function createLeaveRequest(data: {
     // Two half days on the same date (morning and afternoon) may coexist.
     const halves = ["half_am", "half_pm"];
     const sameDayHalves = halves.includes(portion) && halves.includes(existingOverlap.dayPortion) && existingOverlap.dayPortion !== portion;
-    if (!sameDayHalves) throw new Error(`Conflicting leave request already exists for this period (status: ${existingOverlap.status})`);
+    if (!sameDayHalves) throw new Error(formatMessage(serverTemplates.conflictingLeaveRequestAlreadyExistsForThis, { 0: existingOverlap.status }));
   }
 
   const [typeRow, employee, policy] = await Promise.all([
@@ -207,9 +209,9 @@ export async function createLeaveRequest(data: {
     getHrPolicy(),
   ]);
   const type = toLeaveTypeRules(typeRow);
-  if (!type.isActive) throw new Error("This leave type is no longer offered");
-  if (employee.status === "terminated") throw new Error("Leave cannot be requested for a former employee");
-  if (type.requiresAttachment && !data.attachmentUrl) throw new Error("Attach a supporting document for this leave type");
+  if (!type.isActive) throw new Error(serverMessages.thisLeaveTypeIsNoLongerOffered);
+  if (employee.status === "terminated") throw new Error(serverMessages.leaveCannotBeRequestedForAFormer);
+  if (type.requiresAttachment && !data.attachmentUrl) throw new Error(serverMessages.attachASupportingDocumentForThisLeave);
   const holidays = await holidaySet(data.startDate, data.endDate);
   const requestedDays = leaveDaysCharged(
     { start: data.startDate, end: data.endDate, portion, hours: data.hours },
@@ -218,12 +220,12 @@ export async function createLeaveRequest(data: {
     holidays,
   );
   if (data.startDate.getUTCFullYear() !== data.endDate.getUTCFullYear())
-    throw new Error("Split leave that crosses the new year into two requests");
+    throw new Error(serverMessages.splitLeaveThatCrossesTheNewYear);
   const balance = await getLeaveBalance(data.employeeId, data.leaveTypeId, data.startDate.getUTCFullYear(), data.startDate);
   if (!balance.eligible)
-    throw new Error(`Not yet eligible for this leave type (available from ${balance.eligibleFrom})`);
+    throw new Error(formatMessage(serverTemplates.notYetEligibleForThisLeaveType, { 0: balance.eligibleFrom }));
   if (balance.available != null && requestedDays > balance.available) {
-    throw new Error(`Insufficient leave balance: ${requestedDays} day(s) requested, ${balance.available} available`);
+    throw new Error(formatMessage(serverTemplates.insufficientLeaveBalance0DaySRequested, { 0: requestedDays, 1: balance.available }));
   }
 
   const created = await db.leaveRequest.create({
@@ -328,13 +330,13 @@ export async function approveLeaveRequest(
     include: { employee: true },
   });
 
-  if (!leave) throw new Error("Leave request not found");
-  if (leave.status !== "pending") throw new Error(`Cannot approve leave with status: ${leave.status}`);
+  if (!leave) throw new Error(serverMessages.leaveRequestNotFound);
+  if (leave.status !== "pending") throw new Error(formatMessage(serverTemplates.cannotApproveLeaveWithStatus0, { 0: leave.status }));
 
   const conflicts = await getLeaveConflicts(leave);
   // Other requests (approved or pending) already count against the balance; this one is pending too.
   const balance = await getLeaveBalance(leave.employeeId, leave.leaveTypeId, leave.startDate.getUTCFullYear(), leave.startDate);
-  if (balance.available != null && balance.available < 0) throw new Error("Insufficient leave balance to approve this request");
+  if (balance.available != null && balance.available < 0) throw new Error(serverMessages.insufficientLeaveBalanceToApproveThisRequest);
 
   await db.leaveRequest.update({
     where: { id: requestId },
@@ -380,8 +382,8 @@ export async function rejectLeaveRequest(
     include: { employee: true },
   });
 
-  if (!leave) throw new Error("Leave request not found");
-  if (leave.status !== "pending") throw new Error(`Cannot reject leave with status: ${leave.status}`);
+  if (!leave) throw new Error(serverMessages.leaveRequestNotFound);
+  if (leave.status !== "pending") throw new Error(formatMessage(serverTemplates.cannotRejectLeaveWithStatus0, { 0: leave.status }));
 
   await db.leaveRequest.update({
     where: { id: requestId },

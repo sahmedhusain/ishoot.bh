@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 /* eslint-disable @next/next/no-img-element -- brand artwork is served as-is on this public page. */
 
 import * as React from "react";
@@ -46,7 +47,7 @@ export function ClientSigningView({
   const amount = (v: number) => v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
   const money = (v: number) => (isAr ? `${amount(v)} ${AR_CURRENCY[doc?.currency ?? ""] ?? doc?.currency}` : `${doc?.currency} ${amount(v)}`);
   const date = (v: string) => new Intl.DateTimeFormat(isAr ? "ar-BH-u-nu-latn" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Bahrain" }).format(new Date(v));
-  const fill = (text: string) => text.replace("{company}", company.name).replace("{email}", company.email).replace("{phone}", company.phone);
+  const fill = (text: string) => formatMessage(text, { company: company.name, email: company.email, phone: company.phone });
 
   // Signature pad: pointer events cover mouse, pen and touch.
   React.useEffect(() => {
@@ -139,7 +140,7 @@ export function ClientSigningView({
           <section className="rounded-2xl border border-emerald-600/20 bg-white p-8 text-center shadow-sm">
             <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" aria-hidden />
             <h1 className="mt-4 text-2xl font-bold text-[#014842]">{s.doneTitle}</h1>
-            {signedAt && <p className="mt-2 text-slate-600">{s.doneText.replace("{date}", date(signedAt))}</p>}
+            {signedAt && <p className="mt-2 text-slate-600">{formatMessage(s.doneText, { date: date(signedAt) })}</p>}
             {doc && (
               <a href={`${pdfUrl}?download=true`} className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#014842] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#013833]">
                 <Download className="h-4 w-4" aria-hidden />
@@ -156,7 +157,7 @@ export function ClientSigningView({
           <>
             <section className="rounded-2xl bg-white p-6 shadow-sm">
               <h1 className="text-2xl font-bold text-[#014842]">{s.pageTitle}</h1>
-              <p className="mt-1 text-sm text-slate-600">{s.intro.replace("{company}", company.name).replace("{document}", docWord).replace("{number}", doc.number)}</p>
+              <p className="mt-1 text-sm text-slate-600">{formatMessage(s.intro, { company: company.name, document: docWord, number: doc.number })}</p>
               <dl className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {[
                   [s.number, <bdi key="n" dir="ltr">{doc.number}</bdi>],

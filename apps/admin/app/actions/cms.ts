@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { runAtomicMutation } from "@ishoot/database";
@@ -35,7 +36,7 @@ export async function toggleBannerStatusAction(id: string, isActive: boolean) {
     validateActionArguments("toggleBannerStatusAction", { id, isActive });
     await runAtomicMutation(async () => {
       if (!(await updateBanner(id, { is_active: isActive })))
-        throw new Error("Could not update banner");
+        throw new Error(serverMessages.couldNotUpdateBanner);
       await createActivityLog({
         user_id: user.id,
         action: "update",
@@ -57,7 +58,7 @@ export async function deleteBannerAction(id: string) {
     await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "delete");
     validateActionArguments("deleteBannerAction", { id });
     await runAtomicMutation(async () => {
-      if (!(await deleteBanner(id))) throw new Error("Could not delete banner");
+      if (!(await deleteBanner(id))) throw new Error(serverMessages.couldNotDeleteBanner);
       await createActivityLog({
         user_id: user.id,
         action: "delete",
@@ -169,11 +170,11 @@ export async function createClientLogoAction(data: {
 
 function clientLogoFields(data: { client_name?: string; logo_svg_url?: string; website_url?: string }) {
   const clientName = data.client_name?.trim();
-  if (data.client_name !== undefined && (!clientName || clientName.length > 120)) throw new Error("Client name is required");
+  if (data.client_name !== undefined && (!clientName || clientName.length > 120)) throw new Error(serverMessages.clientNameIsRequired);
   const logoUrl = data.logo_svg_url !== undefined ? safeWebsiteUrl(data.logo_svg_url.trim()) : undefined;
-  if (data.logo_svg_url !== undefined && (!logoUrl || logoUrl.length > 2000)) throw new Error("Use an https:// logo URL or a site path starting with /");
+  if (data.logo_svg_url !== undefined && (!logoUrl || logoUrl.length > 2000)) throw new Error(serverMessages.useAnHttpsLogoUrlOrA);
   const websiteUrl = data.website_url !== undefined ? (data.website_url.trim() ? safeWebsiteUrl(data.website_url.trim()) : "") : undefined;
-  if (data.website_url?.trim() && !websiteUrl) throw new Error("Invalid website URL");
+  if (data.website_url?.trim() && !websiteUrl) throw new Error(serverMessages.invalidWebsiteUrl);
   return { client_name: clientName, logo_svg_url: logoUrl, website_url: websiteUrl };
 }
 
@@ -191,7 +192,7 @@ export async function updateClientLogoAction(
         ...(fields.logo_svg_url !== undefined && { logo_svg_url: fields.logo_svg_url }),
         ...(fields.website_url !== undefined && { website_url: fields.website_url }),
       });
-      if (!logo) throw new Error("Client logo not found");
+      if (!logo) throw new Error(serverMessages.clientLogoNotFound);
       await createActivityLog({
         user_id: user.id,
         action: "update",
@@ -270,7 +271,7 @@ export async function updateEquipmentAction(
   return measureOperation("action:updateEquipmentAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("equipment", "write");
     validateActionArguments("updateEquipmentAction", { id, data });
-    if (!data.model_name?.trim()) throw new Error("Model name is required");
+    if (!data.model_name?.trim()) throw new Error(serverMessages.modelNameIsRequired);
     const { item } = await runAtomicMutation(async () => {
       const item = await updateEquipment(id, {
         category: data.category,
@@ -280,7 +281,7 @@ export async function updateEquipmentAction(
         specification: data.specification ?? "",
         quantity: Math.max(1, Math.trunc(data.quantity ?? 1)),
       });
-      if (!item) throw new Error("Equipment not found");
+      if (!item) throw new Error(serverMessages.equipmentNotFound);
       await createActivityLog({
         user_id: user.id,
         action: "update",
@@ -308,7 +309,7 @@ export async function togglePortfolioFeaturedAction(
     });
     await runAtomicMutation(async () => {
       if (!(await updatePortfolioItem(id, { is_featured: isFeatured })))
-        throw new Error("Could not update project");
+        throw new Error(serverMessages.couldNotUpdateProject);
       await createActivityLog({
         user_id: user.id,
         action: "update",
@@ -331,7 +332,7 @@ export async function deletePortfolioItemAction(id: string) {
     validateActionArguments("deletePortfolioItemAction", { id });
     await runAtomicMutation(async () => {
       if (!(await deletePortfolioItem(id)))
-        throw new Error("Could not delete project");
+        throw new Error(serverMessages.couldNotDeleteProject);
       await createActivityLog({
         user_id: user.id,
         action: "delete",
@@ -571,31 +572,31 @@ export async function deleteStatisticAction(id: string) {
 function validateStatisticData(data: Partial<Parameters<typeof createStatistic>[0]>) {
   for (const key of ["labelEn", "labelAr"] as const)
     if (key in data && (typeof data[key] !== "string" || !data[key]?.trim() || data[key]!.length > 100))
-      throw new Error("Both labels are required (max 100 characters)");
+      throw new Error(serverMessages.bothLabelsAreRequiredMax100Characters);
   for (const key of ["subLabelEn", "subLabelAr", "icon"] as const)
-    if ((data[key]?.length ?? 0) > 200) throw new Error("Text is too long (max 200 characters)");
+    if ((data[key]?.length ?? 0) > 200) throw new Error(serverMessages.textIsTooLongMax200Characters);
   if (data.sortOrder !== undefined && (!Number.isInteger(data.sortOrder) || Math.abs(data.sortOrder) > 10000))
-    throw new Error("Invalid sort order");
+    throw new Error(serverMessages.invalidSortOrder);
   // Value, preset, founding year, rounding and suffix rules live in validateStatisticInput.
 }
 function validateBannerData(data: Parameters<typeof createBannerAction>[0]) {
   for (const value of [data.title_en, data.title_ar])
     if (typeof value !== "string" || !value.trim() || value.length > 500)
-      throw new Error("Both titles are required (max 500 characters)");
+      throw new Error(serverMessages.bothTitlesAreRequiredMax500Characters);
   if (
     !["image", "video"].includes(data.media_type) ||
     !safeWebsiteUrl(data.media_url)
   )
-    throw new Error("Provide a valid image or video URL");
+    throw new Error(serverMessages.provideAValidImageOrVideoUrl);
   for (const value of [data.poster_url, data.cta_link])
     if (value && !safeWebsiteUrl(value))
-      throw new Error("Invalid website link");
+      throw new Error(serverMessages.invalidWebsiteLink);
   if (
     data.display_order !== undefined &&
     (!Number.isInteger(data.display_order) ||
       Math.abs(data.display_order) > 10000)
   )
-    throw new Error("Invalid display order");
+    throw new Error(serverMessages.invalidDisplayOrder);
 }
 function validatePortfolioData(
   data: Parameters<typeof createPortfolioItemAction>[0],
@@ -605,29 +606,29 @@ function validatePortfolioData(
       (v) => typeof v === "string" && v.trim() && v.length <= 500,
     )
   )
-    throw new Error("Titles and client name are required");
+    throw new Error(serverMessages.titlesAndClientNameAreRequired);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug) || data.slug.length > 150)
     throw new Error(
       "Use a unique slug with lowercase letters, numbers and hyphens",
     );
   if (!Number.isInteger(data.year) || data.year < 1900 || data.year > 2100)
-    throw new Error("Invalid year");
+    throw new Error(serverMessages.invalidYear);
   if (!safeWebsiteUrl(data.thumbnail_url))
-    throw new Error("Thumbnail URL is required");
+    throw new Error(serverMessages.thumbnailUrlIsRequired);
   for (const url of [
     data.preview_video_url,
     data.full_video_url,
     ...(data.gallery_urls || []),
   ])
-    if (url && !safeWebsiteUrl(url)) throw new Error("Invalid media URL");
+    if (url && !safeWebsiteUrl(url)) throw new Error(serverMessages.invalidMediaUrl);
   if (data.gallery_urls && data.gallery_urls.length > 30)
-    throw new Error("Maximum 30 gallery images");
+    throw new Error(serverMessages.maximum30GalleryImages);
   if (
     data.display_order !== undefined &&
     (!Number.isInteger(data.display_order) ||
       Math.abs(data.display_order) > 10000)
   )
-    throw new Error("Invalid display order");
+    throw new Error(serverMessages.invalidDisplayOrder);
 }
 export async function updateBannerContentAction(
   id: string,
@@ -639,7 +640,7 @@ export async function updateBannerContentAction(
     validateBannerData(data);
     const { banner } = await runAtomicMutation(async () => {
       const banner = await updateBanner(id, data);
-      if (!banner) throw new Error("Banner could not be saved");
+      if (!banner) throw new Error(serverMessages.bannerCouldNotBeSaved);
       await createActivityLog({
         user_id: user.id,
         action: "update",
@@ -666,7 +667,7 @@ export async function updatePortfolioContentAction(
         ...data,
         aspect_ratio: data.aspect_ratio as PortfolioItem["aspect_ratio"],
       });
-      if (!project) throw new Error("Project could not be saved");
+      if (!project) throw new Error(serverMessages.projectCouldNotBeSaved);
       await createActivityLog({
         user_id: user.id,
         action: "update",

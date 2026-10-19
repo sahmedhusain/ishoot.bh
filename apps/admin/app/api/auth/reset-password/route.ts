@@ -1,3 +1,5 @@
+import { serverMessages } from "@ishoot/locales";
+
 import { measureOperation, db, consumeAbuseLimit } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
@@ -8,7 +10,7 @@ export async function POST(req: NextRequest) {
     try {
       const { email, token, newPassword } = await req.json();
       if (!email || !token || !newPassword || typeof newPassword !== "string") {
-        return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        return NextResponse.json({ error: serverMessages.runtimeMissingRequiredFields }, { status: 400 });
       }
 
       const emailNorm = email.trim().toLowerCase();
@@ -40,12 +42,12 @@ export async function POST(req: NextRequest) {
       }
 
       if (!validChallenge || !validChallenge.userId) {
-        return NextResponse.json({ error: "Invalid or expired reset link" }, { status: 400 });
+        return NextResponse.json({ error: serverMessages.runtimeInvalidOrExpiredResetLink }, { status: 400 });
       }
 
       const user = await db.user.findUnique({ where: { id: validChallenge.userId } });
       if (!user || !user.isActive) {
-        return NextResponse.json({ error: "User account is inactive or not found" }, { status: 400 });
+        return NextResponse.json({ error: serverMessages.runtimeUserAccountIsInactiveOrNotFound }, { status: 400 });
       }
 
       const newPasswordHash = await bcrypt.hash(newPassword, 12);
@@ -76,9 +78,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     } catch (err: any) {
       if (err instanceof Error && err.message === "RATE_LIMIT") {
-        return NextResponse.json({ error: "Too many attempts. Try again later." }, { status: 429 });
+        return NextResponse.json({ error: serverMessages.runtimeTooManyAttemptsTryAgainLater }, { status: 429 });
       }
-      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ error: serverMessages.internalServerErrorLower }, { status: 500 });
     }
   });
 }

@@ -27,9 +27,9 @@
     "online": "Online",
     "notFoundTitle": "Page Not Found",
     "notFoundDesc": "Could not find requested resource.",
-    "brandName": "ishoot Cinema Production",
-    "brandLogoAlt": "ishoot Brand Logo",
-    "brandIconAlt": "ishoot Icon",
+    "brandName": "Company",
+    "brandLogoAlt": "{companyName} logo",
+    "brandIconAlt": "{companyName} icon",
     "skipContent": "Skip to content",
     "preview": "Draft preview",
     "exitPreview": "Exit preview",
@@ -39,7 +39,11 @@
     "closeMenu": "Close menu",
     "close": "Close",
     "website": "Website",
-    "returnHome": "Return home"
+    "returnHome": "Return home",
+    "errorTitle": "Content is temporarily unavailable",
+    "errorDescription": "Please try loading this page again.",
+    "retry": "Retry",
+    "returnHomeEnglish": "Return home (English)"
   },
   "nav": {
     "home": "Home",
@@ -65,7 +69,7 @@
     "lensTag": "ARRI Master Primes",
     "fallbackTitle": "Stories in motion.\nAn impression that stays.",
     "fallbackSubtitle": "Visual production from the first idea to the final frame. Based in Bahrain.",
-    "eyebrow": "iShoot / Cinematic Production / Bahrain",
+    "eyebrow": "Welcome to {companyName}",
     "ideaAction": "Tell us your idea",
     "explore": "Explore our work",
     "caption": "From an idea to the screen",
@@ -187,9 +191,9 @@
     "region": "Client logos; movement pauses on focus"
   },
   "about": {
-    "badge": "About ishoot",
+    "badge": "About the company",
     "title": "ARCHITECTS OF VISUAL IMPACT",
-    "subtitle": "Founded in the Kingdom of Bahrain, ishoot is a premier creative media production house uniting cinematic storytelling with engineering precision.",
+    "subtitle": "Learn about our company, our team and the work we do.",
     "storyTitle": "OUR ETHOS",
     "storyP1": "We believe that true visual impact is created at the intersection of technical discipline and unconstrained creative curiosity. Every production is crafted with absolute reverence for composition, dynamic range, and authentic emotion.",
     "storyP2": "From national television campaigns to international brand anthems, our team brings cinema cameras, precision lighting rigs, and state-of-the-art post-production suites to elevate brand prestige.",
@@ -207,7 +211,7 @@
     "headline": "Bahraini cinema production house crafting visual masterpieces for visionary brands.",
     "intro": "From the heart of Manama to regional screens, we fuse cinema optics with modern directional narrative.",
     "behindTheScenes": "Behind The Scenes · On Location",
-    "shootCaption": "iShoot crew filming an 8K commercial production",
+    "shootCaption": "Our team at work",
     "missionLabel": "Our Mission",
     "mission": "Empower market leaders to tell their brand narratives with uncompromised visual precision and emotional depth.",
     "visionLabel": "Our Vision",
@@ -291,7 +295,7 @@
     "successTitle": "Inquiry Received",
     "successMessage": "Thank you for your message. Our team will follow up using the contact details you provided.",
     "errorTitle": "Submission Notice",
-    "errorMessage": "Unable to transmit inquiry. Please contact us directly at hello@ishoot.bh or via WhatsApp.",
+    "errorMessage": "Unable to send your request. Please use the company contact details to reach us directly.",
     "timelinePlaceholder": "e.g. November 2026",
     "projectDetailsPlaceholder": "Tell us about your campaign goals, shoot locations, and desired deliverables...",
     "studioInfo": "Studio Information",
@@ -390,7 +394,7 @@
     "social": "Follow Us",
     "privacy": "Privacy & Security",
     "terms": "Terms & Conditions",
-    "companyName": "ishoot Cinema Production",
+    "companyName": "{companyName}",
     "termsModalTitle": "Terms & Conditions",
     "rulesModalTitle": "Privacy & Security",
     "termsUnavailable": "Terms of Conditions are not currently available.",
@@ -475,7 +479,7 @@
     "receipttemplate_37": "NET AMOUNT RECEIVED:",
     "receipttemplate_38": "Funds verified and deposited to company accounts",
     "receipttemplate_39": "Transaction Notes:",
-    "receipttemplate_40": "Electronically generated receipt by ishoot Cinema Production.",
+    "receipttemplate_40": "Electronically generated receipt by {companyName}.",
     "invoicetemplate_41": "ltr",
     "invoicetemplate_42": "font-sans",
     "invoicetemplate_43": "INVOICE",
@@ -496,7 +500,7 @@
     "invoicetemplate_58": "TOTAL AMOUNT:",
     "invoicetemplate_59": "Amount Paid:",
     "invoicetemplate_60": "Balance Due:",
-    "invoicetemplate_61": "Thank you for choosing ishoot Cinema Production."
+    "invoicetemplate_61": "Thank you for choosing {companyName}."
   },
   "stats": {
     "sectionIndex": "(04)",
@@ -532,7 +536,7 @@
         "id": "rev-1",
         "client": "National Bank of Bahrain (NBB)",
         "author": "Marketing & Brand Director",
-        "quote": "iShoot delivered an exceptional TV commercial campaign that exceeded our highest cinematic expectations. Their color grading and drone shots were world-class.",
+        "quote": "the team delivered an exceptional TV commercial campaign that exceeded our highest cinematic expectations. Their color grading and drone shots were world-class.",
         "year": "2026"
       },
       {
@@ -546,7 +550,7 @@
         "id": "rev-3",
         "client": "Bahrain Economic Development Board (EDB)",
         "author": "Head of Destination Marketing",
-        "quote": "Working with iShoot on our national investment film showcase was seamless. They captured our architectural landmarks with stunning lighting and depth.",
+        "quote": "Working with the team on our national investment film showcase was seamless. They captured our architectural landmarks with stunning lighting and depth.",
         "year": "2025"
       }
     ],
@@ -702,8 +706,8 @@
     }
   },
   "seo": {
-    "title": "ishoot — Cinema Production House",
-    "description": "Commercial cinematography, aerial filming, photography, and studio productions based in Bahrain.",
-    "imageAlt": "ishoot Cinema Production"
+    "title": "{companyName}",
+    "description": "Learn more about our company, services and work.",
+    "imageAlt": "{companyName} logo"
   }
 }

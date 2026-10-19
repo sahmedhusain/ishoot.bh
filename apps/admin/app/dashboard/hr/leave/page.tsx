@@ -1,5 +1,5 @@
-import { requirePagePermission, hasPermission } from "../../../../lib/auth";
-import { listLeaveRequests, listLeaveTypes, listEmployees, db, canDecideApproval, getLeaveBalances } from "@ishoot/database";
+import { requirePagePermission } from "../../../../lib/auth";
+import { listLeaveRequests, listLeaveTypes, db, canDecideApproval, getLeaveBalances } from "@ishoot/database";
 import { LeaveManagementView } from "../../../../components/hr/LeaveManagementView";
 
 export const dynamic = "force-dynamic";
@@ -13,30 +13,21 @@ export default async function LeaveManagementPage({
   const user = await requirePagePermission("self_service", "read");
   const query = await searchParams;
   const status = typeof query.status === "string" ? query.status : "all";
-  const employeeId = typeof query.employeeId === "string" ? query.employeeId : undefined;
   const page = Math.max(1, Number(query.page) || 1);
 
-  const [canReadTeam, canFileForOthers, myEmployee, awaitingMe] = await Promise.all([
-    hasPermission("employees", "read"),
-    hasPermission("employees", "create"),
-    db.employee.findFirst({ where: { userId: user.id }, include: { department: true } }),
-    // Line managers see their reports' requests even without team-wide HR access.
-    db.approvalRequest.findMany({
-      where: { targetType: "leave_request", status: "pending", approverIds: { has: user.id } },
-      select: { targetId: true },
-    }),
-  ]);
+  // This page is "my leave" for everyone, Super Admin and HR included. Other people's requests live in
+  // HR Requests (all requests, and filing on someone's behalf) and the Approvals Center (deciding).
+  const canFileForOthers = false;
+  const myEmployee = await db.employee.findFirst({ where: { userId: user.id }, include: { department: true } });
 
-  const [{ items: requests, total }, leaveTypes, allEmployeesResult, myBalances] = await Promise.all([
+  const [{ items: requests, total }, leaveTypes, myBalances] = await Promise.all([
     listLeaveRequests({
       status: status === "all" ? undefined : status,
-      employeeId: canReadTeam ? employeeId : myEmployee?.id || "no-employee",
-      includeIds: canReadTeam ? undefined : awaitingMe.map((a) => a.targetId),
+      employeeId: myEmployee?.id || "no-employee",
       page,
       pageSize: 30,
     }),
     listLeaveTypes(),
-    canFileForOthers ? listEmployees({ pageSize: 100 }) : Promise.resolve({ items: [], total: 0 }),
     myEmployee ? getLeaveBalances(myEmployee.id) : Promise.resolve([]),
   ]);
 
@@ -55,7 +46,7 @@ export default async function LeaveManagementPage({
       leaveTypes={leaveTypes}
       myBalances={myBalances}
       // Only names are needed to file for someone else; salaries never leave the server here.
-      allEmployees={allEmployeesResult.items.map((e) => ({ ...e, employmentRecords: [] }))}
+      allEmployees={[]}
       myEmployee={
         myEmployee
           ? {

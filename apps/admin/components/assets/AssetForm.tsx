@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11,8 +12,8 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 
 const CONDITIONS = ["new", "excellent", "good", "fair", "poor", "damaged"] as const;
-/** Statuses staff may set directly; assigning and returning go through handovers. */
-const MANUAL_STATUSES = ["available", "maintenance", "lost", "retired"] as const;
+/** Every status can be set by hand; issuing and returning through a handover keeps the signed paper trail. */
+const MANUAL_STATUSES = ["available", "assigned", "maintenance", "lost", "retired"] as const;
 
 function Field({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
@@ -23,7 +24,7 @@ function Field({ label, children, required }: { label: string; children: React.R
   );
 }
 
-export function AssetForm({ categories, asset, onDone }: { categories: AssetCategoryRecord[]; asset?: AssetRecord; onDone?: () => void }) {
+export function AssetForm({ categories, asset, employees = [], onDone }: { categories: AssetCategoryRecord[]; asset?: AssetRecord; employees?: Array<{ id: string; name_en: string; name_ar: string }>; onDone?: () => void }) {
   const { t, locale } = useAdminLocale();
   const a = t.assets;
   const router = useRouter();
@@ -71,7 +72,7 @@ export function AssetForm({ categories, asset, onDone }: { categories: AssetCate
     <form onSubmit={submit} className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Field label={a.fields.category} required>
-          <Select value={value.category_id} onChange={(e) => set("category_id", e.target.value)} disabled={!!asset && asset.status === "assigned"}>
+          <Select value={value.category_id} onChange={(e) => set("category_id", e.target.value)}>
             {categories.map((c) => <option key={c.id} value={c.id}>{isAr ? c.name_ar : c.name_en}</option>)}
           </Select>
         </Field>
@@ -84,10 +85,18 @@ export function AssetForm({ categories, asset, onDone }: { categories: AssetCate
             {CONDITIONS.map((c) => <option key={c} value={c}>{a.conditions[c]}</option>)}
           </Select>
         </Field>
-        {asset && asset.status !== "assigned" ? (
+        {asset ? (
           <Field label={a.fields.status}>
             <Select value={value.status ?? asset.status} onChange={(e) => set("status", e.target.value)}>
               {MANUAL_STATUSES.map((s) => <option key={s} value={s}>{a.statuses[s]}</option>)}
+            </Select>
+          </Field>
+        ) : null}
+        {asset && (value.status ?? asset.status) === "assigned" && asset.status !== "assigned" ? (
+          <Field label={a.fields.holder} required>
+            <Select value={value.holder_employee_id ?? ""} onChange={(e) => set("holder_employee_id", e.target.value)}>
+              <option value="">{a.fields.select}</option>
+              {employees.map((e) => <option key={e.id} value={e.id}>{isAr ? e.name_ar : e.name_en}</option>)}
             </Select>
           </Field>
         ) : null}
@@ -101,7 +110,7 @@ export function AssetForm({ categories, asset, onDone }: { categories: AssetCate
 
       {category && category.spec_fields.length ? (
         <div className="rounded-2xl border border-ink/10 p-4 space-y-3">
-          <h3 className="text-sm font-bold text-ink">{a.specsTitle.replace("{category}", isAr ? category.name_ar : category.name_en)}</h3>
+          <h3 className="text-sm font-bold text-ink">{formatMessage(a.specsTitle, { category: isAr ? category.name_ar : category.name_en })}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {category.spec_fields.map((f) => (
               <Field key={f.key} label={isAr ? f.labelAr : f.labelEn} required={f.required}>

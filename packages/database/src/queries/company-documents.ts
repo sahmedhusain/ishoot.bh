@@ -1,5 +1,5 @@
 import { db, runAtomicMutation } from "../db";
-import { claimUpload } from "../services/uploads";
+import { claimUploadOrLink } from "../services/uploads";
 import { CompanyDocument, DocumentCategory } from "../types";
 
 export function mapCompanyDocument(doc: any): CompanyDocument {
@@ -58,23 +58,27 @@ export async function createCompanyDocument(data: {
   uploaded_by_id?: string;
 }): Promise<CompanyDocument> {
   return runAtomicMutation(async () => {
-  const upload = await claimUpload(db, data.file_url, data.uploaded_by_id);
-  const created = await db.companyDocument.create({
-    data: {
-      titleEn: data.title_en,
-      titleAr: data.title_ar || null,
-      category: data.category,
-      documentNumber: data.document_number || null,
-      fileUrl: data.file_url,
-      fileSize: upload.fileSize,
-      mimeType: upload.mimeType,
-      validFrom: data.valid_from ? new Date(data.valid_from) : null,
-      validUntil: data.valid_until ? new Date(data.valid_until) : null,
-      notes: data.notes || null,
-      uploadedById: data.uploaded_by_id || null,
-    },
-  });
-  return mapCompanyDocument(created);
+    const upload = await claimUploadOrLink(
+      db,
+      data.file_url,
+      data.uploaded_by_id,
+    );
+    const created = await db.companyDocument.create({
+      data: {
+        titleEn: data.title_en,
+        titleAr: data.title_ar || null,
+        category: data.category,
+        documentNumber: data.document_number || null,
+        fileUrl: data.file_url,
+        fileSize: upload.fileSize,
+        mimeType: upload.mimeType,
+        validFrom: data.valid_from ? new Date(data.valid_from) : null,
+        validUntil: data.valid_until ? new Date(data.valid_until) : null,
+        notes: data.notes || null,
+        uploadedById: data.uploaded_by_id || null,
+      },
+    });
+    return mapCompanyDocument(created);
   });
 }
 

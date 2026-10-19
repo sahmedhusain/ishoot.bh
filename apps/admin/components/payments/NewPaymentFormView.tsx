@@ -2,29 +2,29 @@
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { uploadFileDirectly } from "../../lib/upload-client";
+import { AddLinkInline } from "../shared/LinkOrUploadField";
 import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CRMContact,Invoice } from "@ishoot/database/types";
-import { Card,Button,Input,Select,CurrencyDisplay } from "@ishoot/ui";
+import type { CRMContact, Invoice } from "@ishoot/database/types";
+import { Card, Button, Input, Select, CurrencyDisplay } from "@ishoot/ui";
 import {
-ArrowLeft,
-ArrowRight,
-CreditCard,
-CheckCircle2,FileText,
-AlertCircle,
-ExternalLink,
-UploadCloud,
-Loader2,
-Trash2,
-ShieldCheck,
-FileCheck
+  ArrowLeft,
+  ArrowRight,
+  CreditCard,
+  CheckCircle2,
+  FileText,
+  AlertCircle,
+  ExternalLink,
+  UploadCloud,
+  Loader2,
+  Trash2,
+  ShieldCheck,
+  FileCheck,
 } from "lucide-react";
-import {
-createPaymentAction
-} from "../../app/actions/finance";
+import { createPaymentAction } from "../../app/actions/finance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 
@@ -53,7 +53,8 @@ export function NewPaymentFormView({
   const [invoices, setInvoices] = React.useState<Invoice[]>(initialInvoices);
 
   const [selectedClientId, setSelectedClientId] = React.useState<string>(
-    preselectedClientId || (initialContacts.length > 0 ? initialContacts[0].id : ""),
+    preselectedClientId ||
+      (initialContacts.length > 0 ? initialContacts[0].id : ""),
   );
   const [selectedInvoiceId, setSelectedInvoiceId] = React.useState<string>("");
   const [amount, setAmount] = React.useState<number>(0);
@@ -69,9 +70,13 @@ export function NewPaymentFormView({
   const [fetchingInvoices, setFetchingInvoices] = React.useState(false);
 
   // Upload States
-  const [chequeFile, setChequeFile] = React.useState<UploadedDocument | null>(null);
-  const [bankReceiptFile, setBankReceiptFile] = React.useState<UploadedDocument | null>(null);
-  const [generalProofFile, setGeneralProofFile] = React.useState<UploadedDocument | null>(null);
+  const [chequeFile, setChequeFile] = React.useState<UploadedDocument | null>(
+    null,
+  );
+  const [bankReceiptFile, setBankReceiptFile] =
+    React.useState<UploadedDocument | null>(null);
+  const [generalProofFile, setGeneralProofFile] =
+    React.useState<UploadedDocument | null>(null);
 
   const [uploadingCheque, setUploadingCheque] = React.useState(false);
   const [uploadingBankReceipt, setUploadingBankReceipt] = React.useState(false);
@@ -90,8 +95,12 @@ export function NewPaymentFormView({
     else setUploadingProof(true);
 
     try {
-      const data = await uploadFileDirectly(file, { entityType: "payment", entityId: "pending", documentType: type });
-        const res = { ok: true }; // polyfill for following code
+      const data = await uploadFileDirectly(file, {
+        entityType: "payment",
+        entityId: "pending",
+        documentType: type,
+      });
+      const res = { ok: true }; // polyfill for following code
       if (!res.ok || !data.success) {
         throw new Error(data.error || t.newPaymentForm.uploadFailed);
       }
@@ -116,28 +125,55 @@ export function NewPaymentFormView({
     }
   };
 
-  const selectedInvoice = invoices.find(i=>i.id===selectedInvoiceId) || null;
-  const [error,setError] = React.useState("");
+  const selectedInvoice =
+    invoices.find((i) => i.id === selectedInvoiceId) || null;
+  const [error, setError] = React.useState("");
   const requestVersion = React.useRef(0);
-  React.useEffect(()=>{requestVersion.current++;setSelectedInvoiceId("");setInvoices([]);},[selectedClientId]);
-  const handleInvoiceChange = async (id:string) => {
-    const version=++requestVersion.current; setSelectedInvoiceId(id);setError("");
-    if(!id){setInvoices([]);return;}
+  React.useEffect(() => {
+    requestVersion.current++;
+    setSelectedInvoiceId("");
+    setInvoices([]);
+  }, [selectedClientId]);
+  const handleInvoiceChange = async (id: string) => {
+    const version = ++requestVersion.current;
+    setSelectedInvoiceId(id);
+    setError("");
+    if (!id) {
+      setInvoices([]);
+      return;
+    }
     setFetchingInvoices(true);
     try {
-      const response=await fetch(`/api/lookups/invoices?${new URLSearchParams({id,clientId:selectedClientId})}`);
-      if(!response.ok) throw Error("Invoice could not be loaded");
-      const result=await response.json(), invoice=result.items[0]?.invoice;
-      if(!invoice)throw Error("Invoice is no longer payable");
-      if(version!==requestVersion.current)return;
-      setInvoices([invoice]);setAmount(invoice.amount_due);
-    }catch(error){if(version!==requestVersion.current)return;setSelectedInvoiceId("");setInvoices([]);setError(error instanceof Error?error.message:t.newPaymentForm.couldNotLoadInvoice);}
-    finally{if(version===requestVersion.current)setFetchingInvoices(false);}
+      const response = await fetch(
+        `/api/lookups/invoices?${new URLSearchParams({ id, clientId: selectedClientId })}`,
+      );
+      if (!response.ok) throw Error("Invoice could not be loaded");
+      const result = await response.json(),
+        invoice = result.items[0]?.invoice;
+      if (!invoice) throw Error("Invoice is no longer payable");
+      if (version !== requestVersion.current) return;
+      setInvoices([invoice]);
+      setAmount(invoice.amount_due);
+    } catch (error) {
+      if (version !== requestVersion.current) return;
+      setSelectedInvoiceId("");
+      setInvoices([]);
+      setError(
+        error instanceof Error
+          ? error.message
+          : t.newPaymentForm.couldNotLoadInvoice,
+      );
+    } finally {
+      if (version === requestVersion.current) setFetchingInvoices(false);
+    }
   };
 
   const remainingBalance = React.useMemo(() => {
     if (!selectedInvoice) return 0;
-    return Math.max(0, (selectedInvoice.amount_due || 0) - (Number(amount) || 0));
+    return Math.max(
+      0,
+      (selectedInvoice.amount_due || 0) - (Number(amount) || 0),
+    );
   }, [selectedInvoice, amount]);
 
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -148,9 +184,7 @@ export function NewPaymentFormView({
     if (!selectedInvoiceId || amount <= 0) return;
 
     if (paymentMethod === "cheque" && (!chequeFile || !bankReceiptFile)) {
-      setFormError(
-        t.newPaymentForm.chequePaymentsRequireUploadingBoth,
-      );
+      setFormError(t.newPaymentForm.chequePaymentsRequireUploadingBoth);
       return;
     }
 
@@ -179,7 +213,9 @@ export function NewPaymentFormView({
       router.push(ROUTES.payments.list);
     } catch (err: any) {
       console.error("Failed to record payment:", err);
-      setFormError(errorMessage(err, t, t.newPaymentForm.failedToRecordPayment));
+      setFormError(
+        errorMessage(err, t, t.newPaymentForm.failedToRecordPayment),
+      );
     } finally {
       setSaving(false);
     }
@@ -191,11 +227,7 @@ export function NewPaymentFormView({
     <div className="space-y-8 max-w-4xl mx-auto pb-16">
       <div className="flex items-center gap-4">
         <Link href={ROUTES.payments.list}>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5"
-          >
+          <Button variant="outline" size="sm" className="gap-1.5">
             <BackIcon className="w-4 h-4" />
             <span>{t.actions.back}</span>
           </Button>
@@ -212,7 +244,11 @@ export function NewPaymentFormView({
       </div>
 
       <Card className="p-6 sm:p-8 space-y-6">
-        {error ? <p role="alert" className="text-red-600">{error}</p> : null}
+        {error ? (
+          <p role="alert" className="text-red-600">
+            {error}
+          </p>
+        ) : null}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Step 1 & Step 2 Client and Invoice Association */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -244,8 +280,12 @@ export function NewPaymentFormView({
                   </span>
                 )}
               </div>
-              <EntityLookup domain="invoices" clientId={selectedClientId} value={selectedInvoiceId} onChange={handleInvoiceChange} />
-
+              <EntityLookup
+                domain="invoices"
+                clientId={selectedClientId}
+                value={selectedInvoiceId}
+                onChange={handleInvoiceChange}
+              />
             </div>
           </div>
 
@@ -253,7 +293,9 @@ export function NewPaymentFormView({
           {selectedInvoice && (
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs animate-fade-in">
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.invoiceNumber}</span>
+                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">
+                  {t.newPaymentView.invoiceNumber}
+                </span>
                 <Link
                   href={ROUTES.invoices.detail(selectedInvoice.id)}
                   target="_blank"
@@ -265,7 +307,9 @@ export function NewPaymentFormView({
               </div>
 
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.totalInvoiced}</span>
+                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">
+                  {t.newPaymentView.totalInvoiced}
+                </span>
                 <span className=" font-bold text-slate-800 dark:text-slate-200">
                   <CurrencyDisplay
                     amount={selectedInvoice.total_amount}
@@ -275,7 +319,9 @@ export function NewPaymentFormView({
               </div>
 
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.balanceDue}</span>
+                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">
+                  {t.newPaymentView.balanceDue}
+                </span>
                 <span className=" font-bold text-amber-600 dark:text-amber-400">
                   <CurrencyDisplay
                     amount={selectedInvoice.amount_due}
@@ -285,14 +331,20 @@ export function NewPaymentFormView({
               </div>
 
               <div>
-                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">{t.newPaymentView.balanceAfterPayment}</span>
-                <span className={` font-bold ${remainingBalance === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}>
+                <span className="text-slate-500 dark:text-slate-400 block mb-0.5">
+                  {t.newPaymentView.balanceAfterPayment}
+                </span>
+                <span
+                  className={` font-bold ${remainingBalance === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400"}`}
+                >
                   <CurrencyDisplay
                     amount={remainingBalance}
                     currency={selectedInvoice.currency}
                   />
                   {remainingBalance === 0 && (
-                    <span className="text-[10px] ms-1 text-emerald-500">{t.newPaymentView.settled}</span>
+                    <span className="text-[10px] ms-1 text-emerald-500">
+                      {t.newPaymentView.settled}
+                    </span>
                   )}
                 </span>
               </div>
@@ -392,7 +444,9 @@ export function NewPaymentFormView({
                         <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
                         <span>{t.newPaymentView.chequeCopyLabel} *</span>
                       </label>
-                      <span className="text-[10px] text-rose-500 font-bold">{t.newPaymentView.required}</span>
+                      <span className="text-[10px] text-rose-500 font-bold">
+                        {t.newPaymentView.required}
+                      </span>
                     </div>
 
                     <input
@@ -425,7 +479,8 @@ export function NewPaymentFormView({
                             target="_blank"
                             rel="noreferrer"
                             className="p-1 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-                            title={t.actions.view} aria-label={t.actions.view}
+                            title={t.actions.view}
+                            aria-label={t.actions.view}
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
@@ -433,30 +488,47 @@ export function NewPaymentFormView({
                             type="button"
                             onClick={() => setChequeFile(null)}
                             className="p-1 text-rose-500 hover:text-rose-700"
-                            title={t.actions.delete} aria-label={t.actions.delete}
+                            title={t.actions.delete}
+                            aria-label={t.actions.delete}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div
-                        onClick={() => !uploadingCheque && chequeInputRef.current?.click()}
-                        className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
-                      >
-                        <div className="flex flex-col items-center justify-center space-y-1.5">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
-                            {uploadingCheque ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <UploadCloud className="w-4 h-4" />
-                            )}
+                      <div className="space-y-2">
+                        <div
+                          onClick={() =>
+                            !uploadingCheque && chequeInputRef.current?.click()
+                          }
+                          className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
+                        >
+                          <div className="flex flex-col items-center justify-center space-y-1.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
+                              {uploadingCheque ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <UploadCloud className="w-4 h-4" />
+                              )}
+                            </div>
+                            <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
+                              {uploadingCheque
+                                ? t.newPaymentView.uploadingCheque
+                                : t.newPaymentView.clickOrDropCheque}
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              {t.newPaymentView.chequeFormats}
+                            </p>
                           </div>
-                          <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
-                            {uploadingCheque ? t.newPaymentView.uploadingCheque : t.newPaymentView.clickOrDropCheque}
-                          </p>
-                          <p className="text-[10px] text-slate-400">{t.newPaymentView.chequeFormats}</p>
                         </div>
+                        <AddLinkInline
+                          onLink={(url) =>
+                            setChequeFile({
+                              fileName: new URL(url).hostname,
+                              fileUrl: url,
+                            })
+                          }
+                        />
                       </div>
                     )}
                   </div>
@@ -468,7 +540,9 @@ export function NewPaymentFormView({
                         <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
                         <span>{t.newPaymentView.bankSlipLabel} *</span>
                       </label>
-                      <span className="text-[10px] text-rose-500 font-bold">{t.newPaymentView.required}</span>
+                      <span className="text-[10px] text-rose-500 font-bold">
+                        {t.newPaymentView.required}
+                      </span>
                     </div>
 
                     <input
@@ -501,7 +575,8 @@ export function NewPaymentFormView({
                             target="_blank"
                             rel="noreferrer"
                             className="p-1 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-                            title={t.actions.view} aria-label={t.actions.view}
+                            title={t.actions.view}
+                            aria-label={t.actions.view}
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
@@ -509,30 +584,48 @@ export function NewPaymentFormView({
                             type="button"
                             onClick={() => setBankReceiptFile(null)}
                             className="p-1 text-rose-500 hover:text-rose-700"
-                            title={t.actions.delete} aria-label={t.actions.delete}
+                            title={t.actions.delete}
+                            aria-label={t.actions.delete}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div
-                        onClick={() => !uploadingBankReceipt && bankReceiptInputRef.current?.click()}
-                        className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
-                      >
-                        <div className="flex flex-col items-center justify-center space-y-1.5">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
-                            {uploadingBankReceipt ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <UploadCloud className="w-4 h-4" />
-                            )}
+                      <div className="space-y-2">
+                        <div
+                          onClick={() =>
+                            !uploadingBankReceipt &&
+                            bankReceiptInputRef.current?.click()
+                          }
+                          className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
+                        >
+                          <div className="flex flex-col items-center justify-center space-y-1.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
+                              {uploadingBankReceipt ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <UploadCloud className="w-4 h-4" />
+                              )}
+                            </div>
+                            <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
+                              {uploadingBankReceipt
+                                ? t.newPaymentView.uploadingBankSlip
+                                : t.newPaymentView.clickOrDropBankSlip}
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              {t.newPaymentView.bankSlipFormats}
+                            </p>
                           </div>
-                          <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
-                            {uploadingBankReceipt ? t.newPaymentView.uploadingBankSlip : t.newPaymentView.clickOrDropBankSlip}
-                          </p>
-                          <p className="text-[10px] text-slate-400">{t.newPaymentView.bankSlipFormats}</p>
                         </div>
+                        <AddLinkInline
+                          onLink={(url) =>
+                            setBankReceiptFile({
+                              fileName: new URL(url).hostname,
+                              fileUrl: url,
+                            })
+                          }
+                        />
                       </div>
                     )}
                   </div>
@@ -545,7 +638,9 @@ export function NewPaymentFormView({
                     <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
                     <span>{t.newPaymentView.proofOptionalTitle}</span>
                   </label>
-                  <span className="text-[10px] text-slate-400 ">{t.newPaymentView.savedToVault}</span>
+                  <span className="text-[10px] text-slate-400 ">
+                    {t.newPaymentView.savedToVault}
+                  </span>
                 </div>
 
                 <input
@@ -578,7 +673,8 @@ export function NewPaymentFormView({
                         target="_blank"
                         rel="noreferrer"
                         className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white"
-                        title={t.actions.view} aria-label={t.actions.view}
+                        title={t.actions.view}
+                        aria-label={t.actions.view}
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
@@ -586,30 +682,47 @@ export function NewPaymentFormView({
                         type="button"
                         onClick={() => setGeneralProofFile(null)}
                         className="p-1.5 text-rose-500 hover:text-rose-700"
-                        title={t.actions.delete} aria-label={t.actions.delete}
+                        title={t.actions.delete}
+                        aria-label={t.actions.delete}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div
-                    onClick={() => !uploadingProof && proofInputRef.current?.click()}
-                    className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
-                  >
-                    <div className="flex flex-col items-center justify-center space-y-1">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
-                        {uploadingProof ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <UploadCloud className="w-4 h-4" />
-                        )}
+                  <div className="space-y-2">
+                    <div
+                      onClick={() =>
+                        !uploadingProof && proofInputRef.current?.click()
+                      }
+                      className="border-2 border-dashed border-slate-300 dark:border-neutral-700 hover:border-primary dark:hover:border-mint rounded-xl p-4 text-center cursor-pointer transition-colors"
+                    >
+                      <div className="flex flex-col items-center justify-center space-y-1">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 text-primary dark:text-mint flex items-center justify-center">
+                          {uploadingProof ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <UploadCloud className="w-4 h-4" />
+                          )}
+                        </div>
+                        <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
+                          {uploadingProof
+                            ? t.newPaymentView.uploadingProof
+                            : t.newPaymentView.clickOrDropProof}
+                        </p>
+                        <p className="text-[10px] text-slate-400">
+                          {t.newPaymentView.proofFormats}
+                        </p>
                       </div>
-                      <p className="text-xs font-medium text-slate-800 dark:text-neutral-200">
-                        {uploadingProof ? t.newPaymentView.uploadingProof : t.newPaymentView.clickOrDropProof}
-                      </p>
-                      <p className="text-[10px] text-slate-400">{t.newPaymentView.proofFormats}</p>
                     </div>
+                    <AddLinkInline
+                      onLink={(url) =>
+                        setGeneralProofFile({
+                          fileName: new URL(url).hostname,
+                          fileUrl: url,
+                        })
+                      }
+                    />
                   </div>
                 )}
               </div>
@@ -637,7 +750,9 @@ export function NewPaymentFormView({
               className="gap-2 shadow-sm hover:shadow-md"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{saving ? t.newPaymentView.saving : t.newPaymentView.save}</span>
+              <span>
+                {saving ? t.newPaymentView.saving : t.newPaymentView.save}
+              </span>
             </Button>
           </div>
         </form>

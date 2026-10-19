@@ -1,4 +1,7 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
+import { referencePrefixFor } from "../constants/requests";
+import { getNextSequenceNumber } from "./sequence";
 import {
   REQUEST_CLOSED_STATUSES,
   REQUEST_TEAMS,
@@ -72,6 +75,9 @@ export async function createInquiry(
 ): Promise<Inquiry> {
   const created = await db.inquiry.create({
     data: {
+      reference: await getNextSequenceNumber(
+        referencePrefixFor({ intent: inquiry.intent }),
+      ),
       name: inquiry.full_name,
       email: inquiry.email,
       phone: inquiry.phone || null,
@@ -213,23 +219,23 @@ async function transitionRequest(
     typeof input.actorId !== "string" ||
     !input.actorId
   )
-    throw new Error("Invalid request identity");
+    throw new Error(serverMessages.invalidRequestIdentity);
   if (
     input.notes !== undefined &&
     (typeof input.notes !== "string" || input.notes.length > 10000)
   )
-    throw new Error("Invalid notes");
+    throw new Error(serverMessages.invalidNotes);
   if (
     ["return", "resolve", "reassign"].includes(action) &&
     !input.notes?.trim()
   )
-    throw new Error("Notes are required");
+    throw new Error(serverMessages.notesAreRequired);
   if (input.team !== undefined && !(REQUEST_TEAMS as readonly string[]).includes(input.team))
-    throw new Error("Invalid team");
+    throw new Error(serverMessages.invalidTeam);
   return db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT "id" FROM "Inquiry" WHERE "id" = ${id} FOR UPDATE`;
     const existing = await tx.inquiry.findUnique({ where: { id } });
-    if (!existing) throw new Error("Request not found");
+    if (!existing) throw new Error(serverMessages.requestNotFound);
     if (
       !canTransitionRequest(existing.workflowStatus, action) ||
       (REQUEST_CLOSED_STATUSES as readonly string[]).includes(existing.status)
@@ -246,7 +252,7 @@ async function transitionRequest(
           select: { id: true },
         }))
       )
-        throw new Error("Invalid active assignee");
+        throw new Error(serverMessages.invalidActiveAssignee);
     }
     const history = Array.isArray(existing.customAssignments)
       ? [...existing.customAssignments]

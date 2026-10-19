@@ -1,3 +1,5 @@
+import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+
 import contracts from "./action-schemas.json";
 import { safeWebsiteUrl } from "@ishoot/database/website-config";
 type Schema = {
@@ -131,8 +133,8 @@ export function validateActionArguments(
   try {
     bytes = Buffer.byteLength(JSON.stringify(values));
   } catch {
-    throw new Error("Invalid action input");
+    throw new Error(serverMessages.invalidActionInput);
   }
   if (bytes > 250000 || !valid(values, contracts[name] as Schema, name))
-    throw new Error(`Invalid input for ${name}`);
+    throw new Error(formatMessage(serverTemplates.invalidInputFor0, { 0: name }));
 }

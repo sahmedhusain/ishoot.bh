@@ -1,4 +1,5 @@
 "use client";
+import { useUiCopy } from "./copy/use-ui-copy";
 
 import * as React from "react";
 import { cn } from "./utils";
@@ -77,8 +78,10 @@ export function Modal({
   title,
   children,
   className,
-  closeLabel = "Close",
+  closeLabel,
 }: ModalProps) {
+  const copy = useUiCopy();
+  closeLabel ??= copy.close;
   const titleId = React.useId();
   const dialog = useDialog(isOpen, onClose);
 
@@ -87,7 +90,7 @@ export function Modal({
   return (
     <div
       data-modal-container
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-scrim"
     >
       <div data-modal-backdrop className="fixed inset-0" onClick={onClose} aria-hidden="true" />
       <div
@@ -95,16 +98,16 @@ export function Modal({
         data-modal-card
         aria-labelledby={title ? titleId : undefined}
         className={cn(
-          "relative w-full max-w-lg bg-white border border-slate-200 text-slate-800 dark:bg-[#121B19] dark:border-white/10 dark:text-[#F2F6F5] rounded-3xl p-6 sm:p-7 shadow-2xl z-10 max-h-[90vh] overflow-y-auto transition-all focus:outline-none",
+          "relative w-full max-w-3xl bg-white border border-slate-200 text-slate-800 dark:bg-[#121B19] dark:border-white/10 dark:text-[#F2F6F5] flex flex-col overflow-hidden z-10 max-h-[90vh] focus:outline-none",
           className,
         )}
       >
         {title && (
           <div
             data-modal-header
-            className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-white/10"
+            className="flex shrink-0 items-center justify-between gap-3 px-6 py-4"
           >
-            <h3 id={titleId} className="text-lg font-bold font-display text-slate-900 dark:text-[#F2F6F5]">{title}</h3>
+            <h3 id={titleId} className="text-base sm:text-lg font-bold font-display text-slate-900 dark:text-[#F2F6F5]">{title}</h3>
             <button
               type="button"
               onClick={onClose}
@@ -115,7 +118,7 @@ export function Modal({
             </button>
           </div>
         )}
-        <div data-dialog-body>{children}</div>
+        <div data-dialog-body className="min-h-0 flex-1 overflow-y-auto px-6 py-5">{children}</div>
       </div>
     </div>
   );

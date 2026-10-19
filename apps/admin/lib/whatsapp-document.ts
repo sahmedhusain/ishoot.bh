@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 // Upload private PDF bytes to Meta; never expose an authenticated document URL publicly.
 export async function sendWhatsAppDocument(
   input: {
@@ -16,7 +17,7 @@ export async function sendWhatsAppDocument(
     !/^\d+$/.test(input.phoneId) ||
     !/^[1-9]\d{6,14}$/.test(input.recipient)
   )
-    throw new Error("Invalid WhatsApp configuration or recipient");
+    throw new Error(serverMessages.invalidWhatsappConfigurationOrRecipient);
   const endpoint = `https://graph.facebook.com/${version}/${input.phoneId}`;
   const headers = { Authorization: `Bearer ${input.token}` };
   const media = new FormData();
@@ -35,7 +36,7 @@ export async function sendWhatsAppDocument(
   });
   const uploaded = await upload.json();
   if (!upload.ok || typeof uploaded.id !== "string")
-    throw new Error("WhatsApp PDF upload failed");
+    throw new Error(serverMessages.whatsappPdfUploadFailed);
   const response = await transport(`${endpoint}/messages`, {
     method: "POST",
     headers: { ...headers, "Content-Type": "application/json" },

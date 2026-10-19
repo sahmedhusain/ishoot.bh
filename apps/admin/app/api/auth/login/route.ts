@@ -1,3 +1,4 @@
+import { serverMessages, getTranslations } from "@ishoot/locales";
 import { NextRequest, NextResponse, after } from "next/server";
 import { db, runAtomicMutation } from "@ishoot/database/db";
 import { measureOperation } from "@ishoot/database/observability";
@@ -7,7 +8,7 @@ import { createActivityLog } from "@ishoot/database/queries/activity";
 import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database/services/abuse-limits";
 import { verifyMfa } from "@ishoot/database/services/mfa";
 import { readLoginInput } from "../../../../lib/login-input";
-import { getTranslations } from "@ishoot/locales";
+
 import { signSessionToken } from "../../../../lib/jwt";
 import {
   SESSION_COOKIE_NAME,
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
     const [security] = await db.$queryRaw<Array<{ mfaEnabled: boolean; isActive: boolean }>>`SELECT "mfaEnabled", "isActive" FROM "User" WHERE id=${user.id} FOR UPDATE`;
     if (!security?.isActive) return NextResponse.json({error: trans.api.auth.invalidCredentials}, {status:401});
     if (security.mfaEnabled && (typeof body.otp !== "string" || !(await verifyMfa(user.id, body.otp)))) {
-      return NextResponse.json({ error: "Enter an authentication or recovery code", mfaRequired: true }, { status: 401, headers: { "Cache-Control": "no-store" } });
+      return NextResponse.json({ error: serverMessages.runtimeEnterAnAuthenticationOrRecoveryCode, mfaRequired: true }, { status: 401, headers: { "Cache-Control": "no-store" } });
     }
 
     const token = await signSessionToken({
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     if (err instanceof Error && err.message === "RATE_LIMIT")
       return NextResponse.json(
-        { error: "Too many login attempts. Try again in a minute." },
+        { error: serverMessages.runtimeTooManyLoginAttemptsTryAgainInAMinute },
         { status: 429, headers: { "Retry-After": "60" } },
       );
     if (err instanceof Error && err.message === "INVALID_INPUT")

@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
 import { FinancialSummary } from "../types";
 import { getFinancialSummaryReport } from "./finance-reports";
@@ -60,7 +61,7 @@ export async function getMonthlyCashflow(
   monthsCount = 6,
 ): Promise<MonthlyCashflowPoint[]> {
   if (!Number.isInteger(monthsCount) || monthsCount < 1 || monthsCount > 120)
-    throw new Error("Month count must be between 1 and 120");
+    throw new Error(serverMessages.monthCountMustBeBetween1And);
   const rows = await db.$queryRaw<
     Array<{ monthKey: string; revenue: unknown; expenses: unknown }>
   >`

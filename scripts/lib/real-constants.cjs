@@ -3,12 +3,13 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "../..");
 const constantsDir = path.join(root, "packages/database/src/constants") + path.sep;
 const constantsDirs = [constantsDir, path.join(root, "apps/admin/constants") + path.sep];
-const pureFiles = [path.join(root, "packages/database/src/finance/money"), path.join(root, "packages/database/src/hr/payroll-engine")];
+const pureFiles = [path.join(root, "packages/locales/src/index"),path.join(root, "packages/database/src/finance/money"), path.join(root, "packages/database/src/hr/payroll-engine")];
 let registered = false;
 
 function realConstants(fromFile, id) {
   let target = null;
-  if (id.startsWith("@ishoot/database/constants/")) target = path.join(constantsDir, id.slice("@ishoot/database/constants/".length));
+  if (id === "@ishoot/locales") target = path.join(root, "packages/locales/src/index");
+  else if (id.startsWith("@ishoot/database/constants/")) target = path.join(constantsDir, id.slice("@ishoot/database/constants/".length));
   else if (id.startsWith(".")) target = path.resolve(root, path.dirname(fromFile), id);
   if (!target || !(constantsDirs.some((dir) => target.startsWith(dir)) || pureFiles.includes(target.replace(/\.ts$/, "")))) return null;
   if (!registered) {

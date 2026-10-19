@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -19,12 +20,27 @@ import {
 import { revalidatePath } from "next/cache";
 import { hasPermission, requirePermission } from "../../lib/auth";
 
-const PAY_FIELDS = ["basicSalary", "housingAllowance", "transportAllowance", "otherAllowances", "payrollSettings"] as const;
+const PAY_FIELDS = [
+  "basicSalary",
+  "housingAllowance",
+  "transportAllowance",
+  "otherAllowances",
+  "payrollSettings",
+] as const;
 
 /** Salaries and payroll settings are payroll data: changing them needs payroll:edit, not only employee access. */
-async function requirePayAccessFor(data: Partial<Record<(typeof PAY_FIELDS)[number], unknown>>) {
-  const touchesPay = PAY_FIELDS.some((key) => data[key] !== undefined && !(typeof data[key] === "number" && data[key] === 0));
-  if (touchesPay && !(await hasPermission("payroll", "edit"))) throw new Error("Only payroll managers can set salaries and payroll settings");
+async function requirePayAccessFor(
+  data: Partial<Record<(typeof PAY_FIELDS)[number], unknown>>,
+) {
+  const touchesPay = PAY_FIELDS.some(
+    (key) =>
+      data[key] !== undefined &&
+      !(typeof data[key] === "number" && data[key] === 0),
+  );
+  if (touchesPay && !(await hasPermission("payroll", "edit")))
+    throw new Error(
+      serverMessages.onlyPayrollManagersCanSetSalariesAnd,
+    );
 }
 
 export async function createEmployeeAction(data: {
@@ -59,9 +75,13 @@ export async function createEmployeeAction(data: {
 
     const { employee } = await runAtomicMutation(async () => {
       if (data.userId) {
-        const user = await db.user.findUnique({ where: { id: data.userId }, select: { isActive: true, employee: { select: { id: true } } } });
-        if (!user || !user.isActive) throw new Error("User account not found");
-        if (user.employee) throw new Error("This user already has an employee record");
+        const user = await db.user.findUnique({
+          where: { id: data.userId },
+          select: { isActive: true, employee: { select: { id: true } } },
+        });
+        if (!user || !user.isActive) throw new Error(serverMessages.userAccountNotFound);
+        if (user.employee)
+          throw new Error(serverMessages.thisUserAlreadyHasAnEmployeeRecord);
       }
       const { identity, credentials, ...employeeData } = data;
       const employee = await createEmployee(
@@ -76,15 +96,23 @@ export async function createEmployeeAction(data: {
         actor.id,
       );
 
-      if (identity) await updateEmployeeIdentity(employee.id, { ...identity, cpr_number: identity.cpr_number ?? data.cprNumber ?? undefined });
-      for (const credential of credentials ?? []) await saveEmployeeCredential(employee.id, credential);
+      if (identity)
+        await updateEmployeeIdentity(employee.id, {
+          ...identity,
+          cpr_number: identity.cpr_number ?? data.cprNumber ?? undefined,
+        });
+      for (const credential of credentials ?? [])
+        await saveEmployeeCredential(employee.id, credential, actor.id);
 
       await createActivityLog({
         user_id: actor.id,
         action: "create",
         entity_type: "employee",
         entity_id: employee.id,
-        details: { employeeNumber: employee.employeeNumber, name: `${data.firstNameEn} ${data.lastNameEn}` },
+        details: {
+          employeeNumber: employee.employeeNumber,
+          name: `${data.firstNameEn} ${data.lastNameEn}`,
+        },
       });
 
       return { employee };
@@ -114,7 +142,7 @@ export async function updateEmployeeAction(
     housingAllowance?: number;
     transportAllowance?: number;
     otherAllowances?: number;
-  payrollSettings?: EmployeePayrollSettings;
+    payrollSettings?: EmployeePayrollSettings;
   },
 ) {
   return measureOperation("action:updateEmployeeAction", async () => {

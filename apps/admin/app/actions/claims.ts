@@ -1,4 +1,5 @@
 "use server";
+import { getTranslations, formatMessage } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import {
   measureOperation,
@@ -74,10 +75,15 @@ export async function scheduleExpenseClaimAction(id: string, payOn?: string | nu
     const claim = await runAtomicMutation(async () => {
       const claim = await scheduleExpenseClaim(id, user.id, payOn);
       await createActivityLog({ user_id: user.id, action: "schedule", entity_type: "expense_claim", entity_id: id, details: { payOn: payOn ?? null } });
+      const kind = claim.scheduledForDate ? "scheduledOn" : "scheduled";
+      const params = { number: claim.claimNumber, date: claim.scheduledForDate ?? "" };
+      const copy = getTranslations("en").admin.claims.notifications[kind];
       await createNotification({
         user_id: claim.claimantId,
-        title: "Claim scheduled for payment",
-        message: `${claim.claimNumber} is scheduled for reimbursement${claim.scheduledForDate ? ` on ${claim.scheduledForDate}` : ""}.`,
+        title: copy.title,
+        message: formatMessage(copy.message, params),
+        message_key: `claims.notifications.${kind}`,
+        message_params: params,
         type: "info",
         entity_type: "expense_claim",
         entity_id: id,
@@ -97,10 +103,14 @@ export async function payExpenseClaimAction(id: string, payment: { method: strin
     const claim = await runAtomicMutation(async () => {
       const claim = await payExpenseClaim(id, user.id, payment);
       await createActivityLog({ user_id: user.id, action: "pay", entity_type: "expense_claim", entity_id: id, details: { method: payment.method, reference: payment.reference ?? null, expenseId: claim.expenseId } });
+      const params = { number: claim.claimNumber, currency: claim.currency, amount: claim.amount.toFixed(3) };
+      const copy = getTranslations("en").admin.claims.notifications.paid;
       await createNotification({
         user_id: claim.claimantId,
-        title: "Claim reimbursed",
-        message: `${claim.claimNumber} (${claim.currency} ${claim.amount.toFixed(3)}) has been paid.`,
+        title: copy.title,
+        message: formatMessage(copy.message, params),
+        message_key: "claims.notifications.paid",
+        message_params: params,
         type: "success",
         entity_type: "expense_claim",
         entity_id: id,

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatMessage } from "@ishoot/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -322,7 +323,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                   </Select>
                 </Field>
                 <Field label={f.website}>
-                  <Input dir="ltr" type="text" inputMode="url" value={values.website ?? ""} onChange={(e) => set("website", e.target.value)} placeholder="www.example.com" />
+                  <Input dir="ltr" type="text" inputMode="url" value={values.website ?? ""} onChange={(e) => set("website", e.target.value)} placeholder={t.copy.websiteExample} />
                 </Field>
               </div>
             </Section>
@@ -344,7 +345,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                   <div key={p.key} className={`rounded-2xl border p-4 ${p.is_primary ? "border-accent/50 bg-accent/5" : "border-ink/10"}`}>
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <span className="text-xs font-bold text-ink">
-                        {f.poc.contactNumber.replace("{n}", String(index + 1))}
+                        {formatMessage(f.poc.contactNumber, { n: String(index + 1) })}
                         {p.is_primary ? (
                           <span className="ms-2 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-white">
                             <Star className="h-3 w-3" />
@@ -441,7 +442,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
 
           <Section title={f.sections.commercial}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <Field label={f.paymentTerms} hint={f.paymentTermsHint.replace("{days}", String(defaultPaymentTermsDays))}>
+              <Field label={f.paymentTerms} hint={formatMessage(f.paymentTermsHint, { days: String(defaultPaymentTermsDays) })}>
                 <Input
                   type="number"
                   min={0}

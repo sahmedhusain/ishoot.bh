@@ -1,3 +1,6 @@
+import { serverMessages, getTranslations } from "@ishoot/locales";
+
+
 import { measureOperation, db, consumeAbuseLimit } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
@@ -9,7 +12,7 @@ export async function POST(req: NextRequest) {
     try {
       const { email } = await req.json();
       if (!email || typeof email !== "string" || !email.trim()) {
-        return NextResponse.json({ error: "Email is required" }, { status: 400 });
+        return NextResponse.json({ error: serverMessages.runtimeEmailIsRequired }, { status: 400 });
       }
 
       const emailNorm = email.trim().toLowerCase();
@@ -42,12 +45,12 @@ export async function POST(req: NextRequest) {
       }
 
       // Always return success to prevent user enumeration
-      return NextResponse.json({ success: true, message: "If an account exists, a reset link has been sent." });
+      return NextResponse.json({ success: true, message: getTranslations("en").admin.copy.resetLinkSent });
     } catch (err: any) {
       if (err instanceof Error && err.message === "RATE_LIMIT") {
-        return NextResponse.json({ error: "Too many requests. Try again later." }, { status: 429 });
+        return NextResponse.json({ error: serverMessages.runtimeTooManyRequestsTryAgainLater }, { status: 429 });
       }
-      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+      return NextResponse.json({ error: serverMessages.internalServerErrorLower }, { status: 500 });
     }
   });
 }

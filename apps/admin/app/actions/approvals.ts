@@ -2,10 +2,7 @@
 import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
-import {
-  decideApprovalRequest,
-  createActivityLog,
-} from "@ishoot/database";
+import { decideApprovalRequest, createActivityLog } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "../../lib/auth";
 
@@ -13,26 +10,46 @@ export async function decideApprovalAction(
   approvalRequestId: string,
   decision: "approved" | "rejected",
   reason?: string,
+  /** Drawn by the approver now, for documents that must be signed on the spot. */
+  signature?: string,
 ) {
   return measureOperation("action:decideApprovalAction", async () => {
     const actor = await requireAuth();
-    validateActionArguments("decideApprovalAction", { approvalRequestId, decision, reason });
+    validateActionArguments("decideApprovalAction", {
+      approvalRequestId,
+      decision,
+      reason,
+      signature,
+    });
 
     const { decisionResult } = await runAtomicMutation(async () => {
-      const res = await decideApprovalRequest(approvalRequestId, actor.id, decision, reason);
+      const res = await decideApprovalRequest(
+        approvalRequestId,
+        actor.id,
+        decision,
+        reason,
+        signature,
+      );
 
       await createActivityLog({
         user_id: actor.id,
         action: `approval_${decision}`,
         entity_type: "approval_request",
         entity_id: approvalRequestId,
-        details: { decision, reason, status: res.status },
+        details: {
+          decision,
+          reason,
+          status: res.status,
+          signedNow: !!signature,
+        },
       });
 
       return { decisionResult: res };
     });
 
+    revalidatePath("/dashboard", "layout");
     revalidatePath(ROUTES.approvals());
+    revalidatePath("/dashboard/approvals/[type]/[id]", "page");
     revalidatePath(ROUTES.quotations.list);
     revalidatePath(ROUTES.invoices.list);
     revalidatePath(ROUTES.hr.payroll());

@@ -1,4 +1,6 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
+
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -34,7 +36,7 @@ export async function assignRequestAction(
     const updated = await assignConsolidatedRequest(id, assignment.assignedToId, actor.id, assignment.team, assignment.notes);
 
     if (!updated) {
-      return { success: false, error: "Failed to assign request" };
+      return { success: false, error: serverMessages.runtimeFailedToAssignRequest };
     }
 
     revalidatePath(ROUTES.requests.list);
@@ -57,7 +59,7 @@ export async function reassignRequestAction(
     const updated = await assignConsolidatedRequest(id, assignment.newAssignedToId, actor.id, assignment.newTeam, assignment.notes);
 
     if (!updated) {
-      return { success: false, error: "Failed to re-assign request" };
+      return { success: false, error: serverMessages.runtimeFailedToReAssignRequest };
     }
 
     revalidatePath(ROUTES.requests.list);
@@ -86,7 +88,7 @@ export async function returnRequestAction(
     });
 
     if (!updated) {
-      return { success: false, error: "Failed to return request" };
+      return { success: false, error: serverMessages.runtimeFailedToReturnRequest };
     }
 
     revalidatePath(ROUTES.requests.list);
@@ -107,7 +109,7 @@ export async function approveRequestAction(
 
     const outcome = await runAtomicMutation(async () => {
       const pending = await findPendingApproval("service_request", id);
-      if (!pending) throw new Error("Submit the request for approval first");
+      if (!pending) throw new Error(serverMessages.submitTheRequestForApprovalFirst);
       return decideApprovalRequest(pending.id, actor.id, "approved", details.notes);
     });
 
@@ -164,7 +166,7 @@ export async function confirmRequestAction(
     });
 
     if (!updated) {
-      return { success: false, error: "Failed to confirm request" };
+      return { success: false, error: serverMessages.runtimeFailedToConfirmRequest };
     }
 
     revalidatePath(ROUTES.requests.list);
@@ -190,7 +192,7 @@ export async function resolveRequestAction(
     });
 
     if (!updated) {
-      return { success: false, error: "Failed to resolve request" };
+      return { success: false, error: serverMessages.runtimeFailedToResolveRequest };
     }
 
     revalidatePath(ROUTES.requests.list);

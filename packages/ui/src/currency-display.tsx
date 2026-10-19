@@ -18,7 +18,7 @@ export interface CurrencyDisplayProps {
 /** Interface language for amounts rendered without an explicit locale (Arabic screens show Arabic currency labels). */
 // React's server build (route handlers, PDF rendering) has no createContext; amounts there pass their locale explicitly.
 const CurrencyLocaleContext = typeof createContext === "function" ? createContext<string>("en") : null;
-const useCurrencyLocale: () => string = CurrencyLocaleContext ? () => useContext(CurrencyLocaleContext) : () => "en";
+export const useCurrencyLocale: () => string = CurrencyLocaleContext ? () => useContext(CurrencyLocaleContext) : () => "en";
 export function CurrencyLocaleProvider({ value, children }: { value: string; children: React.ReactNode }) {
   return CurrencyLocaleContext ? <CurrencyLocaleContext.Provider value={value}>{children}</CurrencyLocaleContext.Provider> : <>{children}</>;
 }

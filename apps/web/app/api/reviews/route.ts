@@ -1,3 +1,5 @@
+import { serverMessages } from "@ishoot/locales";
+
 import {requireFeatureEnabled, measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
@@ -10,7 +12,7 @@ import {
 export async function POST(req: NextRequest) {
   return measureOperation("web:reviews:POST", async () => {
   try {
-    try { await requireFeatureEnabled("reviews"); } catch { return NextResponse.json({error:"Submissions are temporarily unavailable"},{status:503}); }
+    try { await requireFeatureEnabled("reviews"); } catch { return NextResponse.json({error:serverMessages.runtimeSubmissionsAreTemporarilyUnavailable},{status:503}); }
     const body = await readSubmission(req);
     const authorName = textField(body, "authorName", 200, true);
     const companyName = textField(body, "companyName", 200);
@@ -24,7 +26,7 @@ export async function POST(req: NextRequest) {
       rating > 5 ||
       !["ar", "en"].includes(locale)
     )
-      throw new Error("INVALID_INPUT");
+      throw new Error(serverMessages.invalidInput);
     const key = submissionKey(body);
     const requestHash = createHash("sha256")
       .update(
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
         where: { submissionKey: key },
       });
       if (prior) {
-        if (prior.requestHash !== requestHash) throw new Error("INVALID_INPUT");
+        if (prior.requestHash !== requestHash) throw new Error(serverMessages.invalidInput);
         return;
       }
       await tx.review.create({

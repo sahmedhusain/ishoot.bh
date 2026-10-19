@@ -1,15 +1,28 @@
-import { NextResponse } from "next/server";
-import { getNotifications } from "@ishoot/database/queries/notifications";
+import { serverMessages } from "@ishoot/locales";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  getNotifications,
+  notificationPreview,
+} from "@ishoot/database/queries/notifications";
 import { measureOperation } from "@ishoot/database/observability";
 import { getCurrentUser } from "../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   return measureOperation("admin:notifications:GET", async () => {
     const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const notifications = await getNotifications(user.id);
-    return NextResponse.json(notifications, { headers: { "Cache-Control": "no-store" } });
+    if (!user)
+      return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
+    const notifications =
+      req.nextUrl.searchParams.get("preview") === "1"
+        ? await notificationPreview(
+            user.id,
+            req.nextUrl.searchParams.get("filter") === "unread",
+          )
+        : await getNotifications(user.id);
+    return NextResponse.json(notifications, {
+      headers: { "Cache-Control": "no-store" },
+    });
   });
 }

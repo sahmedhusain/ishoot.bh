@@ -1,3 +1,5 @@
+import { serverMessages } from "@ishoot/locales";
+
 import { measureOperation } from "@ishoot/database";
 import { NextRequest, NextResponse } from "next/server";
 import { getDocumentArchiveExportBatch, getRequestExportBatch, iterateListExport, listDomains, type ClientListRow, type RequestListFilters } from "@ishoot/database";
@@ -51,7 +53,7 @@ function csv(value: unknown) {
 /** The company archive export: every file the viewer may see and export, in the archive's filters. */
 async function exportArchive(req: NextRequest) {
   const kinds = await archiveKindsForCurrentUser(["read", "export"]);
-  if (!kinds.length) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!kinds.length) return NextResponse.json({ error: serverMessages.runtimeForbidden }, { status: 403 });
   const input = Object.fromEntries(["q", "group", "kind", "expiry", "from", "to"].map((key) => [key, (req.nextUrl.searchParams.get(key) || "").slice(0, 200) || undefined]));
   const encoder = new TextEncoder();
   let after = "";
@@ -83,7 +85,7 @@ async function exportRequests(req: NextRequest) {
     viewer = await requirePermission("requests", "read");
     await requirePermission("requests", "export");
   } catch {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: serverMessages.runtimeForbidden }, { status: 403 });
   }
   const q = req.nextUrl.searchParams;
   const get = (key: string) => (q.get(key) || "").slice(0, 200) || undefined;
@@ -114,20 +116,20 @@ async function exportRequests(req: NextRequest) {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ domain: string }> }) {
   return measureOperation("admin:exports/[domain]:GET", async () => {
-  if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await getCurrentUser())) return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
   const { domain } = await params;
   if (domain === "requests") return exportRequests(req);
   if (domain === "archive") return exportArchive(req);
   if (!Object.hasOwn(listDomains, domain)) return new NextResponse(null, { status: 404 });
   const name = domain as keyof typeof listDomains;
   try { for (const resource of name === "archive" ? ["contacts","deals","invoices","payments","expenses","settings"] as const : name === "companyDocuments" ? ["settings"] : [name]) { await requirePermission(resource as any, "read"); await requirePermission(resource as any, "export"); } }
-  catch { return NextResponse.json({ error: "Forbidden" }, { status: 403 }); }
+  catch { return NextResponse.json({ error: serverMessages.runtimeForbidden }, { status: 403 }); }
   const dealId = req.nextUrl.searchParams.get("dealId") || "";
   const contactId = req.nextUrl.searchParams.get("contactId") || req.nextUrl.searchParams.get("clientId") || "";
-  if (dealId && (name === "contacts" || name === "companyDocuments" || dealId.length > 150)) return NextResponse.json({error:"Invalid export scope"},{status:400});
-  if (contactId && contactId.length > 150) return NextResponse.json({error:"Invalid export scope"},{status:400});
-  if (dealId) { try { await requirePermission("deals", "read"); } catch { return NextResponse.json({error:"Forbidden"},{status:403}); } }
-  if (contactId) { try { await requirePermission("contacts", "read"); } catch { return NextResponse.json({error:"Forbidden"},{status:403}); } }
+  if (dealId && (name === "contacts" || name === "companyDocuments" || dealId.length > 150)) return NextResponse.json({error:serverMessages.runtimeInvalidExportScope},{status:400});
+  if (contactId && contactId.length > 150) return NextResponse.json({error:serverMessages.runtimeInvalidExportScope},{status:400});
+  if (dealId) { try { await requirePermission("deals", "read"); } catch { return NextResponse.json({error:serverMessages.runtimeForbidden},{status:403}); } }
+  if (contactId) { try { await requirePermission("contacts", "read"); } catch { return NextResponse.json({error:serverMessages.runtimeForbidden},{status:403}); } }
   const search = Object.fromEntries(["kind", "type", "origin", "country", "tier", "balance", "activity", "sort"].map((key) => [key, req.nextUrl.searchParams.get(key) || undefined]));
   const paramsInput = { ...search, dealId, contactId, clientId: contactId, q: req.nextUrl.searchParams.get("q") || "", status: req.nextUrl.searchParams.get("status") || "all" };
   const iterator = iterateListExport(name, paramsInput);

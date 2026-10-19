@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { NextResponse } from "next/server";
 import { db,type Prisma } from "@ishoot/database";
 import { verifyResendWebhook } from "../../../../lib/resend-webhook";
@@ -26,9 +27,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    if (message === "WEBHOOK_NOT_CONFIGURED") return NextResponse.json({ error: "Webhook is not configured" }, { status: 503 });
-    if (message === "INVALID_SIGNATURE") return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
+    if (message === "WEBHOOK_NOT_CONFIGURED") return NextResponse.json({ error: serverMessages.runtimeWebhookIsNotConfigured }, { status: 503 });
+    if (message === "INVALID_SIGNATURE") return NextResponse.json({ error: serverMessages.runtimeInvalidWebhookSignature }, { status: 401 });
     console.error("Webhook processing failed");
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: serverMessages.runtimeInternalServerError }, { status: 500 });
   }
 }

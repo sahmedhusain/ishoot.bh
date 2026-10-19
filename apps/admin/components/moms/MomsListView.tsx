@@ -179,7 +179,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
                         {isRTL && mom.title_ar ? mom.title_ar : mom.title}
                       </div>
                       <div className="text-[11px] text-ink-muted truncate">
-                        {mom.location || t.momsList.ishootHq}
+                        {mom.location || t.momsList.locationMissing}
                       </div>
                     </td>
 

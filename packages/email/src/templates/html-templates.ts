@@ -1,4 +1,5 @@
-import { getTranslations, type Locale } from "@ishoot/locales";
+import { formatMessage, getTranslations, type Locale } from "@ishoot/locales";
+
 
 export function escapeEmailHtml(value: unknown): string {
   return String(value ?? "").replace(
@@ -104,7 +105,7 @@ export function renderBrandEmailLayout(
                 ${displayName} • ${displayAddress}
               </div>
               <div style="color: #839490; font-size: 11px;">
-                ${t.email.layout.cr.replace("{cr}", comp.cr)} • <a href="${comp.website}" style="color: #09937F; text-decoration: none; font-weight: 600;">${cleanWebsiteDomain}</a> • ${comp.email}
+                ${formatMessage(t.email.layout.cr, { cr: comp.cr })} • <a href="${comp.website}" style="color: #09937F; text-decoration: none; font-weight: 600;">${cleanWebsiteDomain}</a> • ${comp.email}
               </div>
               <div style="margin-top: 12px; color: #556662; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
                 ${t.email.layout.rights}
@@ -141,19 +142,13 @@ export function createInquiryConfirmationEmail(
     )
     .join("");
 
-  const subject = t.email.confirmation.subject.replace(
-    "{companyName}",
-    compName,
-  );
-  const title = t.email.confirmation.title.replace("{name}", name);
+  const subject = formatMessage(t.email.confirmation.subject, { companyName: compName });
+  const title = formatMessage(t.email.confirmation.title, { name: name });
   const receivedMsg = t.email.confirmation.receivedMessage;
   const servicesTitle = t.email.confirmation.servicesRequested;
   const urgentInquiries = t.email.confirmation.urgentInquiries;
   const warmRegards = t.email.confirmation.warmRegards;
-  const prodTeam = t.email.confirmation.productionTeam.replace(
-    "{companyName}",
-    compName,
-  );
+  const prodTeam = formatMessage(t.email.confirmation.productionTeam, { companyName: compName });
 
   const content = `
     <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 16px;">${escapeEmailHtml(title)}</h2>
@@ -199,14 +194,8 @@ export function createInquiryNotificationEmail(inquiry: {
     .join("");
 
   const badgeText = t.email.notification.badge;
-  const titleText = t.email.notification.title.replace(
-    "{fullName}",
-    inquiry.fullName,
-  );
-  const subjectText = t.email.notification.subject.replace(
-    "{fullName}",
-    inquiry.fullName,
-  );
+  const titleText = formatMessage(t.email.notification.title, { fullName: inquiry.fullName });
+  const subjectText = formatMessage(t.email.notification.subject, { fullName: inquiry.fullName });
 
   const content = `
     <div style="display: inline-block; background-color: rgba(9, 147, 127, 0.15); border: 1px solid #09937F; color: #09937F; font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;">
@@ -273,18 +262,10 @@ export function createInvoiceDeliveryEmail(params: {
     ? (params.companyInfo?.nameAr ?? "")
     : (params.companyInfo?.nameEn ?? "");
 
-  const subject = t.email.invoiceDelivery.subject
-    .replace("{invoiceNumber}", params.invoiceNumber)
-    .replace("{companyName}", compName);
+  const subject = formatMessage(t.email.invoiceDelivery.subject, { invoiceNumber: params.invoiceNumber, companyName: compName });
 
-  const greeting = t.email.invoiceDelivery.greeting.replace(
-    "{clientName}",
-    params.clientName,
-  );
-  const body = t.email.invoiceDelivery.body.replace(
-    "{invoiceNumber}",
-    params.invoiceNumber,
-  );
+  const greeting = formatMessage(t.email.invoiceDelivery.greeting, { clientName: params.clientName });
+  const body = formatMessage(t.email.invoiceDelivery.body, { invoiceNumber: params.invoiceNumber });
 
   const content = `
     <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 16px;">${escapeEmailHtml(greeting)}</h2>
@@ -344,23 +325,15 @@ export function createPaymentReceiptEmail(params: {
     ? (params.companyInfo?.nameAr ?? "")
     : (params.companyInfo?.nameEn ?? "");
 
-  const subject = t.email.paymentReceipt.subject
-    .replace("{receiptNumber}", params.receiptNumber)
-    .replace("{companyName}", compName);
+  const subject = formatMessage(t.email.paymentReceipt.subject, { receiptNumber: params.receiptNumber, companyName: compName });
 
   const badgeText = params.isPaidInFull
     ? t.email.paymentReceipt.badgePaidInFull
     : t.email.paymentReceipt.badgePartial;
 
   const title = t.email.paymentReceipt.title;
-  const greeting = t.email.paymentReceipt.greeting.replace(
-    "{clientName}",
-    params.clientName,
-  );
-  const body = t.email.paymentReceipt.body.replace(
-    "{invoiceNumber}",
-    params.invoiceNumber,
-  );
+  const greeting = formatMessage(t.email.paymentReceipt.greeting, { clientName: params.clientName });
+  const body = formatMessage(t.email.paymentReceipt.body, { invoiceNumber: params.invoiceNumber });
 
   const content = `
     <div style="display: inline-block; background-color: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;">

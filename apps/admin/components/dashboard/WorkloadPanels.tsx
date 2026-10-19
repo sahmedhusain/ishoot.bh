@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import Link from "next/link";
 import type { ApprovalWorkload, ComplaintWorkload, RequestWorkload, WorkloadRequestRow } from "@ishoot/database";
 import { approvalTargetUrl, STALE_APPROVAL_DAYS } from "@ishoot/database/constants/approvals";
@@ -27,10 +28,10 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
   const age = (iso: string | null) => {
     if (!iso) return w.none;
     const hours = Math.max(0, (now - new Date(iso).getTime()) / 3600000);
-    return hours < 48 ? w.hours.replace("{n}", String(Math.round(hours))) : w.days.replace("{n}", String(Math.floor(hours / 24)));
+    return hours < 48 ? formatMessage(w.hours, { n: String(Math.round(hours)) }) : formatMessage(w.days, { n: String(Math.floor(hours / 24)) });
   };
   const duration = (hours: number | null) =>
-    hours == null ? w.none : hours < 48 ? w.hours.replace("{n}", String(hours)) : w.days.replace("{n}", String(Math.round(hours / 24)));
+    hours == null ? w.none : hours < 48 ? formatMessage(w.hours, { n: String(hours) }) : formatMessage(w.days, { n: String(Math.round(hours / 24)) });
   const typeLabel = (type: string) => (t.approvals.types as Record<string, string>)[type] ?? type;
 
   return (
@@ -61,7 +62,7 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
                     <div className="min-w-0">
                       <div className="text-sm font-semibold truncate">{typeLabel(item.targetType)}</div>
                       <div className="text-[11px] text-ink-muted truncate">
-                        {w.from.replace("{name}", item.requester)} · {w.step.replace("{n}", String(item.currentStep))}
+                        {formatMessage(w.from, { name: item.requester })} · {formatMessage(w.step, { n: String(item.currentStep) })}
                       </div>
                     </div>
                     <span className="inline-flex items-center gap-1 text-[11px] text-ink-muted shrink-0">
@@ -81,7 +82,7 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
             <PanelHeader id="wl-org" icon={<CheckCircle2 className="w-4 h-4" />} title={w.orgApprovalsTitle} href={ROUTES.approvals({ scope: "all", status: "pending" })} linkLabel={w.viewAll} />
             <div className="grid grid-cols-2 gap-3">
               <Tile label={w.pending} value={approvals.org.pending} />
-              <Tile label={w.stale.replace("{days}", String(STALE_APPROVAL_DAYS))} value={approvals.org.stale} tone={approvals.org.stale ? "warn" : "neutral"} />
+              <Tile label={formatMessage(w.stale, { days: String(STALE_APPROVAL_DAYS) })} value={approvals.org.stale} tone={approvals.org.stale ? "warn" : "neutral"} />
               <Tile label={w.approved30} value={approvals.org.approvedLast30} />
               <Tile label={w.rejected30} value={approvals.org.rejectedLast30} />
               <Tile label={w.avgDecision} value={duration(approvals.org.avgDecisionHours)} wide />
@@ -114,7 +115,7 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold uppercase tracking-wider">{w.myQueue} · {requests.mine.open}</h3>
               {requests.mine.overdue > 0 && (
-                <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">{w.myOverdue.replace("{n}", String(requests.mine.overdue))}</span>
+                <span className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">{formatMessage(w.myOverdue, { n: String(requests.mine.overdue) })}</span>
               )}
             </div>
             {requests.mine.items.length ? <RequestList rows={requests.mine.items} age={age} /> : <EmptyState text={w.myQueueEmpty} />}
@@ -129,7 +130,7 @@ export function WorkloadPanels({ approvals, requests, complaints, generatedAt }:
             <Tile label={t.requestInbox.stats.open} value={complaints.open} href={requestsLink({ kind: "feedback" })} />
             <Tile label={t.requestInbox.stats.overdue} value={complaints.overdue} tone={complaints.overdue ? "danger" : "neutral"} href={requestsLink({ kind: "feedback", overdue: "true" })} />
             <Tile label={t.requestInbox.stats.unassigned} value={complaints.unassigned} tone={complaints.unassigned ? "warn" : "neutral"} href={requestsLink({ kind: "feedback", scope: "unassigned" })} />
-            <Tile label={w.newLast7} value={complaints.newLast7} hint={w.vsLastWeek.replace("{n}", String(complaints.newPrevious7))} tone={complaints.newLast7 > complaints.newPrevious7 ? "warn" : "neutral"} />
+            <Tile label={w.newLast7} value={complaints.newLast7} hint={formatMessage(w.vsLastWeek, { n: String(complaints.newPrevious7) })} tone={complaints.newLast7 > complaints.newPrevious7 ? "warn" : "neutral"} />
             <Tile label={w.resolved30} value={complaints.resolvedLast30} />
             <Tile label={w.avgResolution} value={duration(complaints.avgResolutionHours)} />
             <Tile label={w.slaMet} value={complaints.slaMetPct == null ? w.none : `${complaints.slaMetPct}%`} />
@@ -217,7 +218,7 @@ function RequestList({ rows, age, showAssignee }: { rows: (WorkloadRequestRow & 
             <div className="min-w-0">
               <div className="text-sm font-semibold truncate">{row.title}</div>
               <div className="text-[11px] text-ink-muted truncate">
-                <span dir="ltr">{row.reference.slice(0, 12)}</span> · {row.customer}
+                <span dir="ltr">{row.reference}</span> · {row.customer}
                 {showAssignee && <> · {row.assignee ?? t.workload.unassigned}</>}
               </div>
             </div>

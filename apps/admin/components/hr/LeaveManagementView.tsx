@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -156,7 +157,7 @@ export function LeaveManagementView({
 
           if (totalConflicts > 0) {
             toast.warning(
-              `Leave approved with ${totalConflicts} overlapping commitments requiring handover`,
+              formatMessage(t.copy.leaveConflicts, { count: totalConflicts }),
               { id: toastId, duration: 6000 },
             );
           } else {
@@ -366,7 +367,7 @@ export function LeaveManagementView({
                               ? t.leaveForm.halfPm
                               : req.fullDay
                                 ? t.leaveManagement.fullDay
-                                : t.leaveManagement.hoursCount.replace("{n}", String(req.hours))}
+                                : formatMessage(t.leaveManagement.hoursCount, { n: String(req.hours) })}
                           {req.days ? <> · <bdi dir="ltr">{req.days}</bdi> {t.shared.days}</> : null}
                         </div>
                       </td>
@@ -446,7 +447,7 @@ export function LeaveManagementView({
 
       {/* Apply for Leave Modal */}
       {showApplyModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4">
           <form {...applyDialog}
             onSubmit={handleApply}
             className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg max-w-lg w-full p-6 space-y-4 shadow-xl"
@@ -553,7 +554,7 @@ export function LeaveManagementView({
               {selectedType?.requiresAttachment && (
                 <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-neutral-300">
                   {t.leaveForm.attachment}
-                  <input type="url" required dir="ltr" placeholder="https://" value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white" />
+                  <input type="url" required dir="ltr" placeholder={t.copy.urlExample} value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white" />
                 </label>
               )}
               {(() => {
@@ -562,7 +563,7 @@ export function LeaveManagementView({
                   <p className="rounded-lg bg-surface-sunken px-3 py-2 text-[11px] text-slate-700 dark:text-slate-300">
                     {t.leaveForm.available}: <bdi dir="ltr" className="font-semibold">{balance.available == null ? t.leaveForm.unlimited : balance.available}</bdi>
                     {balance.pending ? <> · {t.leaveForm.pending}: <bdi dir="ltr">{balance.pending}</bdi></> : null}
-                    {!balance.eligible && balance.eligibleFrom ? <> · {t.leaveForm.eligibleFrom.replace("{date}", balance.eligibleFrom)}</> : null}
+                    {!balance.eligible && balance.eligibleFrom ? <> · {formatMessage(t.leaveForm.eligibleFrom, { date: balance.eligibleFrom })}</> : null}
                   </p>
                 ) : null;
               })()}
@@ -604,7 +605,7 @@ export function LeaveManagementView({
 
       {/* Reject Modal */}
       {rejectingRequestId && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4">
           <div {...rejectDialog} className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
             <h3 className="text-base font-semibold text-slate-900 dark:text-white">
               {t.leaveManagement.rejectLeaveApplication}

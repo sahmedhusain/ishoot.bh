@@ -7,7 +7,7 @@ import { safeWebsiteUrl } from "@ishoot/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight, Pause, Play } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
-export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
+export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; companyName: { en: string; ar: string } }) {
   const { t, locale, isRTL: ar } = useTranslation();
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
@@ -109,7 +109,7 @@ export function CinemaHero({ banners }: { banners: HeroBanner[] }) {
           transition={{ duration: reduced ? 0 : 0.45, ease: [0.2, 0, 0, 1] }}
           className="max-w-5xl"
         >
-          <p className="web-eyebrow text-[#5EEAD4] mb-6">{t("hero.eyebrow")}</p>
+          <p className="web-eyebrow text-[#5EEAD4] mb-6">{t("hero.eyebrow", { companyName: companyName[locale] })}</p>
           <h1 className="font-display text-5xl sm:text-6xl lg:text-8xl leading-[1.04] tracking-tight font-bold whitespace-pre-line text-white">
             {title}
           </h1>

@@ -1,3 +1,4 @@
+import { serverTemplates, formatMessage } from "@ishoot/locales";
 // Finance rules shared by queries and the UI. Runtime-free.
 
 /** Currencies the business trades in: the six GCC currencies plus USD, EUR and GBP. BHD is the book currency. */
@@ -9,7 +10,7 @@ export function isSupportedCurrency(code: unknown): code is SupportedCurrencyCod
 }
 
 export function assertSupportedCurrency(code: unknown): asserts code is SupportedCurrencyCode {
-  if (!isSupportedCurrency(code)) throw new Error(`Unsupported currency. Use one of ${SUPPORTED_CURRENCIES.join(", ")}`);
+  if (!isSupportedCurrency(code)) throw new Error(formatMessage(serverTemplates.unsupportedCurrencyUseOneOf0, { 0: SUPPORTED_CURRENCIES.join(", ") }));
 }
 
 /** Digits in the running part of invoice and receipt numbers: PREFIX-YYYY-0001. */

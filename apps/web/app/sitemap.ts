@@ -1,8 +1,9 @@
 export const dynamic = "force-dynamic";
 import type { MetadataRoute } from "next";
 import { getWebsiteSnapshot } from "@ishoot/database";
+import { publicSiteUrl } from "../lib/site-url";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = (process.env.WEB_URL || "https://ishoot.bh").replace(/\/$/, "");
+  const base = (await publicSiteUrl()).href.replace(/\/$/, "");
   const works = (await getWebsiteSnapshot()).portfolio;
   return [
     "",

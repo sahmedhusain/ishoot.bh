@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
 
@@ -459,7 +460,7 @@ export function ExecutiveDashboardView({
                     : company.company_name_en}
                 </div>
                 <div className="text-[10px] text-slate-500 dark:text-neutral-400 ">
-                  CR: {company.cr_number}
+                  {t.copy.registrationLabel}{company.cr_number}
                 </div>
               </div>
             </div>
@@ -477,7 +478,7 @@ export function ExecutiveDashboardView({
                   }`}
                 >
                   {company.vat_enabled
-                    ? t.dashboardView.vatRegistered
+                    ? formatMessage(t.dashboardView.vatRegistered, { rate: company.vat_percentage })
                     : t.dashboardView.nonVat}
                 </span>
               </div>}

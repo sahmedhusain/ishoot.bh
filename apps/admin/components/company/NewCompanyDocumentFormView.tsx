@@ -6,17 +6,11 @@ import { uploadFileDirectly } from "../../lib/upload-client";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-Card,
-Button,
-Input,
-Select,
-ProofUploader,
-ProofFile,
-} from "@ishoot/ui";
-import { ArrowLeft,CheckCircle2,Building2 } from "lucide-react";
+import { Card, Button, Input, Select } from "@ishoot/ui";
+import { ArrowLeft, CheckCircle2, Building2 } from "lucide-react";
 import { createCompanyDocumentAction } from "../../app/actions/documents";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { LinkOrUploadField } from "../shared/LinkOrUploadField";
 
 export function NewCompanyDocumentFormView() {
   const router = useRouter();
@@ -29,20 +23,20 @@ export function NewCompanyDocumentFormView() {
   const [validFrom, setValidFrom] = React.useState("");
   const [validUntil, setValidUntil] = React.useState("");
   const [notes, setNotes] = React.useState("");
-  const [files, setFiles] = React.useState<ProofFile[]>([]);
+  const [fileUrl, setFileUrl] = React.useState("");
   const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titleEn || !files[0]?.file) {setError(t.newCompanyDocumentForm.selectADocumentFileAnd); return;}
+    if (!titleEn || !fileUrl) {
+      setError(t.newCompanyDocumentForm.selectADocumentFileAnd);
+      return;
+    }
     setError("");
     setSaving(true);
 
     try {
-      const uploaded = await uploadFileDirectly(files[0].file, { entityType: "company_document", entityId: "pending" });
-      const fileUrl = uploaded.fileUrl;
-
       await createCompanyDocumentAction({
         title_en: titleEn,
         title_ar: titleAr || undefined,
@@ -56,7 +50,9 @@ export function NewCompanyDocumentFormView() {
 
       router.push(ROUTES.company.documents);
     } catch (err) {
-      setError(errorMessage(err, t, t.newCompanyDocumentForm.couldNotSaveDocument));
+      setError(
+        errorMessage(err, t, t.newCompanyDocumentForm.couldNotSaveDocument),
+      );
     } finally {
       setSaving(false);
     }
@@ -125,16 +121,10 @@ export function NewCompanyDocumentFormView() {
                 <option value="cr_license" className="bg-surface text-ink">
                   {t.companyDocumentsView.categoryCrLicense}
                 </option>
-                <option
-                  value="vat_certificate"
-                  className="bg-surface text-ink"
-                >
+                <option value="vat_certificate" className="bg-surface text-ink">
                   {t.companyDocumentsView.categoryVatCertificate}
                 </option>
-                <option
-                  value="company_profile"
-                  className="bg-surface text-ink"
-                >
+                <option value="company_profile" className="bg-surface text-ink">
                   {t.companyDocumentsView.categoryCompanyProfile}
                 </option>
                 <option value="bylaws" className="bg-surface text-ink">
@@ -186,12 +176,19 @@ export function NewCompanyDocumentFormView() {
             </div>
           </div>
 
-          <ProofUploader
+          {/* The document itself, or a link to where it is kept (e.g. the NBR or MOIC portal). */}
+          <LinkOrUploadField
             label={t.companyDocumentsNew.assetFileLabel}
             hint={t.companyDocumentsNew.assetFileHint}
-            value={files}
-            onChange={setFiles}
-            maxFiles={1}
+            required
+            value={fileUrl}
+            onChange={(url) => setFileUrl(url)}
+            upload={(file) =>
+              uploadFileDirectly(file, {
+                entityType: "company_document",
+                entityId: "pending",
+              })
+            }
           />
 
           <div>

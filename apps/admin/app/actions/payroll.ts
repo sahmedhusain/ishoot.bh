@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation, runAtomicMutation } from "@ishoot/database";
 import { validateActionArguments } from "../../lib/action-input";
@@ -79,7 +80,7 @@ export async function approvePayrollRunAction(runId: string) {
 
     const outcome = await runAtomicMutation(async () => {
       const pending = await findPendingApproval("payroll_run", runId);
-      if (!pending) throw new Error("This payroll run has no pending approval");
+      if (!pending) throw new Error(serverMessages.thisPayrollRunHasNoPendingApproval);
       const result = await decideApprovalRequest(pending.id, actor.id, "approved");
       await createActivityLog({
         user_id: actor.id,

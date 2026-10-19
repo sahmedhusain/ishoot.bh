@@ -1,4 +1,5 @@
 "use client";
+import { formatMessage } from "@ishoot/locales";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Download, Search } from "lucide-react";
 import {
@@ -82,7 +83,7 @@ export function ListControls({
         className="flex flex-wrap items-center justify-between gap-2 text-xs lg:justify-end"
       >
         <span className="px-2 text-ink-muted tabular-nums">
-          {t.listControls.page.replace("{page}", String(page)).replace("{pages}", String(pages))} · {total} {t.listControls.records}
+          {formatMessage(t.listControls.page, { page: String(page), pages: String(pages) })} · {total} {t.listControls.records}
         </span>
         {page > 1 ? (
           <Link href={href(page - 1)} className={chip} aria-label={t.listControls.previous}>

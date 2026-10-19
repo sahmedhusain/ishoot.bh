@@ -374,6 +374,9 @@ importers:
       '@ishoot/config':
         specifier: workspace:*
         version: link:../config
+      '@ishoot/locales':
+        specifier: workspace:*
+        version: link:../locales
       '@prisma/client':
         specifier: 5.22.0
         version: 5.22.0(prisma@5.22.0)

@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { measureOperation } from "@ishoot/database";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   return measureOperation("web:preview:POST", async () => {
   if (req.headers.get("origin") !== req.nextUrl.origin)
-    return new NextResponse("Forbidden", { status: 403 });
+    return new NextResponse(serverMessages.runtimeForbidden, { status: 403 });
   const response = NextResponse.redirect(new URL("/", req.url), 303);
   response.cookies.delete("ishoot_preview");
   return response;

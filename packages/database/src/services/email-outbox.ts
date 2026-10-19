@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
 type Sender = (input: { to: string; subject: string; html: string; idempotencyKey: string; attachments: { filename: string; content: Buffer }[] }) => Promise<{ success: boolean; id?: string }>;
 export async function processEmailJobs(sender: Sender, now = new Date()) {
@@ -9,9 +10,9 @@ export async function processEmailJobs(sender: Sender, now = new Date()) {
   for (const job of jobs) {
     try {
       // Stop automatic retries after one day: provider idempotency retention is finite.
-      if (job.attempts > 1 && now.getTime() - job.createdAt.getTime() > 23 * 3600000) throw new Error("Expired retry window");
+      if (job.attempts > 1 && now.getTime() - job.createdAt.getTime() > 23 * 3600000) throw new Error(serverMessages.expiredRetryWindow);
       const result = await sender({ to: job.recipient, subject: job.subject, html: job.html, idempotencyKey: job.eventKey, attachments: [{ filename: job.attachmentName, content: Buffer.from(job.attachment) }] });
-      if (!result.success || !result.id) throw new Error("Provider acceptance missing");
+      if (!result.success || !result.id) throw new Error(serverMessages.providerAcceptanceMissing);
       await db.emailJob.updateMany({ where: { id: job.id, attempts: job.attempts, status: "processing" }, data: { status: "accepted", providerId: result.id, acceptedAt: now, lastError: null } });
     } catch {
       const expired = now.getTime() - job.createdAt.getTime() > 23 * 3600000;

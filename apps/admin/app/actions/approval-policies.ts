@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation, updateApprovalPolicy, createActivityLog, type ApprovalTargetType, type ApproverMode } from "@ishoot/database";
 import { revalidatePath } from "next/cache";
@@ -31,7 +32,7 @@ export async function updateApprovalPolicyAction(
     const actor = await requirePermission("settings", "write");
     validateActionArguments("updateApprovalPolicyAction", { targetType, policy });
     // Approval routing is governance: same rule as role permissions.
-    if (actor.role !== "super_admin") throw new Error("Only super administrators can change approval policies");
+    if (actor.role !== "super_admin") throw new Error(serverMessages.onlySuperAdministratorsCanChangeApprovalPolicies);
     // Values are validated against the approval/permission constants inside updateApprovalPolicy.
     await updateApprovalPolicy(targetType as ApprovalTargetType, {
       ...policy,

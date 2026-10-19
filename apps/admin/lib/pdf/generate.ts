@@ -1,3 +1,4 @@
+import { formatMessage, getTranslations } from "@ishoot/locales";
 import * as React from "react";
 import sharp from "sharp";
 import { renderToBuffer } from "@react-pdf/renderer";
@@ -7,7 +8,7 @@ import type { Invoice, Payment, CompanySettings, Quotation } from "@ishoot/datab
 import QRCode from "qrcode";
 import { db, getClientAcceptance, getTaxCertificate, mapContact, type ClientSignableType } from "@ishoot/database";
 import type { DocumentTaxLine } from "@ishoot/database/types";
-import { getTranslations } from "@ishoot/locales";
+
 import { publicOrigin } from "../public-origin";
 import { getSigningState, type SignableDocument } from "@ishoot/database/queries/document-signing";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
@@ -29,15 +30,15 @@ async function pdfTaxCertificates(
   const marks: TaxCertificateMark[] = [];
   if (doc.vat_enabled && Number(doc.vat_amount) > 0) {
     const vat = await getTaxCertificate("vat");
-    if (vat) marks.push({ qr: vat.certificateUrl ? await qr("vat") : undefined, title: c.vatCertificate, registration: vat.registrationNumber ? c.registrationLine.replace("{number}", vat.registrationNumber) : null });
+    if (vat) marks.push({ qr: vat.certificateUrl ? await qr("vat") : undefined, title: c.vatCertificate, registration: vat.registrationNumber ? formatMessage(c.registrationLine, { number: vat.registrationNumber }) : null });
   }
   for (const tax of doc.other_taxes ?? []) {
     const certificate = await getTaxCertificate(tax.code);
     const name = lang === "ar" ? tax.name_ar : tax.name_en;
     marks.push({
       qr: certificate?.certificateUrl ? await qr(tax.code) : undefined,
-      title: c.certificateOf.replace("{tax}", name),
-      registration: tax.registration_number ? c.registrationLine.replace("{number}", tax.registration_number) : null,
+      title: formatMessage(c.certificateOf, { tax: name }),
+      registration: tax.registration_number ? formatMessage(c.registrationLine, { number: tax.registration_number }) : null,
     });
   }
   return marks;

@@ -1,4 +1,5 @@
 "use server";
+import { serverMessages } from "@ishoot/locales";
 import { ROUTES } from "../../constants/routes";
 import {
   measureOperation,
@@ -20,7 +21,7 @@ export async function reassignSalesOwnerAction(entityType: "quotation" | "invoic
     validateActionArguments("reassignSalesOwnerAction", { entityType, id, toUserId, reason });
     const resource = entityType === "quotation" ? "quotations" : "invoices";
     if (!(await hasPermission(resource, "assign")) && !(await hasPermission(resource, "edit")) && !(await hasPermission("deals", "assign")))
-      throw new Error("You do not have permission to change who this document is credited to");
+      throw new Error(serverMessages.youDoNotHavePermissionToChange2);
     const result = await runAtomicMutation(async () => {
       const result = await reassignSalesOwner(entityType, id, toUserId, actor.id, reason);
       if (result.changed)
@@ -39,7 +40,7 @@ export async function updateUserCommissionRateAction(id: string, rate: number | 
     validateActionArguments("updateUserCommissionRateAction", { id, rate });
     const result = await runAtomicMutation(async () => {
       const before = await db.user.findUniqueOrThrow({ where: { id }, select: { commissionRatePercent: true, role: true } });
-      if (before.role === "super_admin") throw new Error("Super Admin accounts are protected and cannot be changed");
+      if (before.role === "super_admin") throw new Error(serverMessages.superAdminAccountsAreProtectedAndCannot);
       const result = await setUserCommissionRate(id, rate);
       await createActivityLog({
         user_id: actor.id,

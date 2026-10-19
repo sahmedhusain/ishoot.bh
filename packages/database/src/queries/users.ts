@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "../db";
 import { Profile, UserRole } from "../types";
 import bcrypt from "bcryptjs";
@@ -72,7 +73,7 @@ export async function createUser(data: {
   signature_url?: string;
   manager_id?: string;
 }): Promise<Profile> {
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) throw new Error("Invalid user email");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) throw new Error(serverMessages.invalidUserEmail);
   if (data.manager_id) await validateManager(data.manager_id);
   const passwordHash = await bcrypt.hash(data.password, PASSWORD_HASH_ROUNDS);
   const created = await db.user.create({
@@ -101,10 +102,10 @@ export async function updateUser(
   try {
     if (data.manager_id) await validateManager(data.manager_id, id);
     const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } });
-    if (existing.role === "super_admin" && existing.isActive && (data.is_active === false || (data.role !== undefined && data.role !== "super_admin")) && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) throw new Error("Keep at least one active super administrator");
+    if (existing.role === "super_admin" && existing.isActive && (data.is_active === false || (data.role !== undefined && data.role !== "super_admin")) && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) throw new Error(serverMessages.keepAtLeastOneActiveSuperAdministrator);
     const updateData: any = {};
     if (data.full_name !== undefined) updateData.fullName = data.full_name;
-    if (data.email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) throw new Error("Invalid user email");
+    if (data.email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) throw new Error(serverMessages.invalidUserEmail);
     if (data.email !== undefined)
       updateData.email = data.email.trim().toLowerCase();
     if (data.role !== undefined) updateData.role = data.role;
@@ -147,7 +148,7 @@ export async function updateUserRole(
 export async function deleteUser(id: string): Promise<boolean> {
   try {
     const existing = await db.user.findUniqueOrThrow({ where: { id }, select: { role: true, isActive: true } });
-    if (existing.role === "super_admin" && existing.isActive && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) throw new Error("Keep at least one active super administrator");
+    if (existing.role === "super_admin" && existing.isActive && !(await db.user.count({ where: { role: "super_admin", isActive: true, id: { not: id } } }))) throw new Error(serverMessages.keepAtLeastOneActiveSuperAdministrator);
     await db.user.delete({ where: { id } });
     return true;
   } catch (e) {
@@ -215,16 +216,16 @@ export async function updateUserLastLogin(id: string): Promise<void> {
 }
 
 async function validateManager(managerId: string, userId?: string) {
-  if (managerId === userId || !(await db.user.findFirst({ where: { id: managerId, isActive: true }, select: { id: true } }))) throw new Error("Invalid manager");
+  if (managerId === userId || !(await db.user.findFirst({ where: { id: managerId, isActive: true }, select: { id: true } }))) throw new Error(serverMessages.invalidManager);
   if (userId) {
     const cycle = await db.$queryRaw<Array<{ id: string }>>`WITH RECURSIVE chain AS (SELECT id,"managerId" FROM "User" WHERE id=${managerId} UNION SELECT u.id,u."managerId" FROM "User" u JOIN chain c ON u.id=c."managerId") SELECT id FROM chain WHERE id=${userId}`;
-    if (cycle.length) throw new Error("Manager assignment would create a cycle");
+    if (cycle.length) throw new Error(serverMessages.managerAssignmentWouldCreateACycle);
   }
 }
 
 /** Sets how much discount (% of subtotal) a user may give without approval; null falls back to the company default. */
 export async function setUserDiscountLimit(userId: string, limit: number | null) {
-  if (limit !== null && !(Number.isFinite(limit) && limit >= 0 && limit <= 100)) throw new Error("The discount limit must be between 0 and 100%");
+  if (limit !== null && !(Number.isFinite(limit) && limit >= 0 && limit <= 100)) throw new Error(serverMessages.theDiscountLimitMustBeBetween0);
   const updated = await db.user.update({
     where: { id: userId },
     data: { discountLimitPercent: limit === null ? null : Math.round(limit * 100) / 100 },

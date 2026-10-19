@@ -1,3 +1,4 @@
+import { serverMessages } from "@ishoot/locales";
 import { db } from "@ishoot/database";
 import { requirePermission } from "./auth";
 export async function requireInquiryAccess(
@@ -9,7 +10,7 @@ export async function requireInquiryAccess(
     where: { id },
     select: { intent: true },
   });
-  if (!inquiry) throw new Error("Request not found");
+  if (!inquiry) throw new Error(serverMessages.requestNotFound);
   return requirePermission(
     inquiry.intent === "complaint" ? "support" : "leads",
     action,
