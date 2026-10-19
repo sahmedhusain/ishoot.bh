@@ -21,7 +21,7 @@ export function ExpenseCategoriesView({ initialCategories, canDelete }: { initia
   const cT = t.expenseCategories;
   const [categories, setCategories] = React.useState(initialCategories);
   const [drafts, setDrafts] = React.useState<Record<string, Partial<ExpenseCategory>>>({});
-  const [newCat, setNewCat] = React.useState({ name_en: "", name_ar: "", color: "#09937F", kind: "operating" as ExpenseCategoryKind });
+  const [newCat, setNewCat] = React.useState({ name_en: "", name_ar: "", color: "#2563EB", kind: "operating" as ExpenseCategoryKind });
   const [busy, setBusy] = React.useState<string | null>(null);
 
   const run = async (key: string, fn: () => Promise<void>) => {

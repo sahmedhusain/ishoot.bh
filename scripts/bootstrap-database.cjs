@@ -22,6 +22,7 @@ const {
 const {
   loadCompanyProfile,
   installCompanyProfile,
+  remapLegacyPublicFiles,
 } = require("../company/tools/company-profile.ts");
 const { createRequire } = require("node:module");
 const bcrypt = createRequire(
@@ -98,8 +99,11 @@ async function main() {
             role: "super_admin",
           },
         }));
-      if (profile && (!count || process.env.COMPANY_PROFILE_OVERWRITE === "1"))
+      if (profile && (!count || process.env.COMPANY_PROFILE_OVERWRITE === "1")) {
         await installCompanyProfile(tx, profile, admin.id, { markSetupComplete: true });
+        const missing = await remapLegacyPublicFiles(tx, profile, admin.id);
+        if (missing.length) console.warn(`No file in company/profiles/${profile.name}/assets for: ${missing.join(", ")}`);
+      }
     },
     { timeout: 60000 },
   );

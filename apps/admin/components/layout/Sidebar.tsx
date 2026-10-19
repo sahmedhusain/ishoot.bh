@@ -674,7 +674,7 @@ export function Sidebar() {
                     onClick={() => setIsMobileOpen(false)}
                     className={`flex items-center gap-3 mx-2 px-3 h-9 rounded-xl text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
                       isActive
-                        ? "bg-[#e6f5f2] text-primary dark:bg-[#004d40]/40 dark:text-mint font-semibold"
+                        ? "bg-tone-95 text-primary dark:bg-tone-15/40 dark:text-mint font-semibold"
                         : "text-slate-700 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
                     }`}
                   >

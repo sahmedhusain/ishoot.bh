@@ -93,6 +93,12 @@ function luminance(hex: string) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
+/** `hex` blended towards `toward` by `amount` (0…1); used where CSS variables cannot be (PDF, email). */
+export function mix(hex: string, toward: string, amount: number) {
+  const a = rgb(hex), b = rgb(toward);
+  return toHex(a.map((v, i) => v + (b[i] - v) * amount));
+}
+
 /** WCAG contrast ratio between two colours, 1 to 21. */
 export function contrastRatio(a: string, b: string) {
   const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
@@ -149,10 +155,17 @@ const familyCss = (font: FontChoice, fallback: string) =>
   font.kind === "system" ? fallback : `"${font.family}", ${fallback}`;
 
 /** Every CSS variable both apps read. Colours are RGB channels so Tailwind opacity modifiers work. */
+/** Lightness steps of the accent's tonal palette (tone-5 is near black, tone-95 near white). */
+export const THEME_TONES = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95] as const;
+
 export function themeVariables(input: BrandTheme) {
   const theme = normalizeTheme(input);
   const [hue] = hsl(theme.primary);
   const tint = (s: number, l: number) => channels(fromHsl(hue, s, l));
+  const [accentHue, accentSaturation] = hsl(theme.accent);
+  const tones = Object.fromEntries(
+    THEME_TONES.map((tone) => [`--brand-tone-${tone}`, channels(fromHsl(accentHue, Math.min(accentSaturation, 0.75), tone / 100))]),
+  );
   const sans = 'system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif';
   const common = {
     "--brand-primary": channels(theme.primary),
@@ -168,18 +181,30 @@ export function themeVariables(input: BrandTheme) {
     "--brand-radius": RADII[theme.radius],
     "--brand-font-body": familyCss(theme.fonts.body, sans),
     "--brand-font-heading": familyCss(theme.fonts.heading, sans),
+    ...tones,
   };
+  // Neutrals carry a faint tint of the primary hue (tonal surfaces), in both modes.
   const dark = {
     "--brand-bg-base": tint(0.25, 0.025),
     "--brand-bg-surface": tint(0.23, 0.057),
     "--brand-bg-elevated": tint(0.23, 0.09),
     "--brand-text-accent": channels(shade(theme.accent, 0.12)),
+    "--ui-surface": tint(0.23, 0.057),
+    "--ui-surface-raised": tint(0.2, 0.088),
+    "--ui-surface-sunken": tint(0.25, 0.025),
+    "--ui-ink": tint(0.15, 0.955),
+    "--ui-ink-muted": tint(0.08, 0.65),
   };
   const light = {
     "--brand-bg-base": tint(0.25, 0.97),
     "--brand-bg-surface": "255 255 255",
     "--brand-bg-elevated": tint(0.25, 0.94),
     "--brand-text-accent": channels(theme.primary),
+    "--ui-surface": "255 255 255",
+    "--ui-surface-raised": tint(0.25, 0.97),
+    "--ui-surface-sunken": tint(0.25, 0.94),
+    "--ui-ink": "15 23 42",
+    "--ui-ink-muted": "84 99 121",
   };
   return { common, dark, light };
 }
@@ -194,13 +219,13 @@ export function themeStylesheet(input: BrandTheme) {
   const faces = [theme.fonts.body, theme.fonts.heading]
     .filter((f): f is Extract<FontChoice, { kind: "upload" }> => f.kind === "upload")
     .flatMap((f) => f.files.map((file) => `@font-face{font-family:"${f.family}";src:url("${file.url}") format("woff2");font-weight:${file.weight};font-display:swap}`));
-  return [...new Set(faces)].join("") + block(":root", { ...common, ...dark }) + block("html.dark", dark) + block("html.light", light);
+  return Array.from(new Set(faces)).join("") + block(":root", { ...common, ...dark }) + block("html.dark", dark) + block("html.light", light);
 }
 
 /** Google Fonts stylesheet for any Google families in the theme, or null when none are used. */
 export function googleFontsHref(input: BrandTheme) {
   const theme = normalizeTheme(input);
-  const families = [...new Set([theme.fonts.body, theme.fonts.heading].flatMap((f) => (f.kind === "google" ? [f.family] : [])))];
+  const families = Array.from(new Set([theme.fonts.body, theme.fonts.heading].flatMap((f) => (f.kind === "google" ? [f.family] : []))));
   if (!families.length) return null;
   const query = families.map((family) => {
     // Asking for a weight a family lacks fails the whole request, so unknown families get the default weight only.

@@ -28,7 +28,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
       label: t.stages.contract_signed,
       color: "#8B5CF6",
     },
-    { stage: "production", label: t.stages.production, color: "#09937F" },
+    { stage: "production", label: t.stages.production, color: "rgb(var(--brand-accent))" },
     {
       stage: "post_production",
       label: t.stages.post_production,

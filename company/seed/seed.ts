@@ -19,6 +19,7 @@ import { storeFileBytes } from "../../packages/database/src/services/uploads";
 import { db as websiteDb } from "../../packages/database/src/db";
 import { importProfileFile, installCompanyProfile, loadCompanyProfile, profileAssetPath } from "../tools/company-profile";
 import demoStaff from "./demo-staff.json";
+import demoClients from "./demo-clients.json";
 
 const prisma = new PrismaClient();
 
@@ -333,14 +334,14 @@ async function main() {
       year: 2025,
       aspectRatio: "2.39:1",
       thumbnailUrl:
-        "https://images.unsplash.com/photo-1518135714426-c18f5ffb6f4d?auto=format&fit=crop&w=1200&q=80",
+        banner(0),
       previewVideoUrl:
         "https://assets.mixkit.co/videos/preview/mixkit-cinematographer-filming-a-scene-40893-large.mp4",
       fullVideoUrl:
         "https://assets.mixkit.co/videos/preview/mixkit-cinematographer-filming-a-scene-40893-large.mp4",
       galleryUrls: [
-        "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=800&q=80",
-        "https://images.unsplash.com/photo-1536240478700-b869070f9279?auto=format&fit=crop&w=800&q=80",
+        banner(1),
+        banner(2),
       ],
       descriptionEn:
         "A high-impact cinematic commercial capturing the heritage and technological future of Bahrain across 6 iconic locations.",
@@ -365,7 +366,7 @@ async function main() {
       year: 2025,
       aspectRatio: "16:9",
       thumbnailUrl:
-        "https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=1200&q=80",
+        banner(3),
       previewVideoUrl:
         "https://assets.mixkit.co/videos/preview/mixkit-flying-over-a-city-at-sunset-41477-large.mp4",
       fullVideoUrl:
@@ -394,7 +395,7 @@ async function main() {
       year: 2024,
       aspectRatio: "2.39:1",
       thumbnailUrl:
-        "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1200&q=80",
+        banner(4),
       descriptionEn:
         "Luxury airline cabin commercial filmed on soundstage with bespoke lighting rigs mimicking cruising altitude skies.",
       descriptionAr:
@@ -418,7 +419,7 @@ async function main() {
       year: 2024,
       aspectRatio: "16:9",
       thumbnailUrl:
-        "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=1200&q=80",
+        banner(5),
       descriptionEn:
         "Industrial cinema documentary revealing molten metal craftsmanship and safety excellence.",
       descriptionAr:
@@ -443,129 +444,20 @@ async function main() {
   }
   console.log("✅ Created 4 Featured Portfolio Works");
 
-  const clientLogos = [
-    {
-      id: "logo-01",
-      name: "Gulfwave",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Gulfwave_By_Nova_logo.svg",
-      websiteUrl: "https://batelco.com",
-      displayOrder: 1,
-    },
-    {
-      id: "logo-02",
-      name: "Falcon Airways",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/9/97/Gulf_Air_2018_wordmark.svg",
-      websiteUrl: "https://gulfair.com",
-      displayOrder: 2,
-    },
-    {
-      id: "logo-03",
-      name: "Summit Aluminium",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/8/85/Aluminium_Bahrain_Logo.png",
-      websiteUrl: "https://albasmelter.com",
-      displayOrder: 3,
-    },
-    {
-      id: "logo-04",
-      name: "Harbor National Bank (HNB)",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/3/39/NBB_Logo_Primary.svg",
-      websiteUrl: "https://nbbonline.com",
-      displayOrder: 4,
-    },
-    {
-      id: "logo-05",
-      name: "Orbit Telecom",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Zain_%28Unternehmen%29_logo.svg",
-      websiteUrl: "https://bh.zain.com",
-      displayOrder: 5,
-    },
-    {
-      id: "logo-06",
-      name: "Nexa Mobile",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e3/NEXA-01.svg",
-      websiteUrl: "https://nexa.com.bh",
-      displayOrder: 6,
-    },
-    {
-      id: "logo-07",
-      name: "Delta Energies",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/d/da/Delta_Energies_logo.svg",
-      websiteUrl: "https://bapcoenergies.com",
-      displayOrder: 7,
-    },
-    {
-      id: "logo-08",
-      name: "Pearl Holding Company",
-      logoUrl: "https://d22x99z9pyemfq.cloudfront.net/static/mumtalakat-logo.svg",
-      websiteUrl: "https://mumtalakat.bh",
-      displayOrder: 8,
-    },
-    {
-      id: "logo-09",
-      name: "Bayview Grand Hotel",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/a/a1/Four_Seasons_logo.svg",
-      websiteUrl: "https://fourseasons.com/bahrain",
-      displayOrder: 9,
-    },
-    {
-      id: "logo-10",
-      name: "Regional Investment Board",
-      logoUrl: "https://www.bahrainedb.com/app/themes/bedb/assets/images/edb_logo_grey-01.svg",
-      websiteUrl: "https://bahrainedb.com",
-      displayOrder: 10,
-    },
-    {
-      id: "logo-11",
-      name: "Island Tourism & Events Board",
-      logoUrl: "https://tourismbh.com/uploads/footer-logo/BTEA_logo.svg",
-      websiteUrl: "https://btea.bh",
-      displayOrder: 11,
-    },
-    {
-      id: "logo-12",
-      name: "Seafront Properties",
-      logoUrl: "https://seef.com.bh/wp-content/uploads/2021/03/logo-for-web-site.svg",
-      websiteUrl: "https://seef.bh",
-      displayOrder: 12,
-    },
-    {
-      id: "logo-13",
-      name: "Nova Digital",
-      logoUrl: "https://beyon.com/wp-content/uploads/2026/08/Nova_Logo_Full_Colour.svg",
-      websiteUrl: "https://beyon.com",
-      displayOrder: 13,
-    },
-    {
-      id: "logo-14",
-      name: "Desert Speedway (DSW)",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/d/d1/Bahrain_International_Circuit_logo.png",
-      websiteUrl: "https://bahraingp.com",
-      displayOrder: 14,
-    },
-    {
-      id: "logo-15",
-      name: "NovaPay FinTech",
-      logoUrl: "https://www.beyonmoney.com/wp-content/uploads/2026/06/2024_Nova_Money_Logo_App_Icon.svg",
-      websiteUrl: "https://beyonmoney.com",
-      displayOrder: 15,
-    },
-    {
-      id: "logo-16",
-      name: "Palm Golf Club",
-      logoUrl: "https://www.theroyalgolfclub.com/logo.png",
-      websiteUrl: "https://theroyalgolfclub.com",
-      displayOrder: 16,
-    },
-  ];
-
-  for (const l of clientLogos) {
-    await prisma.clientLogo.upsert({
-      where: { id: l.id },
-      update: l,
-      create: l,
-    });
+  // Fictional clients (company/seed/demo-clients.json) with wordmarks generated into the demo profile.
+  for (const [index, client] of demoClients.entries()) {
+    const file = `media/clients/${client.slug}.png`;
+    if (!fs.existsSync(profileAssetPath(profile, file))) continue;
+    const data = {
+      name: client.name,
+      logoUrl: await importProfileFile(prisma, profile, file, owner.id),
+      websiteUrl: `https://${client.slug}.example`,
+      displayOrder: index + 1,
+    };
+    const id = `logo-${String(index + 1).padStart(2, "0")}`;
+    await prisma.clientLogo.upsert({ where: { id }, update: data, create: { id, ...data } });
   }
-  console.log("✅ Created 16 Enterprise Client Logos");
+  console.log(`✅ Created ${demoClients.length} client logos`);
 
   const equipmentList = [
     {

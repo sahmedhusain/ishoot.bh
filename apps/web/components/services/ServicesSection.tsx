@@ -22,7 +22,7 @@ export function ServicesSection({
   return (
     <section
       id="services"
-      className="relative z-20 bg-[#0B1210] text-[#F2F6F5] py-20 sm:py-28 border-t border-white/10"
+      className="relative z-20 bg-brand-surface text-ink py-20 sm:py-28 border-t border-white/10"
     >
       <div className="shell relative z-10 space-y-12">
         <div className="grid md:grid-cols-2 gap-8 items-end pb-8 border-b border-white/10">
@@ -48,7 +48,7 @@ export function ServicesSection({
               ease: [0.2, 0, 0, 1],
               delay: 0,
             }}
-            className="text-sm sm:text-base text-[#9EADA9] font-sans leading-relaxed max-w-lg"
+            className="text-sm sm:text-base text-ink-muted font-sans leading-relaxed max-w-lg"
           >
             {t("services.subtitle")}
           </motion.p>
@@ -68,16 +68,16 @@ export function ServicesSection({
               }}
               className="group grid md:grid-cols-[4rem_1fr_1.4fr_auto] items-start gap-6 py-8 sm:py-10 hover:bg-white/[0.02] px-4 -mx-4 rounded-2xl transition-colors"
             >
-              <div className="font-sans font-bold text-xs text-[#09937F] pt-1">
+              <div className="font-sans font-bold text-xs text-accent pt-1">
                 {String(index + 1).padStart(2, "0")}
               </div>
 
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold font-display text-white group-hover:text-[#5EEAD4] transition-colors">
+                <h3 className="text-xl sm:text-2xl font-bold font-display text-white group-hover:text-mint transition-colors">
                   {ar ? service.nameAr : service.nameEn}
                 </h3>
                 {service.imageUrl && (
-                  <div className="mt-4 w-full max-w-xs aspect-[16/9] overflow-hidden rounded-xl border border-white/10 bg-[#0B1210]">
+                  <div className="mt-4 w-full max-w-xs aspect-[16/9] overflow-hidden rounded-xl border border-white/10 bg-brand-surface">
                     <ContentImage
                       loading="lazy"
                       src={safeWebsiteUrl(service.imageUrl)}
@@ -88,14 +88,14 @@ export function ServicesSection({
                 )}
               </div>
 
-              <p className="text-xs sm:text-sm leading-relaxed text-[#9EADA9] font-sans max-w-xl">
+              <p className="text-xs sm:text-sm leading-relaxed text-ink-muted font-sans max-w-xl">
                 {ar ? service.descriptionAr : service.descriptionEn}
               </p>
 
               <div className="pt-1">
                 <Link
                   href={`/${locale}/contact?intent=quote_request&service=${encodeURIComponent(service.id)}`}
-                  className="inline-flex items-center gap-2 min-h-11 px-4 py-2 rounded-md bg-[#09937F]/15 hover:bg-[#09937F]/25 text-[#5EEAD4] border border-[#09937F]/40 text-xs font-semibold transition-colors shadow-sm"
+                  className="inline-flex items-center gap-2 min-h-11 px-4 py-2 rounded-md bg-accent/15 hover:bg-accent/25 text-mint border border-accent/40 text-xs font-semibold transition-colors shadow-sm"
                 >
                   <span>{t("cta.requestTreatment")}</span>
                   <ArrowUpRight className="w-3.5 h-3.5 rtl:-scale-x-100" />

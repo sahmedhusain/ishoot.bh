@@ -2,7 +2,7 @@ import type { Config } from "tailwindcss";
 import sharedConfig from "@platform/config";
 
 // Theme-aware colours resolve through CSS variables (app/globals.css), so one class is correct in
-// both light and dark mode. Brand colours (primary, accent) come from the shared preset.
+// both light and dark mode. Brand colours, ink and fonts come from the shared preset (company theme).
 const themed = (variable: string) => `rgb(var(${variable}) / <alpha-value>)`;
 
 const config: Config = {
@@ -18,22 +18,15 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // Latin monospace first; Arabic glyphs fall back to the brand Arabic face instead of a system font.
+      // Latin monospace first; Arabic glyphs fall back to the company's body font instead of a system font.
       fontFamily: {
-        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", '"Thmanyah Sans"', "monospace"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "var(--brand-font-body)", "monospace"],
       },
       colors: {
-        primary: { hover: "#013833" },
-        accent: { pressed: "#077A68" },
-        mint: "#7DE0D1",
         surface: {
           DEFAULT: themed("--ui-surface"),
           raised: themed("--ui-surface-raised"),
           sunken: themed("--ui-surface-sunken"),
-        },
-        ink: {
-          DEFAULT: themed("--ui-ink"),
-          muted: themed("--ui-ink-muted"),
         },
         // Secondary-text greys follow the theme so the same class reads well on white and on dark.
         slate: { 400: themed("--ui-slate-400") },

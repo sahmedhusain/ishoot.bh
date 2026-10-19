@@ -42,7 +42,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 
 const EVENT_TYPE_COLORS: Record<CalendarEvent["event_type"], string> = {
-  shoot: "#09937F",
+  shoot: "rgb(var(--brand-accent))",
   meeting: "#3B82F6",
   deadline: "#E11D48",
   reminder: "#F59E0B",
@@ -60,7 +60,7 @@ const LAYERS: CalendarLayer[] = [
   "requests",
 ];
 const LAYER_COLORS: Record<CalendarLayer, string> = {
-  own: "#09937F",
+  own: "rgb(var(--brand-accent))",
   shared: "#3B82F6",
   leave: "#8B5CF6",
   holidays: "#F59E0B",
@@ -295,7 +295,7 @@ export function OdooCalendarView({
   const toggle = <T,>(list: T[], value: T) =>
     list.includes(value) ? list.filter((x) => x !== value) : [...list, value];
   const pill = (ev: CalendarEvent, compact = true) => {
-    const color = ev.layer ? LAYER_COLORS[ev.layer] : ev.color || "#09937F";
+    const color = ev.layer ? LAYER_COLORS[ev.layer] : ev.color || "rgb(var(--brand-accent))";
     return (
       <button
         key={ev.id}
@@ -306,9 +306,9 @@ export function OdooCalendarView({
         }}
         className={`block w-full truncate rounded-md border px-1.5 py-0.5 text-start text-[10px] font-semibold transition-transform hover:scale-[1.02] ${compact ? "" : "py-1.5 text-xs"}`}
         style={{
-          backgroundColor: `${color}1f`,
+          backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`,
           color,
-          borderColor: `${color}55`,
+          borderColor: `color-mix(in srgb, ${color} 33%, transparent)`,
         }}
       >
         {!ev.all_day && !compact ? (
@@ -444,8 +444,8 @@ export function OdooCalendarView({
               }
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold transition-colors ${on ? "text-ink" : "text-ink-muted opacity-60"}`}
               style={{
-                borderColor: on ? `${LAYER_COLORS[layer]}88` : undefined,
-                backgroundColor: on ? `${LAYER_COLORS[layer]}14` : undefined,
+                borderColor: on ? `color-mix(in srgb, ${LAYER_COLORS[layer]} 53%, transparent)` : undefined,
+                backgroundColor: on ? `color-mix(in srgb, ${LAYER_COLORS[layer]} 8%, transparent)` : undefined,
               }}
             >
               <span

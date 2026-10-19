@@ -14,7 +14,7 @@ export function NotFoundView() {
       </span>
       <h1 className="text-xl font-bold text-slate-900 dark:text-white">{t.notFound.title}</h1>
       <p className="text-sm text-slate-600 dark:text-slate-300">{t.notFound.body}</p>
-      <Link href={ROUTES.home} className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-light dark:bg-[#5ad8c2] dark:text-[#00201c]">
+      <Link href={ROUTES.home} className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white hover:bg-primary-light dark:bg-tone-60 dark:text-tone-5">
         {t.notFound.back}
       </Link>
     </main>

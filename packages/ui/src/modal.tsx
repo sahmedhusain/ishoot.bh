@@ -98,7 +98,7 @@ export function Modal({
         data-modal-card
         aria-labelledby={title ? titleId : undefined}
         className={cn(
-          "relative w-full max-w-3xl bg-white border border-slate-200 text-slate-800 dark:bg-[#121B19] dark:border-white/10 dark:text-[#F2F6F5] flex flex-col overflow-hidden z-10 max-h-[90vh] focus:outline-none",
+          "relative w-full max-w-3xl bg-white border border-slate-200 text-slate-800 dark:bg-tone-10 dark:border-white/10 dark:text-ink flex flex-col overflow-hidden z-10 max-h-[90vh] focus:outline-none",
           className,
         )}
       >
@@ -107,7 +107,7 @@ export function Modal({
             data-modal-header
             className="flex shrink-0 items-center justify-between gap-3 px-6 py-4"
           >
-            <h3 id={titleId} className="text-base sm:text-lg font-bold font-display text-slate-900 dark:text-[#F2F6F5]">{title}</h3>
+            <h3 id={titleId} className="text-base sm:text-lg font-bold font-display text-slate-900 dark:text-ink">{title}</h3>
             <button
               type="button"
               onClick={onClose}

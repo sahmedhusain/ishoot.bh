@@ -289,18 +289,19 @@ async function main() {
     false,
   );
   const asset = load("apps/admin/lib/pdf/configured-asset.ts", {
-    sharp: () => { throw Error("PNG assets should not require conversion"); },
+    sharp: () => { throw Error("an unreadable image falls back to its original bytes"); },
     "fs/promises": {
       realpath: async (file) => file.endsWith("escape.png") ? "/tmp/escape.png" : file,
       stat: async () => ({ isFile: () => true }),
       readFile: async () => Buffer.from("configured image"),
     },
     path: require("node:path"),
-    "@platform/database": { uploadRoot: () => "/unused" },
+    "@platform/database": { uploadRoot: () => "/unused", isSupabaseStorageConfigured: () => false },
   });
-  for (const url of [null, "https://external.invalid/stamp.png", "/brand/../../secret.png", "/brand/escape.png"])
+  // Only uploaded company files resolve; the apps ship no public brand files any more.
+  for (const url of [null, "https://external.invalid/stamp.png", "/brand/configured.png", "/api/files/brand/../../secret.png", "/api/files/brand/escape.png", "/api/files/brand/logo.svg"])
     assert.equal(await asset.resolveConfiguredPdfAsset(url), undefined);
-  assert.equal((await asset.resolveConfiguredPdfAsset("/brand/configured.svg")).toString(), "configured image");
+  assert.equal((await asset.resolveConfiguredPdfAsset("/api/files/brand/configured.png")).toString(), "configured image");
   const brokenReads = load("packages/database/src/queries/banners.ts", {
     "../db": {
       db: {

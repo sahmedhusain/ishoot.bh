@@ -114,7 +114,7 @@ export function ReviewSubmissionModal({
         handleReset();
       }}
       data-lenis-prevent
-      className="m-auto p-0 w-[calc(100%-2rem)] max-w-lg max-h-[90dvh] overflow-y-auto bg-[#0B1210] rounded-2xl text-white border border-white/15 backdrop:bg-black/80"
+      className="m-auto p-0 w-[calc(100%-2rem)] max-w-lg max-h-[90dvh] overflow-y-auto bg-brand-surface rounded-2xl text-white border border-white/15 backdrop:bg-black/80"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleReset();
       }}
@@ -125,7 +125,7 @@ export function ReviewSubmissionModal({
       >
         <div className="flex items-center justify-between pb-4 border-b border-white/10 relative z-10">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-[#09937F]/20 text-[#09937F]">
+            <div className="p-2 rounded-xl bg-accent/20 text-accent">
               <MessageSquarePlus className="w-5 h-5" />
             </div>
             <div>
@@ -135,7 +135,7 @@ export function ReviewSubmissionModal({
               >
                 {t("reviews.modal.title")}
               </h3>
-              <p className="text-xs text-[#9EADA9]">
+              <p className="text-xs text-ink-muted">
                 {t("reviews.modal.subtitle")}
               </p>
             </div>
@@ -146,7 +146,7 @@ export function ReviewSubmissionModal({
             onClick={handleReset}
             aria-label={t("common.close")}
             autoFocus
-            className="w-11 h-11 rounded-full flex items-center justify-center text-[#9EADA9] hover:text-white hover:bg-white/10 transition-colors"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-ink-muted hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -161,14 +161,14 @@ export function ReviewSubmissionModal({
               <h4 className="text-lg font-bold text-white">
                 {t("reviews.modal.thankYouTitle")}
               </h4>
-              <p className="text-xs text-[#9EADA9] max-w-sm mx-auto leading-relaxed">
+              <p className="text-xs text-ink-muted max-w-sm mx-auto leading-relaxed">
                 {t("reviews.modal.thankYouDesc")}
               </p>
             </div>
             <button
               type="button"
               onClick={handleReset}
-              className="px-6 py-2.5 rounded-xl bg-[#014842] hover:bg-[#014842]/90 text-white font-semibold text-xs transition-colors border border-[#09937F]/40"
+              className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold text-xs transition-colors border border-accent/40"
             >
               {t("reviews.modal.close")}
             </button>
@@ -220,7 +220,7 @@ export function ReviewSubmissionModal({
               <div className="space-y-1">
                 <label
                   htmlFor={nameId}
-                  className="text-xs font-medium text-[#9EADA9]"
+                  className="text-xs font-medium text-ink-muted"
                 >
                   {t("reviews.modal.fullName")}
                 </label>
@@ -231,14 +231,14 @@ export function ReviewSubmissionModal({
                   value={authorName}
                   onChange={(e) => setAuthorName(e.target.value)}
                   placeholder={t("reviews.modal.fullNamePlaceholder")}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-[#09937F] focus:ring-1 focus:ring-[#09937F]"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
                 />
               </div>
 
               <div className="space-y-1">
                 <label
                   htmlFor={companyId}
-                  className="text-xs font-medium text-[#9EADA9]"
+                  className="text-xs font-medium text-ink-muted"
                 >
                   {t("reviews.modal.company")}
                 </label>
@@ -248,7 +248,7 @@ export function ReviewSubmissionModal({
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder={t("reviews.modal.companyPlaceholder")}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-[#09937F] focus:ring-1 focus:ring-[#09937F]"
+                  className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
                 />
               </div>
             </div>
@@ -256,7 +256,7 @@ export function ReviewSubmissionModal({
             <div className="space-y-1">
               <label
                 htmlFor={quoteId}
-                className="text-xs font-medium text-[#9EADA9]"
+                className="text-xs font-medium text-ink-muted"
               >
                 {t("reviews.modal.quote")}
               </label>
@@ -267,7 +267,7 @@ export function ReviewSubmissionModal({
                 value={quote}
                 onChange={(e) => setQuote(e.target.value)}
                 placeholder={t("reviews.modal.quotePlaceholder")}
-                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-[#09937F] focus:ring-1 focus:ring-[#09937F] resize-none"
+                className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs placeholder:text-neutral-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
               />
             </div>
 
@@ -275,14 +275,14 @@ export function ReviewSubmissionModal({
               <button
                 type="button"
                 onClick={handleReset}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#9EADA9] hover:text-white transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-ink-muted hover:text-white transition-colors"
               >
                 {t("reviews.modal.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2 rounded-xl bg-[#014842] hover:bg-[#014842]/90 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors border border-[#09937F]/40 shadow-sm disabled:opacity-50"
+                className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors border border-accent/40 shadow-sm disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>

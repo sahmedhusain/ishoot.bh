@@ -14,6 +14,7 @@ require("ts-node").register({
   },
 });
 const { db } = require("../../packages/database/src/db.ts");
+const { loadCompanyProfile, importProfileFile } = require("../tools/company-profile.ts");
 const { createRequire } = require("node:module");
 const databaseRequire = createRequire(
   require("node:path").resolve(__dirname, "../../packages/database/package.json"),
@@ -23,7 +24,7 @@ async function main() {
     "Preview-only-2026!",
     10,
   );
-  await db.user.upsert({
+  const admin = await db.user.upsert({
     where: { email: "preview@example.invalid" },
     update: { passwordHash },
     create: {
@@ -33,6 +34,10 @@ async function main() {
       passwordHash,
     },
   });
+  // Preview images come from the neutral demo profile.
+  const profile = loadCompanyProfile("demo");
+  const banners = [];
+  for (let i = 1; i <= 3; i++) banners.push(await importProfileFile(db, profile, `media/banners/banner-0${i}.jpg`, admin.id));
   await db.heroBanner.upsert({
     where: { id: "preview-banner" },
     update: {},
@@ -44,7 +49,7 @@ async function main() {
         "Visual production, from the first idea to the final frame. Based in Bahrain.",
       subtitleAr: "إنتاج مرئي من الفكرة الأولى إلى المشهد الأخير، من البحرين.",
       mediaType: "image",
-      mediaUrl: "/banners/web-banner-04.jpg",
+      mediaUrl: banners[0],
       ctaLabelEn: "Tell us your idea",
       ctaLabelAr: "ناقش مشروعك",
       ctaLink: "/contact?intent=quote_request",
@@ -73,7 +78,7 @@ async function main() {
         titleAr: ["منظور مختلف", "خلف الكادر", "حكاية تستحق الصورة"][i - 1],
         clientName: "Preview project",
         year: 2026,
-        thumbnailUrl: `/banners/youtube-cover-0${i}.jpg`,
+        thumbnailUrl: banners[i - 1],
         isFeatured: true,
         categoryId: category.id,
         displayOrder: i,

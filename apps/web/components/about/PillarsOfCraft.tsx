@@ -11,7 +11,7 @@ export function PillarsOfCraft({pillars=[]}:{pillars?:import("@platform/database
   if(!pillars.length) return null;
 
   return (
-    <section className="relative z-10 bg-[#050807] text-[#F2F6F5] py-20 sm:py-28 border-t border-white/10 overflow-hidden">
+    <section className="relative z-10 bg-brand-base text-ink py-20 sm:py-28 border-t border-white/10 overflow-hidden">
       <div className="shell relative z-10 space-y-12">
         <motion.div
           initial={reduced ? false : { opacity: 0, y: 16 }}
@@ -41,19 +41,19 @@ export function PillarsOfCraft({pillars=[]}:{pillars?:import("@platform/database
                 className="relative py-8 border-t border-white/15 flex flex-col space-y-5"
               >
                 <div className="flex items-center justify-between font-sans relative z-10">
-                  <span className="text-xs font-sans font-bold text-[#5EEAD4]">
+                  <span className="text-xs font-sans font-bold text-mint">
                     {String(idx+1).padStart(2,"0")}
                   </span>
-                  <span className="text-[10px] uppercase font-bold text-[#5EEAD4] tracking-widest ">
+                  <span className="text-[10px] uppercase font-bold text-mint tracking-widest ">
 
                   </span>
                 </div>
 
                 <div className="space-y-3 relative z-10">
-                  <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-[#5EEAD4] transition-colors font-display">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-mint transition-colors font-display">
                     {locale === "ar" ? entry.titleAr : entry.titleEn}
                   </h3>
-                  <p className="text-xs sm:text-sm text-[#9EADA9] font-sans leading-relaxed">
+                  <p className="text-xs sm:text-sm text-ink-muted font-sans leading-relaxed">
                     {locale === "ar" ? entry.textAr : entry.textEn}
                   </p>
                 </div>

@@ -133,14 +133,14 @@ export function HandoverSigningView({
             href={pdf(lang)}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold text-[#014842] hover:bg-slate-100"
+            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold text-primary hover:bg-slate-100"
           >
             <Eye className="h-3.5 w-3.5" aria-hidden />
             {s.view}
           </a>
           <a
             href={pdf(lang, true)}
-            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold text-[#014842] hover:bg-slate-100"
+            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold text-primary hover:bg-slate-100"
           >
             <Download className="h-3.5 w-3.5" aria-hidden />
             {s.download}
@@ -154,7 +154,7 @@ export function HandoverSigningView({
     <main
       dir={isAr ? "rtl" : "ltr"}
       lang={language}
-      className="min-h-screen bg-[#F4F8F7] px-4 py-8 text-slate-800"
+      className="min-h-screen bg-brand-base px-4 py-8 text-slate-800"
     >
       <div className="mx-auto max-w-2xl space-y-5">
         <header className="flex items-center justify-between gap-3">
@@ -168,7 +168,7 @@ export function HandoverSigningView({
             ) : null}
             <div>
               <p className="text-xs text-slate-500">{s.eyebrow}</p>
-              <h1 className="text-base font-bold text-[#014842]">
+              <h1 className="text-base font-bold text-primary">
                 {company.name}
               </h1>
             </div>
@@ -264,7 +264,7 @@ export function HandoverSigningView({
                       >
                         {c.ok ? (
                           <CheckSquare
-                            className="mt-0.5 h-4 w-4 shrink-0 text-[#09937F]"
+                            className="mt-0.5 h-4 w-4 shrink-0 text-accent"
                             aria-label={a.handover.ticked}
                           />
                         ) : (
@@ -348,7 +348,7 @@ export function HandoverSigningView({
               <button
                 type="submit"
                 disabled={busy}
-                className="flex h-12 w-full items-center justify-center rounded-full bg-[#014842] text-sm font-semibold text-white disabled:opacity-60"
+                className="flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-semibold text-white disabled:opacity-60"
               >
                 {busy ? s.signing : s.signButton}
               </button>

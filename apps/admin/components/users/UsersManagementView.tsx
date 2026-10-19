@@ -89,7 +89,7 @@ export function UsersManagementView({
   const allRoles = roles.map((r) => ({
     key: r.id as UserRole,
     name: isRTL ? r.nameAr : r.nameEn,
-    color: "#09937F",
+    color: "rgb(var(--brand-accent))",
   }));
 
   const filteredUsers = users.filter(

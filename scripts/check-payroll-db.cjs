@@ -61,7 +61,7 @@ async function main() {
       await approvedLeave(unpaid, wd[11], wd[11], 1);
 
       // Commission: an invoice credited to Alpha, paid in September (1,000 BHD net of VAT at 5%).
-      const issuer = await tx.user.create({ data: { email: `issuer-${stamp}@payroll.test`, fullName: "Issuer", passwordHash: "x", role: "admin", signatureUrl: "/brand/signatures/guest.svg" } });
+      const issuer = await tx.user.create({ data: { email: `issuer-${stamp}@payroll.test`, fullName: "Issuer", passwordHash: "x", role: "admin", signatureUrl: "/api/files/brand/test-signature.png" } });
       const contact = await tx.crmContact.create({ data: { firstName: "Payroll", lastName: "Client" } });
       const quote = await createQuotation({ clientId: contact.id, salesOwnerId: seller.id, validUntilDate: new Date(Date.now() + 7 * 86400000), lineItems: [{ descriptionEn: "Film", quantity: 1, unitPrice: 1000 }] }, issuer.id);
       await tx.quotation.update({ where: { id: quote.id }, data: { status: "accepted" } });

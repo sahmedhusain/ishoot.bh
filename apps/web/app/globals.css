@@ -2,146 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Light.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Black.woff2") format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Light.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Black.woff2") format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Light.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Black.woff2") format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-:root {
-  --ishoot-primary: #014842;
-  --ishoot-primary-light: #02665d;
-  --ishoot-primary-dark: #002d29;
-  --ishoot-accent: #09937f;
-  --ishoot-accent-hover: #0bb49b;
-  --ishoot-accent-glow: rgba(9, 147, 127, 0.35);
-
-  --ishoot-bg-base: #050807;
-  --ishoot-bg-surface: #0b1210;
-  --ishoot-bg-elevated: #111c19;
-
-  --ishoot-text-primary: #f2f6f5;
-  --ishoot-text-secondary: #9eada9;
-  --ishoot-text-accent: #09937f;
-}
-
 html {
-  background-color: #050807;
-  color: #f2f6f5;
+  background-color: rgb(var(--brand-bg-base));
+  color: rgb(var(--ui-ink));
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   overflow-x: clip;
 }
@@ -149,35 +12,35 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background-color: #050807;
+  background-color: rgb(var(--brand-bg-base));
   overflow-x: clip;
 }
 
 /* Glassmorphism utility classes */
 .glass-nav {
-  background: rgba(5, 8, 7, 0.85);
+  background: rgb(var(--brand-bg-base)/0.85);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-card {
-  background: rgba(11, 18, 16, 0.75);
+  background: rgb(var(--brand-bg-surface)/0.75);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(9, 147, 127, 0.18);
+  border: 1px solid rgb(var(--brand-accent)/0.18);
   border-radius: 16px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(9, 147, 127, 0.45);
-  box-shadow: 0 10px 30px -10px rgba(9, 147, 127, 0.15);
+  border-color: rgb(var(--brand-accent)/0.45);
+  box-shadow: 0 10px 30px -10px rgb(var(--brand-accent)/0.15);
   transform: translateY(-2px);
 }
 
 .glass-pill {
-  background: rgba(11, 18, 16, 0.65);
+  background: rgb(var(--brand-bg-surface)/0.65);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
@@ -231,7 +94,7 @@ body::-webkit-scrollbar {
 }
 
 *:hover {
-  scrollbar-color: rgba(9, 147, 127, 0.5) transparent;
+  scrollbar-color: rgb(var(--brand-accent)/0.5) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -253,11 +116,11 @@ body::-webkit-scrollbar {
 }
 
 *:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(9, 147, 127, 0.5);
+  background-color: rgb(var(--brand-accent)/0.5);
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(9, 147, 127, 0.9) !important;
+  background-color: rgb(var(--brand-accent)/0.9) !important;
 }
 
 /* =========================================================================
@@ -290,12 +153,12 @@ body::-webkit-scrollbar {
 }
 
 .bg-paper-dark {
-  background-color: #0b1210;
-  color: #f2f6f5;
+  background-color: rgb(var(--brand-bg-surface));
+  color: rgb(var(--ui-ink));
 }
 
 .bg-hero {
-  background-color: #050807;
+  background-color: rgb(var(--brand-bg-base));
 }
 
 /* Kinetic Word Slot-Machine Slider */
@@ -352,11 +215,11 @@ body::-webkit-scrollbar {
 .bg-emerald-shine {
   background-image: linear-gradient(
     115deg,
-    #014842 0%,
-    #09937f 35%,
-    #5eead4 52%,
-    #09937f 68%,
-    #002d29 100%
+    rgb(var(--brand-primary)) 0%,
+    rgb(var(--brand-accent)) 35%,
+    rgb(var(--brand-mint)) 52%,
+    rgb(var(--brand-accent)) 68%,
+    rgb(var(--brand-primary-dark)) 100%
   );
   background-size: 260% 100%;
 }
@@ -364,11 +227,11 @@ body::-webkit-scrollbar {
 .text-emerald-shine {
   background-image: linear-gradient(
     115deg,
-    #09937f 0%,
-    #5eead4 35%,
+    rgb(var(--brand-accent)) 0%,
+    rgb(var(--brand-mint)) 35%,
     #ffffff 50%,
-    #5eead4 65%,
-    #09937f 100%
+    rgb(var(--brand-mint)) 65%,
+    rgb(var(--brand-accent)) 100%
   );
   background-size: 260% 100%;
   -webkit-background-clip: text;
@@ -424,9 +287,9 @@ body::-webkit-scrollbar {
 /* Shared surfaces for the mixed light / cinematic website. */
 :root {
   --web-paper: #f3f1ea;
-  --web-ink: #162a24;
+  --web-ink: rgb(var(--brand-tone-15));
   --web-muted: #52665d;
-  --web-accent: #075e4c;
+  --web-accent: rgb(var(--brand-accent-pressed));
   --web-border: #ced6cd;
 }
 .web-light {
@@ -477,7 +340,7 @@ body::-webkit-scrollbar {
     transform 160ms;
 }
 .web-button:hover {
-  background: #034b3c;
+  background: rgb(var(--brand-tone-15));
 }
 .web-button:active {
   transform: translateY(1px);
@@ -513,7 +376,7 @@ body::-webkit-scrollbar {
 a:focus-visible,
 button:focus-visible,
 summary:focus-visible {
-  outline: 2px solid #09937f;
+  outline: 2px solid rgb(var(--brand-accent));
   outline-offset: 5px;
 }
 h1,
@@ -542,8 +405,8 @@ h3 {
   gap: 0.75rem;
   min-height: 44px;
   padding: 0.75rem 0;
-  color: var(--ishoot-text-primary);
-  border-bottom: 1px solid var(--ishoot-text-secondary);
+  color: rgb(var(--ui-ink));
+  border-bottom: 1px solid rgb(var(--ui-ink-muted));
   font-size: 0.875rem;
   font-weight: 500;
   transition:
@@ -551,8 +414,8 @@ h3 {
     border-color 150ms;
 }
 .web-hero-secondary:hover {
-  color: #5eead4;
-  border-color: #5eead4;
+  color: rgb(var(--brand-mint));
+  border-color: rgb(var(--brand-mint));
 }
 .web-button {
   min-height: 44px;
@@ -580,7 +443,7 @@ h3 {
   margin-top: 2rem;
   padding-block: 0.5rem;
   font-size: clamp(1.15rem, 3vw, 2rem);
-  color: var(--ishoot-text-secondary);
+  color: rgb(var(--ui-ink-muted));
   text-decoration-color: transparent;
   text-underline-offset: 0.3em;
   transition:
@@ -588,7 +451,7 @@ h3 {
     text-decoration-color 150ms;
 }
 .footer-email:hover {
-  color: #5eead4;
+  color: rgb(var(--brand-mint));
   text-decoration: underline;
 }
 .footer-link {
@@ -596,12 +459,12 @@ h3 {
   align-items: center;
   min-height: 44px;
   padding-block: 0.5rem;
-  color: var(--ishoot-text-secondary);
+  color: rgb(var(--ui-ink-muted));
   transition: color 150ms;
 }
 .footer-link:hover,
 .footer-link:active {
-  color: #5eead4;
+  color: rgb(var(--brand-mint));
 }
 .page-heading {
   padding-top: clamp(8rem, 12vw, 11rem);
@@ -611,7 +474,7 @@ h3 {
   padding: clamp(1.5rem, 4vw, 2.5rem);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0.75rem;
-  background: var(--ishoot-bg-surface);
+  background: rgb(var(--brand-bg-surface));
 }
 @media (prefers-reduced-motion: reduce) {
   .footer-email,
@@ -815,11 +678,11 @@ body header[class~="fixed"][class~="border-b"] {
   overflow-wrap: anywhere;
 }
 .legal-document :is(h1, h2, h3, h4) {
-  font-family: "Thmanyah Serif Display", serif;
+  font-family: var(--brand-font-heading);
   font-size: 1.125rem;
   font-weight: 700;
   line-height: 1.5;
-  color: #014842;
+  color: rgb(var(--brand-primary));
   margin-block: 1.75rem 0.65rem;
 }
 .legal-document > :first-child,
@@ -843,7 +706,7 @@ body header[class~="fixed"][class~="border-b"] {
   margin-block: 0.5rem;
 }
 .legal-document a {
-  color: #014842;
+  color: rgb(var(--brand-primary));
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -852,7 +715,7 @@ body header[class~="fixed"][class~="border-b"] {
   font-weight: 700;
 }
 .legal-document blockquote {
-  border-inline-start: 3px solid #09937f;
+  border-inline-start: 3px solid rgb(var(--brand-accent));
   padding-inline-start: 1rem;
   margin-block: 1.5rem;
 }
@@ -867,7 +730,7 @@ body header[class~="fixed"][class~="border-b"] {
   text-align: start;
 }
 .contact-panel label:has(input:focus-visible) {
-  outline: 2px solid #5eead4;
+  outline: 2px solid rgb(var(--brand-mint));
   outline-offset: 4px;
 }
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {

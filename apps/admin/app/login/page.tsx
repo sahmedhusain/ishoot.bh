@@ -12,12 +12,12 @@ export default async function LoginPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="min-h-screen bg-[#050807] flex items-center justify-center">
+        <div className="min-h-screen bg-brand-base flex items-center justify-center">
           <div className="w-8 h-8 rounded-full border-2 border-accent border-t-transparent animate-spin" />
         </div>
       }
     >
-      <AdminLoginFormView companyName={company.company_name_en} logoUrl={company.dark_logo_url || company.logo_url} iconUrl={company.dark_icon_url || company.icon_url} />
+      <AdminLoginFormView companyName={company.company_name_en} logoUrl={company.logo_url} darkLogoUrl={company.dark_logo_url} iconUrl={company.icon_url} darkIconUrl={company.dark_icon_url} />
     </React.Suspense>
   );
 }

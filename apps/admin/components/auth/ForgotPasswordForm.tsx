@@ -6,9 +6,9 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Input, Button, Card } from "@platform/ui";
 import { Mail, ArrowRight, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
-import { ContentImage } from "../shared/ContentImage";
+import { AuthBrandMark } from "./AuthBrandMark";
 
-export function ForgotPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandingProps) {
+export function ForgotPasswordForm(brand: AuthBrandingProps) {
   const { t } = useAdminLocale();
   const router = useRouter();
   const [email, setEmail] = React.useState("");
@@ -39,16 +39,13 @@ export function ForgotPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandi
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#050807] relative overflow-hidden">
-      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-accent/30 shadow-2xl rounded-3xl space-y-8">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-brand-base relative overflow-hidden">
+      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-brand-surface border border-accent/30 shadow-2xl rounded-3xl space-y-8">
         <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            <ContentImage width={40} height={40} src={iconUrl ?? undefined} alt={companyName} className="h-10 w-auto object-contain shrink-0 filter drop-shadow-[0_0_12px_rgba(9,147,127,0.3)]" />
-            <ContentImage width={240} height={60} src={logoUrl ?? undefined} alt={companyName} className="h-7 w-auto object-contain" />
-          </div>
+          <AuthBrandMark {...brand} />
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight font-display">{t.forgotPasswordForm.resetPassword}</h1>
-            <p className="text-xs text-[#9EADA9] uppercase">{t.forgotPasswordForm.enterYourEmailToReceive}</p>
+            <h1 className="text-xl font-bold text-ink tracking-tight font-display">{t.forgotPasswordForm.resetPassword}</h1>
+            <p className="text-xs text-ink-muted uppercase">{t.forgotPasswordForm.enterYourEmailToReceive}</p>
           </div>
         </div>
 
@@ -58,9 +55,9 @@ export function ForgotPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandi
         {!message && (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">{t.forgotPasswordForm.emailAddress}</label>
+              <label className="text-xs font-medium text-ink-muted">{t.forgotPasswordForm.emailAddress}</label>
               <div className="relative">
-                <Mail className="w-4 h-4 absolute top-3.5 start-3.5 text-[#9EADA9]" />
+                <Mail className="w-4 h-4 absolute top-3.5 start-3.5 text-ink-muted" />
                 <Input type="email" required placeholder={t.copy.emailExample} className="ps-10" value={email} onChange={e => setEmail(e.target.value)} />
               </div>
             </div>

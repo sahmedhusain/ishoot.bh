@@ -2,8 +2,8 @@ import { formatMessage, getTranslations } from "@platform/locales";
 /* eslint-disable jsx-a11y/alt-text -- React PDF images are PDF primitives, not DOM images. */
 /**
  * Building blocks shared by every generated document (invoices, quotations, receipts, payslips,
- * salary certificates and minutes): one fixed letterhead and footer on every page, Thmanyah only,
- * right-to-left layout for Arabic documents and Western digits in both languages.
+ * salary certificates and minutes): one fixed letterhead and footer on every page in the company's
+ * colours and font, right-to-left layout for Arabic documents and Western digits in both languages.
  */
 import * as React from "react";
 import { Image, Text, View, type Styles } from "@react-pdf/renderer";
@@ -12,17 +12,18 @@ import { getCurrencyDecimals, getCurrencyLabel } from "@platform/config/currency
 import { db } from "@platform/database";
 import type { CompanySettings } from "@platform/database/types";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
-import "./shared-styles"; // registers the Thmanyah font family
+import { DEFAULT_THEME, mix } from "@platform/database/constants/theme";
+import { PDF_FONT, registerPdfFont } from "./shared-styles";
 
-export const FONT = "Thmanyah Sans";
+/** Document colours. primary and accent follow the company theme (set by resolvePdfBrand). */
 export const C = {
-  primary: "#014842",
-  accent: "#09937F",
+  primary: DEFAULT_THEME.primary,
+  accent: DEFAULT_THEME.accent,
   ink: "#111827",
   body: "#374151",
   muted: "#6B7280",
   line: "#E5E7EB",
-  soft: "#F4F7F6",
+  soft: mix(DEFAULT_THEME.primary, "#FFFFFF", 0.95),
   danger: "#B91C1C",
   success: "#047857",
 };
@@ -46,6 +47,11 @@ export interface PdfBrand {
 }
 
 export async function resolvePdfBrand(company: CompanySettings): Promise<PdfBrand> {
+  // One company per installation, so the theme can be applied to the shared document styles.
+  C.primary = company.theme.primary;
+  C.accent = company.theme.accent;
+  C.soft = mix(company.theme.primary, "#FFFFFF", 0.95);
+  pageStyle.fontFamily = (await registerPdfFont(company.theme)) ? PDF_FONT : "Helvetica";
   const [logo, icon, stamp, signature, assets] = await Promise.all([
     resolveConfiguredPdfAsset(company.logo_url),
     resolveConfiguredPdfAsset(company.icon_url),
@@ -99,7 +105,7 @@ const LETTERHEAD_HEIGHT = 104;
 const FOOTER_HEIGHT = 58;
 
 export const pageStyle: Style = {
-  fontFamily: FONT,
+  fontFamily: PDF_FONT,
   fontSize: 9,
   color: C.ink,
   backgroundColor: "#FFFFFF",

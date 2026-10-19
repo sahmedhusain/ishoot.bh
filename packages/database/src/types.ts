@@ -1,3 +1,4 @@
+import type { BrandTheme } from "./constants/theme";
 import { serverMessages } from "@platform/locales";
 import {
   getCurrencySymbol,
@@ -97,6 +98,10 @@ export function getCurrencyDisplayLabel(
 
 export interface CompanySettings {
   id: string;
+  /** Brand colours, fonts, radius and default mode, always complete (defaults fill anything missing). */
+  theme: BrandTheme;
+  /** False until the first-run setup wizard has been completed. */
+  setup_completed: boolean;
   company_name_en: string;
   company_name_ar: string;
   cr_number: string;
@@ -1034,6 +1039,7 @@ export interface SocialLink {
 
 export type PublicCompanySettings = Pick<
   CompanySettings,
+  | "theme"
   | "company_name_en"
   | "company_name_ar"
   | "cr_number"

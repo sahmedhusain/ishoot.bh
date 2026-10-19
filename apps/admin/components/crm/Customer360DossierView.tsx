@@ -91,7 +91,7 @@ export function Customer360DossierView({
               </h1>
               <Badge
                 variant="outline"
-                className="text-xs uppercase  border-accent/40 text-accent bg-[#E6F5F2] dark:bg-accent/10"
+                className="text-xs uppercase  border-accent/40 text-accent bg-tone-95 dark:bg-accent/10"
               >
                 {t.clients.kinds[contact.client_kind ?? "individual"]}
               </Badge>

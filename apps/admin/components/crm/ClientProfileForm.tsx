@@ -306,7 +306,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                       <Input dir="ltr" value={values.supplier_number ?? ""} onChange={(e) => set("supplier_number", e.target.value)} />
                     </Field>
                     <label className="flex items-center gap-2.5 self-end h-11 text-sm text-ink">
-                      <input type="checkbox" className="h-4 w-4 accent-[var(--color-accent,#0f766e)]" checked={!!values.requires_purchase_order} onChange={(e) => set("requires_purchase_order", e.target.checked)} />
+                      <input type="checkbox" className="h-4 w-4 accent-accent" checked={!!values.requires_purchase_order} onChange={(e) => set("requires_purchase_order", e.target.checked)} />
                       {f.requiresPo}
                     </label>
                   </>

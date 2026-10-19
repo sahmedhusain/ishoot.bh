@@ -34,14 +34,14 @@ export default async function WorksPage({
   );
 
   return (
-    <div className="relative min-h-screen bg-[#050807] text-[#F2F6F5] overflow-hidden">
+    <div className="relative min-h-screen bg-brand-base text-ink overflow-hidden">
       <div className="shell relative z-10 page-heading">
         <Reveal className="space-y-5 max-w-3xl mb-12 sm:mb-16">
           <SectionBadge>{t.portfolio.badge}</SectionBadge>
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white font-display">
             {t.portfolio.title}
           </h1>
-          <p className="text-base sm:text-lg text-[#9EADA9] leading-relaxed">
+          <p className="text-base sm:text-lg text-ink-muted leading-relaxed">
             {t.portfolio.subtitle}
           </p>
         </Reveal>

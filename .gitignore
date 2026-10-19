@@ -45,3 +45,10 @@ apps/*/.next-verify/
 # Raw design source files kept next to a company profile (never committed)
 company/profiles/*/raw/
 *.ai
+
+# End-to-end test runs
+tests/e2e/.uploads/
+tests/e2e/.results/
+playwright-report/
+test-results/
+apps/*/.next-e2e/

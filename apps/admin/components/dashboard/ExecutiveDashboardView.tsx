@@ -414,8 +414,8 @@ export function ExecutiveDashboardView({
                       <span
                         className="text-[9px]  px-1.5 py-0.5 rounded font-bold uppercase"
                         style={{
-                          backgroundColor: `${event.color || "#09937F"}20`,
-                          color: event.color || "#09937F",
+                          backgroundColor: `${event.color || "rgb(var(--brand-accent))"}20`,
+                          color: event.color || "rgb(var(--brand-accent))",
                         }}
                       >
                         {(t.calendarView as any)[event.event_type] ||

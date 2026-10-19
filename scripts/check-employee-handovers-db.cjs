@@ -70,7 +70,7 @@ async function main() {
             where: {
               role: "super_admin",
               isActive: true,
-              email: { not: "claude-preview@ishoot.test" },
+              NOT: { email: { startsWith: "claude-preview@" } },
             },
           });
           const leaver = await tx.user.create({

@@ -10,6 +10,7 @@ import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
 import { BackToTop } from "../../components/layout/BackToTop";
 import { getSocialLinks } from "@platform/database";
+import { googleFontsHref, themeStylesheet } from "@platform/database/constants/theme";
 // Database content must not be frozen into empty pages when the build database is unavailable.
 export const dynamic = "force-dynamic";
 
@@ -35,11 +36,22 @@ export default async function LocaleLayout({
 
   const preview = await isWebsitePreview();
   const t = getTranslations(locale);
+  const fontsHref = googleFontsHref(company.theme);
 
   return (
-    <html dir={isRTL ? "rtl" : "ltr"} lang={locale}>
+    <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className="dark">
+      <head>
+        {fontsHref ? (
+          <>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+            <link rel="stylesheet" href={fontsHref} />
+          </>
+        ) : null}
+        <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) }} />
+      </head>
       <body
-        className={`min-h-screen bg-[#050807] text-[#F2F6F5] selection:bg-[#09937F]/40 selection:text-white ${isRTL ? "font-arabic" : "font-sans"}`}
+        className={`min-h-screen bg-brand-base text-ink selection:bg-accent/40 selection:text-white ${isRTL ? "font-arabic" : "font-sans"}`}
       >
         <a
           href="#main-content"

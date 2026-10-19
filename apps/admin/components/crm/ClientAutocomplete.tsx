@@ -244,9 +244,9 @@ export function ClientAutocomplete({
 
       {/* State 1: Selected Customer Card */}
       {selectedContact ? (
-        <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200 dark:bg-[#152320]/60 dark:border-white/10 transition-colors">
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200 dark:bg-tone-10/60 dark:border-white/10 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-[#E6F5F2] dark:bg-[#1D3531] text-primary dark:text-mint flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+            <div className="w-10 h-10 rounded-full bg-tone-95 dark:bg-tone-15 text-primary dark:text-mint flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
               {selectedContact.company
                 ? selectedContact.company.charAt(0).toUpperCase()
                 : selectedContact.full_name?.charAt(0).toUpperCase() || "C"}
@@ -468,7 +468,7 @@ export function ClientAutocomplete({
                         setMode("create");
                         setIsOpen(false);
                       }}
-                      className="w-full text-start p-3 bg-slate-50/70 dark:bg-white/[0.02] hover:bg-[#E6F5F2] dark:hover:bg-[#1D3531]/40 text-primary dark:text-mint font-semibold text-xs flex items-center gap-2 border-b border-slate-100 dark:border-white/5 transition-colors"
+                      className="w-full text-start p-3 bg-slate-50/70 dark:bg-white/[0.02] hover:bg-tone-95 dark:hover:bg-tone-15/40 text-primary dark:text-mint font-semibold text-xs flex items-center gap-2 border-b border-slate-100 dark:border-white/5 transition-colors"
                     >
                       <UserPlus className="w-3.5 h-3.5 shrink-0" />
                       <span>{t.clientAutocomplete.createNewClientNotIn}</span>

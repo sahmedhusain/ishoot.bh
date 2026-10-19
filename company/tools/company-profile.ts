@@ -148,3 +148,51 @@ export async function installCompanyProfile(db: Db, profile: CompanyProfile, own
   }
   return company;
 }
+
+/** Columns that may still point at files the apps used to ship in public/ (before company files moved here). */
+const LEGACY_FILE_COLUMNS: [table: string, column: string][] = [
+  ["User", "signatureUrl"], ["User", "avatarUrl"], ["CompanySetting", "logoUrl"], ["CompanySetting", "darkLogoUrl"],
+  ["CompanySetting", "iconUrl"], ["CompanySetting", "darkIconUrl"], ["CompanySetting", "stampUrl"], ["CompanySetting", "signatureUrl"],
+  ["CompanyAsset", "fileUrl"], ["HeroBanner", "mediaUrl"], ["HeroBanner", "posterUrl"], ["PortfolioItem", "thumbnailUrl"],
+  ["Service", "imageUrl"], ["StudioEquipment", "imageUrl"], ["Invoice", "signerSignatureUrl"], ["Payment", "signerSignatureUrl"],
+  ["Quotation", "signerSignatureUrl"], ["MinuteOfMeeting", "signatureUrl"], ["SignatureChange", "signatureUrl"],
+  ["AssetHandover", "creatorSignatureUrl"], ["Announcement", "signatureUrl"], ["OfficialLetter", "signatureUrl"],
+];
+
+/** The profile file that replaces a legacy public path, e.g. /brand/signatures/x.svg -> brand/signatures/x.png. */
+function legacyProfileFile(profile: CompanyProfile, url: string) {
+  const match = url.match(/^\/(brand|banners)\/([a-zA-Z0-9/_-]+)\.(svg|png|jpe?g|webp)$/);
+  if (!match) return null;
+  const base = match[1] === "banners" ? `media/banners/${match[2]}` : `brand/${match[2]}`;
+  for (const ext of ["png", "jpg", "jpeg", "webp"]) {
+    const candidate = `${base}.${ext}`;
+    if (fs.existsSync(profileAssetPath(profile, candidate))) return candidate;
+  }
+  return null;
+}
+
+/**
+ * Moves an existing install off files the apps used to ship in public/: every stored /brand/… or /banners/…
+ * path with a matching file in the profile is uploaded and replaced by its upload URL. Returns the paths that
+ * had no matching profile file, so an operator can supply them.
+ */
+export async function remapLegacyPublicFiles(db: Db, profile: CompanyProfile, ownerId: string) {
+  const missing = new Set<string>();
+  const uploaded = new Map<string, string>();
+  for (const [table, column] of LEGACY_FILE_COLUMNS) {
+    // Identifiers come from the fixed list above, never from input.
+    const rows = await db.$queryRawUnsafe<{ value: string }[]>(
+      `SELECT DISTINCT "${column}" AS value FROM "${table}" WHERE "${column}" LIKE '/brand/%' OR "${column}" LIKE '/banners/%'`,
+    );
+    for (const { value } of rows) {
+      const file = legacyProfileFile(profile, value);
+      if (!file) {
+        missing.add(value);
+        continue;
+      }
+      if (!uploaded.has(file)) uploaded.set(file, await importProfileFile(db, profile, file, ownerId));
+      await db.$executeRawUnsafe(`UPDATE "${table}" SET "${column}" = $1 WHERE "${column}" = $2`, uploaded.get(file), value);
+    }
+  }
+  return [...missing];
+}

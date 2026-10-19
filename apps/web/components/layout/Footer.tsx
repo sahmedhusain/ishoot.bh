@@ -76,11 +76,11 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
   };
 
   return (
-    <footer className="site-footer relative bg-[var(--ishoot-bg-surface)] border-t border-white/10 pt-16 sm:pt-24 pb-6">
+    <footer className="site-footer relative bg-brand-surface border-t border-white/10 pt-16 sm:pt-24 pb-6">
       <div className="shell relative">
         {showInvitation && (
           <Reveal className="footer-invitation sloped-rule-bottom">
-            <p className="web-eyebrow text-[#9EADA9]">
+            <p className="web-eyebrow text-ink-muted">
               {t("footer.invitationLabel")}
             </p>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mt-4">
@@ -132,10 +132,12 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
                 className="h-7 w-auto object-contain"
                fallbackText={company.company_name_en}  width={240} height={60} />
             </Link>
-            <p className="text-sm text-[#9EADA9] max-w-md leading-relaxed font-sans">
-              {t("footer.tagline")}
-            </p>
-            <div className="text-xs text-[#9EADA9] pt-2 font-sans">
+            {(locale === "ar" ? company.address_ar : company.address_en) ? (
+              <p className="text-sm text-ink-muted max-w-md leading-relaxed font-sans">
+                {locale === "ar" ? company.address_ar : company.address_en}
+              </p>
+            ) : null}
+            <div className="text-xs text-ink-muted pt-2 font-sans">
               {company.cr_number &&
                 `${t("footer.registrationLabel")}: ${company.cr_number}`}
             </div>
@@ -145,7 +147,7 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
             <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-sans">
               {t("footer.navigation")}
             </h3>
-            <ul className="space-y-2.5 text-sm text-[#9EADA9] font-sans">
+            <ul className="space-y-2.5 text-sm text-ink-muted font-sans">
               {navLinks.map((link) => (
                 <li key={link.id}>
                   <Link href={link.href} className="footer-link">
@@ -187,7 +189,7 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
           </div>
         </div>
 
-        <div className="pt-6 border-t border-white/10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 text-xs text-[#9EADA9] font-sans">
+        <div className="pt-6 border-t border-white/10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 text-xs text-ink-muted font-sans">
           <div>
             © {new Date().getFullYear()}{" "}
             {isRTL

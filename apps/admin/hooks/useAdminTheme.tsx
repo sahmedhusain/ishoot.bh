@@ -5,7 +5,6 @@ import * as React from "react";
 export type AdminTheme = "light" | "dark" | "system";
 
 const STORAGE_KEY = "platform_admin_theme";
-const DEFAULT_THEME: AdminTheme = "dark";
 
 interface AdminThemeContextType {
   theme: AdminTheme;
@@ -19,10 +18,13 @@ const AdminThemeContext = React.createContext<
 
 export function AdminThemeProvider({
   children,
+  defaultTheme = "dark",
 }: {
   children: React.ReactNode;
+  /** The company's default mode, used until a person picks their own. */
+  defaultTheme?: AdminTheme;
 }) {
-  const [theme, setThemeState] = React.useState<AdminTheme>(DEFAULT_THEME);
+  const [theme, setThemeState] = React.useState<AdminTheme>(defaultTheme);
   const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(
     "dark",
   );
@@ -56,7 +58,7 @@ export function AdminThemeProvider({
     const initial =
       saved === "light" || saved === "dark" || saved === "system"
         ? saved
-        : DEFAULT_THEME;
+        : defaultTheme;
     setThemeState(initial);
     applyTheme(initial);
 
@@ -69,7 +71,7 @@ export function AdminThemeProvider({
     };
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [applyTheme]);
+  }, [applyTheme, defaultTheme]);
 
   const setTheme = (newTheme: AdminTheme) => {
     setThemeState(newTheme);

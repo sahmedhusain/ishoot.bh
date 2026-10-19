@@ -1,5 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { assertSupportedCurrency } from "../constants/finance";
+import { normalizeTheme } from "../constants/theme";
 import { db } from "../db";
 import { CompanySettings, SupportedCurrency } from "../types";
 
@@ -61,6 +62,8 @@ function mapSettings(s: any): CompanySettings {
     terms_ar: s.termsAr || undefined,
     rules_en: s.rulesEn || undefined,
     rules_ar: s.rulesAr || undefined,
+    theme: normalizeTheme(s.theme),
+    setup_completed: Boolean(s.setupCompletedAt),
     updated_at: s.updatedAt.toISOString(),
   };
 }

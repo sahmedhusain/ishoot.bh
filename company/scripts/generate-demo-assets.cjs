@@ -6,10 +6,10 @@ const path = require("node:path");
 const sharp = require(require.resolve("sharp", { paths: [path.join(__dirname, "../../apps/admin")] }));
 
 const out = path.join(__dirname, "../profiles/demo/assets");
-const { theme, staff } = {
-  theme: JSON.parse(fs.readFileSync(path.join(__dirname, "../profiles/demo/theme.json"), "utf8")),
-  staff: JSON.parse(fs.readFileSync(path.join(__dirname, "../seed/demo-staff.json"), "utf8")),
-};
+const read = (file) => JSON.parse(fs.readFileSync(path.join(__dirname, file), "utf8"));
+const theme = read("../profiles/demo/theme.json");
+const staff = read("../seed/demo-staff.json");
+const clients = read("../seed/demo-clients.json");
 const { primary, accent } = theme;
 
 const mark = (fill, cut) => `
@@ -37,6 +37,16 @@ const signature = (name) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
   <path d="M40 180 C 200 160, 380 200, 560 170" stroke="#1E293B" stroke-width="3" fill="none"/></svg>`;
 svgs["brand/signature.svg"] = signature(staff[0].nameEn);
 for (const person of staff) svgs[`brand/signatures/${person.key}.svg`] = signature(person.nameEn);
+
+// Client wordmarks: white type on transparent, in a few typographic styles so the logo strip looks varied.
+const fonts = ["Helvetica, Arial, sans-serif", "Georgia, serif", "Futura, Avenir, sans-serif", "Didot, Bodoni 72, serif"];
+const wordmark = (name, i) => {
+  const label = name.replace(/\s*\(.*?\)\s*/g, "").replace(/&/g, "&amp;");
+  const upper = i % 3 === 0;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160">
+    <text x="320" y="100" text-anchor="middle" font-family="${fonts[i % fonts.length]}" font-size="${upper ? 46 : 54}" font-weight="${i % 2 ? 400 : 700}" letter-spacing="${upper ? 6 : 0}" fill="#FFFFFF">${upper ? label.toUpperCase() : label}</text></svg>`;
+};
+clients.forEach((client, i) => (svgs[`media/clients/${client.slug}.svg`] = wordmark(client.name, i)));
 
 const banner = (i) => {
   const hues = [[primary, accent], [accent, primary], ["#0F172A", accent]][i];

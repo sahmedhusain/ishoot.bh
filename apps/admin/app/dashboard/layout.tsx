@@ -40,7 +40,7 @@ export default async function DashboardLayout({
       <FeatureTogglesProvider initialFeatures={toggles}>
         <CompanyVatProvider value={{ enabled: !!company.vat_enabled, rate: company.vat_enabled ? Number(company.vat_percentage ?? 10) : 0, taxes }}>
         <SidebarProvider>
-          <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#F4F8F7] text-slate-800 dark:bg-[#080E0D] dark:text-ink transition-colors duration-200">
+          <div className="h-screen w-screen overflow-hidden flex flex-col bg-brand-base text-slate-800 dark:bg-brand-base dark:text-ink transition-colors duration-200">
             {/* Fixed Topbar spanning full width with Logo at start */}
             <Topbar
               company={{

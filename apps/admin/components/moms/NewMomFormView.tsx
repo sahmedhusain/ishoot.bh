@@ -207,7 +207,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           <Button
             type="submit"
             disabled={saving}
-            className="bg-accent hover:bg-[#077464] text-white flex items-center gap-2 shadow-lg"
+            className="bg-accent hover:bg-tone-25 text-white flex items-center gap-2 shadow-lg"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>
@@ -587,7 +587,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         <Button
           type="submit"
           disabled={saving}
-          className="bg-accent hover:bg-[#077464] text-white flex items-center gap-2 px-6 py-2.5 text-sm font-bold shadow-xl"
+          className="bg-accent hover:bg-tone-25 text-white flex items-center gap-2 px-6 py-2.5 text-sm font-bold shadow-xl"
         >
           <Save className="w-4 h-4" />
           <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>

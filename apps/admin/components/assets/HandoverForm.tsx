@@ -227,7 +227,7 @@ export function HandoverForm({
                   <label className="flex items-center gap-2 text-start text-sm text-ink cursor-pointer">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 shrink-0 accent-[var(--color-accent,#09937F)]"
+                      className="h-4 w-4 shrink-0 accent-[var(--color-accent,rgb(var(--brand-accent)))]"
                       checked={state.ok}
                       onChange={(e) => {
                         const ok = e.target.checked;

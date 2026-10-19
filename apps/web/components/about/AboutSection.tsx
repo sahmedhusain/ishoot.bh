@@ -25,11 +25,11 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
     >
       <div className="shell space-y-12 sm:space-y-16">
         <Reveal className="max-w-5xl space-y-5">
-          <SectionBadge className="!text-[#075e4c]">
+          <SectionBadge className="!text-accent-pressed">
             {t("about.sectionLabel")}
           </SectionBadge>
           <h2 className="font-display text-[clamp(2rem,4.5vw,4.25rem)] leading-[1.12] tracking-tight font-bold text-slate-950">
-            {t("about.headline")}
+            {(ar ? company?.mission_ar : company?.mission_en) || t("about.headline")}
           </h2>
           <p className="font-sans text-[clamp(1.05rem,1.8vw,1.4rem)] leading-relaxed text-slate-600 max-w-3xl">
             {ar ? company?.about_text_ar : company?.about_text_en}
@@ -50,7 +50,7 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
                 />
               </div>
               <figcaption className="mt-4 space-y-1">
-                <span className="text-xs font-semibold text-[#075e4c]">
+                <span className="text-xs font-semibold text-accent-pressed">
                   {t("about.behindTheScenes")}
                 </span>
                 <p className="text-sm leading-relaxed text-slate-600">
@@ -62,7 +62,7 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
 
           <div className="space-y-8">
             <Reveal className="pb-8 border-b border-slate-200">
-              <h3 className="flex items-center gap-3 text-sm font-semibold text-[#075e4c] mb-4">
+              <h3 className="flex items-center gap-3 text-sm font-semibold text-accent-pressed mb-4">
                 <Target aria-hidden="true" className="w-5 h-5" />
                 {t("about.missionLabel")}
               </h3>
@@ -71,7 +71,7 @@ export function AboutSection({ company, imageUrl }: AboutSectionProps) {
               </p>
             </Reveal>
             <Reveal delay={0.08}>
-              <h3 className="flex items-center gap-3 text-sm font-semibold text-[#075e4c] mb-4">
+              <h3 className="flex items-center gap-3 text-sm font-semibold text-accent-pressed mb-4">
                 <Eye aria-hidden="true" className="w-5 h-5" />
                 {t("about.visionLabel")}
               </h3>

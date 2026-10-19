@@ -33,13 +33,17 @@ async function main(){
   const cwd=process.cwd();
   try {
     const adminRequire=require('node:module').createRequire(require.resolve('../apps/admin/package.json'));
+    const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+    const uploads=fs.mkdtempSync(path.join(os.tmpdir(),'brand-uploads-'));
+    fs.mkdirSync(path.join(uploads,'brand'));
+    fs.copyFileSync(path.join(cwd,'company/profiles/demo/assets/brand/logo-light.png'),path.join(uploads,'brand/demo-logo.png'));
     const {resolveConfiguredPdfAsset}=load('apps/admin/lib/pdf/configured-asset.ts',{
-      sharp:adminRequire('sharp'), 'fs/promises':require('node:fs/promises'), path:require('node:path'), '@platform/database':{uploadRoot:()=>'/unused'}
+      sharp:adminRequire('sharp'), 'fs/promises':require('node:fs/promises'), path, '@platform/database':{uploadRoot:()=>uploads,isSupabaseStorageConfigured:()=>false}
     });
-    process.chdir(require('node:path').join(cwd,'apps/admin'));
-    const png=await resolveConfiguredPdfAsset('/brand/logo-text-light.svg');
-    assert.ok(Buffer.isBuffer(png),'the bundled SVG logo must resolve to image bytes');
+    const png=await resolveConfiguredPdfAsset('/api/files/brand/demo-logo.png');
+    assert.ok(Buffer.isBuffer(png),'an uploaded company logo must resolve to image bytes');
     assert.equal(png.subarray(1,4).toString(),'PNG','PDF branding must use a supported raster format');
+    fs.rmSync(uploads,{recursive:true,force:true});
   } finally { process.chdir(cwd); }
   const {Webhook}=require('svix');
   const {verifyResendWebhook}=require('../apps/admin/lib/resend-webhook.ts');

@@ -71,7 +71,7 @@ export function CashFlowChart({
                     width={22}
                     height={inflowH}
                     rx={4}
-                    fill="#09937F"
+                    fill="rgb(var(--brand-accent))"
                     className="transition-all duration-300 hover:opacity-80"
                   />
                   <rect
@@ -88,7 +88,7 @@ export function CashFlowChart({
                     x={x + 24}
                     y={196}
                     textAnchor="middle"
-                    fill="#9EADA9"
+                    fill="rgb(var(--ui-ink-muted))"
                     fontSize="10"
                     fontFamily="monospace"
                   >

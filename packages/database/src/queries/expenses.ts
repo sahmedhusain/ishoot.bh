@@ -119,7 +119,7 @@ export async function createExpenseCategory(data: {
   const fields = categoryFields({
     ...data,
     kind: data.kind ?? "operating",
-    color: data.color ?? "#09937F",
+    color: data.color ?? "#2563EB",
   });
   const base =
     (fields.nameEn || "category")

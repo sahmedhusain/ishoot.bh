@@ -66,13 +66,20 @@ const detail = {
   expensesByCategory: [],
   vat: { output: 0, inputRecoverable: 0, netPayable: 0 },
 };
+// Names from every company profile: a generated file may only carry the company it was generated for.
+const profileNames = require("node:fs")
+  .readdirSync(require("node:path").join(__dirname, "../company/profiles"))
+  .flatMap((p) => {
+    const { display = {}, company = {} } = require(`../company/profiles/${p}/company.json`);
+    return [display.nameEn, display.nameAr, company.companyNameEn, company.companyNameAr].filter(Boolean);
+  });
 for (const [locale, companyName] of [
   ["en", "Alpha Company"],
   ["ar", "شركة بيتا"],
 ]) {
   const result = generateFinancialSummaryCsv(report, { locale, companyName });
   assert.ok(result.includes(companyName));
-  assert.ok(!/ishoot|آي شوت/i.test(result));
+  for (const name of profileNames) assert.ok(!result.includes(name), `CSV must not carry another company's name: ${name}`);
   assert.ok(!/\{[A-Za-z0-9_]+\}/.test(result));
   const csv = generateFinancialDetailCsv(detail, true, {
     locale,
@@ -108,7 +115,7 @@ const calendar = buildIcs(
   },
 );
 assert.ok(calendar.includes("portal.example.com"));
-assert.ok(!/ishoot\.bh/.test(calendar));
+for (const name of profileNames) assert.ok(!calendar.includes(name), `calendar must not carry another company's name: ${name}`);
 console.log(
   "Message checks passed: repeated and literal values, zero/null handling, missing-value detection, localized company-neutral CSVs, CSV formula protection and calendar identity.",
 );

@@ -73,7 +73,7 @@ function ReceiptBody({ k, payment, brand, signing, certificates = [] }: ReceiptP
           {payment.notes ? <Field label={bare(t.notes)} value={payment.notes} /> : null}
         </View>
         <View style={{ width: 190, backgroundColor: C.primary, padding: 14, justifyContent: "center" }}>
-          <T align="center" style={{ fontSize: 7.5, color: "#CFE3DF" }}>{t.amountReceived}</T>
+          <T align="center" style={{ fontSize: 7.5, color: "#E5E7EB" }}>{t.amountReceived}</T>
           <T align="center" style={{ fontSize: 16, fontWeight: "bold", color: "#FFFFFF", marginTop: 2 }}>{money(payment.amount)}</T>
         </View>
       </Row>

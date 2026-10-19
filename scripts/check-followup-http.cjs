@@ -146,7 +146,7 @@ async function main() {
       titleEn: prefix + "-draft",
       titleAr: prefix + "-draft",
       mediaType: "image",
-      mediaUrl: "/brand/logo.svg",
+      mediaUrl: "/api/files/brand/test-banner.png",
     },
   });
   await invalidate();

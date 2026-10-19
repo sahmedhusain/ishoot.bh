@@ -645,7 +645,7 @@ model CalendarEvent {
   endDate               DateTime
   allDay                Boolean  @default(false)
   location              String?
-  color                 String?  @default("#09937F")
+  color                 String?
   eventType             String   @default("meeting") // "meeting", "shoot", "deadline", "reminder"
   dealId                String?
   deal                  CrmDeal? @relation(fields: [dealId], references: [id], onDelete: SetNull)
@@ -716,7 +716,7 @@ model Tag {
   id         String   @id @default(uuid())
   name       String
   nameAr     String?
-  color      String   @default("#09937F")
+  color      String   @default("#2563EB")
   entityType String // "deal", "contact", "invoice", "expense"
   createdAt  DateTime @default(now())
 }

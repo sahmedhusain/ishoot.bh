@@ -43,7 +43,7 @@ export function CinemaLightbox({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="m-auto w-[calc(100%-2rem)] max-w-5xl max-h-[90dvh] overflow-y-auto rounded-lg bg-[#0b1712] text-white border border-white/15 p-0 backdrop:bg-black/85"
+      className="m-auto w-[calc(100%-2rem)] max-w-5xl max-h-[90dvh] overflow-y-auto rounded-lg bg-tone-5 text-white border border-white/15 p-0 backdrop:bg-black/85"
       data-lenis-prevent
     >
       <div>

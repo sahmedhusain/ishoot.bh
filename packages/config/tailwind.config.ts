@@ -1,41 +1,65 @@
 import type { Config } from "tailwindcss";
 import animate from "tailwindcss-animate";
+
+const brand = (variable: string) => `rgb(var(${variable}) / <alpha-value>)`;
 const config: Omit<Config, "content"> = {
   darkMode: "class",
   theme: {
     extend: {
+      // Every brand colour is a CSS variable (RGB channels) written by each app from the company theme,
+      // so one build serves any company and opacity modifiers (bg-primary/20) keep working.
       colors: {
         primary: {
-          DEFAULT: "#014842", 
-          light: "#02665D",
-          dark: "#002D29",
+          DEFAULT: brand("--brand-primary"),
+          light: brand("--brand-primary-light"),
+          dark: brand("--brand-primary-dark"),
+          hover: brand("--brand-primary-hover"),
+          foreground: brand("--brand-on-primary"),
         },
         accent: {
-          DEFAULT: "#09937F", 
-          hover: "#0BB49B",
-          glow: "rgba(9, 147, 127, 0.35)",
+          DEFAULT: brand("--brand-accent"),
+          hover: brand("--brand-accent-hover"),
+          pressed: brand("--brand-accent-pressed"),
+          foreground: brand("--brand-on-accent"),
+          glow: "rgb(var(--brand-accent) / 0.35)",
+        },
+        mint: brand("--brand-mint"),
+        // Tonal palette of the accent (Material-style): tone-5 near black … tone-95 near white.
+        tone: Object.fromEntries([5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95].map((t) => [t, brand(`--brand-tone-${t}`)])),
+        brand: {
+          base: brand("--brand-bg-base"),
+          surface: brand("--brand-bg-surface"),
+          elevated: brand("--brand-bg-elevated"),
+          text: brand("--brand-text-accent"),
         },
         bg: {
-          base: "#ffffff", 
-          surface: "#F8FAFC", 
-          elevated: "#F1F5F9", 
+          base: "#ffffff",
+          surface: "#F8FAFC",
+          elevated: "#F1F5F9",
         },
         border: {
           subtle: "#E2E8F0",
-          emerald: "rgba(9, 147, 127, 0.20)",
-          active: "#09937F",
+          emerald: "rgb(var(--brand-accent) / 0.20)",
+          active: brand("--brand-accent"),
         },
         text: {
-          primary: "#0F172A", 
-          secondary: "#475569", 
-          accent: "#09937F",
+          primary: "#0F172A",
+          secondary: "#475569",
+          accent: brand("--brand-accent"),
+        },
+        ink: {
+          DEFAULT: brand("--ui-ink"),
+          muted: brand("--ui-ink-muted"),
         },
       },
+      borderRadius: {
+        brand: "var(--brand-radius)",
+      },
       fontFamily: {
-        display: ['"Thmanyah Serif Display"', "serif"],
-        arabic: ['"Thmanyah Sans"', "sans-serif"],
-        sans: ['"Thmanyah Sans"', "sans-serif"],
-        serif: ['"Thmanyah Serif Text"', "serif"],
+        display: ["var(--brand-font-heading)"],
+        arabic: ["var(--brand-font-body)"],
+        sans: ["var(--brand-font-body)"],
+        serif: ["var(--brand-font-heading)"],
       },
       animation: {
         shutter: "shutter 3s ease-in-out infinite",

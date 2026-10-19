@@ -18,7 +18,7 @@ async function main() {
   try {
     await db.$transaction((tx) => transactionContext.run(tx, async () => {
       const stamp = Date.now();
-      const seller = await tx.user.create({ data: { email: `seller-${stamp}@sign.test`, fullName: "Signing Seller", passwordHash: "x", role: "sales", signatureUrl: "/brand/signatures/guest.svg" } });
+      const seller = await tx.user.create({ data: { email: `seller-${stamp}@sign.test`, fullName: "Signing Seller", passwordHash: "x", role: "sales", signatureUrl: "/api/files/brand/test-signature.png" } });
       const unsigned = await tx.user.create({ data: { email: `nosig-${stamp}@sign.test`, fullName: "No Signature", passwordHash: "x", role: "sales" } });
       const owner = await tx.user.findFirstOrThrow({ where: { role: "super_admin", isActive: true } });
       const contact = await tx.crmContact.create({ data: { firstName: "Sign", lastName: "Test" } });
@@ -32,9 +32,9 @@ async function main() {
       assert.equal(await signing.canSignDocument("quotation", q.id, unsigned, false), false, "a stranger without send rights cannot sign");
       assert.equal(await signing.canSignDocument("quotation", q.id, seller, false), true, "the issuer can sign");
       const state = await signing.signDocument("quotation", q.id, seller.id);
-      assert.deepEqual([state.signed, state.signedBy.id, state.signatureUrl], [true, seller.id, "/brand/signatures/guest.svg"]);
-      await tx.user.update({ where: { id: seller.id }, data: { signatureUrl: "/brand/signatures/sami-khoury.svg" } });
-      assert.equal((await signing.getSigningState("quotation", q.id)).signatureUrl, "/brand/signatures/guest.svg", "later signature changes do not alter signed documents");
+      assert.deepEqual([state.signed, state.signedBy.id, state.signatureUrl], [true, seller.id, "/api/files/brand/test-signature.png"]);
+      await tx.user.update({ where: { id: seller.id }, data: { signatureUrl: "/api/files/brand/test-signature-2.png" } });
+      assert.equal((await signing.getSigningState("quotation", q.id)).signatureUrl, "/api/files/brand/test-signature.png", "later signature changes do not alter signed documents");
       await issueQuotation(q.id, seller.id, "email");
 
       // Invoice: request approval (auto when the invoice policy is off), sign, then send.

@@ -135,7 +135,7 @@ export function FinancialAnalyticsView({ finance, insight, categoryTotals, categ
                 </div>
                 <div className="text-base font-bold text-ink"><CurrencyDisplay amount={amount} currency="BHD" /></div>
                 <div className="w-full h-1.5 bg-ink/5 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${share}%`, backgroundColor: category.color || "#09937F" }} />
+                  <div className="h-full rounded-full" style={{ width: `${share}%`, backgroundColor: category.color || "rgb(var(--brand-accent))" }} />
                 </div>
               </div>
             );

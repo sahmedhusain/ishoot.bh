@@ -1,0 +1,66 @@
+[
+  {
+    "slug": "gulfwave",
+    "name": "Gulfwave"
+  },
+  {
+    "slug": "falcon-airways",
+    "name": "Falcon Airways"
+  },
+  {
+    "slug": "summit-aluminium",
+    "name": "Summit Aluminium"
+  },
+  {
+    "slug": "harbor-national-bank",
+    "name": "Harbor National Bank (HNB)"
+  },
+  {
+    "slug": "orbit-telecom",
+    "name": "Orbit Telecom"
+  },
+  {
+    "slug": "nexa-mobile",
+    "name": "Nexa Mobile"
+  },
+  {
+    "slug": "delta-energies",
+    "name": "Delta Energies"
+  },
+  {
+    "slug": "pearl-holding-company",
+    "name": "Pearl Holding Company"
+  },
+  {
+    "slug": "bayview-grand-hotel",
+    "name": "Bayview Grand Hotel"
+  },
+  {
+    "slug": "regional-investment-board",
+    "name": "Regional Investment Board"
+  },
+  {
+    "slug": "island-tourism-events-board",
+    "name": "Island Tourism & Events Board"
+  },
+  {
+    "slug": "seafront-properties",
+    "name": "Seafront Properties"
+  },
+  {
+    "slug": "nova-digital",
+    "name": "Nova Digital"
+  },
+  {
+    "slug": "desert-speedway",
+    "name": "Desert Speedway (DSW)"
+  },
+  {
+    "slug": "novapay-fintech",
+    "name": "NovaPay FinTech"
+  },
+  {
+    "slug": "palm-golf-club",
+    "name": "Palm Golf Club"
+  }
+]
