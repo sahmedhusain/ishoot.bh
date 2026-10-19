@@ -195,7 +195,6 @@ async function main() {
   const invoices = load("packages/database/src/queries/invoices.ts", {
     "../db": { db },
     "../finance/numbering": numbering,
-    "../initial-company-config.json": { company: {} },
     "../types": types,
     "./crm": { advanceDealForEvent: async () => false },
     // Drafts take the company VAT (5% here); issued invoices keep their own snapshot.
@@ -231,7 +230,6 @@ async function main() {
       },
     },
     "../types": types,
-    "../initial-company-config.json": { company: {} },
     "../finance/numbering": numbering,
     "./crm": { advanceDealForEvent: async () => false },
   });

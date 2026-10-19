@@ -2,7 +2,7 @@ import { serverMessages } from "@platform/locales";
 import { SignJWT } from "jose/jwt/sign";
 import { jwtVerify } from "jose/jwt/verify";
 
-export const SESSION_COOKIE_NAME = "ishoot_admin_session";
+export const SESSION_COOKIE_NAME = "platform_admin_session";
 
 const JWT_SECRET_STRING = process.env.JWT_SECRET;
 if (

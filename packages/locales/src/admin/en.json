@@ -818,12 +818,12 @@
     "viewInVault": "View in Archive Vault",
     "uploading": "Uploading...",
     "bankNamePlaceholder": "e.g. National Bank of Bahrain (NBB)",
-    "ibanPlaceholder": "BH29NBOB00000012345678",
-    "accountPlaceholder": "0012345678",
+    "ibanPlaceholder": "BH00BANK00000012345678",
+    "accountPlaceholder": "0000123456",
     "swiftPlaceholder": "NBOBBHBM",
     "invPrefixPlaceholder": "INV",
     "rctPrefixPlaceholder": "RCT",
-    "trnPlaceholder": "200019283700002"
+    "trnPlaceholder": "200000000000003"
   },
   "deals": {
     "subtitle": "Interactive Kanban workspace with drag-and-drop live database updates.",
@@ -1241,7 +1241,7 @@
     "saving": "Uploading...",
     "submit": "Save Legal Asset",
     "titleEnPlaceholder": "e.g. Commercial Registration (CR) 2026",
-    "docNumberPlaceholder": "CR-142859-1",
+    "docNumberPlaceholder": "CR-12345-1",
     "notesPlaceholder": "Notes on usage, signees, renewal dates..."
   },
   "expensesNew": {
@@ -5387,7 +5387,7 @@
       "chooseACountryFromTheList": "Choose a country from the list",
       "paymentTermsMustBeBetween0": "Payment terms must be between 0 and 365 days",
       "companyNameIsRequired": "Company name is required",
-      "enterTheCommercialRegistrationCRNumber": "Enter the commercial registration (CR) number, e.g. 142859-1",
+      "enterTheCommercialRegistrationCRNumber": "Enter the commercial registration (CR) number, e.g. 12345-1",
       "chooseTheCountryWhereTheCompany": "Choose the country where the company is registered",
       "enterTheCompanySRegistrationNumber": "Enter the company's registration number",
       "enterTheGovernmentEntitySName": "Enter the government entity's name",
@@ -5845,7 +5845,7 @@
       "entityNameAr": "Entity name (Arabic)",
       "legalForm": "Legal form",
       "crNumber": "CR number",
-      "crNumberHint": "Commercial registration with its branch number, e.g. 142859-1",
+      "crNumberHint": "Commercial registration with its branch number, e.g. 12345-1",
       "crExpiry": "CR expiry date",
       "registrationCountry": "Country of registration",
       "registrationNumber": "Registration number",

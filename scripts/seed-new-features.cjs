@@ -24,9 +24,9 @@ async function main() {
 
   // Fetch contacts for linking
   const contacts = await prisma.crmContact.findMany();
-  const contact01 = contacts.find((c) => c.companyName?.includes("Batelco")) || contacts[0];
-  const contact02 = contacts.find((c) => c.companyName?.includes("Gulf Air")) || contacts[1] || contact01;
-  const contact03 = contacts.find((c) => c.companyName?.includes("Tourism") || c.companyName?.includes("BTEA")) || contacts[2] || contact01;
+  const contact01 = contacts.find((c) => c.companyName?.includes("Gulfwave")) || contacts[0];
+  const contact02 = contacts.find((c) => c.companyName?.includes("Falcon Airways")) || contacts[1] || contact01;
+  const contact03 = contacts.find((c) => c.companyName?.includes("Tourism") || c.companyName?.includes("ITEB")) || contacts[2] || contact01;
   const contact04 = contacts.find((c) => c.companyName?.includes("BBDO")) || contacts[3] || contact01;
 
   console.log(`🏢 Linked contacts: ${contact01?.id}, ${contact02?.id}, ${contact03?.id}, ${contact04?.id}`);
@@ -383,7 +383,7 @@ async function main() {
       name: contact01?.firstName ? `${contact01.firstName} ${contact01.lastName || ""}` : "حمد الرميحي",
       email: contact01?.email || "h.alromaihi@batelco.com.bh",
       phone: contact01?.phone || "+973 3944 1122",
-      companyName: contact01?.companyName || "Batelco Telecommunications",
+      companyName: contact01?.companyName || "Gulfwave Telecommunications",
       customerId: contact01?.id,
       serviceType: "commercial_film",
       message: "Requesting studio crew, Arri Alexa 35 package, and director for 5G Ultra commercial pickup day.",
@@ -413,7 +413,7 @@ async function main() {
       assignedToId: productionManager?.id || superAdmin?.id,
       assignedById: superAdmin?.id,
       team: "production",
-      reason: "Lead production management for Batelco 5G pickup shoot.",
+      reason: "Lead production management for Gulfwave 5G pickup shoot.",
       active: true,
     },
   });
@@ -448,7 +448,7 @@ async function main() {
       name: contact03?.firstName ? `${contact03.firstName} ${contact03.lastName || ""}` : "طارق الدوسري",
       email: contact03?.email || "t.aldoseri@btea.bh",
       phone: contact03?.phone || "+973 3611 9900",
-      companyName: contact03?.companyName || "Bahrain Tourism & Exhibitions Authority (BTEA)",
+      companyName: contact03?.companyName || "Island Tourism & Events Board (ITEB)",
       customerId: contact03?.id,
       serviceType: "aerial_cinematography",
       message: "Scope change: Additional 4K FPV drone passes and sunset hyperlapse shots over Exhibition World Bahrain.",
@@ -618,7 +618,7 @@ async function main() {
       currency: "BHD",
       language: "ar",
       status: "converted",
-      acceptanceEvidence: "Approved by BTEA procurement; converted to Tax Invoice ISH-2026-001",
+      acceptanceEvidence: "Approved by ITEB procurement; converted to Tax Invoice ISH-2026-001",
       issueDate: new Date("2026-08-10"),
       validUntilDate: new Date("2026-09-10"),
       createdById: superAdmin?.id,
@@ -654,7 +654,7 @@ async function main() {
         const hash = crypto.createHash("sha256").update(`quotation_${qId}_1`).digest("hex");
         await prisma.approvalRequest.upsert({
           where: { targetType_targetId_revision: { targetType: "quotation", targetId: qId, revision: 1 } },
-          update: { status: "pending", discountReason: "5% commercial discount for annual Gulf Air fleet campaign" },
+          update: { status: "pending", discountReason: "5% commercial discount for annual Falcon Airways fleet campaign" },
           create: {
             targetType: "quotation",
             targetId: qId,
@@ -662,7 +662,7 @@ async function main() {
             contentHash: hash,
             status: "pending",
             requestedById: sales?.id || superAdmin?.id,
-            discountReason: "5% commercial discount for annual Gulf Air fleet campaign",
+            discountReason: "5% commercial discount for annual Falcon Airways fleet campaign",
             policySnapshot: { maxDiscountPercent: 10, requiredRole: "admin" },
           },
         });
@@ -670,7 +670,7 @@ async function main() {
         const hash = crypto.createHash("sha256").update(`quotation_${qId}_1`).digest("hex");
         const appReq = await prisma.approvalRequest.upsert({
           where: { targetType_targetId_revision: { targetType: "quotation", targetId: qId, revision: 1 } },
-          update: { status: "approved", discountReason: "10% strategic partner discount for BTEA national tourism campaign" },
+          update: { status: "approved", discountReason: "10% strategic partner discount for ITEB national tourism campaign" },
           create: {
             targetType: "quotation",
             targetId: qId,
@@ -678,7 +678,7 @@ async function main() {
             contentHash: hash,
             status: "approved",
             requestedById: sales?.id || superAdmin?.id,
-            discountReason: "10% strategic partner discount for BTEA national tourism campaign",
+            discountReason: "10% strategic partner discount for ITEB national tourism campaign",
             policySnapshot: { maxDiscountPercent: 10, requiredRole: "admin" },
           },
         });

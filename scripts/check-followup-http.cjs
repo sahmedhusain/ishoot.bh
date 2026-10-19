@@ -158,7 +158,7 @@ async function main() {
     .digest("hex");
   html = await (
     await fetch(new URL("/en", web), {
-      headers: { cookie: "ishoot_preview=" + expires + "." + signature },
+      headers: { cookie: "platform_preview=" + expires + "." + signature },
     })
   ).text();
   assert.ok(html.includes(prefix + "-draft"));

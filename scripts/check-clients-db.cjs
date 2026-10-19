@@ -31,7 +31,7 @@ async function main() {
       const local = await cp.createClientProfile({
         client_kind: "company", company: `${tag} Local W.L.L.`, company_ar: "شركة محلية", company_origin: "local", cr_number: " 9912345-1 ",
         legal_form: "wll", vat_number: "200000000000003", industry: "hospitality", website: "example.bh", payment_terms_days: 45,
-        address: { country: "BH", building: "123", road: "456", block: "789", area: "Seef", city: "Manama" },
+        address: { country: "BH", building: "123", road: "456", block: "789", area: "Seafront", city: "Manama" },
         contact_persons: [
           { full_name: "Sara Ali", position: "Marketing Manager", department: "Marketing", email: "SARA@EXAMPLE.BH", phone: "+973 3900 0001" },
           { full_name: "Omar Hasan Khalil", position: "Procurement", department: "Finance", email: "omar@example.bh", is_primary: true },

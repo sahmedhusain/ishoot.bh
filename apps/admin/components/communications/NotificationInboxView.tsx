@@ -34,7 +34,7 @@ export function NotificationInboxView({
     setBusy(true);
     try {
       await work();
-      window.dispatchEvent(new Event("ishoot:notifications-changed"));
+      window.dispatchEvent(new Event("platform:notifications-changed"));
       router.refresh();
     } catch {
       toast.error(c.failed);

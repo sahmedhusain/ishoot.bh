@@ -1,0 +1,23 @@
+{
+  "name": "@platform/company",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Company profiles (identity, theme, brand files), demo seed data and the tools that install them.",
+  "scripts": {
+    "seed": "ts-node --project tsconfig.json seed/seed.ts",
+    "assets:demo": "node scripts/generate-demo-assets.cjs",
+    "type-check": "tsc --noEmit --project tsconfig.json"
+  },
+  "dependencies": {
+    "@platform/config": "workspace:*",
+    "@platform/database": "workspace:*",
+    "@prisma/client": "5.22.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}

@@ -1,6 +1,7 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+  - 'company'
 allowBuilds:
   esbuild: true
   sharp: true

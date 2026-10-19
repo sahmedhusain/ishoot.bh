@@ -8,7 +8,7 @@ jobs:
         image: postgres:15-alpine
         env:
           POSTGRES_PASSWORD: disposable_ci_only
-          POSTGRES_DB: ishoot_ci_test
+          POSTGRES_DB: platform_ci_test
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres"
@@ -16,7 +16,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/ishoot_ci_test?schema=public
+      DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_ci_test?schema=public
       JWT_SECRET: ci-only-test-secret-with-at-least-thirty-two-characters
       REVALIDATION_SECRET: ci-only-revalidation-secret
       RESEND_API_KEY: ""

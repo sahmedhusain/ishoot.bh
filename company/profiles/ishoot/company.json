@@ -1,0 +1,42 @@
+{
+  "display": {
+    "nameEn": "ishoot",
+    "nameAr": "آي شوت"
+  },
+  "company": {
+    "companyNameEn": "ishoot Cinema Production S.P.C.",
+    "companyNameAr": "دار آي شوت للإنتاج السينمائي ذ.م.م",
+    "crNumber": "CR-142859-1",
+    "vatId": "200019283700002",
+    "vatEnabled": false,
+    "vatPercentage": 10.0,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Office 402, Platinum Tower, Seef District, Manama, Kingdom of Bahrain",
+    "addressAr": "مكتب 402، برج بلاتينيوم، ضاحية السيف، المنامة، مملكة البحرين",
+    "phone": "+973 1700 0000",
+    "whatsappPhone": "+973 3900 0000",
+    "email": "hello@ishoot.bh",
+    "website": "https://ishoot.bh",
+    "instagramUrl": "https://instagram.com/ishoot.bh",
+    "linkedinUrl": "https://linkedin.com/company/ishoot-bh",
+    "youtubeUrl": "https://youtube.com/@ishootbh",
+    "bankName": "National Bank of Bahrain (NBB)",
+    "bankIban": "BH29NBOB00000012345678",
+    "bankAccountNumber": "0012345678",
+    "bankSwift": "NBOBBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "ISH",
+    "invoiceNextNumber": 104,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 106
+  },
+  "assets": {
+    "logo": "brand/logo-text-dark.png",
+    "darkLogo": "brand/logo-text-light.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

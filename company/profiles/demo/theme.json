@@ -1,0 +1,10 @@
+{
+  "primary": "#312E81",
+  "accent": "#4F46E5",
+  "radius": "lg",
+  "defaultMode": "system",
+  "fonts": {
+    "body": { "kind": "google", "family": "IBM Plex Sans Arabic" },
+    "heading": { "kind": "google", "family": "Readex Pro" }
+  }
+}

@@ -6,32 +6,35 @@
 // seed runs (≈15 months of history plus a little future), so date-driven states stay valid.
 // The generator is deterministic: the same day produces the same data.
 import type { PrismaClient } from "@prisma/client";
-import { createCRMContact, createCRMDeal, updateCRMDeal, advanceDealForEvent } from "../src/queries/crm";
-import { createQuotation, submitQuotationForApproval, issueQuotation, acceptQuotation } from "../src/queries/quotations";
-import { createInvoice, updateInvoiceStatus, markOverdueInvoices } from "../src/queries/invoices";
-import { createPayment } from "../src/queries/payments";
-import { signDocument, requestInvoiceApproval } from "../src/queries/document-signing";
-import { createExpense } from "../src/queries/expenses";
-import { getSupportClaims, recordSupportReimbursement } from "../src/queries/support-claims";
-import { tamkeenSupports } from "../src/constants/hr-support";
-import { reassignSalesOwner, getCommissionStatement, recordCommissionPayout } from "../src/queries/sales-attribution";
-import { createExpenseClaim, scheduleExpenseClaim, payExpenseClaim, cancelExpenseClaim } from "../src/queries/expense-claims";
-import { createConsolidatedRequest } from "../src/queries/requests";
-import { assignRequest, submitRequestForApproval, confirmRequest, resolveRequest, returnRequest } from "../src/queries/inquiries";
-import { createLeaveRequest } from "../src/queries/leave";
-import { storeFileBytes } from "../src/services/uploads";
-import { SAMPLE_RECEIPT_JPEG } from "../src/services/sample-files";
-import { createEmployee } from "../src/queries/hrms";
-import { createPayrollRun, submitPayrollRunForApproval, markPayrollAsPaid, setPayrollItemLines } from "../src/queries/payroll";
-import { createCalendarEvent } from "../src/queries/calendar";
-import { createMinuteOfMeeting, approveAndSignMom } from "../src/queries/moms";
-import { submitForApproval, decideApprovalRequest, type ApprovalOutcome } from "../src/services/approval-engine";
-import type { ApprovalTargetType } from "../src/constants/approvals";
-import { lineTotal } from "../src/finance/money";
-import { saveAsset } from "../src/queries/assets";
-import { resolveIncomingLead } from "../src/services/lead-resolver";
+import { createCRMContact, createCRMDeal, updateCRMDeal, advanceDealForEvent } from "../../packages/database/src/queries/crm";
+import { createQuotation, submitQuotationForApproval, issueQuotation, acceptQuotation } from "../../packages/database/src/queries/quotations";
+import { createInvoice, updateInvoiceStatus, markOverdueInvoices } from "../../packages/database/src/queries/invoices";
+import { createPayment } from "../../packages/database/src/queries/payments";
+import { signDocument, requestInvoiceApproval } from "../../packages/database/src/queries/document-signing";
+import { createExpense } from "../../packages/database/src/queries/expenses";
+import { getSupportClaims, recordSupportReimbursement } from "../../packages/database/src/queries/support-claims";
+import { tamkeenSupports } from "../../packages/database/src/constants/hr-support";
+import { reassignSalesOwner, getCommissionStatement, recordCommissionPayout } from "../../packages/database/src/queries/sales-attribution";
+import { createExpenseClaim, scheduleExpenseClaim, payExpenseClaim, cancelExpenseClaim } from "../../packages/database/src/queries/expense-claims";
+import { createConsolidatedRequest } from "../../packages/database/src/queries/requests";
+import { assignRequest, submitRequestForApproval, confirmRequest, resolveRequest, returnRequest } from "../../packages/database/src/queries/inquiries";
+import { createLeaveRequest } from "../../packages/database/src/queries/leave";
+import { storeFileBytes } from "../../packages/database/src/services/uploads";
+import { SAMPLE_RECEIPT_JPEG } from "../../packages/database/src/services/sample-files";
+import { createEmployee } from "../../packages/database/src/queries/hrms";
+import { createPayrollRun, submitPayrollRunForApproval, markPayrollAsPaid, setPayrollItemLines } from "../../packages/database/src/queries/payroll";
+import { createCalendarEvent } from "../../packages/database/src/queries/calendar";
+import { createMinuteOfMeeting, approveAndSignMom } from "../../packages/database/src/queries/moms";
+import { submitForApproval, decideApprovalRequest, type ApprovalOutcome } from "../../packages/database/src/services/approval-engine";
+import type { ApprovalTargetType } from "../../packages/database/src/constants/approvals";
+import { lineTotal } from "../../packages/database/src/finance/money";
+import { saveAsset } from "../../packages/database/src/queries/assets";
+import { resolveIncomingLead } from "../../packages/database/src/services/lead-resolver";
 
 let seedPrisma: PrismaClient;
+/** The demo company's short name, from the company profile. */
+let brand = { nameEn: "", nameAr: "" };
+let sampleSignatureUrl: string | null = null;
 
 type SeedUser = { id: string; email: string; fullName: string; role: string; signatureUrl?: string | null };
 
@@ -79,11 +82,11 @@ const FIRST = [
 ] as const;
 const LAST = [
   ["Al-Mahmood", "المحمود"], ["Al-Sayed", "السيد"], ["Al-Hashimi", "الهاشمي"], ["Al-Ansari", "الأنصاري"], ["Al-Mannai", "المناعي"],
-  ["Al-Zayani", "الزياني"], ["Fakhro", "فخرو"], ["Al-Aali", "العالي"], ["Janahi", "جناحي"], ["Al-Shirawi", "الشيراوي"],
+  ["Al-Crescent", "الهلال"], ["Fakhro", "فخرو"], ["Al-Aali", "العالي"], ["Janahi", "جناحي"], ["Al-Shirawi", "الشيراوي"],
   ["Bucheeri", "بوجيري"], ["Al-Musallam", "المسلم"], ["Al-Hayki", "الحايكي"], ["Al-Doseri", "الدوسري"], ["Al-Jowder", "الجودر"],
   ["Al-Awadhi", "العوضي"], ["Al-Kooheji", "الكوهجي"], ["Al-Bastaki", "البستكي"], ["Al-Qassab", "القصاب"], ["Al-Najjar", "النجار"],
 ] as const;
-const PLACES = ["Pearl Bay", "Dilmun", "Gulf Crest", "Manama Gate", "Seef Square", "Amwaj", "Sitra", "Riffa Hills", "Awali", "Muharraq",
+const PLACES = ["Pearl Bay", "Dilmun", "Gulf Crest", "Manama Gate", "Seafront Square", "Amwaj", "Sitra", "Riffa Hills", "Awali", "Muharraq",
   "Juffair", "Zallaq", "Budaiya", "Hidd", "Tubli", "Saar", "Hamala", "Durrat", "Karbabad", "Diyar"] as const;
 const SECTORS = ["Developments", "Hospitality", "Fintech", "Retail Group", "Healthcare", "Logistics", "Motors", "Foods", "Education",
   "Energy Services", "Telecom", "Fitness Clubs", "Real Estate", "Fashion House", "Events"] as const;
@@ -135,8 +138,10 @@ async function submit(targetType: ApprovalTargetType, targetId: string, requeste
 }
 
 // ---------------------------------------------------------------- main entry
-export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<string, SeedUser>; passwordHash: string }) {
+export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<string, SeedUser>; passwordHash: string; brand: { nameEn: string; nameAr: string }; sampleSignatureUrl: string | null }) {
   seedPrisma = prisma;
+  brand = ctx.brand;
+  sampleSignatureUrl = ctx.sampleSignatureUrl;
   rand = mulberry32(Number(iso(TODAY).replace(/-/g, "")));
   const started = Date.now();
   const company = await prisma.companySetting.findFirstOrThrow();
@@ -183,7 +188,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     do { first = pick(FIRST); last = pick(LAST); } while (usedStaffNames.has(first[0] + last[0]));
     usedStaffNames.add(first[0] + last[0]);
     const slug = `${first[0]}.${last[0].replace(/^Al-/, "")}`.toLowerCase();
-    const email = `${slug}${index}@ishoot.bh`;
+    const email = `${slug}${index}@example.com`;
     const hireDate = daysAgo(int(120, 2400));
     let userId: string | null = null;
     if (plan.role) {
@@ -354,7 +359,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
       currency: "BHD", language: chance(0.6) ? "ar" : "en", vat_enabled: vatEnabled, vat_percentage: vatPercentage,
       discount_type: plan.discount?.type ?? "none", discount_value: plan.discount?.value ?? 0,
       line_items: plan.lines.map((l) => ({ service_id: l.serviceId, description_en: l.descriptionEn, description_ar: l.descriptionAr, quantity: l.quantity, unit_price: l.unitPrice })),
-      notes_en: "Thank you for choosing ishoot.", notes_ar: "شكراً لاختياركم آيشوت.", created_by: issuer.id, sales_owner_id: plan.salesOwnerId,
+      notes_en: `Thank you for choosing ${brand.nameEn}.`, notes_ar: `شكراً لاختياركم ${brand.nameAr}.`, created_by: issuer.id, sales_owner_id: plan.salesOwnerId,
     });
     bump("invoices");
     const age = (TODAY.getTime() - plan.issueDate.getTime()) / DAY;
@@ -421,14 +426,14 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   for (let m = 14; m >= 0; m--) {
     const first = new Date(Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() - m, 1));
     if (first > TODAY) continue;
-    expenseSpecs.push({ slug: "studio_overhead", en: "Studio lease & utilities", ar: "إيجار الاستوديو والخدمات", amount: 1375, vendor: "Seef Commercial Real Estate", date: first, recurring: "monthly" });
-    expenseSpecs.push({ slug: "software_licenses", en: "Editing suite & cloud storage subscriptions", ar: "اشتراكات برامج المونتاج والتخزين السحابي", amount: 280, vendor: "Blackmagic Cloud / LucidLink", date: addDays(first, 2), recurring: "monthly" });
-    expenseSpecs.push({ slug: "telecom", en: "Fibre internet & mobile lines", ar: "الإنترنت والخطوط المتنقلة", amount: 145, vendor: "Batelco", date: addDays(first, 4), recurring: "monthly" });
-    expenseSpecs.push({ slug: "fuel_transport", en: "Production van fuel", ar: "وقود سيارة الإنتاج", amount: int(60, 140), vendor: "Bapco", date: addDays(first, int(5, 20)) });
+    expenseSpecs.push({ slug: "studio_overhead", en: "Studio lease & utilities", ar: "إيجار الاستوديو والخدمات", amount: 1375, vendor: "Seafront Commercial Real Estate", date: first, recurring: "monthly" });
+    expenseSpecs.push({ slug: "software_licenses", en: "Editing suite & cloud storage subscriptions", ar: "اشتراكات برامج المونتاج والتخأوربت السحابي", amount: 280, vendor: "Blackmagic Cloud / LucidLink", date: addDays(first, 2), recurring: "monthly" });
+    expenseSpecs.push({ slug: "telecom", en: "Fibre internet & mobile lines", ar: "الإنترنت والخطوط المتنقلة", amount: 145, vendor: "Gulfwave", date: addDays(first, 4), recurring: "monthly" });
+    expenseSpecs.push({ slug: "fuel_transport", en: "Production van fuel", ar: "وقود سيارة الإنتاج", amount: int(60, 140), vendor: "Delta", date: addDays(first, int(5, 20)) });
     if (chance(0.5)) expenseSpecs.push({ slug: "office_supplies", en: "Office supplies & printing", ar: "قرطاسية وطباعة", amount: int(25, 120), vendor: "Jashanmal Office", date: addDays(first, int(6, 25)) });
     if (chance(0.4)) expenseSpecs.push({ slug: "advertising", en: "Instagram & LinkedIn paid campaigns", ar: "حملات إعلانية مدفوعة على إنستغرام ولينكدإن", amount: int(150, 600), vendor: "Meta Ads / LinkedIn", date: addDays(first, int(3, 20)) });
     if (chance(0.25)) expenseSpecs.push({ slug: "maintenance", en: "Camera sensor cleaning & servicing", ar: "تنظيف وصيانة حساسات الكاميرات", amount: int(40, 220), vendor: "Gulf Camera Service Centre", date: addDays(first, int(5, 25)) });
-    expenseSpecs.push({ slug: "bank_charges", en: "Bank transfer & card charges", ar: "رسوم التحويلات والبطاقات", amount: int(8, 35), vendor: "National Bank of Bahrain", date: addDays(first, 27) });
+    expenseSpecs.push({ slug: "bank_charges", en: "Bank transfer & card charges", ar: "رسوم التحويلات والبطاقات", amount: int(8, 35), vendor: "Harbor National Bank", date: addDays(first, 27) });
     if (first.getUTCMonth() % 12 === 0) {
       expenseSpecs.push({ slug: "insurance", en: "Annual equipment insurance", ar: "تأمين المعدات السنوي", amount: 1850, vendor: "Bahrain National Insurance", date: addDays(first, 10) });
       expenseSpecs.push({ slug: "government_fees", en: "CR renewal & municipal licence", ar: "تجديد السجل التجاري والرخصة البلدية", amount: 240, vendor: "MOIC Sijilat", date: addDays(first, 12) });
@@ -612,7 +617,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   }
   {
     const newcomer = staffUsers[0];
-    const change = await prisma.signatureChange.create({ data: { userId: newcomer.id, signatureUrl: "/brand/signatures/guest.svg" } });
+    const change = await prisma.signatureChange.create({ data: { userId: newcomer.id, signatureUrl: sampleSignatureUrl ?? "" } });
     await submit("signature_change", change.id, newcomer.id);
     bump("signatureChanges");
   }
@@ -637,10 +642,10 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     const meetingDate = addDays(deal.created, int(1, 6));
     const mom = await createMinuteOfMeeting({
       title: `Kick-off meeting — ${contact.company}`, titleAr: `اجتماع الانطلاق — ${contact.company}`, meetingDate: iso(meetingDate),
-      startTime: "10:00 AM", endTime: "11:00 AM", location: pick(["ishoot Studio", "Client HQ", "Zoom"]), dealId: deal.id, clientId: contact.id,
+      startTime: "10:00 AM", endTime: "11:00 AM", location: pick([`${brand.nameEn} Studio`, "Client HQ", "Zoom"]), dealId: deal.id, clientId: contact.id,
       attendees: [
         { name: contact.name, role: "Client", email: contact.email, organization: contact.company, attended: true },
-        { name: prodManager.fullName, role: "Production Manager", email: prodManager.email, organization: "ishoot", attended: true },
+        { name: prodManager.fullName, role: "Production Manager", email: prodManager.email, organization: `${brand.nameEn}`, attended: true },
       ] as never,
       agenda: "Creative brief, schedule, deliverables and budget.",
       discussionPoints: [{ topic: "Creative direction", notes: "Agreed on tone and reference films.", speaker: contact.name }] as never,
@@ -786,10 +791,10 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   {
     const voices: Array<[string, string, "inquiry" | "quote_request" | "complaint" | "suggestion", string]> = [
       ["Khalid Al-Mannai", "khalid@alsafwa-trading.bh", "complaint", "The edited video was delivered two days after the date we agreed, and we missed our campaign launch."],
-      ["Noora Al-Zayani", "noora.z@seef-mall.example", "complaint", "Subtitles in the Arabic version have several spelling mistakes. Please correct and resend."],
+      ["Noora Al-Crescent", "noora.z@seef-mall.example", "complaint", "Subtitles in the Arabic version have several spelling mistakes. Please correct and resend."],
       ["Hasan Jaffar", "hasan.jaffar@gulfbuild.example", "complaint", "The invoice shows a day rate we did not agree on in the quotation."],
       ["Maryam Al-Dosari", "maryam@dosari-events.example", "complaint", "The crew arrived 45 minutes late to our conference shoot."],
-      ["Yusuf Kanoo", "yusuf@kanoo-motors.example", "suggestion", "Please add a client portal where we can review cuts and leave timecoded comments."],
+      ["Yusuf Rashed", "yusuf@kanoo-motors.example", "suggestion", "Please add a client portal where we can review cuts and leave timecoded comments."],
       ["Fatima Bucheeri", "fatima@bucheeri-group.example", "suggestion", "A monthly content report with views per platform would help us plan the next campaign."],
       ["Ali Salman", "ali.salman@tamkeen-partner.example", "suggestion", "Offering vertical versions by default would save us a lot of back and forth."],
       ["Reem Al-Khalifa", "reem@khalifa-jewels.example", "quote_request", "We need a quote for a 60-second product film and 10 social cutdowns for our new collection."],

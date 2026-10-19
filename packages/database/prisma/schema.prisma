@@ -162,11 +162,15 @@ model CompanySetting {
   rulesEn String? @db.Text
   rulesAr String? @db.Text
 
-  updatedAt                    DateTime @updatedAt
+  updatedAt                    DateTime  @updatedAt
   /// Discounts up to this % of the subtotal need no approval unless a user has their own limit.
-  defaultDiscountLimitPercent  Decimal  @default(5.00) @db.Decimal(5, 2)
+  defaultDiscountLimitPercent  Decimal   @default(5.00) @db.Decimal(5, 2)
   /// When on, every quotation goes through approval even without a discount.
-  quotationsAlwaysNeedApproval Boolean  @default(false)
+  quotationsAlwaysNeedApproval Boolean   @default(false)
+  /// Brand colours, fonts, radius and default mode (normalizeTheme in @platform/database/constants/theme).
+  theme                        Json?
+  /// Set when the first-run setup wizard finishes; until then the admin shows the wizard.
+  setupCompletedAt             DateTime?
 }
 
 model CompanyAsset {
@@ -339,68 +343,68 @@ model WebsiteContent {
 }
 
 model CrmContact {
-  id                   String                @id @default(uuid())
-  firstName            String
-  lastName             String?
-  email                String?
-  emailNorm            String? // lower(trim(email)) for dedup
-  phone                String?
-  phoneE164            String? // E.164 normalized phone
-  companyName          String?
-  vatNumber            String? // buyer VAT registration, printed on tax invoices
-  jobTitle             String?
-  contactType          String                @default("client") // "client", "vendor", "freelancer", "agency"
+  id                    String                @id @default(uuid())
+  firstName             String
+  lastName              String?
+  email                 String?
+  emailNorm             String? // lower(trim(email)) for dedup
+  phone                 String?
+  phoneE164             String? // E.164 normalized phone
+  companyName           String?
+  vatNumber             String? // buyer VAT registration, printed on tax invoices
+  jobTitle              String?
+  contactType           String                @default("client") // "client", "vendor", "freelancer", "agency"
   /// "individual" | "company" | "government"
-  clientKind           String                @default("individual")
+  clientKind            String                @default("individual")
   /// Companies only: "local" (registered in Bahrain, has a CR) or "foreign".
-  companyOrigin        String?
-  companyNameAr        String?
+  companyOrigin         String?
+  companyNameAr         String?
   /// "wll", "spc", "bsc_closed", "bsc_public", "sole_proprietorship", "partnership", "foreign_branch", "other"
-  legalForm            String?
+  legalForm             String?
   /// Bahrain commercial registration, e.g. 142859-1. Required for local companies.
-  crNumber             String?
-  crExpiryDate         DateTime?             @db.Date
+  crNumber              String?
+  crExpiryDate          DateTime?             @db.Date
   /// Foreign companies: registration number in their home country.
-  registrationNumber   String?
+  registrationNumber    String?
   /// ISO 3166 alpha-2 country of registration (companies) or of the entity (government).
-  registrationCountry  String?
+  registrationCountry   String?
   /// "ministry", "authority", "municipality", "semi_government", "royal_court", "embassy", "other"
-  governmentType       String?
+  governmentType        String?
   /// Our supplier number with the government entity, quoted on its purchase orders.
-  supplierNumber       String?
-  requiresPurchaseOrder Boolean              @default(false)
+  supplierNumber        String?
+  requiresPurchaseOrder Boolean               @default(false)
   /// ISO alpha-2, individuals.
-  nationality          String?
-  industry             String?
-  website              String?
+  nationality           String?
+  industry              String?
+  website               String?
   /// Language the client's documents default to: "ar" | "en".
-  preferredLanguage    String?
+  preferredLanguage     String?
   /// Overrides the company's default payment terms for this client.
-  paymentTermsDays     Int?
-  addressCountry       String?
-  addressCity          String?
-  addressArea          String?
-  addressBlock         String?
-  addressRoad          String?
-  addressBuilding      String?
-  addressUnit          String?
-  addressLine          String?
-  addressState         String?
-  addressPostalCode    String?
-  addressPoBox         String?
-  contactPersons       ClientContactPerson[]
-  notes                String?
-  deals                CrmDeal[]
-  inquiries            Inquiry[]
-  contracts            Contract[]
-  invoices             Invoice[]
-  reviews              Review[]
-  minutesOfMeetings    MinuteOfMeeting[]
-  expenses             Expense[]
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  quotations           Quotation[]
-  communicationThreads CommunicationThread[]
+  paymentTermsDays      Int?
+  addressCountry        String?
+  addressCity           String?
+  addressArea           String?
+  addressBlock          String?
+  addressRoad           String?
+  addressBuilding       String?
+  addressUnit           String?
+  addressLine           String?
+  addressState          String?
+  addressPostalCode     String?
+  addressPoBox          String?
+  contactPersons        ClientContactPerson[]
+  notes                 String?
+  deals                 CrmDeal[]
+  inquiries             Inquiry[]
+  contracts             Contract[]
+  invoices              Invoice[]
+  reviews               Review[]
+  minutesOfMeetings     MinuteOfMeeting[]
+  expenses              Expense[]
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  quotations            Quotation[]
+  communicationThreads  CommunicationThread[]
 
   @@index([emailNorm])
   @@index([phoneE164])
@@ -570,19 +574,19 @@ model Payment {
 }
 
 model ExpenseCategory {
-  id           String         @id @default(uuid())
-  slug         String         @unique
-  nameEn       String
-  nameAr       String
-  color        String         @default("#9EADA9")
-  displayOrder Int            @default(0)
+  id                String             @id @default(uuid())
+  slug              String             @unique
+  nameEn            String
+  nameAr            String
+  color             String             @default("#9EADA9")
+  displayOrder      Int                @default(0)
   /// "cost_of_sales" (project costs), "operating" (overheads) or "payroll".
-  kind         String         @default("operating")
+  kind              String             @default("operating")
   /// Built-in categories can be renamed or hidden but never deleted.
-  isSystem     Boolean        @default(false)
-  isActive     Boolean        @default(true)
-  expenses     Expense[]
-  claims       ExpenseClaim[]
+  isSystem          Boolean            @default(false)
+  isActive          Boolean            @default(true)
+  expenses          Expense[]
+  claims            ExpenseClaim[]
   recurringExpenses RecurringExpense[]
 }
 
@@ -619,8 +623,8 @@ model Expense {
   createdBy          User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
   createdAt          DateTime         @default(now())
 
-  claim            ExpenseClaim?
-  commissionPayout CommissionPayout?
+  claim              ExpenseClaim?
+  commissionPayout   CommissionPayout?
   /// The recurring bill this expense was recorded from.
   recurringExpenseId String?
   recurringExpense   RecurringExpense? @relation(fields: [recurringExpenseId], references: [id], onDelete: SetNull)
@@ -633,32 +637,32 @@ model Expense {
 }
 
 model CalendarEvent {
-  id               String   @id @default(uuid())
-  title            String
-  titleAr          String?
-  description      String?
-  startDate        DateTime
-  endDate          DateTime
-  allDay           Boolean  @default(false)
-  location         String?
-  color            String?  @default("#09937F")
-  eventType        String   @default("meeting") // "meeting", "shoot", "deadline", "reminder"
-  dealId           String?
-  deal             CrmDeal? @relation(fields: [dealId], references: [id], onDelete: SetNull)
-  createdById      String?
-  createdBy        User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  googleEventId    String?
-  googleCalendarId String?
-  recurrence       String?
-  reminders        Json?
-  attendees        Json?
+  id                    String   @id @default(uuid())
+  title                 String
+  titleAr               String?
+  description           String?
+  startDate             DateTime
+  endDate               DateTime
+  allDay                Boolean  @default(false)
+  location              String?
+  color                 String?  @default("#09937F")
+  eventType             String   @default("meeting") // "meeting", "shoot", "deadline", "reminder"
+  dealId                String?
+  deal                  CrmDeal? @relation(fields: [dealId], references: [id], onDelete: SetNull)
+  createdById           String?
+  createdBy             User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  googleEventId         String?
+  googleCalendarId      String?
+  recurrence            String?
+  reminders             Json?
+  attendees             Json?
   /// "private" | "team" | "department" | "company" | "custom" — see queries/calendar.ts for who sees what.
   visibility            String   @default("company")
   audienceUserIds       String[] @default([])
   audienceDepartmentIds String[] @default([])
   audienceRoles         String[] @default([])
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   expenseClaims ExpenseClaim[]
 
@@ -686,22 +690,22 @@ model ActivityLog {
 }
 
 model Notification {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   userId        String
-  user          User     @relation(fields: [userId], references: [id])
+  user          User      @relation(fields: [userId], references: [id])
   title         String
   message       String
-  type          String   @default("info") // "info", "warning", "success", "action"
+  type          String    @default("info") // "info", "warning", "success", "action"
   entityType    String?
   entityId      String?
   messageKey    String?
   messageParams Json?
   actionUrl     String?
   eventKey      String?
-  isRead        Boolean  @default(false)
+  isRead        Boolean   @default(false)
   /// Hidden from the person's inbox (kept for the audit trail until they delete it).
   hiddenAt      DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
   @@index([userId, isRead, createdAt])
   @@index([userId, hiddenAt, createdAt])
@@ -812,7 +816,7 @@ model MinuteOfMeeting {
   meetingDate      DateTime    @db.Date
   startTime        String? // e.g. "10:00 AM"
   endTime          String? // e.g. "11:30 AM"
-  location         String? // e.g. "ishoot Studio", "Zoom Virtual Room", "Client HQ"
+  location         String? // e.g. "Main Studio", "Zoom Virtual Room", "Client HQ"
   dealId           String?
   deal             CrmDeal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
   clientId         String?
@@ -1103,18 +1107,18 @@ model Quotation {
   issueDate      DateTime @default(now()) @db.Date
   validUntilDate DateTime @db.Date
 
-  subtotal       Decimal @default(0.000) @db.Decimal(12, 3)
-  vatEnabled     Boolean @default(false)
-  vatPercentage  Decimal @default(10.00) @db.Decimal(5, 2)
-  vatAmount      Decimal @default(0.000) @db.Decimal(12, 3)
-  otherTaxAmount   Decimal  @default(0.000) @db.Decimal(12, 3)
-  taxes            DocumentTax[]
-  discountType   String  @default("none") // "none", "percentage", "fixed"
-  discountValue  Decimal @default(0.000) @db.Decimal(12, 3)
-  discountAmount Decimal @default(0.000) @db.Decimal(12, 3)
-  totalAmount    Decimal @default(0.000) @db.Decimal(12, 3)
-  currency       String  @default("BHD")
-  language       String  @default("ar") // "ar", "en"
+  subtotal       Decimal       @default(0.000) @db.Decimal(12, 3)
+  vatEnabled     Boolean       @default(false)
+  vatPercentage  Decimal       @default(10.00) @db.Decimal(5, 2)
+  vatAmount      Decimal       @default(0.000) @db.Decimal(12, 3)
+  otherTaxAmount Decimal       @default(0.000) @db.Decimal(12, 3)
+  taxes          DocumentTax[]
+  discountType   String        @default("none") // "none", "percentage", "fixed"
+  discountValue  Decimal       @default(0.000) @db.Decimal(12, 3)
+  discountAmount Decimal       @default(0.000) @db.Decimal(12, 3)
+  totalAmount    Decimal       @default(0.000) @db.Decimal(12, 3)
+  currency       String        @default("BHD")
+  language       String        @default("ar") // "ar", "en"
 
   status             String   @default("draft") // "draft", "submitted", "approved", "issued", "accepted", "declined", "expired", "cancelled"
   acceptanceEvidence String?
@@ -1537,48 +1541,48 @@ model Department {
 }
 
 model Employee {
-  id                String             @id @default(uuid())
-  employeeNumber    String             @unique
-  userId            String?            @unique
-  user              User?              @relation("UserEmployee", fields: [userId], references: [id], onDelete: SetNull)
-  departmentId      String?
-  department        Department?        @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  firstNameEn       String
-  lastNameEn        String
-  firstNameAr       String
-  lastNameAr        String
-  email             String?
-  phone             String?
-  cprNumber         String?
-  cprExpiryDate     DateTime?          @db.Date
+  id                 String                 @id @default(uuid())
+  employeeNumber     String                 @unique
+  userId             String?                @unique
+  user               User?                  @relation("UserEmployee", fields: [userId], references: [id], onDelete: SetNull)
+  departmentId       String?
+  department         Department?            @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  firstNameEn        String
+  lastNameEn         String
+  firstNameAr        String
+  lastNameAr         String
+  email              String?
+  phone              String?
+  cprNumber          String?
+  cprExpiryDate      DateTime?              @db.Date
   /// ISO 3166 alpha-2.
-  nationality       String?
-  dateOfBirth       DateTime?          @db.Date
+  nationality        String?
+  dateOfBirth        DateTime?              @db.Date
   /// "male" | "female"
-  gender            String?
-  passportNumber    String?
+  gender             String?
+  passportNumber     String?
   /// ISO alpha-2 country that issued the passport.
-  passportCountry   String?
-  passportExpiryDate DateTime?         @db.Date
-  credentials       EmployeeCredential[]
-  recurringPay      EmployeeRecurringPay[]
-  assetsHeld        Asset[]            @relation("AssetHolder")
-  assetHandovers    AssetHandover[]
-  workHandovers     EmployeeHandover[]
-  jobTitleEn        String
-  jobTitleAr        String
-  hireDate          DateTime           @db.Date
-  status            String             @default("active") // "active", "on_leave", "suspended", "terminated"
-  leaveBalanceDays  Decimal            @default(30.00) @db.Decimal(5, 2)
-  salaryDocuments   SalaryDocument[]
-  employmentRecords EmploymentRecord[]
-  leaveRequests     LeaveRequest[]
-  leaveAdjustments  LeaveAdjustment[]
-  attendanceEntries AttendanceEntry[]
-  payrollItems      PayrollItem[]
-  payslips          Payslip[]
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  passportCountry    String?
+  passportExpiryDate DateTime?              @db.Date
+  credentials        EmployeeCredential[]
+  recurringPay       EmployeeRecurringPay[]
+  assetsHeld         Asset[]                @relation("AssetHolder")
+  assetHandovers     AssetHandover[]
+  workHandovers      EmployeeHandover[]
+  jobTitleEn         String
+  jobTitleAr         String
+  hireDate           DateTime               @db.Date
+  status             String                 @default("active") // "active", "on_leave", "suspended", "terminated"
+  leaveBalanceDays   Decimal                @default(30.00) @db.Decimal(5, 2)
+  salaryDocuments    SalaryDocument[]
+  employmentRecords  EmploymentRecord[]
+  leaveRequests      LeaveRequest[]
+  leaveAdjustments   LeaveAdjustment[]
+  attendanceEntries  AttendanceEntry[]
+  payrollItems       PayrollItem[]
+  payslips           Payslip[]
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
 
   supportReimbursements SupportReimbursement[]
   gosiRecords           EmployeeGosiRecord[]
@@ -2101,31 +2105,31 @@ model DocumentTax {
 /// A visa, work or residence permit, licence, insurance or other document an employee holds, with its expiry
 /// and what it costs the company (one-off, monthly, yearly or per term).
 model EmployeeCredential {
-  id               String    @id @default(uuid())
-  employeeId       String
-  employee         Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id             String    @id @default(uuid())
+  employeeId     String
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   /// "visa", "work_permit", "residence_permit", "driving_license", "health_insurance", "medical_fitness", "professional_license", "other"
-  kind             String
+  kind           String
   /// Visas: "employment", "family", "investor", "flexi", "visit", "other"
-  visaType         String?
-  label            String?
-  number           String?
-  issuingCountry   String?
-  issueDate        DateTime? @db.Date
-  expiryDate       DateTime? @db.Date
-  sponsor          String?
-  costAmount       Decimal?  @db.Decimal(12, 3)
-  costCurrency     String    @default("BHD")
+  visaType       String?
+  label          String?
+  number         String?
+  issuingCountry String?
+  issueDate      DateTime? @db.Date
+  expiryDate     DateTime? @db.Date
+  sponsor        String?
+  costAmount     Decimal?  @db.Decimal(12, 3)
+  costCurrency   String    @default("BHD")
   /// "one_time" | "monthly" | "yearly" | "term"
-  costFrequency    String?
+  costFrequency  String?
   /// Months a "term" cost covers, e.g. 24 for a two-year permit.
-  costTermMonths   Int?
+  costTermMonths Int?
   /// "company" | "employee"
-  paidBy           String    @default("company")
-  fileUrl          String?
-  notes            String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  paidBy         String    @default("company")
+  fileUrl        String?
+  notes          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([employeeId])
   @@index([expiryDate])
@@ -2263,41 +2267,41 @@ model Asset {
 /// Issuing an asset to an employee or taking it back: condition, checklist, damage, the employee's signature,
 /// then approval (line manager, HR, finance by default) before the asset changes hands.
 model AssetHandover {
-  id                 String    @id @default(uuid())
-  reference          String    @unique
-  assetId            String
-  asset              Asset     @relation(fields: [assetId], references: [id], onDelete: Restrict)
-  employeeId         String
-  employee           Employee  @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  id                  String    @id @default(uuid())
+  reference           String    @unique
+  assetId             String
+  asset               Asset     @relation(fields: [assetId], references: [id], onDelete: Restrict)
+  employeeId          String
+  employee            Employee  @relation(fields: [employeeId], references: [id], onDelete: Restrict)
   /// "issue" | "return"
-  kind               String
+  kind                String
   /// "awaiting_employee" | "pending_approval" | "completed" | "rejected" | "cancelled"
-  status             String    @default("awaiting_employee")
-  handoverDate       DateTime  @db.Date
-  condition          String
+  status              String    @default("awaiting_employee")
+  handoverDate        DateTime  @db.Date
+  condition           String
   /// [{ key, labelEn, labelAr, ok, note }]
-  checklist          Json      @default("[]")
-  specsSnapshot      Json      @default("{}")
-  accessories        String?
-  damageNotes        String?
+  checklist           Json      @default("[]")
+  specsSnapshot       Json      @default("{}")
+  accessories         String?
+  damageNotes         String?
   /// Where a returned asset goes once the return is approved: available | maintenance | lost | retired.
-  returnStatus       String?
-  damageCharge       Decimal?  @db.Decimal(12, 3)
+  returnStatus        String?
+  damageCharge        Decimal?  @db.Decimal(12, 3)
   /// A damage charge recovered from the next salary.
-  deductFromSalary   Boolean   @default(false)
-  notes              String?
+  deductFromSalary    Boolean   @default(false)
+  notes               String?
   /// Set when the handover is part of an employee's exit or leave handover.
-  offboardingId      String?
-  createdById        String
+  offboardingId       String?
+  createdById         String
   creatorSignatureUrl String?
-  employeeSignature  String?
-  employeeSignerName String?
-  employeeSignedAt   DateTime?
-  signedInPerson     Boolean   @default(false)
-  decidedAt          DateTime?
-  decisionNotes      String?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  employeeSignature   String?
+  employeeSignerName  String?
+  employeeSignedAt    DateTime?
+  signedInPerson      Boolean   @default(false)
+  decidedAt           DateTime?
+  decisionNotes       String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@index([assetId])
   @@index([employeeId])

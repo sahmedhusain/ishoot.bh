@@ -80,7 +80,7 @@ export function Sidebar() {
   const { t } = useAdminLocale();
   const { isFeatureEnabled } = useFeatureToggles();
   const [folded, setFolded] = React.useState<Record<string, boolean>>({});
-  const storageKey = `ishoot_navigation_${user?.id ?? "guest"}`;
+  const storageKey = `platform_navigation_${user?.id ?? "guest"}`;
   React.useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) ?? "{}");

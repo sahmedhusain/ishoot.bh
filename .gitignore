@@ -42,6 +42,6 @@ apps/*/.next-verify/
 .idea/
 .vscode/
 
-# Raw Design Assets
-ishoot/
+# Raw design source files kept next to a company profile (never committed)
+company/profiles/*/raw/
 *.ai

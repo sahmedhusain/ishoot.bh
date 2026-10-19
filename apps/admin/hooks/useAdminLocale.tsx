@@ -10,7 +10,7 @@ import {
   loadAdminTranslations,
 } from "../lib/translations";
 
-const STORAGE_KEY = "ishoot_admin_locale";
+const STORAGE_KEY = "platform_admin_locale";
 
 interface AdminLocaleContextType {
   locale: AdminLocale;

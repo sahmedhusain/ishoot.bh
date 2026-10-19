@@ -818,12 +818,12 @@
     "viewInVault": "عرض في خزينة الأرشيف",
     "uploading": "جاري الرفع...",
     "bankNamePlaceholder": "مثال: بنك البحرين الوطني",
-    "ibanPlaceholder": "BH29NBOB00000012345678",
-    "accountPlaceholder": "0012345678",
+    "ibanPlaceholder": "BH00BANK00000012345678",
+    "accountPlaceholder": "0000123456",
     "swiftPlaceholder": "NBOBBHBM",
     "invPrefixPlaceholder": "INV",
     "rctPrefixPlaceholder": "RCT",
-    "trnPlaceholder": "200019283700002"
+    "trnPlaceholder": "200000000000003"
   },
   "deals": {
     "subtitle": "متابعة خط صفقات الإنتاج التفاعلي مع التحديث اللحظي لحالات المشاريع.",
@@ -1241,7 +1241,7 @@
     "saving": "جاري الرفع...",
     "submit": "حفظ المستند القانوني",
     "titleEnPlaceholder": "مثال: السجل التجاري 2026",
-    "docNumberPlaceholder": "CR-142859-1",
+    "docNumberPlaceholder": "CR-12345-1",
     "notesPlaceholder": "ملاحظات حول الاستخدام، المخولين بالتوقيع، مواعيد التجديد..."
   },
   "expensesNew": {
@@ -5387,7 +5387,7 @@
       "chooseACountryFromTheList": "اختر دولة من القائمة",
       "paymentTermsMustBeBetween0": "يجب أن تكون مدة السداد بين 0 و365 يومًا",
       "companyNameIsRequired": "اسم الشركة مطلوب",
-      "enterTheCommercialRegistrationCRNumber": "أدخل رقم السجل التجاري، مثل ⁦142859-1⁩",
+      "enterTheCommercialRegistrationCRNumber": "أدخل رقم السجل التجاري، مثل ⁦12345-1⁩",
       "chooseTheCountryWhereTheCompany": "اختر الدولة المسجلة فيها الشركة",
       "enterTheCompanySRegistrationNumber": "أدخل رقم تسجيل الشركة",
       "enterTheGovernmentEntitySName": "أدخل اسم الجهة الحكومية",
@@ -5845,7 +5845,7 @@
       "entityNameAr": "اسم الجهة (بالعربية)",
       "legalForm": "الشكل القانوني",
       "crNumber": "رقم السجل التجاري",
-      "crNumberHint": "رقم السجل التجاري مع رقم الفرع، مثل ⁦142859-1⁩",
+      "crNumberHint": "رقم السجل التجاري مع رقم الفرع، مثل ⁦12345-1⁩",
       "crExpiry": "تاريخ انتهاء السجل التجاري",
       "registrationCountry": "دولة التسجيل",
       "registrationNumber": "رقم التسجيل",

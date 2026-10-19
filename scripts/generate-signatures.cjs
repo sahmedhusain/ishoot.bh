@@ -2,15 +2,15 @@ const fs = require('fs');
 const path = require('path');
 
 const users = [
-  { slug: 'sayed-ahmed', name: 'Sayed Ahmed Husain', initial: 'S', seed: 1 },
-  { slug: 'mohamed-almahdi', name: 'Mohamed Al Mahdi', initial: 'M', seed: 2 },
-  { slug: 'zainab-alshami', name: 'Zainab Al Shami', initial: 'Z', seed: 3 },
-  { slug: 'ali-alsamahiji', name: 'Ali Al Samahiji', initial: 'A', seed: 4 },
-  { slug: 'husain-aljamri', name: 'Husain Al Jamri', initial: 'H', seed: 5 },
-  { slug: 'fatima-alkaabi', name: 'Fatima Al Kaabi', initial: 'F', seed: 6 },
-  { slug: 'jasim-almutawa', name: 'Jasim Al Mutawa', initial: 'J', seed: 7 },
-  { slug: 'khalid-alsaeed', name: 'Khalid Al Saeed', initial: 'K', seed: 8 },
-  { slug: 'maryam-alaali', name: 'Maryam Al Aali', initial: 'M', seed: 9 },
+  { slug: 'omar-haddad', name: 'Omar Haddad', initial: 'S', seed: 1 },
+  { slug: 'yusuf-rahman', name: 'Yusuf Rahman', initial: 'M', seed: 2 },
+  { slug: 'layla-nasser', name: 'Layla Nasser', initial: 'Z', seed: 3 },
+  { slug: 'karim-fawzi', name: 'Karim Fawzi', initial: 'A', seed: 4 },
+  { slug: 'tariq-saleh', name: 'Tariq Saleh', initial: 'H', seed: 5 },
+  { slug: 'noor-hamdan', name: 'Noor Hamdan', initial: 'F', seed: 6 },
+  { slug: 'faisal-mansour', name: 'Faisal Mansour', initial: 'J', seed: 7 },
+  { slug: 'sami-khoury', name: 'Sami Khoury', initial: 'K', seed: 8 },
+  { slug: 'hana-yousef', name: 'Hana Yousef', initial: 'M', seed: 9 },
   { slug: 'guest', name: 'Guest Observer', initial: 'G', seed: 10 }
 ];
 

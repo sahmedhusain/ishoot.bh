@@ -16,6 +16,7 @@ export function detectFileType(bytes: Uint8Array): string | null {
   if (starts(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return "image/png";
   if (starts(0xff, 0xd8, 0xff)) return "image/jpeg";
   if (starts(0x52, 0x49, 0x46, 0x46) && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "image/webp";
+  if (starts(0x77, 0x4f, 0x46, 0x32)) return "font/woff2";
   return null;
 }
 
@@ -60,7 +61,8 @@ export async function getObjectMetadata(bucket: string, path: string) {
 }
 
 export function uploadStorageLocation(fileUrl: string, isPublic: boolean) {
-  if (!/^\/api\/files\/(payments|invoices|certificates|vault|deals|general|brand)\/[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(fileUrl))
+  // Brand fonts (woff2) live only in the public brand folder.
+  if (!/^\/api\/files\/(payments|invoices|certificates|vault|deals|general|brand)\/[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(fileUrl) && !/^\/api\/files\/brand\/[a-zA-Z0-9_-]+\.woff2$/.test(fileUrl))
     throw new Error(serverMessages.invalidUploadPath);
   return { bucket: isPublic ? "public-assets" : "private-assets", path: fileUrl.slice("/api/files/".length) };
 }

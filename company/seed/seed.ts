@@ -9,15 +9,54 @@ import fs from "fs";
 import crypto from "crypto";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { defaultWebsiteConfig } from "../src/website-config";
-import { workingDaysBetween } from "../src/hr/payroll-engine";
-import { ALL_ACTIONS, ALL_RESOURCES, ALL_ROLES, isDefaultAllowed } from "../src/constants/permissions";
-import { collectWebsiteDraft } from "../src/queries/website";
-import { calculateInvoiceTotals } from "../src/types";
+import { defaultWebsiteConfig } from "../../packages/database/src/website-config";
+import { workingDaysBetween } from "../../packages/database/src/hr/payroll-engine";
+import { ALL_ACTIONS, ALL_RESOURCES, ALL_ROLES, isDefaultAllowed } from "../../packages/database/src/constants/permissions";
+import { collectWebsiteDraft } from "../../packages/database/src/queries/website";
+import { calculateInvoiceTotals } from "../../packages/database/src/types";
 import { seedVolume, reconcileSeed } from "./seed-volume";
-import { db as websiteDb } from "../src/db";
+import { storeFileBytes } from "../../packages/database/src/services/uploads";
+import { db as websiteDb } from "../../packages/database/src/db";
+import { importProfileFile, installCompanyProfile, loadCompanyProfile, profileAssetPath } from "../tools/company-profile";
+import demoStaff from "./demo-staff.json";
 
 const prisma = new PrismaClient();
+
+/** A one-page PDF that says what the demo document stands for (a real file, so previews and downloads work). */
+function placeholderPdf(title: string) {
+  const text = title.replace(/[()\\]/g, "");
+  const stream = `BT /F1 20 Tf 60 760 Td (${text}) Tj 0 -32 Td /F1 12 Tf (Demo document - sample content only.) Tj ET`;
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>",
+    `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+  ];
+  let body = "%PDF-1.4\n";
+  const offsets: number[] = [];
+  objects.forEach((object, i) => {
+    offsets.push(body.length);
+    body += `${i + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xref = body.length;
+  body += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("")}`;
+  body += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Buffer.from(body, "latin1");
+}
+
+/** Stores a placeholder PDF in the private vault and returns its file URL. */
+async function demoDocument(fileName: string, ownerId: string) {
+  const bytes = placeholderPdf(fileName.replace(/\.pdf$/i, "").replace(/-/g, " "));
+  const fileUrl = `/api/files/vault/seed_${crypto.createHash("sha256").update(fileName).digest("hex").slice(0, 16)}.pdf`;
+  await storeFileBytes(fileUrl, bytes, "application/pdf");
+  await prisma.uploadObject.upsert({
+    where: { fileUrl },
+    update: {},
+    create: { fileUrl, ownerId, fileName, fileSize: bytes.length, mimeType: "application/pdf", isPublic: false, claimedAt: new Date(), expiresAt: new Date("2999-12-31T00:00:00Z") },
+  });
+  return fileUrl;
+}
 
 async function main() {
   if (process.env.NODE_ENV === "production") throw new Error("Demo seed is disabled in production; use pnpm db:bootstrap for initial real accounts and configuration.");
@@ -36,8 +75,11 @@ async function main() {
   if (existing.some((count) => count > 0)) throw new Error("Demo seed requires an empty business database. Existing records were preserved. Use pnpm db:bootstrap for initial accounts/settings without replacing data.");
   console.log("🌱 Starting dynamic enterprise database seed...");
 
-  const configPath = path.resolve(__dirname, "initial-company-config.json");
-  const initialConfig = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+  const profile = loadCompanyProfile();
+  const BRAND_EN = profile.display.nameEn;
+  const BRAND_AR = profile.display.nameAr;
+  const INVOICE_PREFIX = String(profile.company.invoicePrefix || "INV");
+  console.log(`🏢 Company profile: company/profiles/${profile.name} (${profile.company.companyNameEn})`);
 
   const superAdminEmail = process.env.SUPER_ADMIN_EMAIL;
   const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD;
@@ -78,114 +120,33 @@ async function main() {
     });
   }
 
-  const usersData = [
-    {
-      email: superAdminEmail,
-      fullName: superAdminName,
-      role: "super_admin",
-      department: "executive",
-      phone: superAdminPhone,
-      signatureUrl: "/brand/signatures/sayed-ahmed.svg",
-    },
-    {
-      email: "director@ishoot.bh",
-      fullName: "محمد المهدي",
-      role: "admin",
-      department: "executive",
-      phone: "+973 3900 2200",
-      signatureUrl: "/brand/signatures/mohamed-almahdi.svg",
-    },
-    {
-      email: "finance@ishoot.bh",
-      fullName: "زينب الشامي",
-      role: "finance_manager",
-      department: "finance",
-      phone: "+973 3900 3300",
-      signatureUrl: "/brand/signatures/zainab-alshami.svg",
-    },
-    {
-      email: "production@ishoot.bh",
-      fullName: "علي السماهيجي",
-      role: "production_manager",
-      department: "production",
-      phone: "+973 3900 4400",
-      signatureUrl: "/brand/signatures/ali-alsamahiji.svg",
-    },
-    {
-      email: "producer@ishoot.bh",
-      fullName: "حسين الجمري",
-      role: "producer",
-      department: "production",
-      phone: "+973 3900 5500",
-      signatureUrl: "/brand/signatures/husain-aljamri.svg",
-    },
-    {
-      email: "editor@ishoot.bh",
-      fullName: "فاطمة الكعبي",
-      role: "editor",
-      department: "post_production",
-      phone: "+973 3900 6600",
-      signatureUrl: "/brand/signatures/fatima-alkaabi.svg",
-    },
-    {
-      email: "accountant@ishoot.bh",
-      fullName: "جاسم المطوع",
-      role: "accountant",
-      department: "finance",
-      phone: "+973 3900 7700",
-      signatureUrl: "/brand/signatures/jasim-almutawa.svg",
-    },
-    {
-      email: "sales@ishoot.bh",
-      fullName: "خالد السعيد",
-      role: "sales",
-      department: "sales",
-      phone: "+973 3900 8811",
-      signatureUrl: "/brand/signatures/khalid-alsaeed.svg",
-    },
-    {
-      email: "marketing@ishoot.bh",
-      fullName: "مريم العالي",
-      role: "marketing",
-      department: "marketing",
-      phone: "+973 3900 8822",
-      signatureUrl: "/brand/signatures/maryam-alaali.svg",
-    },
-    {
-      email: "guest@ishoot.bh",
-      fullName: "مراقب عام (Guest)",
-      role: "viewer",
-      department: "operations",
-      phone: "+973 3900 8800",
-      signatureUrl: "/brand/signatures/guest.svg",
-    },
-  ];
+  // Fictional staff (company/seed/demo-staff.json); the first one is the configured super admin.
+  const usersData = demoStaff.map((person) =>
+    person.role === "super_admin"
+      ? { ...person, email: superAdminEmail, fullName: superAdminName, phone: superAdminPhone }
+      : { ...person, email: person.email as string, fullName: person.nameAr, phone: person.phone ?? "" },
+  );
 
   const createdUsers: Record<string, any> = {};
   for (const u of usersData) {
     const user = await prisma.user.upsert({
       where: { email: u.email },
-      update: {
-        passwordHash,
-        role: u.role,
-        fullName: u.fullName,
-        department: u.department,
-        phone: u.phone,
-        signatureUrl: u.signatureUrl,
-      },
-      create: {
-        email: u.email,
-        fullName: u.fullName,
-        passwordHash,
-        role: u.role,
-        department: u.department,
-        phone: u.phone,
-        signatureUrl: u.signatureUrl,
-        isActive: true,
-      },
+      update: { passwordHash, role: u.role, fullName: u.fullName, department: u.department, phone: u.phone },
+      create: { email: u.email, fullName: u.fullName, passwordHash, role: u.role, department: u.department, phone: u.phone, isActive: true },
     });
     createdUsers[u.role] = user;
   }
+
+  // Brand files go into upload storage, owned by the super admin, so no app keeps company files in public/.
+  const owner = createdUsers["super_admin"];
+  const signatureUrls: Record<string, string> = {};
+  for (const u of usersData) {
+    const file = `brand/signatures/${u.key}.png`;
+    if (!fs.existsSync(profileAssetPath(profile, file))) continue;
+    signatureUrls[u.key] = await importProfileFile(prisma, profile, file, owner.id);
+    await prisma.user.update({ where: { id: createdUsers[u.role].id }, data: { signatureUrl: signatureUrls[u.key] } });
+  }
+  const signatureOf = (key: string) => signatureUrls[key] ?? null;
 
   // Establish Reporting To Hierarchy
   const ceo = createdUsers["super_admin"];
@@ -223,51 +184,26 @@ async function main() {
   }
   console.log("✅ Seeded Granular RBAC Permissions Matrix");
 
-  const companySettingId = "00000000-0000-0000-0000-000000000001";
-  await prisma.companySetting.upsert({
-    where: { id: companySettingId },
-    update: { ...initialConfig.company },
-    create: {
-      id: companySettingId,
-      ...initialConfig.company,
-    },
-  });
-  console.log("✅ Created Company & Tax Settings from initial-company-config.json");
-
-  if (initialConfig.brandingAssets && Array.isArray(initialConfig.brandingAssets)) {
-    for (const asset of initialConfig.brandingAssets) {
-      await prisma.companyAsset.upsert({
-        where: { assetKey: asset.assetKey },
-        update: {
-          title: asset.title,
-          fileUrl: asset.fileUrl,
-          mimeType: asset.mimeType,
-        },
-        create: {
-          assetKey: asset.assetKey,
-          title: asset.title,
-          fileUrl: asset.fileUrl,
-          mimeType: asset.mimeType,
-        },
-      });
-    }
-    console.log("✅ Seeded Enterprise Brand Assets in Database");
-  }
-  console.log("✅ Created Company & Tax Settings");
-
+  await installCompanyProfile(prisma, profile, owner.id, { markSetupComplete: true });
+  console.log("✅ Installed company identity, brand files and theme from the company profile");
 
   const socialLinks = [
-    { platform: "Instagram", url: "https://instagram.com/ishoot.bh", icon: "Instagram", displayOrder: 1, isActive: true },
-    { platform: "LinkedIn", url: "https://linkedin.com/company/ishoot-bh", icon: "Linkedin", displayOrder: 2, isActive: true },
-    { platform: "YouTube", url: "https://youtube.com/@ishootbh", icon: "Youtube", displayOrder: 3, isActive: true },
-    { platform: "Vimeo", url: "https://vimeo.com/ishoot", icon: "Video", displayOrder: 4, isActive: true }
-  ];
+    { platform: "Instagram", url: profile.company.instagramUrl, icon: "Instagram" },
+    { platform: "LinkedIn", url: profile.company.linkedinUrl, icon: "Linkedin" },
+    { platform: "YouTube", url: profile.company.youtubeUrl, icon: "Youtube" },
+  ].filter((link): link is { platform: string; url: string; icon: string } => typeof link.url === "string" && !!link.url);
 
-  for (const sl of socialLinks) {
-    await prisma.socialLink.create({ data: sl });
+  for (const [index, sl] of socialLinks.entries()) {
+    await prisma.socialLink.create({ data: { ...sl, displayOrder: index + 1, isActive: true } });
   }
   console.log("✅ Seeded Social Links");
 
+  // Hero images come from the profile's media folder.
+  const bannerDir = profileAssetPath(profile, "media/banners");
+  const bannerFiles = fs.existsSync(bannerDir) ? fs.readdirSync(bannerDir).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort() : [];
+  const bannerUrls: string[] = [];
+  for (const file of bannerFiles) bannerUrls.push(await importProfileFile(prisma, profile, `media/banners/${file}`, owner.id));
+  const banner = (i: number) => bannerUrls.length ? bannerUrls[i % bannerUrls.length] : "";
 
   const banners = [
     {
@@ -279,8 +215,8 @@ async function main() {
       subtitleAr:
         "تصوير سينمائي إعلاني، وتصوير جوي سينمائي، وتصحيح ألوان متقدم في مملكة البحرين.",
       mediaType: "image",
-      mediaUrl: "/banners/youtube-cover-01.jpg",
-      posterUrl: "/banners/youtube-cover-01.jpg",
+      mediaUrl: banner(0),
+      posterUrl: banner(0),
       displayOrder: 1,
       isActive: true,
       ctaLabelEn: "Explore Works",
@@ -296,8 +232,8 @@ async function main() {
       subtitleAr:
         "مجهزون بأحدث كاميرات ريد في-رابتور 8 كي وعدسات آرّي للعلامات التجارية الرائدة.",
       mediaType: "image",
-      mediaUrl: "/banners/web-banner-04.jpg",
-      posterUrl: "/banners/web-banner-04.jpg",
+      mediaUrl: banner(1),
+      posterUrl: banner(1),
       displayOrder: 2,
       isActive: true,
       ctaLabelEn: "Our Gear Locker",
@@ -313,8 +249,8 @@ async function main() {
       subtitleAr:
         "نلتقط زوايا جوية مذهلة في سماء الخليج العربي بطائرات الدرون السينمائية.",
       mediaType: "image",
-      mediaUrl: "/banners/web-banner-02.jpg",
-      posterUrl: "/banners/web-banner-02.jpg",
+      mediaUrl: banner(2),
+      posterUrl: banner(2),
       displayOrder: 3,
       isActive: true,
       ctaLabelEn: "Start a Project",
@@ -391,9 +327,9 @@ async function main() {
       id: "work-01",
       categoryId: "cat-01",
       slug: "batelco-national-day-anthem",
-      titleEn: "Batelco — National Day Cinema Anthem",
-      titleAr: "بتلكو — فيلم اليوم الوطني السينمائي",
-      clientName: "Batelco Telecommunications",
+      titleEn: "Gulfwave — National Day Cinema Anthem",
+      titleAr: "جلف ويف — فيلم اليوم الوطني السينمائي",
+      clientName: "Gulfwave Telecommunications",
       year: 2025,
       aspectRatio: "2.39:1",
       thumbnailUrl:
@@ -411,7 +347,7 @@ async function main() {
       descriptionAr:
         "عمل سينمائي فخم يوثق أصالة وتطور مملكة البحرين عبر 6 مواقع تاريخية وحديثة.",
       credits: {
-        director: "Sayed Ahmed Husain",
+        director: "Omar Haddad",
         dop: "Ali Alsamaheji",
         colorist: "DaVinci Resolve Certified Colorist",
         editor: "Fatima Alkaabi",
@@ -423,8 +359,8 @@ async function main() {
       id: "work-02",
       categoryId: "cat-02",
       slug: "bahrain-financial-harbour-fpv",
-      titleEn: "Bahrain Financial Harbour — High Speed FPV",
-      titleAr: "مرفأ البحرين المالي — استعراض FPV فائق السرعة",
+      titleEn: "Marina Financial Centre — High Speed FPV",
+      titleAr: "مركز المارينا المالي — استعراض FPV فائق السرعة",
       clientName: "BFH Properties",
       year: 2025,
       aspectRatio: "16:9",
@@ -440,9 +376,9 @@ async function main() {
       descriptionAr:
         "طيران FPV سينمائي بهلواني بين الأبراج الزجاجية في الساعة الذهبية لغروب الشمس.",
       credits: {
-        director: "Sayed Ahmed Husain",
+        director: "Omar Haddad",
         dop: "Husain Aljamri",
-        colorist: "ishoot Grading Suite",
+        colorist: `${BRAND_EN} Grading Suite`,
         editor: "Fatima Alkaabi",
       },
       isFeatured: true,
@@ -452,9 +388,9 @@ async function main() {
       id: "work-03",
       categoryId: "cat-01",
       slug: "gulf-air-falcon-gold",
-      titleEn: "Gulf Air — Falcon Gold Reimagined",
-      titleAr: "طيران الخليج — تجربة الصقر الذهبي",
-      clientName: "Gulf Air",
+      titleEn: "Falcon Airways — Falcon Gold Reimagined",
+      titleAr: "طيران الفالكون — تجربة الصقر الذهبي",
+      clientName: "Falcon Airways",
       year: 2024,
       aspectRatio: "2.39:1",
       thumbnailUrl:
@@ -464,7 +400,7 @@ async function main() {
       descriptionAr:
         "إعلان تجاري فخم لمقصورة الصقر الذهبي مصور داخل الاستوديو بمحاكاة إضاءة الطيران.",
       credits: {
-        director: "Sayed Ahmed Husain",
+        director: "Omar Haddad",
         dop: "Ali Alsamaheji",
         colorist: "DaVinci Resolve Studio",
         editor: "Fatima Alkaabi",
@@ -476,9 +412,9 @@ async function main() {
       id: "work-04",
       categoryId: "cat-03",
       slug: "alba-potline-6-heritage",
-      titleEn: "ALBA — The Smelter of the Future",
-      titleAr: "ألبا — مصهر المستقبل",
-      clientName: "Aluminium Bahrain (ALBA)",
+      titleEn: "SUMMIT — The Smelter of the Future",
+      titleAr: "سميت — مصهر المستقبل",
+      clientName: "Aluminium Bahrain (SUMMIT)",
       year: 2024,
       aspectRatio: "16:9",
       thumbnailUrl:
@@ -488,9 +424,9 @@ async function main() {
       descriptionAr:
         "فيلم وثائقي صناعي سينمائي يبرز ريادة مصهر الألمنيوم والكوادر الوطنية.",
       credits: {
-        director: "Sayed Ahmed Husain",
+        director: "Omar Haddad",
         dop: "Ali Alsamaheji",
-        colorist: "ishoot Suite",
+        colorist: `${BRAND_EN} Suite`,
         editor: "Fatima Alkaabi",
       },
       isFeatured: true,
@@ -510,112 +446,112 @@ async function main() {
   const clientLogos = [
     {
       id: "logo-01",
-      name: "Batelco",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Batelco_By_Beyon_logo.svg",
+      name: "Gulfwave",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Gulfwave_By_Nova_logo.svg",
       websiteUrl: "https://batelco.com",
       displayOrder: 1,
     },
     {
       id: "logo-02",
-      name: "Gulf Air",
+      name: "Falcon Airways",
       logoUrl: "https://upload.wikimedia.org/wikipedia/commons/9/97/Gulf_Air_2018_wordmark.svg",
       websiteUrl: "https://gulfair.com",
       displayOrder: 2,
     },
     {
       id: "logo-03",
-      name: "ALBA Aluminium",
+      name: "Summit Aluminium",
       logoUrl: "https://upload.wikimedia.org/wikipedia/commons/8/85/Aluminium_Bahrain_Logo.png",
       websiteUrl: "https://albasmelter.com",
       displayOrder: 3,
     },
     {
       id: "logo-04",
-      name: "National Bank of Bahrain (NBB)",
+      name: "Harbor National Bank (HNB)",
       logoUrl: "https://upload.wikimedia.org/wikipedia/commons/3/39/NBB_Logo_Primary.svg",
       websiteUrl: "https://nbbonline.com",
       displayOrder: 4,
     },
     {
       id: "logo-05",
-      name: "Zain Bahrain",
+      name: "Orbit Telecom",
       logoUrl: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Zain_%28Unternehmen%29_logo.svg",
       websiteUrl: "https://bh.zain.com",
       displayOrder: 5,
     },
     {
       id: "logo-06",
-      name: "stc Bahrain",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e3/STC-01.svg",
-      websiteUrl: "https://stc.com.bh",
+      name: "Nexa Mobile",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e3/NEXA-01.svg",
+      websiteUrl: "https://nexa.com.bh",
       displayOrder: 6,
     },
     {
       id: "logo-07",
-      name: "Bapco Energies",
-      logoUrl: "https://upload.wikimedia.org/wikipedia/en/d/da/Bapco_Energies_logo.svg",
+      name: "Delta Energies",
+      logoUrl: "https://upload.wikimedia.org/wikipedia/en/d/da/Delta_Energies_logo.svg",
       websiteUrl: "https://bapcoenergies.com",
       displayOrder: 7,
     },
     {
       id: "logo-08",
-      name: "Bahrain Mumtalakat Holding",
+      name: "Pearl Holding Company",
       logoUrl: "https://d22x99z9pyemfq.cloudfront.net/static/mumtalakat-logo.svg",
       websiteUrl: "https://mumtalakat.bh",
       displayOrder: 8,
     },
     {
       id: "logo-09",
-      name: "Four Seasons Hotel Bahrain Bay",
+      name: "Bayview Grand Hotel",
       logoUrl: "https://upload.wikimedia.org/wikipedia/en/a/a1/Four_Seasons_logo.svg",
       websiteUrl: "https://fourseasons.com/bahrain",
       displayOrder: 9,
     },
     {
       id: "logo-10",
-      name: "Bahrain Economic Development Board",
+      name: "Regional Investment Board",
       logoUrl: "https://www.bahrainedb.com/app/themes/bedb/assets/images/edb_logo_grey-01.svg",
       websiteUrl: "https://bahrainedb.com",
       displayOrder: 10,
     },
     {
       id: "logo-11",
-      name: "Bahrain Tourism & Exhibitions Authority",
+      name: "Island Tourism & Events Board",
       logoUrl: "https://tourismbh.com/uploads/footer-logo/BTEA_logo.svg",
       websiteUrl: "https://btea.bh",
       displayOrder: 11,
     },
     {
       id: "logo-12",
-      name: "Seef Properties",
+      name: "Seafront Properties",
       logoUrl: "https://seef.com.bh/wp-content/uploads/2021/03/logo-for-web-site.svg",
       websiteUrl: "https://seef.bh",
       displayOrder: 12,
     },
     {
       id: "logo-13",
-      name: "Beyon Digital",
-      logoUrl: "https://beyon.com/wp-content/uploads/2026/08/Beyon_Logo_Full_Colour.svg",
+      name: "Nova Digital",
+      logoUrl: "https://beyon.com/wp-content/uploads/2026/08/Nova_Logo_Full_Colour.svg",
       websiteUrl: "https://beyon.com",
       displayOrder: 13,
     },
     {
       id: "logo-14",
-      name: "Bahrain International Circuit (BIC)",
+      name: "Desert Speedway (DSW)",
       logoUrl: "https://upload.wikimedia.org/wikipedia/en/d/d1/Bahrain_International_Circuit_logo.png",
       websiteUrl: "https://bahraingp.com",
       displayOrder: 14,
     },
     {
       id: "logo-15",
-      name: "Beyon Money FinTech",
-      logoUrl: "https://www.beyonmoney.com/wp-content/uploads/2026/06/2024_Beyon_Money_Logo_App_Icon.svg",
+      name: "NovaPay FinTech",
+      logoUrl: "https://www.beyonmoney.com/wp-content/uploads/2026/06/2024_Nova_Money_Logo_App_Icon.svg",
       websiteUrl: "https://beyonmoney.com",
       displayOrder: 15,
     },
     {
       id: "logo-16",
-      name: "Royal Golf Club Bahrain",
+      name: "Palm Golf Club",
       logoUrl: "https://www.theroyalgolfclub.com/logo.png",
       websiteUrl: "https://theroyalgolfclub.com",
       displayOrder: 16,
@@ -707,7 +643,7 @@ async function main() {
       category: "stages",
       nameEn: "Soundstage A — 250m² Acoustically Treated Cyclorama",
       nameAr: "استوديو أ — استوديو عازل للصوت 250 م² مع سايك مقوس",
-      brand: "ishoot Soundstage",
+      brand: `${BRAND_EN} Soundstage`,
       specification:
         "Infinity curve cyclorama, 6m overhead lighting grid, 60kW 3-phase power, soundproof control booth.",
       displayOrder: 8,
@@ -954,7 +890,7 @@ async function main() {
       id: "contact-01",
       firstName: "حمد",
       lastName: "الرميحي",
-      companyName: "Batelco Telecommunications",
+      companyName: "Gulfwave Telecommunications",
       email: "h.alromaihi@batelco.com.bh",
       emailNorm: "h.alromaihi@batelco.com.bh",
       phone: "+973 3944 1122",
@@ -967,7 +903,7 @@ async function main() {
       id: "contact-02",
       firstName: "سارة",
       lastName: "الماجد",
-      companyName: "Gulf Air Marketing",
+      companyName: "Falcon Airways Marketing",
       email: "s.almajed@gulfair.com",
       emailNorm: "s.almajed@gulfair.com",
       phone: "+973 3988 3344",
@@ -980,7 +916,7 @@ async function main() {
       id: "contact-03",
       firstName: "طارق",
       lastName: "الدوسري",
-      companyName: "Bahrain Tourism & Exhibitions Authority (BTEA)",
+      companyName: "Island Tourism & Events Board (ITEB)",
       email: "t.aldoseri@btea.bh",
       emailNorm: "t.aldoseri@btea.bh",
       phone: "+973 3611 9900",
@@ -993,7 +929,7 @@ async function main() {
       id: "contact-04",
       firstName: "نورة",
       lastName: "آل خليفة",
-      companyName: "Impact BBDO Bahrain Agency",
+      companyName: "Spark Creative Agency",
       email: "noura@impactbbdo.bh",
       emailNorm: "noura@impactbbdo.bh",
       phone: "+973 3922 7788",
@@ -1005,8 +941,8 @@ async function main() {
     {
       id: "contact-05",
       firstName: "خالد",
-      lastName: "الزياني",
-      companyName: "Zayani Motors",
+      lastName: "الهلال",
+      companyName: "Crescent Motors",
       email: "k.zayani@zmotors.bh",
       emailNorm: "k.zayani@zmotors.bh",
       phone: "+973 3901 2345",
@@ -1019,7 +955,7 @@ async function main() {
       id: "contact-06",
       firstName: "عبدالله",
       lastName: "بوخوة",
-      companyName: "Zain Bahrain",
+      companyName: "Orbit Telecom",
       email: "a.bukhowa@bh.zain.com",
       emailNorm: "a.bukhowa@bh.zain.com",
       phone: "+973 3600 4400",
@@ -1032,7 +968,7 @@ async function main() {
       id: "contact-07",
       firstName: "فاطمة",
       lastName: "الجلاهمة",
-      companyName: "National Bank of Bahrain (NBB)",
+      companyName: "Harbor National Bank (HNB)",
       email: "f.aljalahma@nbbonline.com",
       emailNorm: "f.aljalahma@nbbonline.com",
       phone: "+973 3977 1234",
@@ -1045,7 +981,7 @@ async function main() {
       id: "contact-08",
       firstName: "إبراهيم",
       lastName: "الهاشمي",
-      companyName: "Aluminium Bahrain (ALBA)",
+      companyName: "Aluminium Bahrain (SUMMIT)",
       email: "e.alhashimi@alba.com.bh",
       emailNorm: "e.alhashimi@alba.com.bh",
       phone: "+973 3955 8899",
@@ -1058,7 +994,7 @@ async function main() {
       id: "contact-09",
       firstName: "سلمان",
       lastName: "الكعبي",
-      companyName: "Bapco Energies",
+      companyName: "Delta Energies",
       email: "s.alkaabi@bapcoenergies.bh",
       emailNorm: "s.alkaabi@bapcoenergies.bh",
       phone: "+973 3966 2211",
@@ -1071,7 +1007,7 @@ async function main() {
       id: "contact-10",
       firstName: "نور",
       lastName: "الذوادي",
-      companyName: "Bahrain Mumtalakat Holding",
+      companyName: "Pearl Holding Company",
       email: "n.althawadi@mumtalakat.bh",
       emailNorm: "n.althawadi@mumtalakat.bh",
       phone: "+973 3811 0022",
@@ -1084,7 +1020,7 @@ async function main() {
       id: "contact-11",
       firstName: "Jean-Pierre",
       lastName: "Laurent",
-      companyName: "Four Seasons Hotel Bahrain Bay",
+      companyName: "Bayview Grand Hotel",
       email: "j.laurent@fourseasons.com",
       emailNorm: "j.laurent@fourseasons.com",
       phone: "+973 1711 5000",
@@ -1097,7 +1033,7 @@ async function main() {
       id: "contact-12",
       firstName: "راشد",
       lastName: "السعيد",
-      companyName: "Economic Development Board (EDB)",
+      companyName: "Economic Development Board (RIB)",
       email: "r.alsaeed@bahrainedb.com",
       emailNorm: "r.alsaeed@bahrainedb.com",
       phone: "+973 3933 6677",
@@ -1110,33 +1046,33 @@ async function main() {
       id: "contact-13",
       firstName: "لولوة",
       lastName: "المناعي",
-      companyName: "stc Bahrain",
-      email: "l.almannai@stc.com.bh",
-      emailNorm: "l.almannai@stc.com.bh",
+      companyName: "Nexa Mobile",
+      email: "l.almannai@nexa.com.bh",
+      emailNorm: "l.almannai@nexa.com.bh",
       phone: "+973 3500 8899",
       phoneE164: "+97335008899",
       jobTitle: "General Manager — Marketing Communications",
       contactType: "client",
-      notes: "Fiber broadband advertising campaigns, stc pay promotional videos, and music event filming.",
+      notes: "Fiber broadband advertising campaigns, nexa pay promotional videos, and music event filming.",
     },
     {
       id: "contact-14",
       firstName: "الشيخ سلمان",
       lastName: "بن عيسى آل خليفة",
-      companyName: "Bahrain International Circuit (BIC)",
+      companyName: "Desert Speedway (DSW)",
       email: "s.binisa@bic.com.bh",
       emailNorm: "s.binisa@bic.com.bh",
       phone: "+973 3922 0011",
       phoneE164: "+97339220011",
       jobTitle: "Chief Executive Officer",
       contactType: "client",
-      notes: "Formula 1 Gulf Air Bahrain GP official teasers, WEC endurance coverage, and night racing films.",
+      notes: "Formula 1 Falcon Airways Bahrain GP official teasers, WEC endurance coverage, and night racing films.",
     },
     {
       id: "contact-15",
       firstName: "زياد",
       lastName: "العلوي",
-      companyName: "Beyon Money FinTech",
+      companyName: "NovaPay FinTech",
       email: "z.alalawi@beyonmoney.com",
       emailNorm: "z.alalawi@beyonmoney.com",
       phone: "+973 3911 7733",
@@ -1149,7 +1085,7 @@ async function main() {
       id: "contact-16",
       firstName: "David",
       lastName: "Campbell",
-      companyName: "Royal Golf Club Bahrain",
+      companyName: "Palm Golf Club",
       email: "d.campbell@theroyalgolfclub.com",
       emailNorm: "d.campbell@theroyalgolfclub.com",
       phone: "+973 1775 0777",
@@ -1188,7 +1124,7 @@ async function main() {
     {
       id: "deal-01",
       contactId: "contact-01",
-      title: "Batelco 5G-Advanced Launch Campaign",
+      title: "Gulfwave 5G-Advanced Launch Campaign",
       dealStage: "production",
       dealValue: 14500.0,
       currency: "BHD",
@@ -1200,7 +1136,7 @@ async function main() {
     {
       id: "deal-02",
       contactId: "contact-02",
-      title: "Gulf Air Summer Destination Series",
+      title: "Falcon Airways Summer Destination Series",
       dealStage: "proposal_sent",
       dealValue: 18200.0,
       currency: "BHD",
@@ -1212,7 +1148,7 @@ async function main() {
     {
       id: "deal-03",
       contactId: "contact-03",
-      title: "Bahrain Grand Prix 2027 Teaser Film",
+      title: "Island Grand Prix 2027 Teaser Film",
       dealStage: "contract_signed",
       dealValue: 22000.0,
       currency: "BHD",
@@ -1224,19 +1160,19 @@ async function main() {
     {
       id: "deal-04",
       contactId: "contact-05",
-      title: "Zayani Luxury EV Cinematic Commercial",
+      title: "Crescent Luxury EV Cinematic Commercial",
       dealStage: "post_production",
       dealValue: 8750.0,
       currency: "BHD",
       probability: 100,
       expectedCloseDate: new Date("2026-09-30"),
       shootDate: new Date("2026-09-18"),
-      notes: "Currently in color grading and 5.1 surround sound mastering at ishoot suite.",
+      notes: `Currently in color grading and 5.1 surround sound mastering at ${BRAND_EN} suite.`,
     },
     {
       id: "deal-05",
       contactId: "contact-01",
-      title: "Batelco Ramadan Brand Film 2027",
+      title: "Gulfwave Ramadan Brand Film 2027",
       dealStage: "lead",
       dealValue: 12000.0,
       currency: "BHD",
@@ -1247,7 +1183,7 @@ async function main() {
     {
       id: "deal-06",
       contactId: "contact-05",
-      title: "Ferrari Bahrain Showroom Showcase",
+      title: "Rossa Motors Showroom Showcase",
       dealStage: "delivered",
       dealValue: 6500.0,
       currency: "BHD",
@@ -1271,7 +1207,7 @@ async function main() {
     {
       id: "deal-08",
       contactId: "contact-06",
-      title: "Zain Bahrain Youth Esports Film",
+      title: "Orbit Telecom Youth Esports Film",
       dealStage: "production",
       dealValue: 11200.0,
       currency: "BHD",
@@ -1283,7 +1219,7 @@ async function main() {
     {
       id: "deal-09",
       contactId: "contact-07",
-      title: "NBB Digital Banking App Rebrand Film",
+      title: "HNB Digital Banking App Rebrand Film",
       dealStage: "closed_won",
       dealValue: 7800.0,
       currency: "BHD",
@@ -1295,7 +1231,7 @@ async function main() {
     {
       id: "deal-10",
       contactId: "contact-08",
-      title: "ALBA Net-Zero Carbon Milestone Documentary",
+      title: "SUMMIT Net-Zero Carbon Milestone Documentary",
       dealStage: "closed_won",
       dealValue: 16500.0,
       currency: "BHD",
@@ -1307,7 +1243,7 @@ async function main() {
     {
       id: "deal-11",
       contactId: "contact-09",
-      title: "Bapco Energies Future of Energy Showcase",
+      title: "Delta Energies Future of Energy Showcase",
       dealStage: "production",
       dealValue: 15000.0,
       currency: "BHD",
@@ -1319,7 +1255,7 @@ async function main() {
     {
       id: "deal-12",
       contactId: "contact-10",
-      title: "Mumtalakat Portfolio Corporate Film",
+      title: "Pearl Holding Portfolio Corporate Film",
       dealStage: "delivered",
       dealValue: 13500.0,
       currency: "BHD",
@@ -1331,7 +1267,7 @@ async function main() {
     {
       id: "deal-13",
       contactId: "contact-11",
-      title: "Four Seasons Bahrain Bay Luxury Dining Vignettes",
+      title: "Bayview Grand Luxury Dining Vignettes",
       dealStage: "closed_won",
       dealValue: 5200.0,
       currency: "BHD",
@@ -1343,7 +1279,7 @@ async function main() {
     {
       id: "deal-14",
       contactId: "contact-12",
-      title: "EDB Invest in Bahrain Global Film",
+      title: "RIB Invest in Bahrain Global Film",
       dealStage: "closed_won",
       dealValue: 10800.0,
       currency: "BHD",
@@ -1355,7 +1291,7 @@ async function main() {
     {
       id: "deal-15",
       contactId: "contact-13",
-      title: "stc Bahrain 5G Fiber Broadband Commercial",
+      title: "Nexa Mobile 5G Fiber Broadband Commercial",
       dealStage: "closed_won",
       dealValue: 6200.0,
       currency: "BHD",
@@ -1367,7 +1303,7 @@ async function main() {
     {
       id: "deal-16",
       contactId: "contact-14",
-      title: "BIC World Endurance Championship Promo",
+      title: "DSW World Endurance Championship Promo",
       dealStage: "delivered",
       dealValue: 9500.0,
       currency: "BHD",
@@ -1379,7 +1315,7 @@ async function main() {
     {
       id: "deal-17",
       contactId: "contact-15",
-      title: "Beyon Money SuperApp Launch Film",
+      title: "NovaPay SuperApp Launch Film",
       dealStage: "closed_won",
       dealValue: 6700.0,
       currency: "BHD",
@@ -1391,7 +1327,7 @@ async function main() {
     {
       id: "deal-18",
       contactId: "contact-16",
-      title: "Royal Golf Club International Invitational",
+      title: "Palm Golf Club International Invitational",
       dealStage: "closed_won",
       dealValue: 3400.0,
       currency: "BHD",
@@ -1403,7 +1339,7 @@ async function main() {
     {
       id: "deal-19",
       contactId: "contact-04",
-      title: "Impact BBDO National Day Multi-Brand Film",
+      title: "Spark Creative National Day Multi-Brand Film",
       dealStage: "proposal_sent",
       dealValue: 19500.0,
       currency: "BHD",
@@ -1414,7 +1350,7 @@ async function main() {
     {
       id: "deal-20",
       contactId: "contact-02",
-      title: "Gulf Air First Class Cabin Experience Film",
+      title: "Falcon Airways First Class Cabin Experience Film",
       dealStage: "closed_lost",
       dealValue: 8000.0,
       currency: "BHD",
@@ -1444,7 +1380,7 @@ async function main() {
   const invoicesData = [
     {
       id: "inv-001",
-      invoiceNumber: "ISH-2026-0001",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0001`,
       dealId: "deal-07",
       clientId: "contact-03",
       issueDate: new Date("2026-08-15"),
@@ -1469,7 +1405,7 @@ async function main() {
     },
     {
       id: "inv-002",
-      invoiceNumber: "ISH-2026-0002",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0002`,
       dealId: "deal-04",
       clientId: "contact-05",
       issueDate: new Date("2026-09-01"),
@@ -1492,7 +1428,7 @@ async function main() {
     },
     {
       id: "inv-003",
-      invoiceNumber: "ISH-2026-0003",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0003`,
       dealId: "deal-01",
       clientId: "contact-01",
       issueDate: new Date("2026-09-10"),
@@ -1515,7 +1451,7 @@ async function main() {
     },
     {
       id: "inv-004",
-      invoiceNumber: "ISH-2026-0004",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0004`,
       dealId: "deal-13",
       clientId: "contact-11",
       issueDate: new Date("2026-08-05"),
@@ -1530,7 +1466,7 @@ async function main() {
       language: "en",
       status: "paid",
       createdById: createdUsers.finance_manager?.id,
-      notesEn: "Full settlement for Four Seasons luxury dining vignettes.",
+      notesEn: "Full settlement for Bayview Grand luxury dining vignettes.",
       lineItems: [
         { serviceId: "srv-01", descriptionEn: "Macro Food & Dining Cinematography (2 Days)", descriptionAr: "تصوير سينمائي ماكرو للأطباق الفاخرة (يومان)", quantity: 2.0, unitPrice: 1600.0, lineTotal: 3200.0, displayOrder: 1 },
         { serviceId: "srv-08", descriptionEn: "Color Grading & High-End 4K Deliverables", descriptionAr: "تصحيح ألوان وإخراج نهائي بدقة 4K", quantity: 1.0, unitPrice: 2000.0, lineTotal: 2000.0, displayOrder: 2 },
@@ -1538,7 +1474,7 @@ async function main() {
     },
     {
       id: "inv-005",
-      invoiceNumber: "ISH-2026-0005",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0005`,
       dealId: "deal-18",
       clientId: "contact-16",
       issueDate: new Date("2026-06-25"),
@@ -1561,7 +1497,7 @@ async function main() {
     },
     {
       id: "inv-006",
-      invoiceNumber: "ISH-2026-0006",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0006`,
       dealId: "deal-08",
       clientId: "contact-06",
       issueDate: new Date("2026-09-12"),
@@ -1585,7 +1521,7 @@ async function main() {
     },
     {
       id: "inv-007",
-      invoiceNumber: "ISH-2026-0007",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0007`,
       dealId: "deal-09",
       clientId: "contact-07",
       issueDate: new Date("2026-08-25"),
@@ -1600,7 +1536,7 @@ async function main() {
       language: "ar",
       status: "paid",
       createdById: createdUsers.finance_manager?.id,
-      notesAr: "دفعة كاملة مسددة عن إنتاج فيلم تطبيق الخدمات الرقمية لبنك البحرين الوطني.",
+      notesAr: "دفعة كاملة مسددة عن إنتاج فيلم تطبيق الخدمات الرقمية لبنك هاربر الوطني.",
       lineItems: [
         { serviceId: "srv-01", descriptionEn: "App UI Cinema Integration & Live-Action Shoot", descriptionAr: "تصوير سينمائي حي ودمج شاشات التطبيق التفاعلية", quantity: 1.0, unitPrice: 4800.0, lineTotal: 4800.0, displayOrder: 1 },
         { serviceId: "srv-08", descriptionEn: "DaVinci Color Grade & Finishing", descriptionAr: "تصحيح ألوان وإخراج نهائي للبث التلفزيوني والرقمي", quantity: 1.0, unitPrice: 3000.0, lineTotal: 3000.0, displayOrder: 2 },
@@ -1608,7 +1544,7 @@ async function main() {
     },
     {
       id: "inv-008",
-      invoiceNumber: "ISH-2026-0008",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0008`,
       dealId: "deal-10",
       clientId: "contact-08",
       issueDate: new Date("2026-08-01"),
@@ -1623,7 +1559,7 @@ async function main() {
       language: "en",
       status: "sent",
       createdById: createdUsers.super_admin?.id,
-      notesEn: "Invoice issued for ALBA Net-Zero Carbon Documentary; undergoing client SAP procurement clearance.",
+      notesEn: "Invoice issued for SUMMIT Net-Zero Carbon Documentary; undergoing client SAP procurement clearance.",
       lineItems: [
         { serviceId: "srv-02", descriptionEn: "Industrial Plant 5-Day Cinematography & Executive Interviews", descriptionAr: "تصوير صناعي في المصهر لمدة 5 أيام ومقابلات الإدارة التنفيذية", quantity: 5.0, unitPrice: 2000.0, lineTotal: 10000.0, displayOrder: 1 },
         { serviceId: "srv-03", descriptionEn: "Industrial Aerial Survey & Thermal Drone Cinema", descriptionAr: "مسح جوي سينمائي وتصوير بالدرون الحراري", quantity: 2.0, unitPrice: 1500.0, lineTotal: 3000.0, displayOrder: 2 },
@@ -1632,7 +1568,7 @@ async function main() {
     },
     {
       id: "inv-009",
-      invoiceNumber: "ISH-2026-0009",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0009`,
       dealId: "deal-06",
       clientId: "contact-05",
       issueDate: new Date("2026-08-10"),
@@ -1647,15 +1583,15 @@ async function main() {
       language: "en",
       status: "overdue",
       createdById: createdUsers.finance_manager?.id,
-      notesEn: "OVERDUE: Reminder sent for Ferrari showroom showcase delivery balance.",
+      notesEn: "OVERDUE: Reminder sent for Rossa showroom showcase delivery balance.",
       lineItems: [
-        { serviceId: "srv-01", descriptionEn: "Ferrari Showroom Lighting & Gimbal Cinematography", descriptionAr: "تصوير سينمائي احترافي بصالة العرض مع الإضاءة المتقدمة", quantity: 1.0, unitPrice: 3000.0, lineTotal: 3000.0, displayOrder: 1 },
+        { serviceId: "srv-01", descriptionEn: "Rossa Showroom Lighting & Gimbal Cinematography", descriptionAr: "تصوير سينمائي احترافي بصالة العرض مع الإضاءة المتقدمة", quantity: 1.0, unitPrice: 3000.0, lineTotal: 3000.0, displayOrder: 1 },
         { serviceId: "srv-08", descriptionEn: "ProRes 4444 XQ Master Grading & HDR Delivery", descriptionAr: "معالجة ألوان وتصدير ماستر بدقة فائقة HDR", quantity: 1.0, unitPrice: 1500.0, lineTotal: 1500.0, displayOrder: 2 },
       ],
     },
     {
       id: "inv-010",
-      invoiceNumber: "ISH-2026-0010",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0010`,
       dealId: "deal-15",
       clientId: "contact-13",
       issueDate: new Date("2026-07-20"),
@@ -1678,7 +1614,7 @@ async function main() {
     },
     {
       id: "inv-011",
-      invoiceNumber: "ISH-2026-0011",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0011`,
       dealId: "deal-16",
       clientId: "contact-14",
       issueDate: new Date("2026-09-01"),
@@ -1695,14 +1631,14 @@ async function main() {
       createdById: createdUsers.super_admin?.id,
       notesEn: "50% advance received for World Endurance Championship promo teaser.",
       lineItems: [
-        { serviceId: "srv-01", descriptionEn: "Night Circuit Track High-Speed Tracking Shoot", descriptionAr: "تصوير تتبع ليلي عالي السرعة على مضمار حلبة البحرين", quantity: 2.0, unitPrice: 2500.0, lineTotal: 5000.0, displayOrder: 1 },
+        { serviceId: "srv-01", descriptionEn: "Night Circuit Track High-Speed Tracking Shoot", descriptionAr: "تصوير تتبع ليلي عالي السرعة على مضمار حلبة الصحراء", quantity: 2.0, unitPrice: 2500.0, lineTotal: 5000.0, displayOrder: 1 },
         { serviceId: "srv-04", descriptionEn: "FPV Aerial Drone Pitlane Fly-throughs", descriptionAr: "لقطات جوية درون FPV عبر خط الصيانة ومنصات الفرق", quantity: 1.0, unitPrice: 2000.0, lineTotal: 2000.0, displayOrder: 2 },
         { serviceId: "srv-09", descriptionEn: "Engine Roar Foley & Dolby 5.1 Sound Design", descriptionAr: "تصميم صوتي واقعي لزئير المحركات ومكساج محيطي", quantity: 1.0, unitPrice: 2500.0, lineTotal: 2500.0, displayOrder: 3 },
       ],
     },
     {
       id: "inv-012",
-      invoiceNumber: "ISH-2026-0012",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0012`,
       dealId: "deal-05",
       clientId: "contact-01",
       issueDate: new Date("2026-08-05"),
@@ -1724,7 +1660,7 @@ async function main() {
     },
     {
       id: "inv-013",
-      invoiceNumber: "ISH-2026-0013",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0013`,
       dealId: "deal-17",
       clientId: "contact-15",
       issueDate: new Date("2026-07-01"),
@@ -1747,7 +1683,7 @@ async function main() {
     },
     {
       id: "inv-014",
-      invoiceNumber: "ISH-2026-0014",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0014`,
       dealId: "deal-06",
       clientId: "contact-05",
       issueDate: new Date("2026-09-05"),
@@ -1769,7 +1705,7 @@ async function main() {
     },
     {
       id: "inv-015",
-      invoiceNumber: "ISH-2026-0015",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0015`,
       dealId: "deal-14",
       clientId: "contact-12",
       issueDate: new Date("2026-09-15"),
@@ -1784,15 +1720,15 @@ async function main() {
       language: "en",
       status: "sent",
       createdById: createdUsers.super_admin?.id,
-      notesEn: "Phase 2 delivery invoice for EDB global investor promotional documentary.",
+      notesEn: "Phase 2 delivery invoice for RIB global investor promotional documentary.",
       lineItems: [
-        { serviceId: "srv-02", descriptionEn: "3-Day Financial Harbor & Industrial Zone Shoot", descriptionAr: "3 أيام تصوير في مرفأ البحرين المالي والمناطق الصناعية", quantity: 3.0, unitPrice: 1800.0, lineTotal: 5400.0, displayOrder: 1 },
+        { serviceId: "srv-02", descriptionEn: "3-Day Financial Harbor & Industrial Zone Shoot", descriptionAr: "3 أيام تصوير في مركز المارينا المالي والمناطق الصناعية", quantity: 3.0, unitPrice: 1800.0, lineTotal: 5400.0, displayOrder: 1 },
         { serviceId: "srv-08", descriptionEn: "Multilingual Voiceover Sync & HDR Master Grading", descriptionAr: "مزامنة التعليق الصوتي متعدد اللغات والتلوين السينمائي", quantity: 1.0, unitPrice: 3000.0, lineTotal: 3000.0, displayOrder: 2 },
       ],
     },
     {
       id: "inv-016",
-      invoiceNumber: "ISH-2026-0016",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0016`,
       dealId: "deal-11",
       clientId: "contact-09",
       issueDate: new Date("2026-09-08"),
@@ -1816,7 +1752,7 @@ async function main() {
     },
     {
       id: "inv-017",
-      invoiceNumber: "ISH-2026-0017",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0017`,
       dealId: "deal-12",
       clientId: "contact-10",
       issueDate: new Date("2026-08-18"),
@@ -1831,7 +1767,7 @@ async function main() {
       language: "en",
       status: "paid",
       createdById: createdUsers.finance_manager?.id,
-      notesEn: "Full settlement for Mumtalakat holding portfolio highlights.",
+      notesEn: "Full settlement for Pearl Holding holding portfolio highlights.",
       lineItems: [
         { serviceId: "srv-01", descriptionEn: "Sovereign Portfolio Commercial Cinematography", descriptionAr: "تصوير سينمائي لمشاريع المحفظة الاستثمارية", quantity: 1.0, unitPrice: 4200.0, lineTotal: 4200.0, displayOrder: 1 },
         { serviceId: "srv-08", descriptionEn: "DaVinci Color Grade & Broadcast Titles", descriptionAr: "تلوين دافينشي وعناوين إخراج احترافية", quantity: 1.0, unitPrice: 2500.0, lineTotal: 2500.0, displayOrder: 2 },
@@ -1839,7 +1775,7 @@ async function main() {
     },
     {
       id: "inv-018",
-      invoiceNumber: "ISH-2026-0018",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0018`,
       dealId: "deal-04",
       clientId: "contact-05",
       issueDate: new Date("2026-08-01"),
@@ -1862,7 +1798,7 @@ async function main() {
     },
     {
       id: "inv-019",
-      invoiceNumber: "ISH-2026-0019",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0019`,
       dealId: "deal-02",
       clientId: "contact-02",
       issueDate: new Date("2026-09-20"),
@@ -1877,7 +1813,7 @@ async function main() {
       language: "en",
       status: "sent",
       createdById: createdUsers.super_admin?.id,
-      notesEn: "Initial mobilization deposit invoice for Gulf Air Summer Destination series.",
+      notesEn: "Initial mobilization deposit invoice for Falcon Airways Summer Destination series.",
       lineItems: [
         { serviceId: "srv-02", descriptionEn: "International Filming Crew & Equipment Logistics", descriptionAr: "طاقم التصوير الدولي واللوجستيات والمعدات", quantity: 1.0, unitPrice: 10500.0, lineTotal: 10500.0, displayOrder: 1 },
         { serviceId: "srv-01", descriptionEn: "Aircraft Cabin Interior Cinematography", descriptionAr: "تصوير سينمائي لمقصورات الطائرة والمقاعد الفاخرة", quantity: 2.0, unitPrice: 4000.0, lineTotal: 8000.0, displayOrder: 2 },
@@ -1885,7 +1821,7 @@ async function main() {
     },
     {
       id: "inv-020",
-      invoiceNumber: "ISH-2026-0020",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0020`,
       dealId: "deal-14",
       clientId: "contact-12",
       issueDate: new Date("2026-07-10"),
@@ -1900,7 +1836,7 @@ async function main() {
       language: "en",
       status: "paid",
       createdById: createdUsers.finance_manager?.id,
-      notesEn: "Phase 1 advance for EDB Global Cinema campaign.",
+      notesEn: "Phase 1 advance for RIB Global Cinema campaign.",
       lineItems: [
         { serviceId: "srv-11", descriptionEn: "Treatment, Scripting & Creative Pitch Deck", descriptionAr: "المعالجة الإبداعية والسيناريو والعرض التقديمي", quantity: 1.0, unitPrice: 2500.0, lineTotal: 2500.0, displayOrder: 1 },
         { serviceId: "srv-01", descriptionEn: "Bahrain World Trade Center Helicopter & Drone Filming", descriptionAr: "تصوير جوي سينمائي لمركز التجارة العالمي بالمنامة", quantity: 1.0, unitPrice: 3400.0, lineTotal: 3400.0, displayOrder: 2 },
@@ -1908,7 +1844,7 @@ async function main() {
     },
     {
       id: "inv-021",
-      invoiceNumber: "ISH-2026-0021",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0021`,
       dealId: "deal-17",
       clientId: "contact-15",
       issueDate: new Date("2026-06-10"),
@@ -1923,7 +1859,7 @@ async function main() {
       language: "en",
       status: "paid",
       createdById: createdUsers.finance_manager?.id,
-      notesEn: "Phase 1 production advance for Beyon Money app campaign.",
+      notesEn: "Phase 1 production advance for NovaPay app campaign.",
       lineItems: [
         { serviceId: "srv-02", descriptionEn: "High-Energy Commercial Studio Shoot (2 Days)", descriptionAr: "تصوير إعلاني عالي الحيوية في الاستوديو (يومان)", quantity: 2.0, unitPrice: 2400.0, lineTotal: 4800.0, displayOrder: 1 },
         { serviceId: "srv-07", descriptionEn: "Offline Edit & Visual Rhythm Cut", descriptionAr: "مونتاج متسارع ومؤثرات حركية", quantity: 1.0, unitPrice: 2500.0, lineTotal: 2500.0, displayOrder: 2 },
@@ -1931,7 +1867,7 @@ async function main() {
     },
     {
       id: "inv-022",
-      invoiceNumber: "ISH-2026-0022",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0022`,
       dealId: "deal-12",
       clientId: "contact-10",
       issueDate: new Date("2026-09-01"),
@@ -1946,15 +1882,15 @@ async function main() {
       language: "ar",
       status: "partially_paid",
       createdById: createdUsers.super_admin?.id,
-      notesAr: "تم استلام 50% دفعة أولى عن تصوير أصول ممتلكات الصناعية.",
+      notesAr: "تم استلام 50% دفعة أولى عن تصوير أصول اللؤلؤ القابضة الصناعية.",
       lineItems: [
-        { serviceId: "srv-01", descriptionEn: "Sovereign Industrial Assets Cinematography (3 Days)", descriptionAr: "تصوير أصول ممتلكات الصناعية (3 أيام)", quantity: 3.0, unitPrice: 2200.0, lineTotal: 6600.0, displayOrder: 1 },
+        { serviceId: "srv-01", descriptionEn: "Sovereign Industrial Assets Cinematography (3 Days)", descriptionAr: "تصوير أصول اللؤلؤ القابضة الصناعية (3 أيام)", quantity: 3.0, unitPrice: 2200.0, lineTotal: 6600.0, displayOrder: 1 },
         { serviceId: "srv-03", descriptionEn: "Drone Cinema Inspection Footage & 8K Delivery", descriptionAr: "تصوير درون سينمائي بدقة 8K ومسح للمواقع", quantity: 2.0, unitPrice: 2100.0, lineTotal: 4200.0, displayOrder: 2 },
       ],
     },
     {
       id: "inv-023",
-      invoiceNumber: "ISH-2026-0023",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0023`,
       dealId: "deal-03",
       clientId: "contact-03",
       issueDate: new Date("2026-09-22"),
@@ -1977,7 +1913,7 @@ async function main() {
     },
     {
       id: "inv-024",
-      invoiceNumber: "ISH-2026-0024",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0024`,
       dealId: "deal-05",
       clientId: "contact-01",
       issueDate: new Date("2026-09-25"),
@@ -2000,7 +1936,7 @@ async function main() {
     },
     {
       id: "inv-025",
-      invoiceNumber: "ISH-2026-0025",
+      invoiceNumber: `${INVOICE_PREFIX}-2026-0025`,
       dealId: "deal-19",
       clientId: "contact-04",
       issueDate: new Date("2026-09-26"),
@@ -2015,7 +1951,7 @@ async function main() {
       language: "en",
       status: "draft",
       createdById: createdUsers.finance_manager?.id,
-      notesEn: "Draft invoice for Impact BBDO joint agency bid deliverables.",
+      notesEn: "Draft invoice for Spark Creative joint agency bid deliverables.",
       lineItems: [
         { serviceId: "srv-01", descriptionEn: "Director of Photography & Creative Treatment", descriptionAr: "إدارة التصوير والمعالجة الإخراجية", quantity: 1.0, unitPrice: 4200.0, lineTotal: 4200.0, displayOrder: 1 },
         { serviceId: "srv-05", descriptionEn: "Soundstage A 2-Day Pre-Light and Tech Rehearsal", descriptionAr: "تجهيز الإضاءة وبروفات الحركة في استوديو أ (يومان)", quantity: 2.0, unitPrice: 2000.0, lineTotal: 4000.0, displayOrder: 2 },
@@ -2048,8 +1984,8 @@ async function main() {
       amount: 9800.0,
       currency: "BHD",
       paymentMethod: "bank_transfer",
-      referenceNumber: "TRF-NBB-8492019",
-      notes: "Full payment cleared via National Bank of Bahrain corporate wire.",
+      referenceNumber: "TRF-HNB-8492019",
+      notes: "Full payment cleared via Harbor National Bank corporate wire.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2075,7 +2011,7 @@ async function main() {
       currency: "BHD",
       paymentMethod: "card",
       referenceNumber: "AUTH-AMEX-99201",
-      notes: "Paid in full via Four Seasons Corporate AMEX card.",
+      notes: "Paid in full via Bayview Grand Corporate AMEX card.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2088,7 +2024,7 @@ async function main() {
       currency: "BHD",
       paymentMethod: "bank_transfer",
       referenceNumber: "TRF-HSBC-481920",
-      notes: "Direct wire settlement from Royal Golf Club account.",
+      notes: "Direct wire settlement from Palm Golf Club account.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2101,7 +2037,7 @@ async function main() {
       currency: "BHD",
       paymentMethod: "bank_transfer",
       referenceNumber: "TRF-AUB-882194",
-      notes: "Zain Bahrain 50% mobilization advance.",
+      notes: "Orbit Telecom 50% mobilization advance.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2113,8 +2049,8 @@ async function main() {
       amount: 7800.0,
       currency: "BHD",
       paymentMethod: "bank_transfer",
-      referenceNumber: "TRF-NBB-992100",
-      notes: "National Bank of Bahrain full project settlement.",
+      referenceNumber: "TRF-HNB-992100",
+      notes: "Harbor National Bank full project settlement.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2127,7 +2063,7 @@ async function main() {
       currency: "BHD",
       paymentMethod: "bank_transfer",
       referenceNumber: "TRF-BISB-109281",
-      notes: "stc Bahrain fiber commercial full settlement.",
+      notes: "Nexa Mobile fiber commercial full settlement.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2139,8 +2075,8 @@ async function main() {
       amount: 4750.0,
       currency: "BHD",
       paymentMethod: "bank_transfer",
-      referenceNumber: "TRF-NBB-772189",
-      notes: "50% advance for BIC WEC championship promo.",
+      referenceNumber: "TRF-HNB-772189",
+      notes: "50% advance for DSW WEC championship promo.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2166,7 +2102,7 @@ async function main() {
       currency: "BHD",
       paymentMethod: "cheque",
       referenceNumber: "CHQ-BBK-001928",
-      notes: "Zayani Motors manager corporate cheque cleared.",
+      notes: "Crescent Motors manager corporate cheque cleared.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2178,8 +2114,8 @@ async function main() {
       amount: 5000.0,
       currency: "BHD",
       paymentMethod: "bank_transfer",
-      referenceNumber: "TRF-BAPCO-9921",
-      notes: "Bapco Energies 1st mobilization disbursement.",
+      referenceNumber: "TRF-DELTA-9921",
+      notes: "Delta Energies 1st mobilization disbursement.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2191,8 +2127,8 @@ async function main() {
       amount: 5000.0,
       currency: "BHD",
       paymentMethod: "bank_transfer",
-      referenceNumber: "TRF-BAPCO-9988",
-      notes: "Bapco Energies 2nd progress installment.",
+      referenceNumber: "TRF-DELTA-9988",
+      notes: "Delta Energies 2nd progress installment.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2205,7 +2141,7 @@ async function main() {
       currency: "BHD",
       paymentMethod: "bank_transfer",
       referenceNumber: "TRF-MUMT-4910",
-      notes: "Mumtalakat holding full settlement.",
+      notes: "Pearl Holding holding full settlement.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2217,8 +2153,8 @@ async function main() {
       amount: 5900.0,
       currency: "BHD",
       paymentMethod: "bank_transfer",
-      referenceNumber: "TRF-EDB-29108",
-      notes: "Bahrain EDB advance payment cleared.",
+      referenceNumber: "TRF-RIB-29108",
+      notes: "Bahrain RIB advance payment cleared.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2231,7 +2167,7 @@ async function main() {
       currency: "BHD",
       paymentMethod: "online",
       referenceNumber: "BENEFIT-PAY-88210",
-      notes: "Beyon Money phase 1 settlement.",
+      notes: "NovaPay phase 1 settlement.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2244,7 +2180,7 @@ async function main() {
       currency: "BHD",
       paymentMethod: "bank_transfer",
       referenceNumber: "TRF-MUMT-5520",
-      notes: "Mumtalakat industrial asset shoot 50% advance.",
+      notes: "Pearl Holding industrial asset shoot 50% advance.",
       notificationSent: true,
       createdById: createdUsers.finance_manager?.id,
     },
@@ -2317,8 +2253,8 @@ async function main() {
   const expenses = [
     { id: "exp-01", categoryId: "expcat-02", dealId: "deal-07", descriptionEn: "Steadicam Operator & 1st AC Wages (3 Shoot Days)", descriptionAr: "أجور مشغل ستيديكام ومساعد المصور الأول (3 أيام)", amount: 1050.0, currency: "BHD", expenseDate: new Date("2026-08-16"), vendorName: "Direct Freelance Crew", createdById: createdUsers.production_manager?.id },
     { id: "exp-02", categoryId: "expcat-01", dealId: "deal-04", descriptionEn: "Russian Arm Camera Crane Tracking Car Rental", descriptionAr: "استئجار سيارة تتبع بكاميرا كرين متقدمة", amount: 1400.0, currency: "BHD", expenseDate: new Date("2026-09-02"), vendorName: "Gulf Motion Grip Services", createdById: createdUsers.producer?.id },
-    { id: "exp-03", categoryId: "expcat-04", descriptionEn: "Monthly Soundstage A Facility Lease & Electricity", descriptionAr: "إيجار استوديو أ ومصاريف الكهرباء الشهرية", amount: 1250.0, currency: "BHD", expenseDate: new Date("2026-09-01"), vendorName: "Seef Commercial Real Estate", isRecurring: true, recurrenceInterval: "monthly", createdById: createdUsers.finance_manager?.id },
-    { id: "exp-04", categoryId: "expcat-05", descriptionEn: "DaVinci Resolve Studio Cloud & LucidLink 10TB Cinema Cloud", descriptionAr: "اشتراك سحابة دافينشي ومساحة تخزين لوسيد لينك 10 تيرابايت", amount: 280.0, currency: "BHD", expenseDate: new Date("2026-09-03"), vendorName: "LucidLink Inc / Blackmagic Cloud", isRecurring: true, recurrenceInterval: "monthly", createdById: createdUsers.editor?.id },
+    { id: "exp-03", categoryId: "expcat-04", descriptionEn: "Monthly Soundstage A Facility Lease & Electricity", descriptionAr: "إيجار استوديو أ ومصاريف الكهرباء الشهرية", amount: 1250.0, currency: "BHD", expenseDate: new Date("2026-09-01"), vendorName: "Seafront Commercial Real Estate", isRecurring: true, recurrenceInterval: "monthly", createdById: createdUsers.finance_manager?.id },
+    { id: "exp-04", categoryId: "expcat-05", descriptionEn: "DaVinci Resolve Studio Cloud & LucidLink 10TB Cinema Cloud", descriptionAr: "اشتراك سحابة دافينشي ومساحة تخأوربت لوسيد لينك 10 تيرابايت", amount: 280.0, currency: "BHD", expenseDate: new Date("2026-09-03"), vendorName: "LucidLink Inc / Blackmagic Cloud", isRecurring: true, recurrenceInterval: "monthly", createdById: createdUsers.editor?.id },
     { id: "exp-05", categoryId: "expcat-02", dealId: "deal-01", descriptionEn: "Principal Cast Actors & Talent Agency Retainers", descriptionAr: "أجور الممثلين الرئيسيين ورسوم وكالة المواهب", amount: 1800.0, currency: "BHD", expenseDate: new Date("2026-09-15"), vendorName: "Bahrain Talent Casting", createdById: createdUsers.producer?.id },
     { id: "exp-06", categoryId: "expcat-03", dealId: "deal-01", descriptionEn: "Production Catering & Craft Services (4 Shoot Days)", descriptionAr: "خدمات الضيافة والإعاشة لطاقم التصوير لـ 4 أيام", amount: 650.0, currency: "BHD", expenseDate: new Date("2026-09-18"), vendorName: "Manama Gourmet Catering", createdById: createdUsers.producer?.id },
     { id: "exp-07", categoryId: "expcat-01", dealId: "deal-03", descriptionEn: "ARRI Master Grips & Wireless Follow Focus Unit Rental", descriptionAr: "استئجار أجهزة تحكم بالعدسات لاسلكية من آرّي", amount: 480.0, currency: "BHD", expenseDate: new Date("2026-09-20"), vendorName: "Gulf Camera Gear Rentals", createdById: createdUsers.production_manager?.id },
@@ -2349,13 +2285,13 @@ async function main() {
   const calendarEvents = [
     {
       id: "event-01",
-      title: "Batelco 5G Cinema Shoot — Day 1 (Seef District)",
-      titleAr: "تصوير إعلان بتلكو — اليوم الأول (ضاحية السيف)",
+      title: "Gulfwave 5G Cinema Shoot — Day 1 (Seafront District)",
+      titleAr: "تصوير إعلان جلف ويف — اليوم الأول (ضاحية الواجهة البحرية)",
       description: "Principal photography with RED 8K and anamorphic glass. Call time 05:30 AM.",
       startDate: new Date("2026-10-05T05:30:00Z"),
       endDate: new Date("2026-10-05T18:00:00Z"),
       allDay: false,
-      location: "Seef District, Manama",
+      location: "Seafront District, Manama",
       color: "#09937F",
       eventType: "shoot",
       dealId: "deal-01",
@@ -2363,8 +2299,8 @@ async function main() {
     },
     {
       id: "event-02",
-      title: "Batelco 5G Cinema Shoot — Day 2 (Bahrain Bay)",
-      titleAr: "تصوير إعلان بتلكو — اليوم الثاني (خليج البحرين)",
+      title: "Gulfwave 5G Cinema Shoot — Day 2 (Bahrain Bay)",
+      titleAr: "تصوير إعلان جلف ويف — اليوم الثاني (خليج البحرين)",
       description: "Sunset and night drone capture. FPV operations licensed with BCAA.",
       startDate: new Date("2026-10-06T14:00:00Z"),
       endDate: new Date("2026-10-06T22:30:00Z"),
@@ -2377,13 +2313,13 @@ async function main() {
     },
     {
       id: "event-03",
-      title: "Gulf Air Summer Series — Creative Pitch Meeting",
-      titleAr: "اجتماع تقديم العرض الإبداعي لطيران الخليج",
-      description: "Presentation of 3 storyboard directions to Gulf Air executive board.",
+      title: "Falcon Airways Summer Series — Creative Pitch Meeting",
+      titleAr: "اجتماع تقديم العرض الإبداعي لطيران الفالكون",
+      description: "Presentation of 3 storyboard directions to Falcon Airways executive board.",
       startDate: new Date("2026-09-28T10:00:00Z"),
       endDate: new Date("2026-09-28T11:30:00Z"),
       allDay: false,
-      location: "Gulf Air HQ, Muharraq / Hybrid Zoom",
+      location: "Falcon Airways HQ, Muharraq / Hybrid Zoom",
       color: "#3B82F6",
       eventType: "meeting",
       dealId: "deal-02",
@@ -2391,13 +2327,13 @@ async function main() {
     },
     {
       id: "event-04",
-      title: "Zayani Motors Master Delivery Deadline",
-      titleAr: "الموعد النهائي لتسليم ماستر إعلان الزياني",
+      title: "Crescent Motors Master Delivery Deadline",
+      titleAr: "الموعد النهائي لتسليم ماستر إعلان الهلال",
       description: "Final 4K master ProRes delivery to broadcast TV networks.",
       startDate: new Date("2026-09-30T17:00:00Z"),
       endDate: new Date("2026-09-30T18:00:00Z"),
       allDay: false,
-      location: "ishoot Soundstage Suite",
+      location: `${BRAND_EN} Soundstage Suite`,
       color: "#E11D48",
       eventType: "deadline",
       dealId: "deal-04",
@@ -2405,13 +2341,13 @@ async function main() {
     },
     {
       id: "event-05",
-      title: "BIC Grand Prix Teaser — Night Chase Filming",
+      title: "DSW Grand Prix Teaser — Night Chase Filming",
       titleAr: "تصوير ليلي لمطاردات إعلان سباق الفورمولا 1",
       description: "Night shoot under high-output circuit floodlights with tracking vehicle.",
       startDate: new Date("2026-10-12T18:00:00Z"),
       endDate: new Date("2026-10-13T04:00:00Z"),
       allDay: false,
-      location: "Bahrain International Circuit, Sakhir",
+      location: "Desert Speedway, Sakhir",
       color: "#09937F",
       eventType: "shoot",
       dealId: "deal-03",
@@ -2419,13 +2355,13 @@ async function main() {
     },
     {
       id: "event-06",
-      title: "Zain Esports Commercial — Studio Day (Stage A)",
-      titleAr: "تصوير إعلان زين للألعاب الإلكترونية في استوديو أ",
+      title: "Orbit Esports Commercial — Studio Day (Stage A)",
+      titleAr: "تصوير إعلان أوربت للألعاب الإلكترونية في استوديو أ",
       description: "Actors in LED volumetric lighting and gaming rigs.",
       startDate: new Date("2026-10-08T08:00:00Z"),
       endDate: new Date("2026-10-08T20:00:00Z"),
       allDay: false,
-      location: "ishoot Stage A, Manama",
+      location: `${BRAND_EN} Stage A, Manama`,
       color: "#09937F",
       eventType: "shoot",
       dealId: "deal-08",
@@ -2509,7 +2445,7 @@ async function main() {
       emailNorm: "m.alabbasi@tamkeen.bh",
       phone: "+973 3888 2211",
       phoneE164: "+97338882211",
-      companyName: "Labour Fund (Tamkeen)",
+      companyName: "Workforce Development Fund",
       serviceType: "Documentary Production & Talent Interviews",
       budgetRange: "8,000 – 15,000 BHD",
       timeline: "October 2026",
@@ -2545,7 +2481,7 @@ async function main() {
     },
     {
       id: "inq-05",
-      name: "طارق المؤيد",
+      name: "طارق الرشيد",
       email: "tariq@gulfmedia.com",
       emailNorm: "tariq@gulfmedia.com",
       phone: "+973 3611 9922",
@@ -2579,7 +2515,7 @@ async function main() {
       emailNorm: "huda@bahraintourism.bh",
       phone: "+973 3999 1144",
       phoneE164: "+97339991144",
-      companyName: "Bahrain Tourism & Exhibitions Authority",
+      companyName: "Island Tourism & Events Board",
       serviceType: "Additional Sound Design Stems",
       budgetRange: "1,000 BHD",
       timeline: "This Week",
@@ -2620,31 +2556,31 @@ async function main() {
     {
       id: "mom-001",
       momNumber: "MOM-2026-001",
-      title: "BAPCO Energies Brand Film 2026 - Production Kickoff & Safety Brief",
-      titleAr: "فيلم بابكو إنرجيز المؤسسي 2026 - اجتماع إطلاق الإنتاج وإرشادات السلامة",
+      title: "Delta Energies Brand Film 2026 - Production Kickoff & Safety Brief",
+      titleAr: "فيلم دلتا إنرجيز المؤسسي 2026 - اجتماع إطلاق الإنتاج وإرشادات السلامة",
       meetingDate: new Date("2026-02-15"),
       startTime: "10:00 AM",
       endTime: "11:45 AM",
-      location: "ishoot Studio Stage A & Virtual Boardroom",
+      location: `${BRAND_EN} Studio Stage A & Virtual Boardroom`,
       dealId: "deal-02",
       clientId: "contact-02",
       attendees: [
-        { name: "Sayed Ahmed Husain", role: "Executive Producer", email: "sayed@ishoot.bh", organization: "iShoot", attended: true },
-        { name: "Ali Al Samahiji", role: "Production Manager", email: "production@ishoot.bh", organization: "iShoot", attended: true },
-        { name: "Fatima Al Kaabi", role: "Senior Editor & DIT", email: "editor@ishoot.bh", organization: "iShoot", attended: true },
-        { name: "Reem Al Hashimi", role: "Corporate Comms Lead", email: "reem@bapcoenergies.com", organization: "BAPCO Energies", attended: true },
-        { name: "Hassan Kanoo", role: "HSE Director", email: "hassan.k@bapcoenergies.com", organization: "BAPCO Energies", attended: true },
+        { name: "Omar Haddad", role: "Executive Producer", email: "omar@example.com", organization: `${BRAND_EN}`, attended: true },
+        { name: "Karim Fawzi", role: "Production Manager", email: "production@example.com", organization: `${BRAND_EN}`, attended: true },
+        { name: "Noor Hamdan", role: "Senior Editor & DIT", email: "editor@example.com", organization: `${BRAND_EN}`, attended: true },
+        { name: "Reem Al Hashimi", role: "Corporate Comms Lead", email: "reem@bapcoenergies.com", organization: "Delta Energies", attended: true },
+        { name: "Adel Rashed", role: "HSE Director", email: "hassan.k@bapcoenergies.com", organization: "Delta Energies", attended: true },
       ],
       agenda: "1. Refinery filming safety permits & PPE certification.\n2. Technical camera package review (RED V-Raptor 8K + Master Primes).\n3. Talent casting schedule & offshore helicopter unit timing.\n4. Post-production timeline and delivery cutoffs.",
       discussionPoints: [
-        { topic: "Safety Clearances", notes: "BAPCO HSE team approved the ATEX-rated monitor housings and required on-site safety induction for all 14 crew members on day one.", speaker: "Hassan Kanoo" },
-        { topic: "Aerial Helicopter Unit", notes: "Helicopter Cineflex gimbal approved for offshore refinery sweep shots. Flight window confirmed for 06:00 to 08:30 on March 2nd.", speaker: "Ali Al Samahiji" },
+        { topic: "Safety Clearances", notes: "DELTA HSE team approved the ATEX-rated monitor housings and required on-site safety induction for all 14 crew members on day one.", speaker: "Adel Rashed" },
+        { topic: "Aerial Helicopter Unit", notes: "Helicopter Cineflex gimbal approved for offshore refinery sweep shots. Flight window confirmed for 06:00 to 08:30 on March 2nd.", speaker: "Karim Fawzi" },
         { topic: "Sound & Voiceover", notes: "Bilingual voiceover recorded in both English (UK neutral) and Arabic (Gulf refined). Client provided updated brand manifesto script.", speaker: "Reem Al Hashimi" },
       ],
       actionItems: [
-        { task: "Submit full crew passport & CPR copies for refinery security badges", assignee: "Husain Al Jamri", dueDate: "2026-02-18", status: "completed" },
-        { task: "Prepare camera prep report and sensor calibration at studio", assignee: "Ali Al Samahiji", dueDate: "2026-02-22", status: "completed" },
-        { task: "Share preliminary 3D previz for offshore tank sequence", assignee: "Fatima Al Kaabi", dueDate: "2026-02-25", status: "in_progress" },
+        { task: "Submit full crew passport & CPR copies for refinery security badges", assignee: "Tariq Saleh", dueDate: "2026-02-18", status: "completed" },
+        { task: "Prepare camera prep report and sensor calibration at studio", assignee: "Karim Fawzi", dueDate: "2026-02-22", status: "completed" },
+        { task: "Share preliminary 3D previz for offshore tank sequence", assignee: "Noor Hamdan", dueDate: "2026-02-25", status: "in_progress" },
       ],
       decisions: [
         "Filming dates locked for March 1-4, 2026.",
@@ -2655,32 +2591,32 @@ async function main() {
       status: "approved",
       createdById: createdUsers.super_admin?.id,
       approvedById: createdUsers.super_admin?.id,
-      signatureUrl: "/brand/signatures/sayed-ahmed.svg",
+      signatureUrl: signatureOf("omar-haddad"),
     },
     {
       id: "mom-002",
       momNumber: "MOM-2026-002",
-      title: "Batelco 5G Launch Campaign - Post-Production Review & VFX Alignment",
-      titleAr: "حملة بتلكو 5G - اجتماع مراجعة المونتاج ومؤثرات الجرافيكس",
+      title: "Gulfwave 5G Launch Campaign - Post-Production Review & VFX Alignment",
+      titleAr: "حملة جلف ويف 5G - اجتماع مراجعة المونتاج ومؤثرات الجرافيكس",
       meetingDate: new Date("2026-03-05"),
       startTime: "02:00 PM",
       endTime: "03:30 PM",
-      location: "Batelco Innovation Lab, Hamala",
+      location: "Gulfwave Innovation Lab, Hamala",
       dealId: "deal-01",
       clientId: "contact-01",
       attendees: [
-        { name: "Mohamed Al Mahdi", role: "Creative Director", email: "director@ishoot.bh", organization: "iShoot", attended: true },
-        { name: "Fatima Al Kaabi", role: "Post-Production Supervisor", email: "editor@ishoot.bh", organization: "iShoot", attended: true },
-        { name: "Nasser Al Khalifa", role: "Brand Marketing GM", email: "nasser@batelco.com.bh", organization: "Batelco", attended: true },
+        { name: "Yusuf Rahman", role: "Creative Director", email: "director@example.com", organization: `${BRAND_EN}`, attended: true },
+        { name: "Noor Hamdan", role: "Post-Production Supervisor", email: "editor@example.com", organization: `${BRAND_EN}`, attended: true },
+        { name: "Nasser Al Khalifa", role: "Brand Marketing GM", email: "nasser@batelco.com.bh", organization: "Gulfwave", attended: true },
       ],
       agenda: "1. Review Rough Cut V2 of 60s TV Commercial.\n2. CGI holographic UI elements timing & integration.\n3. Music licensing & custom sound design soundscape.",
       discussionPoints: [
         { topic: "Edit Pacing", notes: "Client commended the high-energy transitions between Manama skyline and modern fiber connectivity nodes.", speaker: "Nasser Al Khalifa" },
-        { topic: "Color Tone", notes: "Enhanced cyan and emerald highlights to preserve Batelco new identity vibrance.", speaker: "Fatima Al Kaabi" },
+        { topic: "Color Tone", notes: "Enhanced cyan and emerald highlights to preserve Gulfwave new identity vibrance.", speaker: "Noor Hamdan" },
       ],
       actionItems: [
-        { task: "Incorporate localized Arabic calligraphy end-frame title", assignee: "Fatima Al Kaabi", dueDate: "2026-03-08", status: "completed" },
-        { task: "Export broadcast-spec MXF files for Bahrain TV transmission", assignee: "Fatima Al Kaabi", dueDate: "2026-03-10", status: "pending" },
+        { task: "Incorporate localized Arabic calligraphy end-frame title", assignee: "Noor Hamdan", dueDate: "2026-03-08", status: "completed" },
+        { task: "Export broadcast-spec MXF files for Bahrain TV transmission", assignee: "Noor Hamdan", dueDate: "2026-03-10", status: "pending" },
       ],
       decisions: [
         "Approved 60s main commercial cut without further story edits.",
@@ -2689,7 +2625,7 @@ async function main() {
       status: "approved",
       createdById: createdUsers.production_manager?.id,
       approvedById: createdUsers.admin?.id,
-      signatureUrl: "/brand/signatures/mohamed-almahdi.svg",
+      signatureUrl: signatureOf("yusuf-rahman"),
     },
     {
       id: "mom-003",
@@ -2699,20 +2635,20 @@ async function main() {
       meetingDate: new Date("2026-03-20"),
       startTime: "11:00 AM",
       endTime: "12:30 PM",
-      location: "ishoot Manama Headquarters",
+      location: `${BRAND_EN} Manama Headquarters`,
       attendees: [
-        { name: "Sayed Ahmed Husain", role: "CEO", email: "sayed@ishoot.bh", organization: "iShoot", attended: true },
-        { name: "Zainab Al Shami", role: "Finance Manager", email: "finance@ishoot.bh", organization: "iShoot", attended: true },
-        { name: "Ali Al Samahiji", role: "Production Manager", email: "production@ishoot.bh", organization: "iShoot", attended: true },
+        { name: "Omar Haddad", role: "CEO", email: "omar@example.com", organization: `${BRAND_EN}`, attended: true },
+        { name: "Layla Nasser", role: "Finance Manager", email: "finance@example.com", organization: `${BRAND_EN}`, attended: true },
+        { name: "Karim Fawzi", role: "Production Manager", email: "production@example.com", organization: `${BRAND_EN}`, attended: true },
       ],
       agenda: "1. CapEx evaluation for LED virtual production volume backdrop.\n2. Lens fleet expansion: Cook Full Frame Plus.\n3. Q2 resource scheduling and staff certifications.",
       discussionPoints: [
-        { topic: "Virtual Production ROI", notes: "Demand for car commercial virtual staging has increased by 40%. Stage B LED wall conversion will pay back in 9 months.", speaker: "Sayed Ahmed Husain" },
-        { topic: "Budget Allocation", notes: "Financing package secured with local bank at preferential tier.", speaker: "Zainab Al Shami" },
+        { topic: "Virtual Production ROI", notes: "Demand for car commercial virtual staging has increased by 40%. Stage B LED wall conversion will pay back in 9 months.", speaker: "Omar Haddad" },
+        { topic: "Budget Allocation", notes: "Financing package secured with local bank at preferential tier.", speaker: "Layla Nasser" },
       ],
       actionItems: [
-        { task: "Finalize vendor RFQ for 2.6mm pitch LED display panels", assignee: "Ali Al Samahiji", dueDate: "2026-04-01", status: "in_progress" },
-        { task: "Prepare CapEx depreciation and tax amortisation schedule", assignee: "Zainab Al Shami", dueDate: "2026-04-05", status: "in_progress" },
+        { task: "Finalize vendor RFQ for 2.6mm pitch LED display panels", assignee: "Karim Fawzi", dueDate: "2026-04-01", status: "in_progress" },
+        { task: "Prepare CapEx depreciation and tax amortisation schedule", assignee: "Layla Nasser", dueDate: "2026-04-05", status: "in_progress" },
       ],
       decisions: [
         "Proceed with Phase 1 virtual production design.",
@@ -2720,7 +2656,7 @@ async function main() {
       ],
       status: "in_review",
       createdById: createdUsers.super_admin?.id,
-      signatureUrl: "/brand/signatures/sayed-ahmed.svg",
+      signatureUrl: signatureOf("omar-haddad"),
     },
   ];
 
@@ -2750,7 +2686,7 @@ async function main() {
         action: "create",
         entityType: "invoice",
         entityId: "inv-001",
-        details: { invoiceNumber: "ISH-2026-0001", amount: 9800.0, client: "BTEA" },
+        details: { invoiceNumber: `${INVOICE_PREFIX}-2026-0001`, amount: 9800.0, client: "ITEB" },
         ipAddress: "185.120.45.14",
       },
       {
@@ -2758,7 +2694,7 @@ async function main() {
         action: "stage_change",
         entityType: "deal",
         entityId: "deal-01",
-        details: { dealTitle: "Batelco 5G Launch", from: "contract_signed", to: "production" },
+        details: { dealTitle: "Gulfwave 5G Launch", from: "contract_signed", to: "production" },
         ipAddress: "89.148.33.20",
       },
       {
@@ -2784,7 +2720,7 @@ async function main() {
       {
         userId: createdUsers.super_admin.id,
         title: "استلام دفعة مالية جديدة",
-        message: "تم استلام دفعة مسجلة بقيمة 6,000 د.ب من شركة زين البحرين (إيصال RCT-2026-005).",
+        message: "تم استلام دفعة مسجلة بقيمة 6,000 د.ب من شركة أوربت البحرين (إيصال RCT-2026-005).",
         type: "success",
         entityType: "payment",
         entityId: "pay-005",
@@ -2793,7 +2729,7 @@ async function main() {
       {
         userId: createdUsers.super_admin.id,
         title: "تذكير موعد تصوير سينمائي",
-        message: "جلسة تصوير الحملة الإعلانية لشركة بتلكو مجدولة في تقويم الإنتاج غداً.",
+        message: "جلسة تصوير الحملة الإعلانية لشركة جلف ويف مجدولة في تقويم الإنتاج غداً.",
         type: "action",
         entityType: "calendar",
         entityId: "event-01",
@@ -2811,7 +2747,7 @@ async function main() {
       {
         userId: createdUsers.super_admin.id,
         title: "فاتورة مستحقة الدفع",
-        message: "الفاتورة رقم ISH-2026-009 لشركة الزياني تجاوزت موعد الاستحقاق (4,500 د.ب).",
+        message: `الفاتورة رقم ${INVOICE_PREFIX}-2026-009 لشركة الهلال تجاوزت موعد الاستحقاق (4,500 د.ب).`,
         type: "warning",
         entityType: "invoice",
         entityId: "inv-009",
@@ -2819,7 +2755,7 @@ async function main() {
       },
       {
         userId: createdUsers.super_admin.id,
-        title: "مرحباً بك في نظام آي شوت المتكامل",
+        title: `مرحباً بك في نظام ${BRAND_AR} المتكامل`,
         message: "تم تفعيل جميع الوحدات الإدارية، وإعدادات الضرائب، والصلاحيات بنجاح.",
         type: "info",
         entityType: "system",
@@ -2832,8 +2768,8 @@ async function main() {
   await prisma.attachment.deleteMany();
   const attachmentsToSeed = [
     {
-      fileName: "Master-Service-Agreement-Batelco-2026.pdf",
-      fileUrl: "/documents/vault/Master-Service-Agreement-Batelco-2026.pdf",
+      fileName: "Master-Service-Agreement-Gulfwave-2026.pdf",
+      fileUrl: await demoDocument("Master-Service-Agreement-Gulfwave-2026.pdf", owner.id),
       fileSize: 2450000,
       mimeType: "application/pdf",
       entityType: "contact",
@@ -2841,8 +2777,8 @@ async function main() {
       uploadedById: createdUsers.super_admin.id,
     },
     {
-      fileName: "Commercial-Shoot-Permit-BIC-F1.pdf",
-      fileUrl: "/documents/vault/Commercial-Shoot-Permit-BIC-F1.pdf",
+      fileName: "Commercial-Shoot-Permit-DSW-F1.pdf",
+      fileUrl: await demoDocument("Commercial-Shoot-Permit-DSW-F1.pdf", owner.id),
       fileSize: 1200000,
       mimeType: "application/pdf",
       entityType: "deal",
@@ -2850,8 +2786,8 @@ async function main() {
       uploadedById: createdUsers.super_admin.id,
     },
     {
-      fileName: "Al-Zayani-Motors-Brand-Guidelines.pdf",
-      fileUrl: "/documents/vault/Al-Zayani-Motors-Brand-Guidelines.pdf",
+      fileName: "Crescent-Motors-Brand-Guidelines.pdf",
+      fileUrl: await demoDocument("Crescent-Motors-Brand-Guidelines.pdf", owner.id),
       fileSize: 4800000,
       mimeType: "application/pdf",
       entityType: "contact",
@@ -2859,8 +2795,8 @@ async function main() {
       uploadedById: createdUsers.super_admin.id,
     },
     {
-      fileName: "Invoice-ISH-2026-001-Signed.pdf",
-      fileUrl: "/documents/vault/Invoice-ISH-2026-001-Signed.pdf",
+      fileName: "Invoice-INV-2026-001-Signed.pdf",
+      fileUrl: await demoDocument("Invoice-INV-2026-001-Signed.pdf", owner.id),
       fileSize: 850000,
       mimeType: "application/pdf",
       entityType: "invoice",
@@ -2868,8 +2804,8 @@ async function main() {
       uploadedById: createdUsers.super_admin.id,
     },
     {
-      fileName: "Four-Seasons-Location-Release-Form.pdf",
-      fileUrl: "/documents/vault/Four-Seasons-Location-Release-Form.pdf",
+      fileName: "Bayview-Grand-Location-Release-Form.pdf",
+      fileUrl: await demoDocument("Bayview-Grand-Location-Release-Form.pdf", owner.id),
       fileSize: 640000,
       mimeType: "application/pdf",
       entityType: "customer_vault",
@@ -2877,8 +2813,8 @@ async function main() {
       uploadedById: createdUsers.super_admin.id,
     },
     {
-      fileName: "Mumtalakat-Annual-Investor-Moodboard.pdf",
-      fileUrl: "/documents/vault/Mumtalakat-Annual-Investor-Moodboard.pdf",
+      fileName: "Pearl-Holding-Annual-Investor-Moodboard.pdf",
+      fileUrl: await demoDocument("Pearl-Holding-Annual-Investor-Moodboard.pdf", owner.id),
       fileSize: 7200000,
       mimeType: "application/pdf",
       entityType: "deal",
@@ -2886,8 +2822,8 @@ async function main() {
       uploadedById: createdUsers.super_admin.id,
     },
     {
-      fileName: "BAPCO-Energies-NDA-Signed.pdf",
-      fileUrl: "/documents/vault/BAPCO-Energies-NDA-Signed.pdf",
+      fileName: "DELTA-Energies-NDA-Signed.pdf",
+      fileUrl: await demoDocument("DELTA-Energies-NDA-Signed.pdf", owner.id),
       fileSize: 1540000,
       mimeType: "application/pdf",
       entityType: "customer_vault",
@@ -2895,8 +2831,8 @@ async function main() {
       uploadedById: createdUsers.super_admin.id,
     },
     {
-      fileName: "stc-5G-Commercial-Storyboard-v3.pdf",
-      fileUrl: "/documents/vault/stc-5G-Commercial-Storyboard-v3.pdf",
+      fileName: "nexa-5G-Commercial-Storyboard-v3.pdf",
+      fileUrl: await demoDocument("nexa-5G-Commercial-Storyboard-v3.pdf", owner.id),
       fileSize: 12400000,
       mimeType: "application/pdf",
       entityType: "deal",
@@ -2905,7 +2841,7 @@ async function main() {
     },
     {
       fileName: "Ministry-Information-Drone-Flight-Authorization.pdf",
-      fileUrl: "/documents/vault/Ministry-Information-Drone-Flight-Authorization.pdf",
+      fileUrl: await demoDocument("Ministry-Information-Drone-Flight-Authorization.pdf", owner.id),
       fileSize: 3100000,
       mimeType: "application/pdf",
       entityType: "general",
@@ -2913,8 +2849,8 @@ async function main() {
       uploadedById: createdUsers.super_admin.id,
     },
     {
-      fileName: "Invoice-ISH-2026-004-Receipt-Stamped.pdf",
-      fileUrl: "/documents/vault/Invoice-ISH-2026-004-Receipt-Stamped.pdf",
+      fileName: "Invoice-INV-2026-004-Receipt-Stamped.pdf",
+      fileUrl: await demoDocument("Invoice-INV-2026-004-Receipt-Stamped.pdf", owner.id),
       fileSize: 520000,
       mimeType: "application/pdf",
       entityType: "invoice",
@@ -2934,10 +2870,10 @@ async function main() {
 
   // Update company profile with CEO / Mission
   await prisma.companySetting.update({
-    where: { id: companySettingId },
+    where: { singleton: 1 },
     data: {
-      ceoNameEn: "Sayed Ahmed Husain",
-      ceoNameAr: "سيد أحمد حسين",
+      ceoNameEn: demoStaff[0].nameEn,
+      ceoNameAr: demoStaff[0].nameAr,
       ceoTitleEn: "Founder & Creative Director",
       ceoTitleAr: "المؤسس والمدير الإبداعي",
       ceoQuoteEn: "We don't merely capture light; we shape the way memories, emotions, and brands resonate through time.",
@@ -2946,12 +2882,12 @@ async function main() {
       missionAr: "تمكين رواد السوق من سرد قصص علاماتهم التجارية بدقة بصرية متناهية وعمق عاطفي.",
       visionEn: "To be the premier commercial cinema production destination in Bahrain and the Arabian Gulf.",
       visionAr: "أن نكون الوجهة الأولى للإنتاج السينمائي التجاري في البحرين والخليج العربي.",
-      aboutTextEn: "Founded in the Kingdom of Bahrain, ishoot is a premier creative media production house uniting cinematic storytelling with engineering precision. We believe that true visual impact is created at the intersection of technical discipline and unconstrained creative curiosity.",
-      aboutTextAr: "تأسست دار آي شوت في مملكة البحرين كدار إنتاج سينمائي إبداعية رائدة تجمع بين القصص السينمائية والدقة الهندسية. نؤمن بأن التأثير البصري الحقيقي ينبع من تقاطع الانضباط التقني والفضول الإبداعي اللامحدود.",
-      termsEn: "1. SCOPE OF ENGAGEMENT: All cinematic production, photography, sound recording, and post-production services rendered by iShoot Media Production are subject to authorized treatment proposals and confirmed call-sheets.\n\n2. INTELLECTUAL PROPERTY & RAW ASSETS: Upon full and final settlement of all issued invoices, the client receives worldwide commercial broadcast and digital exhibition rights for final rendered masters. Master RAW camera footage, unrendered DaVinci Resolve project files, and unreleased scene outtakes remain the proprietary intellectual property of iShoot Media Production unless explicitly transferred under a dedicated raw buy-out addendum.\n\n3. PAYMENT MILESTONES: Unless stated otherwise in writing, engagements require a 50% mobilization deposit prior to pre-production and location booking, 30% upon completion of primary photography, and 20% prior to final 8K ProRes master delivery.\n\n4. CANCELLATION & RESCHEDULING: Rescheduling requests submitted less than 48 hours prior to call-time incur actual incurred crew and permit costs. Cancellations after pre-production commencement forfeit the mobilization deposit.\n\n5. GOVERNING LAW: All commercial agreements and production engagements are governed exclusively by the laws and commercial regulations of the Kingdom of Bahrain.",
-      termsAr: "1. نطاق العمل والتعاقد: تخضع كافة خدمات الإنتاج السينمائي، التصوير الفوتوغرافي، المعايرة اللونية، وهندسة الصوت المقدمة من دار آي شوت للإنتاج الإعلامي لعروض العمل المعتمدة وأوامر التصوير الرسمية.\n\n2. حقوق الملكية الفكرية والمواد الخام: عند السداد الكامل والنهائي لجميع المبالغ والفواتير المستحقة، يمنح العميل حقوق النشر والعرض التجاري والرقمي الكامل للمواد النهائية المعتمدة. تظل المواد المصورة الخام (RAW Footage) وملفات المشاريع غير المصدرة ملكاً فكرياً حصرياً لدار آي شوت ما لم ينص ملحق العقد صراحة على شراء المواد الخام الكاملة.\n\n3. الدفعات المالية: ما لم يُتفق على خلاف ذلك كتابياً، يستحق سداد 50% كدفعة مقدمة قبل بدء التجهيزات وحجز المواقع، و30% فور انتهاء أيام التصوير الرئيسية، و20% قبل تسليم النسخ النهائية بدقة 8K ProRes.\n\n4. الإلغاء وتأجيل المواعيد: أي طلب لتأجيل موعد التصوير خلال أقل من 48 ساعة من موعد الحضور يتحمل العميل التكاليف الفعلية المترتبة على حجز الطواقم والتصاريح. في حال إلغاء المشروع بعد بدء التجهيزات الفعلية، تُعتبر الدفعة المقدمة غير مستردة.\n\n5. القانون المطبق: تخضع كافة العقود والاتفاقيات لأحكام القوانين والأنظمة التجارية المعمول بها في مملكة البحرين.",
-      rulesEn: "1. CONFIDENTIALITY & NON-DISCLOSURE: iShoot Media Production adheres to strict non-disclosure obligations. All unreleased campaign materials, product prototypes, and commercial treatments are maintained under strict confidentiality until formal public launch by the client.\n\n2. PERSONAL DATA PROTECTION (BAHRAIN PDPL): In full compliance with Bahrain Personal Data Protection Law (Law No. 30 of 2018), client contact details, commercial billing records, and inquiry information are encrypted and never shared, sold, or distributed to unauthorized third parties.\n\n3. SECURE DIGITAL ASSET ARCHIVING: All captured 8K/6K cinema footage is mirrored across localized redundant RAID arrays and cold off-site backups with strict hardware-encrypted access controls.\n\n4. COOKIES & SESSION STORAGE: Our web platforms utilize only strictly necessary session security tokens to authenticate verified portal users and preserve bilingual language preferences. We do not deploy invasive third-party cross-site behavioral tracking cookies without explicit consent.",
-      rulesAr: "1. السرية وحماية المعلومات: تلتزم دار آي شوت بأعلى معايير السرية التامة وعدم الإفصاح. تُحفظ كافة المواد الدعائية المصورة ونماذج المنتجات ومفاهيم الحملات غير المعلنة بسرية مشددة حتى تاريخ إطلاقها الرسمي من قِبل العميل.\n\n2. حماية البيانات الشخصية (قانون البحرين رقم 30 لسنة 2018): امتثالاً لأحكام قانون حماية البيانات الشخصية المعمول به في مملكة البحرين، تُعامل كافة بيانات التواصل والفواتير وسجلات العملاء بأعلى درجات الأمان المشفر ولا يتم بيعها أو مشاركتها مع أي جهة خارجية.\n\n3. الأرشفة الرقمية الآمنة للمواد السينمائية: يتم حفظ المواد السينمائية المصورة في وحدات تخزين مصفوفية (RAID) مشفرة مع نسخ احتياطية خارجية مفصولة لتأمين الأصول الإبداعية للعملاء ضد أي فقدان تقني.\n\n4. ملفات تعريف الارتباط والأمان: يستخدم موقعنا فقط ملفات تعريف الارتباط الأساسية والضرورية تقنياً لتوثيق الجلسات وحفظ تفضيلات اللغة، ولا نستخدم أي برمجيات تتبع إعلاني خارجية متطفلة دون موافقة مسبقة.",
+      aboutTextEn: `Founded in the Kingdom of Bahrain, ${BRAND_EN} is a premier creative media production house uniting cinematic storytelling with engineering precision. We believe that true visual impact is created at the intersection of technical discipline and unconstrained creative curiosity.`,
+      aboutTextAr: `تأسست ${BRAND_AR} في مملكة البحرين كدار إنتاج سينمائي إبداعية رائدة تجمع بين القصص السينمائية والدقة الهندسية. نؤمن بأن التأثير البصري الحقيقي ينبع من تقاطع الانضباط التقني والفضول الإبداعي اللامحدود.`,
+      termsEn: `1. SCOPE OF ENGAGEMENT: All cinematic production, photography, sound recording, and post-production services rendered by ${BRAND_EN} are subject to authorized treatment proposals and confirmed call-sheets.\n\n2. INTELLECTUAL PROPERTY & RAW ASSETS: Upon full and final settlement of all issued invoices, the client receives worldwide commercial broadcast and digital exhibition rights for final rendered masters. Master RAW camera footage, unrendered DaVinci Resolve project files, and unreleased scene outtakes remain the proprietary intellectual property of ${BRAND_EN} unless explicitly transferred under a dedicated raw buy-out addendum.\n\n3. PAYMENT MILESTONES: Unless stated otherwise in writing, engagements require a 50% mobilization deposit prior to pre-production and location booking, 30% upon completion of primary photography, and 20% prior to final 8K ProRes master delivery.\n\n4. CANCELLATION & RESCHEDULING: Rescheduling requests submitted less than 48 hours prior to call-time incur actual incurred crew and permit costs. Cancellations after pre-production commencement forfeit the mobilization deposit.\n\n5. GOVERNING LAW: All commercial agreements and production engagements are governed exclusively by the laws and commercial regulations of the Kingdom of Bahrain.`,
+      termsAr: `1. نطاق العمل والتعاقد: تخضع كافة خدمات الإنتاج السينمائي، التصوير الفوتوغرافي، المعايرة اللونية، وهندسة الصوت المقدمة من ${BRAND_AR} للإنتاج الإعلامي لعروض العمل المعتمدة وأوامر التصوير الرسمية.\n\n2. حقوق الملكية الفكرية والمواد الخام: عند السداد الكامل والنهائي لجميع المبالغ والفواتير المستحقة، يمنح العميل حقوق النشر والعرض التجاري والرقمي الكامل للمواد النهائية المعتمدة. تظل المواد المصورة الخام (RAW Footage) وملفات المشاريع غير المصدرة ملكاً فكرياً حصرياً ل${BRAND_AR} ما لم ينص ملحق العقد صراحة على شراء المواد الخام الكاملة.\n\n3. الدفعات المالية: ما لم يُتفق على خلاف ذلك كتابياً، يستحق سداد 50% كدفعة مقدمة قبل بدء التجهيزات وحجز المواقع، و30% فور انتهاء أيام التصوير الرئيسية، و20% قبل تسليم النسخ النهائية بدقة 8K ProRes.\n\n4. الإلغاء وتأجيل المواعيد: أي طلب لتأجيل موعد التصوير خلال أقل من 48 ساعة من موعد الحضور يتحمل العميل التكاليف الفعلية المترتبة على حجز الطواقم والتصاريح. في حال إلغاء المشروع بعد بدء التجهيزات الفعلية، تُعتبر الدفعة المقدمة غير مستردة.\n\n5. القانون المطبق: تخضع كافة العقود والاتفاقيات لأحكام القوانين والأنظمة التجارية المعمول بها في مملكة البحرين.`,
+      rulesEn: `1. CONFIDENTIALITY & NON-DISCLOSURE: ${BRAND_EN} adheres to strict non-disclosure obligations. All unreleased campaign materials, product prototypes, and commercial treatments are maintained under strict confidentiality until formal public launch by the client.\n\n2. PERSONAL DATA PROTECTION (BAHRAIN PDPL): In full compliance with Bahrain Personal Data Protection Law (Law No. 30 of 2018), client contact details, commercial billing records, and inquiry information are encrypted and never shared, sold, or distributed to unauthorized third parties.\n\n3. SECURE DIGITAL ASSET ARCHIVING: All captured 8K/6K cinema footage is mirrored across localized redundant RAID arrays and cold off-site backups with strict hardware-encrypted access controls.\n\n4. COOKIES & SESSION STORAGE: Our web platforms utilize only strictly necessary session security tokens to authenticate verified portal users and preserve bilingual language preferences. We do not deploy invasive third-party cross-site behavioral tracking cookies without explicit consent.`,
+      rulesAr: `1. السرية وحماية المعلومات: تلتزم ${BRAND_AR} بأعلى معايير السرية التامة وعدم الإفصاح. تُحفظ كافة المواد الدعائية المصورة ونماذج المنتجات ومفاهيم الحملات غير المعلنة بسرية مشددة حتى تاريخ إطلاقها الرسمي من قِبل العميل.\n\n2. حماية البيانات الشخصية (قانون البحرين رقم 30 لسنة 2018): امتثالاً لأحكام قانون حماية البيانات الشخصية المعمول به في مملكة البحرين، تُعامل كافة بيانات التواصل والفواتير وسجلات العملاء بأعلى درجات الأمان المشفر ولا يتم بيعها أو مشاركتها مع أي جهة خارجية.\n\n3. الأرشفة الرقمية الآمنة للمواد السينمائية: يتم حفظ المواد السينمائية المصورة في وحدات تخأوربت مصفوفية (RAID) مشفرة مع نسخ احتياطية خارجية مفصولة لتأمين الأصول الإبداعية للعملاء ضد أي فقدان تقني.\n\n4. ملفات تعريف الارتباط والأمان: يستخدم موقعنا فقط ملفات تعريف الارتباط الأساسية والضرورية تقنياً لتوثيق الجلسات وحفظ تفضيلات اللغة، ولا نستخدم أي برمجيات تتبع إعلاني خارجية متطفلة دون موافقة مسبقة.`,
     },
   });
 
@@ -2978,7 +2914,7 @@ async function main() {
     { value: "150+", labelEn: "Commercial Films Delivered", labelAr: "فيلم تجاري سينمائي", subLabelEn: "For GCC Brands & Corporations", subLabelAr: "لكبرى الشركات والجهات في الخليج", icon: "Film", sortOrder: 1 },
     { value: "8K", labelEn: "RAW Cinema Resolution", labelAr: "دقة تصوير سينمائي خام", subLabelEn: "RED V-Raptor & ARRI ALEXA LF", subLabelAr: "كاميرات ريد وفانتوم وآري", icon: "Video", sortOrder: 2 },
     { value: "100%", labelEn: "Licensed Aerial Drone Ops", labelAr: "تصاريح طيران جوي مرخصة", subLabelEn: "Bahrain Civil Aviation Authority", subLabelAr: "شؤون الطيران المدني بمملكة البحرين", icon: "Plane", sortOrder: 3 },
-    { value: "10+", labelEn: "Years of Industry Excellence", labelAr: "سنوات من التميز الإبداعي", subLabelEn: "Headquartered in Manama, Seef", subLabelAr: "المقر الرئيسي ضاحية السيف، المنامة", icon: "Award", sortOrder: 4 },
+    { value: "10+", labelEn: "Years of Industry Excellence", labelAr: "سنوات من التميز الإبداعي", subLabelEn: "Headquartered in Manama, Seafront", subLabelAr: "المقر الرئيسي ضاحية الواجهة البحرية، المنامة", icon: "Award", sortOrder: 4 },
   ];
 
   await prisma.statistic.deleteMany();
@@ -3019,10 +2955,10 @@ async function main() {
     {
       authorEn: "Marketing & Brand Director",
       authorAr: "مدير التسويق والعلامة التجارية",
-      companyEn: "National Bank of Bahrain (NBB)",
-      companyAr: "بنك البحرين الوطني",
-      quoteEn: "iShoot delivered an exceptional TV commercial campaign that exceeded our highest cinematic expectations. Their color grading and drone shots were world-class.",
-      quoteAr: "قدمت آي شوت حملة إعلانية سينمائية استثنائية فاقت توقعاتنا. كانت الألوان والتصوير الجوي بمستوى عالمي رائع.",
+      companyEn: "Harbor National Bank (HNB)",
+      companyAr: "بنك هاربر الوطني",
+      quoteEn: `${BRAND_EN} delivered an exceptional TV commercial campaign that exceeded our highest cinematic expectations. Their color grading and drone shots were world-class.`,
+      quoteAr: `قدمت ${BRAND_AR} حملة إعلانية سينمائية استثنائية فاقت توقعاتنا. كانت الألوان والتصوير الجوي بمستوى عالمي رائع.`,
       year: "2026",
       rating: 5,
       isApproved: true,
@@ -3031,8 +2967,8 @@ async function main() {
     {
       authorEn: "Corporate Communications Lead",
       authorAr: "رئيس الاتصال المؤسسي",
-      companyEn: "Zain Bahrain",
-      companyAr: "زين البحرين",
+      companyEn: "Orbit Telecom",
+      companyAr: "أوربت البحرين",
       quoteEn: "The professionalism of the camera crew and the precision of the 8K footage transformed our brand film. Truly the finest cinema house in Bahrain.",
       quoteAr: "احترافية طاقم التصوير ودقة مشاهد 8K أحدثت فارقاً كبيراً في فيلماً الترويجي. بحق أفضل استوديو إنتاج سينمائي في البحرين.",
       year: "2025",
@@ -3151,7 +3087,7 @@ async function main() {
       lastNameEn: "Ahmed",
       firstNameAr: "سيد",
       lastNameAr: "أحمد",
-      email: "director@ishoot.bh",
+      email: "director@example.com",
       phone: "+973 3900 1100",
       cprNumber: "880112345",
       jobTitleEn: "General Director & Cinema Director",
@@ -3171,7 +3107,7 @@ async function main() {
       lastNameEn: "Al-Mahdi",
       firstNameAr: "محمد",
       lastNameAr: "المهدي",
-      email: "director@ishoot.bh",
+      email: "director@example.com",
       phone: "+973 3900 2200",
       cprNumber: "910223456",
       jobTitleEn: "Managing Director",
@@ -3191,7 +3127,7 @@ async function main() {
       lastNameEn: "Al-Shami",
       firstNameAr: "زينب",
       lastNameAr: "الشامي",
-      email: "finance@ishoot.bh",
+      email: "finance@example.com",
       phone: "+973 3900 3300",
       cprNumber: "930334567",
       jobTitleEn: "Chief Financial Officer",
@@ -3211,7 +3147,7 @@ async function main() {
       lastNameEn: "Al-Samahiji",
       firstNameAr: "علي",
       lastNameAr: "السماهيجي",
-      email: "production@ishoot.bh",
+      email: "production@example.com",
       phone: "+973 3900 4400",
       cprNumber: "900445678",
       jobTitleEn: "Head of Cinematic Production",
@@ -3231,7 +3167,7 @@ async function main() {
       lastNameEn: "Al-Kaabi",
       firstNameAr: "فاطمة",
       lastNameAr: "الكعبي",
-      email: "editor@ishoot.bh",
+      email: "editor@example.com",
       phone: "+973 3900 6600",
       cprNumber: "950556789",
       jobTitleEn: "Lead Colorist & Senior Editor",
@@ -3251,7 +3187,7 @@ async function main() {
       lastNameEn: "Al-Saeed",
       firstNameAr: "خالد",
       lastNameAr: "السعيد",
-      email: "sales@ishoot.bh",
+      email: "sales@example.com",
       phone: "+973 3900 8811",
       cprNumber: "940667890",
       jobTitleEn: "Commercial Accounts Executive",
@@ -3395,7 +3331,7 @@ async function main() {
       name: "حمد الرميحي",
       email: "h.alromaihi@batelco.com.bh",
       phone: "+973 3944 1122",
-      companyName: "Batelco Telecommunications",
+      companyName: "Gulfwave Telecommunications",
       customerId: "contact-01",
       serviceType: "commercial_film",
       message: "Requesting studio crew, Arri Alexa 35 package, and director for 5G Ultra commercial pickup day.",
@@ -3425,7 +3361,7 @@ async function main() {
       assignedToId: createdUsers.production_manager?.id || createdUsers.super_admin?.id,
       assignedById: createdUsers.super_admin?.id,
       team: "production",
-      reason: "Lead production management for Batelco 5G pickup shoot.",
+      reason: "Lead production management for Gulfwave 5G pickup shoot.",
       active: true,
     },
   });
@@ -3460,7 +3396,7 @@ async function main() {
       name: "طارق الدوسري",
       email: "t.aldoseri@btea.bh",
       phone: "+973 3611 9900",
-      companyName: "Bahrain Tourism & Exhibitions Authority (BTEA)",
+      companyName: "Island Tourism & Events Board (ITEB)",
       customerId: "contact-03",
       serviceType: "aerial_cinematography",
       message: "Scope change: Additional 4K FPV drone passes and sunset hyperlapse shots over Exhibition World Bahrain.",
@@ -3625,7 +3561,7 @@ async function main() {
       currency: "BHD",
       language: "ar",
       status: "converted",
-      acceptanceEvidence: "Approved by BTEA procurement; converted to Tax Invoice ISH-2026-001",
+      acceptanceEvidence: `Approved by ITEB procurement; converted to Tax Invoice ${INVOICE_PREFIX}-2026-001`,
       issueDate: new Date("2026-08-10"),
       validUntilDate: new Date("2026-09-10"),
       createdById: createdUsers.super_admin?.id,
@@ -3677,7 +3613,7 @@ async function main() {
         const hash = crypto.createHash("sha256").update(`quotation_${qId}_1`).digest("hex");
         await prisma.approvalRequest.upsert({
           where: { targetType_targetId_revision: { targetType: "quotation", targetId: qId, revision: 1 } },
-          update: { status: "pending", discountReason: "5% commercial discount for annual Gulf Air fleet campaign" },
+          update: { status: "pending", discountReason: "5% commercial discount for annual Falcon Airways fleet campaign" },
           create: {
             targetType: "quotation",
             targetId: qId,
@@ -3685,7 +3621,7 @@ async function main() {
             contentHash: hash,
             status: "pending",
             requestedById: createdUsers.sales?.id || createdUsers.super_admin?.id,
-            discountReason: "5% commercial discount for annual Gulf Air fleet campaign",
+            discountReason: "5% commercial discount for annual Falcon Airways fleet campaign",
             policySnapshot: { maxDiscountPercent: 10, requiredRole: "admin" },
           },
         });
@@ -3693,7 +3629,7 @@ async function main() {
         const hash = crypto.createHash("sha256").update(`quotation_${qId}_1`).digest("hex");
         const appReq = await prisma.approvalRequest.upsert({
           where: { targetType_targetId_revision: { targetType: "quotation", targetId: qId, revision: 1 } },
-          update: { status: "approved", discountReason: "10% strategic partner discount for BTEA national tourism campaign" },
+          update: { status: "approved", discountReason: "10% strategic partner discount for ITEB national tourism campaign" },
           create: {
             targetType: "quotation",
             targetId: qId,
@@ -3701,7 +3637,7 @@ async function main() {
             contentHash: hash,
             status: "approved",
             requestedById: createdUsers.sales?.id || createdUsers.super_admin?.id,
-            discountReason: "10% strategic partner discount for BTEA national tourism campaign",
+            discountReason: "10% strategic partner discount for ITEB national tourism campaign",
             policySnapshot: { maxDiscountPercent: 10, requiredRole: "admin" },
           },
         });
@@ -3725,7 +3661,7 @@ async function main() {
   // brings every fixture in line with the app's rules. SEED_VOLUME=off skips the volume stage.
   if (process.env.SEED_VOLUME !== "off") {
     const users = Object.fromEntries(Object.entries(createdUsers).map(([role, user]: [string, any]) => [role, { id: user.id, email: user.email, fullName: user.fullName, role, signatureUrl: user.signatureUrl }]));
-    await seedVolume(prisma, { users, passwordHash });
+    await seedVolume(prisma, { users, passwordHash, brand: profile.display, sampleSignatureUrl: signatureOf("guest") });
   }
   await reconcileSeed(prisma);
 

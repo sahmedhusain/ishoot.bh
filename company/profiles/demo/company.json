@@ -1,0 +1,42 @@
+{
+  "display": {
+    "nameEn": "Northwind",
+    "nameAr": "نورثويند"
+  },
+  "company": {
+    "companyNameEn": "Northwind Studio W.L.L.",
+    "companyNameAr": "استوديو نورثويند ذ.م.م",
+    "crNumber": "CR-000000-0",
+    "vatId": "000000000000000",
+    "vatEnabled": false,
+    "vatPercentage": 10.0,
+    "defaultCurrency": "BHD",
+    "currencyDecimals": 3,
+    "addressEn": "Office 100, Example Tower, Manama, Kingdom of Bahrain",
+    "addressAr": "مكتب 100، برج المثال، المنامة، مملكة البحرين",
+    "phone": "+973 1700 0000",
+    "whatsappPhone": "+973 3600 0000",
+    "email": "hello@northwind.example",
+    "website": "https://northwind.example",
+    "instagramUrl": "https://instagram.com/northwind.example",
+    "linkedinUrl": "https://linkedin.com/company/northwind-example",
+    "youtubeUrl": "https://youtube.com/@northwind-example",
+    "bankName": "Example Bank",
+    "bankIban": "BH00EXMP00000000000000",
+    "bankAccountNumber": "0000000000",
+    "bankSwift": "EXMPBHBM",
+    "paymentTermsDays": 30,
+    "invoicePrefix": "INV",
+    "invoiceNextNumber": 104,
+    "receiptPrefix": "RCT",
+    "receiptNextNumber": 106
+  },
+  "assets": {
+    "logo": "brand/logo-light.png",
+    "darkLogo": "brand/logo-dark.png",
+    "icon": "brand/icon-light.png",
+    "darkIcon": "brand/icon-dark.png",
+    "stamp": "brand/stamp.png",
+    "signature": "brand/signature.png"
+  }
+}

@@ -1,4 +1,6 @@
-// Provision only initial settings, roles/grants and the first admin. Never reset existing rows.
+// Provision roles/grants, the first admin and the company row. Never reset existing rows.
+// COMPANY_PROFILE=<name> installs company/profiles/<name> (identity, brand files, theme) and skips the setup
+// wizard; without it the company starts blank and the admin's first-run setup wizard collects everything.
 require("dotenv").config({ quiet: true });
 require("ts-node").register({
   transpileOnly: true,
@@ -18,8 +20,9 @@ const {
   DEFAULT_ROLE_RULES,
 } = require("../packages/database/src/queries/permissions.ts");
 const {
-  company,
-} = require("../packages/database/src/initial-company-config.json");
+  loadCompanyProfile,
+  installCompanyProfile,
+} = require("../company/tools/company-profile.ts");
 const { createRequire } = require("node:module");
 const bcrypt = createRequire(
   require.resolve("../packages/database/package.json"),
@@ -37,10 +40,8 @@ async function main() {
       "Set SUPER_ADMIN_EMAIL and a SUPER_ADMIN_PASSWORD of at least 12 characters",
     );
   if (Buffer.byteLength(password,"utf8") > 72) throw new Error("Bootstrap password exceeds bcrypt byte limit");
-  let initialCompany = company;
-  if (process.env.COMPANY_CONFIG_FILE) initialCompany = JSON.parse(require("node:fs").readFileSync(process.env.COMPANY_CONFIG_FILE,"utf8"));
-  else if (process.env.NODE_ENV === "production") throw new Error("Production bootstrap requires COMPANY_CONFIG_FILE with approved business identity");
-  if (!initialCompany.companyNameEn?.trim() || !initialCompany.companyNameAr?.trim()) throw new Error("Company names are required");
+  const profileName = process.env.COMPANY_PROFILE?.trim();
+  const profile = profileName ? loadCompanyProfile(profileName) : null;
   const hash = await bcrypt.hash(password, 10);
   await db.$transaction(
     async (tx) => {
@@ -50,7 +51,8 @@ async function main() {
         throw new Error(
           "Multiple company settings rows require manual reconciliation",
         );
-      if (!count) await tx.companySetting.create({ data: initialCompany });
+      // A blank company: the setup wizard fills in names, brand and configuration on first sign-in.
+      if (!count && !profile) await tx.companySetting.create({ data: { companyNameEn: "New company", companyNameAr: "شركة جديدة" } });
       for (const role of ALL_ROLES) {
         await tx.role.upsert({
           where: { id: role },
@@ -80,23 +82,26 @@ async function main() {
       });
       const prior = await tx.user.findUnique({
         where: { email },
-        select: { role: true },
+        select: { id: true, role: true },
       });
       if (prior && prior.role !== "super_admin")
         throw new Error(
           "Bootstrap email belongs to another role; choose the existing super administrator email",
         );
-      if (!prior)
-        await tx.user.create({
+      const admin =
+        prior ??
+        (await tx.user.create({
           data: {
             email,
             passwordHash: hash,
             fullName: process.env.SUPER_ADMIN_NAME || "Super Admin",
             role: "super_admin",
           },
-        });
+        }));
+      if (profile && (!count || process.env.COMPANY_PROFILE_OVERWRITE === "1"))
+        await installCompanyProfile(tx, profile, admin.id, { markSetupComplete: true });
     },
-    { timeout: 15000 },
+    { timeout: 60000 },
   );
   console.log(
     "Bootstrap complete. Existing accounts, company data and permission overrides preserved; no demo records created.",

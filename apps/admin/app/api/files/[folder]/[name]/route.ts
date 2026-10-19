@@ -19,7 +19,7 @@ async function recordFileResource(fileUrl: string) {
 export async function GET(req: NextRequest, { params }: { params: Promise<{ folder: string; name: string }> }) {
   return measureOperation("admin:files/[folder]/[name]:GET", async () => {
   const { folder, name } = await params;
-  if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name)) return new NextResponse(null, { status: 404 });
+  if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !(/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name) || (folder === "brand" && /^[a-zA-Z0-9_-]+\.woff2$/.test(name)))) return new NextResponse(null, { status: 404 });
   try {
     const fileUrl = `/api/files/${folder}/${name}`;
     const upload = await db.uploadObject.findUnique({ where: { fileUrl } });

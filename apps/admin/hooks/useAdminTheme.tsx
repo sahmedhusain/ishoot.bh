@@ -4,7 +4,7 @@ import * as React from "react";
 
 export type AdminTheme = "light" | "dark" | "system";
 
-const STORAGE_KEY = "ishoot_admin_theme";
+const STORAGE_KEY = "platform_admin_theme";
 const DEFAULT_THEME: AdminTheme = "dark";
 
 interface AdminThemeContextType {

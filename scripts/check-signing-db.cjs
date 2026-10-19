@@ -33,7 +33,7 @@ async function main() {
       assert.equal(await signing.canSignDocument("quotation", q.id, seller, false), true, "the issuer can sign");
       const state = await signing.signDocument("quotation", q.id, seller.id);
       assert.deepEqual([state.signed, state.signedBy.id, state.signatureUrl], [true, seller.id, "/brand/signatures/guest.svg"]);
-      await tx.user.update({ where: { id: seller.id }, data: { signatureUrl: "/brand/signatures/khalid-alsaeed.svg" } });
+      await tx.user.update({ where: { id: seller.id }, data: { signatureUrl: "/brand/signatures/sami-khoury.svg" } });
       assert.equal((await signing.getSigningState("quotation", q.id)).signatureUrl, "/brand/signatures/guest.svg", "later signature changes do not alter signed documents");
       await issueQuotation(q.id, seller.id, "email");
 

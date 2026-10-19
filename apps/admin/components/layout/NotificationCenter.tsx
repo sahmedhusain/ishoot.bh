@@ -76,12 +76,12 @@ export function NotificationCenter() {
       void refresh();
     };
     document.addEventListener("visibilitychange", resume);
-    window.addEventListener("ishoot:notifications-changed", update);
+    window.addEventListener("platform:notifications-changed", update);
     return () => {
       clearInterval(timer);
       request.current?.abort();
       document.removeEventListener("visibilitychange", resume);
-      window.removeEventListener("ishoot:notifications-changed", update);
+      window.removeEventListener("platform:notifications-changed", update);
     };
   }, [refresh]);
   React.useEffect(() => {
@@ -91,7 +91,7 @@ export function NotificationCenter() {
     setBusy(id);
     try {
       await updateNotificationAction(id, action);
-      window.dispatchEvent(new Event("ishoot:notifications-changed"));
+      window.dispatchEvent(new Event("platform:notifications-changed"));
     } catch (err) {
       toast.error(errorMessage(err, t, p.failed));
     } finally {
@@ -103,7 +103,7 @@ export function NotificationCenter() {
     try {
       const result = await markAllNotificationsReadAction();
       if (!result.success) throw Error();
-      window.dispatchEvent(new Event("ishoot:notifications-changed"));
+      window.dispatchEvent(new Event("platform:notifications-changed"));
     } catch {
       toast.error(p.failed);
     } finally {

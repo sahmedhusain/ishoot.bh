@@ -106,7 +106,7 @@ async function main() {
       assert.ok((await analytics.getSocialAnalytics({ days: 30 })).accounts.find((a) => a.platform === "facebook").isStale);
 
       // Resend checks that the sender domain is verified.
-      await integrations.saveIntegrationSettings("resend", { isActive: true, values: { apiKey: "re_test_123456789", fromEmail: "billing@ishoot.bh" } }, actor.id);
+      await integrations.saveIntegrationSettings("resend", { isActive: true, values: { apiKey: "re_test_123456789", fromEmail: "billing@example.com" } }, actor.id);
       assert.equal((await integrations.testIntegration("resend")).ok, true);
       await integrations.saveIntegrationSettings("resend", { isActive: true, values: { apiKey: "", fromEmail: "billing@other.com" } }, actor.id);
       assert.match((await integrations.testIntegration("resend")).error, /not added in Resend/);

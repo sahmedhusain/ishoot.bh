@@ -11,7 +11,7 @@ import path from "node:path";
 import { existsSync } from "node:fs";
 
 /** The monorepo root, so the admin server, seed and workers agree on one upload folder whatever their cwd. */
-function workspaceRoot() {
+export function workspaceRoot() {
   let dir = process.cwd();
   for (let i = 0; i < 8; i++) {
     if (existsSync(path.join(dir, "pnpm-workspace.yaml"))) return dir;
