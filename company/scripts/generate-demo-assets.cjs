@@ -1,5 +1,5 @@
 // Run: node company/scripts/generate-demo-assets.cjs
-// Regenerates the neutral demo profile's artwork (logos, icons, stamp, signatures, hero banners) from code,
+// Regenerates the neutral demo profile's artwork (icon, text logo, stamp, signatures, hero banners) from code,
 // so the demo company has no real-world brand in it.
 const fs = require("node:fs");
 const path = require("node:path");
@@ -19,12 +19,13 @@ const mark = (fill, cut) => `
 const svgs = {
   "brand/icon-light.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">${mark(primary, "#FFFFFF")}</svg>`,
   "brand/icon-dark.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">${mark("#FFFFFF", primary)}</svg>`,
-  "brand/logo-light.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 120">${mark(primary, "#FFFFFF")}
-    <text x="146" y="78" font-family="Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="${primary}">Northwind</text>
-    <circle cx="424" cy="74" r="7" fill="${accent}"/></svg>`,
-  "brand/logo-dark.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 120">${mark("#FFFFFF", primary)}
-    <text x="146" y="78" font-family="Helvetica, Arial, sans-serif" font-size="54" font-weight="700" fill="#FFFFFF">Northwind</text>
-    <circle cx="424" cy="74" r="7" fill="${accent}"/></svg>`,
+  // The logo slots hold the text-only wordmark: the apps place the icon beside it themselves.
+  "brand/logo-light.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 90">
+    <text x="4" y="64" font-family="Helvetica, Arial, sans-serif" font-size="64" font-weight="700" letter-spacing="-1" fill="${primary}">Northwind</text>
+    <circle cx="318" cy="58" r="8" fill="${accent}"/></svg>`,
+  "brand/logo-dark.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 90">
+    <text x="4" y="64" font-family="Helvetica, Arial, sans-serif" font-size="64" font-weight="700" letter-spacing="-1" fill="#FFFFFF">Northwind</text>
+    <circle cx="318" cy="58" r="8" fill="${accent}"/></svg>`,
   "brand/stamp.svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
     <circle cx="150" cy="150" r="140" fill="none" stroke="${primary}" stroke-width="8"/>
     <circle cx="150" cy="150" r="112" fill="none" stroke="${primary}" stroke-width="3"/>

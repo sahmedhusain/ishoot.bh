@@ -7940,12 +7940,12 @@
       "fontSample": "أبجد هوز · Aa Bb 123"
     },
     "assets": {
-      "logo": "Logo for light backgrounds",
-      "logoHint": "Usually dark artwork. PNG, JPG or WebP, at least 400 px wide.",
-      "darkLogo": "Logo for dark backgrounds",
-      "darkLogoHint": "Usually light or white artwork.",
+      "logo": "Text logo for light backgrounds",
+      "logoHint": "The company name as artwork, without the icon (the icon is shown beside it). Dark lettering, PNG, JPG or WebP, at least 400 px wide.",
+      "darkLogo": "Text logo for dark backgrounds",
+      "darkLogoHint": "The same wordmark in light or white lettering.",
       "icon": "Icon for light backgrounds",
-      "iconHint": "Square mark, also used as the browser icon.",
+      "iconHint": "The square mark on its own, also used as the browser icon.",
       "darkIcon": "Icon for dark backgrounds",
       "darkIconHint": "Light version of the square mark.",
       "stamp": "Company stamp",

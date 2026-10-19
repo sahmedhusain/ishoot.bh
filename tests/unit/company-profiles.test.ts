@@ -37,6 +37,22 @@ describe.each(profiles)("company profile %s", (name) => {
     }
   });
 
+  test("logo slots hold wide wordmarks and icon slots compact marks", () => {
+    // PNG width and height live in the IHDR chunk; JPEG/WebP profiles are checked by eye.
+    const size = (file: string) => {
+      const bytes = fs.readFileSync(path.join(dir, "assets", file));
+      return detectFileType(bytes) === "image/png" ? { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) } : null;
+    };
+    for (const slot of ["logo", "darkLogo"]) {
+      const s = assets[slot] && size(assets[slot]);
+      if (s) expect(s.width / s.height, `${slot} should be a wide wordmark`).toBeGreaterThanOrEqual(2.5);
+    }
+    for (const slot of ["icon", "darkIcon"]) {
+      const s = assets[slot] && size(assets[slot]);
+      if (s) expect(s.width / s.height, `${slot} should be a compact mark`).toBeLessThanOrEqual(1.5);
+    }
+  });
+
   test("theme is valid, readable and its uploaded fonts are woff2 files in the profile", () => {
     const raw = fs.existsSync(path.join(dir, "theme.json")) ? JSON.parse(fs.readFileSync(path.join(dir, "theme.json"), "utf8")) : {};
     if (raw.primary) expect(normalizeTheme(raw).primary).toBe(raw.primary.toUpperCase());
