@@ -14,7 +14,7 @@ export interface PayLineDraft {
 }
 
 let lineKey = 0;
-export const newPayLine = (kind: PayLineKind): PayLineDraft => ({ key: `l${++lineKey}`, category: PAY_LINE_CATEGORIES[kind][0], label: "", amount: "", note: "" });
+const newPayLine = (kind: PayLineKind): PayLineDraft => ({ key: `l${++lineKey}`, category: PAY_LINE_CATEGORIES[kind][0], label: "", amount: "", note: "" });
 export const toPayLineDraft = (line: { category: string; label: string; amount: number; note?: string | null }): PayLineDraft => ({
   key: `l${++lineKey}`,
   category: line.category,

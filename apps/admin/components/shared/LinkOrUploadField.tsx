@@ -12,7 +12,7 @@ import {
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 
-export const DOCUMENT_ACCEPT =
+const DOCUMENT_ACCEPT =
   "application/pdf,image/png,image/jpeg,image/webp";
 
 /** True for an https address the server accepts as a linked document. */

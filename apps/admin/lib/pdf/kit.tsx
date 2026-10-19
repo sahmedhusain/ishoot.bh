@@ -69,7 +69,7 @@ export async function resolvePdfBrand(company: CompanySettings): Promise<PdfBran
 // ---------------------------------------------------------------- formatting (Western digits in both languages)
 
 
-export function numberLocale(isAr: boolean) {
+function numberLocale(isAr: boolean) {
   return isAr ? "ar-BH-u-nu-latn" : "en-GB";
 }
 

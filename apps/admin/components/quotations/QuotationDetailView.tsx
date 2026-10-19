@@ -43,7 +43,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { QuotationActionDialog } from "./QuotationActionDialog";
 import { toast } from "sonner";
 
-export interface QuotationWithRelations extends Quotation {
+interface QuotationWithRelations extends Quotation {
   client?: {
     id?: string;
     companyName?: string;

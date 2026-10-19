@@ -4,9 +4,7 @@
     ".": {
       "entry": [
         "scripts/*.cjs",
-        "tests/**/*.{ts,cjs}",
-        "playwright.config.ts",
-        "vitest.config.ts"
+        "tests/**/*.{ts,cjs}"
       ],
       "project": [
         "scripts/*.cjs",
@@ -24,7 +22,6 @@
     },
     "company": {
       "entry": [
-        "seed/seed.ts",
         "seed/*.cjs",
         "scripts/*.cjs",
         "tools/*.ts"
@@ -44,6 +41,36 @@
   ],
   "ignoreIssues": {
     "apps/admin/app/actions/mom.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/assets.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/crm.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/hrms.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/notifications.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/profile.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/quotations.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/requests.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/salary-documents.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/sales.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/users.ts": [
       "exports"
     ]
   }

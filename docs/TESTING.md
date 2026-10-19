@@ -65,3 +65,14 @@ Tests read their expectations from the repository instead of hardcoding them: th
 - Pure functions go in `tests/unit/*.test.ts` (Vitest).
 - User journeys go in `tests/e2e/specs/<project>/*.spec.ts`. Use the helpers in `tests/e2e/helpers.ts` (`watchErrors`, `brokenImages`, `visibleContent`, `themeVariable`, `testDatabase`).
 - The admin tests share one sign-in (`tests/e2e/auth/admin.setup.ts`), because the login rate limit is enforced.
+
+## Manual diagnostics
+
+These need running servers and are not part of CI:
+
+| Script | Purpose |
+|---|---|
+| `node scripts/check-website-http.cjs` | Website HTTP behaviour against a preview server on a `_test` database (fixtures: `node company/seed/website-preview.cjs`) |
+| `pnpm test:followup-http` | Admin HTTP follow-up checks against a running server |
+| `node scripts/profile-local-http.cjs` | Local response-time baseline (not a production benchmark) |
+| `node scripts/test-heavy-load-and-optimizations.cjs` | Stress and edge-case scenarios on a `_test` database |

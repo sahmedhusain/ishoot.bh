@@ -43,7 +43,7 @@
         "tests/e2e/serve.cjs",
         "admin",
         "3012",
-        "platform_seed_test"
+        "platform_e2e_test"
       ],
       "port": 3012
     },
@@ -54,7 +54,7 @@
         "tests/e2e/serve.cjs",
         "web",
         "3013",
-        "platform_seed_test"
+        "platform_e2e_test"
       ],
       "port": 3013
     },
@@ -65,7 +65,7 @@
         "tests/e2e/serve.cjs",
         "admin",
         "3014",
-        "platform_setup_test"
+        "platform_e2e_blank_test"
       ],
       "port": 3014
     }
