@@ -39,7 +39,7 @@ export function ThemeSettingsTab({ initialTheme }: { initialTheme: BrandTheme })
       <ThemeEditor theme={theme} onChange={setTheme} />
       {error ? <p role="alert" className="rounded-lg bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</p> : null}
       <div className="flex justify-end">
-        <Button type="button" disabled={!dirty || saving} onClick={save} className="whitespace-nowrap rounded-full px-6 text-xs font-semibold">
+        <Button type="button" data-testid="theme-save" disabled={!dirty || saving} onClick={save} className="whitespace-nowrap rounded-full px-6 text-xs font-semibold">
           {saving ? t.setupWizard.saving : t.actions.save}
         </Button>
       </div>

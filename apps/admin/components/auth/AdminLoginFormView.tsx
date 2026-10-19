@@ -96,7 +96,7 @@ export function AdminLoginFormView(brand: AuthBrandingProps) {
         </div>
 
         {errorMessage && (
-          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300">
+          <div role="alert" className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
             <span>{errorMessage}</span>
           </div>

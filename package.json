@@ -49,10 +49,18 @@
     "test:signing-db": "node scripts/check-signing-db.cjs",
     "test:stats-db": "node scripts/check-stats-db.cjs",
     "test:dashboard-db": "node scripts/check-dashboard-db.cjs",
-    "company:demo-assets": "pnpm --filter @platform/company assets:demo"
+    "company:demo-assets": "pnpm --filter @platform/company assets:demo",
+    "test": "vitest run tests/unit tests/checks/static.test.ts",
+    "test:unit": "vitest run tests/unit",
+    "test:checks": "vitest run tests/checks/static.test.ts",
+    "test:checks:db": "vitest run tests/checks/database.test.ts",
+    "test:e2e": "pnpm test:e2e:prepare && playwright test",
+    "test:e2e:prepare": "node tests/e2e/prepare-db.cjs seeded platform_e2e_test && node tests/e2e/prepare-db.cjs blank platform_e2e_blank_test",
+    "test:brand": "node scripts/check-brand-neutral.cjs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
+    "@playwright/test": "^1.64.1",
     "eslint": "9.39.5",
     "eslint-config-next": "15.5.27",
     "knip": "^6.39.0",
@@ -61,7 +69,8 @@
     "svix": "^2.6.1",
     "ts-node": "^10.9.2",
     "turbo": "^2.11.7",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.7"
   },
   "dependencies": {
     "dotenv": "^18.0.4"

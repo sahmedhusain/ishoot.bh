@@ -43,7 +43,7 @@ async function main() {
       assert.equal(none.mySubmittedPending, 4);
 
       // Requests: complaints hidden without support access; SLA and kinds counted.
-      const inq = (data) => tx.inquiry.create({ data: { name: "C", email: "c@dash.test", message: "m", ...data } });
+      const inq = (data) => tx.inquiry.create({ data: { reference: `TST-${require("node:crypto").randomUUID()}`, name: "C", email: "c@dash.test", message: "m", ...data } });
       const r0 = await w.getRequestWorkload(staff.id, { includeComplaints: false }, now);
       const r0all = await w.getRequestWorkload(staff.id, { includeComplaints: true }, now);
       await inq({ requestType: "SR", assignedToId: staff.id, slaDueDate: new Date(now.getTime() - DAY), priority: "urgent", team: "production" });

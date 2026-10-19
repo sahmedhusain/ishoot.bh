@@ -51,4 +51,5 @@ tests/e2e/.uploads/
 tests/e2e/.results/
 playwright-report/
 test-results/
-apps/*/.next-e2e/
+apps/*/.next-e2e*/
+tests/.results/

@@ -1,6 +1,8 @@
 // Run: node tests/e2e/serve.cjs <admin|web> <port> [database]
 // Starts one app against a disposable database (default: E2E_DATABASE or platform_e2e_test) so local test
 // runs never touch the development database. Values come from .env; only the database name is swapped.
+// E2E_SERVER_MODE=start serves a production build made with `next build` (NEXT_DIST_DIR=.next-e2e) instead
+// of the development server.
 const { spawn } = require("node:child_process");
 const path = require("node:path");
 
@@ -24,6 +26,7 @@ const swap = (url) => {
 };
 
 const root = path.resolve(__dirname, "../..");
+const production = process.env.E2E_SERVER_MODE === "start";
 const env = {
   ...process.env,
   DATABASE_URL: swap(process.env.DATABASE_URL),
@@ -32,14 +35,24 @@ const env = {
   SUPABASE_URL: "",
   SUPABASE_SERVICE_ROLE_KEY: "",
   PORT: port,
-  // Own build folder, so cached data never mixes with a development server running from .next.
-  NEXT_DIST_DIR: ".next-e2e",
+  // Own build folder, so cached data never mixes with a development server running from .next (one per port,
+  // since two development servers of the same app cannot share a folder).
+  NEXT_DIST_DIR: production ? ".next-e2e" : `.next-e2e-${port}`,
 };
 
-const child = spawn(path.join(root, `apps/${app}/node_modules/.bin/next`), ["dev", "--turbopack", "-p", port], {
+// Next rewrites tsconfig.json and next-env.d.ts to include the build folder; put them back when the server stops.
+const generated = ["tsconfig.json", "next-env.d.ts"].map((file) => path.join(root, "apps", app, file));
+const originals = generated.map((file) => require("node:fs").readFileSync(file, "utf8"));
+const restore = () => generated.forEach((file, i) => require("node:fs").writeFileSync(file, originals[i]));
+
+const args = production ? ["start", "-p", port] : ["dev", "--turbopack", "-p", port];
+const child = spawn(path.join(root, `apps/${app}/node_modules/.bin/next`), args, {
   cwd: path.join(root, "apps", app),
   env,
   stdio: "inherit",
 });
-child.on("exit", (code) => process.exit(code ?? 0));
+child.on("exit", (code) => {
+  restore();
+  process.exit(code ?? 0);
+});
 for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => child.kill(signal));
