@@ -42,7 +42,7 @@ const env = {
   NEXT_DIST_DIR: production ? ".next-e2e" : `.next-e2e-${port}`,
 };
 
-// Next rewrites tsconfig.json and next-env.d.ts to include the build folder; put them back when the server stops.
+// Next rewrites tsconfig.json and next-env.d.ts to include the build folder; put them back.
 const generated = ["tsconfig.json", "next-env.d.ts"].map((file) => path.join(root, "apps", app, file));
 const originals = generated.map((file) => require("node:fs").readFileSync(file, "utf8"));
 const restore = () => generated.forEach((file, i) => require("node:fs").writeFileSync(file, originals[i]));
@@ -53,6 +53,9 @@ const child = spawn(path.join(root, `apps/${app}/node_modules/.bin/next`), args,
   env,
   stdio: "inherit",
 });
+// Next writes them while it boots; Playwright may kill the server without an exit event, so restore early too.
+const early = setInterval(restore, 5000);
+setTimeout(() => clearInterval(early), 120_000).unref();
 child.on("exit", (code) => {
   restore();
   process.exit(code ?? 0);
