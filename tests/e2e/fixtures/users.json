@@ -1,0 +1,4 @@
+{
+  "_note": "Disposable test-only accounts for local and CI end-to-end runs. Never reuse these values anywhere real.",
+  "admin": { "email": "e2e-admin@example.test", "password": "e2e-NWZfb3wTSf-sbCGnegvjvgKk", "fullName": "E2E Admin", "role": "super_admin" }
+}
