@@ -54,4 +54,9 @@ export async function runAtomicMutation<T>(operation: () => Promise<T>, isolatio
   return client.$transaction((tx) => transactionContext.run(tx, operation), { timeout: 15000, isolationLevel });
 }
 
+/** Runs work outside any open transaction, e.g. a write scheduled with after() once the transaction has ended. */
+export function outsideTransaction<T>(operation: () => T): T {
+  return transactionContext.exit(operation);
+}
+
 globalThis.prismaGlobal = client;
