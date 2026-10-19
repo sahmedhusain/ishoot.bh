@@ -24,6 +24,7 @@ const {
   installCompanyProfile,
   remapLegacyPublicFiles,
 } = require("../company/tools/company-profile.ts");
+const { DEFAULT_FEATURE_MODULES } = require("../packages/database/src/constants/features.ts");
 const { createRequire } = require("node:module");
 const bcrypt = createRequire(
   require.resolve("../packages/database/package.json"),
@@ -89,6 +90,7 @@ async function main() {
         throw new Error(
           "Bootstrap email belongs to another role; choose the existing super administrator email",
         );
+      await tx.featureToggle.createMany({ data: DEFAULT_FEATURE_MODULES.map((m) => ({ ...m })), skipDuplicates: true });
       const admin =
         prior ??
         (await tx.user.create({

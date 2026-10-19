@@ -18,6 +18,7 @@ const resources: Record<string, PermissionResource> = {
   deal: "deals",
   company_setting: "settings",
   company_asset: "settings",
+  company_font: "settings",
   company_document: "settings",
   general: "settings",
 };

@@ -20,6 +20,7 @@ import { db as websiteDb } from "../../packages/database/src/db";
 import { importProfileFile, installCompanyProfile, loadCompanyProfile, profileAssetPath } from "../tools/company-profile";
 import demoStaff from "./demo-staff.json";
 import demoClients from "./demo-clients.json";
+import { DEFAULT_FEATURE_MODULES } from "../../packages/database/src/constants/features";
 
 const prisma = new PrismaClient();
 
@@ -2785,16 +2786,7 @@ async function main() {
 
 
 
-  const features = [
-    { moduleKey: "crm_deals", nameEn: "Deals & Pipeline", nameAr: "الصفقات ومسارات البيع" },
-    { moduleKey: "invoicing", nameEn: "Invoicing & Billing", nameAr: "الفواتير والتحصيل" },
-    { moduleKey: "calendar", nameEn: "Shoot Calendar", nameAr: "جدول التصوير" },
-    { moduleKey: "equipment", nameEn: "Gear Inventory", nameAr: "خزانة المعدات" },
-    { moduleKey: "cms", nameEn: "Content Management", nameAr: "إدارة محتوى الموقع" },
-    { moduleKey: "reviews", nameEn: "Customer Reviews", nameAr: "تقييمات العملاء" },
-  ];
-
-  for (const feature of features) {
+  for (const feature of DEFAULT_FEATURE_MODULES) {
     await prisma.featureToggle.upsert({
       where: { moduleKey: feature.moduleKey },
       update: feature,

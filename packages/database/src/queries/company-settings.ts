@@ -1,6 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { assertSupportedCurrency } from "../constants/finance";
-import { normalizeTheme } from "../constants/theme";
+import { normalizeTheme, type BrandTheme } from "../constants/theme";
 import { db } from "../db";
 import { CompanySettings, SupportedCurrency } from "../types";
 
@@ -187,4 +187,23 @@ export async function getSetupCompleteness() {
     complete: missing.length === 0,
     missing,
   };
+}
+
+/** Saves the company theme. Uploaded fonts must be public brand uploads (woff2) so both apps can serve them. */
+export async function updateCompanyTheme(input: BrandTheme): Promise<CompanySettings> {
+  const theme = normalizeTheme(input);
+  for (const font of [theme.fonts.body, theme.fonts.heading]) {
+    if (font.kind !== "upload") continue;
+    const uploads = await db.uploadObject.findMany({ where: { fileUrl: { in: font.files.map((f) => f.url) } }, select: { isPublic: true, mimeType: true } });
+    if (uploads.length !== new Set(font.files.map((f) => f.url)).size || uploads.some((u) => !u.isPublic || u.mimeType !== "font/woff2"))
+      throw new Error(serverMessages.invalidUploadedFile);
+  }
+  const settings = await db.companySetting.update({ where: { singleton: 1 }, data: { theme: theme as unknown as object } });
+  return mapSettings(settings);
+}
+
+/** Marks the first-run setup as finished; the admin stops showing the setup wizard. */
+export async function completeCompanySetup(): Promise<CompanySettings> {
+  const settings = await db.companySetting.update({ where: { singleton: 1 }, data: { setupCompletedAt: new Date() } });
+  return mapSettings(settings);
 }

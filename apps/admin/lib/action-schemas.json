@@ -8422,6 +8422,196 @@
             "kind": "string",
             "optional": false
           },
+          "theme": {
+            "kind": "object",
+            "fields": {
+              "primary": {
+                "kind": "string",
+                "optional": false
+              },
+              "accent": {
+                "kind": "string",
+                "optional": false
+              },
+              "fonts": {
+                "kind": "object",
+                "fields": {
+                  "body": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "kind": "object",
+                        "fields": {
+                          "kind": {
+                            "kind": "literal",
+                            "value": "system",
+                            "optional": false
+                          }
+                        }
+                      },
+                      {
+                        "kind": "object",
+                        "fields": {
+                          "kind": {
+                            "kind": "literal",
+                            "value": "google",
+                            "optional": false
+                          },
+                          "family": {
+                            "kind": "string",
+                            "optional": false
+                          }
+                        }
+                      },
+                      {
+                        "kind": "object",
+                        "fields": {
+                          "kind": {
+                            "kind": "literal",
+                            "value": "upload",
+                            "optional": false
+                          },
+                          "family": {
+                            "kind": "string",
+                            "optional": false
+                          },
+                          "files": {
+                            "kind": "array",
+                            "element": {
+                              "kind": "object",
+                              "fields": {
+                                "weight": {
+                                  "kind": "number",
+                                  "optional": false
+                                },
+                                "url": {
+                                  "kind": "string",
+                                  "optional": false
+                                }
+                              }
+                            },
+                            "optional": false
+                          }
+                        }
+                      }
+                    ],
+                    "optional": false
+                  },
+                  "heading": {
+                    "kind": "union",
+                    "variants": [
+                      {
+                        "kind": "object",
+                        "fields": {
+                          "kind": {
+                            "kind": "literal",
+                            "value": "system",
+                            "optional": false
+                          }
+                        }
+                      },
+                      {
+                        "kind": "object",
+                        "fields": {
+                          "kind": {
+                            "kind": "literal",
+                            "value": "google",
+                            "optional": false
+                          },
+                          "family": {
+                            "kind": "string",
+                            "optional": false
+                          }
+                        }
+                      },
+                      {
+                        "kind": "object",
+                        "fields": {
+                          "kind": {
+                            "kind": "literal",
+                            "value": "upload",
+                            "optional": false
+                          },
+                          "family": {
+                            "kind": "string",
+                            "optional": false
+                          },
+                          "files": {
+                            "kind": "array",
+                            "element": {
+                              "kind": "object",
+                              "fields": {
+                                "weight": {
+                                  "kind": "number",
+                                  "optional": false
+                                },
+                                "url": {
+                                  "kind": "string",
+                                  "optional": false
+                                }
+                              }
+                            },
+                            "optional": false
+                          }
+                        }
+                      }
+                    ],
+                    "optional": false
+                  }
+                },
+                "optional": false
+              },
+              "radius": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "none"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "sm"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "md"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "lg"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "xl"
+                  }
+                ],
+                "optional": false
+              },
+              "defaultMode": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "light"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "dark"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "system"
+                  }
+                ],
+                "optional": false
+              }
+            },
+            "optional": false
+          },
+          "setup_completed": {
+            "kind": "boolean",
+            "optional": false
+          },
           "company_name_en": {
             "kind": "string",
             "optional": false
@@ -8969,6 +9159,346 @@
         "optional": false
       }
     }
+  },
+  "saveSetupCompanyAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "companyNameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "companyNameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "crNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "vatId": {
+            "kind": "string",
+            "optional": true
+          },
+          "addressEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "addressAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "phone": {
+            "kind": "string",
+            "optional": true
+          },
+          "email": {
+            "kind": "string",
+            "optional": true
+          },
+          "website": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveSetupThemeAction": {
+    "kind": "object",
+    "fields": {
+      "theme": {
+        "kind": "object",
+        "fields": {
+          "primary": {
+            "kind": "string",
+            "optional": false
+          },
+          "accent": {
+            "kind": "string",
+            "optional": false
+          },
+          "fonts": {
+            "kind": "object",
+            "fields": {
+              "body": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "object",
+                    "fields": {
+                      "kind": {
+                        "kind": "literal",
+                        "value": "system",
+                        "optional": false
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "fields": {
+                      "kind": {
+                        "kind": "literal",
+                        "value": "google",
+                        "optional": false
+                      },
+                      "family": {
+                        "kind": "string",
+                        "optional": false
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "fields": {
+                      "kind": {
+                        "kind": "literal",
+                        "value": "upload",
+                        "optional": false
+                      },
+                      "family": {
+                        "kind": "string",
+                        "optional": false
+                      },
+                      "files": {
+                        "kind": "array",
+                        "element": {
+                          "kind": "object",
+                          "fields": {
+                            "weight": {
+                              "kind": "number",
+                              "optional": false
+                            },
+                            "url": {
+                              "kind": "string",
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      }
+                    }
+                  }
+                ],
+                "optional": false
+              },
+              "heading": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "object",
+                    "fields": {
+                      "kind": {
+                        "kind": "literal",
+                        "value": "system",
+                        "optional": false
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "fields": {
+                      "kind": {
+                        "kind": "literal",
+                        "value": "google",
+                        "optional": false
+                      },
+                      "family": {
+                        "kind": "string",
+                        "optional": false
+                      }
+                    }
+                  },
+                  {
+                    "kind": "object",
+                    "fields": {
+                      "kind": {
+                        "kind": "literal",
+                        "value": "upload",
+                        "optional": false
+                      },
+                      "family": {
+                        "kind": "string",
+                        "optional": false
+                      },
+                      "files": {
+                        "kind": "array",
+                        "element": {
+                          "kind": "object",
+                          "fields": {
+                            "weight": {
+                              "kind": "number",
+                              "optional": false
+                            },
+                            "url": {
+                              "kind": "string",
+                              "optional": false
+                            }
+                          }
+                        },
+                        "optional": false
+                      }
+                    }
+                  }
+                ],
+                "optional": false
+              }
+            },
+            "optional": false
+          },
+          "radius": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "none"
+              },
+              {
+                "kind": "literal",
+                "value": "sm"
+              },
+              {
+                "kind": "literal",
+                "value": "md"
+              },
+              {
+                "kind": "literal",
+                "value": "lg"
+              },
+              {
+                "kind": "literal",
+                "value": "xl"
+              }
+            ],
+            "optional": false
+          },
+          "defaultMode": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "light"
+              },
+              {
+                "kind": "literal",
+                "value": "dark"
+              },
+              {
+                "kind": "literal",
+                "value": "system"
+              }
+            ],
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveSetupConfigAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "defaultCurrency": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "BHD"
+              },
+              {
+                "kind": "literal",
+                "value": "SAR"
+              },
+              {
+                "kind": "literal",
+                "value": "AED"
+              },
+              {
+                "kind": "literal",
+                "value": "KWD"
+              },
+              {
+                "kind": "literal",
+                "value": "OMR"
+              },
+              {
+                "kind": "literal",
+                "value": "QAR"
+              },
+              {
+                "kind": "literal",
+                "value": "USD"
+              },
+              {
+                "kind": "literal",
+                "value": "EUR"
+              },
+              {
+                "kind": "literal",
+                "value": "GBP"
+              }
+            ],
+            "optional": false
+          },
+          "vatEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "vatPercentage": {
+            "kind": "number",
+            "optional": false
+          },
+          "invoicePrefix": {
+            "kind": "string",
+            "optional": false
+          },
+          "invoiceNextNumber": {
+            "kind": "number",
+            "optional": false
+          },
+          "receiptPrefix": {
+            "kind": "string",
+            "optional": false
+          },
+          "receiptNextNumber": {
+            "kind": "number",
+            "optional": false
+          },
+          "paymentTermsDays": {
+            "kind": "number",
+            "optional": false
+          },
+          "modules": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "moduleKey": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "isEnabled": {
+                  "kind": "boolean",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "completeSetupAction": {
+    "kind": "object",
+    "fields": {}
   },
   "getSignatureModeAction": {
     "kind": "object",

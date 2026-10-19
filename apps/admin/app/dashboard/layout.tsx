@@ -1,4 +1,5 @@
 import * as React from "react";
+import { redirect } from "next/navigation";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { Topbar } from "../../components/layout/Topbar";
 import { SidebarProvider } from "../../components/layout/SidebarContext";
@@ -25,6 +26,8 @@ export default async function DashboardLayout({
     db.department.count({ where: { managerId: user.id } }),
     getActiveTaxSummary(),
   ]);
+  // A new company is configured through the first-run setup wizard before anyone uses the dashboard.
+  if (!company.setup_completed) redirect("/setup");
 
   return (
     <PermissionsProvider

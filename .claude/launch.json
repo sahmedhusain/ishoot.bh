@@ -57,6 +57,17 @@
         "platform_seed_test"
       ],
       "port": 3013
+    },
+    {
+      "name": "admin-setup",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "admin",
+        "3014",
+        "platform_setup_test"
+      ],
+      "port": 3014
     }
   ]
 }

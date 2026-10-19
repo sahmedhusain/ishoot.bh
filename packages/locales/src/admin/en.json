@@ -5606,7 +5606,11 @@
       "runtimeInvalidInvalidationRequest": "Invalid invalidation request",
       "runtimeEmailServiceIsNotConfigured": "Email service is not configured",
       "internalServerErrorLower": "Internal server error",
-      "superAdminAccountsAreNeverChangedHere": "Super Admin accounts are never changed here"
+      "superAdminAccountsAreNeverChangedHere": "Super Admin accounts are never changed here",
+      "setupPrefixInvalid": "Use 1 to 10 capital letters, digits or dashes for document prefixes",
+      "setupVatInvalid": "VAT must be between 0% and 100%",
+      "setupPaymentTermsInvalid": "Payment terms must be between 0 and 365 days",
+      "setupLogoRequired": "Upload at least one logo before finishing setup"
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -7852,5 +7856,136 @@
     "endBeforeStart": "End date cannot be earlier than start date",
     "filed": "Request filed",
     "failed": "Could not file the request"
+  },
+  "setupWizard": {
+    "title": "Set up your workspace",
+    "subtitle": "A few steps to make the system yours. Everything here can be changed later in Settings.",
+    "stepOf": "Step {current} of {total}",
+    "steps": {
+      "company": "Company",
+      "brand": "Colours & fonts",
+      "assets": "Logos & files",
+      "configuration": "Configuration",
+      "review": "Review"
+    },
+    "stepDescriptions": {
+      "company": "Your registered name and contact details appear on every document.",
+      "brand": "Pick the colours and fonts both the admin and your website will use.",
+      "assets": "Logos show in the apps and on documents; the stamp and signature go on approved documents.",
+      "configuration": "Currency, tax, document numbers and the modules your team needs.",
+      "review": "Check everything, then open your workspace."
+    },
+    "back": "Back",
+    "next": "Save and continue",
+    "finish": "Finish setup",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "company": {
+      "nameEn": "Company name (English)",
+      "nameAr": "Company name (Arabic)",
+      "crNumber": "Commercial registration number",
+      "vatId": "VAT registration number",
+      "addressEn": "Address (English)",
+      "addressAr": "Address (Arabic)",
+      "phone": "Phone",
+      "email": "Email",
+      "website": "Website",
+      "required": "Both company names are required"
+    },
+    "brand": {
+      "colours": "Brand colours",
+      "primary": "Primary colour",
+      "primaryHint": "Headers, primary buttons and document titles",
+      "accent": "Accent colour",
+      "accentHint": "Links, highlights and active states",
+      "presets": "Start from a palette",
+      "fonts": "Fonts",
+      "bodyFont": "Body text",
+      "headingFont": "Headings",
+      "fontSource": {
+        "google": "Font library",
+        "upload": "Upload font files",
+        "system": "Device default"
+      },
+      "fontFamilyName": "Font name",
+      "uploadFont": "Add a WOFF2 file",
+      "fontWeight": "Weight",
+      "radius": "Corner style",
+      "radiusOptions": {
+        "none": "Square",
+        "sm": "Subtle",
+        "md": "Soft",
+        "lg": "Rounded",
+        "xl": "Extra round"
+      },
+      "defaultMode": "Default appearance",
+      "modes": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "Follow device"
+      },
+      "preview": "Live preview",
+      "previewHeading": "Quarterly revenue",
+      "previewBody": "This is how cards, text and buttons will look with your choices.",
+      "previewButton": "Primary action",
+      "previewSecondary": "Secondary",
+      "previewBadge": "Approved",
+      "warningsTitle": "Readability",
+      "warnings": {
+        "primaryOnLight": "White text on the primary colour is hard to read. Choose a darker primary.",
+        "accentOnDark": "The accent is too dark to read on dark backgrounds.",
+        "accentButtonText": "Text on accent buttons will be hard to read."
+      },
+      "contrastOk": "Colours meet the WCAG AA contrast guideline.",
+      "fontSample": "أبجد هوز · Aa Bb 123"
+    },
+    "assets": {
+      "logo": "Logo for light backgrounds",
+      "logoHint": "Usually dark artwork. PNG, JPG or WebP, at least 400 px wide.",
+      "darkLogo": "Logo for dark backgrounds",
+      "darkLogoHint": "Usually light or white artwork.",
+      "icon": "Icon for light backgrounds",
+      "iconHint": "Square mark, also used as the browser icon.",
+      "darkIcon": "Icon for dark backgrounds",
+      "darkIconHint": "Light version of the square mark.",
+      "stamp": "Company stamp",
+      "stampHint": "Printed on approved documents. Transparent PNG works best.",
+      "signature": "Authorised signature",
+      "signatureHint": "Transparent PNG of the signatory's signature.",
+      "upload": "Upload",
+      "replace": "Replace",
+      "remove": "Remove",
+      "uploading": "Uploading…",
+      "logoRequired": "At least one logo is required to finish."
+    },
+    "configuration": {
+      "currency": "Main currency",
+      "vatEnabled": "Charge VAT",
+      "vatPercentage": "VAT rate (%)",
+      "vatNeedsId": "Add your VAT registration number in the Company step to charge VAT.",
+      "invoicePrefix": "Invoice prefix",
+      "invoiceNextNumber": "Next invoice number",
+      "receiptPrefix": "Receipt prefix",
+      "receiptNextNumber": "Next receipt number",
+      "numberPreview": "Example: {example}",
+      "paymentTerms": "Payment terms (days)",
+      "modules": "Modules",
+      "modulesHint": "Switch off what your team does not use. You can turn modules on again later."
+    },
+    "review": {
+      "company": "Company",
+      "brand": "Colours & fonts",
+      "assets": "Logos & files",
+      "configuration": "Configuration",
+      "edit": "Edit",
+      "missing": "Not set",
+      "uploaded": "Uploaded",
+      "enabledModules": "{count} module(s) on",
+      "ready": "Everything is ready. Finishing opens your dashboard."
+    },
+    "waiting": {
+      "title": "Your workspace is being set up",
+      "body": "An administrator is completing the first-run setup. Please check back shortly."
+    }
   }
 }

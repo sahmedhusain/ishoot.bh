@@ -25,7 +25,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: serverMessages.runtimeInvalidUploadInput }, { status: 400 });
       if (fileSize > maxUploadMb * 1024 * 1024) return NextResponse.json({ error: formatMessage(serverTemplates.maximumFileSize, { 0: maxUploadMb }) }, { status: 413 });
       const extensions: Record<string, string> = { "application/pdf": ".pdf", "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" };
-      if (!Object.hasOwn(extensions, fileType)) return NextResponse.json({ error: serverMessages.runtimeUnsupportedFileType }, { status: 415 });
+      // Brand fonts (woff2) are accepted only for the company theme, and are public like the logos.
+      const brandFont = entityType === "company_font";
+      if (brandFont ? fileType !== "font/woff2" : !Object.hasOwn(extensions, fileType)) return NextResponse.json({ error: serverMessages.runtimeUnsupportedFileType }, { status: 415 });
 
       try { await requireAttachmentAccess(entityType, entityId, "write"); }
       catch { return NextResponse.json({ error: serverMessages.runtimeUploadAccessDenied }, { status: 403 }); }
@@ -37,11 +39,11 @@ export async function POST(req: NextRequest) {
       else if (entityType === "contact" || entityType === "customer_vault") subfolder = "vault";
       else if (entityType === "deal") subfolder = "deals";
 
-      const publicBrand = (entityType === "company_asset" && ["logo_light", "logo_dark", "icon_light", "icon_dark", "icon"].includes(entityId)) || entityType === "cms_asset";
+      const publicBrand = brandFont || (entityType === "company_asset" && ["logo_light", "logo_dark", "icon_light", "icon_dark", "icon"].includes(entityId)) || entityType === "cms_asset";
       if (publicBrand && fileType === "application/pdf") return NextResponse.json({ error: serverMessages.runtimeBrandAssetsMustBeImages }, { status: 415 });
       if (publicBrand) subfolder = "brand";
 
-      const ext = extensions[fileType];
+      const ext = brandFont ? ".woff2" : extensions[fileType];
       const rawBase = fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
       const uniqueFileName = `${randomUUID()}_${rawBase}${ext}`;
       const filePath = `${subfolder}/${uniqueFileName}`;
