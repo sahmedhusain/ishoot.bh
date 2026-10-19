@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getFaqs } from "@ishoot/database";
+import { getFaqs } from "@platform/database";
 import { FaqsManagementView } from "../../../../components/cms/FaqsManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
 

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRightLeft, Plus } from "lucide-react";
-import { formatDate } from "@ishoot/ui";
-import type { listEmployeeHandovers } from "@ishoot/database";
+import { formatDate } from "@platform/ui";
+import type { listEmployeeHandovers } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { HANDOVER_STATUS_STYLE } from "./HandoversListView";

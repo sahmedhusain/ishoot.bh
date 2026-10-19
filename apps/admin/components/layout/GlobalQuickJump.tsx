@@ -11,7 +11,7 @@ Loader2,
 X
 } from "lucide-react";
 import { globalSearchAction } from "../../app/actions/crm";
-import type { GlobalSearchResult } from "@ishoot/database";
+import type { GlobalSearchResult } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function GlobalQuickJump({ className }: { className?: string } = {}) {

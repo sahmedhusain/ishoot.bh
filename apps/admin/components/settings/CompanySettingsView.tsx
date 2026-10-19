@@ -2,10 +2,10 @@
 import type { AdminTranslations } from "../../lib/translations";
 
 import * as React from "react";
-import type { CompanySettings } from "@ishoot/database/types";
-import type { TaxRateRecord } from "@ishoot/database";
-import type { CompanyAssetItem } from "@ishoot/database";
-import { Button, useDialog } from "@ishoot/ui";
+import type { CompanySettings } from "@platform/database/types";
+import type { TaxRateRecord } from "@platform/database";
+import type { CompanyAssetItem } from "@platform/database";
+import { Button, useDialog } from "@platform/ui";
 import {
 Building2,
 Percent,

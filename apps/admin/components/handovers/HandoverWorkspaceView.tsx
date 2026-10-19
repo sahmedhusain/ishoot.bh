@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,8 +19,8 @@ import {
   Users,
   XCircle,
 } from "lucide-react";
-import { Button, Input, Select, formatDate } from "@ishoot/ui";
-import type { AssetRecord, EmployeeHandoverDetail } from "@ishoot/database";
+import { Button, Input, Select, formatDate } from "@platform/ui";
+import type { AssetRecord, EmployeeHandoverDetail } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import {
   applyHandoverCasesAction,

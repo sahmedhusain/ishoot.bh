@@ -32,8 +32,8 @@ ishoot.bh/
 
 | Service / Application                 | Port / Address | Description                             | Access / URL                                                   |
 | :------------------------------------ | :------------- | :-------------------------------------- | :------------------------------------------------------------- |
-| **Consumer Web App (`@ishoot/web`)**  | `3000`         | Next.js 15 Consumer Website (EN/AR)     | `http://localhost:3000`                                        |
-| **Admin Dashboard (`@ishoot/admin`)** | `3001`         | Enterprise Admin & CRM Platform         | `http://localhost:3001`                                        |
+| **Consumer Web App (`@platform/web`)**  | `3000`         | Next.js 15 Consumer Website (EN/AR)     | `http://localhost:3000`                                        |
+| **Admin Dashboard (`@platform/admin`)** | `3001`         | Enterprise Admin & CRM Platform         | `http://localhost:3001`                                        |
 | **PostgreSQL Database**               | `5432`         | PostgreSQL 15 Container (`ishoot_db`)   | `Configured by `DATABASE_URL` in `.env`` |
 | **Prisma Studio (DB GUI)**            | `5555`         | Visual Database Editor & Inspection GUI | `http://localhost:5555`                                        |
 | **pgAdmin / Database Tools**          | `5432`         | External DB Client Connection Port      | Connection Host: `localhost`, Port: `5432`                     |
@@ -63,10 +63,10 @@ For paste-safe initialization and local Supabase setup, follow [the DevOps guide
 
 ```bash
 # Generate Prisma Client (after modifying schema.prisma)
-pnpm --filter @ishoot/database exec prisma generate
+pnpm --filter @platform/database exec prisma generate
 
 # Launch interactive Prisma Studio database GUI (http://localhost:5555)
-pnpm --filter @ishoot/database exec prisma studio
+pnpm --filter @platform/database exec prisma studio
 
 # Direct schema push to target PostgreSQL instance
 pnpm db:push
@@ -75,10 +75,10 @@ pnpm db:push
 pnpm db:seed
 
 # Force reset database (drop all tables & re-apply schema fresh)
-pnpm --filter @ishoot/database exec prisma db push --force-reset
+pnpm --filter @platform/database exec prisma db push --force-reset
 
 # Create production database migration
-pnpm --filter @ishoot/database exec prisma migrate dev --name <migration_name>
+pnpm --filter @platform/database exec prisma migrate dev --name <migration_name>
 ```
 
 ### Infrastructure & Docker Commands
@@ -103,7 +103,7 @@ docker exec -it ishoot_db psql -U ishoot -d ishoot_db
 
 ### 1. Visual Database Editing (Prisma Studio)
 
-Run `pnpm --filter @ishoot/database exec prisma studio` to launch **Prisma Studio** at `http://localhost:5555`.
+Run `pnpm --filter @platform/database exec prisma studio` to launch **Prisma Studio** at `http://localhost:5555`.
 
 - **View Records**: Click on any of the 26 entity models (e.g., `User`, `CRMContact`, `CRMDeal`, `Invoice`, `Payment`).
 - **Create Records**: Click **Add record**, fill in attributes, and click **Save 1 change**.
@@ -126,7 +126,7 @@ To connect pgAdmin or any PostgreSQL GUI tool to the local database:
 1. Edit schema definitions in [`packages/database/prisma/schema.prisma`](file:///Users/sayed/Desktop/GitHub/ishoot.bh/packages/database/prisma/schema.prisma).
 2. Regenerate TypeScript definitions:
    ```bash
-   pnpm --filter @ishoot/database exec prisma generate
+   pnpm --filter @platform/database exec prisma generate
    ```
 3. Sync changes directly to database:
    ```bash
@@ -134,7 +134,7 @@ To connect pgAdmin or any PostgreSQL GUI tool to the local database:
    ```
 4. If you want a completely fresh database state, run:
    ```bash
-   pnpm --filter @ishoot/database exec prisma db push --force-reset
+   pnpm --filter @platform/database exec prisma db push --force-reset
    pnpm db:seed
    ```
 
@@ -478,7 +478,7 @@ ADMIN_URL="http://localhost:3001"
 4. **Apply migrations and create the initial administrator**:
 
    ```bash
-   pnpm --filter @ishoot/database db:generate
+   pnpm --filter @platform/database db:generate
    pnpm exec prisma migrate deploy --schema packages/database/prisma/schema.prisma
    pnpm db:bootstrap
    ```

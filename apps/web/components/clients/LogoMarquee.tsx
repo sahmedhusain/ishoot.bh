@@ -2,7 +2,7 @@
 import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
-import type { ClientLogo } from "@ishoot/database/types";
+import type { ClientLogo } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Pause, Play } from "lucide-react";
 import logoContrast from "./logo-contrast.json";

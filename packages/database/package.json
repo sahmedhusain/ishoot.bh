@@ -1,5 +1,5 @@
 {
-  "name": "@ishoot/database",
+  "name": "@platform/database",
   "version": "1.0.0",
   "private": true,
   "main": "./src/index.ts",
@@ -25,12 +25,12 @@
     "type-check": "tsc --noEmit && tsc --project tsconfig.seed.json --noEmit"
   },
   "dependencies": {
-    "@ishoot/locales": "workspace:*",
+    "@platform/locales": "workspace:*",
     "@prisma/client": "5.22.0",
     "@supabase/supabase-js": "^2.117.2",
     "bcryptjs": "^3.0.3",
     "libphonenumber-js": "^1.13.14",
-    "@ishoot/config": "workspace:*"
+    "@platform/config": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",

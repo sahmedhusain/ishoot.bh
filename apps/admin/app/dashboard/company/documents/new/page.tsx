@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../../lib/auth";
-import { getTranslations } from "@ishoot/locales";
+import { getTranslations } from "@platform/locales";
 import { NewCompanyDocumentFormView } from "../../../../../components/company/NewCompanyDocumentFormView";
 
 export const metadata = { title: getTranslations("ar").admin.copy.newLegalDocument };

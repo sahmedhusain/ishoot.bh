@@ -1,12 +1,12 @@
 "use server";
-import { getTranslations, serverMessages } from "@ishoot/locales";
+import { getTranslations, serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import {
   measureOperation,
   getSignatureMode,
   resolveSigningSignature,
-} from "@ishoot/database";
-import { runAtomicMutation } from "@ishoot/database";
+} from "@platform/database";
+import { runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -19,10 +19,10 @@ import {
   MomAttendee,
   MomDiscussionPoint,
   MomActionItem,
-} from "@ishoot/database";
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission, getCurrentUser } from "../../lib/auth";
-import { requireFeatureEnabled } from "@ishoot/database";
+import { requireFeatureEnabled } from "@platform/database";
 
 export async function createMomAction(data: {
   title: string;
@@ -202,7 +202,7 @@ export async function shareMomViaEmailAction(
     const user = await requirePermission("moms", "export");
     validateActionArguments("shareMomViaEmailAction", { id, recipientEmail });
     await requirePermission("moms", "read");
-    const { db, getCompanySettings } = await import("@ishoot/database");
+    const { db, getCompanySettings } = await import("@platform/database");
     const { createHash } = await import("node:crypto");
     const { generateMomPdf } = await import("../../lib/pdf/mom-pdf");
     const mom = await getMinuteOfMeetingById(id);

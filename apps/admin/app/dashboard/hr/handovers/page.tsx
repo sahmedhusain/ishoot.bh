@@ -1,4 +1,4 @@
-import { db, listEmployeeHandovers } from "@ishoot/database";
+import { db, listEmployeeHandovers } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { HandoversListView } from "../../../../components/handovers/HandoversListView";
 

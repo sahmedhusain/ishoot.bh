@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 // Wage support programmes (Tamkeen). Runtime-free so the employee form and payroll share it.
 
 export const TAMKEEN_PROVIDER = "Tamkeen";

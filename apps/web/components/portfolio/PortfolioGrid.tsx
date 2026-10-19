@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { PortfolioItem, PortfolioCategory } from "@ishoot/database";
+import { PortfolioItem, PortfolioCategory } from "@platform/database";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { CategoryTabs } from "./CategoryTabs";
 import { PortfolioCard } from "./PortfolioCard";

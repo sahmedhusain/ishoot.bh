@@ -313,13 +313,13 @@ async function main() {
   ).outputText;
   const dependencies = {
     "node:crypto": require("node:crypto"),
-    "@ishoot/database": { db, ...websiteQueries, requireFeatureEnabled: async()=>{}, measureOperation: async (_name,fn)=>fn() },
+    "@platform/database": { db, ...websiteQueries, requireFeatureEnabled: async()=>{}, measureOperation: async (_name,fn)=>fn() },
     "../../lib/action-input": require("../apps/admin/lib/action-input.ts"),
-    "@ishoot/database/website-config": require("../packages/database/src/website-config.ts"),
+    "@platform/database/website-config": require("../packages/database/src/website-config.ts"),
     "../../lib/auth": { requirePermission: async () => ({ id: actor.id }) },
     "next/cache": { revalidatePath: () => {} },
     "../../lib/revalidate-web": { revalidatePublicSite: async () => false },
-    "@ishoot/locales": require("../packages/locales/src/index.ts"),
+    "@platform/locales": require("../packages/locales/src/index.ts"),
     "../../constants/routes": require("../packages/database/src/constants/routes.ts"),
   };
   require("node:vm").runInNewContext(compiled, {

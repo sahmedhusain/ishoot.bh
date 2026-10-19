@@ -1,6 +1,6 @@
-import { serverMessages, getTranslations } from "@ishoot/locales";
+import { serverMessages, getTranslations } from "@platform/locales";
 
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { NextRequest,NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../../lib/auth";
 import {
@@ -9,7 +9,7 @@ getPaymentByIdOrNumber,
 getQuotationById,
 getCompanySettings,
 hasPermission,
-} from "@ishoot/database";
+} from "@platform/database";
 
 import {
 generateInvoicePdfBuffer,

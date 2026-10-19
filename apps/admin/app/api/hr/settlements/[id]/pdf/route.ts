@@ -6,7 +6,7 @@ import {
   getCompanySettings,
   getFinalSettlement,
   measureOperation,
-} from "@ishoot/database";
+} from "@platform/database";
 import { getCurrentUser, hasPermission } from "../../../../../../lib/auth";
 import { generateFinalSettlementPdf } from "../../../../../../lib/pdf/final-settlement-pdf";
 

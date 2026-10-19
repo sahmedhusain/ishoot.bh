@@ -11,7 +11,7 @@ import {
   Clock,
 } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getTranslations, Locale } from "@ishoot/locales";
+import { getTranslations, Locale } from "@platform/locales";
 
 export default async function ContactPage({
   params,

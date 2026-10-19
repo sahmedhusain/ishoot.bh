@@ -1,4 +1,4 @@
-import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 /**
  * Payroll and leave arithmetic with no database access, so every rule can be unit tested.

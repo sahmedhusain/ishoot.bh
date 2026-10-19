@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from "@ishoot/ui";
-import { REQUEST_PRIORITIES, type RequestKind } from "@ishoot/database/constants/requests";
+import { Button } from "@platform/ui";
+import { REQUEST_PRIORITIES, type RequestKind } from "@platform/database/constants/requests";
 import {
   convertInquiryToClientAction,
   linkInquiryCustomerAction,

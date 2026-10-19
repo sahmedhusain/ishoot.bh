@@ -1,8 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 
 import { NextRequest, NextResponse } from "next/server";
-import { db, detectFileType, isSupabaseStorageConfigured, measureOperation, uploadRoot, writeLocalUpload } from "@ishoot/database";
+import { db, detectFileType, isSupabaseStorageConfigured, measureOperation, uploadRoot, writeLocalUpload } from "@platform/database";
 import { getCurrentUser } from "../../../../../../lib/auth";
 
 const maxUploadMb = 10;

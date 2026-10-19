@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOfficialLetter, getCompanySettings } from "@ishoot/database";
+import { getOfficialLetter, getCompanySettings } from "@platform/database";
 import { getCurrentUser, hasPermission } from "../../../../../lib/auth";
 import { generateCommunicationPdf } from "../../../../../lib/pdf/communications-pdf";
 export const dynamic = "force-dynamic";

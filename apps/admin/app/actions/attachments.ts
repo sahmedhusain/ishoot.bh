@@ -1,7 +1,7 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES, entityRoute } from "../../constants/routes";
-import { runAtomicMutation, measureOperation } from "@ishoot/database";
+import { runAtomicMutation, measureOperation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -9,7 +9,7 @@ import {
   db,
   deleteAttachment,
   createActivityLog,
-} from "@ishoot/database";
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requireAttachmentAccess } from "../../lib/attachment-access";
 

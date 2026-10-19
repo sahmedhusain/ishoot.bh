@@ -15,7 +15,7 @@ function load(file, mocks, jsx = false) {
   }).outputText;
   vm.runInNewContext(code, { module, exports: module.exports, require(id) {
     if (jsx && id === 'react/jsx-runtime') return appRequire(id);
-    id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
+    id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks);
     if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error('Unmocked dependency: ' + id); }
     return mocks[id];
   }, console, Date, Intl, Set, Map, URLSearchParams });
@@ -29,7 +29,7 @@ async function main() {
       'next/link': ({ href, children }) => React.createElement('a', { href }, children),
       '../shared/DeferredCharts': { DeferredCashflowChart: () => React.createElement('div', { 'data-testid': 'cashflow-chart' }) },
       './WorkloadPanels': { WorkloadPanels: () => React.createElement('div', { 'data-testid': 'workload' }) },
-      '@ishoot/ui': { Button: node('button'), CurrencyDisplay: ({ amount }) => React.createElement('span', null, amount), DateDisplay: node('span'), StatusBadge: node('span') },
+      '@platform/ui': { Button: node('button'), CurrencyDisplay: ({ amount }) => React.createElement('span', null, amount), DateDisplay: node('span'), StatusBadge: node('span') },
       'lucide-react': new Proxy({}, { get: () => () => React.createElement('svg') }),
       '../../hooks/useAdminLocale': { useAdminLocale: () => ({ t, locale }) },
     }, true);
@@ -95,7 +95,7 @@ async function main() {
   assert.ok(advances[1].where.dealStage.in.includes('invoiced'));
 
   // Links can only carry the parameters their target page reads.
-  const { ROUTES, entityRoute } = realConstants('apps/admin/x.ts', '@ishoot/database/constants/routes');
+  const { ROUTES, entityRoute } = realConstants('apps/admin/x.ts', '@platform/database/constants/routes');
   assert.equal(ROUTES.quotations.create({ clientId: 'c 1', dealId: 'd', inquiryId: null }), '/dashboard/quotations/new?clientId=c+1&dealId=d');
   assert.equal(ROUTES.crm.newDeal(), '/dashboard/crm/deals/new');
   assert.equal(ROUTES.crm.customer('a/b'), '/dashboard/crm/customers/a%2Fb');

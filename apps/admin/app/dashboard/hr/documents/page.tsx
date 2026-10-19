@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { db } from "@ishoot/database";
+import { db } from "@platform/database";
 import {
   availablePayslipMonths,
   decidableSalaryDocumentIds,

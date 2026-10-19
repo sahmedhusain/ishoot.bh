@@ -4,7 +4,7 @@ import { Topbar } from "../../components/layout/Topbar";
 import { SidebarProvider } from "../../components/layout/SidebarContext";
 import { getCachedCompanySettings, getCachedFeatureToggles } from "../../lib/cached-queries";
 import { getCurrentPermissions,requireAuth } from "../../lib/auth";
-import { db, getActiveTaxSummary } from "@ishoot/database";
+import { db, getActiveTaxSummary } from "@platform/database";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
 import { CompanyVatProvider } from "../../hooks/useCompanyVat";

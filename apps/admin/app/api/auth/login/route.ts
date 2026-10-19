@@ -1,12 +1,12 @@
-import { serverMessages, getTranslations } from "@ishoot/locales";
+import { serverMessages, getTranslations } from "@platform/locales";
 import { NextRequest, NextResponse, after } from "next/server";
-import { db, runAtomicMutation } from "@ishoot/database/db";
-import { measureOperation } from "@ishoot/database/observability";
-import { verifyUserCredentials } from "@ishoot/database/queries/users";
-import { createSession } from "@ishoot/database/queries/sessions";
-import { createActivityLog } from "@ishoot/database/queries/activity";
-import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database/services/abuse-limits";
-import { verifyMfa } from "@ishoot/database/services/mfa";
+import { db, runAtomicMutation } from "@platform/database/db";
+import { measureOperation } from "@platform/database/observability";
+import { verifyUserCredentials } from "@platform/database/queries/users";
+import { createSession } from "@platform/database/queries/sessions";
+import { createActivityLog } from "@platform/database/queries/activity";
+import { consumeAbuseLimit, trustedClientIp } from "@platform/database/services/abuse-limits";
+import { verifyMfa } from "@platform/database/services/mfa";
 import { readLoginInput } from "../../../../lib/login-input";
 
 import { signSessionToken } from "../../../../lib/jwt";

@@ -6,14 +6,14 @@ import Link from "next/link";
 
 import * as React from "react";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
-import type { PortfolioItem,PortfolioCategory } from "@ishoot/database/types";
+import type { PortfolioItem,PortfolioCategory } from "@platform/database/types";
 import {
 Button,Badge,
 Modal,
 Input,
 Select,
 ConfirmDestructiveModal
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
 Plus,Trash2,
 Star,

@@ -18,7 +18,7 @@ import {
   accountSnapshot,
   listAccountChangeRequests,
   listEmployeeHandovers,
-} from "@ishoot/database";
+} from "@platform/database";
 import { EmployeeResidencyPanel } from "../../../../../components/hr/EmployeeResidencyPanel";
 import { RecurringPayPanel } from "../../../../../components/hr/RecurringPayPanel";
 import { EmployeeAssetsCard } from "../../../../../components/assets/EmployeeAssetsCard";

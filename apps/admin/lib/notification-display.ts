@@ -1,8 +1,8 @@
-import type { Notification } from "@ishoot/database/types";
+import type { Notification } from "@platform/database/types";
 import type { AdminTranslations } from "./translations";
-import { formatDate } from "@ishoot/ui";
-import { approvalTargetUrl } from "@ishoot/database/constants/approvals";
-import { ROUTES } from "@ishoot/database/constants/routes";
+import { formatDate } from "@platform/ui";
+import { approvalTargetUrl } from "@platform/database/constants/approvals";
+import { ROUTES } from "@platform/database/constants/routes";
 export function notificationText(
   n: Notification,
   t: AdminTranslations,

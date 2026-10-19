@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { measureOperation, getMinuteOfMeetingById, getCompanySettings, createActivityLog, requireFeatureEnabled } from "@ishoot/database";
+import { measureOperation, getMinuteOfMeetingById, getCompanySettings, createActivityLog, requireFeatureEnabled } from "@platform/database";
 import { getCurrentUser, hasPermission } from "../../../../../lib/auth";
 import { generateMomPdf } from "../../../../../lib/pdf/mom-pdf";
 

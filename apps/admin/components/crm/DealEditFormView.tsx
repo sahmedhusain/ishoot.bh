@@ -1,13 +1,13 @@
 "use client";
-import { getCurrencyLabel } from "@ishoot/config/currency";
+import { getCurrencyLabel } from "@platform/config/currency";
 import { ROUTES } from "../../constants/routes";
 import {EntityLookup} from "../shared/EntityLookup";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { CRMDeal, CRMContact, DealStage } from "@ishoot/database/types";
-import { Card, Input, Select, Button, Textarea } from "@ishoot/ui";
+import type { CRMDeal, CRMContact, DealStage } from "@platform/database/types";
+import { Card, Input, Select, Button, Textarea } from "@platform/ui";
 import { ArrowLeft, CheckCircle2, Briefcase, ExternalLink } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateDealAction } from "../../app/actions/crm";

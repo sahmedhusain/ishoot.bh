@@ -2,13 +2,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button, Input, Textarea } from "@ishoot/ui";
-import type { AnnouncementInput, AnnouncementDetail } from "@ishoot/database";
+import { Button, Input, Textarea } from "@platform/ui";
+import type { AnnouncementInput, AnnouncementDetail } from "@platform/database";
 import {
   ANNOUNCEMENT_AUDIENCES,
   ANNOUNCEMENT_CATEGORIES,
   ANNOUNCEMENT_PRIORITIES,
-} from "@ishoot/database/constants/communications";
+} from "@platform/database/constants/communications";
 import { saveAnnouncementAction } from "../../app/actions/communications";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";

@@ -3,7 +3,7 @@ import { getWebsite,isWebsitePreview } from "../../../lib/website";
 import { notFound } from "next/navigation";
 import { PortfolioGrid } from "../../../components/portfolio/PortfolioGrid";
 import { SectionBadge } from "../../../components/shared/SectionBadge";
-import { getTranslations,Locale } from "@ishoot/locales";
+import { getTranslations,Locale } from "@platform/locales";
 
 export default async function WorksPage({
   params,

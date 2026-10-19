@@ -1,8 +1,8 @@
-import { serverMessages, getTranslations, formatMessage } from "@ishoot/locales";
+import { serverMessages, getTranslations, formatMessage } from "@platform/locales";
 
 
-import { getCompanySettings } from "@ishoot/database";
-import { measureOperation, getCalendarFor } from "@ishoot/database";
+import { getCompanySettings } from "@platform/database";
+import { measureOperation, getCalendarFor } from "@platform/database";
 import { NextResponse } from "next/server";
 import { getCurrentUser, hasPermission } from "../../../../lib/auth";
 import { buildIcs } from "../../../../lib/ics";

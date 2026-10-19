@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
 import { normalizeToE164 } from "../services/lead-resolver";

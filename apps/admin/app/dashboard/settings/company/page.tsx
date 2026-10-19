@@ -1,5 +1,5 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { getCompanyAssets, listTaxRates } from "@ishoot/database";
+import { getCompanyAssets, listTaxRates } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { CompanySettingsView } from "../../../../components/settings/CompanySettingsView";
 

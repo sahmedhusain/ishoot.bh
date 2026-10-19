@@ -1,4 +1,4 @@
-import { serverTemplates, formatMessage } from "@ishoot/locales";
+import { serverTemplates, formatMessage } from "@platform/locales";
 import type { IntegrationProviderId, SocialPlatformId } from "../constants/integrations";
 
 /**

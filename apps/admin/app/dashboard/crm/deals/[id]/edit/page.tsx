@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../../../lib/auth";
-import { getCRMDealById,getCRMContactById,db } from "@ishoot/database";
+import { getCRMDealById,getCRMContactById,db } from "@platform/database";
 import { notFound } from "next/navigation";
 import { DealEditFormView } from "../../../../../../components/crm/DealEditFormView";
 

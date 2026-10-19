@@ -1,7 +1,7 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { NextRequest } from "next/server";
 
-import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database";
+import { consumeAbuseLimit, trustedClientIp } from "@platform/database";
 export async function readSubmission(req: NextRequest): Promise<Record<string, unknown>> {
   const ip = trustedClientIp(req.headers);
   await consumeAbuseLimit("public-intake", ip || "untrusted-ingress", ip ? 12 : 300);

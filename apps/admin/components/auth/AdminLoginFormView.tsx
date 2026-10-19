@@ -4,7 +4,7 @@ import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Input, Button, Card } from "@ishoot/ui";
+import { Input, Button, Card } from "@platform/ui";
 import { Lock, Mail, ArrowRight, AlertCircle, Globe } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

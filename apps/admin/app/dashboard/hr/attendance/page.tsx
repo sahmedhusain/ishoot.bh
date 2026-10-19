@@ -1,4 +1,4 @@
-import { getAttendanceSheet } from "@ishoot/database";
+import { getAttendanceSheet } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { AttendanceSheetView } from "../../../../components/hr/AttendanceSheetView";
 

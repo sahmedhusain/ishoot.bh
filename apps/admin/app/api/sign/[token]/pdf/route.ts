@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { measureOperation, getSigningSession, getQuotationById, getInvoiceById, getCompanySettings } from "@ishoot/database";
-import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database/services/abuse-limits";
+import { measureOperation, getSigningSession, getQuotationById, getInvoiceById, getCompanySettings } from "@platform/database";
+import { consumeAbuseLimit, trustedClientIp } from "@platform/database/services/abuse-limits";
 import { generateInvoicePdfBuffer, generateQuotationPdfBuffer } from "../../../../../lib/pdf/generate";
 import { signingConsent } from "../../../../../lib/client-signing";
 

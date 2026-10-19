@@ -1,5 +1,5 @@
 import { requirePagePermission, hasPermission } from "../../../lib/auth";
-import { getAllUsers, db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
+import { getAllUsers, db, ALL_RESOURCES, ALL_ACTIONS } from "@platform/database";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
 
 export const dynamic = "force-dynamic";

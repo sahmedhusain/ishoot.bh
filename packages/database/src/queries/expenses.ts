@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { assertSupportedCurrency } from "../constants/finance";
 import { getCompanySettings } from "./company-settings";
 import { db, runAtomicMutation } from "../db";

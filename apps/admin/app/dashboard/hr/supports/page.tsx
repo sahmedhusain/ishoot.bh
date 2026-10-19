@@ -3,7 +3,7 @@ import {
   getSupportClaims,
   listEmployeeSupports,
   listSupportPrograms,
-} from "@ishoot/database";
+} from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { SupportProgramsView } from "../../../../components/supports/SupportProgramsView";
 import { SupportClaimsPanel } from "../../../../components/hr/SupportClaimsPanel";

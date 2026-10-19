@@ -1,5 +1,5 @@
 import { Document, Page, View, renderToBuffer } from "@react-pdf/renderer";
-import type { CompanySettings, MinuteOfMeetingItem } from "@ishoot/database/types";
+import type { CompanySettings, MinuteOfMeetingItem } from "@platform/database/types";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import {
   Letterhead,

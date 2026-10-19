@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import type { AnnouncementItem } from "@ishoot/database";
+import type { AnnouncementItem } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ROUTES } from "../../constants/routes";
 import { communicationSettingsAction } from "../../app/actions/communications";

@@ -9,7 +9,7 @@ Button,
 Badge,
 DateDisplay,
 ConfirmDestructiveModal,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
 Building2,
 Plus,
@@ -17,7 +17,7 @@ Download,
 FileText,
 Trash2,Calendar
 } from "lucide-react";
-import type { CompanyDocument } from "@ishoot/database";
+import type { CompanyDocument } from "@platform/database";
 import { deleteCompanyDocumentAction } from "../../app/actions/documents";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

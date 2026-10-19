@@ -9,7 +9,7 @@ import {
   getProfileChangeRequestsForUser,
   listSignatureChanges,
   getEmployeeAssets,
-} from "@ishoot/database";
+} from "@platform/database";
 import { hasPermission } from "../../../lib/auth";
 import { EmployeeAssetsCard } from "../../../components/assets/EmployeeAssetsCard";
 import { SignaturePad } from "../../../components/profile/SignaturePad";

@@ -1,13 +1,13 @@
 import sharp from "sharp";
 import fs from "fs/promises";
-import { uploadRoot } from "@ishoot/database";
+import { uploadRoot } from "@platform/database";
 import path from "path";
 import {
   db,
   getStorageClient,
   uploadStorageLocation,
   isSupabaseStorageConfigured,
-} from "@ishoot/database";
+} from "@platform/database";
 
 /**
  * PDF images: vector art is rasterized at print resolution and empty margins are trimmed so a

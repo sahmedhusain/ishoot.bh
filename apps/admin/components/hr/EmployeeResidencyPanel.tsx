@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -19,22 +19,22 @@ import {
   Select,
   formatCurrencyValue,
   formatDate,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import type {
   EmployeeCredentialInput,
   EmployeeCredentialRecord,
   EmployeeIdentityInput,
   EmployeeResidency,
-} from "@ishoot/database";
+} from "@platform/database";
 import {
   expiryStatus,
   needsWorkVisa,
   type ExpiryStatus,
-} from "@ishoot/database/constants/employee-documents";
+} from "@platform/database/constants/employee-documents";
 import {
   countryName,
   countryOptions,
-} from "@ishoot/database/constants/clients";
+} from "@platform/database/constants/clients";
 import {
   deleteEmployeeCredentialAction,
   saveEmployeeCredentialAction,

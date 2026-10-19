@@ -8,7 +8,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { Menu } from "lucide-react";
-import type { PublicCompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@platform/database/types";
 
 interface NavbarProps {
   company: PublicCompanySettings;

@@ -1,4 +1,4 @@
-import { getTranslations, formatMessage, type Locale } from "@ishoot/locales";
+import { getTranslations, formatMessage, type Locale } from "@platform/locales";
 import { db } from "../db";
 import { FUNCTIONAL_CURRENCY } from "../constants/finance";
 

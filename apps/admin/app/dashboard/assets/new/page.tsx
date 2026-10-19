@@ -1,4 +1,4 @@
-import { listAssetCategories } from "@ishoot/database";
+import { listAssetCategories } from "@platform/database";
 import { requirePagePermission } from "../../../../lib/auth";
 import { NewAssetView } from "../../../../components/assets/NewAssetView";
 

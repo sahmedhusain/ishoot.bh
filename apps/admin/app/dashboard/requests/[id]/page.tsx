@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { getConsolidatedRequestById, db, findPendingApproval, canDecideApproval } from "@ishoot/database";
+import { getConsolidatedRequestById, db, findPendingApproval, canDecideApproval } from "@platform/database";
 import { RequestDetailView } from "../../../../components/requests/RequestDetailView";
 
 export const dynamic = "force-dynamic";

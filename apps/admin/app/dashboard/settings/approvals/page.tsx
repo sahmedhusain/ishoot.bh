@@ -5,7 +5,7 @@ import {
   listApprovalPolicies,
   listSignaturePolicies,
   db,
-} from "@ishoot/database";
+} from "@platform/database";
 import { ApprovalPoliciesView } from "../../../../components/settings/ApprovalPoliciesView";
 import { SignaturePoliciesPanel } from "../../../../components/settings/SignaturePoliciesPanel";
 

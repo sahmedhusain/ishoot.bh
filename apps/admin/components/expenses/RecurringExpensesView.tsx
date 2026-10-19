@@ -1,14 +1,14 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlarmClock, ArrowLeft, CalendarClock, CheckCircle2, Pause, Pencil, Play, Plus, Repeat, SkipForward, Trash2, X, Zap } from "lucide-react";
-import { Button, Input, Select, formatCurrencyValue, formatDate } from "@ishoot/ui";
-import type { ExpenseCategory } from "@ishoot/database/types";
-import type { RecurringExpenseInput, RecurringExpenseRecord } from "@ishoot/database";
+import { Button, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
+import type { ExpenseCategory } from "@platform/database/types";
+import type { RecurringExpenseInput, RecurringExpenseRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import {
   deleteRecurringExpenseAction,

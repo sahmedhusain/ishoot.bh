@@ -3,7 +3,7 @@ import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
-import type { PortfolioItem } from "@ishoot/database/types";
+import type { PortfolioItem } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ArrowUpRight, Play } from "lucide-react";

@@ -6,9 +6,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarCheck, ChevronLeft, ChevronRight, Lock } from "lucide-react";
-import { Button, Card, Modal } from "@ishoot/ui";
-import type { AttendanceCell, AttendanceSheet } from "@ishoot/database/queries/attendance";
-import { ROUTES } from "@ishoot/database/constants/routes";
+import { Button, Card, Modal } from "@platform/ui";
+import type { AttendanceCell, AttendanceSheet } from "@platform/database/queries/attendance";
+import { ROUTES } from "@platform/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { deleteAttendanceAction, markMonthPresentAction, saveAttendanceAction } from "../../app/actions/hr-settings";
 

@@ -5,9 +5,9 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ROUTES } from "@ishoot/database/constants/routes";
-import type { PayrollRun } from "@ishoot/database/types";
-import { Card, Button, Modal, useDialog } from "@ishoot/ui";
+import { ROUTES } from "@platform/database/constants/routes";
+import type { PayrollRun } from "@platform/database/types";
+import { Card, Button, Modal, useDialog } from "@platform/ui";
 import {
   DollarSign,
   Plus,

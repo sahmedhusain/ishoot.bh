@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { getTranslations, formatMessage } from "@ishoot/locales";
+import { getTranslations, formatMessage } from "@platform/locales";
 import { getPublicCompanySettings } from "../lib/company";
 import { publicSiteUrl } from "../lib/site-url";
 

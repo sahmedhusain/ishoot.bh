@@ -5,8 +5,8 @@ import * as React from "react";
 import Link from "next/link";
 import { Plus, FileSignature, ArrowRight, ArrowLeft, CheckCircle2, Clock, Receipt, Filter } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import type { Quotation } from "@ishoot/database/types";
-import type { QuotationListSummary } from "@ishoot/database";
+import type { Quotation } from "@platform/database/types";
+import type { QuotationListSummary } from "@platform/database";
 import { ListControls } from "../shared/ListControls";
 
 export interface QuotationListItem extends Quotation {

@@ -1,4 +1,4 @@
-import { serverTemplates, formatMessage } from "@ishoot/locales";
+import { serverTemplates, formatMessage } from "@platform/locales";
 // Finance rules shared by queries and the UI. Runtime-free.
 
 /** Currencies the business trades in: the six GCC currencies plus USD, EUR and GBP. BHD is the book currency. */

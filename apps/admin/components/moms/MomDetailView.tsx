@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 
 import { ROUTES } from "../../constants/routes";
@@ -12,12 +12,12 @@ import type {
   MomAttendee,
   MomDiscussionPoint,
   MomActionItem,
-} from "@ishoot/database";
+} from "@platform/database";
 import {
   DocumentLetterhead,
   DocumentFooter,
 } from "../shared/DocumentLetterhead";
-import { Button, StatusBadge, useDialog } from "@ishoot/ui";
+import { Button, StatusBadge, useDialog } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,

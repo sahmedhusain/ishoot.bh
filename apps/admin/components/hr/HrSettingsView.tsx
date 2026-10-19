@@ -6,10 +6,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarDays, Clock, Pencil, Plus, Trash2, Wallet } from "lucide-react";
-import { Button, Card, ConfirmDestructiveModal, DateDisplay, Modal } from "@ishoot/ui";
-import type { HrPolicyRules } from "@ishoot/database/hr/payroll-engine";
-import { payrollWindow } from "@ishoot/database/hr/payroll-engine";
-import type { LeaveTypeView, ShiftTypeView } from "@ishoot/database/queries/hr-settings";
+import { Button, Card, ConfirmDestructiveModal, DateDisplay, Modal } from "@platform/ui";
+import type { HrPolicyRules } from "@platform/database/hr/payroll-engine";
+import { payrollWindow } from "@platform/database/hr/payroll-engine";
+import type { LeaveTypeView, ShiftTypeView } from "@platform/database/queries/hr-settings";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   deletePublicHolidayAction,

@@ -8,8 +8,8 @@ import { EntityLookup } from "../shared/EntityLookup";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CRMContact, Invoice } from "@ishoot/database/types";
-import { Card, Button, Input, Select, CurrencyDisplay } from "@ishoot/ui";
+import type { CRMContact, Invoice } from "@platform/database/types";
+import { Card, Button, Input, Select, CurrencyDisplay } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,

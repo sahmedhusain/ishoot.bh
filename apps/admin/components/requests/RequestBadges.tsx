@@ -1,6 +1,6 @@
 "use client";
 
-import { StatusBadge } from "@ishoot/ui";
+import { StatusBadge } from "@platform/ui";
 import {
   REQUEST_PRIORITY_STYLES,
   REQUEST_TYPE_STYLES,

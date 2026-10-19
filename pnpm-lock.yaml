@@ -209,19 +209,19 @@ importers:
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@ishoot/config':
+      '@platform/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@ishoot/database':
+      '@platform/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@ishoot/email':
+      '@platform/email':
         specifier: workspace:*
         version: link:../../packages/email
-      '@ishoot/locales':
+      '@platform/locales':
         specifier: workspace:*
         version: link:../../packages/locales
-      '@ishoot/ui':
+      '@platform/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@prisma/client':
@@ -294,16 +294,16 @@ importers:
 
   apps/web:
     dependencies:
-      '@ishoot/config':
+      '@platform/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@ishoot/database':
+      '@platform/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@ishoot/email':
+      '@platform/email':
         specifier: workspace:*
         version: link:../../packages/email
-      '@ishoot/locales':
+      '@platform/locales':
         specifier: workspace:*
         version: link:../../packages/locales
       '@prisma/client':
@@ -371,10 +371,10 @@ importers:
 
   packages/database:
     dependencies:
-      '@ishoot/config':
+      '@platform/config':
         specifier: workspace:*
         version: link:../config
-      '@ishoot/locales':
+      '@platform/locales':
         specifier: workspace:*
         version: link:../locales
       '@prisma/client':
@@ -402,7 +402,7 @@ importers:
 
   packages/email:
     dependencies:
-      '@ishoot/locales':
+      '@platform/locales':
         specifier: workspace:*
         version: link:../locales
       resend:
@@ -424,7 +424,7 @@ importers:
 
   packages/ui:
     dependencies:
-      '@ishoot/config':
+      '@platform/config':
         specifier: workspace:*
         version: link:../config
       clsx:

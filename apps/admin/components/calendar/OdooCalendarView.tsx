@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
@@ -8,7 +8,7 @@ import type {
   CalendarEvent,
   CalendarLayer,
   CalendarVisibility,
-} from "@ishoot/database/types";
+} from "@platform/database/types";
 import {
   createCalendarEventAction,
   updateCalendarEventAction,
@@ -22,7 +22,7 @@ import {
   Input,
   Select,
   ConfirmDestructiveModal,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
   Calendar as CalendarIcon,
   ChevronLeft,

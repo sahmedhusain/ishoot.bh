@@ -1,7 +1,7 @@
 "use client";
 import {ContentImage} from "../shared/ContentImage";
 
-import type { PublicCompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { Reveal } from "../shared/Reveal";

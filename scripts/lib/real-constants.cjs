@@ -8,8 +8,8 @@ let registered = false;
 
 function realConstants(fromFile, id) {
   let target = null;
-  if (id === "@ishoot/locales") target = path.join(root, "packages/locales/src/index");
-  else if (id.startsWith("@ishoot/database/constants/")) target = path.join(constantsDir, id.slice("@ishoot/database/constants/".length));
+  if (id === "@platform/locales") target = path.join(root, "packages/locales/src/index");
+  else if (id.startsWith("@platform/database/constants/")) target = path.join(constantsDir, id.slice("@platform/database/constants/".length));
   else if (id.startsWith(".")) target = path.resolve(root, path.dirname(fromFile), id);
   if (!target || !(constantsDirs.some((dir) => target.startsWith(dir)) || pureFiles.includes(target.replace(/\.ts$/, "")))) return null;
   if (!registered) {

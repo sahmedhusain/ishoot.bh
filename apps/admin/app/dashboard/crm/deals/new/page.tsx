@@ -1,5 +1,5 @@
-import { getTranslations } from "@ishoot/locales";
-import { getCRMContactById } from "@ishoot/database";
+import { getTranslations } from "@platform/locales";
+import { getCRMContactById } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
 import { NewDealFormView } from "../../../../../components/crm/NewDealFormView";

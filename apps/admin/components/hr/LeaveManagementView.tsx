@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -8,10 +8,10 @@ import { LeaveBalancesCard } from "./LeaveBalancesCard";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import type { LeaveRequest, Employee } from "@ishoot/database/types";
-import type { LeaveTypeView } from "@ishoot/database/queries/hr-settings";
-import type { LeaveBalance } from "@ishoot/database/queries/leave-balances";
-import { Card, Button, useDialog, formatDate } from "@ishoot/ui";
+import type { LeaveRequest, Employee } from "@platform/database/types";
+import type { LeaveTypeView } from "@platform/database/queries/hr-settings";
+import type { LeaveBalance } from "@platform/database/queries/leave-balances";
+import { Card, Button, useDialog, formatDate } from "@platform/ui";
 import { Clock, Plus } from "lucide-react";
 import {
   createLeaveRequestAction,

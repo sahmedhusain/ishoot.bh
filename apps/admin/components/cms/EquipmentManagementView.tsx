@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import type { StudioEquipment } from "@ishoot/database/types";
+import type { StudioEquipment } from "@platform/database/types";
 import {
 Button,Badge,
 Modal,
 Input,
 Select,
 ConfirmDestructiveModal
-} from "@ishoot/ui";
+} from "@platform/ui";
 import { Plus,Trash2,CheckCircle2,Filter,Pencil } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {

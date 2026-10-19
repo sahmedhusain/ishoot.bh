@@ -3,8 +3,8 @@ import type { StatisticItem } from "../../types/cms";
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { Button, Card, Modal, Input, Select, ConfirmDestructiveModal } from "@ishoot/ui";
-import { STATISTIC_PRESETS, type StatisticPreset } from "@ishoot/database/constants/statistics";
+import { Button, Card, Modal, Input, Select, ConfirmDestructiveModal } from "@platform/ui";
+import { STATISTIC_PRESETS, type StatisticPreset } from "@platform/database/constants/statistics";
 import { Plus, Edit, Trash2, Activity } from "lucide-react";
 import { createStatisticAction, updateStatisticAction, deleteStatisticAction } from "../../app/actions/cms";
 import { IconPicker } from "../shared/LazyIconPicker";

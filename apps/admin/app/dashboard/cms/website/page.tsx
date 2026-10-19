@@ -1,6 +1,6 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus } from "@ishoot/database";
-import { validateWebsiteConfig } from "@ishoot/database/website-config";
+import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus } from "@platform/database";
+import { validateWebsiteConfig } from "@platform/database/website-config";
 import { WebsiteEditor } from "../../../../components/cms/WebsiteEditor";
 export const dynamic = "force-dynamic";
 export default async function WebsitePage() {

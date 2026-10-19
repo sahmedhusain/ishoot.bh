@@ -2,8 +2,8 @@
 import { ContentImage } from "../shared/ContentImage";
 
 import Link from "next/link";
-import type { PublicService } from "@ishoot/database/website-config";
-import { safeWebsiteUrl } from "@ishoot/database/website-config";
+import type { PublicService } from "@platform/database/website-config";
+import { safeWebsiteUrl } from "@platform/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ArrowUpRight } from "lucide-react";

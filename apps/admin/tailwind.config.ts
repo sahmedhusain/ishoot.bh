@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import sharedConfig from "@ishoot/config";
+import sharedConfig from "@platform/config";
 
 // Theme-aware colours resolve through CSS variables (app/globals.css), so one class is correct in
 // both light and dark mode. Brand colours (primary, accent) come from the shared preset.

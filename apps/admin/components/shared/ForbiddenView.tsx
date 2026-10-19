@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ShieldOff } from "lucide-react";
-import { ROUTES } from "@ishoot/database/constants/routes";
+import { ROUTES } from "@platform/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function ForbiddenView() {

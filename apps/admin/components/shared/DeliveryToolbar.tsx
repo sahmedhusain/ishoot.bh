@@ -1,8 +1,8 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
-import { Button } from "@ishoot/ui";
+import { Button } from "@platform/ui";
 import { Mail, MessageCircle, Printer, Download, Check } from "lucide-react";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

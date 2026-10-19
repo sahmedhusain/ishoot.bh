@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { db, getAsset, listAssetCategories } from "@ishoot/database";
+import { db, getAsset, listAssetCategories } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { AssetDetailView } from "../../../../components/assets/AssetDetailView";
 

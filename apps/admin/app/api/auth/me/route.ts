@@ -1,7 +1,7 @@
-import { serverMessages } from "@ishoot/locales";
-import { measureOperation } from "@ishoot/database";
+import { serverMessages } from "@platform/locales";
+import { measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
-import { getEffectivePermissions } from "@ishoot/database";
+import { getEffectivePermissions } from "@platform/database";
 import { getCurrentUser } from "../../../../lib/auth";
 
 export async function GET(req: NextRequest) {

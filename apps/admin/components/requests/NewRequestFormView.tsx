@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 
 import { ROUTES } from "../../constants/routes";
@@ -21,10 +21,10 @@ import {
   HelpCircle,
   Sparkles,
 } from "lucide-react";
-import { Button } from "@ishoot/ui";
+import { Button } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createConsolidatedRequestAction } from "../../app/actions/requests";
-import type { CRMContact, ServiceItem } from "@ishoot/database";
+import type { CRMContact, ServiceItem } from "@platform/database";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 
 interface UserOption {

@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../db";
 import { ROUTES } from "../constants/routes";
 import { hasPermission } from "./permissions";

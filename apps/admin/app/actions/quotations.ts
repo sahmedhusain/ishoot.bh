@@ -1,6 +1,6 @@
 "use server";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation, runAtomicMutation } from "@ishoot/database";
+import { measureOperation, runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
   createQuotation,
@@ -12,7 +12,7 @@ import {
   rejectQuotation,
   convertQuotationToInvoice,
   createActivityLog,
-} from "@ishoot/database";
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
 

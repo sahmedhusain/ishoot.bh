@@ -1,7 +1,7 @@
 "use client";
 import { ROUTES } from "../../constants/routes";
 import { ListControls } from "../shared/ListControls";
-import type { InvoiceListRow } from "@ishoot/database";
+import type { InvoiceListRow } from "@platform/database";
 
 import * as React from "react";
 import Link from "next/link";
@@ -12,7 +12,7 @@ Badge,
 StatusBadge,
 DateDisplay,
 CurrencyDisplay,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
 User,
 Building2,
@@ -28,9 +28,9 @@ ArrowLeft,
 Edit,
   FileSignature,
 } from "lucide-react";
-import type { CRMDeal,CRMContact } from "@ishoot/database/types";
+import type { CRMDeal,CRMContact } from "@platform/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { isActiveDealStage } from "@ishoot/database/constants/crm";
+import { isActiveDealStage } from "@platform/database/constants/crm";
 import type { DossierActions } from "../../types/crm";
 
 interface DealDossierViewProps {

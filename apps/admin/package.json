@@ -1,5 +1,5 @@
 {
-  "name": "@ishoot/admin",
+  "name": "@platform/admin",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -11,11 +11,11 @@
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
-    "@ishoot/config": "workspace:*",
-    "@ishoot/database": "workspace:*",
-    "@ishoot/email": "workspace:*",
-    "@ishoot/locales": "workspace:*",
-    "@ishoot/ui": "workspace:*",
+    "@platform/config": "workspace:*",
+    "@platform/database": "workspace:*",
+    "@platform/email": "workspace:*",
+    "@platform/locales": "workspace:*",
+    "@platform/ui": "workspace:*",
     "@prisma/client": "5.22.0",
     "@react-pdf/renderer": "^4.2.1",
     "@supabase/supabase-js": "^2.117.2",

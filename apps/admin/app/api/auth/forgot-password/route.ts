@@ -1,10 +1,10 @@
-import { serverMessages, getTranslations } from "@ishoot/locales";
+import { serverMessages, getTranslations } from "@platform/locales";
 
 
-import { measureOperation, db, consumeAbuseLimit } from "@ishoot/database";
+import { measureOperation, db, consumeAbuseLimit } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { sendEmail } from "@ishoot/email";
+import { sendEmail } from "@platform/email";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {

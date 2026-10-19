@@ -6,7 +6,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
 import { motion, useReducedMotion } from "framer-motion";
-import type { Review } from "@ishoot/database/types";
+import type { Review } from "@platform/database/types";
 
 export function ReviewsSection({
   reviews,

@@ -1,4 +1,4 @@
-import { getCurrencyDecimals } from "@ishoot/config/currency";
+import { getCurrencyDecimals } from "@platform/config/currency";
 
 /**
  * Money arithmetic in the currency's minor units, so 0.1 + 0.7 settles 0.8 exactly.

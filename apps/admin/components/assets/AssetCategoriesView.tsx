@@ -1,13 +1,13 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, ListChecks, Pencil, Plus, SlidersHorizontal, Trash2, X } from "lucide-react";
-import { Button, Input } from "@ishoot/ui";
-import type { AssetCategoryInput, AssetCategoryRecord } from "@ishoot/database";
+import { Button, Input } from "@platform/ui";
+import type { AssetCategoryInput, AssetCategoryRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { saveAssetCategoryAction } from "../../app/actions/assets";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

@@ -1,11 +1,11 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CheckCircle2, PenLine, XCircle } from "lucide-react";
-import { Button, Textarea } from "@ishoot/ui";
+import { Button, Textarea } from "@platform/ui";
 import { decideApprovalAction } from "../../app/actions/approvals";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";

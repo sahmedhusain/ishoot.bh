@@ -1,7 +1,7 @@
-import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 import contracts from "./action-schemas.json";
-import { safeWebsiteUrl } from "@ishoot/database/website-config";
+import { safeWebsiteUrl } from "@platform/database/website-config";
 type Schema = {
   kind: string;
   optional?: boolean;

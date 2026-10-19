@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PenLine } from "lucide-react";
-import { Card } from "@ishoot/ui";
+import { Card } from "@platform/ui";
 import { setSignaturePolicyAction } from "../../app/actions/signatures";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";

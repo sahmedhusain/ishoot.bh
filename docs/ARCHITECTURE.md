@@ -14,7 +14,7 @@ The **ishoot.bh** platform is a modern monorepo (Turborepo) managing two distinc
 
 ## 3. Security Boundaries
 - **Authentication**: Custom JWT-based authentication wrapped with TOTP (Time-Based One-Time Password) MFA requirements for privileged accounts. Passwords are hashed using `bcryptjs`. Resetting a password strictly revokes all existing sessions.
-- **Authorization**: The `@ishoot/database` package provides `requirePermission(resource, action)`. All Server Actions invoke this boundary before executing database queries.
+- **Authorization**: The `@platform/database` package provides `requirePermission(resource, action)`. All Server Actions invoke this boundary before executing database queries.
 - **Data Encryption**: Application-level AES-256-GCM encryption is used for storing sensitive API tokens (e.g., WhatsApp, Facebook) at rest in the database.
 
 ## 4. Workloads & Background Jobs

@@ -5,7 +5,7 @@ getMonthlyCashflow,
 getExpenseCategoryTotals,
 getExpenseCategories,
 getReceivablesInsight,
-} from "@ishoot/database";
+} from "@platform/database";
 import { FinancialAnalyticsView } from "../../../components/finance/FinancialAnalyticsView";
 
 export const dynamic = "force-dynamic";

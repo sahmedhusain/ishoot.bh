@@ -3,11 +3,11 @@ import {
   getCompanySettings,
   getSignatureRequestSession,
   measureOperation,
-} from "@ishoot/database";
+} from "@platform/database";
 import {
   consumeAbuseLimit,
   trustedClientIp,
-} from "@ishoot/database/services/abuse-limits";
+} from "@platform/database/services/abuse-limits";
 import { generateAssetHandoverPdf } from "../../../../../lib/pdf/asset-handover-pdf";
 
 export const dynamic = "force-dynamic";

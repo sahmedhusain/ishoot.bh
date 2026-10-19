@@ -1,5 +1,5 @@
-import { db, getRequestList } from "@ishoot/database";
-import { REQUEST_DUE_FILTERS, REQUEST_KINDS, REQUEST_SORTS, REQUEST_SOURCES, type RequestKind } from "@ishoot/database/constants/requests";
+import { db, getRequestList } from "@platform/database";
+import { REQUEST_DUE_FILTERS, REQUEST_KINDS, REQUEST_SORTS, REQUEST_SOURCES, type RequestKind } from "@platform/database/constants/requests";
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { RequestsInboxView } from "../../../components/requests/RequestsInboxView";
 

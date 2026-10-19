@@ -1,4 +1,4 @@
-import { formatMessage, getTranslations, type Locale } from "@ishoot/locales";
+import { formatMessage, getTranslations, type Locale } from "@platform/locales";
 
 
 export function escapeEmailHtml(value: unknown): string {

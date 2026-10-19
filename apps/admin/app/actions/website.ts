@@ -1,7 +1,7 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 import { createHmac } from "node:crypto";
 import {
@@ -10,11 +10,11 @@ import {
   runAtomicMutation,
   collectWebsiteDraft,
   getWebsiteEditor,
-} from "@ishoot/database";
+} from "@platform/database";
 import {
   validateWebsiteConfig,
   safeWebsiteUrl,
-} from "@ishoot/database/website-config";
+} from "@platform/database/website-config";
 import { requirePermission } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
 import { revalidatePublicSite } from "../../lib/revalidate-web";

@@ -1,5 +1,5 @@
 import { getPublicCompanySettings } from "../../../lib/company";
-import { getStudioEquipment } from "@ishoot/database";
+import { getStudioEquipment } from "@platform/database";
 import { CEOHero } from "../../../components/about/CEOHero";
 import { StatsSection } from "../../../components/about/StatsSection";
 import { getWebsite, isWebsitePreview } from "../../../lib/website";

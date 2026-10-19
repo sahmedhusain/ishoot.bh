@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { requirePagePermission, hasPermission } from "../../../../lib/auth";
-import { getQuotationById, getApprovalRequest, canDecideApproval, getAttribution, listSalesPeople, getSigningState, canSignDocument, listClientSignatures, SIGNABLE_STATUSES } from "@ishoot/database";
+import { getQuotationById, getApprovalRequest, canDecideApproval, getAttribution, listSalesPeople, getSigningState, canSignDocument, listClientSignatures, SIGNABLE_STATUSES } from "@platform/database";
 import { ClientSignaturePanel } from "../../../../components/shared/ClientSignaturePanel";
 import { SigningPanel } from "../../../../components/sales/SigningPanel";
 import { AttributionPanel } from "../../../../components/sales/AttributionPanel";

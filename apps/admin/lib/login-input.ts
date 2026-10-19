@@ -1,7 +1,7 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import type { NextRequest } from "next/server";
 
-import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database/services/abuse-limits";
+import { consumeAbuseLimit, trustedClientIp } from "@platform/database/services/abuse-limits";
 export async function readLoginInput(req: NextRequest): Promise<Record<string, unknown>> {
   const ip = trustedClientIp(req.headers);
   await consumeAbuseLimit("login-ip", ip || "untrusted-ingress", ip ? 10 : 300);

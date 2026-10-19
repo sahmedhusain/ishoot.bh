@@ -1,13 +1,13 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowRightLeft, Plus, X } from "lucide-react";
-import { Button, Input, Select, formatDate } from "@ishoot/ui";
-import type { listEmployeeHandovers } from "@ishoot/database";
+import { Button, Input, Select, formatDate } from "@platform/ui";
+import type { listEmployeeHandovers } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { openEmployeeHandoverAction } from "../../app/actions/employee-handovers";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

@@ -1,9 +1,9 @@
 "use server";
-import { getCompanySettings } from "@ishoot/database";
-import { serverMessages } from "@ishoot/locales";
+import { getCompanySettings } from "@platform/database";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@ishoot/database";
-import { runAtomicMutation, submitForApproval } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
+import { runAtomicMutation, submitForApproval } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -20,10 +20,10 @@ PaymentMethod,
 SupportedCurrency,
   refreshExchangeRates,
   getFxBoard,
-} from "@ishoot/database";
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
-import { requireFeatureEnabled } from "@ishoot/database";
+import { requireFeatureEnabled } from "@platform/database";
 
 export async function createExpenseAction(data: {
   amount: number;
@@ -150,11 +150,11 @@ export async function createInvoiceAction(data: {
   quotation_id?: string;
   issue_date: string;
   due_date: string;
-  currency?: import("@ishoot/database/types").SupportedCurrency;
+  currency?: import("@platform/database/types").SupportedCurrency;
   language?: "en" | "ar";
   notes_en?: string;
   notes_ar?: string;
-  discount_type?: import("@ishoot/database/types").DiscountType;
+  discount_type?: import("@platform/database/types").DiscountType;
   discount_value?: number;
   vat_enabled?: boolean;
   vat_percentage?: number;
@@ -208,11 +208,11 @@ export async function updateInvoiceAction(
     deal_id?: string;
     issue_date?: string;
     due_date?: string;
-    currency?: import("@ishoot/database/types").SupportedCurrency;
+    currency?: import("@platform/database/types").SupportedCurrency;
     language?: "en" | "ar";
     notes_en?: string;
     notes_ar?: string;
-    discount_type?: import("@ishoot/database/types").DiscountType;
+    discount_type?: import("@platform/database/types").DiscountType;
     discount_value?: number;
     vat_enabled?: boolean;
     vat_percentage?: number;
@@ -309,8 +309,8 @@ export async function exportFinancialReportCsvAction(filters: {
     await requirePermission("reports", "read");
     validateActionArguments("exportFinancialReportCsvAction", { filters });
 
-    const { getFinancialSummaryReport, getFinancialReportDetail, generateFinancialSummaryCsv, generateFinancialDetailCsv } = await import("@ishoot/database");
-    const { companyVat } = await import("@ishoot/database/finance/vat");
+    const { getFinancialSummaryReport, getFinancialReportDetail, generateFinancialSummaryCsv, generateFinancialDetailCsv } = await import("@platform/database");
+    const { companyVat } = await import("@platform/database/finance/vat");
     const range = {
       basis: filters.basis,
       dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,

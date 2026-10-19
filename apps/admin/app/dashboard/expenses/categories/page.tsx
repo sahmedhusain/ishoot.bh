@@ -1,5 +1,5 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
-import { getExpenseCategories } from "@ishoot/database";
+import { getExpenseCategories } from "@platform/database";
 import { ExpenseCategoriesView } from "../../../../components/expenses/ExpenseCategoriesView";
 
 export const dynamic = "force-dynamic";

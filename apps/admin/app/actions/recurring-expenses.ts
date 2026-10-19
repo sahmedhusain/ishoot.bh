@@ -10,7 +10,7 @@ import {
   saveRecurringExpense,
   skipRecurringExpense,
   type RecurringExpenseInput,
-} from "@ishoot/database";
+} from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";

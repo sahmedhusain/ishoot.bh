@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 export interface UploadOptions {
   entityType?: string;
   entityId?: string;

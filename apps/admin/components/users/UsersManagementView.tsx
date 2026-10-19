@@ -1,12 +1,12 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import Link from "next/link";
 import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
-import type { Profile, UserRole } from "@ishoot/database/types";
+import type { Profile, UserRole } from "@platform/database/types";
 import { createUserAction, deleteUserAction } from "../../app/actions/users";
 import { RolePermissionMatrix } from "./RolePermissionMatrix";
 import { UserPermissionOverrides } from "./UserPermissionOverrides";
@@ -19,7 +19,7 @@ import {
   Input,
   Select,
   ConfirmDestructiveModal,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
   UserPlus,
   Shield,

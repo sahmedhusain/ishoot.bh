@@ -2,8 +2,8 @@
 import {ContentImage} from "../shared/ContentImage";
 import * as React from "react";
 import Link from "next/link";
-import type { HeroBanner } from "@ishoot/database/types";
-import { safeWebsiteUrl } from "@ishoot/database/website-config";
+import type { HeroBanner } from "@platform/database/types";
+import { safeWebsiteUrl } from "@platform/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight, Pause, Play } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";

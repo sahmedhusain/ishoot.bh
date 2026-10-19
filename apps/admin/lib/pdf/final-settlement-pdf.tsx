@@ -1,4 +1,4 @@
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 /* eslint-disable jsx-a11y/alt-text -- React PDF images are PDF primitives, not DOM images. */
 import {
   Document,
@@ -7,8 +7,8 @@ import {
   View,
   renderToBuffer,
 } from "@react-pdf/renderer";
-import type { FinalSettlementDetail } from "@ishoot/database";
-import type { CompanySettings } from "@ishoot/database/types";
+import type { FinalSettlementDetail } from "@platform/database";
+import type { CompanySettings } from "@platform/database/types";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import {
   C,

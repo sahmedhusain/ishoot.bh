@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { RelatedListControls } from "../shared/RelatedListControls";
 
@@ -12,7 +12,7 @@ Badge,
 CurrencyDisplay,
 DateDisplay,
 StatusBadge,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
 User,Mail,Briefcase,CreditCard,
 FolderLock,
@@ -25,7 +25,7 @@ CheckCircle2,
 Plus,AlertCircle,
   FileSignature,
 } from "lucide-react";
-import type { CustomerDossier } from "@ishoot/database";
+import type { CustomerDossier } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { DossierActions } from "../../types/crm";
 import { ClientProfilePanel, ClientTierBadge, type ClientStanding } from "./ClientProfilePanel";

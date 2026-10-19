@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { Webhook } from "svix";
 export function verifyResendWebhook(payload: string, headers: Headers) {
   const secret = process.env.RESEND_WEBHOOK_SECRET;

@@ -1,9 +1,9 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { BadgeCheck, Download, Eye, Lock, PencilLine, ShieldCheck } from "lucide-react";
-import { ALL_ACTIONS, PERMISSION_GROUPS, type PermissionAction, type PermissionResource } from "@ishoot/database/constants/permissions";
+import { ALL_ACTIONS, PERMISSION_GROUPS, type PermissionAction, type PermissionResource } from "@platform/database/constants/permissions";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 type Level = "full" | "edit" | "view" | "none";

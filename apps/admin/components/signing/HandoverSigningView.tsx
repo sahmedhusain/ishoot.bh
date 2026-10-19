@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 /* eslint-disable @next/next/no-img-element -- brand artwork is served as-is on this public page. */
 
 import * as React from "react";
@@ -15,7 +15,7 @@ import {
 import { SignatureCanvas } from "../shared/SignatureCanvas";
 
 type Translations = ReturnType<
-  typeof import("@ishoot/locales").getTranslations
+  typeof import("@platform/locales").getTranslations
 >["admin"];
 type State =
   "open" | "signed" | "expired" | "revoked" | "unavailable" | "invalid";

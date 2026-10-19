@@ -5,8 +5,8 @@ import { uploadFileDirectly } from "../../../lib/upload-client";
 import { LinkOrUploadField } from "../../shared/LinkOrUploadField";
 
 import * as React from "react";
-import type { CompanySettings } from "@ishoot/database/types";
-import { Card, Input, useDialog } from "@ishoot/ui";
+import type { CompanySettings } from "@platform/database/types";
+import { Card, Input, useDialog } from "@platform/ui";
 import {
   Percent,
   CheckCircle2,

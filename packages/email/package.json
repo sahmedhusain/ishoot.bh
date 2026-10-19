@@ -1,11 +1,11 @@
 {
-  "name": "@ishoot/email",
+  "name": "@platform/email",
   "version": "1.0.0",
   "private": true,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@ishoot/locales": "workspace:*",
+    "@platform/locales": "workspace:*",
     "resend": "^4.1.2"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import { db, listEmployees, listLeaveTypes } from "@ishoot/database";
+import { db, listEmployees, listLeaveTypes } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { canManageSalaryDocuments } from "../../../../lib/salary-documents";
 import { ROUTES } from "../../../../constants/routes";

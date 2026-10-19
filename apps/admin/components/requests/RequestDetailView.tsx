@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -28,11 +28,11 @@ import {
   Plus,
   Send,
 } from "lucide-react";
-import { Button, CurrencyDisplay, StatusBadge, useDialog } from "@ishoot/ui";
-import type { ConsolidatedRequest } from "@ishoot/database";
+import { Button, CurrencyDisplay, StatusBadge, useDialog } from "@platform/ui";
+import type { ConsolidatedRequest } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
-import { REQUEST_TEAMS, canTransitionRequest, requestKindOf } from "@ishoot/database/constants/requests";
+import { REQUEST_TEAMS, canTransitionRequest, requestKindOf } from "@platform/database/constants/requests";
 import { RequestManagePanel } from "./RequestManagePanel";
 import { RequestPriorityBadge, RequestTypeBadge, RequestWorkflowBadge } from "./RequestBadges";
 import {

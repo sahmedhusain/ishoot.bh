@@ -1,6 +1,6 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { db } from "@ishoot/database";
-import { getTranslations } from "@ishoot/locales";
+import { db } from "@platform/database";
+import { getTranslations } from "@platform/locales";
 import { NewUserFormView } from "@/components/users/NewUserFormView";
 
 export const metadata = { title: getTranslations("ar").admin.copy.newUser };

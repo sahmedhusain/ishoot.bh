@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getAllClientLogos } from "@ishoot/database";
+import { getAllClientLogos } from "@platform/database";
 import { ClientsManagementView } from "../../../../components/cms/ClientsManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
 

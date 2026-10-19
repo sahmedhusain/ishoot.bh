@@ -5,8 +5,8 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Employee, Department } from "@ishoot/database/types";
-import { Card } from "@ishoot/ui";
+import type { Employee, Department } from "@platform/database/types";
+import { Card } from "@platform/ui";
 import { UserPlus, Search, Clock, ArrowRight, AlertCircle } from "lucide-react";
 
 interface EmployeesListViewProps {

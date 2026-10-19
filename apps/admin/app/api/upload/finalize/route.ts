@@ -1,12 +1,12 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 
 import { ROUTES } from "../../../../constants/routes";
 import {
   verifyStoredUpload,
   isSupabaseStorageConfigured,
   uploadRoot,
-} from "@ishoot/database";
-import { measureOperation, db } from "@ishoot/database";
+} from "@platform/database";
+import { measureOperation, db } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../lib/attachment-access";

@@ -1,5 +1,5 @@
 import { getCurrentPermissions,requirePagePermission } from "../../../../../lib/auth";
-import { getClientStanding, getCustomerDossier, getRelatedExpenses } from "@ishoot/database";
+import { getClientStanding, getCustomerDossier, getRelatedExpenses } from "@platform/database";
 import { RelatedExpensesPanel } from "../../../../../components/expenses/RelatedExpensesPanel";
 import { notFound } from "next/navigation";
 import type { DossierActions } from "../../../../../types/crm";

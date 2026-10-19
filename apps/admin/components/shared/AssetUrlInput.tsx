@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Input } from "@ishoot/ui";
+import { Input } from "@platform/ui";
 import { Loader2, UploadCloud, X } from "lucide-react";
 import { ContentImage } from "./ContentImage";
 import { websiteMedia } from "../../lib/website-media";

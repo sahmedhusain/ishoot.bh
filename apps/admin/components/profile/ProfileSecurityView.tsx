@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { KeyRound, Monitor, Loader2, ShieldCheck, LogOut } from "lucide-react";
 import { toast } from "sonner";
-import { Button, Input, formatDate } from "@ishoot/ui";
+import { Button, Input, formatDate } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   changeMyPasswordAction,

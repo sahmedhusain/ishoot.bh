@@ -1,9 +1,9 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import Link from "next/link";
-import type { PaymentListRow } from "@ishoot/database";
-import { CurrencyDisplay, DateDisplay } from "@ishoot/ui";
+import type { PaymentListRow } from "@platform/database";
+import { CurrencyDisplay, DateDisplay } from "@platform/ui";
 import { Banknote, CreditCard, FileText, Globe, Landmark, Plus, Receipt, ReceiptText, Wallet } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

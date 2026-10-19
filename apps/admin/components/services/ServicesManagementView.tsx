@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { ServiceItem,ServiceCategory } from "@ishoot/database/types";
-import { Button,Input,CurrencyDisplay, useDialog } from "@ishoot/ui";
+import type { ServiceItem,ServiceCategory } from "@platform/database/types";
+import { Button,Input,CurrencyDisplay, useDialog } from "@platform/ui";
 import {
 Sparkles,
 Plus,
@@ -20,7 +20,7 @@ deleteServiceAction,
 } from "../../app/actions/services";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
-import { SERVICE_CATEGORIES,SERVICE_UNITS } from "@ishoot/config/constants";
+import { SERVICE_CATEGORIES,SERVICE_UNITS } from "@platform/config/constants";
 
 interface ServicesManagementViewProps {
   initialServices: ServiceItem[];

@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import crypto from "crypto";
 import { resolveSigningSignature } from "./signature-policies";
 import { db, runAtomicMutation } from "../db";

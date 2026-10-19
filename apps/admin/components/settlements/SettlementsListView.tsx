@@ -11,9 +11,9 @@ import {
   Select,
   formatCurrencyValue,
   formatDate,
-} from "@ishoot/ui";
-import type { listFinalSettlements, SettlementRules } from "@ishoot/database";
-import { INSURED_CATEGORIES } from "@ishoot/database/hr/social-insurance";
+} from "@platform/ui";
+import type { listFinalSettlements, SettlementRules } from "@platform/database";
+import { INSURED_CATEGORIES } from "@platform/database/hr/social-insurance";
 import { ROUTES } from "../../constants/routes";
 import { updateSettlementRulesAction } from "../../app/actions/final-settlements";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

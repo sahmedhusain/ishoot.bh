@@ -5,7 +5,7 @@ import {
   findPendingApproval,
   canDecideApproval,
   getSignatureMode,
-} from "@ishoot/database";
+} from "@platform/database";
 import { requireAuth, hasPermission } from "../../../../lib/auth";
 import { letterEmployees } from "../../../../lib/communication-options";
 import { LetterWorkspace } from "../../../../components/communications/LetterWorkspace";

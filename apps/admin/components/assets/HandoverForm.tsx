@@ -1,11 +1,11 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button, Input, Select } from "@ishoot/ui";
-import type { AssetRecord } from "@ishoot/database";
+import { Button, Input, Select } from "@platform/ui";
+import type { AssetRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { startAssetHandoverAction } from "../../app/actions/assets";
 import { getSignatureModeAction } from "../../app/actions/signatures";

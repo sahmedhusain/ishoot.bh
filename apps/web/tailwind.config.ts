@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import sharedConfig from "@ishoot/config";
+import sharedConfig from "@platform/config";
 
 const config: Config = {
   presets: [sharedConfig as any],

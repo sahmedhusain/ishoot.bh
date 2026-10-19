@@ -1,6 +1,6 @@
 "use client";
 import { errorMessage } from "../../lib/error-text";
-import { formatDate } from "@ishoot/ui";
+import { formatDate } from "@platform/ui";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import {
   type WebsiteConfig,
   defaultWebsitePages,
-} from "@ishoot/database/website-config";
+} from "@platform/database/website-config";
 import {
   saveWebsiteDraftAction,
   publishWebsiteAction,
@@ -18,7 +18,7 @@ import {
   updateWebsiteServiceAction,
 } from "../../app/actions/website";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import type { WebsiteSnapshotSection } from "@ishoot/database";
+import type { WebsiteSnapshotSection } from "@platform/database";
 import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
 export function WebsiteEditor({
   config,

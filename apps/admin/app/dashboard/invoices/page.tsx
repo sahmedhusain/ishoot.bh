@@ -5,7 +5,7 @@ import {
   getInvoiceSummary,
   getAcceptedQuotationsUninvoiced,
   type ListParameters,
-} from "@ishoot/database";
+} from "@platform/database";
 import { InvoicesListView } from "../../../components/invoices/InvoicesListView";
 import { ListControls } from "../../../components/shared/ListControls";
 

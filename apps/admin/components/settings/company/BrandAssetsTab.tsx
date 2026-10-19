@@ -1,13 +1,13 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../../lib/error-text";
 import { uploadFileDirectly } from "../../../lib/upload-client";
 import {ContentImage} from "../../shared/ContentImage";
 
 import * as React from "react";
-import type { CompanySettings } from "@ishoot/database/types";
-import type { CompanyAssetItem } from "@ishoot/database";
-import { Card } from "@ishoot/ui";
+import type { CompanySettings } from "@platform/database/types";
+import type { CompanyAssetItem } from "@platform/database";
+import { Card } from "@platform/ui";
 import {
   Image as ImageIcon,
   UploadCloud,

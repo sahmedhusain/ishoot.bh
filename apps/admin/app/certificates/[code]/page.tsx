@@ -1,8 +1,8 @@
-import { formatMessage, getTranslations } from "@ishoot/locales";
+import { formatMessage, getTranslations } from "@platform/locales";
 import type { Metadata } from "next";
-import { getCompanySettings, getTaxCertificate } from "@ishoot/database";
+import { getCompanySettings, getTaxCertificate } from "@platform/database";
 
-import { formatDate } from "@ishoot/ui";
+import { formatDate } from "@platform/ui";
 
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ searchParams }: { searchParams: Promise<{ lang?: string }> }): Promise<Metadata> {

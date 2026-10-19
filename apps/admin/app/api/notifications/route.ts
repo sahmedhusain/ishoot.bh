@@ -1,10 +1,10 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { NextRequest, NextResponse } from "next/server";
 import {
   getNotifications,
   notificationPreview,
-} from "@ishoot/database/queries/notifications";
-import { measureOperation } from "@ishoot/database/observability";
+} from "@platform/database/queries/notifications";
+import { measureOperation } from "@platform/database/observability";
 import { getCurrentUser } from "../../../lib/auth";
 
 export const dynamic = "force-dynamic";

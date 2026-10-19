@@ -1,4 +1,4 @@
-import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 import crypto from "crypto";
 import type { Prisma } from "@prisma/client";

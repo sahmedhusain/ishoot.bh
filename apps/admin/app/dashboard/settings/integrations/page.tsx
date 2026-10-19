@@ -3,7 +3,7 @@ import {
   db,
   getCalendarFeedInfo,
   listIntegrationsForAdmin,
-} from "@ishoot/database";
+} from "@platform/database";
 import { hasPermission, requireAuth } from "../../../../lib/auth";
 import { IntegrationsView } from "../../../../components/settings/IntegrationsView";
 

@@ -1,5 +1,5 @@
 "use client";
-import { CashFlowChart } from "@ishoot/ui";
+import { CashFlowChart } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 type CashflowPoint = { month?: string; name?: string; revenue: number; expenses: number };

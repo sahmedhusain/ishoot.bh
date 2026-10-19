@@ -8,7 +8,7 @@ import {
   getApprovalWorkload,
   getRequestWorkload,
   getComplaintWorkload,
-} from "@ishoot/database";
+} from "@platform/database";
 import { readableApprovalTypes } from "../../lib/approval-access";
 import { dashboardFocus } from "../../lib/dashboard-focus";
 import { getCachedCompanySettings } from "../../lib/cached-queries";

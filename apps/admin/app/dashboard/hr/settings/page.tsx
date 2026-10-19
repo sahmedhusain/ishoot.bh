@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getHrPolicy, listLeaveTypeRules, listPublicHolidays, listShiftTypes } from "@ishoot/database";
+import { getHrPolicy, listLeaveTypeRules, listPublicHolidays, listShiftTypes } from "@platform/database";
 import { ROUTES } from "../../../../constants/routes";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { HrSettingsView } from "../../../../components/hr/HrSettingsView";

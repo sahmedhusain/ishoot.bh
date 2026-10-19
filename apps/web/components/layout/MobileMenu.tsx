@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { X, ArrowRight, ArrowLeft } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { PublicCompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@platform/database/types";
 
 interface MobileMenuProps {
   isOpen: boolean;

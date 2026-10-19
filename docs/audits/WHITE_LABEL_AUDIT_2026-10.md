@@ -6,7 +6,7 @@ Branch: `feat/white-label-and-test-suite`. Goal: any company can install the adm
 
 | Where | What | Count |
 |---|---|---|
-| Package scope | `@ishoot/*` imports across apps, packages, scripts | ~1,000 lines |
+| Package scope | `@ishoot/*` (now `@platform/*`) imports across apps, packages, scripts | ~1,000 lines |
 | CSS tokens | `--ishoot-*` variables with fixed hex values in `apps/admin/app/globals.css`, `apps/web/app/globals.css` | 53 lines |
 | Tailwind preset | `packages/config/tailwind.config.ts` fixes `primary`, `accent`, `bg`, `text` colours and Thmanyah fonts | 1 file |
 | Component colours | Raw hex in `.tsx` (`text-[#9EADA9]`, `bg-[#014842]`, …) | ~460 values in ~90 files |

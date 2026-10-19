@@ -1,12 +1,12 @@
-import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 
-import { measureOperation,db } from "@ishoot/database";
+import { measureOperation,db } from "@platform/database";
 import { NextRequest,NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../lib/attachment-access";
 import { randomUUID } from "crypto";
-import { getStorageClient, isSupabaseStorageConfigured } from "@ishoot/database";
+import { getStorageClient, isSupabaseStorageConfigured } from "@platform/database";
 
 const maxUploadMb = 10;
 export const dynamic = "force-dynamic";

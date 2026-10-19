@@ -3,9 +3,9 @@
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
-import type { ExpenseCategory } from "@ishoot/database/types";
-import { EXPENSE_CATEGORY_KINDS, type ExpenseCategoryKind } from "@ishoot/database/constants/finance";
-import { Card, Button, Input } from "@ishoot/ui";
+import type { ExpenseCategory } from "@platform/database/types";
+import { EXPENSE_CATEGORY_KINDS, type ExpenseCategoryKind } from "@platform/database/constants/finance";
+import { Card, Button, Input } from "@platform/ui";
 import { ArrowLeft, Plus, Eye, EyeOff, Trash2, Lock, Save } from "lucide-react";
 import { toast } from "sonner";
 import { ROUTES } from "../../constants/routes";

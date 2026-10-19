@@ -4,7 +4,7 @@ import {ContentImage} from "../shared/ContentImage";
 import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight, Target, Eye } from "lucide-react";
-import type { PublicCompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@platform/database/types";
 import { Reveal } from "../shared/Reveal";
 import { SectionBadge } from "../shared/SectionBadge";
 

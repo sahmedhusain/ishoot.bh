@@ -1,6 +1,6 @@
 "use client";
 
-import { PortfolioCategory } from "@ishoot/database";
+import { PortfolioCategory } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
 
 interface CategoryTabsProps {

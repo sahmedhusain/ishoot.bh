@@ -1,5 +1,5 @@
-import { serverMessages } from "@ishoot/locales";
-import { measureOperation } from "@ishoot/database";
+import { serverMessages } from "@platform/locales";
+import { measureOperation } from "@platform/database";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {

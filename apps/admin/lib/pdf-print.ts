@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 export type PdfDocumentType = "invoice" | "receipt" | "quotation";
 
 export function documentPdfUrl(type: PdfDocumentType, id: string, locale: string, download = false) {

@@ -1,10 +1,10 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import Link from "next/link";
 import { Laptop, PenLine } from "lucide-react";
-import { formatCurrencyValue } from "@ishoot/ui";
-import type { AssetRecord } from "@ishoot/database";
+import { formatCurrencyValue } from "@platform/ui";
+import type { AssetRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

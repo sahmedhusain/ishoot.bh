@@ -1,9 +1,9 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import {
   db,
   type PermissionAction,
   type PermissionResource,
-} from "@ishoot/database";
+} from "@platform/database";
 import { getCurrentUser, requirePermission } from "./auth";
 
 const resources: Record<string, PermissionResource> = {

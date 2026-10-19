@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,14 +25,14 @@ import {
   Input,
   Select,
   formatDate,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
   ARCHIVE_GROUPS,
   ARCHIVE_KINDS,
   type ArchiveGroup,
   type ArchiveKind,
-} from "@ishoot/database/constants/archive";
-import type { ArchiveDocument, ArchiveFilters } from "@ishoot/database";
+} from "@platform/database/constants/archive";
+import type { ArchiveDocument, ArchiveFilters } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import {
   createAttachmentAction,

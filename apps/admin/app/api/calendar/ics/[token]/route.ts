@@ -1,5 +1,5 @@
-import { getTranslations, formatMessage } from "@ishoot/locales";
-import { getCompanySettings } from "@ishoot/database";
+import { getTranslations, formatMessage } from "@platform/locales";
+import { getCompanySettings } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import {
   db,
@@ -7,11 +7,11 @@ import {
   hasPermission,
   measureOperation,
   resolveCalendarFeedToken,
-} from "@ishoot/database";
+} from "@platform/database";
 import {
   consumeAbuseLimit,
   trustedClientIp,
-} from "@ishoot/database/services/abuse-limits";
+} from "@platform/database/services/abuse-limits";
 import { buildIcs } from "../../../../../lib/ics";
 import { publicOrigin } from "../../../../../lib/public-origin";
 

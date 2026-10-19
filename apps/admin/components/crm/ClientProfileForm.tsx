@@ -1,14 +1,14 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Building2, CheckCircle2, Landmark, Plus, Star, Trash2, User, UserCog, UserPlus } from "lucide-react";
-import { Button, Card, Input, Select } from "@ishoot/ui";
-import type { ClientContactPersonInput, ClientProfileInput, CRMContact } from "@ishoot/database/types";
-import { CONTACT_TYPES } from "@ishoot/config/constants";
+import { Button, Card, Input, Select } from "@platform/ui";
+import type { ClientContactPersonInput, ClientProfileInput, CRMContact } from "@platform/database/types";
+import { CONTACT_TYPES } from "@platform/config/constants";
 import {
   CLIENT_KINDS,
   GOVERNMENT_TYPES,
@@ -16,7 +16,7 @@ import {
   LEGAL_FORMS,
   countryOptions,
   type ClientKind,
-} from "@ishoot/database/constants/clients";
+} from "@platform/database/constants/clients";
 import { ROUTES } from "../../constants/routes";
 import { createContactAction, updateContactAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

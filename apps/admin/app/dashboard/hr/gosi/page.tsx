@@ -2,7 +2,7 @@ import {
   getGosiRules,
   listGosiComponents,
   listGosiRegistrations,
-} from "@ishoot/database";
+} from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { GosiView } from "../../../../components/gosi/GosiView";
 

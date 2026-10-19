@@ -5,7 +5,7 @@ import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input, Select } from "@ishoot/ui";
+import { Card, Button, Input, Select } from "@platform/ui";
 import { ArrowLeft, CheckCircle2, ShieldCheck } from "lucide-react";
 import { createUserAction } from "../../app/actions/users";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

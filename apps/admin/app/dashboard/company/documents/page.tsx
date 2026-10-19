@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getCompanyDocuments } from "@ishoot/database";
+import { getCompanyDocuments } from "@platform/database";
 import { CompanyDocumentsClientView } from "../../../../components/company/CompanyDocumentsClientView";
 
 export default async function CompanyDocumentsPage() {

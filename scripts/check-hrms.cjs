@@ -4,10 +4,10 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 function load(file, mocks = {}) {
-  if (mocks["@ishoot/locales"]) mocks["@ishoot/locales"] = { ...realConstants(file, "@ishoot/locales"), ...mocks["@ishoot/locales"] };
+  if (mocks["@platform/locales"]) mocks["@platform/locales"] = { ...realConstants(file, "@platform/locales"), ...mocks["@platform/locales"] };
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-  vm.runInNewContext(code, { module, exports: module.exports, require(id) { id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks); if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error('Unmocked dependency ' + id); } return mocks[id]; }, Date, Intl, Set, Array, JSON, Number, Math, Blob, FormData, AbortSignal });
+  vm.runInNewContext(code, { module, exports: module.exports, require(id) { id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks); if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error('Unmocked dependency ' + id); } return mocks[id]; }, Date, Intl, Set, Array, JSON, Number, Math, Blob, FormData, AbortSignal });
   return module.exports;
 }
 async function main() {
@@ -28,7 +28,7 @@ async function main() {
   const currencies = require("../packages/config/src/constants/currency.cjs");
   assert.equal(currencies.getCurrencySymbol("OMR", false), "RO");
   assert.equal(currencies.getCurrencySymbol("MVR"), "\u20c2");
-  const { formatCurrencyValue } = load('packages/ui/src/currency-display.tsx', { 'react/jsx-runtime': {}, react: {}, '@ishoot/config/currency': currencies });
+  const { formatCurrencyValue } = load('packages/ui/src/currency-display.tsx', { 'react/jsx-runtime': {}, react: {}, '@platform/config/currency': currencies });
   // Arabic screens use Arabic abbreviations instead of Latin ones; official currency signs are the same in both languages.
   assert.equal(formatCurrencyValue(12, 'BHD', false), '12.000 BHD');
   assert.equal(formatCurrencyValue(12, 'BHD', true), '12.000 د.ب');
@@ -52,8 +52,8 @@ async function main() {
   assert.deepEqual(Object.keys(en.hrExtensions).sort(), Object.keys(ar.hrExtensions).sort());
   let actor = { id: 'employee-user', role: 'producer' }, manager = false, creates = [], audit = [], submissions = [];
   const actions = load('apps/admin/app/actions/salary-documents.ts', {
-    '@ishoot/locales': { getTranslations: () => ({ admin: en }) },
-    '@ishoot/database': {
+    '@platform/locales': { getTranslations: () => ({ admin: en }) },
+    '@platform/database': {
       db: { employee: { findUniqueOrThrow: async () => ({ id: 'employee', userId: 'employee-user' }) }, salaryDocument: { create: async ({ data }) => { creates.push(data); return { id: 'doc-' + creates.length, ...data }; } } },
       runAtomicMutation: async fn => fn(), createActivityLog: async log => audit.push(log), measureOperation: async (_n, fn) => fn(),
       submitForApproval: async (input) => { submissions.push(input); return { approvalRequestId: 'apr', status: 'pending', finalized: false, approverIds: ['hr'] }; },

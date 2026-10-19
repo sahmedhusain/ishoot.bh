@@ -1,4 +1,4 @@
-import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 import crypto from "crypto";
 import { db, runAtomicMutation } from "../db";

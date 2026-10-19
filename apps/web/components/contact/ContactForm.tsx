@@ -1,9 +1,9 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { ArrowUpRight, Check, Star } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
-import type { PublicService } from "@ishoot/database/website-config";
+import type { PublicService } from "@platform/database/website-config";
 
 const intents = [
   "inquiry",

@@ -1,9 +1,9 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import type { CRMDeal,DealStage } from "@ishoot/database/types";
+import type { CRMDeal,DealStage } from "@platform/database/types";
 import { DealCard } from "./DealCard";
-import { CurrencyDisplay } from "@ishoot/ui";
+import { CurrencyDisplay } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface KanbanColumnProps {

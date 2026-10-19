@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { approvalTargetUrl } from "@ishoot/database";
+import { approvalTargetUrl } from "@platform/database";
 import { requireAuth } from "../../../../../lib/auth";
 import { getApprovalItem } from "../../../../../lib/approval-item";
 import { ApprovalItemView } from "../../../../../components/approvals/ApprovalItemView";

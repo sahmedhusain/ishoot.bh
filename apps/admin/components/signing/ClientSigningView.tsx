@@ -1,12 +1,12 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 /* eslint-disable @next/next/no-img-element -- brand artwork is served as-is on this public page. */
 
 import * as React from "react";
 import { CheckCircle2, Eraser, FileText, AlertTriangle, Download } from "lucide-react";
-import type { ClientSignableDocument } from "@ishoot/database";
+import type { ClientSignableDocument } from "@platform/database";
 
-type Labels = ReturnType<typeof import("@ishoot/locales").getTranslations>["admin"]["clientSigning"];
+type Labels = ReturnType<typeof import("@platform/locales").getTranslations>["admin"]["clientSigning"];
 type State = "open" | "signed" | "expired" | "revoked" | "unavailable" | "invalid";
 
 const AR_CURRENCY: Record<string, string> = { BHD: "د.ب", KWD: "د.ك", QAR: "ر.ق", SAR: "ر.س", AED: "د.إ", OMR: "ر.ع" };

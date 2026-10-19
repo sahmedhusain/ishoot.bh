@@ -3,7 +3,7 @@ import {
   listAnnouncements,
   getCommunicationSettings,
   type AnnouncementView,
-} from "@ishoot/database";
+} from "@platform/database";
 import { requireAuth, hasPermission } from "../../../lib/auth";
 import { AnnouncementsListView } from "../../../components/communications/AnnouncementsListView";
 export const dynamic = "force-dynamic";

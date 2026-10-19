@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { getSigningSession, getCompanySettings } from "@ishoot/database";
-import { getTranslations } from "@ishoot/locales";
+import { getSigningSession, getCompanySettings } from "@platform/database";
+import { getTranslations } from "@platform/locales";
 import { signingConsent } from "../../../lib/client-signing";
 import { ClientSigningView } from "../../../components/signing/ClientSigningView";
 

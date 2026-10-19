@@ -1,5 +1,5 @@
 "use server";
-import { getTranslations, formatMessage } from "@ishoot/locales";
+import { getTranslations, formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import {
   measureOperation,
@@ -11,7 +11,7 @@ import {
   submitForApproval,
   createActivityLog,
   createNotification,
-} from "@ishoot/database";
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";

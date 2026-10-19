@@ -3,7 +3,7 @@ import type { ReviewItem } from "../../types/cms";
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { Card,Badge,ConfirmDestructiveModal } from "@ishoot/ui";
+import { Card,Badge,ConfirmDestructiveModal } from "@platform/ui";
 import {
 Star,
 CheckCircle2,Trash2,

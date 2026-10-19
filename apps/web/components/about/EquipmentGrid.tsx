@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { StudioEquipment } from "@ishoot/database";
+import { StudioEquipment } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import {

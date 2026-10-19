@@ -1,4 +1,4 @@
-import { listOfficialLetters } from "@ishoot/database";
+import { listOfficialLetters } from "@platform/database";
 import { requirePagePermission, hasPermission } from "../../../lib/auth";
 import { LettersListView } from "../../../components/communications/LettersListView";
 export const dynamic = "force-dynamic";

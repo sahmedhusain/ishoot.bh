@@ -1,11 +1,11 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import Link from "next/link";
-import { Card, CurrencyDisplay } from "@ishoot/ui";
+import { Card, CurrencyDisplay } from "@platform/ui";
 import { CalendarClock, Percent, Receipt, Wallet } from "lucide-react";
-import type { ExpenseCategory, FinancialSummary } from "@ishoot/database/types";
-import type { ReceivablesInsight } from "@ishoot/database";
+import type { ExpenseCategory, FinancialSummary } from "@platform/database/types";
+import type { ReceivablesInsight } from "@platform/database";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { CompanySettings } from "@ishoot/database/types";
-import { Card,Input } from "@ishoot/ui";
+import type { CompanySettings } from "@platform/database/types";
+import { Card,Input } from "@platform/ui";
 import {
 Building2,
 Phone,

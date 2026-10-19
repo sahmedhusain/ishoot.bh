@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getPortfolioItems,getPortfolioCategories } from "@ishoot/database";
+import { getPortfolioItems,getPortfolioCategories } from "@platform/database";
 import { PortfolioManagementView } from "../../../../components/cms/PortfolioManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
 

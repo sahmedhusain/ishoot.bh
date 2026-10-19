@@ -1,6 +1,6 @@
 import { requirePagePermission,getCurrentUser } from "../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { getMinuteOfMeetingById } from "@ishoot/database";
+import { getMinuteOfMeetingById } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { MomDetailView } from "../../../../components/moms/MomDetailView";
 

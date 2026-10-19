@@ -1,4 +1,4 @@
-import { getSettlementRules, listFinalSettlements } from "@ishoot/database";
+import { getSettlementRules, listFinalSettlements } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { SettlementsListView } from "../../../../components/settlements/SettlementsListView";
 

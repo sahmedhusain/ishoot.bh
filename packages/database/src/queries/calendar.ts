@@ -1,4 +1,4 @@
-import { getTranslations, formatMessage, serverMessages } from "@ishoot/locales";
+import { getTranslations, formatMessage, serverMessages } from "@platform/locales";
 
 import crypto from "crypto";
 import { db } from "../db";

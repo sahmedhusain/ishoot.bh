@@ -14,7 +14,7 @@ import {
   deleteAttendanceEntry,
   markMonthPresent,
   type HrPolicyRules,
-} from "@ishoot/database";
+} from "@platform/database";
 import { requirePermission } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
 

@@ -1,6 +1,6 @@
 import { companyMetadata } from "../../../lib/company-metadata";
 import * as React from "react";
-import { getCompanySettings } from "@ishoot/database";
+import { getCompanySettings } from "@platform/database";
 import { adminTranslations } from "../../../lib/translations-bilingual";
 import { ResetPasswordForm } from "../../../components/auth/ResetPasswordForm";
 

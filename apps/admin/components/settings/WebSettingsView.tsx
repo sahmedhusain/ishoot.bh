@@ -1,11 +1,11 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import type { CompanySettings,SocialLink } from "@ishoot/database/types";
-import { Card,Input,Textarea } from "@ishoot/ui";
+import type { CompanySettings,SocialLink } from "@platform/database/types";
+import { Card,Input,Textarea } from "@platform/ui";
 import {
 Globe,
 ExternalLink,

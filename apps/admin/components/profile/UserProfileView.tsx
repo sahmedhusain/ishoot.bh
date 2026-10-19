@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import Link from "next/link";
 import { ROUTES } from "../../constants/routes";
 import { errorMessage } from "../../lib/error-text";
@@ -19,14 +19,14 @@ import {
   Users,
   FileText,
 } from "lucide-react";
-import { Button, StatusBadge, formatDate } from "@ishoot/ui";
+import { Button, StatusBadge, formatDate } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   updateMyProfileAction,
   requestIdentityChangeAction,
   cancelMyProfileChangeAction,
 } from "../../app/actions/profile";
-import type { Profile, ProfileChangeRequest } from "@ishoot/database";
+import type { Profile, ProfileChangeRequest } from "@platform/database";
 
 interface ManagerInfo {
   id: string;

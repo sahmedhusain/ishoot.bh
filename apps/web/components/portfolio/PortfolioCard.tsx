@@ -1,6 +1,6 @@
 "use client";
 import {ContentImage} from "../shared/ContentImage";
-import type { PortfolioItem } from "@ishoot/database/types";
+import type { PortfolioItem } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Play, ArrowUpRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";

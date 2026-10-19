@@ -1,6 +1,6 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getFinancialSummaryReport, getFinancialReportDetail } from "@ishoot/database";
-import { companyVat } from "@ishoot/database/finance/vat";
+import { getFinancialSummaryReport, getFinancialReportDetail } from "@platform/database";
+import { companyVat } from "@platform/database/finance/vat";
 import { FinancialReportDetailView } from "../../../../components/finance/FinancialReportDetailView";
 import { FinancialReportsView } from "../../../../components/finance/FinancialReportsView";
 

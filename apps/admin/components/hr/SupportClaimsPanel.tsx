@@ -1,13 +1,13 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
-import { getCurrencyLabel } from "@ishoot/config/currency";
+import { formatMessage } from "@platform/locales";
+import { getCurrencyLabel } from "@platform/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { HandHeart, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import type { SupportClaimRow } from "@ishoot/database/queries/support-claims";
+import type { SupportClaimRow } from "@platform/database/queries/support-claims";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { recordSupportReimbursementAction } from "../../app/actions/payroll";
 

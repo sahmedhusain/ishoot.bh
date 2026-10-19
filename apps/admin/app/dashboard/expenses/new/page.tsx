@@ -1,6 +1,6 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
-import { getTranslations } from "@ishoot/locales";
-import { getExpenseCategories } from "@ishoot/database";
+import { getTranslations } from "@platform/locales";
+import { getExpenseCategories } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewExpenseFormView } from "@/components/expenses/NewExpenseFormView";
 

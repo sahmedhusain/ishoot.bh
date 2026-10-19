@@ -3,14 +3,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button, Input, Textarea } from "@ishoot/ui";
+import { Button, Input, Textarea } from "@platform/ui";
 import type {
   OfficialLetterDetail,
   OfficialLetterInput,
   listLetterTemplates,
   LetterTemplateInput,
-} from "@ishoot/database";
-import { LETTER_PLACEHOLDERS } from "@ishoot/database/constants/communications";
+} from "@platform/database";
+import { LETTER_PLACEHOLDERS } from "@platform/database/constants/communications";
 import {
   saveOfficialLetterAction,
   submitOfficialLetterAction,

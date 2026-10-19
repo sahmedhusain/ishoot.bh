@@ -1,14 +1,14 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
-import { measureOperation } from "@ishoot/database";
+import { serverMessages } from "@platform/locales";
+import { measureOperation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
   markNotificationRead,
   markAllNotificationsRead,
-} from "@ishoot/database";
+} from "@platform/database";
 import { requireAuth } from "../../lib/auth";
-import { db } from "@ishoot/database";
+import { db } from "@platform/database";
 
 export async function markNotificationReadAction(id: string) {
   return measureOperation("action:markNotificationReadAction", async () => {
@@ -42,7 +42,7 @@ export async function updateNotificationAction(
   validateActionArguments("updateNotificationAction", { id, change });
   const user = await requireAuth();
   const { updateOwnNotification } =
-    await import("@ishoot/database/queries/notifications");
+    await import("@platform/database/queries/notifications");
   await updateOwnNotification(user.id, id, change);
   const { revalidatePath } = await import("next/cache");
   revalidatePath("/dashboard/notifications");

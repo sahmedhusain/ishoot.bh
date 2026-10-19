@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight } from "lucide-react";
-import type { PublicCompanySettings, SocialLink } from "@ishoot/database/types";
+import type { PublicCompanySettings, SocialLink } from "@platform/database/types";
 import { SocialIcon } from "./SocialIcon";
 import { Reveal } from "../shared/Reveal";
 import { LegalModal } from "../shared/LegalModal";

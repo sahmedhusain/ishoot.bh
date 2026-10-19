@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,8 +22,8 @@ import {
   User,
   X,
 } from "lucide-react";
-import { Button, ConfirmDestructiveModal, formatCurrencyValue, formatDate } from "@ishoot/ui";
-import type { ClientListRow } from "@ishoot/database/types";
+import { Button, ConfirmDestructiveModal, formatCurrencyValue, formatDate } from "@platform/ui";
+import type { ClientListRow } from "@platform/database/types";
 import {
   CLIENT_ACTIVITY_FILTERS,
   CLIENT_BALANCE_FILTERS,
@@ -32,9 +32,9 @@ import {
   CLIENT_TIERS,
   countryName,
   countryOptions,
-} from "@ishoot/database/constants/clients";
-import type { ClientListFilters } from "@ishoot/database";
-import { CONTACT_TYPES } from "@ishoot/config/constants";
+} from "@platform/database/constants/clients";
+import type { ClientListFilters } from "@platform/database";
+import { CONTACT_TYPES } from "@platform/config/constants";
 import { ROUTES } from "../../constants/routes";
 import { deleteContactAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

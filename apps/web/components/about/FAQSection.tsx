@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { Faq } from "@ishoot/database/types";
+import type { Faq } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ChevronDown } from "lucide-react";

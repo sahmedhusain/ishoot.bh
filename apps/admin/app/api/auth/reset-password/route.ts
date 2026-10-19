@@ -1,9 +1,9 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 
-import { measureOperation, db, consumeAbuseLimit } from "@ishoot/database";
+import { measureOperation, db, consumeAbuseLimit } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { sendEmail } from "@ishoot/email";
+import { sendEmail } from "@platform/email";
 
 export async function POST(req: NextRequest) {
   return measureOperation("admin:auth/reset-password:POST", async () => {

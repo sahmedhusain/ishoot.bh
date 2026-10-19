@@ -1,8 +1,8 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -17,7 +17,7 @@ import {
   cancelPendingApprovals,
   runAtomicMutation,
   db,
-} from "@ishoot/database";
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requireAuth, requirePermission, getCurrentUser } from "../../lib/auth";
 
@@ -220,7 +220,7 @@ export async function createConsolidatedRequestAction(data: {
     const actor = await requirePermission("requests", "write");
     validateActionArguments("createConsolidatedRequestAction", { data });
 
-    const { createConsolidatedRequest } = await import("@ishoot/database");
+    const { createConsolidatedRequest } = await import("@platform/database");
     const created = await createConsolidatedRequest(
       {
         requestType: data.requestType,
@@ -282,7 +282,7 @@ export async function addRequestCommentAction(
     const actor = await requirePermission("requests", "write");
     validateActionArguments("addRequestCommentAction", { inquiryId, body, isClientVisible, attachments });
 
-    const { addRequestComment } = await import("@ishoot/database");
+    const { addRequestComment } = await import("@platform/database");
     const comment = await addRequestComment(inquiryId, actor.id, body, isClientVisible, attachments);
 
     revalidatePath(ROUTES.requests.detail(inquiryId));

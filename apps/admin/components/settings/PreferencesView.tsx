@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Card } from "@ishoot/ui";
+import { Card } from "@platform/ui";
 import { Globe, Sun, Moon, Laptop, Palette } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useAdminTheme, AdminTheme } from "../../hooks/useAdminTheme";

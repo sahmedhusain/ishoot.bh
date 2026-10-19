@@ -1,6 +1,6 @@
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { Document, Page, View } from "@react-pdf/renderer";
-import type { Invoice } from "@ishoot/database/types";
+import type { Invoice } from "@platform/database/types";
 import {
   currencyLabel,
   Letterhead,

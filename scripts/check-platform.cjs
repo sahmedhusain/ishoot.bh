@@ -7,8 +7,8 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 function load(file, mocks) {
-  if (mocks["@ishoot/locales"]) mocks["@ishoot/locales"] = { ...realConstants(file, "@ishoot/locales"), ...mocks["@ishoot/locales"] };
-  if (mocks["@ishoot/database"]) { mocks["@ishoot/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@ishoot/database"].memoizeOperation ??= async(_key,fn)=>fn(); mocks["@ishoot/database"].requireFeatureEnabled ??= async()=>{}; mocks["@ishoot/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@ishoot/database"].db) mocks["@ishoot/database"].db.$queryRaw ??= async () => []; }
+  if (mocks["@platform/locales"]) mocks["@platform/locales"] = { ...realConstants(file, "@platform/locales"), ...mocks["@platform/locales"] };
+  if (mocks["@platform/database"]) { mocks["@platform/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@platform/database"].memoizeOperation ??= async(_key,fn)=>fn(); mocks["@platform/database"].requireFeatureEnabled ??= async()=>{}; mocks["@platform/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@platform/database"].db) mocks["@platform/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
   mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };
   if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
@@ -26,7 +26,7 @@ function load(file, mocks) {
     module,
     exports: module.exports,
     require: (id) => {
-      id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
+      id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks);
       if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw new Error(`Unmocked dependency: ${id}`); }
       return mocks[id];
     },
@@ -57,7 +57,7 @@ async function main() {
       verifySessionToken: async () => ({ userId: "u" }),
       SESSION_COOKIE_NAME: "cookie",
     },
-    "@ishoot/database": {
+    "@platform/database": {
       getSessionByToken: async () => session,
       hasPermission: async () => false,
       getEffectivePermissions:async()=>({}),
@@ -105,7 +105,7 @@ async function main() {
   const roleActions = load("apps/admin/app/actions/roles.ts", {
     "../../lib/auth": { requirePermission: async () => roleActor },
     "next/cache": { revalidatePath() {} },
-    "@ishoot/database": {
+    "@platform/database": {
       ALL_RESOURCES: permissionsApi.ALL_RESOURCES, ALL_ACTIONS: permissionsApi.ALL_ACTIONS,
       db: { $transaction: async (fn) => fn({
         role: { update: async ({ where }) => { roleWrites++; return { id: where.id }; } },
@@ -129,7 +129,7 @@ async function main() {
 
   let mutation = false;
   const settings = load("apps/admin/app/actions/settings.ts", {
-    "@ishoot/database": {
+    "@platform/database": {
       createSocialLink: () => {
         mutation = true;
       },
@@ -145,7 +145,7 @@ async function main() {
   await assert.rejects(settings.toggleFeatureAction("crm", false), /denied/);
   assert.equal(mutation, false);
 
-  const types = load("packages/database/src/types.ts", { "@ishoot/config/currency": require("../packages/config/src/constants/currency.cjs") });
+  const types = load("packages/database/src/types.ts", { "@platform/config/currency": require("../packages/config/src/constants/currency.cjs") });
   let deleted = false,
     usedTransaction = false;
   const invoice = {
@@ -301,7 +301,7 @@ async function main() {
   };
   const crm = load("apps/admin/app/actions/crm.ts", {
     "../../lib/inquiry-access": { requireInquiryAccess: async () => user },
-    "@ishoot/database": { db: { $transaction: async (fn) => fn(tx) } },
+    "@platform/database": { db: { $transaction: async (fn) => fn(tx) } },
     "next/cache": { revalidatePath() {} },
     "../../lib/auth": { requirePermission: async () => user },
   });
@@ -321,8 +321,8 @@ async function main() {
     crypto: require("node:crypto"),
     "../../../../lib/auth": { getCurrentUser: async () => null },
     "../../../../lib/attachment-access": {},
-    "@ishoot/database": {},
-    "@ishoot/locales": { getTranslations: () => ({ api: { upload: {} } }) },
+    "@platform/database": {},
+    "@platform/locales": { getTranslations: () => ({ api: { upload: {} } }) },
     "next/cache": {},
   });
   assert.equal(
@@ -343,9 +343,9 @@ async function main() {
       },
     },
     "next/server": { NextResponse: response },
-    "@ishoot/database": {},
-    "@ishoot/email": {},
-    "@ishoot/locales": {
+    "@platform/database": {},
+    "@platform/email": {},
+    "@platform/locales": {
       getTranslations: () => ({
         api: {
           inquiry: { requiredFields: "Invalid input", serverError: "Failed" },

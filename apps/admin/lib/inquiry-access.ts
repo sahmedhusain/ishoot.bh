@@ -1,5 +1,5 @@
-import { serverMessages } from "@ishoot/locales";
-import { db } from "@ishoot/database";
+import { serverMessages } from "@platform/locales";
+import { db } from "@platform/database";
 import { requirePermission } from "./auth";
 export async function requireInquiryAccess(
   id: string,

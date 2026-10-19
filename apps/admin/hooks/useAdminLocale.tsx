@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CurrencyLocaleProvider, StatusLabelsProvider } from "@ishoot/ui";
+import { CurrencyLocaleProvider, StatusLabelsProvider } from "@platform/ui";
 import {
   type AdminLocale,
   type AdminTranslations,

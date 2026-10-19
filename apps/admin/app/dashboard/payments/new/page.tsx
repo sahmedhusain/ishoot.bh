@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getCRMContactById } from "@ishoot/database";
+import { getCRMContactById } from "@platform/database";
 import { NewPaymentFormView } from "../../../../components/payments/NewPaymentFormView";
 
 export const dynamic = "force-dynamic";

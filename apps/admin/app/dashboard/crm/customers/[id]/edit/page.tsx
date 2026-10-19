@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../../../lib/auth";
-import { getClientProfile, getCompanySettings } from "@ishoot/database";
+import { getClientProfile, getCompanySettings } from "@platform/database";
 import { notFound } from "next/navigation";
 import { ClientProfileForm } from "../../../../../../components/crm/ClientProfileForm";
 

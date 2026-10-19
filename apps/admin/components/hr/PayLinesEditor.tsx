@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { PAY_LINE_CATEGORIES, type PayLineKind } from "@ishoot/database/constants/hr";
+import { PAY_LINE_CATEGORIES, type PayLineKind } from "@platform/database/constants/hr";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export interface PayLineDraft {

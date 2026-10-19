@@ -5,7 +5,7 @@ import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Card,Button,Input,Select } from "@ishoot/ui";
+import { Card,Button,Input,Select } from "@platform/ui";
 import {
 FileSignature,
 Plus,
@@ -17,7 +17,7 @@ ArrowRight
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createMomAction } from "../../app/actions/mom";
-import type { MomAttendee, MomDiscussionPoint, MomActionItem } from "@ishoot/database";
+import type { MomAttendee, MomDiscussionPoint, MomActionItem } from "@platform/database";
 
 interface NewMomFormViewProps {
   clients: Array<{ id: string; name: string; company?: string | null }>;

@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../lib/auth";
-import { getMinutesOfMeetings } from "@ishoot/database";
+import { getMinutesOfMeetings } from "@platform/database";
 import { MomsListView } from "../../../components/moms/MomsListView";
 
 export const dynamic = "force-dynamic";

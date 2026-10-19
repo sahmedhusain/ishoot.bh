@@ -1,6 +1,6 @@
 "use client";
 
-import type { Statistic } from "@ishoot/database/types";
+import type { Statistic } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Reveal } from "../shared/Reveal";
 

@@ -1,4 +1,4 @@
-import { db, getSocialAnalytics, listSocialPlans } from "@ishoot/database";
+import { db, getSocialAnalytics, listSocialPlans } from "@platform/database";
 import { requirePagePermission } from "../../../lib/auth";
 import { SocialAnalyticsView } from "../../../components/analytics/SocialAnalyticsView";
 

@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import { FinancialSummary } from "../types";
 import { getFinancialSummaryReport } from "./finance-reports";

@@ -1,5 +1,5 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { revalidatePath } from "next/cache";
 import {
   createActivityLog,
@@ -9,7 +9,7 @@ import {
   measureOperation,
   revokeSignatureRequest,
   setSignaturePolicy,
-} from "@ishoot/database";
+} from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requireAuth, requirePermission } from "../../lib/auth";

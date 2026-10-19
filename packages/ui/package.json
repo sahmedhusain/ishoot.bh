@@ -1,5 +1,5 @@
 {
-  "name": "@ishoot/ui",
+  "name": "@platform/ui",
   "version": "1.0.0",
   "private": true,
   "main": "./src/index.ts",
@@ -9,7 +9,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.475.0",
     "tailwind-merge": "^2.6.0",
-    "@ishoot/config": "workspace:*"
+    "@platform/config": "workspace:*"
   },
   "devDependencies": {
     "@types/react": "^19.0.8",

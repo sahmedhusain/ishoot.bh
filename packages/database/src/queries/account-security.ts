@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import bcrypt from "bcryptjs";
 import { db, runAtomicMutation } from "../db";
 import { PASSWORD_HASH_ROUNDS } from "./users";

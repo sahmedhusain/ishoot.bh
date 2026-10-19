@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Notification } from "@ishoot/database/types";
+import type { Notification } from "@platform/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ROUTES } from "../../constants/routes";
 import {

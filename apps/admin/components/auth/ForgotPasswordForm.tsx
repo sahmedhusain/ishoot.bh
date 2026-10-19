@@ -4,7 +4,7 @@ import type { AuthBrandingProps } from "../../types/auth";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Input, Button, Card } from "@ishoot/ui";
+import { Input, Button, Card } from "@platform/ui";
 import { Mail, ArrowRight, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
 import { ContentImage } from "../shared/ContentImage";
 

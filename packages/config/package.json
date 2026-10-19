@@ -1,5 +1,5 @@
 {
-  "name": "@ishoot/config",
+  "name": "@platform/config",
   "version": "1.0.0",
   "private": true,
   "type": "module",

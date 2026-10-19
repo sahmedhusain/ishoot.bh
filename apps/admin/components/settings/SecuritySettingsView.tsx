@@ -1,10 +1,10 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ShieldCheck, Smartphone, Download, Copy, Loader2 } from "lucide-react";
-import { Button, Input, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Button, Input, ConfirmDestructiveModal } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 export function SecuritySettingsView({

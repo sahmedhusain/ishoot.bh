@@ -1,6 +1,6 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { NextResponse } from "next/server";
-import { db,type Prisma } from "@ishoot/database";
+import { db,type Prisma } from "@platform/database";
 import { verifyResendWebhook } from "../../../../lib/resend-webhook";
 
 export async function POST(req: Request) {

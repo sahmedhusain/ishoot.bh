@@ -38,7 +38,7 @@ function load(file, mocks = {}) {
 const nav = load("apps/admin/lib/sidebar-navigation.ts");
 const { ROUTES } = realConstants(
   "apps/admin/x.ts",
-  "@ishoot/database/constants/routes",
+  "@platform/database/constants/routes",
 );
 for (const [role, group] of Object.entries({
   accountant: "finance",

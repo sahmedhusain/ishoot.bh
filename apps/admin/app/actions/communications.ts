@@ -1,5 +1,5 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { revalidatePath } from "next/cache";
 import {
   announcementRights,
@@ -18,7 +18,7 @@ import {
   type AnnouncementInput,
   type OfficialLetterInput,
   type LetterTemplateInput,
-} from "@ishoot/database";
+} from "@platform/database";
 import { requireAuth, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 const refresh = () => revalidatePath("/dashboard", "layout");

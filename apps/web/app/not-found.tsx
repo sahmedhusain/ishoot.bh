@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getTranslations } from "@ishoot/locales";
+import { getTranslations } from "@platform/locales";
 
 export default function NotFound() {
   const tEn = getTranslations("en");

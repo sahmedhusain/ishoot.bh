@@ -1,8 +1,8 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import {
   getCurrencySymbol,
   getCurrencyDecimals,
-} from "@ishoot/config/currency";
+} from "@platform/config/currency";
 import { SUPPORTED_CURRENCIES } from "./constants/finance";
 export type UserRole =
   | "super_admin"

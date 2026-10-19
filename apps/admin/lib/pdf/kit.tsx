@@ -1,4 +1,4 @@
-import { formatMessage, getTranslations } from "@ishoot/locales";
+import { formatMessage, getTranslations } from "@platform/locales";
 /* eslint-disable jsx-a11y/alt-text -- React PDF images are PDF primitives, not DOM images. */
 /**
  * Building blocks shared by every generated document (invoices, quotations, receipts, payslips,
@@ -7,10 +7,10 @@ import { formatMessage, getTranslations } from "@ishoot/locales";
  */
 import * as React from "react";
 import { Image, Text, View, type Styles } from "@react-pdf/renderer";
-import { getCurrencyDecimals, getCurrencyLabel } from "@ishoot/config/currency";
+import { getCurrencyDecimals, getCurrencyLabel } from "@platform/config/currency";
 
-import { db } from "@ishoot/database";
-import type { CompanySettings } from "@ishoot/database/types";
+import { db } from "@platform/database";
+import type { CompanySettings } from "@platform/database/types";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import "./shared-styles"; // registers the Thmanyah font family
 

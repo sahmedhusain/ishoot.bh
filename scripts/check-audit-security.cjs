@@ -6,8 +6,8 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const ts = require("typescript");
 function load(file, mocks) {
-  if (mocks["@ishoot/locales"]) mocks["@ishoot/locales"] = { ...realConstants(file, "@ishoot/locales"), ...mocks["@ishoot/locales"] };
-  if (mocks["@ishoot/database"]) { mocks["@ishoot/database"].requireFeatureEnabled ??= async () => {}; mocks["@ishoot/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@ishoot/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@ishoot/database"].db) mocks["@ishoot/database"].db.$queryRaw ??= async () => []; }
+  if (mocks["@platform/locales"]) mocks["@platform/locales"] = { ...realConstants(file, "@platform/locales"), ...mocks["@platform/locales"] };
+  if (mocks["@platform/database"]) { mocks["@platform/database"].requireFeatureEnabled ??= async () => {}; mocks["@platform/database"].runAtomicMutation ??= async (fn) => fn(); mocks["@platform/database"].measureOperation ??= async (_name, fn) => fn(); if (mocks["@platform/database"].db) mocks["@platform/database"].db.$queryRaw ??= async () => []; }
   mocks["../../lib/action-input"] ??= require("../apps/admin/lib/action-input.ts");
   mocks["../services/uploads"] ??= { claimUpload: async () => ({fileSize: 1, mimeType: "application/pdf"}) };
   if (mocks["../db"]?.db) mocks["../db"].db.featureToggle ??= { findUnique: async () => null, findMany: async () => [] };
@@ -27,7 +27,7 @@ function load(file, mocks) {
       require: (id) => {
         if (id === "node:crypto") return require(id);
         if (id === "../../lib/pdf/mom-pdf") return {};
-        id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
+        id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks);
         if (!(id in mocks)) { const real = realConstants(file, id); if (real) return real; throw Error(`Missing mock ${id}`); }
         return mocks[id];
       },
@@ -56,7 +56,7 @@ async function main() {
       getCurrentUser: async () => actor,
     },
     "next/cache": { revalidatePath() {} },
-    "@ishoot/database": {
+    "@platform/database": {
       createMinuteOfMeeting: async () => {
         touched = true;
       },
@@ -110,7 +110,7 @@ async function main() {
   const roles = load("apps/admin/app/actions/roles.ts", {
     "../../lib/auth": { requirePermission: async () => actor },
     "next/cache": { revalidatePath() {} },
-    "@ishoot/database": {
+    "@platform/database": {
       ALL_RESOURCES: ["invoices", "moms"],
       ALL_ACTIONS: ["read", "write", "delete", "export", "approve", "create", "edit"],
       db: { $transaction: async (fn) => fn(transaction) },
@@ -153,7 +153,7 @@ async function main() {
   const users = load("apps/admin/app/actions/users.ts", {
     "../../lib/auth": { requirePermission: async () => actor },
     "next/cache": { revalidatePath() {} },
-    "@ishoot/database": {
+    "@platform/database": {
       getUserById: async () => ({ id: "t", role: "viewer" }),
       getEffectivePermissions: async () => ({ "deals:read": true }),
       db: { role: { findUnique: async () => ({ id: "super_admin" }) } },
@@ -198,7 +198,7 @@ async function main() {
   const translations = require("../packages/locales/src/en.json");
   const emailTemplates = load(
     "packages/email/src/templates/html-templates.ts",
-    { "@ishoot/locales": { getTranslations: () => translations } },
+    { "@platform/locales": { getTranslations: () => translations } },
   );
   const hostile = "<img src=x onerror=alert(1)>";
   const html = emailTemplates.createInquiryConfirmationEmail(
@@ -213,7 +213,7 @@ async function main() {
   const publicCompany = load("apps/web/lib/company.ts", {
     react: { cache: (fn) => fn },
     "next/cache": { unstable_cache: (fn) => fn },
-    "@ishoot/database": {
+    "@platform/database": {
       getCompanySettings: async () => ({
         company_name_en: "Stored name",
         bank_iban: "sensitive",
@@ -248,7 +248,7 @@ async function main() {
     "../../../../lib/auth": { getCurrentUser: async () => user, hasPermission: async () => allowed },
     "../../../../lib/ics": require("../apps/admin/lib/ics.ts"),
     "../../../../lib/public-origin": { publicOrigin: async () => "https://portal.example.com" },
-    "@ishoot/database": {
+    "@platform/database": {
       hasPermission: async () => allowed,
       getCompanySettings: async () => ({ company_name_en: "Test Company", company_name_ar: "شركة اختبار" }),
       getCalendarFor: async () => {
@@ -296,7 +296,7 @@ async function main() {
       readFile: async () => Buffer.from("configured image"),
     },
     path: require("node:path"),
-    "@ishoot/database": { uploadRoot: () => "/unused" },
+    "@platform/database": { uploadRoot: () => "/unused" },
   });
   for (const url of [null, "https://external.invalid/stamp.png", "/brand/../../secret.png", "/brand/escape.png"])
     assert.equal(await asset.resolveConfiguredPdfAsset(url), undefined);
@@ -341,7 +341,7 @@ async function main() {
   );
 
   const buckets = new Map();
-  const loginInput = load("apps/admin/lib/login-input.ts", { "@ishoot/database": { trustedClientIp: (h) => h.get("x-forwarded-for"), consumeAbuseLimit: async (scope,key,limit) => {const next=(buckets.get(key)||0)+1;buckets.set(key,next);if(next>limit)throw Error("RATE_LIMIT");} } });
+  const loginInput = load("apps/admin/lib/login-input.ts", { "@platform/database": { trustedClientIp: (h) => h.get("x-forwarded-for"), consumeAbuseLimit: async (scope,key,limit) => {const next=(buckets.get(key)||0)+1;buckets.set(key,next);if(next>limit)throw Error("RATE_LIMIT");} } });
   const request = (ip, body) => ({
     headers: { get: (key) => (key === "x-forwarded-for" ? ip : null) },
     body: {

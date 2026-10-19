@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import { leaveEntitlement, monthsOfService, utcDay } from "../hr/payroll-engine";
 import { listLeaveTypeRules, type LeaveTypeView } from "./hr-settings";

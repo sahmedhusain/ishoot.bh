@@ -1,13 +1,13 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
-import { Button, Card, Modal } from "@ishoot/ui";
-import type { LeaveBalance } from "@ishoot/database/queries/leave-balances";
+import { Button, Card, Modal } from "@platform/ui";
+import type { LeaveBalance } from "@platform/database/queries/leave-balances";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { addLeaveAdjustmentAction } from "../../app/actions/hr-settings";
 

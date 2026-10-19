@@ -1,13 +1,13 @@
 "use client";
-import { getCurrencyLabel } from "@ishoot/config/currency";
+import { getCurrencyLabel } from "@platform/config/currency";
 import { errorMessage } from "../../lib/error-text";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import type { FinancialSummaryReport } from "@ishoot/database";
-import { Card, Button } from "@ishoot/ui";
+import type { FinancialSummaryReport } from "@platform/database";
+import { Card, Button } from "@platform/ui";
 import {
   Download,
   Receipt,

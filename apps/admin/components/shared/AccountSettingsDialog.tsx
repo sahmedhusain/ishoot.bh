@@ -5,7 +5,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
-import { Button, Modal } from "@ishoot/ui";
+import { Button, Modal } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { saveAccountSettingsAction } from "../../app/actions/account-settings";
 

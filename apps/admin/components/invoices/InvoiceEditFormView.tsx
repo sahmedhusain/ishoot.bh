@@ -1,7 +1,7 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
-import { getCurrencyLabel } from "@ishoot/config/currency";
+import { getCurrencyLabel } from "@platform/config/currency";
 
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
@@ -15,19 +15,19 @@ InvoiceLineItem,
 DiscountType,
 SupportedCurrency,
 ServiceItem,
-} from "@ishoot/database/types";
+} from "@platform/database/types";
 import {
 CURRENCY_CONFIGS,
 calculateInvoiceTotals,
 getCurrencyDisplayLabel,
-} from "@ishoot/database/types";
+} from "@platform/database/types";
 import {
 Card,
 Input,
 Select,
 Button,
 ConfirmDestructiveModal,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
   Plus,
   Trash2,

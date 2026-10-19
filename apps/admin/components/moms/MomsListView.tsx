@@ -3,8 +3,8 @@
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import type { MinuteOfMeetingItem } from "@ishoot/database";
-import { Card,Button,ConfirmDestructiveModal } from "@ishoot/ui";
+import type { MinuteOfMeetingItem } from "@platform/database";
+import { Card,Button,ConfirmDestructiveModal } from "@platform/ui";
 import {
 FileSignature,
 Plus,

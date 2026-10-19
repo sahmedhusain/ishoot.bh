@@ -1,4 +1,4 @@
-import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import path from "node:path";

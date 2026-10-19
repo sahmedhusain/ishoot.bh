@@ -1,10 +1,10 @@
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { NextRequest,NextResponse } from "next/server";
 import { realpath,stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import path from "node:path";
-import { db,uploadRoot,generateDownloadUrl,uploadStorageLocation,isSupabaseStorageConfigured } from "@ishoot/database";
+import { db,uploadRoot,generateDownloadUrl,uploadStorageLocation,isSupabaseStorageConfigured } from "@platform/database";
 import { requirePermission,getCurrentUser } from "../../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../../lib/attachment-access";
 /** The permission that guards a file stored on a record's own field, if any record holds it. */

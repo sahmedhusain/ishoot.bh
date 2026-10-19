@@ -1,5 +1,5 @@
-import { getTranslations } from "@ishoot/locales";
-import type { CalendarEvent } from "@ishoot/database/types";
+import { getTranslations } from "@platform/locales";
+import type { CalendarEvent } from "@platform/database/types";
 
 const stamp = (value: string | Date) =>
   new Date(value)

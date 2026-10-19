@@ -1,7 +1,7 @@
 import { isWebsitePreview,getWebsite } from "../../lib/website";
 import { getPublicCompanySettings } from "../../lib/company";
 import * as React from "react";
-import { getTranslations, formatMessage } from "@ishoot/locales";
+import { getTranslations, formatMessage } from "@platform/locales";
 import { notFound } from "next/navigation";
 import { isValidLocale } from "../../lib/i18n";
 import { Navbar } from "../../components/layout/Navbar";
@@ -9,7 +9,7 @@ import { Footer } from "../../components/layout/Footer";
 import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
 import { BackToTop } from "../../components/layout/BackToTop";
-import { getSocialLinks } from "@ishoot/database";
+import { getSocialLinks } from "@platform/database";
 // Database content must not be frozen into empty pages when the build database is unavailable.
 export const dynamic = "force-dynamic";
 

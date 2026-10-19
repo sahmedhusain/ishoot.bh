@@ -19,7 +19,7 @@ For local Supabase, initialize configuration once with `pnpm dlx supabase init` 
 grep DATABASE_URL .env
 
 # 2. Drop everything and re-apply all migrations (deletes ALL data in that database)
-pnpm --filter @ishoot/database exec prisma migrate reset --force --skip-seed
+pnpm --filter @platform/database exec prisma migrate reset --force --skip-seed
  
 # 3. Seed and verify
 pnpm db:seed
@@ -29,7 +29,7 @@ pnpm db:check-integrity
 ```sh
 pnpm dlx supabase start -x studio,postgres-meta,logflare,vector,supavisor,edge-runtime,realtime,imgproxy,mailpit
 pnpm install
-pnpm --filter @ishoot/database db:generate
+pnpm --filter @platform/database db:generate
 pnpm exec prisma migrate deploy --schema packages/database/prisma/schema.prisma
 pnpm db:bootstrap
 ```
@@ -46,7 +46,7 @@ On a local database, the demo seed also creates and publishes the initial websit
 
 The demo seed now refuses existing business records. It contains demonstration invoices, payments, attachments and contacts, not just an administrator and CMS content. It is disabled in production. The seed uses its own CommonJS TypeScript configuration while application packages retain their bundler/ES module configuration.
 
-`pnpm --filter @ishoot/database db:push` remains available for disposable development databases, but migration deploy preserves the checked-in migration history and is the preferred initialization command. Review drift before applying migrations to a database previously created with schema push.
+`pnpm --filter @platform/database db:push` remains available for disposable development databases, but migration deploy preserves the checked-in migration history and is the preferred initialization command. Review drift before applying migrations to a database previously created with schema push.
 
 ## 3. Running the Servers
 ```bash

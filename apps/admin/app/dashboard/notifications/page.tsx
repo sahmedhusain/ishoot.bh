@@ -1,4 +1,4 @@
-import { notificationInbox } from "@ishoot/database";
+import { notificationInbox } from "@platform/database";
 import { requireAuth } from "../../../lib/auth";
 import { NotificationInboxView } from "../../../components/communications/NotificationInboxView";
 export const dynamic = "force-dynamic";

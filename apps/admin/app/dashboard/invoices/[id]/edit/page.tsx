@@ -1,6 +1,6 @@
 import { requirePagePermission } from "../../../../../lib/auth";
 import { notFound } from "next/navigation";
-import { getInvoiceById, getCRMContactById, getAllServices, getFxBoard } from "@ishoot/database";
+import { getInvoiceById, getCRMContactById, getAllServices, getFxBoard } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../../lib/cached-queries";
 import { InvoiceEditFormView } from "../../../../../components/invoices/InvoiceEditFormView";
 

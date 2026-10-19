@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import {
@@ -13,7 +13,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { Notification } from "@ishoot/database/types";
+import type { Notification } from "@platform/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { useHeaderPopover } from "../../hooks/useHeaderPopover";
 import { ROUTES } from "../../constants/routes";

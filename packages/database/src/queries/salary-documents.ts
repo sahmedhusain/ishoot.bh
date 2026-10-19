@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 
 /** Frozen copy of the data a salary document prints. Throws when payroll for a requested month is not approved. */

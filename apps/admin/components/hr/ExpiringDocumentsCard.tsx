@@ -1,9 +1,9 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import Link from "next/link";
 import { AlertTriangle, CalendarClock } from "lucide-react";
-import { formatDate } from "@ishoot/ui";
+import { formatDate } from "@platform/ui";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

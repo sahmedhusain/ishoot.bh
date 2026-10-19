@@ -7,10 +7,10 @@ import { createAttachmentAction } from "../../app/actions/attachments";
 
 import * as React from "react";
 import Link from "next/link";
-import type { Payment, CompanySettings } from "@ishoot/database/types";
+import type { Payment, CompanySettings } from "@platform/database/types";
 import { ReceiptTemplate } from "./ReceiptTemplate";
 import { DeliveryToolbar } from "../shared/DeliveryToolbar";
-import { Button } from "@ishoot/ui";
+import { Button } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,

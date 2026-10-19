@@ -1,7 +1,7 @@
 "use client";
 
-import type { Payment,CompanySettings } from "@ishoot/database/types";
-import { formatCurrencyValue } from "@ishoot/ui";
+import type { Payment,CompanySettings } from "@platform/database/types";
+import { formatCurrencyValue } from "@platform/ui";
 import { adminTranslations } from "../../lib/translations-bilingual";
 import {
 DocumentLetterhead,

@@ -1,12 +1,12 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { History, UserCheck, UserPen } from "lucide-react";
 import { toast } from "sonner";
-import type { AttributionInfo } from "@ishoot/database/queries/sales-attribution";
+import type { AttributionInfo } from "@platform/database/queries/sales-attribution";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { reassignSalesOwnerAction } from "../../app/actions/sales";
 

@@ -9,8 +9,8 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import sharp from "sharp";
-import type { AssetHandoverDetail } from "@ishoot/database";
-import type { CompanySettings } from "@ishoot/database/types";
+import type { AssetHandoverDetail } from "@platform/database";
+import type { CompanySettings } from "@platform/database/types";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import {
   C,

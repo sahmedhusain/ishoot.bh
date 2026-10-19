@@ -1,12 +1,12 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import type { CRMContact } from "@ishoot/database/types";
-import { Input, Button } from "@ishoot/ui";
+import type { CRMContact } from "@platform/database/types";
+import { Input, Button } from "@platform/ui";
 import {
   Search,
   Mail,

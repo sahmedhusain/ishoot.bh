@@ -3,12 +3,12 @@
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import type { FinancialSummary, Quotation } from "@ishoot/database/types";
-import { Button,StatusBadge,CurrencyDisplay } from "@ishoot/ui";
+import type { FinancialSummary, Quotation } from "@platform/database/types";
+import { Button,StatusBadge,CurrencyDisplay } from "@platform/ui";
 import { Plus, Eye, ExternalLink, FileCheck, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-import type { InvoiceListRow } from "@ishoot/database";
+import type { InvoiceListRow } from "@platform/database";
 
 interface InvoicesListViewProps {
   initialInvoices: InvoiceListRow[];

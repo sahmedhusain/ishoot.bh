@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { measureOperation, signWithToken } from "@ishoot/database";
-import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database/services/abuse-limits";
+import { measureOperation, signWithToken } from "@platform/database";
+import { consumeAbuseLimit, trustedClientIp } from "@platform/database/services/abuse-limits";
 import { signingConsent } from "../../../../lib/client-signing";
 
 export const dynamic = "force-dynamic";

@@ -1,4 +1,4 @@
-import type { ApprovalRequest } from "@ishoot/database/types";
+import type { ApprovalRequest } from "@platform/database/types";
 
 export type ApprovalScope = "awaiting" | "mine" | "all";
 

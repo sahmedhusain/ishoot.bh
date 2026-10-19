@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 type Sender = (input: { to: string; subject: string; html: string; idempotencyKey: string; attachments: { filename: string; content: Buffer }[] }) => Promise<{ success: boolean; id?: string }>;
 export async function processEmailJobs(sender: Sender, now = new Date()) {

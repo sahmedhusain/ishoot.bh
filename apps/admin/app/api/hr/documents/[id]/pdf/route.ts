@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../../../lib/auth";
 import { getAccessibleSalaryDocument } from "../../../../../../lib/salary-documents";
 import { generateSalaryDocumentPdf } from "../../../../../../lib/pdf/salary-document-pdf";
-import { getCompanySettings, createActivityLog } from "@ishoot/database";
+import { getCompanySettings, createActivityLog } from "@platform/database";
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },

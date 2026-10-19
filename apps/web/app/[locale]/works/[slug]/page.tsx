@@ -3,7 +3,7 @@ import { Reveal } from "../../../../components/shared/Reveal";
 import { getWebsite } from "../../../../lib/website";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getTranslations,Locale } from "@ishoot/locales";
+import { getTranslations,Locale } from "@platform/locales";
 import { ArrowLeft,ArrowRight } from "lucide-react";
 
 export default async function ProjectDetailPage({

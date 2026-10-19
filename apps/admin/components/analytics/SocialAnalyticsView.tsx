@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
@@ -21,15 +21,15 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { Button, Card, ConfirmDestructiveModal, DateDisplay, Modal } from "@ishoot/ui";
+import { Button, Card, ConfirmDestructiveModal, DateDisplay, Modal } from "@platform/ui";
 import {
   SOCIAL_PLAN_STATUSES,
   SOCIAL_PLATFORM_IDS,
   type SocialPlanStatus,
   type SocialPlatformId,
-} from "@ishoot/database/constants/integrations";
-import type { SocialAnalytics, SocialPlanView, SocialPostView } from "@ishoot/database/queries/social-analytics";
-import { ROUTES } from "@ishoot/database/constants/routes";
+} from "@platform/database/constants/integrations";
+import type { SocialAnalytics, SocialPlanView, SocialPostView } from "@platform/database/queries/social-analytics";
+import { ROUTES } from "@platform/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
 import { refreshSocialAnalyticsAction, saveSocialPlanAction, deleteSocialPlanAction } from "../../app/actions/social";

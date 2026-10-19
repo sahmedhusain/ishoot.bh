@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import type { Expense } from "@ishoot/database/types";
+import type { Expense } from "@platform/database/types";
 import { Plus, Receipt } from "lucide-react";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

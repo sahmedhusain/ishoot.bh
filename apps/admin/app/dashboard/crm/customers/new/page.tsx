@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../../lib/auth";
-import { getCompanySettings } from "@ishoot/database";
+import { getCompanySettings } from "@platform/database";
 import { ClientProfileForm } from "../../../../../components/crm/ClientProfileForm";
 
 export const dynamic = "force-dynamic";
