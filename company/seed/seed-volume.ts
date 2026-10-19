@@ -82,7 +82,7 @@ const FIRST = [
 ] as const;
 const LAST = [
   ["Al-Mahmood", "المحمود"], ["Al-Sayed", "السيد"], ["Al-Hashimi", "الهاشمي"], ["Al-Ansari", "الأنصاري"], ["Al-Mannai", "المناعي"],
-  ["Al-Crescent", "الهلال"], ["Fakhro", "فخرو"], ["Al-Aali", "العالي"], ["Janahi", "جناحي"], ["Al-Shirawi", "الشيراوي"],
+  ["Al-Hilal", "الهلال"], ["Fakhro", "فخرو"], ["Al-Aali", "العالي"], ["Janahi", "جناحي"], ["Al-Shirawi", "الشيراوي"],
   ["Bucheeri", "بوجيري"], ["Al-Musallam", "المسلم"], ["Al-Hayki", "الحايكي"], ["Al-Doseri", "الدوسري"], ["Al-Jowder", "الجودر"],
   ["Al-Awadhi", "العوضي"], ["Al-Kooheji", "الكوهجي"], ["Al-Bastaki", "البستكي"], ["Al-Qassab", "القصاب"], ["Al-Najjar", "النجار"],
 ] as const;
@@ -790,11 +790,11 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   // ============================================================ 10c. website enquiries, complaints and suggestions
   {
     const voices: Array<[string, string, "inquiry" | "quote_request" | "complaint" | "suggestion", string]> = [
-      ["Khalid Al-Mannai", "khalid@alsafwa-trading.bh", "complaint", "The edited video was delivered two days after the date we agreed, and we missed our campaign launch."],
-      ["Noora Al-Crescent", "noora.z@seef-mall.example", "complaint", "Subtitles in the Arabic version have several spelling mistakes. Please correct and resend."],
+      ["Khalid Al-Mannai", "khalid@alsafwa-trading.example", "complaint", "The edited video was delivered two days after the date we agreed, and we missed our campaign launch."],
+      ["Noora Al-Hilal", "noora.z@seafront-mall.example", "complaint", "Subtitles in the Arabic version have several spelling mistakes. Please correct and resend."],
       ["Hasan Jaffar", "hasan.jaffar@gulfbuild.example", "complaint", "The invoice shows a day rate we did not agree on in the quotation."],
       ["Maryam Al-Dosari", "maryam@dosari-events.example", "complaint", "The crew arrived 45 minutes late to our conference shoot."],
-      ["Yusuf Rashed", "yusuf@kanoo-motors.example", "suggestion", "Please add a client portal where we can review cuts and leave timecoded comments."],
+      ["Yusuf Rashed", "yusuf@rashed-motors.example", "suggestion", "Please add a client portal where we can review cuts and leave timecoded comments."],
       ["Fatima Bucheeri", "fatima@bucheeri-group.example", "suggestion", "A monthly content report with views per platform would help us plan the next campaign."],
       ["Ali Salman", "ali.salman@tamkeen-partner.example", "suggestion", "Offering vertical versions by default would save us a lot of back and forth."],
       ["Reem Al-Khalifa", "reem@khalifa-jewels.example", "quote_request", "We need a quote for a 60-second product film and 10 social cutdowns for our new collection."],

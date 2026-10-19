@@ -1,7 +1,7 @@
 # Architecture Overview
 
 ## 1. System Topology
-The **ishoot.bh** platform is a modern monorepo (Turborepo) managing two distinct Next.js applications sharing a unified Prisma ORM data layer and internal packages.
+The platform is a modern monorepo (Turborepo) managing two distinct Next.js applications sharing a unified Prisma ORM data layer and internal packages.
 
 - **`apps/web`**: The public-facing studio website. Next.js App Router (React Server Components) rendering portfolio assets, case studies, and headless CMS content (Reviews, FAQs, Statistics). Connects directly to the database for read-only CMS queries.
 - **`apps/admin`**: The internal business operating system (ERP/CRM). Next.js App Router with Server Actions handling highly privileged mutations (Quotations, Invoices, Communications, Social Analytics). 

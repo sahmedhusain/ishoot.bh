@@ -207,7 +207,7 @@ Acceptance: retries produce one notification/delivery intent; owner isolation; f
 
 ## 8. Pages, design and localization
 
-Reuse the existing Next/Tailwind/shared UI stack and brand palette (#014842, #09937F). Define shared page header, breadcrumbs, detail shell, form sections, toolbar, table, filter bar, audit timeline, review diff and empty/loading/error components. Consistent spacing/type/radius/border tokens, keyboard focus and light/dark surfaces. Do not add an unrelated visual system or redesign marketing pages during this work.
+Reuse the existing Next/Tailwind/shared UI stack and the company theme tokens (primary, accent). Define shared page header, breadcrumbs, detail shell, form sections, toolbar, table, filter bar, audit timeline, review diff and empty/loading/error components. Consistent spacing/type/radius/border tokens, keyboard focus and light/dark surfaces. Do not add an unrelated visual system or redesign marketing pages during this work.
 
 Move complex request, invoice/payment entry, user/profile and approval workflows to pages with stable URLs, back navigation, unsaved-change protection and permission-scoped context. Existing invoice and receipt detail routes are canonical. Keep short destructive confirmations as dialogs; the request to remove popup-based workflows does not require eliminating confirmation dialogs. Payment recording moves to `/payments/new?invoiceId=...`; CR/SR uses the dossier routes above. Approval pages show contextual links and diffs, not isolated generic forms.
 
