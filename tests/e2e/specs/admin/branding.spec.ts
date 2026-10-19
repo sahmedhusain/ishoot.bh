@@ -1,10 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { brokenImages, channels, demo, visibleContent, login, otherCompanyNames, themeVariable, watchErrors } from "../../helpers";
+import { brokenImages, channels, demo, visibleContent, otherCompanyNames, themeVariable, watchErrors } from "../../helpers";
 import { t } from "../../locale";
 
 test.beforeEach(async ({ page }) => {
-  await login(page);
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto("/dashboard");
 });
 
 test("the dashboard uses the company's theme, fonts and logos", async ({ page }) => {

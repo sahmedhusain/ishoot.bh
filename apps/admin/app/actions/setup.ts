@@ -31,7 +31,7 @@ export interface SetupCompanyInput {
   website?: string;
 }
 
-export interface SetupModuleChoice {
+interface SetupModuleChoice {
   moduleKey: string;
   isEnabled: boolean;
 }

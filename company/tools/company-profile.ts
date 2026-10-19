@@ -16,7 +16,7 @@ import { storeFileBytes, workspaceRoot } from "../../packages/database/src/servi
 type Db = PrismaClient | Prisma.TransactionClient;
 
 /** Brand slots: which company setting each profile asset fills, and the CompanyAsset rows that mirror it. */
-export const BRAND_SLOTS = {
+const BRAND_SLOTS = {
   logo: { field: "logoUrl", assetKeys: ["logo_light"], title: "Logo for light backgrounds" },
   darkLogo: { field: "darkLogoUrl", assetKeys: ["logo_dark"], title: "Logo for dark backgrounds" },
   icon: { field: "iconUrl", assetKeys: ["icon_light", "favicon"], title: "Icon for light backgrounds" },
@@ -24,7 +24,7 @@ export const BRAND_SLOTS = {
   stamp: { field: "stampUrl", assetKeys: ["stamp"], title: "Company stamp" },
   signature: { field: "signatureUrl", assetKeys: ["signature"], title: "Authorised signature" },
 } as const;
-export type BrandSlot = keyof typeof BRAND_SLOTS;
+type BrandSlot = keyof typeof BRAND_SLOTS;
 
 type ProfileFont = FontChoice | { kind: "upload"; family: string; files: { weight: number; file: string }[] };
 interface ProfileTheme extends Omit<BrandTheme, "fonts"> {
@@ -44,7 +44,7 @@ export interface CompanyProfile {
 const PROFILE_NAME = /^[a-z0-9][a-z0-9-]{0,40}$/;
 const UPLOAD_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "application/pdf": "pdf", "font/woff2": "woff2" };
 
-export function companyProfilesDir() {
+function companyProfilesDir() {
   return path.join(workspaceRoot(), "company", "profiles");
 }
 

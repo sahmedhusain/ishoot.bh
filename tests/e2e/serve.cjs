@@ -22,6 +22,8 @@ const swap = (url) => {
   if (!url) return url;
   const parsed = new URL(url);
   parsed.pathname = `/${database}`;
+  // Several test servers share one Postgres; a small pool each keeps them under its connection limit.
+  if (!parsed.searchParams.has("connection_limit")) parsed.searchParams.set("connection_limit", "5");
   return parsed.toString();
 };
 

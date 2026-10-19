@@ -364,12 +364,6 @@ importers:
 
   company:
     dependencies:
-      '@platform/config':
-        specifier: workspace:*
-        version: link:../packages/config
-      '@platform/database':
-        specifier: workspace:*
-        version: link:../packages/database
       '@prisma/client':
         specifier: 5.22.0
         version: 5.22.0(prisma@5.22.0)

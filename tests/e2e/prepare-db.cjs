@@ -38,7 +38,7 @@ const run = (command, args, extra = {}) => execFileSync(command, args, { cwd: ro
 async function main() {
   // CREATE DATABASE cannot run inside a transaction, so it goes through a plain client on the maintenance database.
   const { PrismaClient } = createRequire(path.join(root, "packages/database/package.json"))("@prisma/client");
-  const admin = new PrismaClient({ datasources: { db: { url: urlFor(serverUrl.pathname.slice(1) || "postgres") } } });
+  const admin = new PrismaClient({ datasources: { db: { url: urlFor("postgres") } } });
   try {
     await admin.$executeRawUnsafe(`DROP DATABASE IF EXISTS "${database}" WITH (FORCE)`);
     await admin.$executeRawUnsafe(`CREATE DATABASE "${database}"`);

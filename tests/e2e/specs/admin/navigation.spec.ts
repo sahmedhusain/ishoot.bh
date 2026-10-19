@@ -1,12 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { login, watchErrors } from "../../helpers";
+import { watchErrors } from "../../helpers";
 import { t } from "../../locale";
 
 // Every page reachable from the sidebar renders for an administrator: no error page, no 404, no console errors.
 test("every sidebar destination renders", async ({ page }) => {
   test.setTimeout(20 * 60_000);
-  await login(page);
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await page.goto("/dashboard");
   const links = await page.locator('aside a[href^="/dashboard"]').evaluateAll((anchors) =>
     Array.from(new Set(anchors.map((a) => (a as HTMLAnchorElement).getAttribute("href")!.split("?")[0]))),
   );

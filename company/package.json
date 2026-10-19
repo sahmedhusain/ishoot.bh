@@ -9,8 +9,6 @@
     "type-check": "tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {
-    "@platform/config": "workspace:*",
-    "@platform/database": "workspace:*",
     "@prisma/client": "5.22.0",
     "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.4"

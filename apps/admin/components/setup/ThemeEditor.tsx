@@ -209,7 +209,7 @@ function FontField({ label, value, onChange, slot }: { label: string; value: Fon
   );
 }
 
-export function ThemePreview({ theme }: { theme: BrandTheme }) {
+function ThemePreview({ theme }: { theme: BrandTheme }) {
   const { t } = useAdminLocale();
   const copy = t.setupWizard.brand;
   const [mode, setMode] = React.useState<"light" | "dark">("light");
