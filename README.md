@@ -25,8 +25,6 @@ docs/           Guides
 
 ## Quick start
 
-Prerequisites: Node 22+, pnpm 12, and Docker (for the local Supabase stack).
-
 ```bash
 pnpm install
 ```
@@ -39,17 +37,19 @@ cp .env.example .env
 pnpm dlx supabase start -x studio,postgres-meta,logflare,vector,supavisor,edge-runtime,realtime,imgproxy,mailpit
 ```
 
-Copy the URLs and service-role key from `pnpm dlx supabase status` into `.env`, and set `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` (see [docs/DATABASE.md](docs/DATABASE.md)). Then run:
+Fill in `.env` from `pnpm dlx supabase status`, plus `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD`. Then choose how to start:
 
-```bash
-pnpm db:reset
-```
+| Start with | Command | Result |
+|---|---|---|
+| The demo company | `pnpm db:reset` | The fictional company in `company/profiles/demo`, with full demo data |
+| Your own company profile | `pnpm db:reset --profile <name>` | Your brand on demo data (`COMPANY_PROFILE=<name> pnpm db:bootstrap` for a real installation) |
+| A blank company | `pnpm db:reset:empty` | The admin opens the first-run setup wizard |
 
 ```bash
 pnpm dev
 ```
 
-Sign in at http://localhost:3001; the website is at http://localhost:3000. To see what a brand-new customer gets, run `pnpm db:reset:empty`: the admin then opens the setup wizard.
+Admin: http://localhost:3001 · Website: http://localhost:3000. [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) walks through each option, including how to create a company profile.
 
 ## Commands
 
@@ -69,18 +69,22 @@ Sign in at http://localhost:3001; the website is at http://localhost:3000. To se
 | `pnpm test:brand` | Fails if any company's name, colours, fonts or files appear outside `company/` |
 | `pnpm audit:unused` | Unused files, exports and dependencies (knip) |
 | `pnpm company:demo-assets` | Regenerate the demo company's artwork |
+| `pnpm docs:api` | Regenerate the API reference from the code |
 
 ## Guides
 
 | Guide | Contents |
 |---|---|
+| [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | Run the demo, load a company profile, or start blank with the setup wizard |
+| [company/README.md](company/README.md) | Company profile format: identity, theme, fonts, brand files |
 | [docs/DATABASE.md](docs/DATABASE.md) | Start, seed, reset, migrate and back up the database |
-| [company/README.md](company/README.md) | Company profiles, themes, fonts and brand files |
-| [docs/TESTING.md](docs/TESTING.md) | Test layers, running them locally, writing new tests |
-| [docs/DEVOPS.md](docs/DEVOPS.md) | Environment variables, local services, email testing |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the system fits together |
-| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | HTTP APIs, server actions and data model |
-| [docs/HRMS.md](docs/HRMS.md), [docs/SERVICES.md](docs/SERVICES.md), [docs/DATA_MODELS.md](docs/DATA_MODELS.md) | Domain guides |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Environment variables, services, workers, deployment and upgrades |
+| [docs/FEATURES.md](docs/FEATURES.md) | What each area of the admin does, and its rules |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the system and the theming fit together; data model |
+| [docs/SECURITY.md](docs/SECURITY.md) | Authentication, MFA, authorization, data protection, retention |
+| [docs/LOCALIZATION.md](docs/LOCALIZATION.md) | Arabic and English copy rules |
+| [docs/TESTING.md](docs/TESTING.md) | Test layers, running and writing tests |
+| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | Every route, server action and model (generated: `pnpm docs:api`) |
 
 ## Continuous integration
 

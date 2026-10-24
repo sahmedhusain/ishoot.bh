@@ -16,3 +16,11 @@ test("no sync-conflict copies are committed", () => {
 test("apps keep no files in public/ (company files live in company/profiles)", () => {
   expect(files.filter((file) => /^apps\/[^/]+\/public\//.test(file))).toEqual([]);
 });
+
+// Next rewrites these when it starts with another build folder (test servers); that must never be committed.
+test("tsconfig and next-env reference only the standard .next folder", () => {
+  const fs = require("node:fs") as typeof import("node:fs");
+  for (const app of ["admin", "web"])
+    for (const file of ["tsconfig.json", "next-env.d.ts"])
+      expect(fs.readFileSync(path.join(root, "apps", app, file), "utf8"), `apps/${app}/${file}`).not.toMatch(/\.next-e2e/);
+});

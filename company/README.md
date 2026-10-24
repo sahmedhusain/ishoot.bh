@@ -18,8 +18,11 @@ company/
 
 ## Profiles
 
+A step-by-step walkthrough (demo, your own profile, blank install) is in [docs/GETTING_STARTED.md](../docs/GETTING_STARTED.md).
+
 | Command | What it does |
 |---|---|
+| `pnpm db:reset --profile <name>` | Fresh local database and files with demo data branded for the profile (local only) |
 | `pnpm db:seed` | Fills an empty database with demo data for `COMPANY_PROFILE` (default `demo`) |
 | `pnpm db:bootstrap` | Creates roles, permissions and the first admin. With no `COMPANY_PROFILE` the company starts blank and the admin shows the setup wizard. |
 | `COMPANY_PROFILE=<name> pnpm db:bootstrap` | Same, and installs the profile (skips the wizard) when no company exists yet |
@@ -38,6 +41,15 @@ company/
 ```
 
 `company` takes any `CompanySetting` field except the file URLs, which are filled from `assets`.
+
+| Slot | Artwork |
+|---|---|
+| `logo` / `darkLogo` | The **text logo only** (wordmark), for light and dark backgrounds. The apps show the icon beside it, so it must not contain the icon. |
+| `icon` / `darkIcon` | The square mark on its own; `icon` is also the browser icon |
+| `stamp` | The company seal printed on approved documents |
+| `signature` | The authorised signatory's signature |
+
+Optional extras inside `assets/`: `brand/signatures/<staff key>.png` (demo staff signatures), `media/banners/*` (website hero images), `media/clients/<slug>.png` (client logos for the demo).
 
 ### theme.json
 

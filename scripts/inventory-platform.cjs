@@ -112,7 +112,7 @@ const summary = {
   findManyCalls: reads.length,
   readsWithoutExplicitTake: reads.filter((r) => !r.explicitTake).length,
 };
-const out = path.join(root, "docs/audit-2026-10-04");
+const out = path.join(root, "tests/.results/inventory");
 fs.mkdirSync(out, { recursive: true });
 fs.writeFileSync(
   path.join(out, "inventory.json"),

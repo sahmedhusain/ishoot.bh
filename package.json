@@ -63,7 +63,8 @@
     "test:checks:db": "vitest run tests/checks/database.test.ts",
     "test:e2e": "pnpm test:e2e:prepare && playwright test",
     "test:e2e:prepare": "node tests/e2e/prepare-db.cjs seeded platform_e2e_test && node tests/e2e/prepare-db.cjs blank platform_e2e_blank_test",
-    "test:brand": "node scripts/check-brand-neutral.cjs"
+    "test:brand": "node scripts/check-brand-neutral.cjs",
+    "docs:api": "node scripts/generate-api-reference.cjs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.7",
