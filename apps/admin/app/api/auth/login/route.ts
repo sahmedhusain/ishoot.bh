@@ -1,12 +1,12 @@
-import { serverMessages, getTranslations } from "@ishoot/locales";
+import { serverMessages, getTranslations } from "@platform/locales";
 import { NextRequest, NextResponse, after } from "next/server";
-import { db, runAtomicMutation } from "@ishoot/database/db";
-import { measureOperation } from "@ishoot/database/observability";
-import { verifyUserCredentials } from "@ishoot/database/queries/users";
-import { createSession } from "@ishoot/database/queries/sessions";
-import { createActivityLog } from "@ishoot/database/queries/activity";
-import { consumeAbuseLimit, trustedClientIp } from "@ishoot/database/services/abuse-limits";
-import { verifyMfa } from "@ishoot/database/services/mfa";
+import { db, outsideTransaction, runAtomicMutation } from "@platform/database/db";
+import { measureOperation } from "@platform/database/observability";
+import { verifyUserCredentials } from "@platform/database/queries/users";
+import { createSession } from "@platform/database/queries/sessions";
+import { createActivityLog } from "@platform/database/queries/activity";
+import { consumeAbuseLimit, trustedClientIp } from "@platform/database/services/abuse-limits";
+import { verifyMfa } from "@platform/database/services/mfa";
 import { readLoginInput } from "../../../../lib/login-input";
 
 import { signSessionToken } from "../../../../lib/jwt";
@@ -71,8 +71,9 @@ export async function POST(req: NextRequest) {
       userAgent,
     });
 
-    // Audit write is not needed to answer the login; run it after the response is sent.
-    after(() => createActivityLog({
+    // Audit write is not needed to answer the login; run it after the response is sent, outside the login
+    // transaction (which has committed by then).
+    after(() => outsideTransaction(() => createActivityLog({
       user_id: user.id,
       action: "login",
       entity_type: "auth",
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
       details: { role: user.role, department: user.department },
       ip_address: ipAddress,
       user_agent: userAgent,
-    }).catch((error) => console.error("Login activity log failed:", error)));
+    })).catch((error) => console.error("Login activity log failed:", error)));
 
     const response = NextResponse.json({
       success: true,

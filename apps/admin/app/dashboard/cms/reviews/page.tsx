@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getReviews } from "@ishoot/database";
+import { getReviews } from "@platform/database";
 import { ReviewsManagementView } from "../../../../components/cms/ReviewsManagementView";
 
 export default async function ReviewsSettingsPage() {

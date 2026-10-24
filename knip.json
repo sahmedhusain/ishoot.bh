@@ -3,10 +3,12 @@
   "workspaces": {
     ".": {
       "entry": [
-        "scripts/*.cjs"
+        "scripts/*.cjs",
+        "tests/**/*.{ts,cjs}"
       ],
       "project": [
-        "scripts/*.cjs"
+        "scripts/*.cjs",
+        "tests/**/*.{ts,cjs}"
       ]
     },
     "apps/*": {
@@ -17,16 +19,58 @@
       "project": [
         "**/*.{ts,tsx,mjs,css}"
       ]
+    },
+    "company": {
+      "entry": [
+        "seed/*.cjs",
+        "scripts/*.cjs",
+        "tools/*.ts"
+      ],
+      "project": [
+        "**/*.{ts,cjs}"
+      ]
     }
   },
   "ignoreDependencies": [
-    "eslint-config-next",
     "@prisma/client",
     "@supabase/supabase-js",
-    "libphonenumber-js"
+    "bcryptjs",
+    "eslint-config-next",
+    "libphonenumber-js",
+    "sharp"
   ],
   "ignoreIssues": {
     "apps/admin/app/actions/mom.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/assets.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/crm.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/hrms.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/notifications.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/profile.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/quotations.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/requests.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/salary-documents.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/sales.ts": [
+      "exports"
+    ],
+    "apps/admin/app/actions/users.ts": [
       "exports"
     ]
   }

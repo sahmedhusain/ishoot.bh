@@ -6,7 +6,7 @@ import {
   findPendingApproval,
   getEmployeeAssets,
   getEmployeeHandover,
-} from "@ishoot/database";
+} from "@platform/database";
 import { hasPermission, requireAuth } from "../../../../../lib/auth";
 import { ForbiddenView } from "../../../../../components/shared/ForbiddenView";
 import { HandoverWorkspaceView } from "../../../../../components/handovers/HandoverWorkspaceView";

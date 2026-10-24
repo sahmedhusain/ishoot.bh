@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { Card } from "@ishoot/ui";
+import { Card } from "@platform/ui";
 import { toggleFeatureAction } from "../../app/actions/settings";
-import type { FeatureToggle } from "@ishoot/database/types";
+import type { FeatureToggle } from "@platform/database/types";
 import { ShieldAlert, ToggleLeft, ToggleRight } from "lucide-react";
 
 interface ModulesManagementViewProps {

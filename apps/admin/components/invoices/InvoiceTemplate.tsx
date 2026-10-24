@@ -1,8 +1,8 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
-import type { Invoice,CompanySettings } from "@ishoot/database/types";
-import { formatCurrencyValue } from "@ishoot/ui";
+import { formatMessage } from "@platform/locales";
+import type { Invoice,CompanySettings } from "@platform/database/types";
+import { formatCurrencyValue } from "@platform/ui";
 import { adminTranslations } from "../../lib/translations-bilingual";
 import { formatClientAddress } from "../../lib/client-address";
 import {

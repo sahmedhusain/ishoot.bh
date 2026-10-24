@@ -1,6 +1,6 @@
 import { requireAuth } from "../../../lib/auth";
 import { readableApprovalTypes } from "../../../lib/approval-access";
-import { listApprovalRequests, canDecideApproval, approvalTargetUrl, APPROVAL_TARGET_TYPES } from "@ishoot/database";
+import { listApprovalRequests, canDecideApproval, approvalTargetUrl, APPROVAL_TARGET_TYPES } from "@platform/database";
 import { ApprovalsCenterView } from "../../../components/approvals/ApprovalsCenterView";
 import type { ApprovalListItem, ApprovalScope } from "../../../types/approvals";
 

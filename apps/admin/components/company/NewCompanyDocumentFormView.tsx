@@ -6,7 +6,7 @@ import { uploadFileDirectly } from "../../lib/upload-client";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input, Select } from "@ishoot/ui";
+import { Card, Button, Input, Select } from "@platform/ui";
 import { ArrowLeft, CheckCircle2, Building2 } from "lucide-react";
 import { createCompanyDocumentAction } from "../../app/actions/documents";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

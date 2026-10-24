@@ -818,12 +818,12 @@
     "viewInVault": "عرض في خزينة الأرشيف",
     "uploading": "جاري الرفع...",
     "bankNamePlaceholder": "مثال: بنك البحرين الوطني",
-    "ibanPlaceholder": "BH29NBOB00000012345678",
-    "accountPlaceholder": "0012345678",
+    "ibanPlaceholder": "BH00BANK11112222333344",
+    "accountPlaceholder": "0000123456",
     "swiftPlaceholder": "NBOBBHBM",
     "invPrefixPlaceholder": "INV",
     "rctPrefixPlaceholder": "RCT",
-    "trnPlaceholder": "200019283700002"
+    "trnPlaceholder": "200000000000003"
   },
   "deals": {
     "subtitle": "متابعة خط صفقات الإنتاج التفاعلي مع التحديث اللحظي لحالات المشاريع.",
@@ -1241,7 +1241,7 @@
     "saving": "جاري الرفع...",
     "submit": "حفظ المستند القانوني",
     "titleEnPlaceholder": "مثال: السجل التجاري 2026",
-    "docNumberPlaceholder": "CR-142859-1",
+    "docNumberPlaceholder": "CR-12345-1",
     "notesPlaceholder": "ملاحظات حول الاستخدام، المخولين بالتوقيع، مواعيد التجديد..."
   },
   "expensesNew": {
@@ -3221,10 +3221,8 @@
     "brandIdentityPairingIconWordmark": "اقتران الهوية (الرمز + الشعار النصي)",
     "liveDatabaseState": "الحالة الحالية في قاعدة البيانات",
     "alwaysEnsureTheBrandIcon": "احرص دائماً على وضع رمز العلامة والشعار النصي جنباً إلى جنب دون الخلط بينهما.",
-    "pineGreenEmerald": "أخضر صنوبري + زمردي",
     "brandIconLight": "رمز العلامة (فاتح)",
     "brandWordmarkDarkText": "الشعار النصي (نص داكن)",
-    "crispWhiteEmerald": "أبيض ناصع + زمردي",
     "brandIconDark": "رمز العلامة (داكن)",
     "brandWordmarkLightText": "الشعار النصي (نص فاتح)",
     "configuredInDatabase": "مُعدّ في قاعدة البيانات"
@@ -5387,7 +5385,7 @@
       "chooseACountryFromTheList": "اختر دولة من القائمة",
       "paymentTermsMustBeBetween0": "يجب أن تكون مدة السداد بين 0 و365 يومًا",
       "companyNameIsRequired": "اسم الشركة مطلوب",
-      "enterTheCommercialRegistrationCRNumber": "أدخل رقم السجل التجاري، مثل ⁦142859-1⁩",
+      "enterTheCommercialRegistrationCRNumber": "أدخل رقم السجل التجاري، مثل ⁦12345-1⁩",
       "chooseTheCountryWhereTheCompany": "اختر الدولة المسجلة فيها الشركة",
       "enterTheCompanySRegistrationNumber": "أدخل رقم تسجيل الشركة",
       "enterTheGovernmentEntitySName": "أدخل اسم الجهة الحكومية",
@@ -5608,7 +5606,11 @@
       "runtimeInvalidInvalidationRequest": "طلب تحديث الذاكرة المؤقتة غير صالح",
       "runtimeEmailServiceIsNotConfigured": "لم تُضبط خدمة البريد الإلكتروني",
       "internalServerErrorLower": "حدث خطأ في الخادم",
-      "superAdminAccountsAreNeverChangedHere": "لا تُعدَّل حسابات مدير النظام الأعلى من هنا"
+      "superAdminAccountsAreNeverChangedHere": "لا تُعدَّل حسابات مدير النظام الأعلى من هنا",
+      "setupPrefixInvalid": "استخدم من 1 إلى 10 أحرف لاتينية كبيرة أو أرقام أو شرطات لبادئة المستندات",
+      "setupVatInvalid": "يجب أن تكون نسبة الضريبة بين 0% و100%",
+      "setupPaymentTermsInvalid": "يجب أن تكون مدة السداد بين 0 و365 يوماً",
+      "setupLogoRequired": "ارفع شعاراً واحداً على الأقل قبل إنهاء الإعداد"
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -5845,7 +5847,7 @@
       "entityNameAr": "اسم الجهة (بالعربية)",
       "legalForm": "الشكل القانوني",
       "crNumber": "رقم السجل التجاري",
-      "crNumberHint": "رقم السجل التجاري مع رقم الفرع، مثل ⁦142859-1⁩",
+      "crNumberHint": "رقم السجل التجاري مع رقم الفرع، مثل ⁦12345-1⁩",
       "crExpiry": "تاريخ انتهاء السجل التجاري",
       "registrationCountry": "دولة التسجيل",
       "registrationNumber": "رقم التسجيل",
@@ -7854,5 +7856,136 @@
     "endBeforeStart": "لا يمكن أن يسبق تاريخ النهاية تاريخ البداية",
     "filed": "تم تقديم الطلب",
     "failed": "تعذر تقديم الطلب"
+  },
+  "setupWizard": {
+    "title": "إعداد مساحة العمل",
+    "subtitle": "خطوات قليلة لتصبح المنظومة خاصة بشركتك. يمكن تعديل كل شيء لاحقاً من الإعدادات.",
+    "stepOf": "الخطوة {current} من {total}",
+    "steps": {
+      "company": "الشركة",
+      "brand": "الألوان والخطوط",
+      "assets": "الشعارات والملفات",
+      "configuration": "الإعدادات",
+      "review": "المراجعة"
+    },
+    "stepDescriptions": {
+      "company": "يظهر اسمك المسجل وبيانات التواصل على كل مستند.",
+      "brand": "اختر الألوان والخطوط التي تستخدمها لوحة الإدارة وموقعك.",
+      "assets": "تظهر الشعارات في الأنظمة وعلى المستندات، ويُطبع الختم والتوقيع على المستندات المعتمدة.",
+      "configuration": "العملة والضريبة وترقيم المستندات والوحدات التي يحتاجها فريقك.",
+      "review": "راجع كل شيء ثم افتح مساحة العمل."
+    },
+    "back": "رجوع",
+    "next": "حفظ ومتابعة",
+    "finish": "إنهاء الإعداد",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم الحفظ",
+    "company": {
+      "nameEn": "اسم الشركة (بالإنجليزية)",
+      "nameAr": "اسم الشركة (بالعربية)",
+      "crNumber": "رقم السجل التجاري",
+      "vatId": "رقم التسجيل الضريبي",
+      "addressEn": "العنوان (بالإنجليزية)",
+      "addressAr": "العنوان (بالعربية)",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "website": "الموقع الإلكتروني",
+      "required": "اسم الشركة بالعربية والإنجليزية مطلوب"
+    },
+    "brand": {
+      "colours": "ألوان العلامة",
+      "primary": "اللون الأساسي",
+      "primaryHint": "العناوين والأزرار الأساسية وعناوين المستندات",
+      "accent": "لون التمييز",
+      "accentHint": "الروابط والتمييز والحالات النشطة",
+      "presets": "ابدأ من مجموعة ألوان",
+      "fonts": "الخطوط",
+      "bodyFont": "النص",
+      "headingFont": "العناوين",
+      "fontSource": {
+        "google": "مكتبة الخطوط",
+        "upload": "رفع ملفات خط",
+        "system": "خط الجهاز"
+      },
+      "fontFamilyName": "اسم الخط",
+      "uploadFont": "أضف ملف WOFF2",
+      "fontWeight": "الوزن",
+      "radius": "شكل الزوايا",
+      "radiusOptions": {
+        "none": "حادة",
+        "sm": "خفيفة",
+        "md": "ناعمة",
+        "lg": "دائرية",
+        "xl": "دائرية جداً"
+      },
+      "defaultMode": "المظهر الافتراضي",
+      "modes": {
+        "light": "فاتح",
+        "dark": "داكن",
+        "system": "حسب الجهاز"
+      },
+      "preview": "معاينة مباشرة",
+      "previewHeading": "إيرادات الربع",
+      "previewBody": "هكذا ستظهر البطاقات والنصوص والأزرار بخياراتك.",
+      "previewButton": "إجراء أساسي",
+      "previewSecondary": "ثانوي",
+      "previewBadge": "معتمد",
+      "warningsTitle": "سهولة القراءة",
+      "warnings": {
+        "primaryOnLight": "النص الأبيض على اللون الأساسي صعب القراءة. اختر لوناً أساسياً أغمق.",
+        "accentOnDark": "لون التمييز داكن جداً ليُقرأ على الخلفيات الداكنة.",
+        "accentButtonText": "النص على أزرار لون التمييز سيكون صعب القراءة."
+      },
+      "contrastOk": "الألوان تحقق معيار التباين WCAG AA.",
+      "fontSample": "أبجد هوز · Aa Bb 123"
+    },
+    "assets": {
+      "logo": "الشعار النصي للخلفيات الفاتحة",
+      "logoHint": "اسم الشركة كتصميم بدون الأيقونة (تظهر الأيقونة بجانبه). بحروف داكنة، PNG أو JPG أو WebP بعرض 400 بكسل على الأقل.",
+      "darkLogo": "الشعار النصي للخلفيات الداكنة",
+      "darkLogoHint": "الشعار النصي نفسه بحروف فاتحة أو بيضاء.",
+      "icon": "الأيقونة للخلفيات الفاتحة",
+      "iconHint": "العلامة المربعة وحدها، وتُستخدم أيضاً أيقونةً للمتصفح.",
+      "darkIcon": "الأيقونة للخلفيات الداكنة",
+      "darkIconHint": "نسخة فاتحة من العلامة المربعة.",
+      "stamp": "ختم الشركة",
+      "stampHint": "يُطبع على المستندات المعتمدة. يفضَّل PNG بخلفية شفافة.",
+      "signature": "التوقيع المعتمد",
+      "signatureHint": "صورة PNG شفافة لتوقيع المفوَّض بالتوقيع.",
+      "upload": "رفع",
+      "replace": "استبدال",
+      "remove": "إزالة",
+      "uploading": "جارٍ الرفع…",
+      "logoRequired": "يلزم شعار واحد على الأقل لإنهاء الإعداد."
+    },
+    "configuration": {
+      "currency": "العملة الرئيسية",
+      "vatEnabled": "تطبيق ضريبة القيمة المضافة",
+      "vatPercentage": "نسبة الضريبة (%)",
+      "vatNeedsId": "أضف رقم التسجيل الضريبي في خطوة الشركة لتطبيق الضريبة.",
+      "invoicePrefix": "بادئة الفواتير",
+      "invoiceNextNumber": "رقم الفاتورة التالي",
+      "receiptPrefix": "بادئة سندات القبض",
+      "receiptNextNumber": "رقم السند التالي",
+      "numberPreview": "مثال: {example}",
+      "paymentTerms": "مدة السداد (بالأيام)",
+      "modules": "الوحدات",
+      "modulesHint": "أوقف ما لا يستخدمه فريقك، ويمكنك تفعيله لاحقاً."
+    },
+    "review": {
+      "company": "الشركة",
+      "brand": "الألوان والخطوط",
+      "assets": "الشعارات والملفات",
+      "configuration": "الإعدادات",
+      "edit": "تعديل",
+      "missing": "غير محدد",
+      "uploaded": "مرفوع",
+      "enabledModules": "{count} وحدة مفعلة",
+      "ready": "كل شيء جاهز. سيفتح الإنهاء لوحة التحكم."
+    },
+    "waiting": {
+      "title": "يجري إعداد مساحة العمل",
+      "body": "يُكمل أحد المسؤولين الإعداد الأولي. يرجى المحاولة بعد قليل."
+    }
   }
 }

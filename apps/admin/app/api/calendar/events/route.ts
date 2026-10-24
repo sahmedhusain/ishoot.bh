@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -6,7 +6,7 @@ import {
   getCalendarFor,
   measureOperation,
   type CalendarLayer,
-} from "@ishoot/database";
+} from "@platform/database";
 import { getCurrentUser, hasPermission } from "../../../../lib/auth";
 
 export const dynamic = "force-dynamic";

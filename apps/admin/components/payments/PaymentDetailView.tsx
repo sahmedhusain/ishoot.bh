@@ -7,10 +7,10 @@ import { createAttachmentAction } from "../../app/actions/attachments";
 
 import * as React from "react";
 import Link from "next/link";
-import type { Payment, CompanySettings } from "@ishoot/database/types";
+import type { Payment, CompanySettings } from "@platform/database/types";
 import { ReceiptTemplate } from "./ReceiptTemplate";
 import { DeliveryToolbar } from "../shared/DeliveryToolbar";
-import { Button } from "@ishoot/ui";
+import { Button } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -136,7 +136,7 @@ export function PaymentDetailView({
             {invoice?.contact_id && (
               <Link
                 href={ROUTES.crm.customer(invoice.contact_id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-primary dark:bg-[#152B27] dark:text-mint border border-accent/30 hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-tone-95 text-primary dark:bg-tone-15 dark:text-mint border border-accent/30 hover:underline transition-colors"
                 title={t.paymentDetail.viewClientDossierInCrm}
               >
                 <User className="w-3.5 h-3.5" />
@@ -201,7 +201,7 @@ export function PaymentDetailView({
           <div className="flex items-center gap-2">
             <Link
               href={`${ROUTES.archive}?search=${encodeURIComponent(payment.receipt_number)}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-primary dark:text-mint bg-[#e6f5f2] dark:bg-[#004d40]/40 border border-primary/30 dark:border-[#004d40] hover:underline transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-primary dark:text-mint bg-tone-95 dark:bg-tone-15/40 border border-primary/30 dark:border-tone-15 hover:underline transition-colors"
             >
               <FolderArchive className="w-3.5 h-3.5" />
               <span>{t.paymentDetailView.viewArchive}</span>

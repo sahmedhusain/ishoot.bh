@@ -1,5 +1,5 @@
 import { Globe, Mail, Phone, Link as LinkIcon, type LucideIcon } from "lucide-react";
-import { findSocialPlatform } from "@ishoot/database/constants/social";
+import { findSocialPlatform } from "@platform/database/constants/social";
 
 const GENERIC_ICONS: Record<string, LucideIcon> = {
   globe: Globe,

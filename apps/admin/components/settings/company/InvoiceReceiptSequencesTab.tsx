@@ -1,9 +1,9 @@
 "use client";
 
-import { formatDocumentNumber } from "@ishoot/database/constants/finance";
+import { formatDocumentNumber } from "@platform/database/constants/finance";
 import * as React from "react";
-import type { CompanySettings } from "@ishoot/database/types";
-import { Card, Input } from "@ishoot/ui";
+import type { CompanySettings } from "@platform/database/types";
+import { Card, Input } from "@platform/ui";
 import { FileText, Receipt, Clock, Hash } from "lucide-react";
 import type { Translations } from "../../../lib/translations";
 

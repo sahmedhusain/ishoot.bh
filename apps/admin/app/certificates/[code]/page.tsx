@@ -1,8 +1,8 @@
-import { formatMessage, getTranslations } from "@ishoot/locales";
+import { formatMessage, getTranslations } from "@platform/locales";
 import type { Metadata } from "next";
-import { getCompanySettings, getTaxCertificate } from "@ishoot/database";
+import { getCompanySettings, getTaxCertificate } from "@platform/database";
 
-import { formatDate } from "@ishoot/ui";
+import { formatDate } from "@platform/ui";
 
 export const dynamic = "force-dynamic";
 export async function generateMetadata({ searchParams }: { searchParams: Promise<{ lang?: string }> }): Promise<Metadata> {
@@ -25,7 +25,7 @@ export default async function TaxCertificatePage({ params, searchParams }: { par
   const expired = certificate?.validUntil ? new Date(`${certificate.validUntil}T23:59:59+03:00`) < new Date() : false;
 
   return (
-    <main dir={isAr ? "rtl" : "ltr"} lang={language} className="min-h-screen bg-[#F4F8F7] px-4 py-10 text-slate-800">
+    <main dir={isAr ? "rtl" : "ltr"} lang={language} className="min-h-screen bg-brand-base px-4 py-10 text-slate-800">
       <div className="mx-auto max-w-2xl space-y-6">
         <header className="flex items-center gap-3">
           {company.icon_url || company.logo_url ? (
@@ -34,7 +34,7 @@ export default async function TaxCertificatePage({ params, searchParams }: { par
           ) : null}
           <div>
             <p className="text-xs text-slate-500">{c.eyebrow}</p>
-            <h1 className="text-lg font-bold text-[#014842]">{companyName}</h1>
+            <h1 className="text-lg font-bold text-primary">{companyName}</h1>
           </div>
         </header>
 
@@ -78,7 +78,7 @@ export default async function TaxCertificatePage({ params, searchParams }: { par
             </dl>
             {certificate.certificateUrl ? (
               <div className="space-y-3">
-                <a href={fileHref} target="_blank" rel="noreferrer" className="flex h-12 w-full items-center justify-center rounded-full bg-[#014842] text-sm font-semibold text-white hover:bg-[#01625a]">
+                <a href={fileHref} target="_blank" rel="noreferrer" className="flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-semibold text-white hover:bg-tone-20">
                   {c.open}
                 </a>
                 {isImage ? (

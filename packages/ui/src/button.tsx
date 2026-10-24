@@ -10,14 +10,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", ...props }, ref) => {
     const baseStyles =
       // Material 3 Expressive: pill shape that squares off slightly while pressed, visible keyboard focus.
-      "inline-flex items-center justify-center font-medium select-none transition-[background-color,border-color,color,box-shadow,border-radius,transform] duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none rounded-full active:rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-surface";
+      "inline-flex items-center justify-center whitespace-nowrap font-medium select-none transition-[background-color,border-color,color,box-shadow,border-radius,transform] duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none rounded-full active:rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-surface";
 
     const variants = {
       primary:
-        "bg-primary hover:bg-primary-light active:bg-primary-dark text-white shadow-sm hover:shadow-md dark:bg-[#5ad8c2] dark:hover:bg-[#7ae3d1] dark:active:bg-[#4cc9b3] dark:text-[#00201c]",
+        "bg-primary hover:bg-primary-light active:bg-primary-dark text-white shadow-sm hover:shadow-md dark:bg-tone-60 dark:hover:bg-tone-70 dark:active:bg-tone-50 dark:text-tone-5",
       // Filled tonal
       secondary:
-        "bg-[#d3ede8] hover:bg-[#c2e5de] text-[#00201c] dark:bg-[#1c3a35] dark:hover:bg-[#24473f] dark:text-[#b6f0e4]",
+        "bg-tone-90 hover:bg-tone-80 text-tone-5 dark:bg-tone-15 dark:hover:bg-tone-20 dark:text-tone-80",
       ghost:
         "bg-transparent hover:bg-ink/[0.08] active:bg-ink/[0.12] text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white",
       outline:

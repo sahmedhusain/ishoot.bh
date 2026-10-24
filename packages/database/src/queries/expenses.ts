@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { assertSupportedCurrency } from "../constants/finance";
 import { getCompanySettings } from "./company-settings";
 import { db, runAtomicMutation } from "../db";
@@ -119,7 +119,7 @@ export async function createExpenseCategory(data: {
   const fields = categoryFields({
     ...data,
     kind: data.kind ?? "operating",
-    color: data.color ?? "#09937F",
+    color: data.color ?? "#2563EB",
   });
   const base =
     (fields.nameEn || "category")

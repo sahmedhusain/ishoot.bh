@@ -1,6 +1,6 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { discountDecision, listSalesPeople } from "@ishoot/database";
-import { getCRMContactById, getAllServices, getFxBoard } from "@ishoot/database";
+import { discountDecision, listSalesPeople } from "@platform/database";
+import { getCRMContactById, getAllServices, getFxBoard } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { NewQuotationFormView } from "../../../../components/quotations/NewQuotationFormView";
 

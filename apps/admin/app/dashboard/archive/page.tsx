@@ -1,4 +1,4 @@
-import { getDocumentArchivePage } from "@ishoot/database";
+import { getDocumentArchivePage } from "@platform/database";
 import { hasPermission, requireAuth } from "../../../lib/auth";
 import { archiveKindsForCurrentUser } from "../../../lib/archive-access";
 import { CompanyArchiveView } from "../../../components/archive/CompanyArchiveView";

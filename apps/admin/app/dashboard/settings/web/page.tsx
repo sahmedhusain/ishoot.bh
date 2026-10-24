@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getCmsCounts, getSocialLinks } from "@ishoot/database";
+import { getCmsCounts, getSocialLinks } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { WebSettingsView } from "../../../../components/settings/WebSettingsView";
 

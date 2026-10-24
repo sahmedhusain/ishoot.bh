@@ -4,7 +4,7 @@ import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input } from "@ishoot/ui";
+import { Card, Button, Input } from "@platform/ui";
 import {
   ArrowLeft,
   Camera,
@@ -13,11 +13,11 @@ import {
   Loader2,
   X,
 } from "lucide-react";
-import type { ExpenseCategory } from "@ishoot/database/types";
+import type { ExpenseCategory } from "@platform/database/types";
 import {
   EXPENSE_CATEGORY_KINDS,
   SUPPORTED_CURRENCIES,
-} from "@ishoot/database/constants/finance";
+} from "@platform/database/constants/finance";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { businessDateString } from "../../lib/dates";

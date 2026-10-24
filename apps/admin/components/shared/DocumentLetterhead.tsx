@@ -1,11 +1,11 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import {ContentImage} from "./ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
-import type { CompanySettings } from "@ishoot/database/types";
+import type { CompanySettings } from "@platform/database/types";
 import { ExternalLink } from "lucide-react";
 import { adminTranslations } from "../../lib/translations-bilingual";
 

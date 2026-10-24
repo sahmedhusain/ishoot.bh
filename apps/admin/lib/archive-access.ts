@@ -1,4 +1,4 @@
-import { ARCHIVE_KINDS, archiveKindsFor, type ArchiveKind, type PermissionAction, type PermissionResource } from "@ishoot/database";
+import { ARCHIVE_KINDS, archiveKindsFor, type ArchiveKind, type PermissionAction, type PermissionResource } from "@platform/database";
 import { hasPermission } from "./auth";
 
 /** The archive kinds the current user may see (and, for exports, also export). */

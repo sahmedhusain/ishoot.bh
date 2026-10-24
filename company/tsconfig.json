@@ -1,0 +1,21 @@
+{
+  "extends": "../packages/database/tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@platform/config/currency": [
+        "../packages/config/src/constants/currency.d.cts"
+      ]
+    }
+  },
+  "include": [
+    "seed/seed.ts",
+    "seed/seed-volume.ts",
+    "tools/**/*.ts"
+  ]
+}

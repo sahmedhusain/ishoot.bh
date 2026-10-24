@@ -1,7 +1,7 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { SigningPanel } from "../../../../components/sales/SigningPanel";
 import { notFound } from "next/navigation";
-import { getPaymentById, getSigningState, canSignDocument } from "@ishoot/database";
+import { getPaymentById, getSigningState, canSignDocument } from "@platform/database";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { PaymentDetailView } from "../../../../components/payments/PaymentDetailView";
 

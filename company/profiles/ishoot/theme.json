@@ -1,0 +1,60 @@
+{
+  "primary": "#014842",
+  "accent": "#09937F",
+  "radius": "lg",
+  "defaultMode": "dark",
+  "fonts": {
+    "body": {
+      "kind": "upload",
+      "family": "Thmanyah Sans",
+      "files": [
+        {
+          "weight": 300,
+          "file": "fonts/thmanyahsans-Light.woff2"
+        },
+        {
+          "weight": 400,
+          "file": "fonts/thmanyahsans-Regular.woff2"
+        },
+        {
+          "weight": 500,
+          "file": "fonts/thmanyahsans-Medium.woff2"
+        },
+        {
+          "weight": 700,
+          "file": "fonts/thmanyahsans-Bold.woff2"
+        },
+        {
+          "weight": 900,
+          "file": "fonts/thmanyahsans-Black.woff2"
+        }
+      ]
+    },
+    "heading": {
+      "kind": "upload",
+      "family": "Thmanyah Serif Display",
+      "files": [
+        {
+          "weight": 300,
+          "file": "fonts/thmanyahserifdisplay-Light.woff2"
+        },
+        {
+          "weight": 400,
+          "file": "fonts/thmanyahserifdisplay-Regular.woff2"
+        },
+        {
+          "weight": 500,
+          "file": "fonts/thmanyahserifdisplay-Medium.woff2"
+        },
+        {
+          "weight": 700,
+          "file": "fonts/thmanyahserifdisplay-Bold.woff2"
+        },
+        {
+          "weight": 900,
+          "file": "fonts/thmanyahserifdisplay-Black.woff2"
+        }
+      ]
+    }
+  }
+}

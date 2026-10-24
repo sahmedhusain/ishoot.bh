@@ -11,7 +11,7 @@ import {
   Clock,
 } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getTranslations, Locale } from "@ishoot/locales";
+import { getTranslations, Locale } from "@platform/locales";
 
 export default async function ContactPage({
   params,
@@ -41,17 +41,17 @@ export default async function ContactPage({
   const response = ar ? config.responseAr : config.responseEn;
 
   return (
-    <div className="relative min-h-screen bg-[#050807] text-[#F2F6F5] overflow-hidden">
+    <div className="relative min-h-screen bg-brand-base text-ink overflow-hidden">
       {/* Hero Header */}
       <header className="shell relative z-10 page-heading">
         <Reveal>
-          <p className="web-eyebrow text-[#5EEAD4] mb-5">
+          <p className="web-eyebrow text-mint mb-5">
             {t.contact.directStudioLine}
           </p>
           <h1 className="max-w-4xl text-4xl sm:text-6xl lg:text-7xl font-display font-bold leading-[1.08] tracking-tight text-white">
             {ar ? config.contactTitleAr : config.contactTitleEn}
           </h1>
-          <p className="max-w-2xl mt-5 text-base sm:text-lg text-[#9EADA9] leading-relaxed">
+          <p className="max-w-2xl mt-5 text-base sm:text-lg text-ink-muted leading-relaxed">
             {ar ? config.contactIntroAr : config.contactIntroEn}
           </p>
         </Reveal>
@@ -71,10 +71,10 @@ export default async function ContactPage({
             <div className="space-y-4 text-sm text-[#d4dfd8]">
               {company.email && (
                 <a
-                  className="flex gap-3.5 items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#09937F]/60 hover:text-white transition-colors duration-150 break-all group"
+                  className="flex gap-3.5 items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:border-accent/60 hover:text-white transition-colors duration-150 break-all group"
                   href={`mailto:${company.email}`}
                 >
-                  <div className="w-9 h-9 rounded-lg bg-[#09937F]/15 border border-[#09937F]/30 flex items-center justify-center shrink-0 text-[#5EEAD4] ">
+                  <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint ">
                     <Mail className="w-4 h-4" />
                   </div>
                   <span>{company.email}</span>
@@ -83,10 +83,10 @@ export default async function ContactPage({
 
               {company.phone && (
                 <a
-                  className="flex gap-3.5 items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:border-[#09937F]/60 hover:text-white transition-colors duration-150 group"
+                  className="flex gap-3.5 items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:border-accent/60 hover:text-white transition-colors duration-150 group"
                   href={`tel:${company.phone.replace(/\s/g, "")}`}
                 >
-                  <div className="w-9 h-9 rounded-lg bg-[#09937F]/15 border border-[#09937F]/30 flex items-center justify-center shrink-0 text-[#5EEAD4] ">
+                  <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint ">
                     <Phone className="w-4 h-4" />
                   </div>
                   <span dir="ltr">{company.phone}</span>
@@ -96,7 +96,7 @@ export default async function ContactPage({
               {((ar ? company.address_ar : company.address_en) ||
                 company.address_en) && (
                 <div className="flex gap-3.5 items-start p-3 rounded-xl bg-white/5 border border-white/10">
-                  <div className="w-9 h-9 rounded-lg bg-[#09937F]/15 border border-[#09937F]/30 flex items-center justify-center shrink-0 text-[#5EEAD4] mt-0.5">
+                  <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint mt-0.5">
                     <MapPin className="w-4 h-4" />
                   </div>
                   <span className="leading-relaxed">
@@ -109,10 +109,10 @@ export default async function ContactPage({
 
               {hours && (
                 <div className="flex gap-3.5 items-start p-3 rounded-xl bg-white/5 border border-white/10">
-                  <div className="w-9 h-9 rounded-lg bg-[#09937F]/15 border border-[#09937F]/30 flex items-center justify-center shrink-0 text-[#5EEAD4] mt-0.5">
+                  <div className="w-9 h-9 rounded-lg bg-accent/15 border border-accent/30 flex items-center justify-center shrink-0 text-mint mt-0.5">
                     <Clock className="w-4 h-4" />
                   </div>
-                  <p className="whitespace-pre-line text-xs text-[#9EADA9] leading-relaxed">
+                  <p className="whitespace-pre-line text-xs text-ink-muted leading-relaxed">
                     {hours}
                   </p>
                 </div>
@@ -124,9 +124,9 @@ export default async function ContactPage({
                 href={`https://wa.me/${company.whatsapp_phone.replace(/\D/g, "")}`}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-[#014842] hover:bg-[#014842]/80 border border-[#09937F]/50 text-white font-semibold text-sm  transition-colors duration-150"
+                className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-primary hover:bg-primary/80 border border-accent/50 text-white font-semibold text-sm  transition-colors duration-150"
               >
-                <MessageSquare className="w-4 h-4 text-[#5EEAD4]" />
+                <MessageSquare className="w-4 h-4 text-mint" />
                 <span>{t.contact.chatWhatsapp}</span>
                 <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
               </a>

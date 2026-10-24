@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getPayrollItemDetail } from "@ishoot/database";
+import { getPayrollItemDetail } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../../../../lib/auth";
 import { PayrollItemView } from "../../../../../../components/hr/PayrollItemView";
 

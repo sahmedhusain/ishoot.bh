@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../db";
 import { APPROVAL_CONDITION_FIELDS, APPROVAL_TARGET_TYPES, APPROVER_MODES, type ApprovalTargetType, type ApproverMode } from "../constants/approvals";
 import { ALL_ACTIONS, ALL_RESOURCES, ALL_ROLES } from "../constants/permissions";

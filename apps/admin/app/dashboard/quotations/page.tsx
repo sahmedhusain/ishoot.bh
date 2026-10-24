@@ -1,6 +1,6 @@
 import { requirePagePermission } from "../../../lib/auth";
-import { getQuotationListSummary, listQuotations } from "@ishoot/database";
-import { QUOTATION_STATUSES } from "@ishoot/database/constants/finance";
+import { getQuotationListSummary, listQuotations } from "@platform/database";
+import { QUOTATION_STATUSES } from "@platform/database/constants/finance";
 import { QuotationsListView, type QuotationListItem } from "../../../components/quotations/QuotationsListView";
 
 export const dynamic = "force-dynamic";

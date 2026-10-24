@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import * as React from "react";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
-import type { HeroBanner } from "@ishoot/database/types";
+import type { HeroBanner } from "@platform/database/types";
 import {
   Button,
   Card,
@@ -15,7 +15,7 @@ import {
   Input,
   Select,
   ConfirmDestructiveModal,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
   Plus,
   Eye,

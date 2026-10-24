@@ -1,5 +1,5 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../../lib/auth";
-import { getCommissionStatement } from "@ishoot/database";
+import { getCommissionStatement } from "@platform/database";
 import { CommissionsView } from "../../../../components/sales/CommissionsView";
 
 export const dynamic = "force-dynamic";

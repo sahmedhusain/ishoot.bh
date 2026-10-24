@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { ActivityLog } from "@ishoot/database/types";
-import { Card, Input, Badge } from "@ishoot/ui";
+import type { ActivityLog } from "@platform/database/types";
+import { Card, Input, Badge } from "@platform/ui";
 import {
   History,
   Shield,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { SettingsNavTabs } from "./SettingsNavTabs";
-import { formatDate } from "@ishoot/ui";
+import { formatDate } from "@platform/ui";
 
 interface AuditSessionsViewProps {
   initialLogs: ActivityLog[];

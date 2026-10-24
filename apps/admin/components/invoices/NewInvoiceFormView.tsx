@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
 
 import { errorMessage } from "../../lib/error-text";
@@ -16,13 +16,13 @@ import type {
   DiscountType,
   ServiceItem,
   Quotation,
-} from "@ishoot/database/types";
+} from "@platform/database/types";
 import {
   Card,
   Button,
   Input,
   Select,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -39,7 +39,7 @@ import { createInvoiceAction } from "../../app/actions/finance";
 import { convertQuotationToInvoiceAction } from "../../app/actions/quotations";
 import { convertFromBhd } from "../../lib/fx-client";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { CURRENCY_CONFIGS, calculateInvoiceTotals, getCurrencyDisplayLabel } from "@ishoot/database/types";
+import { CURRENCY_CONFIGS, calculateInvoiceTotals, getCurrencyDisplayLabel } from "@platform/database/types";
 import { ClientAutocomplete } from "../crm/ClientAutocomplete";
 import { toast } from "sonner";
 
@@ -345,7 +345,7 @@ export function NewInvoiceFormView({
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>{t.invoicesList.acceptedQuotesBanner || (t.newInvoiceForm.acceptedQuotationsReadyForInvoicing)}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-primary dark:text-mint">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-tone-95 dark:bg-tone-15 text-primary dark:text-mint">
                     {acceptedQuotations.length}
                   </span>
                 </h3>

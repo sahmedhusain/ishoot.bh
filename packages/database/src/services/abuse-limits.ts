@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { createHash } from "node:crypto";
 import { isIP } from "node:net";
 import { db } from "../db";

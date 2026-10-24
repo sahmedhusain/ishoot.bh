@@ -456,7 +456,7 @@ async function main() {
                   await tx.signatureChange.create({
                     data: {
                       userId: requester.id,
-                      signatureUrl: "/brand/signatures/guest.svg",
+                      signatureUrl: "/api/files/brand/test-signature.png",
                     },
                   })
                 ).id,

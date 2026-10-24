@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../lib/auth";
-import { getAllServices } from "@ishoot/database";
+import { getAllServices } from "@platform/database";
 import { ServicesManagementView } from "../../../components/services/ServicesManagementView";
 
 export const dynamic = "force-dynamic";

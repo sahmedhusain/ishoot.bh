@@ -1,4 +1,4 @@
-import { db } from "@ishoot/database";
+import { db } from "@platform/database";
 export async function communicationOptions() {
   const [users, departments, roles] = await Promise.all([
     db.user.findMany({

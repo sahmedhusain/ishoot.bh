@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CurrencyLocaleProvider, StatusLabelsProvider } from "@ishoot/ui";
+import { CurrencyLocaleProvider, StatusLabelsProvider } from "@platform/ui";
 import {
   type AdminLocale,
   type AdminTranslations,
@@ -10,7 +10,7 @@ import {
   loadAdminTranslations,
 } from "../lib/translations";
 
-const STORAGE_KEY = "ishoot_admin_locale";
+const STORAGE_KEY = "platform_admin_locale";
 
 interface AdminLocaleContextType {
   locale: AdminLocale;

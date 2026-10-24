@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getFeatureToggles } from "@ishoot/database";
+import { getFeatureToggles } from "@platform/database";
 import { ModulesManagementView } from "../../../../components/settings/ModulesManagementView";
 
 export default async function ModulesSettingsPage() {

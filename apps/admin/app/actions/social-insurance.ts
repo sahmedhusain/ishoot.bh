@@ -21,7 +21,7 @@ import {
   type GosiComponentInput,
   type SupportProgramInput,
   type SupportRuleInput,
-} from "@ishoot/database";
+} from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";

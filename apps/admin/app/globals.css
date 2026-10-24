@@ -2,168 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Light.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Black.woff2") format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Light.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Text";
-  src: url("/fonts/thmanyahseriftext-Black.woff2") format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Light.woff2") format("woff2");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Thmanyah Serif Display";
-  src: url("/fonts/thmanyahserifdisplay-Black.woff2") format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-
-:root {
-  /* Brand Colors */
-  --ishoot-primary: #014842;
-  --ishoot-primary-light: #02665d;
-  --ishoot-primary-dark: #002d29;
-  --ishoot-accent: #09937f;
-  --ishoot-accent-hover: #0bb49b;
-  --ishoot-accent-glow: rgba(9, 147, 127, 0.35);
-
-  /* Dark Mode Surfaces */
-  --ishoot-bg-base: #050807;
-  --ishoot-bg-surface: #0b1210;
-  --ishoot-bg-elevated: #111c19;
-
-  /* Dark Mode Text */
-  --ishoot-text-primary: #f2f6f5;
-  --ishoot-text-secondary: #9eada9;
-  --ishoot-text-accent: #09937f;
-  --ishoot-border: rgba(255, 255, 255, 0.1);
-  --ishoot-border-subtle: rgba(255, 255, 255, 0.05);
-
-  /* Status Colors (consistent across themes) */
-  --ishoot-status-success: #10b981;
-  --ishoot-status-warning: #f59e0b;
-  --ishoot-status-error: #ef4444;
-  --ishoot-status-info: #3b82f6;
-
-  /* Semantic Colors */
-  --ishoot-emerald: #09937f;
-  --ishoot-rose: #f43f5e;
-  --ishoot-amber: #fbbf24;
-}
-
-/* Theme-aware UI tokens (RGB channels so Tailwind opacity modifiers work): surface, ink. */
+/* Theme-aware UI tokens (RGB channels so Tailwind opacity modifiers work). Surfaces and ink come from the
+   company theme stylesheet each layout injects; these are the status hues and secondary greys. */
 :root,
 html.dark {
-  --ui-surface: 11 18 16;
-  --ui-surface-raised: 18 27 25;
-  --ui-surface-sunken: 5 8 7;
-  --ui-ink: 242 246 245;
-  --ui-ink-muted: 158 173 169;
   /* Muted greys used as secondary text; light mode darkens them to stay readable (≥4.5:1). */
   --ui-slate-400: 148 163 184;
   --ui-neutral-400: 163 163 163;
@@ -179,12 +22,6 @@ html.dark {
 }
 
 html.light {
-  --ui-surface: 255 255 255;
-  /* Material 3 tonal surfaces: neutrals carry a faint tint of the brand teal. */
-  --ui-surface-raised: 246 250 249;
-  --ui-surface-sunken: 238 245 243;
-  --ui-ink: 15 23 42;
-  --ui-ink-muted: 84 99 121;
   --ui-slate-400: 84 99 121;
   --ui-neutral-400: 99 99 99;
   --ui-emerald-400: 4 120 87;
@@ -199,37 +36,13 @@ html.light {
 
 html.dark,
 body.dark {
-  background-color: #050807;
-  color: #f2f6f5;
+  background-color: rgb(var(--brand-bg-base));
+  color: rgb(var(--ui-ink));
   color-scheme: dark;
 }
 
 html.light,
 body.light {
-  /* Light Mode Surfaces */
-  --ishoot-bg-base: #f6faf9;
-  --ishoot-bg-surface: #ffffff;
-  --ishoot-bg-elevated: #eef5f3;
-
-  /* Light Mode Text */
-  --ishoot-text-primary: #0f172a;
-  --ishoot-text-secondary: #475569;
-  --ishoot-text-accent: #014842;
-
-  /* Light Mode Borders */
-  --ishoot-border: #e2e8f0;
-  --ishoot-border-subtle: #f1f5f9;
-
-  /* Light Mode Status Colors */
-  --ishoot-status-success: #059669;
-  --ishoot-status-warning: #d97706;
-  --ishoot-status-error: #dc2626;
-  --ishoot-status-info: #2563eb;
-
-  /* Light Mode Semantic Colors */
-  --ishoot-emerald: #059669;
-  --ishoot-rose: #e11d48;
-  --ishoot-amber: #d97706;
 
   background-color: #f8fafc;
   color: #0f172a;
@@ -258,13 +71,13 @@ html:hover,
 body:hover,
 *:hover {
   scrollbar-width: thin;
-  scrollbar-color: rgba(9, 147, 127, 0.5) transparent;
+  scrollbar-color: rgb(var(--brand-accent)/0.5) transparent;
 }
 
 .light html:hover,
 .light body:hover,
 .light *:hover {
-  scrollbar-color: rgba(1, 72, 66, 0.45) transparent;
+  scrollbar-color: rgb(var(--brand-primary)/0.45) transparent;
 }
 
 /* WebKit / Blink Engine (Chrome, Safari, Edge, Opera) */
@@ -293,27 +106,27 @@ body:hover,
 html:hover::-webkit-scrollbar-thumb,
 body:hover::-webkit-scrollbar-thumb,
 *:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(9, 147, 127, 0.45);
+  background-color: rgb(var(--brand-accent)/0.45);
 }
 
 .light html:hover::-webkit-scrollbar-thumb,
 .light body:hover::-webkit-scrollbar-thumb,
 .light *:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(1, 72, 66, 0.4);
+  background-color: rgb(var(--brand-primary)/0.4);
 }
 
 /* Scroller thumb active hover state */
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(9, 147, 127, 0.85) !important;
+  background-color: rgb(var(--brand-accent)/0.85) !important;
 }
 
 .light ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(1, 72, 66, 0.8) !important;
+  background-color: rgb(var(--brand-primary)/0.8) !important;
 }
 
 /* Card glass aesthetics */
 .glass-panel {
-  background: rgba(11, 18, 16, 0.85);
+  background: rgb(var(--brand-bg-surface)/0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -328,22 +141,6 @@ body:hover::-webkit-scrollbar-thumb,
 }
 
 /* Light mode overrides for high-contrast enterprise clarity */
-.light .bg-\[\#050807\] {
-  background-color: #f8fafc !important;
-}
-
-.light .bg-\[\#070C0A\] {
-  background-color: #ffffff !important;
-}
-
-.light .bg-\[\#070C0A\]\/95 {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-}
-
-.light .bg-\[\#0B1210\] {
-  background-color: #ffffff !important;
-}
-
 .light .border-white\/10 {
   border-color: #e2e8f0 !important;
 }
@@ -358,18 +155,6 @@ body:hover::-webkit-scrollbar-thumb,
 
 .light .hover\:bg-white\/5:hover {
   background-color: #e2e8f0 !important;
-}
-
-.light .text-\[\#9EADA9\] {
-  color: #64748b !important;
-}
-
-.light .text-\[\#F2F6F5\] {
-  color: #0f172a !important;
-}
-
-.light .ring-\[\#070C0A\] {
-  --tw-ring-color: #ffffff !important;
 }
 
 .light aside {
@@ -580,22 +365,22 @@ a[href^="tel:"] {
     0 1px 0 rgb(255 255 255 / 0.04) inset,
     0 0 0 1px rgb(var(--ui-ink) / 0.06),
     0 30px 80px -10px rgba(0, 0, 0, 0.45),
-    0 10px 30px -10px rgba(1, 72, 66, 0.4);
+    0 10px 30px -10px rgb(var(--brand-primary)/0.4);
   animation: modal-card-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 html.light [role="dialog"][aria-modal="true"] {
   background-color: #ffffff;
-  border-color: rgba(1, 72, 66, 0.12);
+  border-color: rgb(var(--brand-primary)/0.12);
   box-shadow:
-    0 0 0 1px rgba(1, 72, 66, 0.08),
+    0 0 0 1px rgb(var(--brand-primary)/0.08),
     0 30px 80px -12px rgba(15, 23, 42, 0.35),
-    0 10px 30px -10px rgba(1, 72, 66, 0.25);
+    0 10px 30px -10px rgb(var(--brand-primary)/0.25);
 }
 
 /* Header strip shared by the standard Modal. */
 [data-modal-header] {
   border-bottom: 1px solid rgb(var(--ui-ink) / 0.08);
-  background: linear-gradient(180deg, rgba(9, 147, 127, 0.1), transparent);
+  background: linear-gradient(180deg, rgb(var(--brand-accent)/0.1), transparent);
 }
 [data-modal-header] button {
   border: 1px solid rgb(var(--ui-ink) / 0.1);

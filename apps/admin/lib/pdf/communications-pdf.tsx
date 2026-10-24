@@ -1,9 +1,9 @@
 import { Document, Page, View, renderToBuffer } from "@react-pdf/renderer";
-import type { CompanySettings } from "@ishoot/database/types";
+import type { CompanySettings } from "@platform/database/types";
 import type {
   OfficialLetterDetail,
   AnnouncementDetail,
-} from "@ishoot/database";
+} from "@platform/database";
 import { Letterhead, docKit, pageStyle, resolvePdfBrand, fmtDate } from "./kit";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 export async function generateLetterheadPdf(

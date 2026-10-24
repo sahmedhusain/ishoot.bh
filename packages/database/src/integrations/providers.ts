@@ -1,4 +1,4 @@
-import { serverTemplates, formatMessage } from "@ishoot/locales";
+import { serverTemplates, formatMessage } from "@platform/locales";
 import type { IntegrationProviderId, SocialPlatformId } from "../constants/integrations";
 
 /**
@@ -14,7 +14,7 @@ export interface ConnectionCheck {
   error?: string;
 }
 
-export interface FetchedPost {
+interface FetchedPost {
   platform: SocialPlatformId;
   externalId: string;
   caption?: string | null;
@@ -30,7 +30,7 @@ export interface FetchedPost {
   saves?: number;
 }
 
-export interface FetchedMetric {
+interface FetchedMetric {
   platform: SocialPlatformId;
   metricType: "followers" | "posts" | "views";
   value: number;

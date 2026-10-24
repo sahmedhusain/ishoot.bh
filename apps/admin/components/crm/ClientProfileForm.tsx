@@ -1,14 +1,14 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Building2, CheckCircle2, Landmark, Plus, Star, Trash2, User, UserCog, UserPlus } from "lucide-react";
-import { Button, Card, Input, Select } from "@ishoot/ui";
-import type { ClientContactPersonInput, ClientProfileInput, CRMContact } from "@ishoot/database/types";
-import { CONTACT_TYPES } from "@ishoot/config/constants";
+import { Button, Card, Input, Select } from "@platform/ui";
+import type { ClientContactPersonInput, ClientProfileInput, CRMContact } from "@platform/database/types";
+import { CONTACT_TYPES } from "@platform/config/constants";
 import {
   CLIENT_KINDS,
   GOVERNMENT_TYPES,
@@ -16,7 +16,7 @@ import {
   LEGAL_FORMS,
   countryOptions,
   type ClientKind,
-} from "@ishoot/database/constants/clients";
+} from "@platform/database/constants/clients";
 import { ROUTES } from "../../constants/routes";
 import { createContactAction, updateContactAction } from "../../app/actions/crm";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -306,7 +306,7 @@ export function ClientProfileForm({ contact, defaultPaymentTermsDays }: { contac
                       <Input dir="ltr" value={values.supplier_number ?? ""} onChange={(e) => set("supplier_number", e.target.value)} />
                     </Field>
                     <label className="flex items-center gap-2.5 self-end h-11 text-sm text-ink">
-                      <input type="checkbox" className="h-4 w-4 accent-[var(--color-accent,#0f766e)]" checked={!!values.requires_purchase_order} onChange={(e) => set("requires_purchase_order", e.target.checked)} />
+                      <input type="checkbox" className="h-4 w-4 accent-accent" checked={!!values.requires_purchase_order} onChange={(e) => set("requires_purchase_order", e.target.checked)} />
                       {f.requiresPo}
                     </label>
                   </>

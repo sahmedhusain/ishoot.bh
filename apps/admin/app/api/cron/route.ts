@@ -1,8 +1,8 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 
 import { NextResponse } from "next/server";
-import { db, processEmailJobs, processRevalidationJobs, removeExpiredUploads, markOverdueInvoices, sendExpiryReminders, processRecurringExpenses } from "@ishoot/database";
-import { sendEmail } from "@ishoot/email";
+import { db, processEmailJobs, processRevalidationJobs, removeExpiredUploads, markOverdueInvoices, sendExpiryReminders, processRecurringExpenses } from "@platform/database";
+import { sendEmail } from "@platform/email";
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`)

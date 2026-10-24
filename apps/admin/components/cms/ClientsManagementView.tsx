@@ -3,7 +3,7 @@ import { errorMessage } from "../../lib/error-text";
 import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
-import type { ClientLogo } from "@ishoot/database/types";
+import type { ClientLogo } from "@platform/database/types";
 import {
 Button,
 Card,
@@ -11,7 +11,7 @@ Badge,
 Modal,
 Input,
 ConfirmDestructiveModal,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import { Plus,Trash2,Globe,CheckCircle2,Pencil } from "lucide-react";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

@@ -1,5 +1,5 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { db, getAllServices, getFeatureToggle } from "@ishoot/database";
+import { db, getAllServices, getFeatureToggle } from "@platform/database";
 import { NewRequestFormView } from "../../../../components/requests/NewRequestFormView";
 
 export const dynamic = "force-dynamic";

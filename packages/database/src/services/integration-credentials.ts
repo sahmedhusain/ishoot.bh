@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import crypto from "node:crypto";
 function encryptionKey() {
   const key = process.env.ENCRYPTION_KEY;

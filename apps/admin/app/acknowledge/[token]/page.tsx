@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import {
   getCompanySettings,
   getSignatureRequestSession,
-} from "@ishoot/database";
-import { getTranslations } from "@ishoot/locales";
+} from "@platform/database";
+import { getTranslations } from "@platform/locales";
 import { HandoverSigningView } from "../../../components/signing/HandoverSigningView";
 
 export const dynamic = "force-dynamic";

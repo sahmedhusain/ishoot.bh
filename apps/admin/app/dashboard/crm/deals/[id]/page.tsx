@@ -7,7 +7,7 @@ getCRMDealById,
 getCRMContactById,
 getInvoicesPage,
 getRelatedExpenses,
-} from "@ishoot/database";
+} from "@platform/database";
 import { RelatedExpensesPanel } from "../../../../../components/expenses/RelatedExpensesPanel";
 import { notFound } from "next/navigation";
 import { DealDossierView } from "../../../../../components/crm/DealDossierView";

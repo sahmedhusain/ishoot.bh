@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 export interface UploadOptions {
   entityType?: string;
   entityId?: string;
@@ -6,14 +6,20 @@ export interface UploadOptions {
   documentType?: string;
 }
 
+/** Browsers often leave the type of a font file empty; the server checks the real bytes either way. */
+function fileTypeOf(file: File) {
+  return file.type || (/\.woff2$/i.test(file.name) ? "font/woff2" : "");
+}
+
 export async function uploadFileDirectly(file: File, options: UploadOptions = {}) {
+  const fileType = fileTypeOf(file);
   // 1. Init upload
   const initRes = await fetch("/api/upload/init", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       fileName: file.name,
-      fileType: file.type,
+      fileType,
       fileSize: file.size,
       entityType: options.entityType,
       entityId: options.entityId,
@@ -29,7 +35,7 @@ export async function uploadFileDirectly(file: File, options: UploadOptions = {}
     const uploadRes = await fetch(initData.signedUrl, {
       method: "PUT",
       headers: {
-        "Content-Type": file.type,
+        "Content-Type": fileType,
       },
       body: file
     });

@@ -1,9 +1,9 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { ArrowUpRight, Check, Star } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
-import type { PublicService } from "@ishoot/database/website-config";
+import type { PublicService } from "@platform/database/website-config";
 
 const intents = [
   "inquiry",
@@ -61,7 +61,7 @@ export function ContactForm({
 
   const sales = intent === "inquiry" || intent === "quote_request";
   const field =
-    "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-[#09937F] focus:ring-1 focus:ring-[#09937F] transition-colors duration-150 font-sans";
+    "w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-neutral-500 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-150 font-sans";
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -163,18 +163,18 @@ export function ContactForm({
         <h2 className="text-3xl font-display font-bold text-white">
           {t("contact.messageReceived")}
         </h2>
-        <p className="text-[#9EADA9] font-sans max-w-lg mx-auto text-sm leading-relaxed">
+        <p className="text-ink-muted font-sans max-w-lg mx-auto text-sm leading-relaxed">
           {intent === "review"
             ? t("contact.reviewSubmittedNotice")
             : response || t("contact.successMessage")}
         </p>
         {success.reference && (
           <div className="p-4 rounded-xl bg-white/5 border border-white/10 max-w-xs mx-auto text-xs font-sans">
-            <span className="text-[#9EADA9] block mb-1">
+            <span className="text-ink-muted block mb-1">
               {t("contact.referenceNumber")}
             </span>
             <strong
-              className="select-all font-mono text-sm text-[#5EEAD4]"
+              className="select-all font-mono text-sm text-mint"
               dir="ltr"
             >
               {success.reference}
@@ -182,13 +182,13 @@ export function ContactForm({
           </div>
         )}
         {intent !== "review" && !success.confirmationSent && (
-          <p className="text-xs text-[#9EADA9] max-w-md mx-auto">
+          <p className="text-xs text-ink-muted max-w-md mx-auto">
             {t("contact.savedNotice")}
           </p>
         )}
         <button
           type="button"
-          className="px-6 py-3 rounded-xl bg-[var(--web-accent)] hover:bg-[#034b3c] text-white font-semibold text-xs transition-colors duration-150 shadow-lg shadow-[#09937F]/20 cursor-pointer"
+          className="px-6 py-3 rounded-xl bg-[var(--web-accent)] hover:bg-tone-15 text-white font-semibold text-xs transition-colors duration-150 shadow-lg shadow-accent/20 cursor-pointer"
           onClick={() => {
             setSuccess(null);
             submission.current = { payload: "", key: "" };
@@ -220,8 +220,8 @@ export function ContactForm({
                 key={value}
                 className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? "bg-[#09937F] text-white border border-[#09937F]"
-                    : "bg-[#050807] text-[#9EADA9] hover:text-white border border-white/10 hover:border-white/20"
+                    ? "bg-accent text-white border border-accent"
+                    : "bg-brand-base text-ink-muted hover:text-white border border-white/10 hover:border-white/20"
                 }`}
               >
                 <input
@@ -240,7 +240,7 @@ export function ContactForm({
             );
           })}
         </div>
-        <p className="text-xs sm:text-sm text-[#9EADA9] font-sans leading-relaxed pt-1">
+        <p className="text-xs sm:text-sm text-ink-muted font-sans leading-relaxed pt-1">
           {descriptions[intents.indexOf(intent)]}
         </p>
       </fieldset>
@@ -253,7 +253,7 @@ export function ContactForm({
 
         <div className="grid sm:grid-cols-2 gap-5">
           <label className="block space-y-2">
-            <span className="text-xs font-semibold text-[#F2F6F5] font-sans">
+            <span className="text-xs font-semibold text-ink font-sans">
               {intent === "review"
                 ? t("contact.displayName")
                 : t("contact.fullName")}
@@ -270,7 +270,7 @@ export function ContactForm({
           </label>
 
           <label className="block space-y-2">
-            <span className="text-xs font-semibold text-[#9EADA9] font-sans">
+            <span className="text-xs font-semibold text-ink-muted font-sans">
               {t("contact.companyOptional")}
             </span>
             <input
@@ -286,7 +286,7 @@ export function ContactForm({
         {intent !== "review" && (
           <div className="grid sm:grid-cols-2 gap-5">
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-[#F2F6F5] font-sans">
+              <span className="text-xs font-semibold text-ink font-sans">
                 {t("contact.email")}
               </span>
               <input
@@ -301,7 +301,7 @@ export function ContactForm({
             </label>
 
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-[#F2F6F5] font-sans">
+              <span className="text-xs font-semibold text-ink font-sans">
                 {t("contact.phone")}
               </span>
               <input
@@ -319,7 +319,7 @@ export function ContactForm({
 
         {sales && services.length > 0 && (
           <fieldset className="space-y-3">
-            <legend className="text-xs font-semibold text-[#F2F6F5] font-sans">
+            <legend className="text-xs font-semibold text-ink font-sans">
               {t("contact.servicesInterested")}
             </legend>
             <div className="flex flex-wrap gap-2">
@@ -330,8 +330,8 @@ export function ContactForm({
                     key={service.id}
                     className={`min-h-11 px-3.5 py-2 rounded-xl text-xs font-medium transition-colors duration-150 cursor-pointer flex items-center gap-1.5 ${
                       isChecked
-                        ? "bg-[#09937F]/25 text-[#5EEAD4] border border-[#09937F]"
-                        : "bg-white/5 text-[#9EADA9] hover:text-white border border-white/10"
+                        ? "bg-accent/25 text-mint border border-accent"
+                        : "bg-white/5 text-ink-muted hover:text-white border border-white/10"
                     }`}
                   >
                     <input
@@ -357,56 +357,56 @@ export function ContactForm({
         {intent === "quote_request" && (
           <div className="grid sm:grid-cols-2 gap-5">
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-[#F2F6F5] font-sans">
+              <span className="text-xs font-semibold text-ink font-sans">
                 {t("contact.estimatedBudget")}
               </span>
               <select className={field} name="budget" defaultValue="">
-                <option value="" className="bg-[#0B1210] text-[#9EADA9]">
+                <option value="" className="bg-brand-surface text-ink-muted">
                   {t("contact.chooseRangeOptional")}
                 </option>
-                <option value="not_sure" className="bg-[#0B1210] text-white">
+                <option value="not_sure" className="bg-brand-surface text-white">
                   {t("contact.budgetNotSure")}
                 </option>
-                <option value="under_500" className="bg-[#0B1210] text-white">
+                <option value="under_500" className="bg-brand-surface text-white">
                   {t("contact.budgetUnder500")}
                 </option>
-                <option value="500_1500" className="bg-[#0B1210] text-white">
+                <option value="500_1500" className="bg-brand-surface text-white">
                   {t("contact.budget500_1500")}
                 </option>
-                <option value="1500_5000" className="bg-[#0B1210] text-white">
+                <option value="1500_5000" className="bg-brand-surface text-white">
                   {t("contact.budget1500_5000")}
                 </option>
-                <option value="5000_plus" className="bg-[#0B1210] text-white">
+                <option value="5000_plus" className="bg-brand-surface text-white">
                   {t("contact.budget5000Plus")}
                 </option>
               </select>
             </label>
 
             <label className="block space-y-2">
-              <span className="text-xs font-semibold text-[#F2F6F5] font-sans">
+              <span className="text-xs font-semibold text-ink font-sans">
                 {t("contact.targetTimeline")}
               </span>
               <select className={field} name="timeline" defaultValue="">
-                <option value="" className="bg-[#0B1210] text-[#9EADA9]">
+                <option value="" className="bg-brand-surface text-ink-muted">
                   {t("contact.chooseTimelineOptional")}
                 </option>
-                <option value="urgent" className="bg-[#0B1210] text-white">
+                <option value="urgent" className="bg-brand-surface text-white">
                   {t("contact.timelineUrgent")}
                 </option>
-                <option value="month" className="bg-[#0B1210] text-white">
+                <option value="month" className="bg-brand-surface text-white">
                   {t("contact.timelineMonth")}
                 </option>
-                <option value="quarter" className="bg-[#0B1210] text-white">
+                <option value="quarter" className="bg-brand-surface text-white">
                   {t("contact.timelineQuarter")}
                 </option>
-                <option value="flexible" className="bg-[#0B1210] text-white">
+                <option value="flexible" className="bg-brand-surface text-white">
                   {t("contact.timelineFlexible")}
                 </option>
               </select>
             </label>
 
             <label className="block space-y-2 sm:col-span-2">
-              <span className="text-xs font-semibold text-[#9EADA9] font-sans">
+              <span className="text-xs font-semibold text-ink-muted font-sans">
                 {t("contact.shootLocation")}
               </span>
               <input
@@ -421,7 +421,7 @@ export function ContactForm({
 
         {intent === "complaint" && (
           <label className="block space-y-2">
-            <span className="text-xs font-semibold text-[#9EADA9] font-sans">
+            <span className="text-xs font-semibold text-ink-muted font-sans">
               {t("contact.projectRefLabel")}
             </span>
             <input
@@ -435,7 +435,7 @@ export function ContactForm({
 
         {intent === "review" && (
           <fieldset className="space-y-2">
-            <legend className="text-xs font-semibold text-[#F2F6F5] font-sans">
+            <legend className="text-xs font-semibold text-ink font-sans">
               {t("contact.starRatingLabel")} *
             </legend>
             <div className="flex gap-2 p-3 rounded-2xl bg-white/5 border border-white/10 w-fit">
@@ -469,7 +469,7 @@ export function ContactForm({
         )}
 
         <label className="block space-y-2">
-          <span className="text-xs font-semibold text-[#F2F6F5] font-sans">
+          <span className="text-xs font-semibold text-ink font-sans">
             {intent === "review"
               ? t("contact.reviewQuoteLabel")
               : t("contact.yourMessage")}{" "}
@@ -503,7 +503,7 @@ export function ContactForm({
         )}
 
         <div className="flex flex-col sm:flex-row gap-5 sm:items-center justify-between pt-2">
-          <p className="text-xs leading-relaxed text-[#9EADA9] font-sans max-w-sm">
+          <p className="text-xs leading-relaxed text-ink-muted font-sans max-w-sm">
             {intent === "review"
               ? t("contact.reviewSubmittedNotice")
               : response || t("contact.formNote")}
@@ -511,7 +511,7 @@ export function ContactForm({
 
           <button
             disabled={busy}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[var(--web-accent)] hover:bg-[#034b3c] text-white font-bold text-xs sm:text-sm transition-colors duration-150 disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[var(--web-accent)] hover:bg-tone-15 text-white font-bold text-xs sm:text-sm transition-colors duration-150 disabled:opacity-50 cursor-pointer"
             type="submit"
           >
             <span>

@@ -1,9 +1,9 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 
-import {requireFeatureEnabled, measureOperation } from "@ishoot/database";
+import {requireFeatureEnabled, measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
-import { db } from "@ishoot/database";
+import { db } from "@platform/database";
 import {
   readSubmission,
   textField,

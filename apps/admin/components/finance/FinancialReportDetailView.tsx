@@ -1,11 +1,11 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
-import { getCurrencyLabel } from "@ishoot/config/currency";
+import { formatMessage } from "@platform/locales";
+import { getCurrencyLabel } from "@platform/config/currency";
 
 import * as React from "react";
 import Link from "next/link";
-import type { FinancialReportDetail } from "@ishoot/database/queries/finance-reports";
-import { Card } from "@ishoot/ui";
+import type { FinancialReportDetail } from "@platform/database/queries/finance-reports";
+import { Card } from "@platform/ui";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

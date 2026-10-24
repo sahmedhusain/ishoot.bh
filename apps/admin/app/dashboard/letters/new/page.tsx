@@ -1,4 +1,4 @@
-import { listLetterTemplates } from "@ishoot/database";
+import { listLetterTemplates } from "@platform/database";
 import { requirePagePermission, hasPermission } from "../../../../lib/auth";
 import { letterEmployees } from "../../../../lib/communication-options";
 import { LetterWorkspace } from "../../../../components/communications/LetterWorkspace";

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { StudioEquipment } from "@ishoot/database";
+import { StudioEquipment } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import {
@@ -66,7 +66,7 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
           transition={{ duration: reduced ? 0 : 0.45 }}
           className="space-y-3"
         >
-          <SectionBadge className="!text-[#075e4c]">
+          <SectionBadge className="!text-accent-pressed">
             {t("about.gearTitle")}
           </SectionBadge>
           <h3 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-950 font-display">
@@ -92,7 +92,7 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
               aria-pressed={selectedCategory === cat.id}
               className={`min-h-11 px-4 py-2 rounded-md text-xs font-bold transition-colors duration-150 cursor-pointer ${
                 selectedCategory === cat.id
-                  ? "bg-[#014842] text-white border border-[#09937F]"
+                  ? "bg-primary text-white border border-accent"
                   : "bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-2xs"
               }`}
             >
@@ -118,23 +118,23 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
                   duration: reduced ? 0 : 0.25,
                   delay: reduced ? 0 : Math.min(idx * 0.04, 0.16),
                 }}
-                className="group relative rounded-lg bg-white border border-slate-200 hover:border-[#09937F] transition-colors duration-150 p-6 sm:p-8 flex flex-col justify-between space-y-6 overflow-hidden"
+                className="group relative rounded-lg bg-white border border-slate-200 hover:border-accent transition-colors duration-150 p-6 sm:p-8 flex flex-col justify-between space-y-6 overflow-hidden"
               >
                 <div className="space-y-3 relative z-10">
                   <div className="flex items-center justify-between font-sans">
-                    <span className="text-[10px] uppercase font-bold tracking-widest text-[#014842] bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200">
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-primary bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200">
                       &lt;&lt;{" "}
                       {categories.find((c) => c.id === gear.category)?.label ||
                         gear.category.replace("_", " ")}{" "}
                       &gt;&gt;
                     </span>
-                    <span className="text-[10px] font-bold text-[#014842]">
+                    <span className="text-[10px] font-bold text-primary">
                       &lt;&lt; {t("about.gear.calibrated")} &gt;&gt;
                     </span>
                   </div>
 
                   <div>
-                    <h4 className="text-lg sm:text-2xl font-bold text-slate-900 group-hover:text-[#014842] transition-colors font-display">
+                    <h4 className="text-lg sm:text-2xl font-bold text-slate-900 group-hover:text-primary transition-colors font-display">
                       {gear.model_name}
                     </h4>
                     <p className="mt-1 text-xs sm:text-sm text-slate-600 font-sans leading-relaxed">

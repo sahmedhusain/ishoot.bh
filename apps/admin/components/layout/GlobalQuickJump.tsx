@@ -11,7 +11,7 @@ Loader2,
 X
 } from "lucide-react";
 import { globalSearchAction } from "../../app/actions/crm";
-import type { GlobalSearchResult } from "@ishoot/database";
+import type { GlobalSearchResult } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export function GlobalQuickJump({ className }: { className?: string } = {}) {
@@ -183,7 +183,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                     onMouseEnter={() => setSelectedIndex(idx)}
                     className={`p-3 rounded-xl cursor-pointer flex items-center justify-between gap-3 text-xs transition-colors ${
                       isSelected
-                        ? "bg-[#E6F5F2] text-primary dark:bg-[#192F2B] dark:text-white"
+                        ? "bg-tone-95 text-primary dark:bg-tone-15 dark:text-white"
                         : "hover:bg-slate-50 text-slate-700 dark:hover:bg-white/5 dark:text-slate-200"
                     }`}
                   >
@@ -215,7 +215,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-2.5 bg-slate-50 dark:bg-[#0B1312] border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+            <div className="px-4 py-2.5 bg-slate-50 dark:bg-tone-5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
               <span className="flex items-center gap-3">
                 <span>
                   <kbd className="px-1 py-0.5 bg-white dark:bg-black/30 rounded border border-slate-200 dark:border-white/10">

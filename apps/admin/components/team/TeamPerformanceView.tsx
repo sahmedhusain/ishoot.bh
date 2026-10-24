@@ -1,13 +1,13 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
-import { getCurrencyLabel } from "@ishoot/config/currency";
+import { formatMessage } from "@platform/locales";
+import { getCurrencyLabel } from "@platform/config/currency";
 
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card } from "@ishoot/ui";
+import { Card } from "@platform/ui";
 import { Gauge, FileText, Receipt, LifeBuoy, ChevronDown, ChevronUp } from "lucide-react";
-import type { TeamHistoryItem, TeamMemberKpis } from "@ishoot/database/queries/team-performance";
+import type { TeamHistoryItem, TeamMemberKpis } from "@platform/database/queries/team-performance";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

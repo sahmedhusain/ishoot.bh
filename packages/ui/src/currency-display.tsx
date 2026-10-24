@@ -5,8 +5,8 @@ import {
   getCurrencySymbol,
   getCurrencyDecimals,
   getCurrencyLabel,
-} from "@ishoot/config/currency";
-export { CURRENCY_SYMBOLS } from "@ishoot/config/currency";
+} from "@platform/config/currency";
+export { CURRENCY_SYMBOLS } from "@platform/config/currency";
 
 export interface CurrencyDisplayProps {
   amount: number | string;

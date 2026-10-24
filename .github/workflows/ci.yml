@@ -1,0 +1,181 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Disposable values for CI only. Every database is a throwaway *_test database on the job's own Postgres.
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 12.6.0
+  DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/postgres?schema=public
+  DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/postgres?schema=public
+  JWT_SECRET: ci-only-test-secret-with-at-least-thirty-two-characters
+  REVALIDATION_SECRET: ci-only-revalidation-secret
+  MFA_ENCRYPTION_KEY: ci-only-mfa-key-with-at-least-thirty-two-chars
+  ENCRYPTION_KEY: ci-only-encryption-key-with-32-characters
+  RESEND_API_KEY: ""
+  SUPABASE_URL: ""
+  SUPABASE_SERVICE_ROLE_KEY: ""
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  static:
+    name: Lint, types and static checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma generate --schema packages/database/prisma/schema.prisma
+      - name: Lint
+        run: pnpm lint
+      - name: Type-check (apps, packages, company seed)
+        run: pnpm type-check && pnpm --filter @platform/company type-check
+      - name: Unused files, exports and dependencies
+        run: pnpm audit:unused
+      - name: Server action input schemas are up to date
+        run: pnpm test:action-schemas
+      - name: Brand neutrality (no company files, names or colours outside company/)
+        run: pnpm test:brand
+      - name: Unit tests and static checks
+        run: pnpm test
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: static-results
+          path: tests/.results/
+          if-no-files-found: ignore
+
+  database:
+    name: Business rules on Postgres
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: disposable_ci_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      UPLOAD_ROOT: ${{ github.workspace }}/tests/e2e/.uploads
+      E2E_UPLOAD_ROOT: ${{ github.workspace }}/tests/e2e/.uploads
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma generate --schema packages/database/prisma/schema.prisma
+      - name: Prepare a bare and a seeded database (full demo volume)
+        run: |
+          node tests/e2e/prepare-db.cjs bare platform_bare_test
+          SEED_VOLUME=on node tests/e2e/prepare-db.cjs seeded platform_seeded_test
+      - name: Seeded data satisfies every integrity rule
+        run: pnpm db:check-integrity
+        env:
+          DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_seeded_test?schema=public
+          DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_seeded_test?schema=public
+      - name: Database checks
+        run: pnpm test:checks:db
+        env:
+          CI: true
+          CHECKS_BARE_DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_bare_test?schema=public
+          CHECKS_SEEDED_DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_seeded_test?schema=public
+      - name: Bootstrap a new company from a profile
+        env:
+          DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_profile_test?schema=public
+          DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_profile_test?schema=public
+          COMPANY_PROFILE: demo
+          SUPER_ADMIN_EMAIL: bootstrap@example.test
+          SUPER_ADMIN_PASSWORD: disposable-bootstrap-password
+        run: |
+          node tests/e2e/prepare-db.cjs bare platform_profile_test
+          pnpm db:bootstrap
+          pnpm db:bootstrap # running it again must be harmless
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: database-results
+          path: tests/.results/
+          if-no-files-found: ignore
+
+  e2e:
+    name: End-to-end (admin, setup wizard, website)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: disposable_ci_only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      E2E_SERVER_MODE: start
+      E2E_UPLOAD_ROOT: ${{ github.workspace }}/tests/e2e/.uploads
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec prisma generate --schema packages/database/prisma/schema.prisma
+      - name: Prepare seeded and blank databases
+        run: pnpm test:e2e:prepare
+      - name: Production builds of both apps
+        env:
+          DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?schema=public
+          DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_e2e_test?schema=public
+          NEXT_DIST_DIR: .next-e2e
+          NEXT_PUBLIC_WEB_URL: http://localhost:3102
+          NEXT_PUBLIC_ADMIN_URL: http://localhost:3101
+        run: pnpm --filter @platform/admin build && pnpm --filter @platform/web build
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Playwright
+        run: pnpm exec playwright test
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-results
+          path: tests/.results/
+          retention-days: 14
+          if-no-files-found: ignore

@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
-import { getCompanySettings } from "@ishoot/database";
-import type { PublicCompanySettings } from "@ishoot/database/types";
+import { getCompanySettings } from "@platform/database";
+import type { PublicCompanySettings } from "@platform/database/types";
 const getCachedCompany = unstable_cache(
   getCompanySettings,
   ["public-company"],
@@ -11,6 +11,7 @@ export const getPublicCompanySettings = cache(
   async (): Promise<PublicCompanySettings> => {
     const company = await getCachedCompany();
     return {
+      theme: company.theme,
       company_name_en: company.company_name_en,
       company_name_ar: company.company_name_ar,
       cr_number: company.cr_number,

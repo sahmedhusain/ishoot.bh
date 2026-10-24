@@ -3,8 +3,8 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 import * as React from "react";
 import { ChevronDown, Link2 } from "lucide-react";
-import { SOCIAL_PLATFORMS, findSocialPlatform } from "@ishoot/database/constants/social";
-import { Input } from "@ishoot/ui";
+import { SOCIAL_PLATFORMS, findSocialPlatform } from "@platform/database/constants/social";
+import { Input } from "@platform/ui";
 
 interface PlatformOption {
   id: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { Faq } from "@ishoot/database/types";
+import type { Faq } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ChevronDown } from "lucide-react";
@@ -17,7 +17,7 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
   return (
     <section
       id="faq"
-      className="katana-top relative z-50 bg-[#0B1210] text-[#F2F6F5] pt-32 sm:pt-40 pb-24 border-t border-white/10 "
+      className="katana-top relative z-50 bg-brand-surface text-ink pt-32 sm:pt-40 pb-24 border-t border-white/10 "
     >
       <div className="shell grid lg:grid-cols-[1fr_1.6fr] gap-12 lg:gap-16">
         <motion.div
@@ -31,7 +31,7 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
           <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-white leading-tight">
             {t("faq.headline")}
           </h2>
-          <p className="text-sm sm:text-base text-[#9EADA9] font-sans leading-relaxed max-w-md">
+          <p className="text-sm sm:text-base text-ink-muted font-sans leading-relaxed max-w-md">
             {t("faq.subtitle")}
           </p>
         </motion.div>
@@ -51,7 +51,7 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
                 }}
                 className={`rounded-2xl border transition-colors duration-150 overflow-hidden ${
                   isOpen
-                    ? "bg-[#0B1210] border-[#09937F]/50 shadow-lg shadow-[#09937F]/10"
+                    ? "bg-brand-surface border-accent/50 shadow-lg shadow-accent/10"
                     : "bg-white/[0.02] border-white/5 hover:border-white/15"
                 }`}
               >
@@ -62,14 +62,14 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
                   className="group w-full p-5 sm:p-6 text-start flex items-center justify-between gap-4 cursor-pointer"
                 >
-                  <span className="font-display font-bold text-base sm:text-lg text-white group-hover:text-[#5EEAD4] transition-colors">
+                  <span className="font-display font-bold text-base sm:text-lg text-white group-hover:text-mint transition-colors">
                     {ar ? faq.questionAr : faq.questionEn}
                   </span>
                   <div
                     className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 ${
                       isOpen
-                        ? "bg-[#09937F]/20 text-[#5EEAD4] rotate-180"
-                        : "bg-white/5 text-[#9EADA9]"
+                        ? "bg-accent/20 text-mint rotate-180"
+                        : "bg-white/5 text-ink-muted"
                     }`}
                   >
                     <ChevronDown className="w-4 h-4" />
@@ -89,7 +89,7 @@ export function FAQSection({ faqs }: { faqs: Faq[] }) {
                       }}
                       className="overflow-hidden"
                     >
-                      <div className="px-5 pb-6 sm:px-6 sm:pb-6 pt-1 text-xs sm:text-sm leading-relaxed text-[#9EADA9] font-sans whitespace-pre-wrap">
+                      <div className="px-5 pb-6 sm:px-6 sm:pb-6 pt-1 text-xs sm:text-sm leading-relaxed text-ink-muted font-sans whitespace-pre-wrap">
                         {ar ? faq.answerAr : faq.answerEn}
                       </div>
                     </motion.div>

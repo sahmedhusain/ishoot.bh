@@ -1,7 +1,7 @@
 "use client";
 import {ContentImage} from "../shared/ContentImage";
 
-import type { PublicCompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { Reveal } from "../shared/Reveal";
@@ -28,7 +28,7 @@ export function CEOHero({
   const showSubtitle = !story.trim().startsWith(subtitle.trim());
 
   return (
-    <section className="bg-[var(--ishoot-bg-base)] text-[var(--ishoot-text-primary)]">
+    <section className="bg-brand-base text-ink">
       <div className="shell page-heading grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
         <Reveal className="lg:col-span-7 space-y-7">
           <SectionBadge>{t("about.badge")}</SectionBadge>
@@ -36,25 +36,25 @@ export function CEOHero({
             {t("about.title")}
           </h1>
           {showSubtitle && (
-            <p className="text-lg leading-relaxed text-[var(--ishoot-text-secondary)]">
+            <p className="text-lg leading-relaxed text-ink-muted">
               {subtitle}
             </p>
           )}
-          <p className="text-base leading-loose text-[var(--ishoot-text-secondary)] whitespace-pre-line">
+          <p className="text-base leading-loose text-ink-muted whitespace-pre-line">
             {story}
           </p>
-          {quote && <blockquote className="border-s-2 border-[#5EEAD4] ps-6 py-2">
+          {quote && <blockquote className="border-s-2 border-mint ps-6 py-2">
             <p className="font-serif text-xl sm:text-2xl leading-relaxed">
               “{quote}”
             </p>
-            <footer className="mt-5 text-sm text-[var(--ishoot-text-secondary)]">
+            <footer className="mt-5 text-sm text-ink-muted">
               {name} / {title}
             </footer>
           </blockquote>}
         </Reveal>
         {imageUrl && <Reveal className="lg:col-span-5" delay={0.08}>
           <figure>
-            <div className="aspect-[3/4] overflow-hidden rounded-lg bg-[var(--ishoot-bg-surface)]">
+            <div className="aspect-[3/4] overflow-hidden rounded-lg bg-brand-surface">
               <ContentImage
                 src={imageUrl}
                 alt={t("about.studioImageAlt")}
@@ -67,7 +67,7 @@ export function CEOHero({
               <span className="font-medium">
                 {ar ? company?.company_name_ar : company?.company_name_en}
               </span>
-              <span className="text-[var(--ishoot-text-secondary)]">
+              <span className="text-ink-muted">
                 {ar ? company?.address_ar : company?.address_en}
               </span>
             </figcaption>

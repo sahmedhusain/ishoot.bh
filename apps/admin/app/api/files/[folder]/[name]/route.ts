@@ -1,10 +1,10 @@
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { NextRequest,NextResponse } from "next/server";
 import { realpath,stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import path from "node:path";
-import { db,uploadRoot,generateDownloadUrl,uploadStorageLocation,isSupabaseStorageConfigured } from "@ishoot/database";
+import { db,uploadRoot,generateDownloadUrl,uploadStorageLocation,isSupabaseStorageConfigured } from "@platform/database";
 import { requirePermission,getCurrentUser } from "../../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../../lib/attachment-access";
 /** The permission that guards a file stored on a record's own field, if any record holds it. */
@@ -19,7 +19,7 @@ async function recordFileResource(fileUrl: string) {
 export async function GET(req: NextRequest, { params }: { params: Promise<{ folder: string; name: string }> }) {
   return measureOperation("admin:files/[folder]/[name]:GET", async () => {
   const { folder, name } = await params;
-  if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name)) return new NextResponse(null, { status: 404 });
+  if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !(/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name) || (folder === "brand" && /^[a-zA-Z0-9_-]+\.woff2$/.test(name)))) return new NextResponse(null, { status: 404 });
   try {
     const fileUrl = `/api/files/${folder}/${name}`;
     const upload = await db.uploadObject.findUnique({ where: { fileUrl } });

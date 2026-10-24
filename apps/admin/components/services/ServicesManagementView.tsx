@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import type { ServiceItem,ServiceCategory } from "@ishoot/database/types";
-import { Button,Input,CurrencyDisplay, useDialog } from "@ishoot/ui";
+import type { ServiceItem,ServiceCategory } from "@platform/database/types";
+import { Button,Input,CurrencyDisplay, useDialog } from "@platform/ui";
 import {
 Sparkles,
 Plus,
@@ -20,7 +20,7 @@ deleteServiceAction,
 } from "../../app/actions/services";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
-import { SERVICE_CATEGORIES,SERVICE_UNITS } from "@ishoot/config/constants";
+import { SERVICE_CATEGORIES,SERVICE_UNITS } from "@platform/config/constants";
 
 interface ServicesManagementViewProps {
   initialServices: ServiceItem[];
@@ -244,7 +244,7 @@ export function ServicesManagementView({
               onClick={() => setActiveCategory(cat.value)}
               className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex items-center gap-1.5 ${
                 isActive
-                  ? "bg-[#e6f5f2] text-primary border border-primary/30 dark:bg-[#004d40]/40 dark:text-mint dark:border-[#004d40] font-semibold"
+                  ? "bg-tone-95 text-primary border border-primary/30 dark:bg-tone-15/40 dark:text-mint dark:border-tone-15 font-semibold"
                   : "text-slate-600 hover:bg-slate-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
               }`}
             >

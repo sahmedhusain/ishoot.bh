@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
 import { REQUEST_CLOSED_STATUSES, REQUEST_SORTS, REQUEST_SOURCES, canTransitionRequest, referencePrefixFor, requestKindOf, type RequestKind, type RequestSort } from "../constants/requests";

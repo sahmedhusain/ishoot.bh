@@ -1,5 +1,5 @@
-import { serverMessages } from "@ishoot/locales";
-import { measureOperation } from "@ishoot/database";
+import { serverMessages } from "@platform/locales";
+import { measureOperation } from "@platform/database";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse("Invalid preview", { status: 403 });
   const locale = req.nextUrl.searchParams.get("locale") === "ar" ? "ar" : "en";
   const response = NextResponse.redirect(new URL(`/${locale}`, req.url));
-  response.cookies.set("ishoot_preview", `${expires}.${token}`, {
+  response.cookies.set("platform_preview", `${expires}.${token}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   if (req.headers.get("origin") !== req.nextUrl.origin)
     return new NextResponse(serverMessages.runtimeForbidden, { status: 403 });
   const response = NextResponse.redirect(new URL("/", req.url), 303);
-  response.cookies.delete("ishoot_preview");
+  response.cookies.delete("platform_preview");
   return response;
 
   });

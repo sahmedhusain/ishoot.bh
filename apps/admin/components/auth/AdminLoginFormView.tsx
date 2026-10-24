@@ -1,14 +1,16 @@
 "use client";
 import { ROUTES } from "../../constants/routes";
-import {ContentImage} from "../shared/ContentImage";
+import type { AuthBrandingProps } from "../../types/auth";
+import { AuthBrandMark } from "./AuthBrandMark";
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Input, Button, Card } from "@ishoot/ui";
+import { Input, Button, Card } from "@platform/ui";
 import { Lock, Mail, ArrowRight, AlertCircle, Globe } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyName?: string;logoUrl?:string;iconUrl?:string }) {
+export function AdminLoginFormView(brand: AuthBrandingProps) {
+  const { companyName } = brand;
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedCallback = searchParams.get("callbackUrl") || ROUTES.home;
@@ -61,7 +63,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
   return (
     <div
       dir={isRTL ? "rtl" : "ltr"}
-      className="min-h-screen flex items-center justify-center p-6 bg-[#050807] relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center p-6 bg-brand-base relative overflow-hidden"
     >
       <div className="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-primary/30 via-accent/10 to-transparent blur-3xl pointer-events-none" />
 
@@ -69,43 +71,32 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
         <button
           type="button"
           onClick={handleToggleLocale}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-[#9EADA9] hover:text-white transition-all backdrop-blur-md"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-ink-muted hover:text-white transition-all backdrop-blur-md"
         >
           <Globe className="w-3.5 h-3.5 text-accent" />
           <span>{t.loginView.switchLanguage}</span>
         </button>
       </div>
 
-      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-accent/30 shadow-2xl rounded-3xl space-y-8">
+      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-brand-surface border border-accent/30 shadow-2xl rounded-3xl space-y-8">
         <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            <ContentImage
-              width={40} height={40} src={iconUrl}
-              alt={companyName || ""}
-              className="h-10 w-auto object-contain shrink-0 filter drop-shadow-[0_0_12px_rgba(9,147,127,0.3)]"
-            />
-            <ContentImage
-              width={240} height={60} src={logoUrl}
-              alt={companyName || ""}
-              className="h-7 w-auto object-contain"
-            />
-          </div>
+          <AuthBrandMark {...brand} />
           <div className="space-y-1">
-            <h1 className="text-xl font-bold text-white tracking-tight font-display">
+            <h1 className="text-xl font-bold text-ink tracking-tight font-display">
               {companyName ? (
                 <span dir="auto">{companyName}</span>
               ) : (
                 <span>{t.portalTitle}</span>
               )}
             </h1>
-            <p className="text-xs text-[#9EADA9] tracking-wider uppercase">
+            <p className="text-xs text-ink-muted tracking-wider uppercase">
               {t.loginView.subtitle}
             </p>
           </div>
         </div>
 
         {errorMessage && (
-          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300">
+          <div role="alert" className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
             <span>{errorMessage}</span>
           </div>
@@ -113,12 +104,12 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#9EADA9]">
+            <label className="text-xs font-medium text-ink-muted">
               {t.loginView.emailLabel}
             </label>
             <div className="relative">
               <Mail
-                className={`w-4 h-4 absolute top-3.5 text-[#9EADA9] ${
+                className={`w-4 h-4 absolute top-3.5 text-ink-muted ${
                   isRTL ? "right-3.5" : "left-3.5"
                 }`}
               />
@@ -136,7 +127,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-[#9EADA9]">
+              <label className="text-xs font-medium text-ink-muted">
                 {t.loginView.passwordLabel}
               </label>
               <button type="button" onClick={() => router.push("/login/forgot")} className="text-[11px] text-accent hover:text-white transition-colors">
@@ -145,7 +136,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
             </div>
             <div className="relative">
               <Lock
-                className={`w-4 h-4 absolute top-3.5 text-[#9EADA9] ${
+                className={`w-4 h-4 absolute top-3.5 text-ink-muted ${
                   isRTL ? "right-3.5" : "left-3.5"
                 }`}
               />
@@ -177,7 +168,7 @@ export function AdminLoginFormView({ companyName,logoUrl,iconUrl }: { companyNam
           </Button>
         </form>
 
-        <div className="text-center text-[11px] text-[#9EADA9]/60">
+        <div className="text-center text-[11px] text-ink-muted/60">
           {t.loginView.footerNote}
         </div>
       </Card>

@@ -2,9 +2,9 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { getWebsiteSnapshot } from "@ishoot/database";
+import { getWebsiteSnapshot } from "@platform/database";
 export const isWebsitePreview = cache(async () => {
-  const value = (await cookies()).get("ishoot_preview")?.value;
+  const value = (await cookies()).get("platform_preview")?.value;
   const secret = process.env.REVALIDATION_SECRET;
   if (!value || !secret) return false;
   const [expires, token] = value.split(".");

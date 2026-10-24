@@ -5,7 +5,7 @@ import {
   findPendingApproval,
   getAssetHandover,
   listSignatureRequests,
-} from "@ishoot/database";
+} from "@platform/database";
 import { hasPermission, requireAuth } from "../../../../../lib/auth";
 import { ForbiddenView } from "../../../../../components/shared/ForbiddenView";
 import { HandoverDetailView } from "../../../../../components/assets/HandoverDetailView";

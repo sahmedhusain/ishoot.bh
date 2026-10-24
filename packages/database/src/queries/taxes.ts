@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { db, runAtomicMutation } from "../db";
 
 /** A tax the company is registered for besides VAT, as the settings screen shows it. */

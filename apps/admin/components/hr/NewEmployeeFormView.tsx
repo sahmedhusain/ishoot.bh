@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import {
@@ -10,11 +10,11 @@ import {
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Department } from "@ishoot/database/types";
-import { Card, Button, Input, Select } from "@ishoot/ui";
-import type { EmployeeCredentialInput, EmployeeIdentityInput } from "@ishoot/database";
-import { needsWorkVisa } from "@ishoot/database/constants/employee-documents";
-import { countryOptions } from "@ishoot/database/constants/clients";
+import type { Department } from "@platform/database/types";
+import { Card, Button, Input, Select } from "@platform/ui";
+import type { EmployeeCredentialInput, EmployeeIdentityInput } from "@platform/database";
+import { needsWorkVisa } from "@platform/database/constants/employee-documents";
+import { countryOptions } from "@platform/database/constants/clients";
 import { CredentialFields, emptyCredential } from "./CredentialFields";
 import {
   ArrowLeft,

@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
 
@@ -8,13 +8,13 @@ import type {
 FinancialSummary,CompanySettings,
 CalendarEvent,
 MonthlyCashflowPoint
-} from "@ishoot/database";
+} from "@platform/database";
 import {
 Button,
 CurrencyDisplay,
 DateDisplay,
 StatusBadge
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
 DollarSign,
 Briefcase,
@@ -35,7 +35,7 @@ interface ExecutiveDashboardViewProps {
   finance: FinancialSummary;
   monthlyCashflow?: MonthlyCashflowPoint[];
   dealOverview: Awaited<
-    ReturnType<typeof import("@ishoot/database").getCRMDealOverview>
+    ReturnType<typeof import("@platform/database").getCRMDealOverview>
   >;
   inquiryCount: number;
   company: CompanySettings;
@@ -414,8 +414,8 @@ export function ExecutiveDashboardView({
                       <span
                         className="text-[9px]  px-1.5 py-0.5 rounded font-bold uppercase"
                         style={{
-                          backgroundColor: `${event.color || "#09937F"}20`,
-                          color: event.color || "#09937F",
+                          backgroundColor: `${event.color || "rgb(var(--brand-accent))"}20`,
+                          color: event.color || "rgb(var(--brand-accent))",
                         }}
                       >
                         {(t.calendarView as any)[event.event_type] ||

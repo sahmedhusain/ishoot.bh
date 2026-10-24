@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -20,16 +20,16 @@ import {
   Select,
   formatCurrencyValue,
   formatDate,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import type {
   listGosiComponents,
   listGosiRegistrations,
   GosiRules,
-} from "@ishoot/database";
+} from "@platform/database";
 import {
   INSURED_CATEGORIES,
   WAGE_BASES,
-} from "@ishoot/database/hr/social-insurance";
+} from "@platform/database/hr/social-insurance";
 import {
   deleteEmployeeGosiRecordAction,
   endGosiComponentAction,

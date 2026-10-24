@@ -1,4 +1,4 @@
-import { announcementRights } from "@ishoot/database";
+import { announcementRights } from "@platform/database";
 import { requireAuth } from "../../../../lib/auth";
 import { communicationOptions } from "../../../../lib/communication-options";
 import { AnnouncementForm } from "../../../../components/communications/AnnouncementForm";

@@ -1,8 +1,8 @@
-import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 
 import { NextRequest, NextResponse } from "next/server";
-import { db, detectFileType, isSupabaseStorageConfigured, measureOperation, uploadRoot, writeLocalUpload } from "@ishoot/database";
+import { db, detectFileType, isSupabaseStorageConfigured, measureOperation, uploadRoot, writeLocalUpload } from "@platform/database";
 import { getCurrentUser } from "../../../../../../lib/auth";
 
 const maxUploadMb = 10;
@@ -18,7 +18,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ fold
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
     const { folder, name } = await params;
-    if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name))
+    if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !(/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name) || (folder === "brand" && /^[a-zA-Z0-9_-]+\.woff2$/.test(name))))
       return NextResponse.json({ error: serverMessages.invalidUploadPath }, { status: 400 });
     const fileUrl = `/api/files/${folder}/${name}`;
     const upload = await db.uploadObject.findUnique({ where: { fileUrl } });

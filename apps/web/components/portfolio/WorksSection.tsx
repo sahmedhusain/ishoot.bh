@@ -3,7 +3,7 @@ import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
-import type { PortfolioItem } from "@ishoot/database/types";
+import type { PortfolioItem } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ArrowUpRight, Play } from "lucide-react";
@@ -48,7 +48,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
             transition={{ duration: reduced ? 0 : 0.45, ease: [0.2, 0, 0, 1] }}
             className="space-y-3"
           >
-            <SectionBadge className="!text-[#075e4c]">
+            <SectionBadge className="!text-accent-pressed">
               {t("portfolio.badge")}
             </SectionBadge>
             <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-slate-950 leading-tight">
@@ -70,7 +70,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
             }}
           >
             <Link
-              className="inline-flex min-h-11 gap-2 items-center px-5 py-2.5 rounded-md bg-white hover:bg-slate-100 text-[#075e4c] border border-slate-300 text-sm font-semibold transition-colors duration-150"
+              className="inline-flex min-h-11 gap-2 items-center px-5 py-2.5 rounded-md bg-white hover:bg-slate-100 text-accent-pressed border border-slate-300 text-sm font-semibold transition-colors duration-150"
               href={`/${locale}/works`}
             >
               <span>{t("portfolio.filterAll")}</span>
@@ -130,7 +130,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
                 className="block w-full text-start cursor-pointer"
                 aria-label={`${t("portfolio.viewProject")}: ${ar ? item.title_ar : item.title_en}`}
               >
-                <div className="relative overflow-hidden rounded-md aspect-[16/10] bg-[#050807]">
+                <div className="relative overflow-hidden rounded-md aspect-[16/10] bg-brand-base">
                   <ContentImage
                     loading="lazy"
                     width={800}
@@ -141,7 +141,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
 
-                  <span className="absolute bottom-4 end-4 w-11 h-11 rounded-full bg-[var(--web-accent)] hover:bg-[#5EEAD4] text-white hover:text-black flex items-center justify-center transition-colors duration-150 ">
+                  <span className="absolute bottom-4 end-4 w-11 h-11 rounded-full bg-[var(--web-accent)] hover:bg-mint text-white hover:text-black flex items-center justify-center transition-colors duration-150 ">
                     {item.full_video_url || item.preview_video_url ? (
                       <Play className="w-4 h-4 fill-current translate-x-0.5" />
                     ) : (
@@ -152,7 +152,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
 
                 <div className="mt-5 space-y-2">
                   <div className="flex items-center justify-between gap-3">
-                    <h3 className="text-lg sm:text-2xl font-bold font-display text-slate-950 group-hover:text-[#075e4c] transition-colors">
+                    <h3 className="text-lg sm:text-2xl font-bold font-display text-slate-950 group-hover:text-accent-pressed transition-colors">
                       {ar ? item.title_ar : item.title_en}
                     </h3>
                     <span className="text-xs font-medium text-slate-600 font-sans shrink-0">

@@ -1,16 +1,16 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Shield, Users } from "lucide-react";
-import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from "@platform/ui";
 import {
   ALL_ACTIONS,
   PERMISSION_GROUPS,
   isDefaultAllowed,
   type PermissionAction,
-} from "@ishoot/database/constants/permissions";
+} from "@platform/database/constants/permissions";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { upsertRoleAction, deleteRoleAction } from "../../app/actions/roles";
 import type { RoleWithGrants } from "../../types/roles";

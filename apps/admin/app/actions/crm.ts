@@ -1,9 +1,9 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@ishoot/database";
-import { runAtomicMutation } from "@ishoot/database";
-import type { ClientProfileInput } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
+import { runAtomicMutation } from "@platform/database";
+import type { ClientProfileInput } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -20,12 +20,12 @@ globalAdminSearch,
 hasPermission,
 DealStage,
 InquiryStatus
-} from "@ishoot/database";
+} from "@platform/database";
 import { requireInquiryAccess } from "../../lib/inquiry-access";
-import { REQUEST_PRIORITIES } from "@ishoot/database/constants/requests";
+import { REQUEST_PRIORITIES } from "@platform/database/constants/requests";
 import { revalidatePath } from "next/cache";
 import { requireAuth,requirePermission } from "../../lib/auth";
-import { requireFeatureEnabled } from "@ishoot/database";
+import { requireFeatureEnabled } from "@platform/database";
 
 export async function updateDealStageAction(id: string, stage: DealStage) {
   return measureOperation("action:updateDealStageAction", async () => {
@@ -89,7 +89,7 @@ export async function updateDealAction(
   data: Partial<{
     title: string;
     value: number;
-    currency: import("@ishoot/database/types").SupportedCurrency;
+    currency: import("@platform/database/types").SupportedCurrency;
     stage: DealStage;
     probability: number;
     contact_id: string;
@@ -259,7 +259,7 @@ export async function updateInquiryStatusAction(
       ].includes(status)
     )
       throw new Error(serverMessages.invalidStatus);
-    const { db } = await import("@ishoot/database");
+    const { db } = await import("@platform/database");
     const current = await db.inquiry.findUniqueOrThrow({ where: { id } });
     if (
       ["complaint", "suggestion"].includes(current.intent) &&
@@ -292,7 +292,7 @@ export async function convertInquiryToClientAction(inquiryId: string) {
     await requirePermission("contacts", "write");
     await requirePermission("deals", "write");
 
-    const { db } = await import("@ishoot/database");
+    const { db } = await import("@platform/database");
 
     const result = await db.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "Inquiry" WHERE id = ${inquiryId} FOR UPDATE`;
@@ -451,7 +451,7 @@ export async function manageInquiryAction(
   return measureOperation("action:manageInquiryAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requireInquiryAccess(id, "write");
     validateActionArguments("manageInquiryAction", { id, data });
-    const { db } = await import("@ishoot/database");
+    const { db } = await import("@platform/database");
     if (data.priority && !(REQUEST_PRIORITIES as readonly string[]).includes(data.priority))
       throw new Error(serverMessages.invalidPriority);
     const slaDueDate = data.slaDueDate === undefined ? undefined : data.slaDueDate === null || data.slaDueDate === "" ? null : new Date(data.slaDueDate);
@@ -511,7 +511,7 @@ export async function linkInquiryCustomerAction(
       customerId,
     });
     await requirePermission("contacts", "write");
-    const { db } = await import("@ishoot/database");
+    const { db } = await import("@platform/database");
     await db.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "Inquiry" WHERE id=${inquiryId} FOR UPDATE`;
       const inquiry = await tx.inquiry.findUniqueOrThrow({

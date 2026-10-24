@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 
 import { ROUTES } from "../../constants/routes";
@@ -12,12 +12,12 @@ import type {
   MomAttendee,
   MomDiscussionPoint,
   MomActionItem,
-} from "@ishoot/database";
+} from "@platform/database";
 import {
   DocumentLetterhead,
   DocumentFooter,
 } from "../shared/DocumentLetterhead";
-import { Button, StatusBadge, useDialog } from "@ishoot/ui";
+import { Button, StatusBadge, useDialog } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -235,7 +235,7 @@ export function MomDetailView({
             {mom.client_id && (
               <Link
                 href={ROUTES.crm.customer(mom.client_id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#E6F5F2] text-primary dark:bg-[#152B27] dark:text-mint border border-accent/30 hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-tone-95 text-primary dark:bg-tone-15 dark:text-mint border border-accent/30 hover:underline transition-colors"
                 title={t.momDetail.viewClient360}
               >
                 <span>{clientName}</span>

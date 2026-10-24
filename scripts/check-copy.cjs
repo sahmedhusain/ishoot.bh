@@ -67,7 +67,7 @@ function scan(file) {
             !cssTokens(value) &&
             (p.name.getText(source) === "error"
               ? !/^[a-z_]+$/.test(value)
-              : /\s|[\u0621-\u064A]|ishoot/i.test(value))
+              : /\s|[\u0621-\u064A]/.test(value))
           )
             at(node, "literal copy property", value);
         } else if (

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import {
@@ -15,7 +15,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { formatCurrencyValue, formatDate } from "@ishoot/ui";
+import { formatCurrencyValue, formatDate } from "@platform/ui";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { ApprovalItemDetail, FactValue } from "../../lib/approval-item";

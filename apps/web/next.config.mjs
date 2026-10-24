@@ -11,9 +11,9 @@ const nextConfig = {
   reactStrictMode: true,
   distDir: process.env.NEXT_DIST_DIR || ".next",
   serverExternalPackages: ['@supabase/supabase-js', 'libphonenumber-js'],
-  transpilePackages: ['@ishoot/ui', '@ishoot/database', '@ishoot/locales', '@ishoot/email', '@ishoot/config'],
+  transpilePackages: ['@platform/ui', '@platform/database', '@platform/locales', '@platform/email', '@platform/config'],
   experimental: {
-    optimizePackageImports: ['lucide-react', '@ishoot/ui'],
+    optimizePackageImports: ['lucide-react', '@platform/ui'],
   },
   images: {
     remotePatterns: [

@@ -2,8 +2,8 @@
 import {ContentImage} from "../shared/ContentImage";
 import * as React from "react";
 import Link from "next/link";
-import type { HeroBanner } from "@ishoot/database/types";
-import { safeWebsiteUrl } from "@ishoot/database/website-config";
+import type { HeroBanner } from "@platform/database/types";
+import { safeWebsiteUrl } from "@platform/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
 import { ArrowUpRight, Pause, Play } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -68,7 +68,7 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
       ref={section}
       id="home"
       data-hero="true"
-      className="relative min-h-[88svh] flex items-end bg-[#101b16] overflow-hidden"
+      className="relative min-h-[88svh] flex items-end bg-tone-10 overflow-hidden"
     >
       <div className="absolute inset-0" aria-hidden="true">
         {banner?.media_type === "video" ? (
@@ -97,8 +97,8 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
             className="w-full h-full object-cover"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050807] via-[#050807]/60 to-[#050807]/30" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050807]/85 via-[#050807]/30 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-base via-brand-base/60 to-brand-base/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-base/85 via-brand-base/30 to-transparent pointer-events-none" />
       </div>
 
       <div className="shell relative pt-40 pb-16 md:pb-24">
@@ -109,7 +109,7 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
           transition={{ duration: reduced ? 0 : 0.45, ease: [0.2, 0, 0, 1] }}
           className="max-w-5xl"
         >
-          <p className="web-eyebrow text-[#5EEAD4] mb-6">{t("hero.eyebrow", { companyName: companyName[locale] })}</p>
+          <p className="web-eyebrow text-mint mb-6">{t("hero.eyebrow", { companyName: companyName[locale] })}</p>
           <h1 className="font-display text-5xl sm:text-6xl lg:text-8xl leading-[1.04] tracking-tight font-bold whitespace-pre-line text-white">
             {title}
           </h1>
@@ -152,7 +152,7 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
                   }}
                   aria-label={`${t("hero.slideLabel")} ${i + 1}`}
                   aria-pressed={i === index % banners.length}
-                  className={`w-11 h-11 rounded-full border text-xs transition-colors duration-150 ${i === index % banners.length ? "bg-white text-[#162a24] border-white" : "border-white/30 text-white"}`}
+                  className={`w-11 h-11 rounded-full border text-xs transition-colors duration-150 ${i === index % banners.length ? "bg-white text-tone-15 border-white" : "border-white/30 text-white"}`}
                 >
                   {i + 1}
                 </button>

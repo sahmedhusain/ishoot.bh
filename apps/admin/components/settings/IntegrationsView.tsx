@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { toast } from "sonner";
@@ -12,13 +12,13 @@ import {
   Send,
   Unlink,
 } from "lucide-react";
-import { Button, Card, ConfirmDestructiveModal, DateDisplay } from "@ishoot/ui";
+import { Button, Card, ConfirmDestructiveModal, DateDisplay } from "@platform/ui";
 import {
   INTEGRATION_PROVIDERS,
   type IntegrationKind,
   type IntegrationProvider,
-} from "@ishoot/database/constants/integrations";
-import type { IntegrationAdminView } from "@ishoot/database/queries/integrations";
+} from "@platform/database/constants/integrations";
+import type { IntegrationAdminView } from "@platform/database/queries/integrations";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   saveIntegration,
@@ -30,7 +30,7 @@ import {
 import { SocialBrandIcon } from "../shared/PlatformPicker";
 import { SettingsNavTabs } from "./SettingsNavTabs";
 import { CalendarSyncCard } from "./CalendarSyncCard";
-import type { CalendarLayer } from "@ishoot/database/types";
+import type { CalendarLayer } from "@platform/database/types";
 
 const KINDS: IntegrationKind[] = ["social", "messaging", "email"];
 

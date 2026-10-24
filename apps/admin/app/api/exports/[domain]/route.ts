@@ -1,8 +1,8 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
-import { getDocumentArchiveExportBatch, getRequestExportBatch, iterateListExport, listDomains, type ClientListRow, type RequestListFilters } from "@ishoot/database";
+import { getDocumentArchiveExportBatch, getRequestExportBatch, iterateListExport, listDomains, type ClientListRow, type RequestListFilters } from "@platform/database";
 import { archiveKindsForCurrentUser } from "../../../../lib/archive-access";
 import { getCurrentUser, requirePermission } from "../../../../lib/auth";
 export const dynamic = "force-dynamic";

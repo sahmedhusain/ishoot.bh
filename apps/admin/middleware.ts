@@ -4,7 +4,7 @@ import { verifySessionToken, SESSION_COOKIE_NAME } from "./lib/jwt";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/uploads/") && !pathname.startsWith("/uploads/brand/")) {
+  if (pathname.startsWith("/uploads/")) {
     const target = request.nextUrl.clone();
     target.pathname = pathname.replace("/uploads/", "/api/files/");
     return NextResponse.rewrite(target);
@@ -13,8 +13,6 @@ export async function middleware(request: NextRequest) {
   if (
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/fonts") ||
-    pathname.startsWith("/images") ||
     pathname.includes(".")
   ) {
     return NextResponse.next();
@@ -32,7 +30,7 @@ export async function middleware(request: NextRequest) {
 
   if (pathname === "/login") return NextResponse.next();
 
-  if (pathname.startsWith("/dashboard")) {
+  if (pathname.startsWith("/dashboard") || pathname === "/setup") {
     if (!session) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("callbackUrl", pathname);

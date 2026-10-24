@@ -1,8 +1,8 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import Link from "next/link";
-import type { ApprovalWorkload, ComplaintWorkload, RequestWorkload, WorkloadRequestRow } from "@ishoot/database";
-import { approvalTargetUrl, STALE_APPROVAL_DAYS } from "@ishoot/database/constants/approvals";
+import type { ApprovalWorkload, ComplaintWorkload, RequestWorkload, WorkloadRequestRow } from "@platform/database";
+import { approvalTargetUrl, STALE_APPROVAL_DAYS } from "@platform/database/constants/approvals";
 import { ROUTES } from "../../constants/routes";
 import { ArrowUpRight, CheckCircle2, Clock, Inbox, MessageSquareWarning, ShieldCheck } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

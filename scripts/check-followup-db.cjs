@@ -75,6 +75,7 @@ async function main() {
   assert.equal(await db.session.count({ where: { token: legacyToken } }), 0);
   request = await db.inquiry.create({
     data: {
+      reference: `TST-${randomUUID()}`,
       name: prefix,
       email: actor.email,
       message: "test",
@@ -128,6 +129,7 @@ async function main() {
   assert.equal(logs, 13); // assign + 8 reassigns + submit + approve + confirm + resolve
   const other = await db.inquiry.create({
     data: {
+      reference: `TST-${randomUUID()}`,
       name: prefix,
       email: actor.email,
       message: "rollback",
@@ -152,6 +154,7 @@ async function main() {
   );
   await db.inquiry.createMany({
     data: Array.from({ length: 105 }, () => ({
+      reference: `TST-${randomUUID()}`,
       name: prefix + "-page",
       email: actor.email,
       message: prefix,
@@ -313,13 +316,13 @@ async function main() {
   ).outputText;
   const dependencies = {
     "node:crypto": require("node:crypto"),
-    "@ishoot/database": { db, ...websiteQueries, requireFeatureEnabled: async()=>{}, measureOperation: async (_name,fn)=>fn() },
+    "@platform/database": { db, ...websiteQueries, requireFeatureEnabled: async()=>{}, measureOperation: async (_name,fn)=>fn() },
     "../../lib/action-input": require("../apps/admin/lib/action-input.ts"),
-    "@ishoot/database/website-config": require("../packages/database/src/website-config.ts"),
+    "@platform/database/website-config": require("../packages/database/src/website-config.ts"),
     "../../lib/auth": { requirePermission: async () => ({ id: actor.id }) },
     "next/cache": { revalidatePath: () => {} },
     "../../lib/revalidate-web": { revalidatePublicSite: async () => false },
-    "@ishoot/locales": require("../packages/locales/src/index.ts"),
+    "@platform/locales": require("../packages/locales/src/index.ts"),
     "../../constants/routes": require("../packages/database/src/constants/routes.ts"),
   };
   require("node:vm").runInNewContext(compiled, {

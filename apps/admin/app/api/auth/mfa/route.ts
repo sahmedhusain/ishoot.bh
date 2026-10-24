@@ -1,6 +1,6 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import {
   beginMfaEnrollment,
@@ -10,7 +10,7 @@ import {
   consumeAbuseLimit,
   verifyUserCredentials,
   getCompanySettings,
-} from "@ishoot/database";
+} from "@platform/database";
 import { getCurrentUser } from "../../../../lib/auth";
 import { readLoginInput } from "../../../../lib/login-input";
 export async function POST(req: NextRequest) {

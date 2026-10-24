@@ -4,15 +4,15 @@ import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { toast } from "sonner";
 import { AlarmClock, BellRing, ChevronDown, Filter, Plus, Trash2 } from "lucide-react";
-import { Button, Card } from "@ishoot/ui";
+import { Button, Card } from "@platform/ui";
 import {
   APPROVAL_CONDITION_FIELDS,
   APPROVER_MODES,
   type ApprovalConditionField,
   type ApproverMode,
-} from "@ishoot/database/constants/approvals";
-import { ALL_ACTIONS, ALL_ROLES, PERMISSION_GROUPS } from "@ishoot/database/constants/permissions";
-import type { ApprovalPolicyView } from "@ishoot/database/queries/approval-policies";
+} from "@platform/database/constants/approvals";
+import { ALL_ACTIONS, ALL_ROLES, PERMISSION_GROUPS } from "@platform/database/constants/permissions";
+import type { ApprovalPolicyView } from "@platform/database/queries/approval-policies";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateApprovalPolicyAction } from "../../app/actions/approval-policies";
 import { SettingsNavTabs } from "./SettingsNavTabs";

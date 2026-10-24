@@ -1,5 +1,5 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { listPayrollRuns, db, canDecideApproval, getSupportClaims } from "@ishoot/database";
+import { listPayrollRuns, db, canDecideApproval, getSupportClaims } from "@platform/database";
 import { SupportClaimsPanel } from "../../../../components/hr/SupportClaimsPanel";
 import { PayrollManagementView } from "../../../../components/hr/PayrollManagementView";
 

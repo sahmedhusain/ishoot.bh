@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { listLeaveRequests, listLeaveTypes, db, canDecideApproval, getLeaveBalances } from "@ishoot/database";
+import { listLeaveRequests, listLeaveTypes, db, canDecideApproval, getLeaveBalances } from "@platform/database";
 import { LeaveManagementView } from "../../../../components/hr/LeaveManagementView";
 
 export const dynamic = "force-dynamic";

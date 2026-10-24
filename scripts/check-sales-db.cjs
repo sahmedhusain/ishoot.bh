@@ -19,7 +19,7 @@ async function main() {
     await db.$transaction((tx) => transactionContext.run(tx, async () => {
       const stamp = Date.now();
       const user = (role, extra = {}) => tx.user.create({ data: { email: `${role}-${stamp}@sales.test`, fullName: `Sales ${role}`, passwordHash: "x", role, ...extra } });
-      const issuer = await user("admin", { signatureUrl: "/brand/signatures/guest.svg" });
+      const issuer = await user("admin", { signatureUrl: "/api/files/brand/test-signature.png" });
       const closer = await user("sales", { commissionRatePercent: 5 });
       const other = await tx.user.create({ data: { email: `other-${stamp}@sales.test`, fullName: "Other seller", passwordHash: "x", role: "sales", commissionRatePercent: 4 } });
       const finance = await tx.user.findFirstOrThrow({ where: { role: "finance_manager", isActive: true } });

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { PAY_LINE_CATEGORIES, type PayLineKind } from "@ishoot/database/constants/hr";
+import { PAY_LINE_CATEGORIES, type PayLineKind } from "@platform/database/constants/hr";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export interface PayLineDraft {
@@ -14,7 +14,7 @@ export interface PayLineDraft {
 }
 
 let lineKey = 0;
-export const newPayLine = (kind: PayLineKind): PayLineDraft => ({ key: `l${++lineKey}`, category: PAY_LINE_CATEGORIES[kind][0], label: "", amount: "", note: "" });
+const newPayLine = (kind: PayLineKind): PayLineDraft => ({ key: `l${++lineKey}`, category: PAY_LINE_CATEGORIES[kind][0], label: "", amount: "", note: "" });
 export const toPayLineDraft = (line: { category: string; label: string; amount: number; note?: string | null }): PayLineDraft => ({
   key: `l${++lineKey}`,
   category: line.category,

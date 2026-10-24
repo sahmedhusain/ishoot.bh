@@ -1,15 +1,15 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertTriangle, ArrowLeft, ArrowRight, BadgeCheck, CalendarDays, ChevronLeft, ChevronRight, Clock, Receipt, Wallet } from "lucide-react";
-import { Button, Card, DateDisplay } from "@ishoot/ui";
-import type { getPayrollItemDetail } from "@ishoot/database/queries/payroll";
-import { ROUTES } from "@ishoot/database/constants/routes";
+import { Button, Card, DateDisplay } from "@platform/ui";
+import type { getPayrollItemDetail } from "@platform/database/queries/payroll";
+import { ROUTES } from "@platform/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { payPayrollItemAction, setPayrollLinesAction } from "../../app/actions/payroll";
 import { PayLinesEditor, toPayLineDraft, type PayLineDraft } from "./PayLinesEditor";

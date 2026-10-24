@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { toLeaveTypeRules } from "./hr-settings";
 import { parsePayrollSettings } from "../payroll-calculation";
 import type { Prisma } from "@prisma/client";

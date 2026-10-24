@@ -3,8 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button, Modal } from "@ishoot/ui";
-import { PERMISSION_GROUPS } from "@ishoot/database/constants/permissions";
+import { Button, Modal } from "@platform/ui";
+import { PERMISSION_GROUPS } from "@platform/database/constants/permissions";
 import { setUserPermissionOverridesAction } from "../../app/actions/permission-overrides";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";

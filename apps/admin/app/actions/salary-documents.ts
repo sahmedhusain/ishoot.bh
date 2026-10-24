@@ -1,5 +1,5 @@
 "use server";
-import { serverTemplates, formatMessage, serverMessages, getTranslations } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages, getTranslations } from "@platform/locales";
 
 import { ROUTES } from "../../constants/routes";
 
@@ -12,7 +12,7 @@ import {
   findPendingApproval,
   decideApprovalRequest,
   measureOperation,
-} from "@ishoot/database";
+} from "@platform/database";
 import { requireAuth, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 import {

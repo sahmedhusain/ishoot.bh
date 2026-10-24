@@ -1,4 +1,4 @@
-import { listLetterTemplates } from "@ishoot/database";
+import { listLetterTemplates } from "@platform/database";
 import { requirePagePermission, hasPermission } from "../../../../lib/auth";
 import { LetterTemplatesView } from "../../../../components/communications/LetterWorkspace";
 export const dynamic = "force-dynamic";

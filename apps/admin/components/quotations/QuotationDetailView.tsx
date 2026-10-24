@@ -1,15 +1,15 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Quotation, ApprovalRequest } from "@ishoot/database/types";
+import type { Quotation, ApprovalRequest } from "@platform/database/types";
 import {
   Card,
-  Button, formatDate } from "@ishoot/ui";
+  Button, formatDate } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -43,7 +43,7 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { QuotationActionDialog } from "./QuotationActionDialog";
 import { toast } from "sonner";
 
-export interface QuotationWithRelations extends Quotation {
+interface QuotationWithRelations extends Quotation {
   client?: {
     id?: string;
     companyName?: string;

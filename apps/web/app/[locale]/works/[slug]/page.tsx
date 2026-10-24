@@ -3,7 +3,7 @@ import { Reveal } from "../../../../components/shared/Reveal";
 import { getWebsite } from "../../../../lib/website";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getTranslations,Locale } from "@ishoot/locales";
+import { getTranslations,Locale } from "@platform/locales";
 import { ArrowLeft,ArrowRight } from "lucide-react";
 
 export default async function ProjectDetailPage({
@@ -33,7 +33,7 @@ export default async function ProjectDetailPage({
       <div>
         <Link
           href={`/${locale}/works`}
-          className="inline-flex items-center gap-2 text-sm text-[#9EADA9] hover:text-[#09937F] transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-accent transition-colors"
         >
           <ArrowBackIcon className="w-4 h-4" />
           <span>{t.portfolio.backToWorks}</span>
@@ -41,7 +41,7 @@ export default async function ProjectDetailPage({
       </div>
 
       <Reveal className="space-y-4">
-        <div className="flex items-center gap-4 text-xs  text-[#5EEAD4] uppercase tracking-widest">
+        <div className="flex items-center gap-4 text-xs  text-mint uppercase tracking-widest">
           <span>{item.client_name}</span>
           <span>•</span>
           <span>{item.year}</span>
@@ -74,20 +74,20 @@ export default async function ProjectDetailPage({
           <h2 className="text-xl font-bold text-white uppercase tracking-wide">
             {t.portfolio.productionOverview}
           </h2>
-          <p className="text-base text-[#9EADA9] leading-relaxed whitespace-pre-line">
+          <p className="text-base text-ink-muted leading-relaxed whitespace-pre-line">
             {description}
           </p>
         </div>
 
         {item.credits && (
-          <div className="bg-[#0B1210] border border-white/10 rounded-2xl p-6 space-y-4 h-fit">
+          <div className="bg-brand-surface border border-white/10 rounded-2xl p-6 space-y-4 h-fit">
             <h3 className="text-sm font-semibold text-white uppercase tracking-wider border-b border-white/10 pb-3">
               {t.portfolio.credits}
             </h3>
             <div className="space-y-3 text-xs">
               {item.credits.director && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-[#9EADA9]">
+                  <span className="text-ink-muted">
                     {t.portfolio.director}:
                   </span>
                   <span className="text-white font-medium">
@@ -97,7 +97,7 @@ export default async function ProjectDetailPage({
               )}
               {item.credits.dop && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-[#9EADA9]">{t.portfolio.dop}:</span>
+                  <span className="text-ink-muted">{t.portfolio.dop}:</span>
                   <span className="text-white font-medium">
                     {item.credits.dop}
                   </span>
@@ -105,7 +105,7 @@ export default async function ProjectDetailPage({
               )}
               {item.credits.colorist && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-[#9EADA9]">
+                  <span className="text-ink-muted">
                     {t.portfolio.colorist}:
                   </span>
                   <span className="text-white font-medium">
@@ -115,7 +115,7 @@ export default async function ProjectDetailPage({
               )}
               {item.credits.editor && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-[#9EADA9]">{t.portfolio.editor}:</span>
+                  <span className="text-ink-muted">{t.portfolio.editor}:</span>
                   <span className="text-white font-medium">
                     {item.credits.editor}
                   </span>

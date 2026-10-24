@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import type { listOfficialLetters } from "@ishoot/database";
+import type { listOfficialLetters } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ROUTES } from "../../constants/routes";
 export function LettersListView({

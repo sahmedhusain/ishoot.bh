@@ -62,7 +62,7 @@ export function LegalModal({
         transition={{ duration: reduced ? 0 : 0.2, ease: [0.2, 0, 0, 1] }}
         className="flex flex-col max-h-[88dvh]"
       >
-        <div className="flex items-start justify-between gap-5 p-6 sm:px-8 bg-[#0B1210] text-white">
+        <div className="flex items-start justify-between gap-5 p-6 sm:px-8 bg-brand-surface text-white">
           <h2
             id={titleId}
             className="text-2xl sm:text-3xl font-bold font-display leading-tight"
@@ -113,7 +113,7 @@ export function LegalModal({
         <div className="px-6 py-4 sm:px-8 bg-slate-100 flex justify-end shrink-0">
           <button
             onClick={onClose}
-            className="min-h-11 px-6 rounded-lg bg-[#014842] text-white text-sm font-semibold hover:bg-[#086556] transition-colors"
+            className="min-h-11 px-6 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-tone-20 transition-colors"
           >
             {t("footer.close")}
           </button>

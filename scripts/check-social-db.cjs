@@ -22,16 +22,16 @@ global.fetch = async (url, init) => {
   const json = (status, body) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
   if (failNext) return json(400, { error: { message: "Error validating access token: Session has expired", code: 190 } });
   const u = new URL(String(url));
-  if (u.pathname.endsWith("/page-1")) return json(200, { name: "iShoot Productions", followers_count: 1200 });
+  if (u.pathname.endsWith("/page-1")) return json(200, { name: "Example Productions", followers_count: 1200 });
   if (u.pathname.endsWith("/page-1/posts"))
     return json(200, { data: [
       { id: "p1", message: "Behind the scenes", created_time: day(2), permalink_url: "https://facebook.com/p1", reactions: { summary: { total_count: likes } }, comments: { summary: { total_count: 5 } }, shares: { count: 3 } },
       { id: "p2", message: "Old post", created_time: day(45), reactions: { summary: { total_count: 10 } }, comments: { summary: { total_count: 1 } } },
     ] });
-  if (u.pathname.endsWith("/ig-1")) return json(200, { username: "ishoot", followers_count: 3400, media_count: 210 });
+  if (u.pathname.endsWith("/ig-1")) return json(200, { username: "example", followers_count: 3400, media_count: 210 });
   if (u.pathname.endsWith("/ig-1/media"))
     return json(200, { data: [{ id: "m1", caption: "Reel", media_type: "VIDEO", permalink: "https://instagram.com/p/m1", timestamp: day(1), like_count: 300, comments_count: 20 }] });
-  if (u.host === "api.resend.com") return json(200, { data: [{ name: "ishoot.bh", status: "verified" }] });
+  if (u.host === "api.resend.com") return json(200, { data: [{ name: "example.com", status: "verified" }] });
   return json(404, { error: { message: "Unknown endpoint" } });
 };
 
@@ -65,7 +65,7 @@ async function main() {
       // Connection test records health and the account name; tokens travel only in the Authorization header.
       const check = await integrations.testIntegration("meta");
       assert.equal(check.ok, true);
-      assert.equal(check.accountName, "iShoot Productions");
+      assert.equal(check.accountName, "Example Productions");
       assert.ok(calls.every((call) => !call.url.includes(TOKEN)), "tokens are never put in URLs");
       assert.ok(calls.some((call) => call.auth === `Bearer ${TOKEN}`));
 
@@ -106,7 +106,7 @@ async function main() {
       assert.ok((await analytics.getSocialAnalytics({ days: 30 })).accounts.find((a) => a.platform === "facebook").isStale);
 
       // Resend checks that the sender domain is verified.
-      await integrations.saveIntegrationSettings("resend", { isActive: true, values: { apiKey: "re_test_123456789", fromEmail: "billing@ishoot.bh" } }, actor.id);
+      await integrations.saveIntegrationSettings("resend", { isActive: true, values: { apiKey: "re_test_123456789", fromEmail: "billing@example.com" } }, actor.id);
       assert.equal((await integrations.testIntegration("resend")).ok, true);
       await integrations.saveIntegrationSettings("resend", { isActive: true, values: { apiKey: "", fromEmail: "billing@other.com" } }, actor.id);
       assert.match((await integrations.testIntegration("resend")).error, /not added in Resend/);

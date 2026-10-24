@@ -1,7 +1,7 @@
 "use client";
-import type { EmployeePayrollSettings } from "@ishoot/database/types";
+import type { EmployeePayrollSettings } from "@platform/database/types";
 import * as React from "react";
-import { tamkeenSupports, TAMKEEN_PROVIDER } from "@ishoot/database/constants/hr-support";
+import { tamkeenSupports, TAMKEEN_PROVIDER } from "@platform/database/constants/hr-support";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 export const emptyPayrollSettings: EmployeePayrollSettings = {
   employee: { mode: "percentage", value: 0 },

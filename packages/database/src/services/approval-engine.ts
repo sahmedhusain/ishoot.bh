@@ -1,4 +1,4 @@
-import { serverTemplates, getTranslations, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, getTranslations, formatMessage, serverMessages } from "@platform/locales";
 
 
 import crypto from "node:crypto";

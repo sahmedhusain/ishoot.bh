@@ -1,8 +1,8 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@ishoot/database";
-import { runAtomicMutation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
+import { runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -20,15 +20,15 @@ updatePortfolioItem,
 deletePortfolioItem,
 createActivityLog,StudioEquipment,
 PortfolioItem
-} from "@ishoot/database";
-import { safeWebsiteUrl } from "@ishoot/database/website-config";
+} from "@platform/database";
+import { safeWebsiteUrl } from "@platform/database/website-config";
 import { revalidatePath } from "next/cache";
 // The public site only caches the *published* website snapshot (tags "website"/"company"), and its
 // pages render dynamically. Collection edits here change the draft, so they refresh the admin
 // Website page (which reports unpublished changes) and reach the public site on the next publish.
 // Reviews and equipment are read live by the public pages and need no invalidation.
 import { requirePermission } from "../../lib/auth";
-import { requireFeatureEnabled } from "@ishoot/database";
+import { requireFeatureEnabled } from "@platform/database";
 
 export async function toggleBannerStatusAction(id: string, isActive: boolean) {
   return measureOperation("action:toggleBannerStatusAction", async () => {
@@ -399,7 +399,7 @@ deleteFaq,
 createStatistic,
 updateStatistic,
 deleteStatistic
-} from "@ishoot/database";
+} from "@platform/database";
 
 export async function toggleReviewApprovalAction(
   id: string,

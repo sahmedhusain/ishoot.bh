@@ -8,7 +8,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { Menu } from "lucide-react";
-import type { PublicCompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@platform/database/types";
 
 interface NavbarProps {
   company: PublicCompanySettings;
@@ -62,8 +62,8 @@ export function Navbar({ company, pages }: NavbarProps) {
       <header
         className={`fixed top-0 start-0 end-0 z-[80] py-4 border-b transition-colors duration-150 ${
           isScrolled
-            ? "bg-[var(--ishoot-bg-base)] border-white/10"
-            : "bg-gradient-to-b from-[#050807]/90 to-transparent border-transparent"
+            ? "bg-brand-base border-white/10"
+            : "bg-gradient-to-b from-brand-base/90 to-transparent border-transparent"
         }`}
       >
         <div className="shell flex items-center justify-between">
@@ -105,14 +105,14 @@ export function Navbar({ company, pages }: NavbarProps) {
                   aria-current={isActive ? "page" : undefined}
                   className={`relative px-4 py-3 text-sm font-sans transition-colors duration-150 rounded-md select-none ${
                     isActive
-                      ? "text-[#5EEAD4] font-bold"
+                      ? "text-mint font-bold"
                       : "text-slate-200 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   {isActive && (
                     <span
                       aria-hidden="true"
-                      className="absolute bottom-1 inset-x-4 h-0.5 bg-[#5EEAD4]"
+                      className="absolute bottom-1 inset-x-4 h-0.5 bg-mint"
                     />
                   )}
                   <span className="relative z-10">{link.label}</span>
@@ -128,7 +128,7 @@ export function Navbar({ company, pages }: NavbarProps) {
           <div className="flex items-center gap-3 lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="w-11 h-11 flex items-center justify-center rounded-md bg-[var(--ishoot-bg-surface)] border border-white/20 text-white hover:bg-[var(--ishoot-primary)] transition-colors duration-150"
+              className="w-11 h-11 flex items-center justify-center rounded-md bg-brand-surface border border-white/20 text-white hover:bg-primary transition-colors duration-150"
               aria-label={t("common.openMenu")}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"

@@ -1,13 +1,13 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../../lib/error-text";
 import { uploadFileDirectly } from "../../../lib/upload-client";
 import {ContentImage} from "../../shared/ContentImage";
 
 import * as React from "react";
-import type { CompanySettings } from "@ishoot/database/types";
-import type { CompanyAssetItem } from "@ishoot/database";
-import { Card } from "@ishoot/ui";
+import type { CompanySettings } from "@platform/database/types";
+import type { CompanyAssetItem } from "@platform/database";
+import { Card } from "@platform/ui";
 import {
   Image as ImageIcon,
   UploadCloud,
@@ -244,19 +244,22 @@ export function BrandAssetsTab({
             <div className="p-6 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold border-b border-slate-100 pb-2">
                 <span>{t.brandAssetsTab.lightSurfaceInvoicesLettersPrint}</span>
-                <span className="text-[10px] text-slate-400 ">{t.brandAssetsTab.pineGreenEmerald}</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
-                <ContentImage
-                  src={settings.icon_url || "/brand/icon-light.svg"}
-                  alt={t.brandAssetsTab.brandIconLight}
-                  className="h-10 w-auto object-contain shrink-0"
-                />
-                <ContentImage
-                  src={settings.logo_url || "/brand/logo-text-dark.svg"}
-                  alt={t.brandAssetsTab.brandWordmarkDarkText}
-                  className="h-7 w-auto object-contain"
-                />
+                {settings.icon_url ? (
+                  <ContentImage
+                    src={settings.icon_url}
+                    alt={t.brandAssetsTab.brandIconLight}
+                    className="h-10 w-auto object-contain shrink-0"
+                  />
+                ) : null}
+                {settings.logo_url ? (
+                  <ContentImage
+                    src={settings.logo_url}
+                    alt={t.brandAssetsTab.brandWordmarkDarkText}
+                    className="h-7 w-auto object-contain"
+                  />
+                ) : null}
               </div>
               <div className="text-[10px] text-slate-400 text-center ">
                 {t.copy.logoLightPreview}</div>
@@ -266,19 +269,22 @@ export function BrandAssetsTab({
             <div className="p-6 rounded-xl bg-surface-sunken border border-ink/10 shadow-xs flex flex-col justify-between space-y-4">
               <div className="flex items-center justify-between text-[11px] text-ink/70 font-semibold border-b border-ink/10 pb-2">
                 <span>{t.brandAssetsTab.darkSurfaceWebAdminPortal}</span>
-                <span className="text-[10px] text-emerald-400 ">{t.brandAssetsTab.crispWhiteEmerald}</span>
               </div>
               <div className="min-h-[80px] flex items-center justify-center gap-3.5 py-4">
-                <ContentImage
-                  src={settings.dark_icon_url || "/brand/icon-dark.svg"}
-                  alt={t.brandAssetsTab.brandIconDark}
-                  className="h-10 w-auto object-contain shrink-0"
-                />
-                <ContentImage
-                  src={settings.dark_logo_url || "/brand/logo-text-light.svg"}
-                  alt={t.brandAssetsTab.brandWordmarkLightText}
-                  className="h-7 w-auto object-contain"
-                />
+                {settings.dark_icon_url ? (
+                  <ContentImage
+                    src={settings.dark_icon_url}
+                    alt={t.brandAssetsTab.brandIconDark}
+                    className="h-10 w-auto object-contain shrink-0"
+                  />
+                ) : null}
+                {settings.dark_logo_url ? (
+                  <ContentImage
+                    src={settings.dark_logo_url}
+                    alt={t.brandAssetsTab.brandWordmarkLightText}
+                    className="h-7 w-auto object-contain"
+                  />
+                ) : null}
               </div>
               <div className="text-[10px] text-ink/40 text-center ">
                 {t.copy.logoDarkPreview}</div>

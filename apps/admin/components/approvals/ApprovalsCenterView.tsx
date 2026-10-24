@@ -11,8 +11,8 @@ import {
   Inbox,
   ShieldAlert,
 } from "lucide-react";
-import { Button, Card } from "@ishoot/ui";
-import { APPROVAL_TARGET_TYPES } from "@ishoot/database/constants/approvals";
+import { Button, Card } from "@platform/ui";
+import { APPROVAL_TARGET_TYPES } from "@platform/database/constants/approvals";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { ApprovalListItem, ApprovalScope } from "../../types/approvals";
 

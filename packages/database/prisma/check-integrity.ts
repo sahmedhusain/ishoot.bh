@@ -1,5 +1,5 @@
 // Business-integrity audit for seeded (or real) data. Each rule is a query returning the rows that
-// break it; an empty result means the rule holds. Run: pnpm --filter @ishoot/database db:check-integrity
+// break it; an empty result means the rule holds. Run: pnpm --filter @platform/database db:check-integrity
 import dotenv from "dotenv";
 import path from "path";
 

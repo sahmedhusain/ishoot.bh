@@ -1,16 +1,16 @@
-import { formatMessage, getTranslations } from "@ishoot/locales";
+import { formatMessage, getTranslations } from "@platform/locales";
 import * as React from "react";
 import sharp from "sharp";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { InvoicePdfDocument } from "./invoice-pdf";
 import { ReceiptPdfDocument } from "./receipt-pdf";
-import type { Invoice, Payment, CompanySettings, Quotation } from "@ishoot/database/types";
+import type { Invoice, Payment, CompanySettings, Quotation } from "@platform/database/types";
 import QRCode from "qrcode";
-import { db, getClientAcceptance, getTaxCertificate, mapContact, type ClientSignableType } from "@ishoot/database";
-import type { DocumentTaxLine } from "@ishoot/database/types";
+import { db, getClientAcceptance, getTaxCertificate, mapContact, type ClientSignableType } from "@platform/database";
+import type { DocumentTaxLine } from "@platform/database/types";
 
 import { publicOrigin } from "../public-origin";
-import { getSigningState, type SignableDocument } from "@ishoot/database/queries/document-signing";
+import { getSigningState, type SignableDocument } from "@platform/database/queries/document-signing";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import { resolvePdfBrand, type ClientAcceptance, type CompanySignature, type TaxCertificateMark } from "./kit";
 

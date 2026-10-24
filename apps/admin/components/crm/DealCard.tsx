@@ -2,8 +2,8 @@
 
 import { ROUTES } from "../../constants/routes";
 import { useDraggable } from "@dnd-kit/core";
-import type { CRMDeal } from "@ishoot/database/types";
-import { Card,CurrencyDisplay } from "@ishoot/ui";
+import type { CRMDeal } from "@platform/database/types";
+import { Card,CurrencyDisplay } from "@platform/ui";
 import Link from "next/link";
 import { Calendar,User } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";

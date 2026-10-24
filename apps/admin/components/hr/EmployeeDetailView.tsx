@@ -9,8 +9,8 @@ import {
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Employee, Department } from "@ishoot/database/types";
-import { Card, Button, formatDate } from "@ishoot/ui";
+import type { Employee, Department } from "@platform/database/types";
+import { Card, Button, formatDate } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,

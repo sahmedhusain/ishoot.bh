@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 const MAX_SIGNATURE_BYTES = 200 * 1024;
 
 /** A drawn signature must be a real, reasonably small PNG data URL. Returns its bytes. */

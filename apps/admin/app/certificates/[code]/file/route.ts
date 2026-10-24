@@ -12,7 +12,7 @@ import {
   measureOperation,
   uploadRoot,
   uploadStorageLocation,
-} from "@ishoot/database";
+} from "@platform/database";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

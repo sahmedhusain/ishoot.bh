@@ -3,12 +3,12 @@
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import type { FinancialSummary, Quotation } from "@ishoot/database/types";
-import { Button,StatusBadge,CurrencyDisplay } from "@ishoot/ui";
+import type { FinancialSummary, Quotation } from "@platform/database/types";
+import { Button,StatusBadge,CurrencyDisplay } from "@platform/ui";
 import { Plus, Eye, ExternalLink, FileCheck, ArrowRight, ArrowLeft } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
-import type { InvoiceListRow } from "@ishoot/database";
+import type { InvoiceListRow } from "@platform/database";
 
 interface InvoicesListViewProps {
   initialInvoices: InvoiceListRow[];
@@ -59,7 +59,7 @@ export function InvoicesListView({
               <div>
                 <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>{t.invoicesList.acceptedQuotesBanner || (t.invoicesList.acceptedQuotationsReadyForInvoicing)}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F5F2] dark:bg-[#1D3531] text-primary dark:text-mint">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-tone-95 dark:bg-tone-15 text-primary dark:text-mint">
                     {acceptedQuotations.length}
                   </span>
                 </h3>

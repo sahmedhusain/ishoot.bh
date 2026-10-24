@@ -1,6 +1,6 @@
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@ishoot/database";
+import { db } from "@platform/database";
 import { getCurrentUser, requirePermission } from "../../../../lib/auth";
 export async function GET(req: NextRequest, { params }: { params: Promise<{ domain: string }> }) {
   return measureOperation("admin:lookups/[domain]:GET", async () => {

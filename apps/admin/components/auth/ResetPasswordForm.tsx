@@ -4,11 +4,11 @@ import type { AuthBrandingProps } from "../../types/auth";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Input, Button, Card } from "@ishoot/ui";
+import { Input, Button, Card } from "@platform/ui";
 import { Lock, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
-import { ContentImage } from "../shared/ContentImage";
+import { AuthBrandMark } from "./AuthBrandMark";
 
-export function ResetPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandingProps) {
+export function ResetPasswordForm(brand: AuthBrandingProps) {
   const { t } = useAdminLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -55,16 +55,13 @@ export function ResetPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandin
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#050807] relative overflow-hidden">
-      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-[#0B1210] border border-accent/30 shadow-2xl rounded-3xl space-y-8">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-brand-base relative overflow-hidden">
+      <Card className="relative z-10 w-full max-w-md p-8 sm:p-10 bg-brand-surface border border-accent/30 shadow-2xl rounded-3xl space-y-8">
         <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            <ContentImage width={40} height={40} src={iconUrl ?? undefined} alt={companyName} className="h-10 w-auto object-contain shrink-0 filter drop-shadow-[0_0_12px_rgba(9,147,127,0.3)]" />
-            <ContentImage width={240} height={60} src={logoUrl ?? undefined} alt={companyName} className="h-7 w-auto object-contain" />
-          </div>
+          <AuthBrandMark {...brand} />
           <div>
-            <h1 className="text-xl font-bold text-white tracking-tight font-display">{t.resetPasswordForm.createNewPassword}</h1>
-            <p className="text-xs text-[#9EADA9] uppercase">{t.resetPasswordForm.setAStrongPasswordFor}</p>
+            <h1 className="text-xl font-bold text-ink tracking-tight font-display">{t.resetPasswordForm.createNewPassword}</h1>
+            <p className="text-xs text-ink-muted uppercase">{t.resetPasswordForm.setAStrongPasswordFor}</p>
           </div>
         </div>
 
@@ -74,9 +71,9 @@ export function ResetPasswordForm({ companyName, logoUrl, iconUrl }: AuthBrandin
         {!message && !error && (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-[#9EADA9]">{t.resetPasswordForm.newPassword}</label>
+              <label className="text-xs font-medium text-ink-muted">{t.resetPasswordForm.newPassword}</label>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute top-3.5 start-3.5 text-[#9EADA9]" />
+                <Lock className="w-4 h-4 absolute top-3.5 start-3.5 text-ink-muted" />
                 <Input type="password" required placeholder={t.resetPasswordForm.min8Characters} minLength={8} className="ps-10" value={password} onChange={e => setPassword(e.target.value)} />
               </div>
             </div>

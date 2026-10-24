@@ -1,5 +1,6 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { db } from "../db";
+import { DEFAULT_FEATURE_MODULES } from "../constants/features";
 
 export async function getFeatureToggles() {
   return await db.featureToggle.findMany({
@@ -18,6 +19,12 @@ export async function updateFeatureToggle(moduleKey: string, isEnabled: boolean)
     where: { moduleKey },
     data: { isEnabled },
   });
+}
+
+/** Creates any default module that is missing (a fresh install has none); existing choices are kept. */
+export async function ensureDefaultFeatureModules() {
+  await db.featureToggle.createMany({ data: DEFAULT_FEATURE_MODULES.map((m) => ({ ...m })), skipDuplicates: true });
+  return getFeatureToggles();
 }
 
 export async function requireFeatureEnabled(moduleKey:string) {

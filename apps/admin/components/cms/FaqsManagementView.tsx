@@ -3,7 +3,7 @@ import type { FaqItem } from "../../types/cms";
 
 import * as React from "react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
-import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from "@ishoot/ui";
+import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from "@platform/ui";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { createFaqAction, updateFaqAction, deleteFaqAction } from "../../app/actions/cms";
 

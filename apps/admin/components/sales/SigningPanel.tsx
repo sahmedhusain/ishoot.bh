@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import type {
   SigningState,
   SignableDocument,
-} from "@ishoot/database/queries/document-signing";
+} from "@platform/database/queries/document-signing";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ContentImage } from "../shared/ContentImage";

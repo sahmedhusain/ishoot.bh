@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,14 +25,14 @@ import {
   Input,
   Select,
   formatDate,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import {
   ARCHIVE_GROUPS,
   ARCHIVE_KINDS,
   type ArchiveGroup,
   type ArchiveKind,
-} from "@ishoot/database/constants/archive";
-import type { ArchiveDocument, ArchiveFilters } from "@ishoot/database";
+} from "@platform/database/constants/archive";
+import type { ArchiveDocument, ArchiveFilters } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import {
   createAttachmentAction,
@@ -138,8 +138,7 @@ export function CompanyArchiveView({
         t.hrExtensions[d.file_name as "payslip" | "salary_certificate"] ??
         d.file_name
       );
-    if (d.source === "asset_handover")
-      return `${v.handoverForm} ${d.file_name}`;
+    if (d.source === "asset_handover") return v.handoverForm;
     if (d.source === "vat_certificate") return v.vatCertificate;
     if (d.source === "tax_certificate")
       return formatMessage(v.taxCertificate, { name: (isAr ? d.owner_ar : d.owner_en) ?? d.file_name });
@@ -552,8 +551,11 @@ export function CompanyArchiveView({
                       className="flex items-center gap-2 font-semibold text-ink hover:underline"
                     >
                       {icon(d)}
-                      <span className="break-all">{title(d)}</span>
+                      <span className="min-w-0 break-words">{title(d)}</span>
                     </a>
+                    {d.source === "asset_handover" ? (
+                      <div className="ms-6 font-mono text-[11px] text-ink-muted" dir="ltr">{d.file_name}</div>
+                    ) : null}
                     {d.uploaded_by ? (
                       <div className="ms-6 text-[11px] text-ink-muted">
                         {formatMessage(v.by, { name: d.uploaded_by })}

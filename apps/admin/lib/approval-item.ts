@@ -3,11 +3,11 @@ import {
   db,
   getSignatureMode,
   type Profile,
-} from "@ishoot/database";
+} from "@platform/database";
 import {
   APPROVAL_TARGET_TYPES,
   type ApprovalTargetType,
-} from "@ishoot/database/constants/approvals";
+} from "@platform/database/constants/approvals";
 import { ROUTES } from "../constants/routes";
 import { readableApprovalTypes } from "./approval-access";
 

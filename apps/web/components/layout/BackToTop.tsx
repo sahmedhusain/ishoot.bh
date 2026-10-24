@@ -61,7 +61,7 @@ export function BackToTop() {
         isVisible
           ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
           : "opacity-0 scale-75 translate-y-4 pointer-events-none"
-      } bg-[#0B1210]/90 backdrop-blur-2xl border border-white/15 text-white hover:border-[#09937F] hover:bg-[#014842] shadow-[0_10px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_0_24px_rgba(9,147,127,0.55)] active:scale-95`}
+      } bg-brand-surface/90 backdrop-blur-2xl border border-white/15 text-white hover:border-accent hover:bg-primary shadow-[0_10px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_0_24px_rgb(var(--brand-accent)/0.55)] active:scale-95`}
     >
       <svg
         className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-1"
@@ -80,7 +80,7 @@ export function BackToTop() {
           cy="24"
           r={radius}
           fill="none"
-          stroke="#09937F"
+          stroke="rgb(var(--brand-accent))"
           strokeWidth="2.5"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
@@ -89,7 +89,7 @@ export function BackToTop() {
         />
       </svg>
 
-      <ArrowUp className="w-5 h-5 text-white/90 group-hover:text-[#5EEAD4] group-hover:-translate-y-0.5 transition-[color,transform] duration-200" />
+      <ArrowUp className="w-5 h-5 text-white/90 group-hover:text-mint group-hover:-translate-y-0.5 transition-[color,transform] duration-200" />
     </button>
   );
 }

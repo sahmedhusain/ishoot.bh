@@ -1,4 +1,4 @@
-import { getTranslations, formatMessage, serverMessages } from "@ishoot/locales";
+import { getTranslations, formatMessage, serverMessages } from "@platform/locales";
 
 import crypto from "crypto";
 import { db } from "../db";
@@ -9,6 +9,9 @@ import type {
   CalendarVisibility,
 } from "../types";
 import { getEffectivePermissions } from "./permissions";
+
+/** Events without their own colour follow the company accent (resolved by the browser from the theme). */
+const ACCENT = "rgb(var(--brand-accent))";
 
 export const CALENDAR_VISIBILITIES = [
   "private",
@@ -40,7 +43,7 @@ export function mapEvent(e: any): CalendarEvent {
     end_date: e.endDate.toISOString(),
     all_day: e.allDay,
     location: e.location || undefined,
-    color: e.color || "#09937F",
+    color: e.color || ACCENT,
     event_type: e.eventType as any,
     deal_id: e.dealId || undefined,
     created_by: e.createdById || undefined,
@@ -209,7 +212,7 @@ export function canEditEvent(
 // ---------- Role-related events from the rest of the system ----------
 
 const COLORS: Record<CalendarLayer, string> = {
-  own: "#09937F",
+  own: ACCENT,
   shared: "#3B82F6",
   leave: "#8B5CF6",
   holidays: "#F59E0B",
@@ -772,7 +775,7 @@ export async function createCalendarEvent(
       endDate: new Date(data.end_date),
       allDay: data.all_day ?? false,
       location: data.location || null,
-      color: data.color || "#09937F",
+      color: data.color || null,
       eventType: data.event_type || "meeting",
       dealId: data.deal_id || null,
       createdById: data.created_by || null,

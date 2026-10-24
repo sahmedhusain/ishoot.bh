@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { claimUploadOrLink } from "../services/uploads";
 import { db, runAtomicMutation } from "../db";
 import { isCountryCode } from "../constants/clients";

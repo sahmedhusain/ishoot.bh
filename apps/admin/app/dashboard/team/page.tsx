@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireAuth } from "../../../lib/auth";
-import { db, getMemberHistory, getTeamMembers, getTeamPerformance } from "@ishoot/database";
+import { db, getMemberHistory, getTeamMembers, getTeamPerformance } from "@platform/database";
 import { ROUTES } from "../../../constants/routes";
 import { TeamPerformanceView } from "../../../components/team/TeamPerformanceView";
 

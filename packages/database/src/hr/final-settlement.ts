@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 /**
  * Final settlement arithmetic with no database access: leaving indemnity and unused leave.
  * Money is BHD rounded to 3 decimals; dates are UTC calendar days.

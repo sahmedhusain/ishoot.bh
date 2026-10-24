@@ -139,9 +139,9 @@ export function FloatingScrollbar() {
             : "opacity-0 scale-x-50 pointer-events-none"
         } ${
           isDragging
-            ? "bg-[#09937F] shadow-[0_0_12px_rgba(9,147,127,0.9)] scale-x-125"
+            ? "bg-accent shadow-[0_0_12px_rgb(var(--brand-accent)/0.9)] scale-x-125"
             : isHovered
-              ? "bg-[#09937F]/90 shadow-[0_0_8px_rgba(9,147,127,0.6)] scale-x-110"
+              ? "bg-accent/90 shadow-[0_0_8px_rgb(var(--brand-accent)/0.6)] scale-x-110"
               : "bg-white/30"
         }`}
         style={{

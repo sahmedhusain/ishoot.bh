@@ -1,6 +1,6 @@
 "use client";
 
-import { PortfolioCategory } from "@ishoot/database";
+import { PortfolioCategory } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
 
 interface CategoryTabsProps {
@@ -39,7 +39,7 @@ export function CategoryTabs({
             className={`relative min-h-11 px-5 py-2 rounded-md text-xs sm:text-sm font-sans tracking-wide transition-colors duration-150 select-none ${
               isActive
                 ? "text-white font-semibold bg-[var(--web-accent)] border border-[var(--web-accent)]"
-                : "text-[#9EADA9] hover:text-[#F2F6F5] bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/20"
+                : "text-ink-muted hover:text-ink bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-white/20"
             }`}
           >
             {name}

@@ -1,5 +1,5 @@
 {
-  "name": "@ishoot/web",
+  "name": "@platform/web",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -10,10 +10,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@ishoot/config": "workspace:*",
-    "@ishoot/database": "workspace:*",
-    "@ishoot/email": "workspace:*",
-    "@ishoot/locales": "workspace:*",
+    "@platform/config": "workspace:*",
+    "@platform/database": "workspace:*",
+    "@platform/email": "workspace:*",
+    "@platform/locales": "workspace:*",
     "@prisma/client": "5.22.0",
     "@supabase/supabase-js": "^2.117.2",
     "framer-motion": "^13.4.6",

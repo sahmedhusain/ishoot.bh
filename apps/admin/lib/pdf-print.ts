@@ -1,7 +1,7 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 export type PdfDocumentType = "invoice" | "receipt" | "quotation";
 
-export function documentPdfUrl(type: PdfDocumentType, id: string, locale: string, download = false) {
+function documentPdfUrl(type: PdfDocumentType, id: string, locale: string, download = false) {
   return `/api/documents/${encodeURIComponent(id)}/pdf?type=${type}&locale=${locale}${download ? "&download=true" : ""}`;
 }
 

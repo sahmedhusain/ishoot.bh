@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { canDecideApproval, createActivityLog, db, getAssetHandover, getCompanySettings, measureOperation } from "@ishoot/database";
+import { canDecideApproval, createActivityLog, db, getAssetHandover, getCompanySettings, measureOperation } from "@platform/database";
 import { getCurrentUser, hasPermission } from "../../../../../../lib/auth";
 import { generateAssetHandoverPdf } from "../../../../../../lib/pdf/asset-handover-pdf";
 

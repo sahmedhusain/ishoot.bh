@@ -1,8 +1,8 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@ishoot/database";
-import { runAtomicMutation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
+import { runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -16,7 +16,7 @@ import {
   db,
   revokeCalendarFeedToken,
   type CalendarVisibility,
-} from "@ishoot/database";
+} from "@platform/database";
 import { publicOrigin } from "../../lib/public-origin";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";

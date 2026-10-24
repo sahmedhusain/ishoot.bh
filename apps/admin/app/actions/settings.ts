@@ -1,8 +1,8 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@ishoot/database";
-import { runAtomicMutation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
+import { runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import {
@@ -14,7 +14,7 @@ import {
   claimUpload,
   CompanySettings,
   WebSettingsInput,
-} from "@ishoot/database";
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "../../lib/auth";
 
@@ -167,7 +167,7 @@ export async function toggleFeatureAction(
   return measureOperation("action:toggleFeatureAction", async () => {
     const user = await requirePermission("settings", "write");
     validateActionArguments("toggleFeatureAction", { moduleKey, isEnabled });
-    const { updateFeatureToggle } = require("@ishoot/database");
+    const { updateFeatureToggle } = require("@platform/database");
     const feature = await runAtomicMutation(async () => {
       const feature = await updateFeatureToggle(moduleKey, isEnabled);
       await createActivityLog({
@@ -253,7 +253,7 @@ export async function createSocialLinkAction(data: {
   return measureOperation("action:createSocialLinkAction", async () => {
     const user = await requirePermission("settings", "write");
     validateActionArguments("createSocialLinkAction", { data });
-    const { createSocialLink } = require("@ishoot/database");
+    const { createSocialLink } = require("@platform/database");
     const { revalidatePublicSite } = await import("../../lib/revalidate-web");
     const link = await runAtomicMutation(async () => {
       const link = await createSocialLink(data);
@@ -287,7 +287,7 @@ export async function updateSocialLinkAction(
   return measureOperation("action:updateSocialLinkAction", async () => {
     const user = await requirePermission("settings", "write");
     validateActionArguments("updateSocialLinkAction", { id, data });
-    const { updateSocialLink } = require("@ishoot/database");
+    const { updateSocialLink } = require("@platform/database");
     const { revalidatePublicSite } = await import("../../lib/revalidate-web");
     const link = await runAtomicMutation(async () => {
       const link = await updateSocialLink(id, data);
@@ -312,7 +312,7 @@ export async function deleteSocialLinkAction(id: string) {
   return measureOperation("action:deleteSocialLinkAction", async () => {
     const user = await requirePermission("settings", "write");
     validateActionArguments("deleteSocialLinkAction", { id });
-    const { deleteSocialLink } = require("@ishoot/database");
+    const { deleteSocialLink } = require("@platform/database");
     const { revalidatePublicSite } = await import("../../lib/revalidate-web");
     const deleted = await runAtomicMutation(async () => {
       const deleted = await deleteSocialLink(id);

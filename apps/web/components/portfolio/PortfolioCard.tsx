@@ -1,6 +1,6 @@
 "use client";
 import {ContentImage} from "../shared/ContentImage";
-import type { PortfolioItem } from "@ishoot/database/types";
+import type { PortfolioItem } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Play, ArrowUpRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -36,7 +36,7 @@ export function PortfolioCard({
         />
 
         {/* Action badge */}
-        <span className="absolute bottom-3 end-3 rounded-full bg-[var(--web-accent)] text-white p-3 group-hover:bg-[#5EEAD4] group-hover:text-[#050807] transition-colors duration-150">
+        <span className="absolute bottom-3 end-3 rounded-full bg-[var(--web-accent)] text-white p-3 group-hover:bg-mint group-hover:text-brand-base transition-colors duration-150">
           {isVideo ? (
             <Play className="w-4 h-4 fill-current" />
           ) : (
@@ -47,17 +47,17 @@ export function PortfolioCard({
 
       <div className="pt-5 pb-3">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-lg sm:text-xl font-bold font-display text-white group-hover:text-[#5EEAD4] transition-colors ">
+          <h2 className="text-lg sm:text-xl font-bold font-display text-white group-hover:text-mint transition-colors ">
             {title}
           </h2>
           {item.year && (
-            <span className="text-xs text-[#9EADA9] font-semibold shrink-0">
+            <span className="text-xs text-ink-muted font-semibold shrink-0">
               {item.year}
             </span>
           )}
         </div>
         {item.client_name && (
-          <p className="text-xs sm:text-sm text-[#9EADA9] mt-1 font-medium ">
+          <p className="text-xs sm:text-sm text-ink-muted mt-1 font-medium ">
             {item.client_name}
           </p>
         )}

@@ -1,7 +1,7 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation, runAtomicMutation } from "@ishoot/database";
+import { measureOperation, runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
   createPayrollRun,
@@ -18,7 +18,7 @@ import {
   recalculatePayrollRun,
   payPayrollItem,
   recordSupportReimbursement,
-} from "@ishoot/database";
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requireAuth, requirePermission } from "../../lib/auth";
 

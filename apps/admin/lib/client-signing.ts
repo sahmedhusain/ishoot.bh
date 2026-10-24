@@ -1,6 +1,6 @@
-import { formatMessage, getTranslations } from "@ishoot/locales";
+import { formatMessage, getTranslations } from "@platform/locales";
 
-import type { ConsentText } from "@ishoot/database";
+import type { ConsentText } from "@platform/database";
 
 /** The e-signature consent in the document's language, e.g. "… accept quotation QTE-2026-000008 …". */
 export const signingConsent: ConsentText = (language, number, type) => {

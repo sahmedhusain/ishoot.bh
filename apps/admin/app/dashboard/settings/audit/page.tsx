@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getActivityLogs } from "@ishoot/database";
+import { getActivityLogs } from "@platform/database";
 import { AuditSessionsView } from "../../../../components/settings/AuditSessionsView";
 
 export const dynamic = "force-dynamic";

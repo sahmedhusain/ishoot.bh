@@ -1,5 +1,5 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { listEmployees, listDepartments, listExpiringEmployeeDocuments } from "@ishoot/database";
+import { listEmployees, listDepartments, listExpiringEmployeeDocuments } from "@platform/database";
 import { ExpiringDocumentsCard } from "../../../../components/hr/ExpiringDocumentsCard";
 import { EmployeesListView } from "../../../../components/hr/EmployeesListView";
 

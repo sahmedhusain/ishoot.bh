@@ -1,4 +1,4 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../constants/routes";
 import { DEAL_STAGE_ON_EVENT, DEAL_STAGE_PROBABILITY, dealStagesBefore, isActiveDealStage, type DealProgressEvent } from "../constants/crm";
 import { getCompanySettings } from "./company-settings";

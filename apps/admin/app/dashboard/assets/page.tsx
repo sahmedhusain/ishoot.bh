@@ -1,4 +1,4 @@
-import { db, listAssetCategories, listAssets, ASSET_SORTS } from "@ishoot/database";
+import { db, listAssetCategories, listAssets, ASSET_SORTS } from "@platform/database";
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { AssetsListView } from "../../../components/assets/AssetsListView";
 

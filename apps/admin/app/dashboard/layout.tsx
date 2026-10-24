@@ -1,10 +1,11 @@
 import * as React from "react";
+import { redirect } from "next/navigation";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { Topbar } from "../../components/layout/Topbar";
 import { SidebarProvider } from "../../components/layout/SidebarContext";
 import { getCachedCompanySettings, getCachedFeatureToggles } from "../../lib/cached-queries";
 import { getCurrentPermissions,requireAuth } from "../../lib/auth";
-import { db, getActiveTaxSummary } from "@ishoot/database";
+import { db, getActiveTaxSummary } from "@platform/database";
 import { PermissionsProvider } from "../../hooks/usePermissions";
 import { FeatureTogglesProvider } from "../../hooks/useFeatureToggles";
 import { CompanyVatProvider } from "../../hooks/useCompanyVat";
@@ -25,6 +26,8 @@ export default async function DashboardLayout({
     db.department.count({ where: { managerId: user.id } }),
     getActiveTaxSummary(),
   ]);
+  // A new company is configured through the first-run setup wizard before anyone uses the dashboard.
+  if (!company.setup_completed) redirect("/setup");
 
   return (
     <PermissionsProvider
@@ -40,7 +43,7 @@ export default async function DashboardLayout({
       <FeatureTogglesProvider initialFeatures={toggles}>
         <CompanyVatProvider value={{ enabled: !!company.vat_enabled, rate: company.vat_enabled ? Number(company.vat_percentage ?? 10) : 0, taxes }}>
         <SidebarProvider>
-          <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#F4F8F7] text-slate-800 dark:bg-[#080E0D] dark:text-ink transition-colors duration-200">
+          <div className="h-screen w-screen overflow-hidden flex flex-col bg-brand-base text-slate-800 dark:bg-brand-base dark:text-ink transition-colors duration-200">
             {/* Fixed Topbar spanning full width with Logo at start */}
             <Topbar
               company={{

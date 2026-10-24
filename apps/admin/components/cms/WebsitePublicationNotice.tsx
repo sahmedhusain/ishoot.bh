@@ -1,4 +1,4 @@
-import { getWebsitePublicationStatus, type WebsiteSnapshotSection } from "@ishoot/database";
+import { getWebsitePublicationStatus, type WebsiteSnapshotSection } from "@platform/database";
 import { hasPermission } from "../../lib/auth";
 import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
 

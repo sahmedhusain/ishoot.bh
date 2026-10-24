@@ -1,6 +1,6 @@
 import { ROUTES } from "../../../constants/routes";
 import { requirePagePermission } from "../../../lib/auth";
-import { getPaymentsPage, type ListParameters } from "@ishoot/database";
+import { getPaymentsPage, type ListParameters } from "@platform/database";
 import { PaymentsManagementView } from "../../../components/payments/PaymentsManagementView";
 import { ListControls } from "../../../components/shared/ListControls";
 export const dynamic = "force-dynamic";

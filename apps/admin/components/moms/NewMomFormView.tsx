@@ -5,7 +5,7 @@ import { EntityLookup } from "../shared/EntityLookup";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Card,Button,Input,Select } from "@ishoot/ui";
+import { Card,Button,Input,Select } from "@platform/ui";
 import {
 FileSignature,
 Plus,
@@ -17,7 +17,7 @@ ArrowRight
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { createMomAction } from "../../app/actions/mom";
-import type { MomAttendee, MomDiscussionPoint, MomActionItem } from "@ishoot/database";
+import type { MomAttendee, MomDiscussionPoint, MomActionItem } from "@platform/database";
 
 interface NewMomFormViewProps {
   clients: Array<{ id: string; name: string; company?: string | null }>;
@@ -207,7 +207,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
           <Button
             type="submit"
             disabled={saving}
-            className="bg-accent hover:bg-[#077464] text-white flex items-center gap-2 shadow-lg"
+            className="bg-accent hover:bg-tone-25 text-white flex items-center gap-2 shadow-lg"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>
@@ -587,7 +587,7 @@ export function NewMomFormView({ clients, deals, companyName, initialAttendee }:
         <Button
           type="submit"
           disabled={saving}
-          className="bg-accent hover:bg-[#077464] text-white flex items-center gap-2 px-6 py-2.5 text-sm font-bold shadow-xl"
+          className="bg-accent hover:bg-tone-25 text-white flex items-center gap-2 px-6 py-2.5 text-sm font-bold shadow-xl"
         >
           <Save className="w-4 h-4" />
           <span>{saving ? (t.newMomForm.saving) : t.newMomForm.saveDocument}</span>

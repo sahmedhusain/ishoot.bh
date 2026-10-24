@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Card } from "@ishoot/ui";
-import { ROUTES } from "@ishoot/database/constants/routes";
+import { Card } from "@platform/ui";
+import { ROUTES } from "@platform/database/constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 export interface PayHistoryRow {

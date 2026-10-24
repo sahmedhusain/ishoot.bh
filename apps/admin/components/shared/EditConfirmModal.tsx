@@ -1,7 +1,7 @@
 "use client";
 import type { AdminTranslations } from "../../lib/translations";
 
-import { Modal,Button } from "@ishoot/ui";
+import { Modal,Button } from "@platform/ui";
 import { ArrowRight,CheckCircle2,AlertCircle,Loader2 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

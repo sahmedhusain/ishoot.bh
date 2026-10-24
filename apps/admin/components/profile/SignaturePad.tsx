@@ -1,12 +1,12 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Eraser, PenLine, Send, Undo2, History, X } from "lucide-react";
 import { toast } from "sonner";
-import type { SignatureChangeRow } from "@ishoot/database/queries/signature-changes";
+import type { SignatureChangeRow } from "@platform/database/queries/signature-changes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadFileDirectly } from "../../lib/upload-client";
 import { ContentImage } from "../shared/ContentImage";

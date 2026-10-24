@@ -1,16 +1,16 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
-import { Input, Select, formatCurrencyValue } from "@ishoot/ui";
-import type { EmployeeCredentialInput } from "@ishoot/database";
+import { Input, Select, formatCurrencyValue } from "@platform/ui";
+import type { EmployeeCredentialInput } from "@platform/database";
 import {
   COST_FREQUENCIES,
   CREDENTIAL_KINDS,
   VISA_TYPES,
   monthlyCost,
-} from "@ishoot/database/constants/employee-documents";
-import { countryOptions } from "@ishoot/database/constants/clients";
+} from "@platform/database/constants/employee-documents";
+import { countryOptions } from "@platform/database/constants/clients";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadForClaim } from "../../lib/upload-client";
 import { LinkOrUploadField } from "../shared/LinkOrUploadField";

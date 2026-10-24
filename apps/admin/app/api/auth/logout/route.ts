@@ -1,6 +1,6 @@
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
-import { deleteSession, createActivityLog } from "@ishoot/database";
+import { deleteSession, createActivityLog } from "@platform/database";
 import { verifySessionToken } from "../../../../lib/jwt";
 import { SESSION_COOKIE_NAME } from "../../../../lib/auth";
 

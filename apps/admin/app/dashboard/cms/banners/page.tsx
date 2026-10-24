@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getAllBanners } from "@ishoot/database";
+import { getAllBanners } from "@platform/database";
 import { BannersManagementView } from "../../../../components/cms/BannersManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
 

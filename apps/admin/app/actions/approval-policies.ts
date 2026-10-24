@@ -1,7 +1,7 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation, updateApprovalPolicy, createActivityLog, type ApprovalTargetType, type ApproverMode } from "@ishoot/database";
+import { measureOperation, updateApprovalPolicy, createActivityLog, type ApprovalTargetType, type ApproverMode } from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";

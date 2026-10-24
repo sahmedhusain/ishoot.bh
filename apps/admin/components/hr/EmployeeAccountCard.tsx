@@ -1,12 +1,12 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Clock, KeyRound, Lock, Pencil } from "lucide-react";
-import { Button, Card, DateDisplay } from "@ishoot/ui";
+import { Button, Card, DateDisplay } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { AccountSettingsDialog, type AccountSettingsValue } from "../shared/AccountSettingsDialog";
 import { cancelAccountChangeAction } from "../../app/actions/account-settings";

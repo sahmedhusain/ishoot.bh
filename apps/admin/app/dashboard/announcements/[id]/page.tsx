@@ -5,7 +5,7 @@ import {
   findPendingApproval,
   canDecideApproval,
   getSignatureMode,
-} from "@ishoot/database";
+} from "@platform/database";
 import { requireAuth } from "../../../../lib/auth";
 import { communicationOptions } from "../../../../lib/communication-options";
 import { AnnouncementDetailView } from "../../../../components/communications/AnnouncementDetailView";

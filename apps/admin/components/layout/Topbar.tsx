@@ -11,7 +11,7 @@ import { NotificationCenter } from "./NotificationCenter";
 import { AdminProfileDropdown } from "./AdminProfileDropdown";
 import { GlobalQuickJump } from "./GlobalQuickJump";
 import { useSidebar } from "./SidebarContext";
-import type { CRMContact, CompanySettings } from "@ishoot/database/types";
+import type { CRMContact, CompanySettings } from "@platform/database/types";
 
 interface TopbarProps {
   contacts?: CRMContact[];

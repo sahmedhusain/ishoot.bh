@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
 import { X, ArrowRight, ArrowLeft } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import type { PublicCompanySettings } from "@ishoot/database/types";
+import type { PublicCompanySettings } from "@platform/database/types";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -57,7 +57,7 @@ export function MobileMenu({
         e.preventDefault();
         onClose();
       }}
-      className="fixed inset-0 m-0 w-full max-w-none h-[100dvh] max-h-none z-50 flex flex-col justify-between bg-[#050807] text-white p-6 sm:p-10"
+      className="fixed inset-0 m-0 w-full max-w-none h-[100dvh] max-h-none z-50 flex flex-col justify-between bg-brand-base text-white p-6 sm:p-10"
       data-lenis-prevent
     >
       <div className="flex items-center justify-between">
@@ -87,7 +87,7 @@ export function MobileMenu({
           <button
             aria-label={t("common.closeMenu")}
             onClick={onClose}
-            className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:text-[#09937F] transition-colors"
+            className="w-11 h-11 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white hover:text-accent transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -100,10 +100,10 @@ export function MobileMenu({
             key={link.href}
             href={link.href}
             onClick={onClose}
-            className="group flex items-center justify-between text-3xl sm:text-4xl font-bold text-[#F2F6F5] hover:text-[#09937F] transition-colors py-2 border-b border-white/5"
+            className="group flex items-center justify-between text-3xl sm:text-4xl font-bold text-ink hover:text-accent transition-colors py-2 border-b border-white/5"
           >
             <span>{link.label}</span>
-            <ArrowIcon className="w-6 h-6 opacity-60 group-hover:opacity-100 transition-opacity duration-150 text-[#09937F]" />
+            <ArrowIcon className="w-6 h-6 opacity-60 group-hover:opacity-100 transition-opacity duration-150 text-accent" />
           </Link>
         ))}
       </nav>
@@ -112,9 +112,11 @@ export function MobileMenu({
         <div className="flex justify-center">
           <LanguageSwitcher />
         </div>
-        <div className="text-center text-xs text-[#9EADA9]">
-          {t("common.location")}
-        </div>
+        {(locale === "ar" ? company.address_ar : company.address_en) ? (
+          <div className="text-center text-xs text-ink-muted">
+            {locale === "ar" ? company.address_ar : company.address_en}
+          </div>
+        ) : null}
       </div>
     </dialog>
   );

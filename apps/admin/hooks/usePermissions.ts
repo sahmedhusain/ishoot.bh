@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import type { UserRole, PermissionResource, PermissionAction } from "@ishoot/database";
+import type { UserRole, PermissionResource, PermissionAction } from "@platform/database";
 
 export type { PermissionResource, PermissionAction };
 

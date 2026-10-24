@@ -1,15 +1,15 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
-import { getCurrencyLabel } from "@ishoot/config/currency";
+import { formatMessage } from "@platform/locales";
+import { getCurrencyLabel } from "@platform/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card } from "@ishoot/ui";
+import { Card } from "@platform/ui";
 import { BadgeDollarSign, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import type { CommissionRow } from "@ishoot/database/queries/sales-attribution";
+import type { CommissionRow } from "@platform/database/queries/sales-attribution";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { recordCommissionPayoutAction } from "../../app/actions/sales";

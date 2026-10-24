@@ -1,5 +1,5 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getStatistics } from "@ishoot/database";
+import { getStatistics } from "@platform/database";
 import { StatsManagementView } from "../../../../components/cms/StatsManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
 

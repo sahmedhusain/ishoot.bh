@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -11,8 +11,8 @@ import {
   RefreshCw,
   Unlink,
 } from "lucide-react";
-import { Button, Card, formatDate } from "@ishoot/ui";
-import type { CalendarLayer } from "@ishoot/database/types";
+import { Button, Card, formatDate } from "@platform/ui";
+import type { CalendarLayer } from "@platform/database/types";
 import {
   createCalendarFeedAction,
   revokeCalendarFeedAction,

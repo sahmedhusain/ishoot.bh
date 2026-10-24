@@ -1,5 +1,5 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -8,10 +8,10 @@ import { LeaveBalancesCard } from "./LeaveBalancesCard";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import type { LeaveRequest, Employee } from "@ishoot/database/types";
-import type { LeaveTypeView } from "@ishoot/database/queries/hr-settings";
-import type { LeaveBalance } from "@ishoot/database/queries/leave-balances";
-import { Card, Button, useDialog, formatDate } from "@ishoot/ui";
+import type { LeaveRequest, Employee } from "@platform/database/types";
+import type { LeaveTypeView } from "@platform/database/queries/hr-settings";
+import type { LeaveBalance } from "@platform/database/queries/leave-balances";
+import { Card, Button, useDialog, formatDate } from "@platform/ui";
 import { Clock, Plus } from "lucide-react";
 import {
   createLeaveRequestAction,
@@ -213,7 +213,7 @@ export function LeaveManagementView({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-ink/10 pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-[#EDF3EC] dark:bg-[#004d40]/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-[#EDF3EC] dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
               {t.leaveManagement.operationalAvailabilityAndHrms}
             </span>
           </div>

@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
-import { getTranslations, formatMessage } from "@ishoot/locales";
+import { getTranslations, formatMessage } from "@platform/locales";
 import { getPublicCompanySettings } from "../lib/company";
 import { publicSiteUrl } from "../lib/site-url";
 
@@ -31,11 +31,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const viewport: Viewport = {
-  themeColor: "#014842",
-  width: "device-width",
-  initialScale: 1,
-};
+export async function generateViewport(): Promise<Viewport> {
+  const company = await getPublicCompanySettings().catch(() => null);
+  return {
+    themeColor: company?.theme.primary,
+    width: "device-width",
+    initialScale: 1,
+  };
+}
 
 export default function RootLayout({
   children,

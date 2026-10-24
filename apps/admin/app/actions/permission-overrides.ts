@@ -1,6 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { ALL_ACTIONS, ALL_RESOURCES, createActivityLog, db, measureOperation, runAtomicMutation } from "@ishoot/database";
+import { ALL_ACTIONS, ALL_RESOURCES, createActivityLog, db, measureOperation, runAtomicMutation } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";

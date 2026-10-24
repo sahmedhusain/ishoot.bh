@@ -1,4 +1,4 @@
-import { db, getCalendarFeedInfo, getCalendarFor } from "@ishoot/database";
+import { db, getCalendarFeedInfo, getCalendarFor } from "@platform/database";
 import { requirePagePermission } from "../../../lib/auth";
 import { OdooCalendarView } from "../../../components/calendar/OdooCalendarView";
 

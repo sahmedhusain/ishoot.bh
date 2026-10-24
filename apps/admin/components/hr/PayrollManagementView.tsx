@@ -5,9 +5,9 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ROUTES } from "@ishoot/database/constants/routes";
-import type { PayrollRun } from "@ishoot/database/types";
-import { Card, Button, Modal, useDialog } from "@ishoot/ui";
+import { ROUTES } from "@platform/database/constants/routes";
+import type { PayrollRun } from "@platform/database/types";
+import { Card, Button, Modal, useDialog } from "@platform/ui";
 import {
   DollarSign,
   Plus,
@@ -198,7 +198,7 @@ export function PayrollManagementView({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-ink/10 pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-[#EDF3EC] dark:bg-[#004d40]/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
+            <span className="text-xs font-mono uppercase tracking-widest text-accent bg-[#EDF3EC] dark:bg-tone-15/40 dark:text-mint px-2.5 py-0.5 rounded-full font-medium">
               {t.payrollManagement.hrAndStatutoryPayroll}
             </span>
           </div>

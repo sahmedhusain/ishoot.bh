@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CloudUpload } from "lucide-react";
-import type { WebsiteSnapshotSection } from "@ishoot/database";
+import type { WebsiteSnapshotSection } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

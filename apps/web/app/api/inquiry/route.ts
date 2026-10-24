@@ -1,7 +1,7 @@
-import { serverMessages, formatMessage, getTranslations } from "@ishoot/locales";
+import { serverMessages, formatMessage, getTranslations } from "@platform/locales";
 
 
-import {requireFeatureEnabled, measureOperation } from "@ishoot/database";
+import {requireFeatureEnabled, measureOperation } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import {
@@ -10,8 +10,8 @@ import {
   getWebsiteSnapshot,
   db,
   normalizeToE164,
-} from "@ishoot/database";
-import { sendEmail } from "@ishoot/email";
+} from "@platform/database";
+import { sendEmail } from "@platform/email";
 
 import {
   readSubmission,

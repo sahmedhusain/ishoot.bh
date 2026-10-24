@@ -1,6 +1,6 @@
-import { serverMessages } from "@ishoot/locales";
-import { db, hasPermission, canDecideApproval } from "@ishoot/database";
-import type { Profile } from "@ishoot/database";
+import { serverMessages } from "@platform/locales";
+import { db, hasPermission, canDecideApproval } from "@platform/database";
+import type { Profile } from "@platform/database";
 
 export async function canManageSalaryDocuments(user: Profile) {
   return await hasPermission(

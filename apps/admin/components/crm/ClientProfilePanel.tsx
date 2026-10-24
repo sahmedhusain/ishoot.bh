@@ -1,10 +1,10 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { AlertTriangle, Building2, FileBadge, Landmark, Mail, MapPin, Phone, Star, Trophy, User } from "lucide-react";
-import { Card, formatCurrencyValue, formatDate } from "@ishoot/ui";
-import type { CRMContact } from "@ishoot/database/types";
-import { countryName } from "@ishoot/database/constants/clients";
+import { Card, formatCurrencyValue, formatDate } from "@platform/ui";
+import type { CRMContact } from "@platform/database/types";
+import { countryName } from "@platform/database/constants/clients";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { formatClientAddress } from "../../lib/client-address";
 

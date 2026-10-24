@@ -1,40 +1,25 @@
 import sharp from "sharp";
 import fs from "fs/promises";
-import { uploadRoot } from "@ishoot/database";
+import { uploadRoot } from "@platform/database";
 import path from "path";
 import {
   db,
   getStorageClient,
   uploadStorageLocation,
   isSupabaseStorageConfigured,
-} from "@ishoot/database";
+} from "@platform/database";
 
-/**
- * PDF images: vector art is rasterized at print resolution and empty margins are trimmed so a
- * signature or stamp fills the box it is placed in.
- */
-async function printReady(buffer: Buffer, vector: boolean): Promise<Buffer> {
+/** PDF images: empty margins are trimmed so a signature or stamp fills the box it is placed in. */
+async function printReady(buffer: Buffer): Promise<Buffer> {
   try {
     // Sharp at the printed size (a stamp or logo is under 3 cm) while keeping multi-page PDFs small.
-    return await sharp(buffer, {
-      limitInputPixels: 16000000,
-      ...(vector ? { density: 300 } : {}),
-    })
+    return await sharp(buffer, { limitInputPixels: 16000000 })
       .trim()
-      .resize({
-        width: 520,
-        height: 520,
-        fit: "inside",
-        withoutEnlargement: true,
-      })
+      .resize({ width: 520, height: 520, fit: "inside", withoutEnlargement: true })
       .png({ compressionLevel: 9, palette: true })
       .toBuffer();
   } catch {
-    return vector
-      ? sharp(buffer, { limitInputPixels: 16000000, density: 300 })
-          .png()
-          .toBuffer()
-      : buffer;
+    return buffer;
   }
 }
 
@@ -51,13 +36,11 @@ export async function resolveConfiguredPdfAsset(
       .toBuffer()
       .catch(() => bytes);
   }
-  if (!url || !/^\/(brand\/|uploads\/brand\/|api\/files\/)/.test(url)) return;
+  // Company files (logos, stamp, signatures) are uploads; the apps ship none of their own.
+  if (!url || !url.startsWith("/api/files/")) return;
   if (/[?#\\\u0000]/.test(url)) return;
 
-  const privateFile = url.startsWith("/api/files/");
-
-  // Storage fallback for cloud environments
-  if (privateFile && isSupabaseStorageConfigured()) {
+  if (isSupabaseStorageConfigured()) {
     try {
       const upload = await db.uploadObject.findUnique({
         where: { fileUrl: url },
@@ -70,7 +53,7 @@ export async function resolveConfiguredPdfAsset(
         .download(location.path);
       if (!error && data) {
         const buffer = Buffer.from(await data.arrayBuffer());
-        return printReady(buffer, /\.svg$/i.test(url));
+        return printReady(buffer);
       }
     } catch (e) {
       console.warn("Storage fetch failed", e);
@@ -78,21 +61,10 @@ export async function resolveConfiguredPdfAsset(
     return undefined;
   }
 
-  // Local disk fallback for local development or public files
-  const root = privateFile
-    ? uploadRoot()
-    : path.resolve(process.cwd(), "public");
-  const relative = privateFile ? url.slice("/api/files/".length) : url.slice(1);
-  let target = path.resolve(root, relative);
-  if (url.startsWith("/brand/") && target.endsWith(".svg")) {
-    const png = target.slice(0, -4) + ".png";
-    try {
-      if ((await fs.stat(png)).isFile()) target = png;
-    } catch {
-      /* Convert the original trusted SVG below. */
-    }
-  }
-  if (!/\.(png|jpe?g|svg|webp)$/i.test(target)) return;
+  // Local disk storage (development, single server)
+  const root = uploadRoot();
+  let target = path.resolve(root, url.slice("/api/files/".length));
+  if (!/\.(png|jpe?g|webp)$/i.test(target)) return;
   try {
     const resolvedRoot = await fs.realpath(root);
     target = await fs.realpath(target);
@@ -101,8 +73,7 @@ export async function resolveConfiguredPdfAsset(
       !(await fs.stat(target)).isFile()
     )
       return;
-    const buf = await fs.readFile(target);
-    return printReady(buf, /\.svg$/i.test(target));
+    return printReady(await fs.readFile(target));
   } catch {
     return;
   }

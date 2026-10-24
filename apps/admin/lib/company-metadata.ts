@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { getCachedCompanySettings } from "./cached-queries";
 import { adminTranslations } from "./translations-bilingual";
 

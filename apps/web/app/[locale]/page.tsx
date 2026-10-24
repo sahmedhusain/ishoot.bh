@@ -1,6 +1,6 @@
 import { getPublicCompanySettings } from "../../lib/company";
 import { getWebsite } from "../../lib/website";
-import { getReviews } from "@ishoot/database";
+import { getReviews } from "@platform/database";
 import { CinemaHero } from "../../components/hero/CinemaHero";
 import { AboutSection } from "../../components/about/AboutSection";
 import { LogoMarquee } from "../../components/clients/LogoMarquee";
@@ -9,7 +9,7 @@ import { WorksSection } from "../../components/portfolio/WorksSection";
 import { StatsSection } from "../../components/about/StatsSection";
 import { ReviewsSection } from "../../components/about/ReviewsSection";
 import { FAQSection } from "../../components/about/FAQSection";
-import type { WebsiteSection } from "@ishoot/database/website-config";
+import type { WebsiteSection } from "@platform/database/website-config";
 export default async function HomePage() {
   const [website, reviews, company] = await Promise.all([
     getWebsite(),

@@ -6,7 +6,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
 import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
 import { motion, useReducedMotion } from "framer-motion";
-import type { Review } from "@ishoot/database/types";
+import type { Review } from "@platform/database/types";
 
 export function ReviewsSection({
   reviews,
@@ -41,7 +41,7 @@ export function ReviewsSection({
             transition={{ duration: reduced ? 0 : 0.45, ease: [0.2, 0, 0, 1] }}
             className="space-y-3"
           >
-            <SectionBadge className="!text-[#075e4c]">
+            <SectionBadge className="!text-accent-pressed">
               {t("reviews.sectionLabel")}
             </SectionBadge>
             <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-slate-950 leading-tight">
@@ -64,7 +64,7 @@ export function ReviewsSection({
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-md bg-white hover:bg-slate-100 text-[#075e4c] border border-slate-300 font-semibold text-sm transition-colors duration-150 cursor-pointer"
+              className="inline-flex min-h-11 items-center gap-2 px-5 py-2.5 rounded-md bg-white hover:bg-slate-100 text-accent-pressed border border-slate-300 font-semibold text-sm transition-colors duration-150 cursor-pointer"
             >
               <MessageSquarePlus className="w-4 h-4" />
               <span>{t("reviews.writeReviewBtn")}</span>
@@ -90,7 +90,7 @@ export function ReviewsSection({
                   <div className="flex items-center justify-between">
                     <div
                       aria-label={`${review.rating} / 5`}
-                      className="flex gap-1 text-[#075e4c]"
+                      className="flex gap-1 text-accent-pressed"
                     >
                       {Array.from(
                         { length: Math.max(0, Math.min(5, review.rating)) },

@@ -1,4 +1,4 @@
-import { db } from "@ishoot/database";
+import { db } from "@platform/database";
 import { requirePagePermission } from "../../../../../lib/auth";
 import { NewSettlementForm } from "../../../../../components/settlements/NewSettlementForm";
 

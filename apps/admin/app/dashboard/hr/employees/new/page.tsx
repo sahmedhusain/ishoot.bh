@@ -1,5 +1,5 @@
 import { hasPermission, requirePagePermission } from "../../../../../lib/auth";
-import { listDepartments, db } from "@ishoot/database";
+import { listDepartments, db } from "@platform/database";
 import { NewEmployeeFormView } from "../../../../../components/hr/NewEmployeeFormView";
 
 export const dynamic = "force-dynamic";

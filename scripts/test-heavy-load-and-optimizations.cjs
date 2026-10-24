@@ -1,4 +1,4 @@
-// Heavy-load, stress testing, edge-case scenarios and optimization benchmark for ishoot.bh monorepo.
+// Heavy-load, stress testing, edge-case scenarios and optimization benchmark for the platform monorepo.
 // Run with: DATABASE_URL pointing to local *_test database
 const assert = require("node:assert/strict");
 const { performance } = require("node:perf_hooks");
@@ -451,7 +451,7 @@ async function cleanup() {
 
 async function main() {
   console.log("================================================================================");
-  console.log("       ISHOOT.BH HEAVY-LOAD, INTEGRATION & OPTIMIZATIONS STRESS SUITE           ");
+  console.log("        HEAVY-LOAD, INTEGRATION & OPTIMIZATIONS STRESS SUITE                    ");
   console.log("================================================================================");
   try {
     await runScenario1_ConcurrentNumbering();

@@ -1,7 +1,7 @@
 "use client";
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { useCompanyVat } from "../../hooks/useCompanyVat";
-import { getCurrencyLabel } from "@ishoot/config/currency";
+import { getCurrencyLabel } from "@platform/config/currency";
 
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -15,8 +15,8 @@ import {
   getCurrencyDisplayLabel,
   DiscountType,
   ServiceItem,
-} from "@ishoot/database/types";
-import { Card, Button } from "@ishoot/ui";
+} from "@platform/database/types";
+import { Card, Button } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -28,7 +28,7 @@ import {
   Layers,
   RefreshCw,
 } from "lucide-react";
-import type { FxBoardRow } from "@ishoot/database/queries/fx-settlement";
+import type { FxBoardRow } from "@platform/database/queries/fx-settlement";
 import { createQuotationAction } from "../../app/actions/quotations";
 import { refreshExchangeRatesAction } from "../../app/actions/finance";
 import { convertFromBhd } from "../../lib/fx-client";

@@ -5,8 +5,8 @@ import { uploadFileDirectly } from "../../../lib/upload-client";
 import { LinkOrUploadField } from "../../shared/LinkOrUploadField";
 
 import * as React from "react";
-import type { CompanySettings } from "@ishoot/database/types";
-import { Card, Input, useDialog } from "@ishoot/ui";
+import type { CompanySettings } from "@platform/database/types";
+import { Card, Input, useDialog } from "@platform/ui";
 import {
   Percent,
   CheckCircle2,
@@ -85,7 +85,7 @@ export function TaxVatSettingsTab({
         <div
           className={`p-4 rounded-xl border transition-colors flex items-center justify-between gap-4 ${
             settings.vat_enabled
-              ? "bg-primary/5 border-primary/30 dark:bg-primary/10 dark:border-[#00897b]/40"
+              ? "bg-primary/5 border-primary/30 dark:bg-primary/10 dark:border-tone-25/40"
               : "bg-slate-50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-700"
           }`}
         >
@@ -120,7 +120,7 @@ export function TaxVatSettingsTab({
             onClick={() => setPendingVatToggle(!settings.vat_enabled)}
             className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors shrink-0 ${
               settings.vat_enabled
-                ? "bg-primary dark:bg-[#00897b]"
+                ? "bg-primary dark:bg-tone-25"
                 : "bg-slate-300 dark:bg-slate-700"
             }`}
           >

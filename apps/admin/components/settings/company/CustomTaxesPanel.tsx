@@ -1,12 +1,12 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Pencil, Plus, QrCode, Trash2, X } from "lucide-react";
-import { Button, Card, Input, formatDate } from "@ishoot/ui";
-import type { TaxRateInput, TaxRateRecord } from "@ishoot/database";
+import { Button, Card, Input, formatDate } from "@platform/ui";
+import type { TaxRateInput, TaxRateRecord } from "@platform/database";
 import {
   deleteTaxRateAction,
   saveTaxRateAction,

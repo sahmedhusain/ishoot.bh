@@ -1,13 +1,13 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Pencil, Plus, Repeat, Trash2, X } from "lucide-react";
-import { Button, Input, Select, formatCurrencyValue } from "@ishoot/ui";
-import type { RecurringPayInput, RecurringPayRecord } from "@ishoot/database";
-import { PAY_LINE_CATEGORIES } from "@ishoot/database/constants/hr";
+import { Button, Input, Select, formatCurrencyValue } from "@platform/ui";
+import type { RecurringPayInput, RecurringPayRecord } from "@platform/database";
+import { PAY_LINE_CATEGORIES } from "@platform/database/constants/hr";
 import { deleteRecurringPayAction, saveRecurringPayAction } from "../../app/actions/payroll";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";

@@ -1,8 +1,8 @@
 "use server";
-import { serverTemplates, formatMessage, serverMessages } from "@ishoot/locales";
+import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 import { ROUTES } from "../../constants/routes";
-import { measureOperation, runAtomicMutation } from "@ishoot/database";
+import { measureOperation, runAtomicMutation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 import {
   createLeaveRequest,
@@ -14,7 +14,7 @@ import {
   refreshLeaveBalanceCache,
   getLeaveConflicts,
   db,
-} from "@ishoot/database";
+} from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { hasPermission, requireAuth, requirePermission } from "../../lib/auth";
 

@@ -1,6 +1,6 @@
 import { forbidden } from "next/navigation";
 import { requirePagePermission } from "../../../../lib/auth";
-import { db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
+import { db, ALL_RESOURCES, ALL_ACTIONS } from "@platform/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";
 import type { RoleWithGrants } from "../../../../types/roles";
 

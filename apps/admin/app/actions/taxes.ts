@@ -1,6 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { createActivityLog, deleteTaxRate, measureOperation, runAtomicMutation, saveTaxRate, type TaxRateInput } from "@ishoot/database";
+import { createActivityLog, deleteTaxRate, measureOperation, runAtomicMutation, saveTaxRate, type TaxRateInput } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requirePermission } from "../../lib/auth";

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,13 +24,13 @@ import {
   Select,
   formatCurrencyValue,
   formatDate,
-} from "@ishoot/ui";
-import type { FinalSettlementDetail } from "@ishoot/database";
+} from "@platform/ui";
+import type { FinalSettlementDetail } from "@platform/database";
 import {
   SETTLEMENT_LINE_CATEGORIES,
   SETTLEMENT_PAYMENT_METHODS,
   SETTLEMENT_REASONS,
-} from "@ishoot/database/constants/settlements";
+} from "@platform/database/constants/settlements";
 import { ROUTES } from "../../constants/routes";
 import {
   cancelFinalSettlementAction,

@@ -6,7 +6,7 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "--filter",
-        "@ishoot/admin",
+        "@platform/admin",
         "dev"
       ],
       "port": 3001
@@ -16,7 +16,7 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": [
         "--filter",
-        "@ishoot/admin",
+        "@platform/admin",
         "exec",
         "next",
         "dev",
@@ -25,6 +25,49 @@
         "3002"
       ],
       "port": 3002
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@platform/web",
+        "dev"
+      ],
+      "port": 3000
+    },
+    {
+      "name": "admin-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "admin",
+        "3012",
+        "platform_e2e_test"
+      ],
+      "port": 3012
+    },
+    {
+      "name": "web-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "web",
+        "3013",
+        "platform_e2e_test"
+      ],
+      "port": 3013
+    },
+    {
+      "name": "admin-setup",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "admin",
+        "3014",
+        "platform_e2e_blank_test"
+      ],
+      "port": 3014
     }
   ]
 }

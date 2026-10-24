@@ -4,7 +4,7 @@ import {
   findPendingApproval,
   getFinalSettlement,
   getSignatureMode,
-} from "@ishoot/database";
+} from "@platform/database";
 import { hasPermission, requireAuth } from "../../../../../lib/auth";
 import { ForbiddenView } from "../../../../../components/shared/ForbiddenView";
 import { SettlementDetailView } from "../../../../../components/settlements/SettlementDetailView";

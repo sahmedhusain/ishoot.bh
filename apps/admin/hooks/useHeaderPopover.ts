@@ -10,13 +10,13 @@ export function useHeaderPopover(name: string) {
     const other = (event: Event) => {
       if ((event as CustomEvent).detail !== name) setOpen(false);
     };
-    document.addEventListener("ishoot:header-menu", other);
-    return () => document.removeEventListener("ishoot:header-menu", other);
+    document.addEventListener("platform:header-menu", other);
+    return () => document.removeEventListener("platform:header-menu", other);
   }, [name]);
   React.useEffect(() => {
     if (!open) return;
     document.dispatchEvent(
-      new CustomEvent("ishoot:header-menu", { detail: name }),
+      new CustomEvent("platform:header-menu", { detail: name }),
     );
     const frame = requestAnimationFrame(() =>
       panelRef.current

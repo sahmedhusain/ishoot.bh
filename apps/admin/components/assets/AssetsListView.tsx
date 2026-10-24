@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Laptop, Plus, Search, Settings2, X } from "lucide-react";
-import { Button, formatCurrencyValue, formatDate } from "@ishoot/ui";
-import type { AssetRecord } from "@ishoot/database";
+import { Button, formatCurrencyValue, formatDate } from "@platform/ui";
+import type { AssetRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { Mail, Phone, MessageCircle, Search, Users, Plane } from "lucide-react";
-import type { DirectoryEntry } from "@ishoot/database/queries/directory";
+import type { DirectoryEntry } from "@platform/database/queries/directory";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ContentImage } from "../shared/ContentImage";
 

@@ -3,8 +3,8 @@
 import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
-import type { MinuteOfMeetingItem } from "@ishoot/database";
-import { Card,Button,ConfirmDestructiveModal } from "@ishoot/ui";
+import type { MinuteOfMeetingItem } from "@platform/database";
+import { Card,Button,ConfirmDestructiveModal } from "@platform/ui";
 import {
 FileSignature,
 Plus,
@@ -95,7 +95,7 @@ export function MomsListView({ initialMoms }: MomsListViewProps) {
         </div>
 
         <Link href={ROUTES.moms.create}>
-          <Button className="bg-accent hover:bg-[#077464] text-white flex items-center gap-2 text-xs">
+          <Button className="bg-accent hover:bg-tone-25 text-white flex items-center gap-2 text-xs">
             <Plus className="w-4 h-4" />
             <span>{t.momsList.newMeetingMinutes}</span>
           </Button>

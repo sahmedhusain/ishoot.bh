@@ -1,9 +1,9 @@
-import { serverMessages, formatMessage } from "@ishoot/locales";
+import { serverMessages, formatMessage } from "@platform/locales";
 
 import React from "react";
 import { Document, Page, View, renderToBuffer } from "@react-pdf/renderer";
-import { db } from "@ishoot/database";
-import type { CompanySettings } from "@ishoot/database/types";
+import { db } from "@platform/database";
+import type { CompanySettings } from "@platform/database/types";
 import { resolveConfiguredPdfAsset } from "./configured-asset";
 import {
   Letterhead,

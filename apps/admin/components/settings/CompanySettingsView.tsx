@@ -2,10 +2,10 @@
 import type { AdminTranslations } from "../../lib/translations";
 
 import * as React from "react";
-import type { CompanySettings } from "@ishoot/database/types";
-import type { TaxRateRecord } from "@ishoot/database";
-import type { CompanyAssetItem } from "@ishoot/database";
-import { Button, useDialog } from "@ishoot/ui";
+import type { CompanySettings } from "@platform/database/types";
+import type { TaxRateRecord } from "@platform/database";
+import type { CompanyAssetItem } from "@platform/database";
+import { Button, useDialog } from "@platform/ui";
 import {
 Building2,
 Percent,
@@ -16,6 +16,7 @@ Sparkles,
 AlertTriangle,
 X,Check,
   BadgePercent,
+  Palette,
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { updateCompanySettingsAction } from "../../app/actions/settings";
@@ -26,6 +27,7 @@ import { TaxVatSettingsTab } from "./company/TaxVatSettingsTab";
 import { BankCoordinatesTab } from "./company/BankCoordinatesTab";
 import { InvoiceReceiptSequencesTab } from "./company/InvoiceReceiptSequencesTab";
 import { BrandAssetsTab } from "./company/BrandAssetsTab";
+import { ThemeSettingsTab } from "./company/ThemeSettingsTab";
 import { SalesDiscountsTab } from "./company/SalesDiscountsTab";
 
 interface CompanySettingsViewProps {
@@ -42,7 +44,7 @@ interface ChangeDiff {
   isVat?: boolean;
 }
 
-type TabKey = "general" | "taxVat" | "banking" | "sequences" | "sales" | "brandAssets";
+type TabKey = "general" | "taxVat" | "banking" | "sequences" | "sales" | "brandAssets" | "theme";
 
 function calculateDiff(
   oldSettings: CompanySettings,
@@ -254,6 +256,11 @@ export function CompanySettingsView({
       label: t.companySettingsTabs.brandAssets,
       icon: Sparkles,
     },
+    {
+      key: "theme",
+      label: t.setupWizard.steps.brand,
+      icon: Palette,
+    },
   ];
 
   return (
@@ -386,7 +393,9 @@ export function CompanySettingsView({
           />
         )}
 
-        {activeTab !== "brandAssets" && (
+        {activeTab === "theme" && <ThemeSettingsTab initialTheme={initialSettings.theme} />}
+
+        {activeTab !== "brandAssets" && activeTab !== "theme" && (
           <div className="flex items-center justify-end gap-4 pt-2">
             <Button
               type="submit"

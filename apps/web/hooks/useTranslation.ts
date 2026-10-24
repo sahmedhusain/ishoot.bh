@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "./useLocale";
-import { getTranslations, getNestedTranslation, formatMessage, type MessageValues } from "@ishoot/locales";
+import { getTranslations, getNestedTranslation, formatMessage, type MessageValues } from "@platform/locales";
 
 
 export function useTranslation() {

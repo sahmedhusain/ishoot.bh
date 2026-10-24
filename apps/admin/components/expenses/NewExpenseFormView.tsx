@@ -8,7 +8,7 @@ import * as React from "react";
 import { businessDateString } from "../../lib/dates";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Card, Button, Input } from "@ishoot/ui";
+import { Card, Button, Input } from "@platform/ui";
 import { LinkOrUploadField } from "../shared/LinkOrUploadField";
 import {
   ArrowLeft,
@@ -22,13 +22,13 @@ import {
 import type {
   ExpenseCategory,
   SupportedCurrency,
-} from "@ishoot/database/types";
+} from "@platform/database/types";
 import {
   EXPENSE_CATEGORY_KINDS,
   EXPENSE_PAYMENT_METHODS,
   SUPPORTED_CURRENCIES,
   type ExpenseScope,
-} from "@ishoot/database/constants/finance";
+} from "@platform/database/constants/finance";
 import { createExpenseAction } from "../../app/actions/finance";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { EntityLookup } from "../shared/EntityLookup";

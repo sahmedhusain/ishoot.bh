@@ -8,8 +8,8 @@ import { EntityLookup } from "../shared/EntityLookup";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CRMContact, Invoice } from "@ishoot/database/types";
-import { Card, Button, Input, Select, CurrencyDisplay } from "@ishoot/ui";
+import type { CRMContact, Invoice } from "@platform/database/types";
+import { Card, Button, Input, Select, CurrencyDisplay } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -438,7 +438,7 @@ export function NewPaymentFormView({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Document 1: Cheque Copy */}
-                  <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-[#152B27]/20 border border-slate-200 dark:border-white/10 space-y-3">
+                  <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-tone-15/20 border border-slate-200 dark:border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
                         <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />
@@ -534,7 +534,7 @@ export function NewPaymentFormView({
                   </div>
 
                   {/* Document 2: Bank Transfer Slip / Statement Advice */}
-                  <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-[#152B27]/20 border border-slate-200 dark:border-white/10 space-y-3">
+                  <div className="p-4 rounded-2xl bg-slate-50/70 dark:bg-tone-15/20 border border-slate-200 dark:border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5">
                         <FileCheck className="w-3.5 h-3.5 text-primary dark:text-mint" />

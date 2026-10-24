@@ -1,11 +1,11 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
-import { measureOperation } from "@ishoot/database";
+import { measureOperation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import { requirePermission } from "../../lib/auth";
-import { db, ALL_RESOURCES, ALL_ACTIONS } from "@ishoot/database";
+import { db, ALL_RESOURCES, ALL_ACTIONS } from "@platform/database";
 import { revalidatePath } from "next/cache";
 
 /**

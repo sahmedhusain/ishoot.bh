@@ -1,5 +1,5 @@
 import { requireAuth } from "../../../lib/auth";
-import { getCompanyDirectory } from "@ishoot/database";
+import { getCompanyDirectory } from "@platform/database";
 import { DirectoryView } from "../../../components/directory/DirectoryView";
 
 export const dynamic = "force-dynamic";

@@ -29,7 +29,7 @@ function loadTs(file, mocks) {
     module: mod,
     exports: mod.exports,
     require: (id) => {
-      id = ((i,m)=>i in m?i:(i.startsWith('@ishoot/database/')&&'@ishoot/database' in m?'@ishoot/database':i))(id, mocks);
+      id = ((i,m)=>i in m?i:(i.startsWith('@platform/database/')&&'@platform/database' in m?'@platform/database':i))(id, mocks);
       if (id in mocks) return mocks[id];
       if (id.startsWith("node:")) return require(id);
       const real = realConstants(file, id);

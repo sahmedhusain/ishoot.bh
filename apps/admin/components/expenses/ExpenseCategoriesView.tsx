@@ -3,9 +3,9 @@
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import Link from "next/link";
-import type { ExpenseCategory } from "@ishoot/database/types";
-import { EXPENSE_CATEGORY_KINDS, type ExpenseCategoryKind } from "@ishoot/database/constants/finance";
-import { Card, Button, Input } from "@ishoot/ui";
+import type { ExpenseCategory } from "@platform/database/types";
+import { EXPENSE_CATEGORY_KINDS, type ExpenseCategoryKind } from "@platform/database/constants/finance";
+import { Card, Button, Input } from "@platform/ui";
 import { ArrowLeft, Plus, Eye, EyeOff, Trash2, Lock, Save } from "lucide-react";
 import { toast } from "sonner";
 import { ROUTES } from "../../constants/routes";
@@ -21,7 +21,7 @@ export function ExpenseCategoriesView({ initialCategories, canDelete }: { initia
   const cT = t.expenseCategories;
   const [categories, setCategories] = React.useState(initialCategories);
   const [drafts, setDrafts] = React.useState<Record<string, Partial<ExpenseCategory>>>({});
-  const [newCat, setNewCat] = React.useState({ name_en: "", name_ar: "", color: "#09937F", kind: "operating" as ExpenseCategoryKind });
+  const [newCat, setNewCat] = React.useState({ name_en: "", name_ar: "", color: "#2563EB", kind: "operating" as ExpenseCategoryKind });
   const [busy, setBusy] = React.useState<string | null>(null);
 
   const run = async (key: string, fn: () => Promise<void>) => {

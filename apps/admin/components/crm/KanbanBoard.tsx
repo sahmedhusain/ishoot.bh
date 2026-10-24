@@ -4,10 +4,10 @@ import { ROUTES } from "../../constants/routes";
 import * as React from "react";
 import Link from "next/link";
 import { DndContext, DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
-import type { CRMDeal, CRMContact, DealStage } from "@ishoot/database/types";
+import type { CRMDeal, CRMContact, DealStage } from "@platform/database/types";
 import { updateDealStageAction } from "../../app/actions/crm";
 import { KanbanColumn } from "./KanbanColumn";
-import { Button } from "@ishoot/ui";
+import { Button } from "@platform/ui";
 import { Plus } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
@@ -28,7 +28,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
       label: t.stages.contract_signed,
       color: "#8B5CF6",
     },
-    { stage: "production", label: t.stages.production, color: "#09937F" },
+    { stage: "production", label: t.stages.production, color: "rgb(var(--brand-accent))" },
     {
       stage: "post_production",
       label: t.stages.post_production,

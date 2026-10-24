@@ -1,11 +1,11 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRightLeft, Pencil, Undo2, UserPlus } from "lucide-react";
-import { Button, formatCurrencyValue, formatDate } from "@ishoot/ui";
-import type { AssetCategoryRecord, AssetRecord } from "@ishoot/database";
+import { Button, formatCurrencyValue, formatDate } from "@platform/ui";
+import type { AssetCategoryRecord, AssetRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { AssetForm } from "./AssetForm";

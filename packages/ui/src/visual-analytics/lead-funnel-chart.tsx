@@ -34,7 +34,7 @@ export function LeadFunnelChart({ stages }: LeadFunnelChartProps) {
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${pct}%`,
-                  backgroundColor: stage.color || "#09937F",
+                  backgroundColor: stage.color || "rgb(var(--brand-accent))",
                 }}
               />
             </div>

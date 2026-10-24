@@ -1,4 +1,4 @@
-import { formatMessage, getTranslations, type Locale } from "@ishoot/locales";
+import { formatMessage, getTranslations, type Locale } from "@platform/locales";
 
 
 export function escapeEmailHtml(value: unknown): string {
@@ -19,7 +19,40 @@ function safeWebsiteUrl(value: string): string {
   }
 }
 
+const HEX = /^#[0-9a-f]{6}$/i;
+const alpha = (hex: string, a: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+};
+
+/** Fills the colour placeholders of a rendered email with the company's colours on neutral dark surfaces. */
+function applyEmailPalette(companyInfo: BrandEmailCompanyInfo, html: string) {
+  const primary = HEX.test(companyInfo.primary ?? "") ? companyInfo.primary! : "#1E3A8A";
+  const accent = HEX.test(companyInfo.accent ?? "") ? companyInfo.accent! : "#2563EB";
+  const palette: Record<string, string> = {
+    PRIMARY: primary,
+    ACCENT: accent,
+    ACCENT_15: alpha(accent, 0.15),
+    ACCENT_25: alpha(accent, 0.25),
+    ACCENT_3: alpha(accent, 0.3),
+    BASE: "#0B0F17",
+    SURFACE: "#111827",
+    ELEVATED: "#1F2937",
+    TEXT: "#F3F4F6",
+    MUTED: "#9CA3AF",
+    SOFT: "#D1D5DB",
+    FAINT: "#9CA3AF",
+    FAINTER: "#6B7280",
+  };
+  return html.replace(/%%([A-Z_0-9]+)%%/g, (token, key: string) => palette[key] ?? token);
+}
+
 export interface BrandEmailCompanyInfo {
+  /** Company theme colours (hex); emails cannot use CSS variables, so they are written inline. */
+  primary?: string;
+  accent?: string;
+  /** CSS font-family of the company's body font, tried before the system fonts. */
+  fontFamily?: string;
   nameEn?: string;
   nameAr?: string;
   cr?: string;
@@ -41,8 +74,9 @@ export function renderBrandEmailLayout(
     );
   const dir = isRtl ? "rtl" : "ltr";
   const textAlign = isRtl ? "right" : "left";
-  const fontFamily =
-    "'Thmanyah Sans', 'Thmanyah', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif";
+  const fontFamily = [companyInfo.fontFamily && `'${companyInfo.fontFamily.replace(/['";<>]/g, "")}'`, "-apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Arial, sans-serif"]
+    .filter(Boolean)
+    .join(", ");
 
   const comp = {
     nameEn: escapeEmailHtml(companyInfo?.nameEn),
@@ -60,7 +94,7 @@ export function renderBrandEmailLayout(
   const localeKey: Locale = isRtl ? "ar" : "en";
   const t = getTranslations(localeKey);
 
-  return `
+  return applyEmailPalette(companyInfo, `
 <!DOCTYPE html>
 <html dir="${dir}" lang="${localeKey}">
 <head>
@@ -68,21 +102,21 @@ export function renderBrandEmailLayout(
   <title>${escapeEmailHtml(title)}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #050807; font-family: ${fontFamily}; color: #F2F6F5; -webkit-font-smoothing: antialiased;">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #050807; padding: 40px 12px;">
+<body style="margin: 0; padding: 0; background-color: %%BASE%%; font-family: ${fontFamily}; color: %%TEXT%%; -webkit-font-smoothing: antialiased;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: %%BASE%%; padding: 40px 12px;">
     <tr>
       <td align="center">
-        <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: #0B1210; border: 1px solid rgba(9, 147, 127, 0.3); border-radius: 20px; overflow: hidden; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);">
+        <table width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%; background-color: %%SURFACE%%; border: 1px solid %%ACCENT_3%%; border-radius: 20px; overflow: hidden; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);">
           <!-- Header Bar with Emerald Accent Line -->
           <tr>
-            <td style="background-color: #014842; padding: 28px 36px; border-bottom: 2px solid #09937F;">
+            <td style="background-color: %%PRIMARY%%; padding: 28px 36px; border-bottom: 2px solid %%ACCENT%%;">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="${textAlign}">
                     <span style="font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: #FFFFFF;">
-                      ${displayName}<span style="color: #09937F;">.</span>
+                      ${displayName}<span style="color: %%ACCENT%%;">.</span>
                     </span>
-                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #9EADA9; margin-top: 4px; font-weight: 500;">
+                    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: %%MUTED%%; margin-top: 4px; font-weight: 500;">
                       ${displayAddress}
                     </div>
                   </td>
@@ -93,21 +127,21 @@ export function renderBrandEmailLayout(
 
           <!-- Body Content Container -->
           <tr>
-            <td style="padding: 40px 36px; text-align: ${textAlign}; line-height: 1.65; color: #F2F6F5;">
+            <td style="padding: 40px 36px; text-align: ${textAlign}; line-height: 1.65; color: %%TEXT%%;">
               ${contentHtml}
             </td>
           </tr>
 
           <!-- Footer Bar -->
           <tr>
-            <td style="background-color: #050807; padding: 28px 36px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 12px; color: #9EADA9;">
-              <div style="margin-bottom: 10px; font-weight: 500; color: #C5D1CD;">
+            <td style="background-color: %%BASE%%; padding: 28px 36px; border-top: 1px solid rgba(255, 255, 255, 0.08); text-align: center; font-size: 12px; color: %%MUTED%%;">
+              <div style="margin-bottom: 10px; font-weight: 500; color: %%SOFT%%;">
                 ${displayName} • ${displayAddress}
               </div>
-              <div style="color: #839490; font-size: 11px;">
-                ${formatMessage(t.email.layout.cr, { cr: comp.cr })} • <a href="${comp.website}" style="color: #09937F; text-decoration: none; font-weight: 600;">${cleanWebsiteDomain}</a> • ${comp.email}
+              <div style="color: %%FAINT%%; font-size: 11px;">
+                ${formatMessage(t.email.layout.cr, { cr: comp.cr })} • <a href="${comp.website}" style="color: %%ACCENT%%; text-decoration: none; font-weight: 600;">${cleanWebsiteDomain}</a> • ${comp.email}
               </div>
-              <div style="margin-top: 12px; color: #556662; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
+              <div style="margin-top: 12px; color: %%FAINTER%%; font-size: 10px; text-transform: uppercase; letter-spacing: 1px;">
                 ${t.email.layout.rights}
               </div>
             </td>
@@ -118,7 +152,7 @@ export function renderBrandEmailLayout(
   </table>
 </body>
 </html>
-  `;
+  `);
 }
 
 export function createInquiryConfirmationEmail(
@@ -138,7 +172,7 @@ export function createInquiryConfirmationEmail(
   const serviceList = services
     .map(
       (s) =>
-        `<li style="margin-bottom: 8px; color: #09937F; font-weight: 500;"><span style="color: #F2F6F5;">${escapeEmailHtml(s)}</span></li>`,
+        `<li style="margin-bottom: 8px; color: %%ACCENT%%; font-weight: 500;"><span style="color: %%TEXT%%;">${escapeEmailHtml(s)}</span></li>`,
     )
     .join("");
 
@@ -152,10 +186,10 @@ export function createInquiryConfirmationEmail(
 
   const content = `
     <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 16px;">${escapeEmailHtml(title)}</h2>
-    <p style="font-size: 15px; color: #9EADA9; margin-bottom: 24px;">
+    <p style="font-size: 15px; color: %%MUTED%%; margin-bottom: 24px;">
       ${escapeEmailHtml(receivedMsg)}
     </p>
-    <div style="background-color: #111C19; border: 1px solid rgba(9, 147, 127, 0.25); border-radius: 14px; padding: 22px; margin: 24px 0;">
+    <div style="background-color: %%ELEVATED%%; border: 1px solid %%ACCENT_25%%; border-radius: 14px; padding: 22px; margin: 24px 0;">
       <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #FFFFFF; margin-bottom: 14px;">
         ${escapeEmailHtml(servicesTitle)}
       </div>
@@ -163,12 +197,12 @@ export function createInquiryConfirmationEmail(
         ${serviceList}
       </ul>
     </div>
-    <p style="font-size: 14px; color: #9EADA9; line-height: 1.6;">
+    <p style="font-size: 14px; color: %%MUTED%%; line-height: 1.6;">
       ${escapeEmailHtml(urgentInquiries)}
     </p>
     <div style="margin-top: 32px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 20px;">
       <span style="font-weight: 600; color: #FFFFFF; font-size: 15px;">${escapeEmailHtml(warmRegards)}</span><br>
-      <span style="color: #09937F; font-weight: 600; font-size: 14px;">${escapeEmailHtml(prodTeam)}</span>
+      <span style="color: %%ACCENT%%; font-weight: 600; font-size: 14px;">${escapeEmailHtml(prodTeam)}</span>
     </div>
   `;
 
@@ -198,40 +232,40 @@ export function createInquiryNotificationEmail(inquiry: {
   const subjectText = formatMessage(t.email.notification.subject, { fullName: inquiry.fullName });
 
   const content = `
-    <div style="display: inline-block; background-color: rgba(9, 147, 127, 0.15); border: 1px solid #09937F; color: #09937F; font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;">
+    <div style="display: inline-block; background-color: %%ACCENT_15%%; border: 1px solid %%ACCENT%%; color: %%ACCENT%%; font-size: 11px; font-weight: 700; padding: 5px 14px; border-radius: 999px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 18px;">
       ${badgeText}
     </div>
     <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 20px;">${escapeEmailHtml(titleText)}</h2>
 
-    <table width="100%" border="0" cellspacing="0" cellpadding="10" style="background-color: #111C19; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 14px; margin: 20px 0;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="10" style="background-color: %%ELEVATED%%; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08); font-size: 14px; margin: 20px 0;">
       <tr>
-        <td width="140" style="color: #9EADA9; font-weight: 500;">${t.email.notification.fullName}</td>
+        <td width="140" style="color: %%MUTED%%; font-weight: 500;">${t.email.notification.fullName}</td>
         <td style="color: #FFFFFF; font-weight: 700;">${escapeEmailHtml(inquiry.fullName)}</td>
       </tr>
       <tr>
-        <td style="color: #9EADA9; font-weight: 500;">${t.email.notification.email}</td>
-        <td><a href="mailto:${escapeEmailHtml(inquiry.email)}" style="color: #09937F; text-decoration: none; font-weight: 600;">${escapeEmailHtml(inquiry.email)}</a></td>
+        <td style="color: %%MUTED%%; font-weight: 500;">${t.email.notification.email}</td>
+        <td><a href="mailto:${escapeEmailHtml(inquiry.email)}" style="color: %%ACCENT%%; text-decoration: none; font-weight: 600;">${escapeEmailHtml(inquiry.email)}</a></td>
       </tr>
       <tr>
-        <td style="color: #9EADA9; font-weight: 500;">${t.email.notification.phone}</td>
-        <td><a href="tel:${escapeEmailHtml(inquiry.phone ?? "")}" style="color: #09937F; text-decoration: none; font-family: monospace;">${escapeEmailHtml(inquiry.phone ?? t.email.notification.notSpecified)}</a></td>
+        <td style="color: %%MUTED%%; font-weight: 500;">${t.email.notification.phone}</td>
+        <td><a href="tel:${escapeEmailHtml(inquiry.phone ?? "")}" style="color: %%ACCENT%%; text-decoration: none; font-family: monospace;">${escapeEmailHtml(inquiry.phone ?? t.email.notification.notSpecified)}</a></td>
       </tr>
       <tr>
-        <td style="color: #9EADA9; font-weight: 500;">${t.email.notification.company}</td>
+        <td style="color: %%MUTED%%; font-weight: 500;">${t.email.notification.company}</td>
         <td style="color: #FFFFFF;">${escapeEmailHtml(inquiry.company ?? t.email.notification.directIndividual)}</td>
       </tr>
       <tr>
-        <td style="color: #9EADA9; font-weight: 500;">${t.email.notification.budget}</td>
-        <td style="color: #09937F; font-weight: 700;">${escapeEmailHtml(inquiry.budget ?? t.email.notification.toBeDiscussed)}</td>
+        <td style="color: %%MUTED%%; font-weight: 500;">${t.email.notification.budget}</td>
+        <td style="color: %%ACCENT%%; font-weight: 700;">${escapeEmailHtml(inquiry.budget ?? t.email.notification.toBeDiscussed)}</td>
       </tr>
       <tr>
-        <td valign="top" style="color: #9EADA9; font-weight: 500;">${t.email.notification.services}</td>
+        <td valign="top" style="color: %%MUTED%%; font-weight: 500;">${t.email.notification.services}</td>
         <td style="color: #FFFFFF;"><ul style="margin: 0; padding-left: 18px;">${serviceList}</ul></td>
       </tr>
     </table>
 
-    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #9EADA9; margin-bottom: 8px;">${t.email.notification.projectBrief}</div>
-    <div style="background-color: #050807; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 18px; font-size: 14px; color: #F2F6F5; white-space: pre-wrap; line-height: 1.6;">
+    <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: %%MUTED%%; margin-bottom: 8px;">${t.email.notification.projectBrief}</div>
+    <div style="background-color: %%BASE%%; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 18px; font-size: 14px; color: %%TEXT%%; white-space: pre-wrap; line-height: 1.6;">
       ${escapeEmailHtml(inquiry.message ?? t.email.notification.noMessage)}
     </div>
   `;
@@ -269,23 +303,23 @@ export function createInvoiceDeliveryEmail(params: {
 
   const content = `
     <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 16px;">${escapeEmailHtml(greeting)}</h2>
-    <p style="font-size: 15px; color: #9EADA9; margin-bottom: 24px;">
+    <p style="font-size: 15px; color: %%MUTED%%; margin-bottom: 24px;">
       ${escapeEmailHtml(body)}
     </p>
 
-    <div style="background-color: #111C19; border: 1px solid rgba(9, 147, 127, 0.3); border-radius: 16px; padding: 26px; margin: 24px 0;">
+    <div style="background-color: %%ELEVATED%%; border: 1px solid %%ACCENT_3%%; border-radius: 16px; padding: 26px; margin: 24px 0;">
       <table width="100%" border="0" cellspacing="0" cellpadding="8" style="font-size: 14px;">
         <tr>
-          <td style="color: #9EADA9;">${t.email.invoiceDelivery.invoiceNumber}</td>
+          <td style="color: %%MUTED%%;">${t.email.invoiceDelivery.invoiceNumber}</td>
           <td style="color: #FFFFFF; font-weight: 700;">${escapeEmailHtml(params.invoiceNumber)}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9;">${t.email.invoiceDelivery.dueDate}</td>
+          <td style="color: %%MUTED%%;">${t.email.invoiceDelivery.dueDate}</td>
           <td style="color: #FFFFFF;">${escapeEmailHtml(params.dueDate)}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9; font-size: 15px; padding-top: 14px;">${t.email.invoiceDelivery.amountDue}</td>
-          <td style="color: #09937F; font-size: 22px; font-weight: 800; padding-top: 14px;">${escapeEmailHtml(params.totalAmountFormatted)}</td>
+          <td style="color: %%MUTED%%; font-size: 15px; padding-top: 14px;">${t.email.invoiceDelivery.amountDue}</td>
+          <td style="color: %%ACCENT%%; font-size: 22px; font-weight: 800; padding-top: 14px;">${escapeEmailHtml(params.totalAmountFormatted)}</td>
         </tr>
       </table>
 
@@ -293,12 +327,12 @@ export function createInvoiceDeliveryEmail(params: {
         <div style="font-weight: 700; color: #FFFFFF; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
           ${t.email.invoiceDelivery.bankDetails}
         </div>
-        <div style="color: #9EADA9; margin-bottom: 4px;">${t.email.invoiceDelivery.bank} <span style="color: #FFFFFF;">${escapeEmailHtml(params.bankName)}</span></div>
-        <div style="color: #9EADA9;">${t.email.invoiceDelivery.iban} <span style="color: #FFFFFF; font-family: monospace; font-weight: 600;">${escapeEmailHtml(params.bankIban)}</span></div>
+        <div style="color: %%MUTED%%; margin-bottom: 4px;">${t.email.invoiceDelivery.bank} <span style="color: #FFFFFF;">${escapeEmailHtml(params.bankName)}</span></div>
+        <div style="color: %%MUTED%%;">${t.email.invoiceDelivery.iban} <span style="color: #FFFFFF; font-family: monospace; font-weight: 600;">${escapeEmailHtml(params.bankIban)}</span></div>
       </div>
     </div>
 
-    <p style="font-size: 14px; color: #9EADA9; line-height: 1.6;">
+    <p style="font-size: 14px; color: %%MUTED%%; line-height: 1.6;">
       ${t.email.invoiceDelivery.pdfNotice}
     </p>
   `;
@@ -340,32 +374,32 @@ export function createPaymentReceiptEmail(params: {
       ${badgeText}
     </div>
     <h2 style="color: #FFFFFF; font-size: 22px; font-weight: 700; margin-top: 0; margin-bottom: 12px;">${escapeEmailHtml(title)}</h2>
-    <p style="font-size: 15px; color: #9EADA9; margin-bottom: 24px;">
+    <p style="font-size: 15px; color: %%MUTED%%; margin-bottom: 24px;">
       ${escapeEmailHtml(greeting)} ${escapeEmailHtml(body)}
     </p>
 
-    <div style="background-color: #111C19; border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 16px; padding: 26px; margin: 24px 0;">
+    <div style="background-color: %%ELEVATED%%; border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 16px; padding: 26px; margin: 24px 0;">
       <table width="100%" border="0" cellspacing="0" cellpadding="8" style="font-size: 14px;">
         <tr>
-          <td style="color: #9EADA9;">${t.email.paymentReceipt.receiptNumber}</td>
+          <td style="color: %%MUTED%%;">${t.email.paymentReceipt.receiptNumber}</td>
           <td style="color: #FFFFFF; font-weight: 700;">${escapeEmailHtml(params.receiptNumber)}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9;">${t.email.paymentReceipt.paymentMethod}</td>
+          <td style="color: %%MUTED%%;">${t.email.paymentReceipt.paymentMethod}</td>
           <td style="color: #FFFFFF;">${escapeEmailHtml(params.paymentMethod)}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9; font-size: 15px; padding-top: 14px;">${t.email.paymentReceipt.amountReceived}</td>
+          <td style="color: %%MUTED%%; font-size: 15px; padding-top: 14px;">${t.email.paymentReceipt.amountReceived}</td>
           <td style="color: #10B981; font-size: 22px; font-weight: 800; padding-top: 14px;">${escapeEmailHtml(params.amountReceivedFormatted)}</td>
         </tr>
         <tr>
-          <td style="color: #9EADA9;">${t.email.paymentReceipt.remainingBalance}</td>
-          <td style="color: #F2F6F5; font-weight: 600;">${escapeEmailHtml(params.remainingDueFormatted)}</td>
+          <td style="color: %%MUTED%%;">${t.email.paymentReceipt.remainingBalance}</td>
+          <td style="color: %%TEXT%%; font-weight: 600;">${escapeEmailHtml(params.remainingDueFormatted)}</td>
         </tr>
       </table>
     </div>
 
-    <p style="font-size: 14px; color: #9EADA9; line-height: 1.6;">
+    <p style="font-size: 14px; color: %%MUTED%%; line-height: 1.6;">
       ${t.email.paymentReceipt.pdfNotice}
     </p>
   `;

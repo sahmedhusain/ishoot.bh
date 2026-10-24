@@ -2,10 +2,9 @@
 import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
-import type { ClientLogo } from "@ishoot/database/types";
+import type { ClientLogo } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { Pause, Play } from "lucide-react";
-import logoContrast from "./logo-contrast.json";
 
 export function LogoMarquee({ logos }: { logos: ClientLogo[] }) {
   const { t } = useTranslation();
@@ -16,7 +15,7 @@ export function LogoMarquee({ logos }: { logos: ClientLogo[] }) {
   return (
     <section
       id="clients"
-      className="relative z-10 bg-[#050807] py-16 border-y border-white/10"
+      className="relative z-10 bg-brand-base py-16 border-y border-white/10"
       aria-label={t("clients.label")}
     >
       <svg
@@ -111,8 +110,8 @@ export function LogoMarquee({ logos }: { logos: ClientLogo[] }) {
         </defs>
       </svg>
       <div className="shell mb-8">
-        <div className="flex items-center justify-between gap-6 text-xs text-[#9EADA9] border-b border-white/5 pb-5">
-          <span className="font-semibold text-[#5EEAD4] uppercase tracking-wider">
+        <div className="flex items-center justify-between gap-6 text-xs text-ink-muted border-b border-white/5 pb-5">
+          <span className="font-semibold text-mint uppercase tracking-wider">
             {t("clients.marqueeBadge")}
           </span>
           <button
@@ -154,11 +153,7 @@ export function LogoMarquee({ logos }: { logos: ClientLogo[] }) {
                       decoding="async"
                       className="client-logo-image"
                       style={{
-                        filter: logoContrast.monochromeArtwork.includes(
-                          client.logo_svg_url,
-                        )
-                          ? "brightness(0) invert(1)"
-                          : `url(#${contrastId}) drop-shadow(0 0 1px rgba(255,255,255,.4))`,
+                        filter: `url(#${contrastId}) drop-shadow(0 0 1px rgba(255,255,255,.4))`,
                       }}
                     />
                   ) : (

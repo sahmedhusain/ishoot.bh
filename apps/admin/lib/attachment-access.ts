@@ -1,9 +1,9 @@
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import {
   db,
   type PermissionAction,
   type PermissionResource,
-} from "@ishoot/database";
+} from "@platform/database";
 import { getCurrentUser, requirePermission } from "./auth";
 
 const resources: Record<string, PermissionResource> = {
@@ -18,12 +18,13 @@ const resources: Record<string, PermissionResource> = {
   deal: "deals",
   company_setting: "settings",
   company_asset: "settings",
+  company_font: "settings",
   company_document: "settings",
   general: "settings",
 };
 
 /** Public website media (client logos, banners, portfolio, gear photos): the entity id names the CMS resource. */
-export const CMS_ASSET_RESOURCES = ["banners", "portfolio", "clients", "equipment", "reviews", "settings"] as const;
+const CMS_ASSET_RESOURCES = ["banners", "portfolio", "clients", "equipment", "reviews", "settings"] as const;
 
 export async function requireAttachmentAccess(
   entityType: string,

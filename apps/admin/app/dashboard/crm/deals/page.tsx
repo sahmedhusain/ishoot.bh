@@ -1,6 +1,6 @@
 import { ROUTES } from "../../../../constants/routes";
 import { requirePagePermission } from "../../../../lib/auth";
-import { getDealsPage, type ListParameters } from "@ishoot/database";
+import { getDealsPage, type ListParameters } from "@platform/database";
 import { KanbanBoard } from "../../../../components/crm/KanbanBoard";
 import { ListControls } from "../../../../components/shared/ListControls";
 export const dynamic = "force-dynamic";

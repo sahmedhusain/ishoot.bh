@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from "@ishoot/ui";
-import type { AnnouncementDetail } from "@ishoot/database";
+import { Button } from "@platform/ui";
+import type { AnnouncementDetail } from "@platform/database";
 import { AnnouncementForm, type AudienceOptions } from "./AnnouncementForm";
 import { ApprovalDecisionPanel } from "../approvals/ApprovalDecisionPanel";
 import { BilingualPdfActions } from "../shared/BilingualPdfActions";

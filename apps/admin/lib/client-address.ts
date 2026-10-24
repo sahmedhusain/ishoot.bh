@@ -1,6 +1,6 @@
-import { formatMessage } from "@ishoot/locales";
-import type { ClientAddress } from "@ishoot/database/types";
-import { countryName } from "@ishoot/database/constants/clients";
+import { formatMessage } from "@platform/locales";
+import type { ClientAddress } from "@platform/database/types";
+import { countryName } from "@platform/database/constants/clients";
 
 export interface AddressLabels {
   building: string;

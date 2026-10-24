@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,16 +20,16 @@ import {
   Select,
   formatCurrencyValue,
   formatDate,
-} from "@ishoot/ui";
+} from "@platform/ui";
 import type {
   listSupportPrograms,
   EmployeeSupportRecord,
-} from "@ishoot/database";
+} from "@platform/database";
 import {
   QUALIFICATIONS,
   SUPPORT_STATUSES,
   WAGE_BASES,
-} from "@ishoot/database/hr/social-insurance";
+} from "@platform/database/hr/social-insurance";
 import { ROUTES } from "../../constants/routes";
 import {
   deleteEmployeeSupportAction,

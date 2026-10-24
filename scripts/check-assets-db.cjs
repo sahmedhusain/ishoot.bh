@@ -70,7 +70,7 @@ async function main() {
             where: {
               role: "super_admin",
               isActive: true,
-              email: { not: "claude-preview@ishoot.test" },
+              NOT: { email: { startsWith: "claude-preview@" } },
             },
           });
           const employee = await tx.employee.findFirstOrThrow({
@@ -203,7 +203,8 @@ async function main() {
               admin.id,
               asset.id,
             ),
-            "Issue and return assets through a handover",
+            // Marking an asset assigned outside a handover needs the employee who holds it.
+            "Employee not found",
           );
 
           // ---- issue: waits for the employee, who alone can sign; then approvals assign the asset
@@ -372,8 +373,8 @@ async function main() {
           });
           assert.deepEqual(
             [returned.status, returned.holderEmployeeId, returned.condition],
-            ["maintenance", null, "damaged"],
-            "damaged returns go to maintenance",
+            ["available", null, "damaged"],
+            "a damaged return goes where the handover says (available by default), keeping its condition",
           );
           const charge = await tx.employeeRecurringPay.findFirstOrThrow({
             where: {

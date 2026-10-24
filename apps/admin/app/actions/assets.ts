@@ -14,7 +14,7 @@ import {
   type AssetInput,
   type HandoverInput,
   type HandoverSignature,
-} from "@ishoot/database";
+} from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { validateActionArguments } from "../../lib/action-input";
 import { requireAuth, requirePermission } from "../../lib/auth";

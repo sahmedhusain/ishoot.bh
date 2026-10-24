@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import type { AssetCategoryRecord } from "@ishoot/database";
+import type { AssetCategoryRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { AssetForm } from "./AssetForm";

@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import type { CompanySettings } from "@ishoot/database/types";
-import { Card, Input } from "@ishoot/ui";
+import type { CompanySettings } from "@platform/database/types";
+import { Card, Input } from "@platform/ui";
 import { BadgePercent } from "lucide-react";
 import { ROUTES } from "../../../constants/routes";
 import type { Translations } from "../../../lib/translations";

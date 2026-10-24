@@ -1,11 +1,11 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Copy, Link2, Mail, MessageCircle, X } from "lucide-react";
-import { Button, Select, formatDate } from "@ishoot/ui";
+import { Button, Select, formatDate } from "@platform/ui";
 import {
   createHandoverSigningLinkAction,
   revokeHandoverSigningLinkAction,

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatMessage } from "@ishoot/locales";
+import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -15,7 +15,7 @@ import {
   Upload,
   XCircle,
 } from "lucide-react";
-import { Button, Card, DateDisplay, Modal } from "@ishoot/ui";
+import { Button, Card, DateDisplay, Modal } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadForClaim } from "../../lib/upload-client";
 import { LinkOrUploadField } from "./LinkOrUploadField";

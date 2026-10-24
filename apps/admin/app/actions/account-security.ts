@@ -1,15 +1,15 @@
 "use server";
-import { serverMessages } from "@ishoot/locales";
+import { serverMessages } from "@platform/locales";
 import { validateActionArguments } from "../../lib/action-input";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { consumeAbuseLimit } from "@ishoot/database";
-import { getSessionByToken } from "@ishoot/database/queries/sessions";
+import { consumeAbuseLimit } from "@platform/database";
+import { getSessionByToken } from "@platform/database/queries/sessions";
 import {
   changeOwnPassword,
   revokeOwnSession,
   revokeOtherSessions,
-} from "@ishoot/database/queries/account-security";
+} from "@platform/database/queries/account-security";
 import { requireAuth, SESSION_COOKIE_NAME } from "../../lib/auth";
 import { ROUTES } from "../../constants/routes";
 export async function changeMyPasswordAction(input: {

@@ -1,9 +1,9 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import type { CRMDeal,DealStage } from "@ishoot/database/types";
+import type { CRMDeal,DealStage } from "@platform/database/types";
 import { DealCard } from "./DealCard";
-import { CurrencyDisplay } from "@ishoot/ui";
+import { CurrencyDisplay } from "@platform/ui";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface KanbanColumnProps {
@@ -17,7 +17,7 @@ export function KanbanColumn({
   stage,
   label,
   deals,
-  accentColor = "#09937F",
+  accentColor = "rgb(var(--brand-accent))",
 }: KanbanColumnProps) {
   const { t } = useAdminLocale();
   const { setNodeRef, isOver } = useDroppable({
@@ -29,7 +29,7 @@ export function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className={`w-72 shrink-0 bg-slate-100/70 dark:bg-[#0E1513] rounded-2xl border flex flex-col max-h-[calc(100vh-210px)] transition-colors shadow-sm ${
+      className={`w-72 shrink-0 bg-slate-100/70 dark:bg-tone-5 rounded-2xl border flex flex-col max-h-[calc(100vh-210px)] transition-colors shadow-sm ${
         isOver
           ? "border-accent bg-accent/5"
           : "border-slate-200/80 dark:border-white/10"
