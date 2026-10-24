@@ -6,8 +6,10 @@ import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { Button, Card, Badge, Modal, Input, ConfirmDestructiveModal } from "@platform/ui";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { createFaqAction, updateFaqAction, deleteFaqAction } from "../../app/actions/cms";
+import type { ContentLanguage } from "@platform/database/constants/languages";
+import { LanguageFields } from "../setup/LanguageFields";
 
-export function FaqsManagementView({ initialFaqs }: { initialFaqs: FaqItem[] }) {
+export function FaqsManagementView({ initialFaqs, languages }: { initialFaqs: FaqItem[]; languages: readonly ContentLanguage[] }) {
   const { t, isRTL } = useAdminLocale();
   const [faqs, setFaqs] = React.useState(initialFaqs);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -107,10 +109,8 @@ export function FaqsManagementView({ initialFaqs }: { initialFaqs: FaqItem[] }) 
 
       <Modal closeLabel={t.actions.close} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingItem ? t.faqsView.editFaq : t.faqsView.newFaq}>
         <form onSubmit={handleSave} className="space-y-4">
-          <div><label className="text-xs font-bold block mb-1">{t.faqsView.questionEn}</label><Input value={questionEn} onChange={e=>setQuestionEn(e.target.value)} required /></div>
-          <div><label className="text-xs font-bold block mb-1">{t.faqsView.questionAr}</label><Input value={questionAr} onChange={e=>setQuestionAr(e.target.value)} required /></div>
-          <div><label className="text-xs font-bold block mb-1">{t.faqsView.answerEn}</label><textarea className="w-full rounded-md border p-2 text-sm bg-transparent dark:border-white/20" rows={4} value={answerEn} onChange={e=>setAnswerEn(e.target.value)} required /></div>
-          <div><label className="text-xs font-bold block mb-1">{t.faqsView.answerAr}</label><textarea className="w-full rounded-md border p-2 text-sm bg-transparent dark:border-white/20" rows={4} value={answerAr} onChange={e=>setAnswerAr(e.target.value)} required /></div>
+          <LanguageFields name="question" label={t.faqsView.question} languages={languages} required maxLength={500} en={questionEn} ar={questionAr} onChange={(v) => { setQuestionEn(v.en); setQuestionAr(v.ar); }} />
+          <LanguageFields name="answer" label={t.faqsView.answer} languages={languages} multiline required maxLength={5000} en={answerEn} ar={answerAr} onChange={(v) => { setAnswerEn(v.en); setAnswerAr(v.ar); }} />
 
           <div className="flex justify-between items-center pt-2">
             <div><label className="text-xs font-bold block mb-1">{t.faqsView.sortOrder}</label><Input type="number" value={sortOrder} onChange={e=>setSortOrder(Number(e.target.value))} /></div>

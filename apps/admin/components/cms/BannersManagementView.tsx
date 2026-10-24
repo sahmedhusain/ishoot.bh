@@ -26,6 +26,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { websiteMedia } from "../../lib/website-media";
+import type { ContentLanguage } from "@platform/database/constants/languages";
+import { LanguageFields } from "../setup/LanguageFields";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import {
   toggleBannerStatusAction,
@@ -36,10 +38,12 @@ import {
 
 interface BannersManagementViewProps {
   initialBanners: HeroBanner[];
+  languages: readonly ContentLanguage[];
 }
 
 export function BannersManagementView({
   initialBanners,
+  languages,
 }: BannersManagementViewProps) {
   const {t, locale} = useAdminLocale();
   const [banners, setBanners] = React.useState<HeroBanner[]>(initialBanners);
@@ -218,9 +222,11 @@ export function BannersManagementView({
                         : t.cms.hidden}
                     </Badge>
                   </div>
-                  <div className="text-xs text-accent ">
-                    {locale === "ar" ? banner.title_en : banner.title_ar}
-                  </div>
+                  {languages.length > 1 ? (
+                    <div className="text-xs text-accent ">
+                      {locale === "ar" ? banner.title_en : banner.title_ar}
+                    </div>
+                  ) : null}
                   <div className="text-xs text-ink-muted max-w-lg line-clamp-1">
                     {locale === "ar"
                       ? banner.subtitle_ar || banner.subtitle_en
@@ -285,51 +291,27 @@ export function BannersManagementView({
             {t.bannersManagement.saveThenPublishFromThe}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.bannersView.titleArLabel}
-              </label>
-              <Input
-                value={titleAr}
-                onChange={(e) => setTitleAr(e.target.value)}
-                placeholder={t.bannersView.titleArPlaceholder}
-                required
-              />
-            </div>
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.bannersView.titleEnLabel}
-              </label>
-              <Input
-                value={titleEn}
-                onChange={(e) => setTitleEn(e.target.value)}
-                placeholder={t.bannersView.titleEnPlaceholder}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.bannersView.subtitleArLabel}
-              </label>
-              <Input
-                value={subtitleAr}
-                onChange={(e) => setSubtitleAr(e.target.value)}
-                placeholder={t.bannersView.subtitleArPlaceholder}
-              />
-            </div>
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.bannersView.subtitleEnLabel}
-              </label>
-              <Input
-                value={subtitleEn}
-                onChange={(e) => setSubtitleEn(e.target.value)}
-                placeholder={t.bannersView.subtitleEnPlaceholder}
-              />
-            </div>
+            <LanguageFields
+              name="title"
+              label={t.bannersView.titleLabel}
+              languages={languages}
+              required
+              maxLength={500}
+              placeholder={t.bannersView.titleEnPlaceholder}
+              en={titleEn}
+              ar={titleAr}
+              onChange={(v) => { setTitleEn(v.en); setTitleAr(v.ar); }}
+            />
+            <LanguageFields
+              name="subtitle"
+              label={t.bannersView.subtitleLabel}
+              languages={languages}
+              maxLength={500}
+              placeholder={t.bannersView.subtitleEnPlaceholder}
+              en={subtitleEn}
+              ar={subtitleAr}
+              onChange={(v) => { setSubtitleEn(v.en); setSubtitleAr(v.ar); }}
+            />
           </div>
 
           <div className="space-y-4">
@@ -384,13 +366,15 @@ export function BannersManagementView({
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
-            <label className="text-sm">
-              {t.bannersManagement.ctaEnglish}
-              <Input value={ctaEn} onChange={(e) => setCtaEn(e.target.value)} />
-            </label>
-            <label className="text-sm">
-              {t.copy.buttonArabic}<Input value={ctaAr} onChange={(e) => setCtaAr(e.target.value)} />
-            </label>
+            <LanguageFields
+              name="cta"
+              label={t.bannersManagement.ctaLabel}
+              languages={languages}
+              maxLength={100}
+              en={ctaEn}
+              ar={ctaAr}
+              onChange={(v) => { setCtaEn(v.en); setCtaAr(v.ar); }}
+            />
             <label className="text-sm">
               {t.bannersManagement.ctaDestination}
               <Input

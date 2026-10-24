@@ -876,9 +876,7 @@
     "emptyState": "No hero banners currently in database.",
     "hide": "Hide",
     "publish": "Publish",
-    "titleArPlaceholder": "Quality you can count on",
     "titleEnPlaceholder": "Quality you can count on",
-    "subtitleArPlaceholder": "Everything you need, delivered with care",
     "subtitleEnPlaceholder": "Everything you need, delivered with care",
     "mediaType": "Media Type",
     "videoReel": "Video Reel",
@@ -887,10 +885,8 @@
     "mediaUrlPlaceholder": "/banners/reel.mp4",
     "posterUrl": "Poster Image URL",
     "posterUrlPlaceholder": "/banners/poster.jpg",
-    "titleEnLabel": "Title (English)",
-    "titleArLabel": "Main Title (Arabic)",
-    "subtitleEnLabel": "Subtitle (English)",
-    "subtitleArLabel": "Subtitle (Arabic)"
+    "titleLabel": "Title",
+    "subtitleLabel": "Subtitle"
   },
   "clientsView": {
     "subtitle": "Enterprise commercial partners displayed in the public homepage infinite logo marquee.",
@@ -1552,13 +1548,9 @@
     "modalNewTitle": "New Service Offering",
     "modalEditTitle": "Edit Service Offering",
     "codeLabel": "Service SKU / Code",
-    "nameEnLabel": "Service Name (English) *",
-    "nameArLabel": "Service Name (Arabic) *",
     "categoryLabel": "Service Category",
     "unitLabel": "Billing Unit",
     "rateLabel": "Standard Rate",
-    "descEnLabel": "Service Scope (English)",
-    "descArLabel": "Service Scope (Arabic)",
     "statusActive": "Active in Catalog",
     "deleteConfirmTitle": "Delete Service Offering",
     "deleteConfirmDesc": "Are you sure you want to delete this service? Invoices using this service will retain their historical records.",
@@ -1575,10 +1567,10 @@
     "noServicesHint": "Try adjusting your category or search filter.",
     "codePlaceholder": "e.g. SRV-CINE-01",
     "nameEnPlaceholder": "e.g. Standard consultation (1 hour)",
-    "nameArPlaceholder": "مثال: استشارة قياسية (ساعة)",
     "ratePlaceholder": "0.000",
     "descEnPlaceholder": "Details of what the service includes...",
-    "descArPlaceholder": "تفاصيل ومخرجات الخدمة باللغة العربية..."
+    "nameLabel": "Service name",
+    "descLabel": "Service scope"
   },
   "invoiceEdit": {
     "title": "Edit Invoice",
@@ -1825,16 +1817,14 @@
     "published": "Published",
     "hidden": "Hidden",
     "order": "Order",
-    "questionEn": "Question (En)",
-    "questionAr": "Question (Ar)",
-    "answerEn": "Answer (En)",
-    "answerAr": "Answer (Ar)",
     "sortOrder": "Sort Order",
     "publishOnWebsite": "Publish on Website",
     "saveFaq": "Save FAQ",
     "cancel": "Cancel",
     "deleteFaq": "Delete FAQ",
-    "deleteConfirm": "Are you sure you want to permanently delete this FAQ?"
+    "deleteConfirm": "Are you sure you want to permanently delete this FAQ?",
+    "question": "Question",
+    "answer": "Answer"
   },
   "reviewsView": {
     "title": "Client Ratings & Reviews Moderation",
@@ -1861,10 +1851,6 @@
     "valueLabel": "Metric Value (e.g. 150+ or 8K)",
     "lucideIcon": "Lucide Icon Name",
     "iconPlaceholder": "Award, Users, Star, Clock, etc.",
-    "labelEn": "Label (En)",
-    "labelAr": "Label (Ar)",
-    "subLabelEn": "Sub-Label (En)",
-    "subLabelAr": "Sub-Label (Ar)",
     "sortOrder": "Sort Order",
     "saveStat": "Save Statistic",
     "cancel": "Cancel",
@@ -1887,7 +1873,9 @@
     "suffixHint": "e.g. + or K",
     "computedBadge": "Live",
     "computedNote": "Recalculated each time the website is published.",
-    "saveFailed": "Could not save the statistic."
+    "saveFailed": "Could not save the statistic.",
+    "label": "Label",
+    "subLabel": "Sub-label"
   },
   "webSettingsView": {
     "title": "Website Management & Settings",
@@ -2654,7 +2642,7 @@
     "couldNotUpdateBannerPlease": "Could not update banner. Please try again.",
     "couldNotDeleteBannerPlease": "Could not delete banner. Please try again.",
     "couldNotSaveBanner": "Could not save banner",
-    "ctaEnglish": "CTA (English)"
+    "ctaLabel": "Button text"
   },
   "portfolioManagement": {
     "reviewAndPublishChangesIn": "Review and publish changes in the website editor",
@@ -7677,7 +7665,6 @@
     "pdf": "PDF",
     "shortcut": "⌘K",
     "escape": "Esc",
-    "buttonArabic": "Button text (Arabic)",
     "descriptionArabic": "Description (Arabic)",
     "aspectStandard": "16:9 (Standard UHD)",
     "aspectScope": "2.39:1 (Anamorphic scope)",

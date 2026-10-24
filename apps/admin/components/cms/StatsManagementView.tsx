@@ -8,8 +8,10 @@ import { STATISTIC_PRESETS, type StatisticPreset } from "@platform/database/cons
 import { Plus, Edit, Trash2, Activity } from "lucide-react";
 import { createStatisticAction, updateStatisticAction, deleteStatisticAction } from "../../app/actions/cms";
 import { IconPicker } from "../shared/LazyIconPicker";
+import type { ContentLanguage } from "@platform/database/constants/languages";
+import { LanguageFields } from "../setup/LanguageFields";
 
-export function StatsManagementView({ initialStats }: { initialStats: StatisticItem[] }) {
+export function StatsManagementView({ initialStats, languages }: { initialStats: StatisticItem[]; languages: readonly ContentLanguage[] }) {
   const { t, isRTL } = useAdminLocale();
   const [stats, setStats] = React.useState(initialStats);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -183,10 +185,8 @@ export function StatsManagementView({ initialStats }: { initialStats: StatisticI
               <label className="text-xs font-bold block mb-1">{t.statsView.lucideIcon}</label>
               <IconPicker value={icon} onChange={setIcon} placeholder={t.statsView.iconPlaceholder} />
             </div>
-            <div><label className="text-xs font-bold block mb-1">{t.statsView.labelEn}</label><Input value={labelEn} onChange={e=>setLabelEn(e.target.value)} required /></div>
-            <div><label className="text-xs font-bold block mb-1">{t.statsView.labelAr}</label><Input value={labelAr} onChange={e=>setLabelAr(e.target.value)} required /></div>
-            <div><label className="text-xs font-bold block mb-1">{t.statsView.subLabelEn}</label><Input value={subLabelEn} onChange={e=>setSubLabelEn(e.target.value)} /></div>
-            <div><label className="text-xs font-bold block mb-1">{t.statsView.subLabelAr}</label><Input value={subLabelAr} onChange={e=>setSubLabelAr(e.target.value)} /></div>
+            <LanguageFields name="label" label={t.statsView.label} languages={languages} required maxLength={100} en={labelEn} ar={labelAr} onChange={(v) => { setLabelEn(v.en); setLabelAr(v.ar); }} />
+            <LanguageFields name="subLabel" label={t.statsView.subLabel} languages={languages} maxLength={200} en={subLabelEn} ar={subLabelAr} onChange={(v) => { setSubLabelEn(v.en); setSubLabelAr(v.ar); }} />
           </div>
           <div><label className="text-xs font-bold block mb-1">{t.statsView.sortOrder}</label><Input type="number" value={sortOrder} onChange={e=>setSortOrder(Number(e.target.value))} /></div>
           {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}

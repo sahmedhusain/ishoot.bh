@@ -876,9 +876,7 @@
     "emptyState": "لا توجد بنرات حالياً في قاعدة البيانات.",
     "hide": "إخفاء",
     "publish": "نشر",
-    "titleArPlaceholder": "جودة يمكنك الاعتماد عليها",
     "titleEnPlaceholder": "جودة يمكنك الاعتماد عليها",
-    "subtitleArPlaceholder": "كل ما تحتاجه بعناية واهتمام",
     "subtitleEnPlaceholder": "كل ما تحتاجه بعناية واهتمام",
     "mediaType": "نوع الوسائط",
     "videoReel": "مقطع فيديو تعريفي",
@@ -887,10 +885,8 @@
     "mediaUrlPlaceholder": "/banners/reel.mp4",
     "posterUrl": "رابط صورة المعاينة",
     "posterUrlPlaceholder": "/banners/poster.jpg",
-    "titleEnLabel": "العنوان بالإنجليزية",
-    "titleArLabel": "العنوان الرئيسي (بالعربية)",
-    "subtitleEnLabel": "الوصف الفرعي (بالإنجليزية)",
-    "subtitleArLabel": "الوصف الفرعي (بالعربية)"
+    "titleLabel": "العنوان",
+    "subtitleLabel": "الوصف الفرعي"
   },
   "clientsView": {
     "subtitle": "شركاء النجاح والعلامات التجارية الرائدة المعروضة في شريط التمرير بالصفحة الرئيسية.",
@@ -1552,13 +1548,9 @@
     "modalNewTitle": "إضافة خدمة جديدة",
     "modalEditTitle": "تعديل بيانات الخدمة",
     "codeLabel": "رمز الخدمة",
-    "nameEnLabel": "اسم الخدمة (الإنجليزية) *",
-    "nameArLabel": "اسم الخدمة (العربية) *",
     "categoryLabel": "تصنيف الخدمة",
     "unitLabel": "وحدة الفوترة",
     "rateLabel": "السعر المعياري",
-    "descEnLabel": "وصف الخدمة (الإنجليزية)",
-    "descArLabel": "وصف الخدمة (العربية)",
     "statusActive": "نشطة في الدليل",
     "deleteConfirmTitle": "حذف الخدمة من الدليل",
     "deleteConfirmDesc": "هل أنت متأكد من حذف هذه الخدمة؟ الفواتير التي استخدمت هذه الخدمة سابقاً ستحتفظ بسجلاتها التاريخية.",
@@ -1575,10 +1567,10 @@
     "noServicesHint": "جرّب تعديل التصنيف أو كلمات البحث.",
     "codePlaceholder": "مثال: SRV-CINE-01",
     "nameEnPlaceholder": "مثال: استشارة قياسية (ساعة)",
-    "nameArPlaceholder": "مثال: استشارة قياسية (ساعة)",
     "ratePlaceholder": "0.000",
     "descEnPlaceholder": "تفاصيل نطاق ومخرجات الخدمة بالإنجليزية...",
-    "descArPlaceholder": "تفاصيل ومخرجات الخدمة باللغة العربية..."
+    "nameLabel": "اسم الخدمة",
+    "descLabel": "وصف الخدمة"
   },
   "invoiceEdit": {
     "title": "تعديل الفاتورة",
@@ -1825,16 +1817,14 @@
     "published": "منشور",
     "hidden": "مخفي",
     "order": "الترتيب",
-    "questionEn": "السؤال (بالإنجليزية)",
-    "questionAr": "السؤال (بالعربية)",
-    "answerEn": "الإجابة (بالإنجليزية)",
-    "answerAr": "الإجابة (بالعربية)",
     "sortOrder": "ترتيب العرض",
     "publishOnWebsite": "نشر على الموقع العام",
     "saveFaq": "حفظ السؤال",
     "cancel": "إلغاء",
     "deleteFaq": "حذف السؤال",
-    "deleteConfirm": "هل أنت متأكد من حذف هذا السؤال نهائياً؟"
+    "deleteConfirm": "هل أنت متأكد من حذف هذا السؤال نهائياً؟",
+    "question": "السؤال",
+    "answer": "الإجابة"
   },
   "reviewsView": {
     "title": "إدارة وتقييمات العملاء والمراجعات",
@@ -1861,10 +1851,6 @@
     "valueLabel": "القيمة الرقمية (مثال: +150 أو 8K)",
     "lucideIcon": "اسم أيقونة Lucide",
     "iconPlaceholder": "Award, Users, Star, Clock...",
-    "labelEn": "العنوان (بالإنجليزية)",
-    "labelAr": "العنوان (بالعربية)",
-    "subLabelEn": "الوصف الفرعي (بالإنجليزية)",
-    "subLabelAr": "الوصف الفرعي (بالعربية)",
     "sortOrder": "ترتيب العرض",
     "saveStat": "حفظ الإحصائية",
     "cancel": "إلغاء",
@@ -1887,7 +1873,9 @@
     "suffixHint": "مثل + أو K",
     "computedBadge": "مباشر",
     "computedNote": "يُعاد حسابها في كل مرة يُنشر فيها الموقع.",
-    "saveFailed": "تعذّر حفظ الإحصائية."
+    "saveFailed": "تعذّر حفظ الإحصائية.",
+    "label": "العنوان",
+    "subLabel": "الوصف الفرعي"
   },
   "webSettingsView": {
     "title": "إدارة إعدادات الموقع العام",
@@ -2654,7 +2642,7 @@
     "couldNotUpdateBannerPlease": "تعذر تحديث البنر. يرجى المحاولة مرة أخرى.",
     "couldNotDeleteBannerPlease": "تعذر حذف البنر. يرجى المحاولة مرة أخرى.",
     "couldNotSaveBanner": "تعذر حفظ البنر",
-    "ctaEnglish": "زر الإجراء (بالإنجليزية)"
+    "ctaLabel": "نص الزر"
   },
   "portfolioManagement": {
     "reviewAndPublishChangesIn": "راجع التغييرات وانشرها من محرر الموقع",
@@ -7677,7 +7665,6 @@
     "pdf": "PDF",
     "shortcut": "⌘K",
     "escape": "Esc",
-    "buttonArabic": "نص الزر (عربي)",
     "descriptionArabic": "الوصف (عربي)",
     "aspectStandard": "16:9 (قياسي UHD)",
     "aspectScope": "2.39:1 (سينمائي عريض)",

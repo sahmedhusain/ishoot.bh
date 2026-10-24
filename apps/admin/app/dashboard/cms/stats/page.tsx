@@ -1,17 +1,17 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { getStatistics } from "@platform/database";
+import { getCompanySettings, getStatistics } from "@platform/database";
 import { StatsManagementView } from "../../../../components/cms/StatsManagementView";
 import { WebsitePublicationNotice } from "../../../../components/cms/WebsitePublicationNotice";
 
 export default async function StatsSettingsPage() {
   await requirePagePermission("stats", "read");
 
-  const stats = await getStatistics();
+  const [stats, company] = await Promise.all([getStatistics(), getCompanySettings()]);
 
   return (
     <div className="space-y-4">
       <WebsitePublicationNotice section="stats" />
-      <StatsManagementView initialStats={stats} />
+      <StatsManagementView initialStats={stats} languages={company.content_languages} />
     </div>
   );
 }
