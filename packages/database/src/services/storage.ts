@@ -3,6 +3,7 @@ import { serverTemplates, formatMessage, serverMessages } from "@platform/locale
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import path from "node:path";
 import fs from "node:fs/promises";
+import { FONT_UPLOAD_URL } from "../constants/theme";
 
 /** Supabase Storage when configured; otherwise files live on local disk under UPLOAD_ROOT (development, single server). */
 export function isSupabaseStorageConfigured() {
@@ -17,6 +18,9 @@ export function detectFileType(bytes: Uint8Array): string | null {
   if (starts(0xff, 0xd8, 0xff)) return "image/jpeg";
   if (starts(0x52, 0x49, 0x46, 0x46) && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "image/webp";
   if (starts(0x77, 0x4f, 0x46, 0x32)) return "font/woff2";
+  if (starts(0x77, 0x4f, 0x46, 0x46)) return "font/woff";
+  if (starts(0x4f, 0x54, 0x54, 0x4f)) return "font/otf";
+  if (starts(0x00, 0x01, 0x00, 0x00) || starts(0x74, 0x72, 0x75, 0x65)) return "font/ttf";
   return null;
 }
 
@@ -61,8 +65,8 @@ export async function getObjectMetadata(bucket: string, path: string) {
 }
 
 export function uploadStorageLocation(fileUrl: string, isPublic: boolean) {
-  // Brand fonts (woff2) live only in the public brand folder.
-  if (!/^\/api\/files\/(payments|invoices|certificates|vault|deals|general|brand)\/[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(fileUrl) && !/^\/api\/files\/brand\/[a-zA-Z0-9_-]+\.woff2$/.test(fileUrl))
+  // Brand fonts live only in the public brand folder.
+  if (!/^\/api\/files\/(payments|invoices|certificates|vault|deals|general|brand)\/[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(fileUrl) && !FONT_UPLOAD_URL.test(fileUrl))
     throw new Error(serverMessages.invalidUploadPath);
   return { bucket: isPublic ? "public-assets" : "private-assets", path: fileUrl.slice("/api/files/".length) };
 }

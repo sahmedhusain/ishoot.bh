@@ -1,7 +1,7 @@
 import { Font } from "@react-pdf/renderer";
 import path from "path";
 import { generateDownloadUrl, isSupabaseStorageConfigured, uploadRoot, uploadStorageLocation } from "@platform/database";
-import type { BrandTheme, FontChoice } from "@platform/database/constants/theme";
+import { FONT_LIBRARY, type BrandTheme, type FontChoice } from "@platform/database/constants/theme";
 
 /** The single family every generated document uses; it is registered from the company theme's body font. */
 export const PDF_FONT = "CompanyPdf";
@@ -27,7 +27,11 @@ async function uploadedFontSource(url: string) {
 async function googleFontSources(family: string) {
   const cached = googleSources.get(family);
   if (cached) return cached;
-  const css = await fetch(`https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}:wght@400;700`, {
+  // Asking for a weight the family lacks fails the whole request (Lalezar, Bebas Neue… have only 400).
+  const known = FONT_LIBRARY.find((f) => f.family === family)?.weights;
+  const weights = known ? [400, 700].filter((w) => known.includes(w)) : [400, 700];
+  const query = weights.length ? `:wght@${weights.join(";")}` : "";
+  const css = await fetch(`https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}${query}`, {
     signal: AbortSignal.timeout(8000),
   }).then((r) => (r.ok ? r.text() : ""));
   const sources: Record<number, string> = {};

@@ -10,7 +10,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", ...props }, ref) => {
     const baseStyles =
       // Material 3 Expressive: pill shape that squares off slightly while pressed, visible keyboard focus.
-      "inline-flex items-center justify-center whitespace-nowrap font-medium select-none transition-[background-color,border-color,color,box-shadow,border-radius,transform] duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none rounded-full active:rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-surface";
+      "inline-flex items-center justify-center whitespace-nowrap font-medium select-none transition-[background-color,border-color,color,box-shadow,border-radius,transform] duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none rounded-[var(--brand-button-radius,9999px)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-surface";
 
     const variants = {
       primary:

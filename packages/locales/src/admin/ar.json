@@ -7905,10 +7905,11 @@
       "fontSource": {
         "google": "مكتبة الخطوط",
         "upload": "رفع ملفات خط",
-        "system": "خط الجهاز"
+        "system": "خط الجهاز",
+        "licensed": "خط ثمانية وخطوط مرخّصة"
       },
       "fontFamilyName": "اسم الخط",
-      "uploadFont": "أضف ملف WOFF2",
+      "uploadFont": "أضف ملفات الخط",
       "fontWeight": "الوزن",
       "radius": "شكل الزوايا",
       "radiusOptions": {
@@ -7937,7 +7938,71 @@
         "accentButtonText": "النص على أزرار لون التمييز سيكون صعب القراءة."
       },
       "contrastOk": "الألوان تحقق معيار التباين WCAG AA.",
-      "fontSample": "أبجد هوز · Aa Bb 123"
+      "fontSample": "أبجد هوز · Aa Bb 123",
+      "stylePresets": "ابدأ بنمط متكامل",
+      "stylePresetsHint": "كل نمط يضبط الألوان والخطوط والأشكال معاً، ويمكنك تعديل أي شيء أدناه.",
+      "styleNames": {
+        "corporate": "مؤسسي",
+        "cinematic": "سينمائي",
+        "elegant": "أنيق",
+        "modern": "عصري",
+        "friendly": "ودود",
+        "fresh": "منعش",
+        "minimal": "بسيط",
+        "bold": "جريء"
+      },
+      "fontSearch": "ابحث عن خط",
+      "fontFilters": {
+        "all": "الكل",
+        "arabic": "عربي ولاتيني",
+        "latin": "لاتيني فقط",
+        "sans": "بدون زوائد",
+        "serif": "بزوائد",
+        "display": "عناوين",
+        "handwriting": "خط يدوي"
+      },
+      "fontCount": "{count} خطاً",
+      "noFonts": "لا يوجد خط يطابق بحثك.",
+      "latinOnlyWarning": "هذا الخط لا يحتوي على حروف عربية، لذا سيظهر النص العربي بخط الجهاز.",
+      "licensedIntro": "هذه الخطوط مجانية، لكن ترخيصها لا يسمح لنا بتضمين ملفاتها. نزّل نسختك من الناشر ثم ارفع الملفات هنا.",
+      "getFont": "احصل على ملفات الخط",
+      "uploadHint": "WOFF2 أو WOFF أو TTF أو OTF. يُقرأ الوزن من اسم كل ملف (Light وRegular وBold…)، وإلا يُستخدم الوزن المختار هنا.",
+      "typography": "الخط والأشكال",
+      "buttonShape": "شكل الأزرار",
+      "buttonShapes": {
+        "square": "مربّع",
+        "rounded": "مطابق للزوايا",
+        "pill": "دائري"
+      },
+      "fontScale": "حجم النص",
+      "fontScales": {
+        "sm": "مضغوط",
+        "md": "قياسي",
+        "lg": "كبير"
+      },
+      "headingWeight": "سماكة العناوين",
+      "headingWeights": {
+        "400": "عادي",
+        "500": "متوسط",
+        "600": "شبه عريض",
+        "700": "عريض",
+        "800": "عريض جداً"
+      },
+      "headingCase": "العناوين الإنجليزية",
+      "headingCases": {
+        "normal": "كما كُتبت",
+        "uppercase": "أحرف كبيرة"
+      },
+      "surface": "الخلفيات",
+      "surfaces": {
+        "tinted": "مشوبة بلون العلامة",
+        "neutral": "رمادي محايد"
+      },
+      "previewWebsite": "الموقع",
+      "previewAdmin": "لوحة الإدارة",
+      "previewHeroEyebrow": "أهلاً بك",
+      "previewHeroTitle": "قصتك، بأجمل صورة",
+      "previewHeroBody": "هكذا ستبدو عناوين موقعك ونصوصه وأزراره."
     },
     "assets": {
       "logo": "الشعار النصي للخلفيات الفاتحة",

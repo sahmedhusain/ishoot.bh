@@ -1,4 +1,5 @@
 import { serverMessages } from "@platform/locales";
+import { fontMimeFromName } from "@platform/database/constants/theme";
 export interface UploadOptions {
   entityType?: string;
   entityId?: string;
@@ -8,7 +9,9 @@ export interface UploadOptions {
 
 /** Browsers often leave the type of a font file empty; the server checks the real bytes either way. */
 function fileTypeOf(file: File) {
-  return file.type || (/\.woff2$/i.test(file.name) ? "font/woff2" : "");
+  const fromName = fontMimeFromName(file.name);
+  // Fonts are often reported with legacy types (application/font-woff, application/x-font-ttf…).
+  return fromName || file.type;
 }
 
 export async function uploadFileDirectly(file: File, options: UploadOptions = {}) {

@@ -1,6 +1,7 @@
 import { serverTemplates, formatMessage, serverMessages } from "@platform/locales";
 
 
+import { FONT_UPLOAD_URL } from "@platform/database/constants/theme";
 import { NextRequest, NextResponse } from "next/server";
 import { db, detectFileType, isSupabaseStorageConfigured, measureOperation, uploadRoot, writeLocalUpload } from "@platform/database";
 import { getCurrentUser } from "../../../../../../lib/auth";
@@ -18,7 +19,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ fold
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: serverMessages.unauthorized }, { status: 401 });
     const { folder, name } = await params;
-    if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !(/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name) || (folder === "brand" && /^[a-zA-Z0-9_-]+\.woff2$/.test(name))))
+    if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !(/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name) || (folder === "brand" && FONT_UPLOAD_URL.test(`/api/files/brand/${name}`))))
       return NextResponse.json({ error: serverMessages.invalidUploadPath }, { status: 400 });
     const fileUrl = `/api/files/${folder}/${name}`;
     const upload = await db.uploadObject.findUnique({ where: { fileUrl } });

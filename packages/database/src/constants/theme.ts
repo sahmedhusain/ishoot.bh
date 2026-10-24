@@ -1,4 +1,4 @@
-// The company's visual identity: two brand colours, fonts, corner radius and default mode.
+// The company's visual identity: two brand colours, fonts, corner radius, type and default mode.
 // Everything else (hover shades, tinted surfaces, glow) is derived, so a company picks a few values
 // in the setup wizard and both apps stay consistent in light and dark mode.
 
@@ -9,6 +9,10 @@ export type FontChoice =
 
 export type ThemeRadius = "none" | "sm" | "md" | "lg" | "xl";
 export type ThemeMode = "light" | "dark" | "system";
+export type ThemeButtonShape = "square" | "rounded" | "pill";
+export type ThemeFontScale = "sm" | "md" | "lg";
+export type ThemeHeadingCase = "normal" | "uppercase";
+export type ThemeSurface = "tinted" | "neutral";
 
 export interface BrandTheme {
   primary: string;
@@ -16,6 +20,16 @@ export interface BrandTheme {
   fonts: { body: FontChoice; heading: FontChoice };
   radius: ThemeRadius;
   defaultMode: ThemeMode;
+  /** Buttons: square corners, the theme radius, or fully rounded. */
+  buttonShape: ThemeButtonShape;
+  /** Base text size for both apps. */
+  fontScale: ThemeFontScale;
+  /** Weight of website headings. */
+  headingWeight: number;
+  /** Latin website headings in capitals (Arabic has no case). */
+  headingCase: ThemeHeadingCase;
+  /** Neutral backgrounds carry a faint tint of the primary colour, or stay pure grey. */
+  surface: ThemeSurface;
 }
 
 export const DEFAULT_THEME: BrandTheme = {
@@ -27,27 +41,185 @@ export const DEFAULT_THEME: BrandTheme = {
   },
   radius: "lg",
   defaultMode: "system",
+  // Pill buttons were the look before shapes were configurable, so themes saved earlier keep it.
+  buttonShape: "pill",
+  fontScale: "md",
+  headingWeight: 700,
+  headingCase: "normal",
+  surface: "tinted",
 };
 
-/** Families offered in the setup wizard; each covers Arabic and Latin so bilingual pages never fall back. */
-export const CURATED_FONTS = [
-  { family: "IBM Plex Sans Arabic", category: "sans", weights: [300, 400, 500, 700] },
-  { family: "Cairo", category: "sans", weights: [300, 400, 500, 700] },
-  { family: "Tajawal", category: "sans", weights: [300, 400, 500, 700] },
-  { family: "Almarai", category: "sans", weights: [300, 400, 700] },
-  { family: "Readex Pro", category: "sans", weights: [300, 400, 500, 700] },
-  { family: "Noto Sans Arabic", category: "sans", weights: [300, 400, 500, 700] },
-  { family: "Noto Kufi Arabic", category: "display", weights: [300, 400, 500, 700] },
-  { family: "Rubik", category: "sans", weights: [300, 400, 500, 700] },
-  { family: "Changa", category: "display", weights: [300, 400, 500, 700] },
-  { family: "Amiri", category: "serif", weights: [400, 700] },
-  { family: "Noto Naskh Arabic", category: "serif", weights: [400, 500, 700] },
+export type FontCategory = "sans" | "serif" | "display" | "handwriting";
+export interface LibraryFont {
+  family: string;
+  category: FontCategory;
+  /** "arabic" families also carry Latin glyphs; "latin" ones fall back to the system font for Arabic. */
+  script: "arabic" | "latin";
+  weights: readonly number[];
+}
+
+/** Google families offered in the setup wizard; every weight here was checked against Google Fonts. */
+export const FONT_LIBRARY: readonly LibraryFont[] = [
+  { family: "IBM Plex Sans Arabic", category: "sans", script: "arabic", weights: [300, 400, 500, 600, 700] },
+  { family: "Cairo", category: "sans", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Tajawal", category: "sans", script: "arabic", weights: [300, 400, 500, 700, 800] },
+  { family: "Almarai", category: "sans", script: "arabic", weights: [300, 400, 700, 800] },
+  { family: "Readex Pro", category: "sans", script: "arabic", weights: [300, 400, 500, 600, 700] },
+  { family: "Alexandria", category: "sans", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Noto Sans Arabic", category: "sans", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Noto Kufi Arabic", category: "sans", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Vazirmatn", category: "sans", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Rubik", category: "sans", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Zain", category: "sans", script: "arabic", weights: [300, 400, 700, 800] },
+  { family: "Mada", category: "sans", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Harmattan", category: "sans", script: "arabic", weights: [400, 500, 600, 700] },
+  { family: "Changa", category: "display", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "El Messiri", category: "display", script: "arabic", weights: [400, 500, 600, 700] },
+  { family: "Reem Kufi", category: "display", script: "arabic", weights: [400, 500, 600, 700] },
+  { family: "Kufam", category: "display", script: "arabic", weights: [400, 500, 600, 700, 800] },
+  { family: "Baloo Bhaijaan 2", category: "display", script: "arabic", weights: [400, 500, 600, 700, 800] },
+  { family: "Lemonada", category: "display", script: "arabic", weights: [300, 400, 500, 600, 700] },
+  { family: "Marhey", category: "display", script: "arabic", weights: [300, 400, 500, 600, 700] },
+  { family: "Lalezar", category: "display", script: "arabic", weights: [400] },
+  { family: "Rakkas", category: "display", script: "arabic", weights: [400] },
+  { family: "Amiri", category: "serif", script: "arabic", weights: [400, 700] },
+  { family: "Noto Naskh Arabic", category: "serif", script: "arabic", weights: [400, 500, 600, 700] },
+  { family: "Markazi Text", category: "serif", script: "arabic", weights: [400, 500, 600, 700] },
+  { family: "Scheherazade New", category: "serif", script: "arabic", weights: [400, 500, 600, 700] },
+  { family: "Lateef", category: "serif", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Mirza", category: "serif", script: "arabic", weights: [400, 500, 600, 700] },
+  { family: "Aref Ruqaa", category: "handwriting", script: "arabic", weights: [400, 700] },
+  { family: "Qahiri", category: "handwriting", script: "arabic", weights: [400] },
+  { family: "Playpen Sans Arabic", category: "handwriting", script: "arabic", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Inter", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Poppins", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Montserrat", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "DM Sans", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Manrope", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Plus Jakarta Sans", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Outfit", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Figtree", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Sora", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Urbanist", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Lexend", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Work Sans", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Open Sans", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Roboto", category: "sans", script: "latin", weights: [300, 400, 500, 700, 900] },
+  { family: "Lato", category: "sans", script: "latin", weights: [300, 400, 700, 900] },
+  { family: "Nunito", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Raleway", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Archivo", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Barlow", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "Josefin Sans", category: "sans", script: "latin", weights: [300, 400, 500, 600, 700] },
+  { family: "Space Grotesk", category: "display", script: "latin", weights: [300, 400, 500, 600, 700] },
+  { family: "Oswald", category: "display", script: "latin", weights: [300, 400, 500, 600, 700] },
+  { family: "Bebas Neue", category: "display", script: "latin", weights: [400] },
+  { family: "Playfair Display", category: "serif", script: "latin", weights: [400, 500, 600, 700, 800] },
+  { family: "Lora", category: "serif", script: "latin", weights: [400, 500, 600, 700] },
+  { family: "Merriweather", category: "serif", script: "latin", weights: [300, 400, 700, 900] },
+  { family: "Cormorant Garamond", category: "serif", script: "latin", weights: [300, 400, 500, 600, 700] },
+  { family: "Libre Baskerville", category: "serif", script: "latin", weights: [400, 700] },
+  { family: "Fraunces", category: "serif", script: "latin", weights: [300, 400, 500, 600, 700, 800] },
+  { family: "DM Serif Display", category: "serif", script: "latin", weights: [400] },
+];
+
+/** Kept for existing callers: the Arabic-capable part of the library. */
+export const CURATED_FONTS = FONT_LIBRARY.filter((font) => font.script === "arabic");
+
+/**
+ * Free fonts whose licence does not allow us to ship or re-host the files: each company downloads its own copy
+ * from the publisher and uploads it, and the wizard fills in the family name for it.
+ */
+export const LICENSED_FONTS = [
+  { family: "Thmanyah Sans", category: "sans", script: "arabic", source: "https://thmanyah.com/fonts" },
+  { family: "Thmanyah Serif Display", category: "serif", script: "arabic", source: "https://thmanyah.com/fonts" },
+  { family: "Thmanyah Serif Text", category: "serif", script: "arabic", source: "https://thmanyah.com/fonts" },
 ] as const;
 
+/** Font files a company may upload, by their real (sniffed) type. */
+export const FONT_FILE_TYPES = {
+  "font/woff2": { extension: "woff2", format: "woff2" },
+  "font/woff": { extension: "woff", format: "woff" },
+  "font/ttf": { extension: "ttf", format: "truetype" },
+  "font/otf": { extension: "otf", format: "opentype" },
+} as const;
+export type FontMimeType = keyof typeof FONT_FILE_TYPES;
+export const FONT_EXTENSIONS = Object.values(FONT_FILE_TYPES).map((t) => t.extension);
+/** A public brand font upload URL (any accepted font extension). */
+export const FONT_UPLOAD_URL = new RegExp(`^/api/files/brand/[a-zA-Z0-9_-]+\\.(${FONT_EXTENSIONS.join("|")})$`);
+
+export function isFontMimeType(value: unknown): value is FontMimeType {
+  return typeof value === "string" && Object.hasOwn(FONT_FILE_TYPES, value);
+}
+
+/** The font type a file name suggests, for browsers that leave font types empty. */
+export function fontMimeFromName(name: string): FontMimeType | "" {
+  const extension = name.split(".").pop()?.toLowerCase();
+  return (Object.entries(FONT_FILE_TYPES).find(([, t]) => t.extension === extension)?.[0] as FontMimeType | undefined) ?? "";
+}
+
+const WEIGHT_NAMES: [RegExp, number][] = [
+  [/hairline|thin/i, 100],
+  [/extra-?light|ultra-?light/i, 200],
+  [/light/i, 300],
+  [/medium/i, 500],
+  [/semi-?bold|demi-?bold/i, 600],
+  [/extra-?bold|ultra-?bold/i, 800],
+  [/black|heavy/i, 900],
+  [/bold/i, 700],
+  [/regular|normal|book|roman/i, 400],
+];
+
+/** The weight a font file name implies ("ThmanyahSans-Bold.otf" → 700), or null when it says nothing. */
+export function weightFromFileName(name: string): number | null {
+  const stem = name.replace(/\.[^.]+$/, "");
+  const numeric = stem.match(/(?:^|[^0-9])([1-9]00)(?:[^0-9]|$)/);
+  if (numeric) return Number(numeric[1]);
+  return WEIGHT_NAMES.find(([pattern]) => pattern.test(stem))?.[1] ?? null;
+}
+
+/** Complete looks a company can start from; colours, fonts and shapes can still be changed one by one. */
+export const STYLE_PRESETS: { id: string; theme: Omit<BrandTheme, "defaultMode"> }[] = [
+  {
+    id: "corporate",
+    theme: { primary: "#1E3A8A", accent: "#2563EB", fonts: { body: { kind: "google", family: "IBM Plex Sans Arabic" }, heading: { kind: "google", family: "IBM Plex Sans Arabic" } }, radius: "md", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted" },
+  },
+  {
+    id: "cinematic",
+    theme: { primary: "#0F172A", accent: "#0D9488", fonts: { body: { kind: "google", family: "Readex Pro" }, heading: { kind: "google", family: "Alexandria" } }, radius: "sm", buttonShape: "square", fontScale: "md", headingWeight: 800, headingCase: "uppercase", surface: "neutral" },
+  },
+  {
+    id: "elegant",
+    theme: { primary: "#3F2A1D", accent: "#B45309", fonts: { body: { kind: "google", family: "Noto Naskh Arabic" }, heading: { kind: "google", family: "Amiri" } }, radius: "none", buttonShape: "square", fontScale: "lg", headingWeight: 700, headingCase: "normal", surface: "neutral" },
+  },
+  {
+    id: "modern",
+    theme: { primary: "#312E81", accent: "#4F46E5", fonts: { body: { kind: "google", family: "Alexandria" }, heading: { kind: "google", family: "Alexandria" } }, radius: "xl", buttonShape: "pill", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted" },
+  },
+  {
+    id: "friendly",
+    theme: { primary: "#9A3412", accent: "#EA580C", fonts: { body: { kind: "google", family: "Tajawal" }, heading: { kind: "google", family: "Baloo Bhaijaan 2" } }, radius: "xl", buttonShape: "pill", fontScale: "lg", headingWeight: 700, headingCase: "normal", surface: "tinted" },
+  },
+  {
+    id: "fresh",
+    theme: { primary: "#064E3B", accent: "#059669", fonts: { body: { kind: "google", family: "Cairo" }, heading: { kind: "google", family: "Cairo" } }, radius: "lg", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted" },
+  },
+  {
+    id: "minimal",
+    theme: { primary: "#111827", accent: "#374151", fonts: { body: { kind: "google", family: "Noto Sans Arabic" }, heading: { kind: "google", family: "Noto Kufi Arabic" } }, radius: "sm", buttonShape: "square", fontScale: "sm", headingWeight: 600, headingCase: "normal", surface: "neutral" },
+  },
+  {
+    id: "bold",
+    theme: { primary: "#7F1D1D", accent: "#DC2626", fonts: { body: { kind: "google", family: "Almarai" }, heading: { kind: "google", family: "Changa" } }, radius: "md", buttonShape: "rounded", fontScale: "md", headingWeight: 800, headingCase: "uppercase", surface: "tinted" },
+  },
+];
+
 const RADII: Record<ThemeRadius, string> = { none: "0px", sm: "0.25rem", md: "0.5rem", lg: "0.75rem", xl: "1rem" };
+const FONT_SCALES: Record<ThemeFontScale, string> = { sm: "15px", md: "16px", lg: "17px" };
+export const HEADING_WEIGHTS = [400, 500, 600, 700, 800];
+const BUTTON_RADII: Record<ThemeButtonShape, string | null> = { square: "0px", rounded: null, pill: "9999px" };
 const HEX = /^#([0-9a-f]{6})$/i;
 const FAMILY = /^[A-Za-z0-9 ]{1,60}$/;
-const FONT_URL = /^\/api\/files\/brand\/[a-zA-Z0-9_-]+\.woff2$/;
 
 export function isHexColor(value: unknown): value is string {
   return typeof value === "string" && HEX.test(value);
@@ -117,7 +289,7 @@ function validFont(value: unknown): FontChoice | null {
   if (font.kind === "google" && FAMILY.test(font.family ?? "")) return { kind: "google", family: font.family };
   if (font.kind === "upload" && FAMILY.test(font.family ?? "") && Array.isArray(font.files)) {
     const files = font.files
-      .filter((f) => f && FONT_URL.test(f.url) && Number.isInteger(f.weight) && f.weight >= 100 && f.weight <= 900)
+      .filter((f) => f && FONT_UPLOAD_URL.test(f.url) && Number.isInteger(f.weight) && f.weight >= 100 && f.weight <= 900)
       .slice(0, 9)
       .map((f) => ({ weight: f.weight, url: f.url }));
     return files.length ? { kind: "upload", family: font.family, files } : null;
@@ -138,6 +310,11 @@ export function normalizeTheme(value: unknown): BrandTheme {
     },
     radius: input.radius && input.radius in RADII ? input.radius : DEFAULT_THEME.radius,
     defaultMode: input.defaultMode === "light" || input.defaultMode === "dark" || input.defaultMode === "system" ? input.defaultMode : DEFAULT_THEME.defaultMode,
+    buttonShape: input.buttonShape && input.buttonShape in BUTTON_RADII ? input.buttonShape : DEFAULT_THEME.buttonShape,
+    fontScale: input.fontScale && input.fontScale in FONT_SCALES ? input.fontScale : DEFAULT_THEME.fontScale,
+    headingWeight: HEADING_WEIGHTS.includes(input.headingWeight as number) ? (input.headingWeight as number) : DEFAULT_THEME.headingWeight,
+    headingCase: input.headingCase === "uppercase" ? "uppercase" : "normal",
+    surface: input.surface === "neutral" ? "neutral" : "tinted",
   };
 }
 
@@ -161,7 +338,9 @@ export const THEME_TONES = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95] a
 export function themeVariables(input: BrandTheme) {
   const theme = normalizeTheme(input);
   const [hue] = hsl(theme.primary);
-  const tint = (s: number, l: number) => channels(fromHsl(hue, s, l));
+  // Neutral surfaces keep the same lightness steps without the primary's hue.
+  const tintStrength = theme.surface === "neutral" ? 0.06 : 1;
+  const tint = (s: number, l: number) => channels(fromHsl(hue, s * tintStrength, l));
   const [accentHue, accentSaturation] = hsl(theme.accent);
   const tones = Object.fromEntries(
     THEME_TONES.map((tone) => [`--brand-tone-${tone}`, channels(fromHsl(accentHue, Math.min(accentSaturation, 0.75), tone / 100))]),
@@ -179,6 +358,10 @@ export function themeVariables(input: BrandTheme) {
     "--brand-on-accent": channels(readableOn(theme.accent)),
     "--brand-mint": channels(shade(theme.accent, 0.3)),
     "--brand-radius": RADII[theme.radius],
+    "--brand-button-radius": BUTTON_RADII[theme.buttonShape] ?? RADII[theme.radius],
+    "--brand-font-size": FONT_SCALES[theme.fontScale],
+    "--brand-heading-weight": String(theme.headingWeight),
+    "--brand-heading-case": theme.headingCase === "uppercase" ? "uppercase" : "none",
     "--brand-font-body": familyCss(theme.fonts.body, sans),
     "--brand-font-heading": familyCss(theme.fonts.heading, sans),
     ...tones,
@@ -212,14 +395,19 @@ export function themeVariables(input: BrandTheme) {
 const block = (selector: string, vars: Record<string, string>) =>
   `${selector}{${Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(";")}}`;
 
+function fontFormat(url: string) {
+  const extension = url.split(".").pop();
+  return Object.values(FONT_FILE_TYPES).find((t) => t.extension === extension)?.format ?? "woff2";
+}
+
 /** The stylesheet injected into each app's <head>: variables plus @font-face for uploaded fonts. */
 export function themeStylesheet(input: BrandTheme) {
   const theme = normalizeTheme(input);
   const { common, dark, light } = themeVariables(theme);
   const faces = [theme.fonts.body, theme.fonts.heading]
     .filter((f): f is Extract<FontChoice, { kind: "upload" }> => f.kind === "upload")
-    .flatMap((f) => f.files.map((file) => `@font-face{font-family:"${f.family}";src:url("${file.url}") format("woff2");font-weight:${file.weight};font-display:swap}`));
-  return Array.from(new Set(faces)).join("") + block(":root", { ...common, ...dark }) + block("html.dark", dark) + block("html.light", light);
+    .flatMap((f) => f.files.map((file) => `@font-face{font-family:"${f.family}";src:url("${file.url}") format("${fontFormat(file.url)}");font-weight:${file.weight};font-display:swap}`));
+  return Array.from(new Set(faces)).join("") + block(":root", { ...common, ...dark }) + block("html.dark", dark) + block("html.light", light) + "html{font-size:var(--brand-font-size)}";
 }
 
 /** Google Fonts stylesheet for any Google families in the theme, or null when none are used. */
@@ -229,7 +417,7 @@ export function googleFontsHref(input: BrandTheme) {
   if (!families.length) return null;
   const query = families.map((family) => {
     // Asking for a weight a family lacks fails the whole request, so unknown families get the default weight only.
-    const weights = CURATED_FONTS.find((f) => f.family === family)?.weights;
+    const weights = FONT_LIBRARY.find((f) => f.family === family)?.weights;
     return `family=${family.replace(/ /g, "+")}${weights ? `:wght@${weights.join(";")}` : ""}`;
   });
   return `https://fonts.googleapis.com/css2?${query.join("&")}&display=swap`;

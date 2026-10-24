@@ -1,4 +1,5 @@
 import { measureOperation } from "@platform/database";
+import { FONT_UPLOAD_URL } from "@platform/database/constants/theme";
 import { NextRequest,NextResponse } from "next/server";
 import { realpath,stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
@@ -19,7 +20,7 @@ async function recordFileResource(fileUrl: string) {
 export async function GET(req: NextRequest, { params }: { params: Promise<{ folder: string; name: string }> }) {
   return measureOperation("admin:files/[folder]/[name]:GET", async () => {
   const { folder, name } = await params;
-  if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !(/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name) || (folder === "brand" && /^[a-zA-Z0-9_-]+\.woff2$/.test(name)))) return new NextResponse(null, { status: 404 });
+  if (!/^(payments|invoices|certificates|vault|deals|general|brand)$/.test(folder) || !(/^[a-zA-Z0-9_-]+\.(pdf|png|jpg|jpeg|webp)$/.test(name) || (folder === "brand" && FONT_UPLOAD_URL.test(`/api/files/brand/${name}`)))) return new NextResponse(null, { status: 404 });
   try {
     const fileUrl = `/api/files/${folder}/${name}`;
     const upload = await db.uploadObject.findUnique({ where: { fileUrl } });

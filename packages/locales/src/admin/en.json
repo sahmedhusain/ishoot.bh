@@ -7905,10 +7905,11 @@
       "fontSource": {
         "google": "Font library",
         "upload": "Upload font files",
-        "system": "Device default"
+        "system": "Device default",
+        "licensed": "Thmanyah & licensed fonts"
       },
       "fontFamilyName": "Font name",
-      "uploadFont": "Add a WOFF2 file",
+      "uploadFont": "Add font files",
       "fontWeight": "Weight",
       "radius": "Corner style",
       "radiusOptions": {
@@ -7937,7 +7938,71 @@
         "accentButtonText": "Text on accent buttons will be hard to read."
       },
       "contrastOk": "Colours meet the WCAG AA contrast guideline.",
-      "fontSample": "أبجد هوز · Aa Bb 123"
+      "fontSample": "أبجد هوز · Aa Bb 123",
+      "stylePresets": "Start from a complete style",
+      "stylePresetsHint": "Each style sets colours, fonts and shapes together. You can still change anything below.",
+      "styleNames": {
+        "corporate": "Corporate",
+        "cinematic": "Cinematic",
+        "elegant": "Elegant",
+        "modern": "Modern",
+        "friendly": "Friendly",
+        "fresh": "Fresh",
+        "minimal": "Minimal",
+        "bold": "Bold"
+      },
+      "fontSearch": "Search fonts",
+      "fontFilters": {
+        "all": "All",
+        "arabic": "Arabic + Latin",
+        "latin": "Latin only",
+        "sans": "Sans",
+        "serif": "Serif",
+        "display": "Display",
+        "handwriting": "Handwriting"
+      },
+      "fontCount": "{count} fonts",
+      "noFonts": "No font matches your search.",
+      "latinOnlyWarning": "This font has no Arabic letters, so Arabic text will use the device font.",
+      "licensedIntro": "These fonts are free, but their licence does not allow us to include the files. Download your own copy from the publisher, then upload the files here.",
+      "getFont": "Get the font files",
+      "uploadHint": "WOFF2, WOFF, TTF or OTF. The weight is read from each file name (Light, Regular, Bold…); otherwise the weight chosen here is used.",
+      "typography": "Type & shape",
+      "buttonShape": "Button shape",
+      "buttonShapes": {
+        "square": "Square",
+        "rounded": "Match corners",
+        "pill": "Pill"
+      },
+      "fontScale": "Text size",
+      "fontScales": {
+        "sm": "Compact",
+        "md": "Standard",
+        "lg": "Large"
+      },
+      "headingWeight": "Heading weight",
+      "headingWeights": {
+        "400": "Regular",
+        "500": "Medium",
+        "600": "Semibold",
+        "700": "Bold",
+        "800": "Extra bold"
+      },
+      "headingCase": "English headings",
+      "headingCases": {
+        "normal": "As typed",
+        "uppercase": "CAPITALS"
+      },
+      "surface": "Backgrounds",
+      "surfaces": {
+        "tinted": "Tinted with the brand colour",
+        "neutral": "Neutral grey"
+      },
+      "previewWebsite": "Website",
+      "previewAdmin": "Admin",
+      "previewHeroEyebrow": "Welcome",
+      "previewHeroTitle": "Your story, beautifully told",
+      "previewHeroBody": "How your website headline, text and buttons will look."
     },
     "assets": {
       "logo": "Text logo for light backgrounds",
