@@ -7,6 +7,7 @@ import {
   type AdminTranslations,
   DEFAULT_ADMIN_LOCALE,
   defaultAdminTranslations,
+  defaultTranslationsFor,
   loadAdminTranslations,
 } from "../lib/translations";
 
@@ -25,20 +26,23 @@ const AdminLocaleContext = React.createContext<
 
 export function AdminLocaleProvider({
   children,
+  activity,
 }: {
   children: React.ReactNode;
+  /** The company's business activity, whose wording layers over the neutral dictionary. */
+  activity?: string | null;
 }) {
-  const [state, setState] = React.useState<{ locale: AdminLocale; t: AdminTranslations }>({
+  const [state, setState] = React.useState<{ locale: AdminLocale; t: AdminTranslations }>(() => ({
     locale: DEFAULT_ADMIN_LOCALE,
-    t: defaultAdminTranslations,
-  });
+    t: defaultTranslationsFor(activity),
+  }));
 
   const applyLocale = React.useCallback(async (next: AdminLocale) => {
-    const dictionary = await loadAdminTranslations(next);
+    const dictionary = await loadAdminTranslations(next, activity);
     setState({ locale: next, t: dictionary });
     document.documentElement.dir = next === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = next;
-  }, []);
+  }, [activity]);
 
   React.useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);

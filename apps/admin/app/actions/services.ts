@@ -1,4 +1,5 @@
 "use server";
+import { mirrorBilingual } from "@platform/database/constants/languages";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@platform/database";
 import { runAtomicMutation } from "@platform/database";
@@ -9,6 +10,7 @@ import {
   updateService,
   deleteService,
   createActivityLog,
+  getCompanySettings,
   ServiceCategory,
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
@@ -29,6 +31,7 @@ export async function createServiceAction(data: {
   return measureOperation("action:createServiceAction", async () => {
     const user = await requirePermission("invoices", "write");
     validateActionArguments("createServiceAction", { data });
+    data = mirrorBilingual(data, (await getCompanySettings()).content_languages);
     const { service } = await runAtomicMutation(async () => {
       const service = await createService(data);
       await createActivityLog({
@@ -65,6 +68,7 @@ export async function updateServiceAction(
   return measureOperation("action:updateServiceAction", async () => {
     const user = await requirePermission("invoices", "write");
     validateActionArguments("updateServiceAction", { id, data });
+    data = mirrorBilingual(data, (await getCompanySettings()).content_languages);
     const { service } = await runAtomicMutation(async () => {
       const service = await updateService(id, data);
       await createActivityLog({

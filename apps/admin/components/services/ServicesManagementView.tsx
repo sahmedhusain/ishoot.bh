@@ -21,15 +21,20 @@ deleteServiceAction,
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
 import { SERVICE_CATEGORIES,SERVICE_UNITS } from "@platform/config/constants";
+import { pickText, type ContentLanguage } from "@platform/database/constants/languages";
+import { LanguageFields } from "../setup/LanguageFields";
 
 interface ServicesManagementViewProps {
   initialServices: ServiceItem[];
+  languages: readonly ContentLanguage[];
 }
 
 export function ServicesManagementView({
   initialServices,
+  languages,
 }: ServicesManagementViewProps) {
   const { isRTL, t } = useAdminLocale();
+  const bilingual = languages.length > 1;
   const { can } = usePermissions();
   const canWrite = can("invoices", "write");
   const canDelete = can("invoices", "delete");
@@ -295,7 +300,7 @@ export function ServicesManagementView({
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <th className="py-3 px-4">{t.servicesView.thCodeItem}</th>
-                <th className="py-3 px-4">{t.servicesView.thArabicTitle}</th>
+                {bilingual ? <th className="py-3 px-4">{t.servicesView.thArabicTitle}</th> : null}
                 <th className="py-3 px-4">{t.servicesView.thCategory}</th>
                 <th className="py-3 px-4">{t.servicesView.thRateUnit}</th>
                 <th className="py-3 px-4">{t.servicesView.thStatus}</th>
@@ -305,7 +310,7 @@ export function ServicesManagementView({
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
               {filteredServices.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={bilingual ? 6 : 5} className="py-12 text-center text-slate-400">
                     <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40" />
                     <p className="font-medium text-slate-600 dark:text-slate-300">{t.servicesView.noServicesFound}</p>
                     <p className="text-[11px] mt-1">{t.servicesView.noServicesHint}</p>
@@ -326,18 +331,20 @@ export function ServicesManagementView({
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className="font-semibold text-slate-900 dark:text-white">
-                            {service.name_en}
+                            {bilingual ? service.name_en : pickText(service.name_en, service.name_ar, languages[0])}
                           </span>
                           <span className="text-[11px] text-slate-400 ">
                             {service.code ?? t.servicesView.customCode}
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="font-arabic text-slate-700 dark:text-slate-300 text-xs">
-                          {service.name_ar}
-                        </span>
-                      </td>
+                      {bilingual ? (
+                        <td className="py-3 px-4">
+                          <span className="font-arabic text-slate-700 dark:text-slate-300 text-xs">
+                            {service.name_ar}
+                          </span>
+                        </td>
+                      ) : null}
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-medium border ${catConfig.colorClass}`}>
                           {isRTL ? catConfig.labelAr : catConfig.labelEn}
@@ -444,30 +451,17 @@ export function ServicesManagementView({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    {t.servicesView.nameEnLabel}
-                  </label>
-                  <Input
-                    placeholder={t.servicesView.nameEnPlaceholder}
-                    value={formNameEn}
-                    onChange={(e) => setFormNameEn(e.target.value)}
-                    required
-                    className="text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                    {t.servicesView.nameArLabel}
-                  </label>
-                  <Input
-                    placeholder={t.servicesView.nameArPlaceholder}
-                    value={formNameAr}
-                    onChange={(e) => setFormNameAr(e.target.value)}
-                    required
-                    className="text-xs text-end font-arabic"
-                  />
-                </div>
+                <LanguageFields
+                  name="name"
+                  label={t.servicesView.nameLabel}
+                  languages={languages}
+                  required
+                  maxLength={300}
+                  placeholder={t.servicesView.nameEnPlaceholder}
+                  en={formNameEn}
+                  ar={formNameAr}
+                  onChange={(v) => { setFormNameEn(v.en); setFormNameAr(v.ar); }}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -504,31 +498,17 @@ export function ServicesManagementView({
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  {t.servicesView.descEnLabel}
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder={t.servicesView.descEnPlaceholder}
-                  value={formDescEn}
-                  onChange={(e) => setFormDescEn(e.target.value)}
-                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                  {t.servicesView.descArLabel}
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder={t.servicesView.descArPlaceholder}
-                  value={formDescAr}
-                  onChange={(e) => setFormDescAr(e.target.value)}
-                  className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-white text-end font-arabic focus:outline-none focus:ring-1 focus:ring-accent"
-                />
-              </div>
+              <LanguageFields
+                name="description"
+                label={t.servicesView.descLabel}
+                languages={languages}
+                multiline
+                maxLength={2000}
+                placeholder={t.servicesView.descEnPlaceholder}
+                en={formDescEn}
+                ar={formDescAr}
+                onChange={(v) => { setFormDescEn(v.en); setFormDescAr(v.ar); }}
+              />
 
               <div className="flex items-center gap-2 pt-2">
                 <input

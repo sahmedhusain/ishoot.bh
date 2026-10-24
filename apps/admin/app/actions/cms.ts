@@ -92,6 +92,7 @@ export async function createBannerAction(data: {
   return measureOperation("action:createBannerAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "write");
     validateActionArguments("createBannerAction", { data });
+    data = await mirrorToContentLanguages(data);
     validateBannerData(data);
     const { banner } = await runAtomicMutation(async () => {
       const banner = await createBanner({
@@ -456,6 +457,7 @@ export async function createFaqAction(data: Parameters<typeof createFaq>[0]) {
   return measureOperation("action:createFaqAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("faqs", "write");
     validateActionArguments("createFaqAction", { data });
+    data = await mirrorToContentLanguages(data);
     const faq = await runAtomicMutation(async () => {
       const faq = await createFaq(data);
       await createActivityLog({
@@ -479,6 +481,7 @@ export async function updateFaqAction(
   return measureOperation("action:updateFaqAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("faqs", "write");
     validateActionArguments("updateFaqAction", { id, data });
+    data = await mirrorToContentLanguages(data);
     const faq = await runAtomicMutation(async () => {
       const faq = await updateFaq(id, data);
       await createActivityLog({
@@ -520,6 +523,7 @@ export async function createStatisticAction(
   return measureOperation("action:createStatisticAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "write");
     validateActionArguments("createStatisticAction", { data });
+    data = await mirrorToContentLanguages(data);
     validateStatisticData(data);
     const stat = await runAtomicMutation(async () => {
       const stat = await createStatistic(data);
@@ -544,6 +548,7 @@ export async function updateStatisticAction(
   return measureOperation("action:updateStatisticAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("stats", "write");
     validateActionArguments("updateStatisticAction", { id, data });
+    data = await mirrorToContentLanguages(data);
     validateStatisticData(data);
     const stat = await runAtomicMutation(async () => {
       const stat = await updateStatistic(id, data);
@@ -609,10 +614,14 @@ function validateBannerData(data: Parameters<typeof createBannerAction>[0]) {
   )
     throw new Error(serverMessages.invalidDisplayOrder);
 }
+/** For a company that writes in one language, fills both sides of every English/Arabic pair. */
+async function mirrorToContentLanguages<T>(input: T): Promise<T> {
+  const { content_languages } = await getCompanySettings();
+  return mirrorBilingual(input, content_languages);
+}
 /** Checks a catalogue item and, for a company that writes in one language, fills both sides of every pair. */
 async function preparePortfolioData(input: Parameters<typeof createPortfolioItemAction>[0]) {
-  const { content_languages } = await getCompanySettings();
-  const data = mirrorBilingual(input, content_languages);
+  const data = await mirrorToContentLanguages(input);
   validatePortfolioData(data);
   return {
     ...data,
@@ -667,6 +676,7 @@ export async function updateBannerContentAction(
   return measureOperation("action:updateBannerContentAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("banners", "write");
     validateActionArguments("updateBannerContentAction", { id, data });
+    data = await mirrorToContentLanguages(data);
     validateBannerData(data);
     const { banner } = await runAtomicMutation(async () => {
       const banner = await updateBanner(id, data);

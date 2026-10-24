@@ -32,7 +32,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen bg-brand-base text-slate-800 dark:text-ink antialiased font-sans selection:bg-accent/30 selection:text-white transition-colors duration-200">
         <AdminThemeProvider defaultTheme={theme.defaultMode}>
-          <AdminLocaleProvider>
+          <AdminLocaleProvider activity={company?.business_activity}>
             {children}
             <Toaster richColors closeButton position="top-right" />
           </AdminLocaleProvider>

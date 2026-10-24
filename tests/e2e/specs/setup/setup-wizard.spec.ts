@@ -85,6 +85,6 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await page.getByRole("button", { name: copy.steps.brand }).click();
   await expect(page.getByTestId("theme-preview")).toHaveAttribute("style", /--brand-primary:\s*127 29 29/);
   await page.goto("/dashboard/cms/website");
-  await expect(page.getByText(t.websiteEditor.lastPublished)).toBeVisible();
+  await expect(page.getByRole("main").getByText(t.websiteEditor.lastPublished)).toBeVisible();
   errors.assertClean();
 });

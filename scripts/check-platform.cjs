@@ -135,6 +135,7 @@ async function main() {
       },
     },
     "next/cache": { revalidatePath() {} },
+    "../../lib/public-paths": { publicSitePaths: async () => ["/"] },
     "../../lib/auth": {
       requirePermission: async () => {
         throw new Error("denied");
