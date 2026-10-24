@@ -1,25 +1,27 @@
 import { Reveal } from "../../../components/shared/Reveal";
-import { getWebsite,isWebsitePreview } from "../../../lib/website";
-import { notFound } from "next/navigation";
+import { isWebsitePreview } from "../../../lib/website";
+import { notFound, permanentRedirect } from "next/navigation";
 import { PortfolioGrid } from "../../../components/portfolio/PortfolioGrid";
 import { SectionBadge } from "../../../components/shared/SectionBadge";
-import { getTranslations,Locale } from "@platform/locales";
+import { getSite, siteTranslations } from "../../../lib/site";
+import { collectionHref } from "../../../lib/site-copy";
 
-export default async function WorksPage({
+/** The website's catalogue at the address chosen in the website settings (works, products, menu…). */
+export default async function CollectionPage({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: string; collection: string }>;
 }) {
-  const { locale } = await params;
-  const t = getTranslations(locale as Locale);
+  const { locale, collection } = await params;
+  const [{ website, config, info }, isPreview, t] = await Promise.all([getSite(), isWebsitePreview(), siteTranslations(locale)]);
+  if (!website) notFound();
+  // Links shared before the catalogue was renamed still arrive.
+  if (collection !== info.collection.slug) {
+    if (collection === "works") permanentRedirect(collectionHref(info, locale));
+    notFound();
+  }
 
-  const [website, isPreview] = await Promise.all([
-    getWebsite(),
-    isWebsitePreview(),
-  ]);
-
-  const pageVisible =
-    website?.config?.pages?.find((p) => p.id === "works")?.visible ?? true;
+  const pageVisible = config.pages.find((p) => p.id === "works")?.visible ?? true;
   if (!pageVisible && !isPreview) {
     notFound();
   }
@@ -46,7 +48,7 @@ export default async function WorksPage({
           </p>
         </Reveal>
 
-        <PortfolioGrid items={items} categories={categories} />
+        <PortfolioGrid items={items} categories={categories} layout={info.collection.layout} />
       </div>
     </div>
   );

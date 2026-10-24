@@ -1611,7 +1611,7 @@
   "createPortfolioItemAction": {
     "kind": "object",
     "fields": {
-      "data": {
+      "input": {
         "kind": "object",
         "fields": {
           "category_id": {
@@ -1632,11 +1632,64 @@
           },
           "client_name": {
             "kind": "string",
-            "optional": false
+            "optional": true
           },
           "year": {
             "kind": "number",
-            "optional": false
+            "optional": true
+          },
+          "subtitle_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "subtitle_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "price": {
+            "kind": "number",
+            "optional": true
+          },
+          "price_note_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "price_note_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "location": {
+            "kind": "string",
+            "optional": true
+          },
+          "external_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "attributes": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "labelEn": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "labelAr": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "valueEn": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "valueAr": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           },
           "aspect_ratio": {
             "kind": "string",
@@ -2138,7 +2191,7 @@
         "kind": "string",
         "optional": false
       },
-      "data": {
+      "input": {
         "kind": "object",
         "fields": {
           "category_id": {
@@ -2159,11 +2212,64 @@
           },
           "client_name": {
             "kind": "string",
-            "optional": false
+            "optional": true
           },
           "year": {
             "kind": "number",
-            "optional": false
+            "optional": true
+          },
+          "subtitle_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "subtitle_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "price": {
+            "kind": "number",
+            "optional": true
+          },
+          "price_note_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "price_note_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "location": {
+            "kind": "string",
+            "optional": true
+          },
+          "external_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "attributes": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "labelEn": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "labelAr": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "valueEn": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "valueAr": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": true
           },
           "aspect_ratio": {
             "kind": "string",

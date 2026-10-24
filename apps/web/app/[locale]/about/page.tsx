@@ -3,16 +3,18 @@ import { getStudioEquipment } from "@platform/database";
 import { CEOHero } from "../../../components/about/CEOHero";
 import { StatsSection } from "../../../components/about/StatsSection";
 import { getWebsite, isWebsitePreview } from "../../../lib/website";
+import { getSite } from "../../../lib/site";
 import { EquipmentGrid } from "../../../components/about/EquipmentGrid";
 import { PillarsOfCraft } from "../../../components/about/PillarsOfCraft";
 import { notFound } from "next/navigation";
 
 export default async function AboutPage() {
-  const [equipment, company, website, isPreview] = await Promise.all([
+  const [equipment, company, website, isPreview, { config }] = await Promise.all([
     getStudioEquipment(),
     getPublicCompanySettings(),
     getWebsite(),
     isWebsitePreview(),
+    getSite(),
   ]);
 
   const pageVisible =
@@ -29,7 +31,7 @@ export default async function AboutPage() {
 
       <StatsSection stats={website.stats} />
 
-      <EquipmentGrid equipment={equipment} />
+      {config.showEquipment ? <EquipmentGrid equipment={equipment} /> : null}
     </div>
   );
 }

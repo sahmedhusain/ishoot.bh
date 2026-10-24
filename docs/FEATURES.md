@@ -4,7 +4,16 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 
 ## Company setup and branding
 
-- **First-run setup wizard** (`/setup`): company identity, colours and fonts, logos and files, configuration and modules. See [GETTING_STARTED.md](GETTING_STARTED.md#c-blank-install-with-the-setup-wizard).
+- **First-run setup wizard** (`/setup`), six steps. See [GETTING_STARTED.md](GETTING_STARTED.md#c-blank-install-with-the-setup-wizard).
+  1. **Company**: content languages (Arabic and English, Arabic only, or English only) and the main language; what the company does (one of eleven activities); names, registration, tagline, founding year, city, country, address and contacts, map and social links.
+  2. **Colours & fonts**: eight complete style presets, palettes and free colours with a contrast check; body and heading fonts from 61 Google families (searchable, filtered by script and style), the Thmanyah fonts and other licensed fonts (the company uploads its own copy), or its own WOFF2, WOFF, TTF or OTF files; text size, heading weight, English heading case, corner radius, button shape, tinted or neutral backgrounds and default mode; a live website and admin preview.
+  3. **Logos & files**.
+  4. **Website**: website or none; website type; catalogue name, address and card style; homepage opening; pages; homepage section order; contact form questions; WhatsApp button; working hours; search engine title and description; publish on finish.
+  5. **Configuration**: currency, VAT, document numbers and modules.
+  6. **Review**.
+
+  Choosing an activity applies its recommended style, website and modules until the person changes those by hand.
+- **Content languages**: with a single language every bilingual form shows one field, and the text is stored on both sides of each English/Arabic pair, so documents, emails and both apps read it whatever their interface language.
 - **Settings → Company**: general information, tax and VAT, bank details, document numbering, sales discounts, brand files (text logos, icons, stamp, signature, letterhead) and **Colours & fonts**. Changing the theme re-colours both apps, PDFs and emails immediately.
 - **Settings → Modules**: switch optional modules on or off (deals, invoicing, calendar, equipment, website content, reviews).
 
@@ -55,7 +64,10 @@ What the admin system does, by area, and the rules behind it. The exact routes a
 
 ## Website
 
-- The public site (Arabic and English) is driven by the admin: hero banners, portfolio, services, equipment, client logos, reviews, FAQs and statistics.
+- The public site is driven by the admin: hero banners, the catalogue, services, equipment, client logos, reviews, FAQs and statistics. It serves only the company's content languages; any other language redirects to the main one.
+- **Website type** (`packages/database/src/website-presets.ts`): media and production, marketing agency, products and retail, restaurant and café, professional services, real estate, construction and engineering, education and training, health and clinics, events and hospitality, or other. The type sets the wording (`packages/locales/src/website-activities.json`), the catalogue's name, address and card style (video projects, products with prices, listings with details, case studies), the item details the admin asks for (client and year, price and price note, location, labelled details, external link, video, gallery), the homepage opening (full-screen media, text and image, centred headline), the homepage sections, the quote-request questions and the equipment list. Everything stays editable in **Website** in the admin.
+- The catalogue lives at `/<language>/<address>` (for example `/en/products`); old `/works` links redirect to it. Items open on their own page with price, details and a quote request about that item.
+- With the website module off, the address shows a holding page with the company's name and contacts.
 - Changes are drafted, previewed and published. Publishing queues revalidation, so the site updates even if delivery is retried.
 - The site uses the company's name, address, logos, theme and fonts. No copy names a specific company.
 

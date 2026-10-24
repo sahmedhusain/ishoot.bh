@@ -47,7 +47,7 @@ Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts
 | `/api/upload/local/[folder]/[name]` | PUT | Local-disk upload target used when Supabase Storage is not configured. Only the user who started the upload may |
 | `/api/webhooks/resend` | POST |  |
 
-## Server actions (233 in `apps/admin/app/actions`)
+## Server actions (234 in `apps/admin/app/actions`)
 
 Every action checks the caller's permission (`resource:action`) before touching data, validates its input against the generated schema, and runs its writes in one transaction.
 
@@ -140,7 +140,7 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `updateEquipmentAction` | `id, data` | equipment:write |
 | `togglePortfolioFeaturedAction` | `id, isFeatured` | portfolio:write |
 | `deletePortfolioItemAction` | `id` | portfolio:delete |
-| `createPortfolioItemAction` | `data` | portfolio:write |
+| `createPortfolioItemAction` | `input, listings, menu items… */ client_name?` | portfolio:write |
 | `toggleReviewApprovalAction` | `id, isApproved` | reviews:write |
 | `deleteReviewAction` | `id` | reviews:delete |
 | `createFaqAction` | `data` | faqs:write |
@@ -150,7 +150,7 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `updateStatisticAction` | `id, data` | stats:write |
 | `deleteStatisticAction` | `id` | stats:delete |
 | `updateBannerContentAction` | `id, data` | banners:write |
-| `updatePortfolioContentAction` | `id, data` | portfolio:write |
+| `updatePortfolioContentAction` | `id, input` | portfolio:write |
 
 ### communications.ts
 
@@ -420,7 +420,8 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `saveSetupCompanyAction` | `input` | settings:write |
 | `saveSetupThemeAction` | `theme` | settings:write |
 | `saveSetupConfigAction` | `input` | settings:write |
-| `completeSetupAction` |  | settings:write |
+| `saveSetupWebsiteAction` | `input` | settings:write |
+| `completeSetupAction` | `options` | settings:write |
 
 ### signatures.ts
 

@@ -11,6 +11,7 @@ import {
   websiteConfigForActivity,
   websiteSections,
 } from "../../packages/database/src/website-config";
+import { collectionHref, formatPrice, siteCopyOverrides } from "../../apps/web/lib/site-copy";
 
 describe("content languages", () => {
   test("languages are normalised to a non-empty canonical list", () => {
@@ -113,5 +114,21 @@ describe("website config", () => {
     expect(() => validateWebsiteConfig({ ...config, heroStyle: "huge" })).toThrow();
     expect(() => validateWebsiteConfig({ ...config, inquiry: { budget: "yes" } })).toThrow();
     expect(() => validateWebsiteConfig({ ...config, collection: { ...config.collection!, navEn: "" } })).toThrow();
+  });
+});
+
+describe("website catalogue copy", () => {
+  test("prices use the currency's decimals only when needed", () => {
+    expect(formatPrice(289.5, "SAR", "en")).toBe("SAR 289.50");
+    expect(formatPrice(145, "SAR", "en")).toBe("SAR 145");
+    expect(formatPrice(12.5, "BHD", "en")).toBe("BHD 12.500");
+    expect(formatPrice(12.5, "BHD", "ar")).toBe("12.500 د.ب");
+  });
+
+  test("the company's catalogue names and address replace the activity's", () => {
+    const collection = { ...websiteConfigForActivity("products").collection!, slug: "shop", navEn: "Shop", titleAr: "متجرنا" };
+    expect(siteCopyOverrides({ collection }, "en").nav?.works).toBe("Shop");
+    expect(siteCopyOverrides({ collection }, "ar").portfolio?.title).toBe("متجرنا");
+    expect(collectionHref({ collection }, "en", "oak desk")).toBe("/en/shop/oak%20desk");
   });
 });

@@ -956,7 +956,25 @@
     "previewVideoPlaceholder": "/videos/manama-preview.mp4",
     "emptyState": "لا توجد أعمال سينمائية في قاعدة البيانات بعد.",
     "titleEnLabel": "عنوان المشروع بالإنجليزية",
-    "titleArLabel": "عنوان المشروع بالعربية"
+    "titleArLabel": "عنوان المشروع بالعربية",
+    "catalogueSubtitle": "العناصر المعروضة في كتالوج موقعك. انشر من صفحة الموقع عندما تكون جاهزاً.",
+    "newItem": "عنصر جديد",
+    "itemColumn": "العنصر",
+    "title": "العنوان",
+    "description": "الوصف",
+    "subtitleLabel": "وصف قصير",
+    "price": "السعر",
+    "priceNote": "ملاحظة السعر",
+    "priceNotePlaceholder": "مثال: لليلة، يبدأ من",
+    "location": "الموقع",
+    "externalUrl": "رابط خارجي",
+    "externalUrlHint": "صفحة متجر أو حجز أو تسجيل لهذا العنصر.",
+    "attributes": "التفاصيل",
+    "attributesHint": "معلومات تظهر على العنصر، مثل غرف النوم: 3 أو المدة: 6 أسابيع.",
+    "attributeLabel": "العنوان",
+    "attributeValue": "القيمة",
+    "addAttribute": "أضف تفصيلاً",
+    "removeAttribute": "احذف التفصيل"
   },
   "paymentsView": {
     "subtitle": "سجل سندات القبض والدفعات المحصلة، تسوية أرصدة الفواتير، وإصدار إيصالات الاستلام الرسمية.",
@@ -5616,7 +5634,8 @@
       "businessActivityInvalid": "اختر نشاط شركتك.",
       "contentLanguagesInvalid": "اختر لغة محتوى واحدة على الأقل.",
       "invalidFoundedYear": "أدخل سنة تأسيس الشركة، مثل 2015.",
-      "invalidMapLink": "أدخل رابط خريطة كاملاً يبدأ بـ https://."
+      "invalidMapLink": "أدخل رابط خريطة كاملاً يبدأ بـ https://.",
+      "invalidPrice": "أدخل سعراً يساوي صفراً أو أكثر."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",

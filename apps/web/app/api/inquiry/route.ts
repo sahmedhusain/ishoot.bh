@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
       ].includes(budget)
     )
       throw new Error(serverMessages.invalidInput);
+    const currency = (await getCompanySettings()).default_currency;
     const data = {
       name,
       email,
@@ -88,14 +89,15 @@ export async function POST(req: NextRequest) {
       companyName: textField(body, "company", 200),
       serviceType: services.join(", "),
       serviceIds: selected.map((s) => s.id),
+      // Ranges are recorded in the company currency the form showed them in.
       budgetRange:
         (
           {
             not_sure: "Not sure",
-            under_500: "Under BHD 500",
-            "500_1500": "BHD 500–1,500",
-            "1500_5000": "BHD 1,500–5,000",
-            "5000_plus": "BHD 5,000+",
+            under_500: `Under ${currency} 500`,
+            "500_1500": `${currency} 500–1,500`,
+            "1500_5000": `${currency} 1,500–5,000`,
+            "5000_plus": `${currency} 5,000+`,
           } as Record<string, string>
         )[budget] || "",
       timeline: textField(body, "timeline", 100),

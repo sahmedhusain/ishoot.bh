@@ -21,6 +21,8 @@ import { mirrorBilingual, normalizeLanguages, normalizePrimaryLanguage } from "@
 import { isBusinessActivity, type BusinessActivity } from "@platform/database/website-presets";
 import { safeWebsiteUrl, validateWebsiteConfig, type WebsiteConfig } from "@platform/database/website-config";
 import { publishWebsiteAction } from "./website";
+import { revalidatePublicSite } from "../../lib/revalidate-web";
+import { publicSitePaths } from "../../lib/public-paths";
 import type { BrandTheme } from "@platform/database/constants/theme";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
@@ -77,6 +79,11 @@ function revalidateEverywhere() {
   revalidatePath("/", "layout");
 }
 
+/** Languages, names and the website switch show on the public site straight away. */
+async function refreshPublicSite() {
+  await revalidatePublicSite(["website", "company"], ["/en", "/ar", ...(await publicSitePaths())]);
+}
+
 export async function saveSetupCompanyAction(input: SetupCompanyInput) {
   return measureOperation("action:saveSetupCompanyAction", async () => {
     const user = await requirePermission("settings", "write");
@@ -115,6 +122,7 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
       await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "company" } });
     });
     revalidateEverywhere();
+    await refreshPublicSite();
     return { success: true };
   });
 }
@@ -187,6 +195,7 @@ export async function saveSetupWebsiteAction(input: SetupWebsiteInput) {
       await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "website", enabled: input.enabled, purpose: config?.purpose ?? null } });
     });
     revalidateEverywhere();
+    await refreshPublicSite();
     return { success: true };
   });
 }

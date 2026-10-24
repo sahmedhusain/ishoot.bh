@@ -4,6 +4,7 @@ import {ContentImage} from "../shared/ContentImage";
 import * as React from "react";
 import Link from "next/link";
 import { useTranslation } from "../../hooks/useTranslation";
+import { collectionHref } from "../../lib/site-copy";
 import { X, ArrowRight, ArrowLeft } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import type { PublicCompanySettings } from "@platform/database/types";
@@ -21,11 +22,11 @@ export function MobileMenu({
   links,
   company,
 }: MobileMenuProps) {
-  const { t, locale, isRTL } = useTranslation();
+  const { t, locale, isRTL, site } = useTranslation();
 
   const navLinks = links || [
     { href: `/${locale}`, label: t("nav.home") },
-    { href: `/${locale}/works`, label: t("nav.works") },
+    { href: site ? collectionHref(site, locale) : `/${locale}/works`, label: t("nav.works") },
     { href: `/${locale}/about`, label: t("nav.about") },
     { href: `/${locale}/contact`, label: t("nav.contact") },
   ];

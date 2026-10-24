@@ -1,4 +1,6 @@
 "use server";
+import { mirrorBilingual } from "@platform/database/constants/languages";
+import { getCompanySettings } from "@platform/database";
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@platform/database";
@@ -348,13 +350,22 @@ export async function deletePortfolioItemAction(id: string) {
   });
 }
 
-export async function createPortfolioItemAction(data: {
+export async function createPortfolioItemAction(input: {
   category_id?: string;
   slug: string;
   title_en: string;
   title_ar: string;
-  client_name: string;
-  year: number;
+  /** Media projects and case studies; optional for products, listings, menu items… */
+  client_name?: string;
+  year?: number;
+  subtitle_en?: string;
+  subtitle_ar?: string;
+  price?: number;
+  price_note_en?: string;
+  price_note_ar?: string;
+  location?: string;
+  external_url?: string;
+  attributes?: { labelEn: string; labelAr: string; valueEn: string; valueAr: string }[];
   aspect_ratio?: string;
   thumbnail_url: string;
   preview_video_url?: string;
@@ -367,8 +378,8 @@ export async function createPortfolioItemAction(data: {
 }) {
   return measureOperation("action:createPortfolioItemAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "write");
-    validateActionArguments("createPortfolioItemAction", { data });
-    validatePortfolioData(data);
+    validateActionArguments("createPortfolioItemAction", { input });
+    const data = await preparePortfolioData(input);
     const { project } = await runAtomicMutation(async () => {
       const project = await createPortfolioItem({
         ...data,
@@ -598,21 +609,40 @@ function validateBannerData(data: Parameters<typeof createBannerAction>[0]) {
   )
     throw new Error(serverMessages.invalidDisplayOrder);
 }
+/** Checks a catalogue item and, for a company that writes in one language, fills both sides of every pair. */
+async function preparePortfolioData(input: Parameters<typeof createPortfolioItemAction>[0]) {
+  const { content_languages } = await getCompanySettings();
+  const data = mirrorBilingual(input, content_languages);
+  validatePortfolioData(data);
+  return {
+    ...data,
+    client_name: data.client_name?.trim() ?? "",
+    attributes: (data.attributes ?? []).filter((a) => a.labelEn.trim() || a.labelAr.trim() || a.valueEn.trim() || a.valueAr.trim()),
+  };
+}
 function validatePortfolioData(
   data: Parameters<typeof createPortfolioItemAction>[0],
 ) {
   if (
-    ![data.title_en, data.title_ar, data.client_name].every(
+    ![data.title_en, data.title_ar].every(
       (v) => typeof v === "string" && v.trim() && v.length <= 500,
-    )
+    ) ||
+    (data.client_name ?? "").length > 500
   )
     throw new Error(serverMessages.titlesAndClientNameAreRequired);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug) || data.slug.length > 150)
     throw new Error(
       "Use a unique slug with lowercase letters, numbers and hyphens",
     );
-  if (!Number.isInteger(data.year) || data.year < 1900 || data.year > 2100)
+  if (data.year !== undefined && data.year !== null && (!Number.isInteger(data.year) || data.year < 1900 || data.year > 2100))
     throw new Error(serverMessages.invalidYear);
+  if (data.price !== undefined && data.price !== null && !(Number.isFinite(data.price) && data.price >= 0 && data.price <= 1_000_000_000))
+    throw new Error(serverMessages.invalidPrice);
+  for (const value of [data.subtitle_en, data.subtitle_ar, data.price_note_en, data.price_note_ar, data.location])
+    if (value && value.length > 300) throw new Error(serverMessages.invalidInput);
+  if (data.external_url && !/^https?:\/\//.test(safeWebsiteUrl(data.external_url))) throw new Error(serverMessages.invalidMediaUrl);
+  if (data.attributes && (data.attributes.length > 20 || data.attributes.some((a) => [a.labelEn, a.labelAr, a.valueEn, a.valueAr].some((v) => typeof v !== "string" || v.length > 200))))
+    throw new Error(serverMessages.invalidInput);
   if (!safeWebsiteUrl(data.thumbnail_url))
     throw new Error(serverMessages.thumbnailUrlIsRequired);
   for (const url of [
@@ -656,12 +686,12 @@ export async function updateBannerContentAction(
 }
 export async function updatePortfolioContentAction(
   id: string,
-  data: Parameters<typeof createPortfolioItemAction>[0],
+  input: Parameters<typeof createPortfolioItemAction>[0],
 ) {
   return measureOperation("action:updatePortfolioContentAction", async () => {
     await requireFeatureEnabled("cms"); const user = await requirePermission("portfolio", "write");
-    validateActionArguments("updatePortfolioContentAction", { id, data });
-    validatePortfolioData(data);
+    validateActionArguments("updatePortfolioContentAction", { id, input });
+    const data = await preparePortfolioData(input);
     const { project } = await runAtomicMutation(async () => {
       const project = await updatePortfolioItem(id, {
         ...data,

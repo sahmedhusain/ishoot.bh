@@ -11,14 +11,16 @@ import {
   Clock,
 } from "lucide-react";
 import { notFound } from "next/navigation";
-import { getTranslations, Locale } from "@platform/locales";
+import { formatMessage } from "@platform/locales";
+import { pickText } from "@platform/database/constants/languages";
+import { siteTranslations } from "../../../lib/site";
 
 export default async function ContactPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ intent?: string; service?: string }>;
+  searchParams: Promise<{ intent?: string; service?: string; item?: string }>;
 }) {
   const { locale } = await params;
   const ar = locale === "ar";
@@ -35,7 +37,9 @@ export default async function ContactPage({
     notFound();
   }
 
-  const t = getTranslations(locale as Locale);
+  const t = await siteTranslations(locale);
+  const item = query.item ? website.portfolio.find((entry) => entry.slug === query.item) : undefined;
+  const initialMessage = item ? `${formatMessage(t.contact.aboutItem, { item: pickText(item.title_en, item.title_ar, locale) })}\n` : "";
   const config = website.config;
   const hours = ar ? config.hoursAr : config.hoursEn;
   const response = ar ? config.responseAr : config.responseEn;
@@ -139,6 +143,7 @@ export default async function ContactPage({
               services={website.services}
               initialIntent={query.intent}
               initialService={query.service}
+              initialMessage={initialMessage}
               response={response}
             />
           </Reveal>

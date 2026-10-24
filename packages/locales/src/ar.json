@@ -339,10 +339,10 @@
     "estimatedBudget": "الميزانية التقريبية",
     "chooseRangeOptional": "اختر الميزانية (اختياري)",
     "budgetNotSure": "غير محدد بعد",
-    "budgetUnder500": "أقل من 500 د.ب",
-    "budget500_1500": "500–1500 د.ب",
-    "budget1500_5000": "1500–5000 د.ب",
-    "budget5000Plus": "أكثر من 5000 د.ب",
+    "budgetUnder500": "أقل من 500 {currency}",
+    "budget500_1500": "500–1500 {currency}",
+    "budget1500_5000": "1500–5000 {currency}",
+    "budget5000Plus": "أكثر من 5000 {currency}",
     "targetTimeline": "الجدول الزمني المستهدف",
     "chooseTimelineOptional": "اختر موعد الإنجاز (اختياري)",
     "timelineUrgent": "خلال أسبوعين",
@@ -375,7 +375,8 @@
     "chatWhatsapp": "محادثة عبر واتساب",
     "formNote": "أضف بريداً إلكترونياً أو رقم هاتف لنتواصل معك.",
     "ratingOption": "{value} من 5 نجوم",
-    "anonymousSuggestion": "اقتراح مجهول"
+    "anonymousSuggestion": "اقتراح مجهول",
+    "aboutItem": "بخصوص: {item}"
   },
   "footer": {
     "allRights": "جميع الحقوق محفوظة.",

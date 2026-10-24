@@ -5,6 +5,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "../../hooks/useTranslation";
+import { collectionHref } from "../../lib/site-copy";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
 import { Menu } from "lucide-react";
@@ -16,7 +17,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ company, pages }: NavbarProps) {
-  const { t, locale } = useTranslation();
+  const { t, locale, site } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -52,7 +53,7 @@ export function Navbar({ company, pages }: NavbarProps) {
 
   const navLinks = [
     { id: "home", href: `/${locale}`, label: t("nav.home") },
-    { id: "works", href: `/${locale}/works`, label: t("nav.works") },
+    { id: "works", href: site ? collectionHref(site, locale) : `/${locale}/works`, label: t("nav.works") },
     { id: "about", href: `/${locale}/about`, label: t("nav.about") },
     { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
   ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);

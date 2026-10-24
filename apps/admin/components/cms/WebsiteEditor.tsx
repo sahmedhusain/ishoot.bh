@@ -6,10 +6,11 @@ import * as React from "react";
 import { AssetUrlInput } from "../shared/AssetUrlInput";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  type WebsiteConfig,
-  defaultWebsitePages,
-} from "@platform/database/website-config";
+import type { ResolvedWebsiteConfig } from "@platform/database/website-config";
+import type { ContentLanguage } from "@platform/database/constants/languages";
+import type { BusinessActivity } from "@platform/database/website-presets";
+import { WebsiteSetupFields } from "../setup/WebsiteSetupFields";
+import { LanguageFields } from "../setup/LanguageFields";
 import {
   saveWebsiteDraftAction,
   publishWebsiteAction,
@@ -28,8 +29,10 @@ export function WebsiteEditor({
   services,
   deliveryStatus,
   publication,
+  company,
 }: {
-  config: WebsiteConfig;
+  config: ResolvedWebsiteConfig;
+  company: { languages: ContentLanguage[]; primaryLanguage: ContentLanguage; activity: BusinessActivity | null; hasWhatsapp: boolean };
   deliveryStatus?: string;
   publication: { isPublished: boolean; changedSections: WebsiteSnapshotSection[] };
   revision: number;
@@ -74,7 +77,7 @@ export function WebsiteEditor({
       setBusy(false);
     }
   }
-  function change(next: WebsiteConfig) {
+  function change(next: ResolvedWebsiteConfig) {
     setDraft(next);
     setDirty(true);
     setPreview("");
@@ -85,15 +88,6 @@ export function WebsiteEditor({
     setDirty(false);
     return saved.revision;
   }
-  function move(index: number, direction: number) {
-    const sections = [...draft.sections];
-    [sections[index], sections[index + direction]] = [
-      sections[index + direction],
-      sections[index],
-    ];
-    change({ ...draft, sections });
-  }
-  const labels = t.websiteEditor.sectionNames as Record<string, string>;
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-16">
       <header>
@@ -191,141 +185,32 @@ export function WebsiteEditor({
         <button className={button} disabled={(draft.pillars?.length || 0)>=12} onClick={()=>change({...draft,pillars:[...(draft.pillars||[]),{titleEn:"",titleAr:"",textEn:"",textAr:""}]})}>{t.websiteEditor.addHistoryEntry}</button>
         <p className="text-xs">{t.websiteEditor.emptyContentStaysHiddenSave}</p>
       </section>
-      <section className="space-y-4 rounded-xl border border-slate-200 dark:border-neutral-800 p-5 bg-slate-50/50 dark:bg-neutral-900/30">
-        <div>
-          <h2 className="font-bold text-lg">
-            {t.websiteEditor.publicPageVisibility}
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            {t.websiteEditor.controlWhichPagesAreActive}
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {(draft.pages || defaultWebsitePages).map((p) => {
-            const pagePaths: Record<string, string> = { works: "/works", about: "/about", contact: "/contact" };
-            const meta = {
-              title: (t.websiteEditor.pageNames as Record<string, string>)[p.id] ?? p.id,
-              path: pagePaths[p.id] ?? `/${p.id}`,
-            };
-            return (
-              <div
-                key={p.id}
-                className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-                  p.visible
-                    ? "border-emerald-500/40 bg-emerald-500/5 dark:bg-emerald-500/10"
-                    : "border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 opacity-60"
-                }`}
-              >
-                <div>
-                  <div className="font-semibold text-sm">
-                    {meta.title}
-                  </div>
-                  <div className="text-xs text-slate-400 font-mono mt-0.5">
-                    {meta.path}
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={p.visible}
-                    onChange={(e) => {
-                      const curPages = draft.pages || defaultWebsitePages;
-                      const nextPages = curPages.map((item) =>
-                        item.id === p.id
-                          ? { ...item, visible: e.target.checked }
-                          : item,
-                      );
-                      change({ ...draft, pages: nextPages });
-                    }}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-slate-300 dark:bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-                </label>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="font-bold text-lg">
-          {t.websiteEditor.homepageSections}
-        </h2>
-        {draft.sections.map((section, index) => (
-          <div
-            key={section.id}
-            className="flex items-center gap-3 border-b border-slate-200 dark:border-neutral-700 py-3"
-          >
-            <label className="flex-1 flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={section.visible}
-                onChange={(e) =>
-                  change({
-                    ...draft,
-                    sections: draft.sections.map((s) =>
-                      s.id === section.id
-                        ? { ...s, visible: e.target.checked }
-                        : s,
-                    ),
-                  })
-                }
-              />
-              {labels[section.id]}
-            </label>
-            <button
-              aria-label={`${t.websiteEditor.moveUp} ${labels[section.id]}`}
-              disabled={index === 0}
-              className={button}
-              onClick={() => move(index, -1)}
-            >
-              ↑
-            </button>
-            <button
-              aria-label={`${t.websiteEditor.moveDown} ${labels[section.id]}`}
-              disabled={index === draft.sections.length - 1}
-              className={button}
-              onClick={() => move(index, 1)}
-            >
-              ↓
-            </button>
-          </div>
-        ))}
-      </section>
+      <WebsiteSetupFields
+        config={draft}
+        onChange={change}
+        languages={company.languages}
+        primaryLanguage={company.primaryLanguage}
+        companyActivity={company.activity}
+        hasWhatsapp={company.hasWhatsapp}
+      />
       <section className="space-y-4">
         <h2 className="font-bold text-lg">
           {t.websiteEditor.contactPageContent}
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
-          {(
-            [
-              ["contactTitle"],
-              ["contactIntro"],
-              ["hours"],
-              ["response"],
-            ] as const
-          ).flatMap(([key]) =>
-            (["En", "Ar"] as const).map((lang) => {
-              const name = `${key}${lang}` as `${typeof key}${typeof lang}`;
-              return (
-                <label key={name} className="text-sm space-y-2">
-                  <span>
-                    {(t.websiteEditor.contactFields as Record<string, string>)[key]} ({lang === "Ar" ? t.websiteEditor.inArabic : t.websiteEditor.inEnglish})
-                  </span>
-                  <textarea
-                    dir={lang === "Ar" ? "rtl" : "ltr"}
-                    rows={3}
-                    maxLength={1500}
-                    className={field}
-                    value={draft[name] ?? ""}
-                    onChange={(e) =>
-                      change({ ...draft, [name]: e.target.value })
-                    }
-                  />
-                </label>
-              );
-            }),
-          )}
+          {(["contactTitle", "contactIntro", "response"] as const).map((key) => (
+            <LanguageFields
+              key={key}
+              name={key}
+              label={(t.websiteEditor.contactFields as Record<string, string>)[key]}
+              languages={company.languages}
+              multiline={key !== "contactTitle"}
+              required={key === "contactTitle"}
+              en={draft[`${key}En`]}
+              ar={draft[`${key}Ar`]}
+              onChange={(v) => change({ ...draft, [`${key}En`]: v.en, [`${key}Ar`]: v.ar })}
+            />
+          ))}
         </div>
       </section>
       <section className="space-y-4">

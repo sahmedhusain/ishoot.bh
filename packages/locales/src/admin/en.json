@@ -956,7 +956,25 @@
     "previewVideoPlaceholder": "/videos/manama-preview.mp4",
     "emptyState": "No projects currently in database.",
     "titleEnLabel": "Project Title (English)",
-    "titleArLabel": "Project Title (Arabic)"
+    "titleArLabel": "Project Title (Arabic)",
+    "catalogueSubtitle": "Items shown in your website catalogue. Publish from Website when you are ready.",
+    "newItem": "New item",
+    "itemColumn": "Item",
+    "title": "Title",
+    "description": "Description",
+    "subtitleLabel": "Short description",
+    "price": "Price",
+    "priceNote": "Price note",
+    "priceNotePlaceholder": "e.g. per night, from",
+    "location": "Location",
+    "externalUrl": "External link",
+    "externalUrlHint": "A shop, booking or registration page for this item.",
+    "attributes": "Details",
+    "attributesHint": "Facts shown on the item, such as Bedrooms: 3 or Duration: 6 weeks.",
+    "attributeLabel": "Label",
+    "attributeValue": "Value",
+    "addAttribute": "Add a detail",
+    "removeAttribute": "Remove detail"
   },
   "paymentsView": {
     "subtitle": "Payment receipts ledger, automated invoice balance reconciliation, and client receipt generation.",
@@ -5616,7 +5634,8 @@
       "businessActivityInvalid": "Choose what your company does.",
       "contentLanguagesInvalid": "Choose at least one content language.",
       "invalidFoundedYear": "Enter the year the company was founded, for example 2015.",
-      "invalidMapLink": "Enter a full map link starting with https://."
+      "invalidMapLink": "Enter a full map link starting with https://.",
+      "invalidPrice": "Enter a price of zero or more."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
