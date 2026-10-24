@@ -109,6 +109,21 @@ jobs:
           CI: true
           CHECKS_BARE_DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_bare_test?schema=public
           CHECKS_SEEDED_DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_seeded_test?schema=public
+      - name: Every company profile seeds and passes the integrity rules
+        env:
+          DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_profile_test?schema=public
+          DIRECT_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_profile_test?schema=public
+          SUPER_ADMIN_EMAIL: seed@example.test
+          SUPER_ADMIN_PASSWORD: disposable-seed-password
+          SEED_VOLUME: "off"
+        run: |
+          for profile in $(ls company/profiles); do
+            echo "::group::$profile"
+            node tests/e2e/prepare-db.cjs bare platform_profile_test
+            COMPANY_PROFILE=$profile pnpm db:seed
+            pnpm db:check-integrity
+            echo "::endgroup::"
+          done
       - name: Bootstrap a new company from a profile
         env:
           DATABASE_URL: postgresql://postgres:disposable_ci_only@localhost:5432/platform_profile_test?schema=public

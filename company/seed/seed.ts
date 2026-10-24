@@ -143,8 +143,11 @@ async function main() {
   const owner = createdUsers["super_admin"];
   const signatureUrls: Record<string, string> = {};
   for (const u of usersData) {
-    const file = `brand/signatures/${u.key}.png`;
-    if (!fs.existsSync(profileAssetPath(profile, file))) continue;
+    // A profile may not have a signature for every demo staff member; the super admin then signs with the
+    // company's authorised signature, because signed demo documents need at least one signer.
+    const own = `brand/signatures/${u.key}.png`;
+    const file = fs.existsSync(profileAssetPath(profile, own)) ? own : u.role === "super_admin" ? profile.assets.signature : undefined;
+    if (!file || !fs.existsSync(profileAssetPath(profile, file))) continue;
     signatureUrls[u.key] = await importProfileFile(prisma, profile, file, owner.id);
     await prisma.user.update({ where: { id: createdUsers[u.role].id }, data: { signatureUrl: signatureUrls[u.key] } });
   }
