@@ -7,6 +7,9 @@ import {
   createActivityLog,
   db,
   ensureDefaultFeatureModules,
+  getCompanySettings,
+  getWebsiteEditor,
+  isFeatureEnabled,
   measureOperation,
   runAtomicMutation,
   updateCompanySettings,
@@ -14,14 +17,35 @@ import {
   updateFeatureToggle,
 } from "@platform/database";
 import type { SupportedCurrency } from "@platform/database/types";
+import { mirrorBilingual, normalizeLanguages, normalizePrimaryLanguage } from "@platform/database/constants/languages";
+import { isBusinessActivity, type BusinessActivity } from "@platform/database/website-presets";
+import { safeWebsiteUrl, validateWebsiteConfig, type WebsiteConfig } from "@platform/database/website-config";
+import { publishWebsiteAction } from "./website";
+import { revalidatePublicSite } from "../../lib/revalidate-web";
+import { publicSitePaths } from "../../lib/public-paths";
 import type { BrandTheme } from "@platform/database/constants/theme";
 import { requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
 
-/** Step 1: who the company is. */
+/** Step 1: who the company is, what it does and which languages it writes in. */
 export interface SetupCompanyInput {
+  /** "ar", "en" or both. */
+  contentLanguages: string[];
+  primaryLanguage: string;
+  /** website-presets.ts BUSINESS_ACTIVITIES */
+  businessActivity: string;
   companyNameEn: string;
   companyNameAr: string;
+  taglineEn?: string;
+  taglineAr?: string;
+  foundedYear?: string;
+  city?: string;
+  country?: string;
+  whatsappPhone?: string;
+  instagramUrl?: string;
+  linkedinUrl?: string;
+  youtubeUrl?: string;
+  mapUrl?: string;
   crNumber?: string;
   vatId?: string;
   addressEn?: string;
@@ -55,15 +79,38 @@ function revalidateEverywhere() {
   revalidatePath("/", "layout");
 }
 
+/** Languages, names and the website switch show on the public site straight away. */
+async function refreshPublicSite() {
+  await revalidatePublicSite(["website", "company"], ["/en", "/ar", ...(await publicSitePaths())]);
+}
+
 export async function saveSetupCompanyAction(input: SetupCompanyInput) {
   return measureOperation("action:saveSetupCompanyAction", async () => {
     const user = await requirePermission("settings", "write");
     validateActionArguments("saveSetupCompanyAction", { input });
     const trim = (value?: string) => value?.trim() ?? "";
+    if (!isBusinessActivity(input.businessActivity)) throw new Error(serverMessages.businessActivityInvalid);
+    const languages = normalizeLanguages(input.contentLanguages);
+    if (!input.contentLanguages.length || languages.length !== new Set(input.contentLanguages).size) throw new Error(serverMessages.contentLanguagesInvalid);
+    const year = trim(input.foundedYear);
+    const url = (value?: string) => (trim(value) ? safeWebsiteUrl(trim(value)) || trim(value) : "");
     await runAtomicMutation(async () => {
       await updateCompanySettings({
+        content_languages: languages,
+        primary_language: normalizePrimaryLanguage(input.primaryLanguage, languages),
+        business_activity: input.businessActivity as BusinessActivity,
         company_name_en: trim(input.companyNameEn),
         company_name_ar: trim(input.companyNameAr),
+        tagline_en: trim(input.taglineEn),
+        tagline_ar: trim(input.taglineAr),
+        founded_year: year ? Number(year) : null,
+        city: trim(input.city),
+        country: trim(input.country),
+        whatsapp_phone: trim(input.whatsappPhone),
+        instagram_url: url(input.instagramUrl),
+        linkedin_url: url(input.linkedinUrl),
+        youtube_url: url(input.youtubeUrl),
+        map_url: trim(input.mapUrl),
         cr_number: trim(input.crNumber),
         vat_id: trim(input.vatId),
         address_en: trim(input.addressEn),
@@ -75,6 +122,7 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
       await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "company" } });
     });
     revalidateEverywhere();
+    await refreshPublicSite();
     return { success: true };
   });
 }
@@ -123,17 +171,52 @@ export async function saveSetupConfigAction(input: SetupConfigInput) {
   });
 }
 
-export async function completeSetupAction() {
+/** Step: whether the company has a public website, and how it is set up for what the company does. */
+export interface SetupWebsiteInput {
+  enabled: boolean;
+  /** A WebsiteConfig, checked by validateWebsiteConfig. */
+  config: unknown;
+}
+
+export async function saveSetupWebsiteAction(input: SetupWebsiteInput) {
+  return measureOperation("action:saveSetupWebsiteAction", async () => {
+    const user = await requirePermission("settings", "write");
+    validateActionArguments("saveSetupWebsiteAction", { input });
+    const company = await getCompanySettings();
+    // A company writing in one language fills each pair once; the website reads either side.
+    const config = input.enabled ? validateWebsiteConfig(mirrorBilingual(input.config as WebsiteConfig, company.content_languages)) : null;
+    await runAtomicMutation(async () => {
+      await ensureDefaultFeatureModules();
+      await updateFeatureToggle("cms", input.enabled);
+      if (config) {
+        await getWebsiteEditor();
+        await db.websiteContent.update({ where: { id: "main" }, data: { draft: JSON.parse(JSON.stringify(config)), revision: { increment: 1 } } });
+      }
+      await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "website", enabled: input.enabled, purpose: config?.purpose ?? null } });
+    });
+    revalidateEverywhere();
+    await refreshPublicSite();
+    return { success: true };
+  });
+}
+
+export async function completeSetupAction(options: { publishWebsite: boolean }) {
   return measureOperation("action:completeSetupAction", async () => {
     const user = await requirePermission("settings", "write");
-    validateActionArguments("completeSetupAction", {});
+    validateActionArguments("completeSetupAction", { options });
     await runAtomicMutation(async () => {
       const company = await db.companySetting.findUniqueOrThrow({ where: { singleton: 1 }, select: { logoUrl: true, darkLogoUrl: true } });
       if (!company.logoUrl && !company.darkLogoUrl) throw new Error(serverMessages.setupLogoRequired);
       await completeCompanySetup();
       await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "complete" } });
     });
+    let websitePublished = false;
+    if (options.publishWebsite && (await isFeatureEnabled("cms"))) {
+      const content = await getWebsiteEditor();
+      await publishWebsiteAction(content.revision);
+      websitePublished = true;
+    }
     revalidateEverywhere();
-    return { success: true };
+    return { success: true, websitePublished };
   });
 }

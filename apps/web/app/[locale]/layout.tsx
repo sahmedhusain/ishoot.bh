@@ -1,15 +1,19 @@
-import { isWebsitePreview,getWebsite } from "../../lib/website";
-import { getPublicCompanySettings } from "../../lib/company";
+import { isWebsitePreview } from "../../lib/website";
 import * as React from "react";
-import { getTranslations, formatMessage } from "@platform/locales";
+import { formatMessage } from "@platform/locales";
 import { notFound } from "next/navigation";
 import { isValidLocale } from "../../lib/i18n";
+import { getSite, requireSiteLanguage, siteTranslations } from "../../lib/site";
 import { Navbar } from "../../components/layout/Navbar";
 import { Footer } from "../../components/layout/Footer";
 import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
 import { BackToTop } from "../../components/layout/BackToTop";
+import { WhatsAppButton } from "../../components/layout/WhatsAppButton";
+import { WebsiteOffline } from "../../components/layout/WebsiteOffline";
+import { SiteProvider } from "../../components/site/SiteProvider";
 import { getSocialLinks } from "@platform/database";
+import { pickText } from "@platform/database/constants/languages";
 import { googleFontsHref, themeStylesheet } from "@platform/database/constants/theme";
 // Database content must not be frozen into empty pages when the build database is unavailable.
 export const dynamic = "force-dynamic";
@@ -26,32 +30,48 @@ export default async function LocaleLayout({
   if (!isValidLocale(locale)) {
     notFound();
   }
+  await requireSiteLanguage(locale);
 
-  const [isRTL, company, socialLinks, website] = await Promise.all([
-    Promise.resolve(locale === "ar"),
-    getPublicCompanySettings(),
+  const [{ company, config, info, enabled, website }, socialLinks, preview, t] = await Promise.all([
+    getSite(),
     getSocialLinks(),
-    getWebsite().catch(() => null),
+    isWebsitePreview(),
+    siteTranslations(locale),
   ]);
-
-  const preview = await isWebsitePreview();
-  const t = getTranslations(locale);
+  const isRTL = locale === "ar";
   const fontsHref = googleFontsHref(company.theme);
+  const head = (
+    <head>
+      {fontsHref ? (
+        <>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+          <link rel="stylesheet" href={fontsHref} />
+        </>
+      ) : null}
+      <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) }} />
+    </head>
+  );
+
+  // A company without a public website (or one not published yet) still owns its address: show who it is
+  // and how to reach it.
+  if ((!enabled || !website) && !preview) {
+    return (
+      <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className="dark">
+        {head}
+        <body className={`min-h-screen bg-brand-base text-ink ${isRTL ? "font-arabic" : "font-sans"}`}>
+          <WebsiteOffline company={company} locale={locale} t={t} />
+        </body>
+      </html>
+    );
+  }
 
   return (
     <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className="dark">
-      <head>
-        {fontsHref ? (
-          <>
-            <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-            <link rel="stylesheet" href={fontsHref} />
-          </>
-        ) : null}
-        <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) }} />
-      </head>
+      {head}
       <body
         className={`min-h-screen bg-brand-base text-ink selection:bg-accent/40 selection:text-white ${isRTL ? "font-arabic" : "font-sans"}`}
+        data-activity={info.activity}
       >
         <a
           href="#main-content"
@@ -67,19 +87,18 @@ export default async function LocaleLayout({
             </form>
           </div>
         )}
-        <FloatingScrollbar />
-        <BackToTop />
-        <SmoothScroll>
-          <Navbar company={company} pages={website?.config?.pages} />
-          <main id="main-content" className="w-full">
-            {children}
-          </main>
-          <Footer
-            company={company}
-            socialLinks={socialLinks}
-            pages={website?.config?.pages}
-          />
-        </SmoothScroll>
+        <SiteProvider site={info}>
+          <FloatingScrollbar />
+          <BackToTop />
+          <SmoothScroll>
+            <Navbar company={company} pages={config.pages} />
+            <main id="main-content" className="w-full">
+              {children}
+            </main>
+            <Footer company={company} socialLinks={socialLinks} pages={config.pages} />
+          </SmoothScroll>
+          {info.whatsappButton && company.whatsapp_phone ? <WhatsAppButton phone={company.whatsapp_phone} /> : null}
+        </SiteProvider>
       </body>
     </html>
   );
@@ -92,15 +111,18 @@ export async function generateMetadata({
 }) {
   const { locale } = await params;
   if (!isValidLocale(locale)) return {};
-  const { seo } = getTranslations(locale);
-  const company = await getPublicCompanySettings();
-  const title = formatMessage(seo.title, { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en });
+  const [{ company, config, info }, { seo }] = await Promise.all([getSite(), siteTranslations(locale)]);
+  const companyName = pickText(company.company_name_en, company.company_name_ar, locale);
+  const title = pickText(config.seo.titleEn, config.seo.titleAr, locale) || formatMessage(seo.title, { companyName });
+  const description =
+    pickText(config.seo.descriptionEn, config.seo.descriptionAr, locale) || pickText(company.tagline_en, company.tagline_ar, locale) || seo.description;
   return {
     title,
-    description: seo.description,
+    description,
+    alternates: { languages: Object.fromEntries(info.languages.map((language) => [language, `/${language}`])) },
     openGraph: {
       title,
-      description: seo.description,
+      description,
       locale: locale === "ar" ? "ar_BH" : "en_US",
     },
     ...((await isWebsitePreview())

@@ -40,7 +40,9 @@ function terms() {
       const theme = JSON.parse(fs.readFileSync(themeFile, "utf8"));
       add(theme.primary, `${why} theme colour`);
       add(theme.accent, `${why} theme colour`);
-      for (const font of Object.values(theme.fonts ?? {})) if (font?.kind === "upload") add(font.family.split(" ")[0], `${why} font`);
+      // A typeface the platform offers to every company (theme.ts LICENSED_FONTS) is not company identity.
+      const offered = fs.readFileSync(path.join(root, "packages/database/src/constants/theme.ts"), "utf8").split("export const LICENSED_FONTS")[1]?.split("] as const")[0] ?? "";
+      for (const font of Object.values(theme.fonts ?? {})) if (font?.kind === "upload" && !offered.includes(`"${font.family}"`)) add(font.family.split(" ")[0], `${why} font`);
     }
   }
   return found;

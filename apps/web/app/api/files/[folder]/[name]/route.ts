@@ -1,4 +1,5 @@
 import { measureOperation } from "@platform/database";
+import { FONT_UPLOAD_URL } from "@platform/database/constants/theme";
 import { NextRequest,NextResponse } from "next/server";
 import { realpath,stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
@@ -8,7 +9,7 @@ import { db,uploadRoot,generateDownloadUrl,uploadStorageLocation,isSupabaseStora
 export async function GET(req: NextRequest, { params }: { params: Promise<{ folder: string; name: string }> }) {
   return measureOperation("web:files/[folder]/[name]:GET", async () => {
   const { folder, name } = await params;
-  if (folder !== "brand" || !/^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp|woff2)$/.test(name)) return new NextResponse(null, { status: 404 });
+  if (folder !== "brand" || !(/^[a-zA-Z0-9_-]+\.(png|jpg|jpeg|webp)$/.test(name) || FONT_UPLOAD_URL.test(`/api/files/brand/${name}`))) return new NextResponse(null, { status: 404 });
   const upload = await db.uploadObject.findUnique({ where: { fileUrl: `/api/files/${folder}/${name}` }, select: { isPublic: true, mimeType: true } });
   if (!upload?.isPublic) return new NextResponse(null, { status: 404 });
   try {

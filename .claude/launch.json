@@ -68,6 +68,17 @@
         "platform_e2e_blank_test"
       ],
       "port": 3014
+    },
+    {
+      "name": "web-setup",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "web",
+        "3015",
+        "platform_e2e_blank_test"
+      ],
+      "port": 3015
     }
   ]
 }

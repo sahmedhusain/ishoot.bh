@@ -4,15 +4,17 @@ import * as React from "react";
 import { PortfolioItem, PortfolioCategory } from "@platform/database";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { CategoryTabs } from "./CategoryTabs";
-import { PortfolioCard } from "./PortfolioCard";
+import { CollectionCard, collectionGridClass } from "./CollectionCard";
+import type { CollectionLayout } from "@platform/database/website-presets";
 import { CinemaLightbox } from "./CinemaLightbox";
 
 interface PortfolioGridProps {
   items: PortfolioItem[];
   categories: PortfolioCategory[];
+  layout: CollectionLayout;
 }
 
-export function PortfolioGrid({ items, categories }: PortfolioGridProps) {
+export function PortfolioGrid({ items, categories, layout }: PortfolioGridProps) {
   const reduced = useReducedMotion();
   const [activeCategory, setActiveCategory] = React.useState("all");
   const [selectedItem, setSelectedItem] = React.useState<PortfolioItem | null>(
@@ -36,7 +38,7 @@ export function PortfolioGrid({ items, categories }: PortfolioGridProps) {
 
       <motion.div
         layout={!reduced}
-        className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12"
+        className={collectionGridClass(layout)}
       >
         <AnimatePresence mode="popLayout" initial={false}>
           {filteredItems.map((item) => (
@@ -51,7 +53,7 @@ export function PortfolioGrid({ items, categories }: PortfolioGridProps) {
                 ease: [0.2, 0, 0, 1],
               }}
             >
-              <PortfolioCard item={item} onClick={setSelectedItem} />
+              <CollectionCard item={item} layout={layout} onOpen={setSelectedItem} />
             </motion.div>
           ))}
         </AnimatePresence>

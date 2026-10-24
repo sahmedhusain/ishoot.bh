@@ -18,6 +18,7 @@ import {
 import { requirePermission } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
 import { revalidatePublicSite } from "../../lib/revalidate-web";
+import { publicSitePaths } from "../../lib/public-paths";
 
 export async function saveWebsiteDraftAction(value: unknown, revision: number) {
   return measureOperation("action:saveWebsiteDraftAction", async () => {
@@ -62,6 +63,7 @@ export async function publishWebsiteAction(revision: number) {
     const snapshot = await collectWebsiteDraft(
       validateWebsiteConfig(content.draft),
     );
+    const paths = await publicSitePaths();
     await db.$transaction(async (tx) => {
       const updated = await tx.websiteContent.updateMany({
         where: { id: "main", revision },
@@ -79,7 +81,7 @@ export async function publishWebsiteAction(revision: number) {
           eventKey: `website:publish:${revision + 1}`,
           payload: {
             tags: ["website", "company"],
-            paths: ["/", "/about", "/contact", "/works"],
+            paths,
           },
         },
       });
@@ -94,7 +96,7 @@ export async function publishWebsiteAction(revision: number) {
       });
     });
     revalidatePath(ROUTES.cms.website);
-    if (await revalidatePublicSite([], ["/", "/about", "/contact", "/works"])) {
+    if (await revalidatePublicSite([], paths)) {
       try {
         await db.revalidationJob.updateMany({
           where: {
@@ -121,6 +123,7 @@ export async function restoreWebsiteAction(revision: number) {
     const user = await requirePermission("settings", "write");
     await requireFeatureEnabled("cms");
     validateActionArguments("restoreWebsiteAction", { revision });
+    const paths = await publicSitePaths();
     await db.$transaction(async (tx) => {
       const content = await tx.websiteContent.findUniqueOrThrow({
         where: { id: "main" },
@@ -143,7 +146,7 @@ export async function restoreWebsiteAction(revision: number) {
           eventKey: `website:restore:${revision + 1}`,
           payload: {
             tags: ["website", "company"],
-            paths: ["/", "/about", "/contact", "/works"],
+            paths,
           },
         },
       });
@@ -158,7 +161,7 @@ export async function restoreWebsiteAction(revision: number) {
       });
     });
     revalidatePath(ROUTES.cms.website);
-    if (await revalidatePublicSite([], ["/", "/about", "/contact", "/works"])) {
+    if (await revalidatePublicSite([], paths)) {
       try {
         await db.revalidationJob.updateMany({
           where: {

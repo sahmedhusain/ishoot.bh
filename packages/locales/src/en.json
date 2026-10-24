@@ -339,10 +339,10 @@
     "estimatedBudget": "Estimated budget",
     "chooseRangeOptional": "Choose a range (optional)",
     "budgetNotSure": "Not sure yet",
-    "budgetUnder500": "Under BHD 500",
-    "budget500_1500": "BHD 500–1,500",
-    "budget1500_5000": "BHD 1,500–5,000",
-    "budget5000Plus": "BHD 5,000+",
+    "budgetUnder500": "Under {currency} 500",
+    "budget500_1500": "{currency} 500–1,500",
+    "budget1500_5000": "{currency} 1,500–5,000",
+    "budget5000Plus": "{currency} 5,000+",
     "targetTimeline": "Target timeline",
     "chooseTimelineOptional": "Choose a timeline (optional)",
     "timelineUrgent": "Within 2 weeks",
@@ -375,7 +375,8 @@
     "chatWhatsapp": "Chat on WhatsApp",
     "formNote": "Use an email address or phone number we can reply to.",
     "ratingOption": "{value} out of 5 stars",
-    "anonymousSuggestion": "Anonymous suggestion"
+    "anonymousSuggestion": "Anonymous suggestion",
+    "aboutItem": "About: {item}"
   },
   "footer": {
     "allRights": "All rights reserved.",

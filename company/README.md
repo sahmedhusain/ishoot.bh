@@ -40,7 +40,7 @@ A step-by-step walkthrough (demo, your own profile, blank install) is in [docs/G
 }
 ```
 
-`company` takes any `CompanySetting` field except the file URLs, which are filled from `assets`.
+`company` takes any `CompanySetting` field except the file URLs, which are filled from `assets`. Useful ones beyond identity: `businessActivity` (one of the activities in `packages/database/src/website-presets.ts`, such as `media` or `products`), `contentLanguages` (`["ar", "en"]`, `["ar"]` or `["en"]`) and `primaryLanguage`.
 
 | Slot | Artwork |
 |---|---|
@@ -66,11 +66,11 @@ Optional extras inside `assets/`: `brand/signatures/<staff key>.png` (demo staff
 }
 ```
 
-Fonts are `system`, a `google` family (the wizard offers a curated list covering Arabic and Latin), or `upload` with woff2 files from `assets/`.
+Fonts are `system`, a `google` family (any family in `FONT_LIBRARY` in `packages/database/src/constants/theme.ts`), or `upload` with font files from `assets/`. Optional: `buttonShape` (`square`, `rounded`, `pill`), `fontScale` (`sm`, `md`, `lg`), `headingWeight` (400–800), `headingCase` (`normal`, `uppercase`) and `surface` (`tinted`, `neutral`).
 
 ### Files
 
-Brand files must be PNG, JPEG or WebP, and fonts must be WOFF2. SVG is not accepted, because an uploaded SVG can carry script; convert it to PNG first, for example at 1200 px wide. Installing a profile copies each file into upload storage under a content-hashed name, so installing it twice reuses the same file.
+Brand files must be PNG, JPEG or WebP, and fonts WOFF2, WOFF, TTF or OTF. Fonts whose licence forbids redistribution (such as Thmanyah) stay out of git: keep them in the profile's untracked files. SVG is not accepted, because an uploaded SVG can carry script; convert it to PNG first, for example at 1200 px wide. Installing a profile copies each file into upload storage under a content-hashed name, so installing it twice reuses the same file.
 
 ## Guard
 

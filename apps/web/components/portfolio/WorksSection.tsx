@@ -1,17 +1,19 @@
 "use client";
-import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
 import Link from "next/link";
 import type { PortfolioItem } from "@platform/database/types";
 import { useTranslation } from "../../hooks/useTranslation";
 import { SectionBadge } from "../shared/SectionBadge";
-import { ArrowUpRight, Play } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { CinemaLightbox } from "./CinemaLightbox";
+import { CollectionCard, collectionGridClass } from "./CollectionCard";
+import { collectionHref } from "../../lib/site-copy";
 
 export function WorksSection({ items }: { items: PortfolioItem[] }) {
-  const { t, locale, isRTL: ar } = useTranslation();
+  const { t, locale, isRTL: ar, site } = useTranslation();
+  const layout = site?.collection.layout ?? "media";
   const reduced = useReducedMotion();
   const [category, setCategory] = React.useState("all");
   const [selected, setSelected] = React.useState<PortfolioItem | null>(null);
@@ -30,7 +32,8 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
 
   const shown = featured
     .filter((item) => category === "all" || item.category_id === category)
-    .slice(0, 4);
+    // Two wide project cards per row, three products or listings per row: two full rows either way.
+    .slice(0, layout === "product" || layout === "listing" ? 6 : 4);
 
   if (!items.length) return null;
 
@@ -71,7 +74,7 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
           >
             <Link
               className="inline-flex min-h-11 gap-2 items-center px-5 py-2.5 rounded-md bg-white hover:bg-slate-100 text-accent-pressed border border-slate-300 text-sm font-semibold transition-colors duration-150"
-              href={`/${locale}/works`}
+              href={site ? collectionHref(site, locale) : `/${locale}`}
             >
               <span>{t("portfolio.filterAll")}</span>
               <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
@@ -111,9 +114,9 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
           })}
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 sm:gap-10">
+        <div className={collectionGridClass(layout)}>
           {shown.map((item, index) => (
-            <motion.article
+            <motion.div
               key={item.id}
               initial={reduced ? false : { opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -123,48 +126,9 @@ export function WorksSection({ items }: { items: PortfolioItem[] }) {
                 ease: [0.2, 0, 0, 1],
                 delay: reduced ? 0 : Math.min(index * 0.08, 0.2),
               }}
-              className="group overflow-hidden"
             >
-              <button
-                onClick={() => setSelected(item)}
-                className="block w-full text-start cursor-pointer"
-                aria-label={`${t("portfolio.viewProject")}: ${ar ? item.title_ar : item.title_en}`}
-              >
-                <div className="relative overflow-hidden rounded-md aspect-[16/10] bg-brand-base">
-                  <ContentImage
-                    loading="lazy"
-                    width={800}
-                    height={500}
-                    src={item.thumbnail_url}
-                    alt={ar ? item.title_ar : item.title_en}
-                    className="w-full h-full object-cover transition-transform duration-300 ease-out motion-safe:group-hover:scale-[1.025]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-
-                  <span className="absolute bottom-4 end-4 w-11 h-11 rounded-full bg-[var(--web-accent)] hover:bg-mint text-white hover:text-black flex items-center justify-center transition-colors duration-150 ">
-                    {item.full_video_url || item.preview_video_url ? (
-                      <Play className="w-4 h-4 fill-current translate-x-0.5" />
-                    ) : (
-                      <ArrowUpRight className="w-4 h-4" />
-                    )}
-                  </span>
-                </div>
-
-                <div className="mt-5 space-y-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="text-lg sm:text-2xl font-bold font-display text-slate-950 group-hover:text-accent-pressed transition-colors">
-                      {ar ? item.title_ar : item.title_en}
-                    </h3>
-                    <span className="text-xs font-medium text-slate-600 font-sans shrink-0">
-                      {item.year}
-                    </span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-slate-600 font-sans">
-                    {item.client_name}
-                  </p>
-                </div>
-              </button>
-            </motion.article>
+              <CollectionCard item={item} layout={layout} tone="light" onOpen={setSelected} />
+            </motion.div>
           ))}
         </div>
 

@@ -20,6 +20,10 @@ Star,
 CheckCircle2,Filter
 } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { CurrencyDisplay } from "@platform/ui";
+import type { ContentLanguage } from "@platform/database/constants/languages";
+import type { CollectionField, CollectionLayout } from "@platform/database/website-presets";
+import { LanguageFields } from "../setup/LanguageFields";
 import {
 togglePortfolioFeaturedAction,
 deletePortfolioItemAction,
@@ -30,13 +34,22 @@ updatePortfolioContentAction,
 interface PortfolioManagementViewProps {
   initialItems: PortfolioItem[];
   categories: PortfolioCategory[];
+  /** The website catalogue: its name, card layout and the item details its activity uses. */
+  catalogue: { nameEn: string; nameAr: string; layout: CollectionLayout; fields: readonly CollectionField[]; currency: string };
+  languages: readonly ContentLanguage[];
 }
+
+type Attribute = NonNullable<PortfolioItem["attributes"]>[number];
 
 export function PortfolioManagementView({
   initialItems,
   categories,
+  catalogue,
+  languages,
 }: PortfolioManagementViewProps) {
   const {t, locale} = useAdminLocale();
+  const uses = (field: CollectionField) => catalogue.fields.includes(field);
+  const media = catalogue.layout === "media";
   const [items, setItems] = React.useState<PortfolioItem[]>(initialItems);
   const [selectedCat, setSelectedCat] = React.useState<string>("all");
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -62,6 +75,12 @@ export function PortfolioManagementView({
   const [previewVideoUrl, setPreviewVideoUrl] = React.useState("");
   const [categoryId, setCategoryId] = React.useState("");
   const [isFeatured, setIsFeatured] = React.useState(false);
+  const [subtitle, setSubtitle] = React.useState({ en: "", ar: "" });
+  const [price, setPrice] = React.useState("");
+  const [priceNote, setPriceNote] = React.useState({ en: "", ar: "" });
+  const [location, setLocation] = React.useState("");
+  const [externalUrl, setExternalUrl] = React.useState("");
+  const [attributes, setAttributes] = React.useState<Attribute[]>([]);
 
   function openEditor(item?: PortfolioItem) {
     setEditingId(item?.id || null);
@@ -81,6 +100,12 @@ export function PortfolioManagementView({
     setFullVideo(item?.full_video_url || "");
     setGallery(item?.gallery_urls?.join("\n") || "");
     setOrder(item?.display_order || 0);
+    setSubtitle({ en: item?.subtitle_en || "", ar: item?.subtitle_ar || "" });
+    setPrice(item?.price !== undefined ? String(item.price) : "");
+    setPriceNote({ en: item?.price_note_en || "", ar: item?.price_note_ar || "" });
+    setLocation(item?.location || "");
+    setExternalUrl(item?.external_url || "");
+    setAttributes(item?.attributes ?? []);
     setIsModalOpen(true);
   }
   const filteredItems =
@@ -114,7 +139,7 @@ export function PortfolioManagementView({
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titleEn && !titleAr) return;
-    if (!thumbnailUrl || !clientName) return;
+    if (!thumbnailUrl || (uses("client") && media && !clientName)) return;
     setSaving(true);
 
     const generatedSlug =
@@ -125,8 +150,16 @@ export function PortfolioManagementView({
         title_en: titleEn || titleAr,
         title_ar: titleAr || titleEn,
         slug: generatedSlug,
-        client_name: clientName,
-        year,
+        client_name: uses("client") ? clientName : "",
+        year: uses("year") ? year : undefined,
+        subtitle_en: subtitle.en,
+        subtitle_ar: subtitle.ar,
+        price: uses("price") && price.trim() ? Number(price) : undefined,
+        price_note_en: priceNote.en,
+        price_note_ar: priceNote.ar,
+        location,
+        external_url: externalUrl.trim(),
+        attributes,
         aspect_ratio: aspectRatio,
         thumbnail_url: thumbnailUrl,
         preview_video_url: previewVideoUrl,
@@ -183,10 +216,10 @@ export function PortfolioManagementView({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink font-display">
-            {t.cms.portfolioTitle}
+            {(locale === "ar" ? catalogue.nameAr : catalogue.nameEn) || t.cms.portfolioTitle}
           </h1>
           <p className="text-xs text-ink-muted mt-1">
-            {t.portfolioView.subtitle}
+            {media ? t.portfolioView.subtitle : t.portfolioView.catalogueSubtitle}
           </p>
         </div>
 
@@ -197,7 +230,7 @@ export function PortfolioManagementView({
           onClick={() => openEditor()}
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>{t.actions.newProject}</span>
+          <span>{media ? t.actions.newProject : t.portfolioView.newItem}</span>
         </Button>
       </div>
 
@@ -233,10 +266,11 @@ export function PortfolioManagementView({
           <thead className="bg-surface-sunken border-b border-ink/10 text-ink-muted uppercase  tracking-wider">
             <tr>
               <th className="p-4 text-start">
-                {t.portfolioView.projectClient}
+                {media ? t.portfolioView.projectClient : t.portfolioView.itemColumn}
               </th>
-              <th className="p-4 text-start">{t.portfolioView.aspectRatio}</th>
-              <th className="p-4 text-start">{t.portfolioView.year}</th>
+              {media ? <th className="p-4 text-start">{t.portfolioView.aspectRatio}</th> : null}
+              {uses("price") ? <th className="p-4 text-start">{t.portfolioView.price}</th> : null}
+              {uses("year") ? <th className="p-4 text-start">{t.portfolioView.year}</th> : null}
               <th className="p-4 text-center">{t.cms.featured}</th>
               <th className="p-4 text-end">{t.equipmentView.actions}</th>
             </tr>
@@ -259,15 +293,18 @@ export function PortfolioManagementView({
                         {locale === "ar" ? item.title_ar : item.title_en}
                       </div>
                       <div className="text-accent  text-[11px]">
-                        {item.client_name}
+                        {item.client_name || (locale === "ar" ? item.subtitle_ar : item.subtitle_en) || item.location}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="p-4  text-ink-muted">
-                  <Badge variant="outline">{item.aspect_ratio}</Badge>
-                </td>
-                <td className="p-4  text-ink">{item.year}</td>
+                {media ? (
+                  <td className="p-4  text-ink-muted">
+                    <Badge variant="outline">{item.aspect_ratio}</Badge>
+                  </td>
+                ) : null}
+                {uses("price") ? <td className="p-4 text-ink">{item.price !== undefined ? <CurrencyDisplay amount={item.price} currency={catalogue.currency} /> : "—"}</td> : null}
+                {uses("year") ? <td className="p-4  text-ink">{item.year ?? "—"}</td> : null}
                 <td className="p-4 text-center">
                   <button
                     onClick={() =>
@@ -320,42 +357,23 @@ export function PortfolioManagementView({
             </p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.portfolioView.titleArLabel}
-              </label>
-              <Input
-                value={titleAr}
-                onChange={(e) => setTitleAr(e.target.value)}
-                placeholder={t.portfolioView.titleArPlaceholder}
-                required
-              />
-            </div>
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.portfolioView.titleEnLabel}
-              </label>
-              <Input
-                value={titleEn}
-                onChange={(e) => setTitleEn(e.target.value)}
-                placeholder={t.portfolioView.titleEnPlaceholder}
-                required
-              />
-            </div>
+            <LanguageFields name="title" label={t.portfolioView.title} languages={languages} required maxLength={500} en={titleEn} ar={titleAr} onChange={(v) => { setTitleEn(v.en); setTitleAr(v.ar); }} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-ink mb-1.5 block">
-                {t.portfolioView.clientName}
-              </label>
-              <Input
-                value={clientName}
-                onChange={(e) => setClientName(e.target.value)}
-                placeholder={t.portfolioView.clientPlaceholder}
-                required
-              />
-            </div>
+            {uses("client") ? (
+              <div>
+                <label className="text-xs text-ink mb-1.5 block">
+                  {t.portfolioView.clientName}
+                </label>
+                <Input
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder={t.portfolioView.clientPlaceholder}
+                  required={media}
+                />
+              </div>
+            ) : null}
             <div>
               <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.category}
@@ -380,7 +398,56 @@ export function PortfolioManagementView({
             </div>
           </div>
 
+          {uses("subtitle") || uses("price") || uses("location") || uses("externalUrl") ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {uses("subtitle") ? <LanguageFields name="subtitle" label={t.portfolioView.subtitleLabel} languages={languages} maxLength={300} en={subtitle.en} ar={subtitle.ar} onChange={setSubtitle} /> : null}
+              {uses("price") ? (
+                <>
+                  <div>
+                    <label htmlFor="item-price" className="text-xs text-ink mb-1.5 block">{`${t.portfolioView.price} (${catalogue.currency})`}</label>
+                    <Input id="item-price" type="number" min={0} step="0.001" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} />
+                  </div>
+                  <LanguageFields name="priceNote" label={t.portfolioView.priceNote} placeholder={t.portfolioView.priceNotePlaceholder} languages={languages} maxLength={300} en={priceNote.en} ar={priceNote.ar} onChange={setPriceNote} />
+                </>
+              ) : null}
+              {uses("location") ? (
+                <div>
+                  <label htmlFor="item-location" className="text-xs text-ink mb-1.5 block">{t.portfolioView.location}</label>
+                  <Input id="item-location" value={location} maxLength={300} onChange={(e) => setLocation(e.target.value)} />
+                </div>
+              ) : null}
+              {uses("externalUrl") ? (
+                <div>
+                  <label htmlFor="item-link" className="text-xs text-ink mb-1.5 block">{t.portfolioView.externalUrl}</label>
+                  <Input id="item-link" type="url" dir="ltr" value={externalUrl} onChange={(e) => setExternalUrl(e.target.value)} />
+                  <p className="mt-1 text-[11px] text-ink-muted">{t.portfolioView.externalUrlHint}</p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {uses("attributes") ? (
+            <fieldset className="space-y-2 rounded-xl border border-ink/10 p-3">
+              <legend className="px-1 text-xs font-semibold text-ink">{t.portfolioView.attributes}</legend>
+              <p className="text-[11px] text-ink-muted">{t.portfolioView.attributesHint}</p>
+              {attributes.map((attribute, index) => (
+                <div key={index} className="grid grid-cols-1 items-end gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                  <LanguageFields label={t.portfolioView.attributeLabel} languages={languages} maxLength={200} en={attribute.labelEn} ar={attribute.labelAr} onChange={(v) => setAttributes(attributes.map((a, i) => (i === index ? { ...a, labelEn: v.en, labelAr: v.ar } : a)))} />
+                  <LanguageFields label={t.portfolioView.attributeValue} languages={languages} maxLength={200} en={attribute.valueEn} ar={attribute.valueAr} onChange={(v) => setAttributes(attributes.map((a, i) => (i === index ? { ...a, valueEn: v.en, valueAr: v.ar } : a)))} />
+                  <button type="button" onClick={() => setAttributes(attributes.filter((_, i) => i !== index))} aria-label={t.portfolioView.removeAttribute} className="mb-1 rounded-lg p-2 text-rose-400 hover:bg-rose-500/10">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" disabled={attributes.length >= 20} onClick={() => setAttributes([...attributes, { labelEn: "", labelAr: "", valueEn: "", valueAr: "" }])}>
+                <Plus className="h-3.5 w-3.5" />
+                {t.portfolioView.addAttribute}
+              </Button>
+            </fieldset>
+          ) : null}
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {media ? (
             <div>
               <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.aspectRatio}
@@ -399,6 +466,8 @@ export function PortfolioManagementView({
                   {t.copy.aspectAcademy}</option>
               </Select>
             </div>
+            ) : null}
+            {uses("year") ? (
             <div>
               <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.productionYear}
@@ -409,6 +478,7 @@ export function PortfolioManagementView({
                 onChange={(e) => setYear(Number(e.target.value))}
               />
             </div>
+            ) : null}
             <div>
               <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.slug}
@@ -434,6 +504,7 @@ export function PortfolioManagementView({
                 required
               />
             </div>
+            {uses("video") ? (
             <div>
               <label className="text-xs text-ink mb-1.5 block">
                 {t.portfolioView.previewVideoUrl}
@@ -444,26 +515,12 @@ export function PortfolioManagementView({
                 placeholder={t.portfolioView.previewVideoPlaceholder}
               />
             </div>
+            ) : null}
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
-            <label className="text-sm">
-              {t.portfolioManagement.descriptionEnglish}
-              <textarea
-                className="w-full rounded-lg bg-ink/5 border border-ink/20 p-3"
-                rows={3}
-                value={descriptionEn}
-                onChange={(e) => setDescriptionEn(e.target.value)}
-              />
-            </label>
-            <label className="text-sm">
-              {t.copy.descriptionArabic}<textarea
-                className="w-full rounded-lg bg-ink/5 border border-ink/20 p-3"
-                rows={3}
-                value={descriptionAr}
-                onChange={(e) => setDescriptionAr(e.target.value)}
-              />
-            </label>
+            <LanguageFields name="description" label={t.portfolioView.description} languages={languages} multiline maxLength={10000} en={descriptionEn} ar={descriptionAr} onChange={(v) => { setDescriptionEn(v.en); setDescriptionAr(v.ar); }} />
+            {uses("video") ? (
             <label className="text-sm">
               {t.portfolioManagement.fullFilmUrl}
               <Input
@@ -471,6 +528,7 @@ export function PortfolioManagementView({
                 onChange={(e) => setFullVideo(e.target.value)}
               />
             </label>
+            ) : null}
             <label className="text-sm">
               {t.portfolioManagement.displayOrder}
               <Input
@@ -479,6 +537,7 @@ export function PortfolioManagementView({
                 onChange={(e) => setOrder(Number(e.target.value))}
               />
             </label>
+            {uses("gallery") ? (
             <label className="text-sm sm:col-span-2">
               {t.portfolioManagement.galleryImagesOneUrlPer}
               <textarea
@@ -488,6 +547,7 @@ export function PortfolioManagementView({
                 onChange={(e) => setGallery(e.target.value)}
               />
             </label>
+            ) : null}
           </div>
           <div className="pt-2 flex items-center gap-2">
             <input

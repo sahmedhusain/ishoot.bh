@@ -2,6 +2,7 @@ import { serverTemplates, formatMessage, serverMessages } from "@platform/locale
 
 
 import { measureOperation,db } from "@platform/database";
+import { FONT_FILE_TYPES, isFontMimeType } from "@platform/database/constants/theme";
 import { NextRequest,NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../lib/auth";
 import { requireAttachmentAccess } from "../../../../lib/attachment-access";
@@ -25,9 +26,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: serverMessages.runtimeInvalidUploadInput }, { status: 400 });
       if (fileSize > maxUploadMb * 1024 * 1024) return NextResponse.json({ error: formatMessage(serverTemplates.maximumFileSize, { 0: maxUploadMb }) }, { status: 413 });
       const extensions: Record<string, string> = { "application/pdf": ".pdf", "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp" };
-      // Brand fonts (woff2) are accepted only for the company theme, and are public like the logos.
+      // Brand fonts (woff2, woff, ttf, otf) are accepted only for the company theme, and are public like the logos.
       const brandFont = entityType === "company_font";
-      if (brandFont ? fileType !== "font/woff2" : !Object.hasOwn(extensions, fileType)) return NextResponse.json({ error: serverMessages.runtimeUnsupportedFileType }, { status: 415 });
+      if (brandFont ? !isFontMimeType(fileType) : !Object.hasOwn(extensions, fileType)) return NextResponse.json({ error: serverMessages.runtimeUnsupportedFileType }, { status: 415 });
 
       try { await requireAttachmentAccess(entityType, entityId, "write"); }
       catch { return NextResponse.json({ error: serverMessages.runtimeUploadAccessDenied }, { status: 403 }); }
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
       if (publicBrand && fileType === "application/pdf") return NextResponse.json({ error: serverMessages.runtimeBrandAssetsMustBeImages }, { status: 415 });
       if (publicBrand) subfolder = "brand";
 
-      const ext = brandFont ? ".woff2" : extensions[fileType];
+      const ext = isFontMimeType(fileType) ? `.${FONT_FILE_TYPES[fileType].extension}` : extensions[fileType];
       const rawBase = fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 40);
       const uniqueFileName = `${randomUUID()}_${rawBase}${ext}`;
       const filePath = `${subfolder}/${uniqueFileName}`;

@@ -1,4 +1,5 @@
 "use server";
+import { publicSitePaths } from "../../lib/public-paths";
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { measureOperation } from "@platform/database";
@@ -179,6 +180,11 @@ export async function toggleFeatureAction(
       return feature;
     });
     revalidatePath(ROUTES.home, "layout");
+    // The website module decides whether the public site is shown at all.
+    if (moduleKey === "cms") {
+      const { revalidatePublicSite } = await import("../../lib/revalidate-web");
+      await revalidatePublicSite(["website", "company"], ["/en", "/ar", ...(await publicSitePaths())]);
+    }
     return { success: true, feature };
   });
 }
@@ -214,7 +220,7 @@ export async function updateWebSettingsAction(settings: WebSettingsInput) {
         "stats",
         "company",
       ],
-      ["/", "/en", "/ar", "/about", "/works", "/contact"],
+      ["/en", "/ar", ...(await publicSitePaths())],
     );
 
     return { success: true, settings: updated };
@@ -237,7 +243,7 @@ export async function revalidateEntireSiteAction() {
         "stats",
         "company",
       ],
-      ["/", "/en", "/ar", "/about", "/works", "/contact"],
+      ["/en", "/ar", ...(await publicSitePaths())],
     );
     return { success: true };
   });
@@ -268,7 +274,7 @@ export async function createSocialLinkAction(data: {
     revalidatePath(ROUTES.settings.web);
     await revalidatePublicSite(
       ["socialLinks"],
-      ["/", "/en", "/ar", "/about", "/works", "/contact"],
+      ["/en", "/ar", ...(await publicSitePaths())],
     );
     return { success: true, link };
   });
@@ -302,7 +308,7 @@ export async function updateSocialLinkAction(
     revalidatePath(ROUTES.settings.web);
     await revalidatePublicSite(
       ["socialLinks"],
-      ["/", "/en", "/ar", "/about", "/works", "/contact"],
+      ["/en", "/ar", ...(await publicSitePaths())],
     );
     return { success: true, link };
   });
@@ -327,7 +333,7 @@ export async function deleteSocialLinkAction(id: string) {
     revalidatePath(ROUTES.settings.web);
     await revalidatePublicSite(
       ["socialLinks"],
-      ["/", "/en", "/ar", "/about", "/works", "/contact"],
+      ["/en", "/ar", ...(await publicSitePaths())],
     );
     return { success: deleted };
   });

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { ensureDefaultFeatureModules } from "@platform/database";
+import { ensureDefaultFeatureModules, getWebsiteEditor } from "@platform/database";
+import { resolveWebsiteConfig, validateWebsiteConfig, websiteConfigForActivity } from "@platform/database/website-config";
 import { companyMetadata } from "../../lib/company-metadata";
 import { getCachedCompanySettings } from "../../lib/cached-queries";
 import { getCurrentPermissions, requireAuth } from "../../lib/auth";
@@ -18,12 +19,29 @@ export default async function SetupPage() {
   const permissions = await getCurrentPermissions();
   if (permissions["settings:write"] !== true) return <SetupWaitingView />;
 
-  const toggles = await ensureDefaultFeatureModules();
+  const [toggles, website] = await Promise.all([ensureDefaultFeatureModules(), getWebsiteEditor()]);
+  const draft = validateWebsiteConfig(website.draft);
+  const activity = company.business_activity ?? "media";
+  // A draft that was never set up for an activity starts from the activity's recommendations.
+  const websiteConfig = resolveWebsiteConfig(draft.purpose ? draft : websiteConfigForActivity(activity, draft));
   // A fresh company starts with placeholder names; the wizard asks for the real ones.
   const placeholder = company.company_name_en === "New company";
   return (
     <SetupWizard
       company={{
+        contentLanguages: company.content_languages,
+        primaryLanguage: company.primary_language,
+        businessActivity: company.business_activity ?? "",
+        taglineEn: company.tagline_en ?? "",
+        taglineAr: company.tagline_ar ?? "",
+        foundedYear: company.founded_year ? String(company.founded_year) : "",
+        city: company.city ?? "",
+        country: company.country ?? "",
+        whatsappPhone: company.whatsapp_phone ?? "",
+        instagramUrl: company.instagram_url ?? "",
+        linkedinUrl: company.linkedin_url ?? "",
+        youtubeUrl: company.youtube_url ?? "",
+        mapUrl: company.map_url ?? "",
         companyNameEn: placeholder ? "" : company.company_name_en,
         companyNameAr: placeholder ? "" : company.company_name_ar,
         crNumber: company.cr_number,
@@ -54,6 +72,7 @@ export default async function SetupPage() {
         paymentTermsDays: company.payment_terms_days,
         modules: toggles.map((m) => ({ moduleKey: m.moduleKey, isEnabled: m.isEnabled })),
       }}
+      website={{ enabled: toggles.find((m) => m.moduleKey === "cms")?.isEnabled !== false, config: websiteConfig }}
       modules={toggles.map((m) => ({ moduleKey: m.moduleKey, nameEn: m.nameEn, nameAr: m.nameAr }))}
     />
   );

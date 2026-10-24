@@ -4,6 +4,7 @@ import * as React from "react";
 import { ArrowUpRight, Check, Star } from "lucide-react";
 import { useTranslation } from "../../hooks/useTranslation";
 import type { PublicService } from "@platform/database/website-config";
+import { getCurrencyLabel } from "@platform/config/currency";
 
 const intents = [
   "inquiry",
@@ -17,14 +18,20 @@ export function ContactForm({
   services = [],
   initialIntent = "inquiry",
   initialService = "",
+  initialMessage = "",
   response = "",
 }: {
   services?: PublicService[];
   initialIntent?: string;
   initialService?: string;
+  /** Pre-filled message, e.g. when the visitor asks about a catalogue item. */
+  initialMessage?: string;
   response?: string;
 }) {
-  const { t, locale, isRTL: ar } = useTranslation();
+  const { t, locale, isRTL: ar, site } = useTranslation();
+  // Which optional questions the website settings ask on a quote request.
+  const ask = site?.inquiry ?? { budget: true, timeline: true, location: true, reference: false };
+  const currency = getCurrencyLabel(site?.currency ?? "BHD", ar, false);
   const [intent, setIntent] = React.useState<Intent>(
     intents.includes(initialIntent as Intent)
       ? (initialIntent as Intent)
@@ -354,8 +361,9 @@ export function ContactForm({
           </fieldset>
         )}
 
-        {intent === "quote_request" && (
+        {intent === "quote_request" && (ask.budget || ask.timeline || ask.location || ask.reference) && (
           <div className="grid sm:grid-cols-2 gap-5">
+            {ask.budget && (
             <label className="block space-y-2">
               <span className="text-xs font-semibold text-ink font-sans">
                 {t("contact.estimatedBudget")}
@@ -368,20 +376,22 @@ export function ContactForm({
                   {t("contact.budgetNotSure")}
                 </option>
                 <option value="under_500" className="bg-brand-surface text-white">
-                  {t("contact.budgetUnder500")}
+                  {t("contact.budgetUnder500", { currency })}
                 </option>
                 <option value="500_1500" className="bg-brand-surface text-white">
-                  {t("contact.budget500_1500")}
+                  {t("contact.budget500_1500", { currency })}
                 </option>
                 <option value="1500_5000" className="bg-brand-surface text-white">
-                  {t("contact.budget1500_5000")}
+                  {t("contact.budget1500_5000", { currency })}
                 </option>
                 <option value="5000_plus" className="bg-brand-surface text-white">
-                  {t("contact.budget5000Plus")}
+                  {t("contact.budget5000Plus", { currency })}
                 </option>
               </select>
             </label>
+            )}
 
+            {ask.timeline && (
             <label className="block space-y-2">
               <span className="text-xs font-semibold text-ink font-sans">
                 {t("contact.targetTimeline")}
@@ -404,7 +414,9 @@ export function ContactForm({
                 </option>
               </select>
             </label>
+            )}
 
+            {ask.location && (
             <label className="block space-y-2 sm:col-span-2">
               <span className="text-xs font-semibold text-ink-muted font-sans">
                 {t("contact.shootLocation")}
@@ -416,6 +428,21 @@ export function ContactForm({
                 className={field}
               />
             </label>
+            )}
+
+            {ask.reference && (
+              <label className="block space-y-2 sm:col-span-2">
+                <span className="text-xs font-semibold text-ink-muted font-sans">
+                  {t("contact.projectRefLabel")}
+                </span>
+                <input
+                  name="projectReference"
+                  maxLength={200}
+                  placeholder={t("contact.projectRefPlaceholder")}
+                  className={field}
+                />
+              </label>
+            )}
           </div>
         )}
 
@@ -480,6 +507,7 @@ export function ContactForm({
             required
             maxLength={intent === "review" ? 5000 : 10000}
             rows={5}
+            defaultValue={initialMessage}
             placeholder={t("contact.messagePlaceholder")}
             className={`${field} resize-none`}
           />

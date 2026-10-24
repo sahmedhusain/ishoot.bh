@@ -2,20 +2,33 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Palette, Image as ImageIcon, SlidersHorizontal, ClipboardCheck, Check, Upload, Trash2, Globe } from "lucide-react";
+import { Building2, Palette, Image as ImageIcon, SlidersHorizontal, ClipboardCheck, Check, Upload, Trash2, Globe, MonitorSmartphone, Ban } from "lucide-react";
 import { Button, Card, Input, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { getCurrencyLabel } from "@platform/config/currency";
 import { SUPPORTED_CURRENCIES } from "@platform/database/constants/finance";
-import type { BrandTheme } from "@platform/database/constants/theme";
+import { STYLE_PRESETS, type BrandTheme } from "@platform/database/constants/theme";
+import type { ContentLanguage } from "@platform/database/constants/languages";
+import { ACTIVITY_PRESETS, BUSINESS_ACTIVITIES, isBusinessActivity, type BusinessActivity } from "@platform/database/website-presets";
+import { websiteConfigForActivity, type ResolvedWebsiteConfig } from "@platform/database/website-config";
 import type { SupportedCurrency } from "@platform/database/types";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadFileDirectly } from "../../lib/upload-client";
 import { errorMessage } from "../../lib/error-text";
 import { saveCompanyAssetAction, deleteCompanyAssetAction } from "../../app/actions/settings";
-import { saveSetupCompanyAction, saveSetupThemeAction, saveSetupConfigAction, completeSetupAction, type SetupCompanyInput, type SetupConfigInput } from "../../app/actions/setup";
+import {
+  saveSetupCompanyAction,
+  saveSetupThemeAction,
+  saveSetupConfigAction,
+  saveSetupWebsiteAction,
+  completeSetupAction,
+  type SetupCompanyInput,
+  type SetupConfigInput,
+} from "../../app/actions/setup";
 import { ContentImage } from "../shared/ContentImage";
 import { ThemeEditor } from "./ThemeEditor";
+import { Field, LanguageFields, activityIcon } from "./LanguageFields";
+import { WebsiteSetupFields } from "./WebsiteSetupFields";
 
 export type AssetSlot = "logo_light" | "logo_dark" | "icon_light" | "icon_dark" | "stamp" | "signature";
 
@@ -24,15 +37,17 @@ export interface SetupWizardProps {
   theme: BrandTheme;
   assets: Record<AssetSlot, string>;
   config: SetupConfigInput;
+  website: { enabled: boolean; config: ResolvedWebsiteConfig };
   modules: { moduleKey: string; nameEn: string; nameAr: string }[];
 }
 
-const STEPS = ["company", "brand", "assets", "configuration", "review"] as const;
+const STEPS = ["company", "brand", "assets", "website", "configuration", "review"] as const;
 type Step = (typeof STEPS)[number];
 const ICONS: Record<Step, React.ComponentType<{ className?: string }>> = {
   company: Building2,
   brand: Palette,
   assets: ImageIcon,
+  website: MonitorSmartphone,
   configuration: SlidersHorizontal,
   review: ClipboardCheck,
 };
@@ -44,14 +59,42 @@ const ASSET_SLOTS: { key: AssetSlot; label: "logo" | "darkLogo" | "icon" | "dark
   { key: "stamp", label: "stamp" },
   { key: "signature", label: "signature" },
 ];
+const LANGUAGE_CHOICES: { id: "both" | "ar" | "en"; languages: ContentLanguage[] }[] = [
+  { id: "both", languages: ["ar", "en"] },
+  { id: "ar", languages: ["ar"] },
+  { id: "en", languages: ["en"] },
+];
 
-function Field({ label, children, wide }: { label: string; children: (id: string) => React.ReactNode; wide?: boolean }) {
-  const id = React.useId();
+function Group({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className={`space-y-1.5 ${wide ? "sm:col-span-2" : ""}`}>
-      <label htmlFor={id} className="text-xs font-medium text-slate-700 dark:text-slate-300">{label}</label>
-      {children(id)}
-    </div>
+    <fieldset className="space-y-4">
+      <div className="space-y-0.5">
+        <legend className="text-sm font-bold text-slate-900 dark:text-white">{title}</legend>
+        {hint ? <p className="text-xs text-slate-500 dark:text-ink-muted">{hint}</p> : null}
+      </div>
+      {children}
+    </fieldset>
+  );
+}
+
+function ChoiceCard({ selected, onSelect, icon: Icon, title, description, testId }: { selected: boolean; onSelect: () => void; icon: React.ComponentType<{ className?: string }>; title: string; description: string; testId?: string }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      onClick={onSelect}
+      data-testid={testId}
+      className={`flex items-start gap-3 rounded-xl border p-3.5 text-start transition-colors ${selected ? "border-accent bg-accent/10" : "border-ink/15 hover:border-ink/30"}`}
+    >
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${selected ? "bg-accent text-accent-foreground" : "bg-ink/[0.06] text-accent"}`}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold text-slate-900 dark:text-white">{title}</span>
+        <span className="block text-xs leading-relaxed text-slate-500 dark:text-ink-muted">{description}</span>
+      </span>
+    </button>
   );
 }
 
@@ -64,11 +107,17 @@ export function SetupWizard(props: SetupWizardProps) {
   const [theme, setTheme] = React.useState(props.theme);
   const [assets, setAssets] = React.useState(props.assets);
   const [config, setConfig] = React.useState(props.config);
+  const [website, setWebsite] = React.useState(props.website);
+  const [publishWebsite, setPublishWebsite] = React.useState(true);
+  // Recommendations follow the chosen activity until the person changes that part by hand.
+  const touched = React.useRef({ theme: false, modules: false });
   const [saving, setSaving] = React.useState(false);
   const [uploading, setUploading] = React.useState<AssetSlot | null>(null);
   const [error, setError] = React.useState("");
   const index = STEPS.indexOf(step);
   const headingRef = React.useRef<HTMLHeadingElement>(null);
+  const languages = company.contentLanguages as ContentLanguage[];
+  const activity = isBusinessActivity(company.businessActivity) ? company.businessActivity : null;
 
   React.useEffect(() => headingRef.current?.focus(), [step]);
 
@@ -90,10 +139,25 @@ export function SetupWizard(props: SetupWizardProps) {
     }
   };
 
+  const chooseActivity = (next: BusinessActivity) => {
+    setCompany((current) => ({ ...current, businessActivity: next }));
+    const preset = ACTIVITY_PRESETS[next];
+    setWebsite((current) => ({ ...current, config: { ...current.config, ...websiteConfigForActivity(next, current.config) } as ResolvedWebsiteConfig }));
+    if (!touched.current.modules)
+      setConfig((current) => ({ ...current, modules: current.modules.map((m) => ({ ...m, isEnabled: preset.modules[m.moduleKey as keyof typeof preset.modules] ?? m.isEnabled })) }));
+    const style = STYLE_PRESETS.find((s) => s.id === preset.stylePreset);
+    if (!touched.current.theme && style) setTheme((current) => ({ ...current, ...style.theme }));
+  };
+
+  const chooseLanguages = (next: ContentLanguage[]) =>
+    setCompany((current) => ({ ...current, contentLanguages: next, primaryLanguage: next.includes(current.primaryLanguage as ContentLanguage) ? current.primaryLanguage : next[0] }));
+
   const saveStep = () => {
     const next = STEPS[index + 1];
     if (step === "company") {
-      if (!company.companyNameEn.trim() || !company.companyNameAr.trim()) return setError(copy.company.required);
+      if (!activity) return setError(t.serverErrors.messages.businessActivityInvalid);
+      const missing = languages.some((l) => !(l === "en" ? company.companyNameEn : company.companyNameAr).trim());
+      if (missing) return setError(languages.length > 1 ? copy.company.requiredBoth : copy.company.required);
       return run(() => saveSetupCompanyAction(company), next);
     }
     if (step === "brand") return run(() => saveSetupThemeAction(theme), next);
@@ -101,9 +165,14 @@ export function SetupWizard(props: SetupWizardProps) {
       if (!assets.logo_light && !assets.logo_dark) return setError(copy.assets.logoRequired);
       return go(next);
     }
+    if (step === "website") {
+      // The website module follows this answer; the configuration step shows it already switched.
+      setConfig((current) => ({ ...current, modules: current.modules.map((m) => (m.moduleKey === "cms" ? { ...m, isEnabled: website.enabled } : m)) }));
+      return run(() => saveSetupWebsiteAction({ enabled: website.enabled, config: website.config }), next);
+    }
     if (step === "configuration") return run(() => saveSetupConfigAction(config), next);
     return run(async () => {
-      await completeSetupAction();
+      await completeSetupAction({ publishWebsite: website.enabled && publishWebsite });
       router.replace("/dashboard");
       router.refresh();
     });
@@ -134,21 +203,30 @@ export function SetupWizard(props: SetupWizardProps) {
     }
   };
 
-  const companyFields: { key: keyof SetupCompanyInput; label: string; dir?: "ltr" | "rtl"; type?: string; wide?: boolean }[] = [
-    { key: "companyNameEn", label: copy.company.nameEn, dir: "ltr" },
-    { key: "companyNameAr", label: copy.company.nameAr, dir: "rtl" },
-    { key: "crNumber", label: copy.company.crNumber, dir: "ltr" },
-    { key: "vatId", label: copy.company.vatId, dir: "ltr" },
-    { key: "addressEn", label: copy.company.addressEn, dir: "ltr", wide: true },
-    { key: "addressAr", label: copy.company.addressAr, dir: "rtl", wide: true },
-    { key: "phone", label: copy.company.phone, dir: "ltr", type: "tel" },
-    { key: "email", label: copy.company.email, dir: "ltr", type: "email" },
-    { key: "website", label: copy.company.website, dir: "ltr", type: "url", wide: true },
-  ];
+  const text = (key: keyof SetupCompanyInput, label: string, options: { dir?: "ltr" | "rtl"; type?: string; wide?: boolean; placeholder?: string; inputMode?: "numeric" } = {}) => (
+    <Field key={key} label={label} wide={options.wide}>
+      {(id) => (
+        <Input
+          id={id}
+          name={key}
+          dir={options.dir ?? "ltr"}
+          type={options.type ?? "text"}
+          inputMode={options.inputMode}
+          placeholder={options.placeholder}
+          value={(company[key] as string) ?? ""}
+          onChange={(e) => setCompany({ ...company, [key]: e.target.value })}
+          className="rounded-lg"
+        />
+      )}
+    </Field>
+  );
 
   const sampleNumber = (prefix: string, next: number) => `${prefix || "INV"}-${new Date().getFullYear()}-${String(next || 1).padStart(4, "0")}`;
   const moduleName = (m: SetupWizardProps["modules"][number]) => (locale === "ar" ? m.nameAr : m.nameEn);
   const enabled = (key: string) => config.modules.find((m) => m.moduleKey === key)?.isEnabled ?? true;
+  const languageChoice = LANGUAGE_CHOICES.find((c) => c.languages.join() === languages.join())?.id ?? "both";
+  const activityName = activity ? copy.company.activities[activity].name : copy.review.missing;
+  const nameIn = (lang: string) => (lang === "ar" ? company.companyNameAr : company.companyNameEn);
 
   return (
     <div className="min-h-screen bg-brand-base px-4 py-8 sm:px-6 lg:py-12">
@@ -169,7 +247,7 @@ export function SetupWizard(props: SetupWizardProps) {
         </header>
 
         <nav aria-label={copy.title}>
-          <ol className="grid grid-cols-5 gap-2">
+          <ol className="grid grid-cols-6 gap-2">
             {STEPS.map((s, i) => {
               const Icon = ICONS[s];
               const done = i < index;
@@ -182,12 +260,12 @@ export function SetupWizard(props: SetupWizardProps) {
                     aria-current={current ? "step" : undefined}
                     aria-label={copy.steps[s]}
                     onClick={() => i < index && go(s)}
-                    className={`flex w-full flex-col items-center gap-2 rounded-xl border p-3 text-center transition-colors sm:flex-row sm:text-start ${current ? "border-accent bg-accent/10" : done ? "border-ink/15 hover:border-accent/50" : "border-ink/10 opacity-60"}`}
+                    className={`flex w-full flex-col items-center gap-2 rounded-xl border p-3 text-center transition-colors lg:flex-row lg:text-start ${current ? "border-accent bg-accent/10" : done ? "border-ink/15 hover:border-accent/50" : "border-ink/10 opacity-60"}`}
                   >
                     <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${done ? "bg-accent text-accent-foreground" : current ? "bg-primary text-primary-foreground" : "bg-ink/10 text-slate-500"}`}>
                       {done ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
                     </span>
-                    <span className="hidden text-xs font-semibold text-slate-800 dark:text-slate-100 sm:block">{copy.steps[s]}</span>
+                    <span className="hidden text-xs font-semibold text-slate-800 dark:text-slate-100 lg:block">{copy.steps[s]}</span>
                   </button>
                 </li>
               );
@@ -203,27 +281,98 @@ export function SetupWizard(props: SetupWizardProps) {
           </div>
 
           {step === "company" ? (
-            <div className="grid gap-5 sm:grid-cols-2">
-              {companyFields.map((field) => (
-                <Field key={field.key} label={field.label} wide={field.wide}>
-                  {(id) => (
-                    <Input
-                      id={id}
-                      name={field.key}
-                      dir={field.dir}
-                      type={field.type ?? "text"}
-                      required={field.key === "companyNameEn" || field.key === "companyNameAr"}
-                      value={company[field.key] ?? ""}
-                      onChange={(e) => setCompany({ ...company, [field.key]: e.target.value })}
-                      className="rounded-lg"
+            <div className="space-y-8">
+              <Group title={copy.company.languagesTitle} hint={copy.company.languagesHint}>
+                <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={copy.company.languagesTitle}>
+                  {LANGUAGE_CHOICES.map((choice) => (
+                    <ChoiceCard
+                      key={choice.id}
+                      selected={languageChoice === choice.id}
+                      onSelect={() => chooseLanguages(choice.languages)}
+                      icon={Globe}
+                      title={copy.company.languageOptions[choice.id]}
+                      description={choice.languages.map((l) => copy.company.languageNames[l]).join(" · ")}
+                      testId={`languages-${choice.id}`}
                     />
-                  )}
-                </Field>
-              ))}
+                  ))}
+                </div>
+                {languages.length > 1 ? (
+                  <div className="max-w-xs">
+                    <Field label={copy.company.primaryLanguage} hint={copy.company.primaryHint}>
+                      {(id) => (
+                        <Select id={id} value={company.primaryLanguage} onChange={(e) => setCompany({ ...company, primaryLanguage: e.target.value })} className="rounded-lg">
+                          {(["ar", "en"] as const).map((l) => <option key={l} value={l}>{copy.company.languageNames[l]}</option>)}
+                        </Select>
+                      )}
+                    </Field>
+                  </div>
+                ) : null}
+              </Group>
+
+              <Group title={copy.company.activityTitle} hint={copy.company.activityHint}>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label={copy.company.activityTitle}>
+                  {BUSINESS_ACTIVITIES.map((a) => (
+                    <ChoiceCard
+                      key={a}
+                      selected={activity === a}
+                      onSelect={() => chooseActivity(a)}
+                      icon={activityIcon(a)}
+                      title={copy.company.activities[a].name}
+                      description={copy.company.activities[a].description}
+                      testId={`activity-${a}`}
+                    />
+                  ))}
+                </div>
+              </Group>
+
+              <Group title={copy.company.identityTitle}>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <LanguageFields name="companyName" label={copy.company.name} languages={languages} required maxLength={200} en={company.companyNameEn} ar={company.companyNameAr} onChange={(v) => setCompany({ ...company, companyNameEn: v.en, companyNameAr: v.ar })} />
+                  {text("crNumber", copy.company.crNumber)}
+                  {text("vatId", copy.company.vatId)}
+                </div>
+              </Group>
+
+              <Group title={copy.company.profileTitle}>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <LanguageFields name="tagline" label={copy.company.tagline} hint={copy.company.taglineHint} languages={languages} maxLength={160} en={company.taglineEn ?? ""} ar={company.taglineAr ?? ""} onChange={(v) => setCompany({ ...company, taglineEn: v.en, taglineAr: v.ar })} />
+                  {text("foundedYear", copy.company.foundedYear, { inputMode: "numeric", placeholder: String(new Date().getFullYear() - 5) })}
+                  {text("city", copy.company.city, { dir: languages[0] === "ar" ? "rtl" : "ltr" })}
+                  {text("country", copy.company.country, { dir: languages[0] === "ar" ? "rtl" : "ltr" })}
+                </div>
+              </Group>
+
+              <Group title={copy.company.contactTitle}>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <LanguageFields name="address" label={copy.company.address} languages={languages} wide maxLength={300} en={company.addressEn ?? ""} ar={company.addressAr ?? ""} onChange={(v) => setCompany({ ...company, addressEn: v.en, addressAr: v.ar })} />
+                  {text("phone", copy.company.phone, { type: "tel" })}
+                  {text("whatsappPhone", copy.company.whatsapp, { type: "tel" })}
+                  {text("email", copy.company.email, { type: "email" })}
+                  {text("website", copy.company.website, { type: "url" })}
+                  {text("mapUrl", copy.company.mapUrl, { type: "url", wide: true, placeholder: "https://maps.google.com/…" })}
+                </div>
+              </Group>
+
+              <Group title={copy.company.socialTitle}>
+                <div className="grid gap-5 sm:grid-cols-3">
+                  {text("instagramUrl", copy.company.instagram, { type: "url" })}
+                  {text("linkedinUrl", copy.company.linkedin, { type: "url" })}
+                  {text("youtubeUrl", copy.company.youtube, { type: "url" })}
+                </div>
+              </Group>
             </div>
           ) : null}
 
-          {step === "brand" ? <ThemeEditor theme={theme} onChange={setTheme} /> : null}
+          {step === "brand" ? (
+            <ThemeEditor
+              theme={theme}
+              languages={languages}
+              onChange={(next) => {
+                touched.current.theme = true;
+                setTheme(next);
+              }}
+            />
+          ) : null}
 
           {step === "assets" ? (
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -265,6 +414,36 @@ export function SetupWizard(props: SetupWizardProps) {
                 );
               })}
             </ul>
+          ) : null}
+
+          {step === "website" ? (
+            <div className="space-y-6">
+              <Group title={copy.website.enabledTitle}>
+                <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={copy.website.enabledTitle}>
+                  <ChoiceCard selected={website.enabled} onSelect={() => setWebsite({ ...website, enabled: true })} icon={MonitorSmartphone} title={copy.website.yes.title} description={copy.website.yes.description} testId="website-on" />
+                  <ChoiceCard selected={!website.enabled} onSelect={() => setWebsite({ ...website, enabled: false })} icon={Ban} title={copy.website.no.title} description={copy.website.no.description} testId="website-off" />
+                </div>
+              </Group>
+              {website.enabled ? (
+                <>
+                  <WebsiteSetupFields
+                    config={website.config}
+                    onChange={(next) => setWebsite({ ...website, config: next })}
+                    languages={languages}
+                    primaryLanguage={company.primaryLanguage as ContentLanguage}
+                    companyActivity={activity}
+                    hasWhatsapp={!!company.whatsappPhone?.trim()}
+                  />
+                  <label className="flex items-start gap-3 rounded-xl border border-accent/40 bg-accent/[0.06] p-4 text-sm text-slate-800 dark:text-slate-100">
+                    <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={publishWebsite} onChange={(e) => setPublishWebsite(e.target.checked)} />
+                    <span>
+                      <span className="block font-semibold">{copy.website.publishOnFinish}</span>
+                      <span className="block text-xs text-slate-500 dark:text-ink-muted">{copy.website.publishHint}</span>
+                    </span>
+                  </label>
+                </>
+              ) : null}
+            </div>
           ) : null}
 
           {step === "configuration" ? (
@@ -317,7 +496,7 @@ export function SetupWizard(props: SetupWizardProps) {
 
               <fieldset className="space-y-3">
                 <legend className="text-sm font-bold text-slate-900 dark:text-white">{copy.configuration.modules}</legend>
-                <p className="text-xs text-slate-500 dark:text-ink-muted">{copy.configuration.modulesHint}</p>
+                <p className="text-xs text-slate-500 dark:text-ink-muted">{activity ? formatMessage(copy.configuration.modulesRecommended, { activity: activityName }) : copy.configuration.modulesHint}</p>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                   {props.modules.map((m) => (
                     <label key={m.moduleKey} className="flex items-center gap-3 rounded-lg border border-ink/15 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200">
@@ -325,12 +504,13 @@ export function SetupWizard(props: SetupWizardProps) {
                         type="checkbox"
                         className="h-4 w-4 accent-accent"
                         checked={enabled(m.moduleKey)}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          touched.current.modules = true;
                           setConfig({
                             ...config,
                             modules: [...config.modules.filter((x) => x.moduleKey !== m.moduleKey), { moduleKey: m.moduleKey, isEnabled: e.target.checked }],
-                          })
-                        }
+                          });
+                        }}
                       />
                       {moduleName(m)}
                     </label>
@@ -343,9 +523,19 @@ export function SetupWizard(props: SetupWizardProps) {
           {step === "review" ? (
             <dl className="grid gap-4 sm:grid-cols-2">
               {([
-                ["company", [locale === "ar" ? company.companyNameAr : company.companyNameEn, company.crNumber || copy.review.missing]],
+                ["company", [languages.map(nameIn).filter((v, i, all) => all.indexOf(v) === i).join(" · "), `${copy.review.activity}: ${activityName}`, `${copy.review.languages}: ${copy.company.languageOptions[languageChoice]}`, company.crNumber || copy.review.missing]],
                 ["brand", [`${theme.primary} · ${theme.accent}`, theme.fonts.body.kind === "system" ? copy.brand.fontSource.system : theme.fonts.body.family]],
                 ["assets", [`${ASSET_SLOTS.filter((s) => assets[s.key]).length} / ${ASSET_SLOTS.length} ${copy.review.uploaded}`]],
+                [
+                  "website",
+                  website.enabled
+                    ? [
+                        formatMessage(copy.review.websiteOn, { type: copy.company.activities[website.config.purpose].name }),
+                        `/${company.primaryLanguage}/${website.config.collection.slug} · ${copy.website.heroStyles[website.config.heroStyle].name}`,
+                        publishWebsite ? copy.review.willPublish : copy.review.draftOnly,
+                      ]
+                    : [copy.review.websiteOff],
+                ],
                 ["configuration", [`${config.defaultCurrency} · ${config.vatEnabled ? `${config.vatPercentage}%` : "—"}`, formatMessage(copy.review.enabledModules, { count: props.modules.filter((m) => enabled(m.moduleKey)).length })]],
               ] as [Exclude<Step, "review">, string[]][]).map(([section, lines]) => (
                 <div key={section} className="space-y-2 rounded-xl border border-ink/15 p-4">

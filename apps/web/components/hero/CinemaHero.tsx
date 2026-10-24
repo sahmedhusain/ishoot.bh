@@ -5,10 +5,12 @@ import Link from "next/link";
 import type { HeroBanner } from "@platform/database/types";
 import { safeWebsiteUrl } from "@platform/database/website-config";
 import { useTranslation } from "../../hooks/useTranslation";
+import { collectionHref } from "../../lib/site-copy";
 import { ArrowUpRight, Pause, Play } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; companyName: { en: string; ar: string } }) {
-  const { t, locale, isRTL: ar } = useTranslation();
+  const { t, locale, isRTL: ar, site } = useTranslation();
+  const catalogue = site ? collectionHref(site, locale) : `/${locale}/works`;
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
   const [visible, setVisible] = React.useState(true);
@@ -60,7 +62,8 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
     banner?.cta_link || "",
     `/${locale}/contact?intent=quote_request`,
   );
-  if (/^\/(contact|works|about|services)([/?#]|$)/.test(href))
+  if (/^\/works([/?#]|$)/.test(href)) href = href.replace(/^\/works/, catalogue);
+  else if (/^\/(contact|about|services)([/?#]|$)/.test(href))
     href = `/${locale}${href}`;
   if (!banner) return null;
   return (
@@ -126,9 +129,9 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
                 <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
               </Link>
             </div>
-            {href.replace(/[?#].*$/, "") !== `/${locale}/works` && (
+            {href.replace(/[?#].*$/, "") !== catalogue && (
               <div>
-                <Link href={`/${locale}/works`} className="web-hero-secondary">
+                <Link href={catalogue} className="web-hero-secondary">
                   <span>{t("hero.explore")}</span>
                   <ArrowUpRight
                     aria-hidden="true"

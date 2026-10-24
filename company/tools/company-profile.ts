@@ -9,7 +9,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import type { Prisma, PrismaClient } from "@prisma/client";
-import { normalizeTheme, type BrandTheme, type FontChoice } from "../../packages/database/src/constants/theme";
+import { FONT_FILE_TYPES, isFontMimeType, normalizeTheme, type BrandTheme, type FontChoice } from "../../packages/database/src/constants/theme";
 import { detectFileType } from "../../packages/database/src/services/storage";
 import { storeFileBytes, workspaceRoot } from "../../packages/database/src/services/uploads";
 
@@ -42,7 +42,7 @@ export interface CompanyProfile {
 }
 
 const PROFILE_NAME = /^[a-z0-9][a-z0-9-]{0,40}$/;
-const UPLOAD_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "application/pdf": "pdf", "font/woff2": "woff2" };
+const UPLOAD_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "application/pdf": "pdf", ...Object.fromEntries(Object.entries(FONT_FILE_TYPES).map(([mime, t]) => [mime, t.extension])) };
 
 function companyProfilesDir() {
   return path.join(workspaceRoot(), "company", "profiles");
@@ -75,8 +75,8 @@ export function profileAssetPath(profile: CompanyProfile, relative: string) {
 export async function importProfileFile(db: Db, profile: CompanyProfile, relative: string, ownerId: string, folder: "brand" | "vault" | "general" = "brand") {
   const bytes = fs.readFileSync(profileAssetPath(profile, relative));
   const mimeType = detectFileType(bytes);
-  if (!mimeType) throw new Error(`Unsupported file type (use PNG, JPEG, WebP, PDF or WOFF2): ${relative}`);
-  if (mimeType === "font/woff2" && folder !== "brand") throw new Error(`Fonts belong in the brand folder: ${relative}`);
+  if (!mimeType) throw new Error(`Unsupported file type (use PNG, JPEG, WebP, PDF or a WOFF2, WOFF, TTF or OTF font): ${relative}`);
+  if (isFontMimeType(mimeType) && folder !== "brand") throw new Error(`Fonts belong in the brand folder: ${relative}`);
   const stem = path.basename(relative).replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9_-]+/g, "-").slice(0, 60);
   const hash = crypto.createHash("sha256").update(bytes).digest("hex").slice(0, 12);
   const fileUrl = `/api/files/${folder}/${stem}_${hash}.${UPLOAD_EXT[mimeType]}`;

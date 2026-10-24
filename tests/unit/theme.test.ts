@@ -12,7 +12,13 @@ import {
   themeVariables,
   themeWarnings,
   THEME_TONES,
+  FONT_LIBRARY,
+  FONT_UPLOAD_URL,
+  STYLE_PRESETS,
+  fontMimeFromName,
+  weightFromFileName,
 } from "../../packages/database/src/constants/theme";
+import { detectFileType } from "../../packages/database/src/services/storage";
 
 describe("normalizeTheme", () => {
   test("missing or broken input falls back to the default theme", () => {
@@ -114,6 +120,83 @@ describe("generated CSS", () => {
   test("Google Fonts URL requests only weights each family has", () => {
     expect(googleFontsHref(normalizeTheme({ fonts: { body: { kind: "system" }, heading: { kind: "system" } } }))).toBeNull();
     const href = googleFontsHref(normalizeTheme({ fonts: { body: { kind: "google", family: "Almarai" }, heading: { kind: "google", family: "Almarai" } } }))!;
-    expect(href).toBe("https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&display=swap");
+    expect(href).toBe("https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap");
+    const single = googleFontsHref(normalizeTheme({ fonts: { body: { kind: "google", family: "Lalezar" }, heading: { kind: "google", family: "Lalezar" } } }))!;
+    expect(single).toBe("https://fonts.googleapis.com/css2?family=Lalezar:wght@400&display=swap");
+  });
+
+  test("uploaded fonts in other formats are declared with their own format", () => {
+    const css = themeStylesheet(
+      normalizeTheme({ fonts: { body: { kind: "upload", family: "Thmanyah Sans", files: [{ weight: 700, url: "/api/files/brand/t_1.otf" }, { weight: 400, url: "/api/files/brand/t_2.ttf" }] } } }),
+    );
+    expect(css).toContain('url("/api/files/brand/t_1.otf") format("opentype");font-weight:700');
+    expect(css).toContain('url("/api/files/brand/t_2.ttf") format("truetype")');
+  });
+
+  test("shape and type options become variables; unknown values fall back", () => {
+    const theme = normalizeTheme({ buttonShape: "square", fontScale: "lg", headingWeight: 800, headingCase: "uppercase", surface: "neutral" });
+    const { common } = themeVariables(theme);
+    expect(common["--brand-button-radius"]).toBe("0px");
+    expect(common["--brand-font-size"]).toBe("17px");
+    expect(common["--brand-heading-weight"]).toBe("800");
+    expect(common["--brand-heading-case"]).toBe("uppercase");
+    expect(themeVariables(normalizeTheme({ buttonShape: "rounded", radius: "sm" })).common["--brand-button-radius"]).toBe("0.25rem");
+    expect(normalizeTheme({ buttonShape: "blob", fontScale: "huge", headingWeight: 750, headingCase: "x", surface: "x" })).toMatchObject({
+      buttonShape: DEFAULT_THEME.buttonShape,
+      fontScale: "md",
+      headingWeight: 700,
+      headingCase: "normal",
+      surface: "tinted",
+    });
+  });
+
+  test("neutral surfaces drop the primary hue", () => {
+    const tinted = themeVariables(normalizeTheme({ primary: "#7F1D1D" })).light["--brand-bg-base"].split(" ").map(Number);
+    const neutral = themeVariables(normalizeTheme({ primary: "#7F1D1D", surface: "neutral" })).light["--brand-bg-base"].split(" ").map(Number);
+    const spread = (c: number[]) => Math.max(...c) - Math.min(...c);
+    expect(spread(neutral)).toBeLessThan(spread(tinted));
+    expect(spread(neutral)).toBeLessThanOrEqual(2);
+  });
+});
+
+describe("font library and files", () => {
+  test("every library family is unique and has the regular weight", () => {
+    expect(new Set(FONT_LIBRARY.map((f) => f.family)).size).toBe(FONT_LIBRARY.length);
+    for (const font of FONT_LIBRARY) expect(font.weights).toContain(400);
+  });
+
+  test("style presets are valid themes", () => {
+    for (const preset of STYLE_PRESETS) expect(normalizeTheme(preset.theme)).toMatchObject(preset.theme);
+  });
+
+  test("weights are read from font file names", () => {
+    expect(weightFromFileName("thmanyahsans-Light.woff2")).toBe(300);
+    expect(weightFromFileName("ThmanyahSerifDisplay-Bold.otf")).toBe(700);
+    expect(weightFromFileName("Brand-ExtraBold.ttf")).toBe(800);
+    expect(weightFromFileName("Brand-SemiBold.ttf")).toBe(600);
+    expect(weightFromFileName("Brand-Black.woff")).toBe(900);
+    expect(weightFromFileName("Brand-Regular.woff2")).toBe(400);
+    expect(weightFromFileName("Brand-500.woff2")).toBe(500);
+    expect(weightFromFileName("logo.woff2")).toBeNull();
+  });
+
+  test("font types are recognised from names and upload URLs", () => {
+    expect(fontMimeFromName("A.OTF")).toBe("font/otf");
+    expect(fontMimeFromName("a.woff")).toBe("font/woff");
+    expect(fontMimeFromName("a.png")).toBe("");
+    expect(FONT_UPLOAD_URL.test("/api/files/brand/a_1.ttf")).toBe(true);
+    expect(FONT_UPLOAD_URL.test("/api/files/vault/a_1.ttf")).toBe(false);
+    expect(FONT_UPLOAD_URL.test("/api/files/brand/a_1.svg")).toBe(false);
+  });
+});
+
+describe("font file sniffing", () => {
+  const head = (...bytes: number[]) => new Uint8Array([...bytes, 0, 0, 0, 0, 0, 0, 0, 0]);
+  test("each accepted font format is recognised from its first bytes", () => {
+    expect(detectFileType(head(0x77, 0x4f, 0x46, 0x32))).toBe("font/woff2");
+    expect(detectFileType(head(0x77, 0x4f, 0x46, 0x46))).toBe("font/woff");
+    expect(detectFileType(head(0x4f, 0x54, 0x54, 0x4f))).toBe("font/otf");
+    expect(detectFileType(head(0x00, 0x01, 0x00, 0x00))).toBe("font/ttf");
+    expect(detectFileType(head(0x3c, 0x73, 0x76, 0x67))).toBeNull();
   });
 });

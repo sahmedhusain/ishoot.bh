@@ -5,6 +5,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "../../hooks/useTranslation";
+import { collectionHref } from "../../lib/site-copy";
 import { ArrowUpRight } from "lucide-react";
 import type { PublicCompanySettings, SocialLink } from "@platform/database/types";
 import { SocialIcon } from "./SocialIcon";
@@ -18,7 +19,7 @@ interface FooterProps {
 }
 
 export function Footer({ company, socialLinks = [], pages }: FooterProps) {
-  const { t, locale, isRTL } = useTranslation();
+  const { t, locale, isRTL, site } = useTranslation();
   const pathname = usePathname();
   const showInvitation =
     !pathname.endsWith("/contact") &&
@@ -35,7 +36,7 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
 
   const navLinks = [
     { id: "home", href: `/${locale}`, label: t("nav.home") },
-    { id: "works", href: `/${locale}/works`, label: t("nav.works") },
+    { id: "works", href: site ? collectionHref(site, locale) : `/${locale}/works`, label: t("nav.works") },
     { id: "about", href: `/${locale}/about`, label: t("nav.about") },
     { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
   ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);

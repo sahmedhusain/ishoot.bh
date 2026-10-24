@@ -1,7 +1,9 @@
-import { getPublicCompanySettings } from "../../lib/company";
-import { getWebsite } from "../../lib/website";
 import { getReviews } from "@platform/database";
+import { pickText } from "@platform/database/constants/languages";
+import { getSite } from "../../lib/site";
 import { CinemaHero } from "../../components/hero/CinemaHero";
+import { SplitHero } from "../../components/hero/SplitHero";
+import { CenteredHero } from "../../components/hero/CenteredHero";
 import { AboutSection } from "../../components/about/AboutSection";
 import { LogoMarquee } from "../../components/clients/LogoMarquee";
 import { ServicesSection } from "../../components/services/ServicesSection";
@@ -10,12 +12,15 @@ import { StatsSection } from "../../components/about/StatsSection";
 import { ReviewsSection } from "../../components/about/ReviewsSection";
 import { FAQSection } from "../../components/about/FAQSection";
 import type { WebsiteSection } from "@platform/database/website-config";
-export default async function HomePage() {
-  const [website, reviews, company] = await Promise.all([
-    getWebsite(),
-    getReviews(false),
-    getPublicCompanySettings(),
-  ]);
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const [{ website: snapshot, company, info }, reviews] = await Promise.all([getSite(), getReviews(false)]);
+  if (!snapshot) return null;
+  const website = snapshot;
+  const name = pickText(company.company_name_en, company.company_name_ar, locale);
+  const tagline = pickText(company.tagline_en, company.tagline_ar, locale);
+  // Full-screen media needs a banner; without one the centred headline opens the page.
+  const heroStyle = info.heroStyle === "cinematic" && !website.banners.length ? "centered" : info.heroStyle;
   const components: Record<WebsiteSection, React.ReactNode> = {
     about: <AboutSection imageUrl={website.config.aboutImageUrl} clientLogos={website.clients} company={company} />,
     clients: <LogoMarquee logos={website.clients} />,
@@ -43,7 +48,13 @@ export default async function HomePage() {
     });
   return (
     <div className="home-page flex flex-col w-full">
-      <CinemaHero banners={website.banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} />
+      {heroStyle === "cinematic" ? (
+        <CinemaHero banners={website.banners} companyName={{ en: company.company_name_en, ar: company.company_name_ar }} />
+      ) : heroStyle === "split" ? (
+        <SplitHero banners={website.banners} title={name} subtitle={tagline} />
+      ) : (
+        <CenteredHero banners={website.banners} title={name} subtitle={tagline} />
+      )}
       {sections.map((section) => (
         <div key={section.id} data-slope={section.slope}>
           {components[section.id]}

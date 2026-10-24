@@ -1,12 +1,12 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus } from "@platform/database";
-import { validateWebsiteConfig } from "@platform/database/website-config";
+import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus, getCompanySettings } from "@platform/database";
+import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
 import { WebsiteEditor } from "../../../../components/cms/WebsiteEditor";
 export const dynamic = "force-dynamic";
 export default async function WebsitePage() {
   await requirePagePermission("settings", "read");
   await requireFeatureEnabled("cms");
-  const [content, services, delivery, publication] = await Promise.all([
+  const [content, services, delivery, publication, company] = await Promise.all([
     getWebsiteEditor(),
     db.service.findMany({
       where: { isActive: true },
@@ -25,12 +25,19 @@ export default async function WebsitePage() {
       select: { status: true },
     }),
     getWebsitePublicationStatus(),
+    getCompanySettings(),
   ]);
   return (
     <WebsiteEditor
       deliveryStatus={delivery?.status}
       publication={publication}
-      config={validateWebsiteConfig(content.draft)}
+      config={resolveWebsiteConfig(validateWebsiteConfig(content.draft))}
+      company={{
+        languages: company.content_languages,
+        primaryLanguage: company.primary_language,
+        activity: company.business_activity,
+        hasWhatsapp: !!company.whatsapp_phone,
+      }}
       revision={content.revision}
       publishedAt={content.publishedAt?.toISOString()}
       canRestore={!!content.previous}
