@@ -13,6 +13,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./admin/en": "./src/admin/en.json",
-    "./admin/ar": "./src/admin/ar.json"
+    "./admin/ar": "./src/admin/ar.json",
+    "./admin-activity": "./src/admin-activity.ts"
   }
 }

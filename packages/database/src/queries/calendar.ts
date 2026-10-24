@@ -1,4 +1,4 @@
-import { getTranslations, formatMessage, serverMessages } from "@platform/locales";
+import { getAdminTranslations, getTranslations, formatMessage, serverMessages } from "@platform/locales";
 
 import crypto from "crypto";
 import { db } from "../db";
@@ -349,8 +349,9 @@ async function systemEvents(
   }
 
   if (layers.has("sales") && can("deals:read")) {
-    // Shoot days and expected closing: your deals and your team's; all of them for whoever manages the pipeline.
+    // Scheduled days and expected closing: your deals and your team's; all of them for whoever manages the pipeline.
     const all = can("deals:delete");
+    const activity = (await db.companySetting.findUnique({ where: { singleton: 1 }, select: { businessActivity: true } }))?.businessActivity;
     const deals = await db.crmDeal.findMany({
       where: {
         dealStage: { notIn: ["closed_lost"] },
@@ -375,8 +376,8 @@ async function systemEvents(
           allDayItem({
             id: `${d.id}:shoot`,
             layer: "sales",
-            title: formatMessage(getTranslations("en").admin.calendarMessages.shoot, { title: d.title }),
-            titleAr: formatMessage(getTranslations("ar").admin.calendarMessages.shoot, { title: d.title }),
+            title: formatMessage(getAdminTranslations("en", activity).calendarMessages.shoot, { title: d.title }),
+            titleAr: formatMessage(getAdminTranslations("ar", activity).calendarMessages.shoot, { title: d.title }),
             date: d.shootDate,
             href: ROUTES.crm.deal(d.id),
             type: "shoot",
