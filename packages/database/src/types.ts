@@ -1,4 +1,6 @@
 import type { BrandTheme } from "./constants/theme";
+import type { ContentLanguage } from "./constants/languages";
+import type { BusinessActivity } from "./website-presets";
 import { serverMessages } from "@platform/locales";
 import {
   getCurrencySymbol,
@@ -102,6 +104,17 @@ export interface CompanySettings {
   theme: BrandTheme;
   /** False until the first-run setup wizard has been completed. */
   setup_completed: boolean;
+  /** Languages the company writes content in; with one, both sides of every bilingual field hold the same text. */
+  content_languages: ContentLanguage[];
+  primary_language: ContentLanguage;
+  /** What the company does (website-presets.ts); null until chosen. */
+  business_activity: BusinessActivity | null;
+  tagline_en?: string;
+  tagline_ar?: string;
+  founded_year?: number;
+  city?: string;
+  country?: string;
+  map_url?: string;
   company_name_en: string;
   company_name_ar: string;
   cr_number: string;
@@ -190,6 +203,14 @@ export interface PortfolioCategory {
   display_order: number;
 }
 
+/** A labelled fact on a catalogue item, e.g. Bedrooms: 3, Duration: 6 weeks. */
+export interface PortfolioAttribute {
+  labelEn: string;
+  labelAr: string;
+  valueEn: string;
+  valueAr: string;
+}
+
 export interface PortfolioItem {
   id: string;
   category_id?: string;
@@ -197,8 +218,17 @@ export interface PortfolioItem {
   slug: string;
   title_en: string;
   title_ar: string;
+  /** Empty for items without a client (products, properties…). */
   client_name: string;
-  year: number;
+  year?: number;
+  subtitle_en?: string;
+  subtitle_ar?: string;
+  price?: number;
+  price_note_en?: string;
+  price_note_ar?: string;
+  location?: string;
+  external_url?: string;
+  attributes: PortfolioAttribute[];
   aspect_ratio: "16:9" | "2.39:1" | "9:16" | "1:1" | "4:5";
   thumbnail_url: string;
   preview_video_url?: string;
@@ -1040,6 +1070,16 @@ export interface SocialLink {
 export type PublicCompanySettings = Pick<
   CompanySettings,
   | "theme"
+  | "content_languages"
+  | "primary_language"
+  | "business_activity"
+  | "tagline_en"
+  | "tagline_ar"
+  | "founded_year"
+  | "city"
+  | "country"
+  | "map_url"
+  | "default_currency"
   | "company_name_en"
   | "company_name_ar"
   | "cr_number"

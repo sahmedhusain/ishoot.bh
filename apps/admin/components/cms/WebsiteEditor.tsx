@@ -306,10 +306,7 @@ export function WebsiteEditor({
             ] as const
           ).flatMap(([key]) =>
             (["En", "Ar"] as const).map((lang) => {
-              const name = `${key}${lang}` as Exclude<
-                keyof WebsiteConfig,
-                "sections" | "pages" | "pillars" | "aboutImageUrl"
-              >;
+              const name = `${key}${lang}` as `${typeof key}${typeof lang}`;
               return (
                 <label key={name} className="text-sm space-y-2">
                   <span>

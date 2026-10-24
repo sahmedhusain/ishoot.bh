@@ -171,6 +171,19 @@ model CompanySetting {
   theme                        Json?
   /// Set when the first-run setup wizard finishes; until then the admin shows the wizard.
   setupCompletedAt             DateTime?
+  /// Languages the company writes content in ("ar", "en"). With one language, each *En/*Ar pair holds the same text.
+  contentLanguages             String[]  @default(["ar", "en"])
+  /// The language shown first (website default, admin default for new users).
+  primaryLanguage              String    @default("ar")
+  /// Core activity (website-presets.ts BUSINESS_ACTIVITIES): drives website wording, layout and recommended modules.
+  businessActivity             String?
+  taglineEn                    String?
+  taglineAr                    String?
+  foundedYear                  Int?
+  city                         String?
+  country                      String?
+  /// Map link shown on the contact page.
+  mapUrl                       String?
 }
 
 model CompanyAsset {
@@ -217,8 +230,22 @@ model PortfolioItem {
   slug            String             @unique
   titleEn         String
   titleAr         String
-  clientName      String
-  year            Int
+  /// Media projects: who it was made for and when. Optional for products, properties, menu items…
+  clientName      String?
+  year            Int?
+  /// Short line under the title (a product's variant, a property's area, a course's duration…).
+  subtitleEn      String?
+  subtitleAr      String?
+  /// Shown in the company currency when set (products, menu items, properties, courses).
+  price           Decimal?           @db.Decimal(12, 3)
+  /// Text beside the price, e.g. "per night", "from".
+  priceNoteEn     String?
+  priceNoteAr     String?
+  location        String?
+  /// A page elsewhere for this item (shop listing, booking, registration).
+  externalUrl     String?
+  /// Extra facts as [{ labelEn, labelAr, valueEn, valueAr }], e.g. bedrooms, size, duration.
+  attributes      Json               @default("[]")
   aspectRatio     String             @default("16:9")
   thumbnailUrl    String
   previewVideoUrl String?

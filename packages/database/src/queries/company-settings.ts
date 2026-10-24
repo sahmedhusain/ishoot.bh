@@ -2,6 +2,9 @@ import { serverMessages } from "@platform/locales";
 import { assertSupportedCurrency } from "../constants/finance";
 import { isFontMimeType, normalizeTheme, type BrandTheme } from "../constants/theme";
 import { db } from "../db";
+import { CONTENT_LANGUAGES, mirrorBilingual, normalizeLanguages, normalizePrimaryLanguage } from "../constants/languages";
+import { isBusinessActivity } from "../website-presets";
+import { safeWebsiteUrl } from "../website-config";
 import { CompanySettings, SupportedCurrency } from "../types";
 
 function mapSettings(s: any): CompanySettings {
@@ -64,6 +67,15 @@ function mapSettings(s: any): CompanySettings {
     rules_ar: s.rulesAr || undefined,
     theme: normalizeTheme(s.theme),
     setup_completed: Boolean(s.setupCompletedAt),
+    content_languages: normalizeLanguages(s.contentLanguages),
+    primary_language: normalizePrimaryLanguage(s.primaryLanguage, normalizeLanguages(s.contentLanguages)),
+    business_activity: isBusinessActivity(s.businessActivity) ? s.businessActivity : null,
+    tagline_en: s.taglineEn || undefined,
+    tagline_ar: s.taglineAr || undefined,
+    founded_year: s.foundedYear ?? undefined,
+    city: s.city || undefined,
+    country: s.country || undefined,
+    map_url: s.mapUrl || undefined,
     updated_at: s.updatedAt.toISOString(),
   };
 }
@@ -78,8 +90,19 @@ export async function getCompanySettings(): Promise<CompanySettings> {
 }
 
 export async function updateCompanySettings(
-  updates: Partial<CompanySettings>,
+  input: Partial<CompanySettings>,
 ): Promise<CompanySettings> {
+  if (input.content_languages !== undefined && (!Array.isArray(input.content_languages) || !input.content_languages.length || input.content_languages.some((l) => !(CONTENT_LANGUAGES as readonly string[]).includes(l))))
+    throw new Error(serverMessages.contentLanguagesInvalid);
+  if (input.business_activity !== undefined && input.business_activity !== null && !isBusinessActivity(input.business_activity))
+    throw new Error(serverMessages.businessActivityInvalid);
+  if (input.founded_year !== undefined && input.founded_year !== null && !(Number.isInteger(input.founded_year) && input.founded_year >= 1800 && input.founded_year <= new Date().getFullYear()))
+    throw new Error(serverMessages.invalidFoundedYear);
+  if (input.map_url && !/^https?:\/\//.test(safeWebsiteUrl(input.map_url))) throw new Error(serverMessages.invalidMapLink);
+  // A company writing in one language gets the same text on both sides of every pair it saves.
+  const stored = await db.companySetting.findUnique({ where: { singleton: 1 }, select: { contentLanguages: true } });
+  const languages = normalizeLanguages(input.content_languages ?? stored?.contentLanguages);
+  const updates = mirrorBilingual(input, languages);
   if (updates.company_name_en !== undefined && !updates.company_name_en.trim()) throw new Error(serverMessages.companyEnglishNameIsRequired);
   if (updates.company_name_ar !== undefined && !updates.company_name_ar.trim()) throw new Error(serverMessages.companyArabicNameIsRequired);
   if (updates.default_currency !== undefined) assertSupportedCurrency(updates.default_currency);
@@ -159,6 +182,15 @@ export async function updateCompanySettings(
       termsAr: updates.terms_ar,
       rulesEn: updates.rules_en,
       rulesAr: updates.rules_ar,
+      contentLanguages: updates.content_languages ? normalizeLanguages(updates.content_languages) : undefined,
+      primaryLanguage: updates.primary_language || updates.content_languages ? normalizePrimaryLanguage(updates.primary_language, languages) : undefined,
+      businessActivity: updates.business_activity,
+      taglineEn: updates.tagline_en,
+      taglineAr: updates.tagline_ar,
+      foundedYear: updates.founded_year,
+      city: updates.city,
+      country: updates.country,
+      mapUrl: updates.map_url,
     },
   });
   return mapSettings(updated);

@@ -12,6 +12,16 @@ export const getPublicCompanySettings = cache(
     const company = await getCachedCompany();
     return {
       theme: company.theme,
+      content_languages: company.content_languages,
+      primary_language: company.primary_language,
+      business_activity: company.business_activity,
+      tagline_en: company.tagline_en,
+      tagline_ar: company.tagline_ar,
+      founded_year: company.founded_year,
+      city: company.city,
+      country: company.country,
+      map_url: company.map_url,
+      default_currency: company.default_currency,
       company_name_en: company.company_name_en,
       company_name_ar: company.company_name_ar,
       cr_number: company.cr_number,

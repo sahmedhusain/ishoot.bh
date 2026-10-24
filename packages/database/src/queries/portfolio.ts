@@ -19,8 +19,16 @@ function mapItem(item: any): PortfolioItem {
     slug: item.slug,
     title_en: item.titleEn,
     title_ar: item.titleAr,
-    client_name: item.clientName,
-    year: item.year,
+    client_name: item.clientName ?? "",
+    year: item.year ?? undefined,
+    subtitle_en: item.subtitleEn || undefined,
+    subtitle_ar: item.subtitleAr || undefined,
+    price: item.price === null || item.price === undefined ? undefined : Number(item.price),
+    price_note_en: item.priceNoteEn || undefined,
+    price_note_ar: item.priceNoteAr || undefined,
+    location: item.location || undefined,
+    external_url: item.externalUrl || undefined,
+    attributes: Array.isArray(item.attributes) ? item.attributes : [],
     aspect_ratio: (item.aspectRatio as any) || "16:9",
     thumbnail_url: item.thumbnailUrl,
     preview_video_url: item.previewVideoUrl || undefined,
@@ -158,8 +166,16 @@ export async function createPortfolioItem(data: {
   slug: string;
   title_en: string;
   title_ar: string;
-  client_name: string;
-  year: number;
+  client_name?: string;
+  year?: number;
+  subtitle_en?: string;
+  subtitle_ar?: string;
+  price?: number;
+  price_note_en?: string;
+  price_note_ar?: string;
+  location?: string;
+  external_url?: string;
+  attributes?: PortfolioItem["attributes"];
   aspect_ratio?: string;
   thumbnail_url: string;
   preview_video_url?: string;
@@ -177,8 +193,16 @@ export async function createPortfolioItem(data: {
       slug: data.slug,
       titleEn: data.title_en,
       titleAr: data.title_ar,
-      clientName: data.client_name,
-      year: data.year,
+      clientName: data.client_name || null,
+      year: data.year ?? null,
+      subtitleEn: data.subtitle_en || null,
+      subtitleAr: data.subtitle_ar || null,
+      price: data.price ?? null,
+      priceNoteEn: data.price_note_en || null,
+      priceNoteAr: data.price_note_ar || null,
+      location: data.location || null,
+      externalUrl: data.external_url || null,
+      attributes: (data.attributes ?? []) as object[],
       aspectRatio: data.aspect_ratio || "16:9",
       thumbnailUrl: data.thumbnail_url,
       previewVideoUrl: data.preview_video_url || null,
@@ -206,8 +230,12 @@ export async function updatePortfolioItem(
     if (data.title_en !== undefined) updateData.titleEn = data.title_en;
     if (data.title_ar !== undefined) updateData.titleAr = data.title_ar;
     if (data.client_name !== undefined)
-      updateData.clientName = data.client_name;
-    if (data.year !== undefined) updateData.year = data.year;
+      updateData.clientName = data.client_name || null;
+    if (data.year !== undefined) updateData.year = data.year ?? null;
+    for (const [key, column] of [["subtitle_en", "subtitleEn"], ["subtitle_ar", "subtitleAr"], ["price_note_en", "priceNoteEn"], ["price_note_ar", "priceNoteAr"], ["location", "location"], ["external_url", "externalUrl"]] as const)
+      if (data[key] !== undefined) updateData[column] = data[key] || null;
+    if (data.price !== undefined) updateData.price = data.price ?? null;
+    if (data.attributes !== undefined) updateData.attributes = data.attributes;
     if (data.aspect_ratio !== undefined)
       updateData.aspectRatio = data.aspect_ratio;
     if (data.thumbnail_url !== undefined)

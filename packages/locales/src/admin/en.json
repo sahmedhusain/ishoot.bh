@@ -5610,7 +5610,13 @@
       "setupPrefixInvalid": "Use 1 to 10 capital letters, digits or dashes for document prefixes",
       "setupVatInvalid": "VAT must be between 0% and 100%",
       "setupPaymentTermsInvalid": "Payment terms must be between 0 and 365 days",
-      "setupLogoRequired": "Upload at least one logo before finishing setup"
+      "setupLogoRequired": "Upload at least one logo before finishing setup",
+      "invalidCollectionAddress": "The catalogue address may use lowercase letters, numbers and hyphens, and cannot be about, contact or another reserved word.",
+      "collectionNameRequired": "Give the catalogue a name for the menu.",
+      "businessActivityInvalid": "Choose what your company does.",
+      "contentLanguagesInvalid": "Choose at least one content language.",
+      "invalidFoundedYear": "Enter the year the company was founded, for example 2015.",
+      "invalidMapLink": "Enter a full map link starting with https://."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",

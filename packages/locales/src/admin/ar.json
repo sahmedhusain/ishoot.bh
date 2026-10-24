@@ -5610,7 +5610,13 @@
       "setupPrefixInvalid": "استخدم من 1 إلى 10 أحرف لاتينية كبيرة أو أرقام أو شرطات لبادئة المستندات",
       "setupVatInvalid": "يجب أن تكون نسبة الضريبة بين 0% و100%",
       "setupPaymentTermsInvalid": "يجب أن تكون مدة السداد بين 0 و365 يوماً",
-      "setupLogoRequired": "ارفع شعاراً واحداً على الأقل قبل إنهاء الإعداد"
+      "setupLogoRequired": "ارفع شعاراً واحداً على الأقل قبل إنهاء الإعداد",
+      "invalidCollectionAddress": "يمكن أن يحتوي عنوان الكتالوج على أحرف إنجليزية صغيرة وأرقام وشرطات، ولا يمكن أن يكون about أو contact أو كلمة محجوزة أخرى.",
+      "collectionNameRequired": "أدخل اسماً للكتالوج يظهر في القائمة.",
+      "businessActivityInvalid": "اختر نشاط شركتك.",
+      "contentLanguagesInvalid": "اختر لغة محتوى واحدة على الأقل.",
+      "invalidFoundedYear": "أدخل سنة تأسيس الشركة، مثل 2015.",
+      "invalidMapLink": "أدخل رابط خريطة كاملاً يبدأ بـ https://."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
