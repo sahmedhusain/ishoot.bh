@@ -2,8 +2,9 @@
 // (titleEn/titleAr, name_en/name_ar); a company that writes in one language fills one side, and the other side
 // is kept identical so every page, document and email that reads either column shows that text.
 
-export const CONTENT_LANGUAGES = ["ar", "en"] as const;
-export type ContentLanguage = (typeof CONTENT_LANGUAGES)[number];
+// Spelled out (not derived from the list) so the server-action input contracts can read it.
+export type ContentLanguage = "ar" | "en";
+export const CONTENT_LANGUAGES: readonly ContentLanguage[] = ["ar", "en"];
 
 export function isContentLanguage(value: unknown): value is ContentLanguage {
   return value === "ar" || value === "en";

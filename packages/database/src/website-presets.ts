@@ -3,7 +3,20 @@
 // and the modules worth switching on. The setup wizard applies a preset; everything stays editable afterwards.
 import type { WebsitePage, WebsiteSection } from "./website-config";
 
-export const BUSINESS_ACTIVITIES = [
+// Spelled out (not derived from the list) so the server-action input contracts can read it.
+export type BusinessActivity =
+  | "media"
+  | "agency"
+  | "products"
+  | "food"
+  | "services"
+  | "real_estate"
+  | "construction"
+  | "education"
+  | "healthcare"
+  | "events"
+  | "other";
+export const BUSINESS_ACTIVITIES: readonly BusinessActivity[] = [
   "media",
   "agency",
   "products",
@@ -15,8 +28,7 @@ export const BUSINESS_ACTIVITIES = [
   "healthcare",
   "events",
   "other",
-] as const;
-export type BusinessActivity = (typeof BUSINESS_ACTIVITIES)[number];
+];
 
 export function isBusinessActivity(value: unknown): value is BusinessActivity {
   return typeof value === "string" && (BUSINESS_ACTIVITIES as readonly string[]).includes(value);

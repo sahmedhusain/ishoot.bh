@@ -9,26 +9,35 @@ test.describe.configure({ mode: "serial", retries: 0 });
 const copy = t.setupWizard;
 const logo = path.resolve(__dirname, "../../../../company/profiles/demo/assets/brand/logo-light.png");
 
-test("a new company completes the setup wizard and gets its own brand", async ({ page }) => {
+test("a new company completes the setup wizard and gets its own brand and website", async ({ page }) => {
   const errors = watchErrors(page);
   await login(page);
   await expect(page).toHaveURL(/\/setup$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(copy.title);
 
-  // Step 1: company identity (both names required)
+  // Step 1: what the company does comes first, then languages and identity
+  await page.getByTestId("setup-next").click();
+  await expect(alertMessage(page)).toHaveText(t.serverErrors.messages.businessActivityInvalid);
+  await page.getByTestId("activity-products").click();
+  // An English-only company fills each field once: there is no Arabic name to enter.
+  await page.getByTestId("languages-en").click();
+  await expect(page.locator('input[name="companyNameAr"]')).toHaveCount(0);
   await page.getByTestId("setup-next").click();
   await expect(alertMessage(page)).toHaveText(copy.company.required);
   await page.locator('input[name="companyNameEn"]').fill("Acme Trading W.L.L.");
-  await page.locator('input[name="companyNameAr"]').fill("أكمي للتجارة ذ.م.م");
+  await page.locator('input[name="taglineEn"]').fill("Office furniture, delivered.");
   await page.locator('input[name="crNumber"]').fill("CR-12345-1");
   await page.locator('input[name="email"]').fill("hello@acme.example");
+  await page.locator('input[name="whatsappPhone"]').fill("+973 3600 0000");
   await page.getByTestId("setup-next").click();
   await expect(page.getByRole("heading", { level: 2 })).toHaveText(copy.steps.brand);
-  await expect(page).toHaveTitle(/أكمي للتجارة/);
+  // The single name is shown in both languages.
+  await expect(page).toHaveTitle(/Acme Trading/);
 
-  // Step 2: colours and fonts, previewed live, then applied to the whole app
+  // Step 2: the activity's recommended style is applied, then changed by hand and previewed live
+  await expect(page.getByTestId("theme-preview")).toHaveAttribute("style", /--brand-primary:\s*6 78 59/);
   await page.getByRole("button", { name: "#7F1D1D / #DC2626" }).click();
-  await page.getByRole("radio", { name: "Cairo" }).nth(1).click();
+  await page.getByRole("radio", { name: /^Cairo/ }).nth(1).click();
   await expect(page.getByTestId("theme-preview")).toHaveAttribute("style", /--brand-primary:\s*127 29 29/);
   await page.getByTestId("setup-next").click();
   await expect(page.getByRole("heading", { level: 2 })).toHaveText(copy.steps.assets);
@@ -41,26 +50,41 @@ test("a new company completes the setup wizard and gets its own brand", async ({
   await page.locator("#asset-logo_light").setInputFiles(logo);
   await expect(page.getByTestId("asset-logo_light").locator("img")).toHaveAttribute("src", /\/api\/files\/brand\//);
   await page.getByTestId("setup-next").click();
-  await expect(page.getByRole("heading", { level: 2 })).toHaveText(copy.steps.configuration);
 
-  // Step 4: configuration
+  // Step 4: a products website, recommended for the activity and then adjusted
+  await expect(page.getByRole("heading", { level: 2 })).toHaveText(copy.steps.website);
+  await expect(page.getByTestId("website-on")).toHaveAttribute("aria-checked", "true");
+  await expect(page.locator('input[name="collectionNavEn"]')).toHaveValue("Products");
+  await expect(page.locator('input[name="collectionNavAr"]')).toHaveCount(0);
+  await page.locator('input[name="collectionNavEn"]').fill("Shop");
+  await page.getByLabel(copy.website.collectionSlug).fill("shop");
+  await page.getByTestId("setup-next").click();
+
+  // Step 5: configuration; modules follow the activity (no studio equipment for a shop)
+  await expect(page.getByRole("heading", { level: 2 })).toHaveText(copy.steps.configuration);
+  await expect(page.getByLabel("مخزون المعدات")).not.toBeChecked();
+  await expect(page.getByLabel("إدارة محتوى الموقع")).toBeChecked();
   await page.getByLabel(copy.configuration.currency).selectOption("SAR");
   await page.getByLabel(copy.configuration.invoicePrefix).fill("ACM");
   await expect(page.getByText(/ACM-\d{4}-0001/)).toBeVisible();
   await page.getByTestId("setup-next").click();
 
-  // Step 5: review and finish
+  // Step 6: review and finish (the website is published on the way)
   await expect(page.getByRole("heading", { level: 2 })).toHaveText(copy.steps.review);
   await expect(page.getByText("#7F1D1D · #DC2626")).toBeVisible();
+  await expect(page.getByText(/\/en\/shop/)).toBeVisible();
+  await expect(page.getByText(copy.review.willPublish)).toBeVisible();
   await page.getByTestId("setup-next").click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page).toHaveTitle(/أكمي للتجارة/);
+  await expect(page).toHaveTitle(/Acme Trading/);
 
-  // Setup never shows again, and the theme stays editable in settings
+  // Setup never shows again, the theme stays editable in settings, and the website is live
   await page.goto("/setup");
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.goto("/dashboard/settings/company");
   await page.getByRole("button", { name: copy.steps.brand }).click();
   await expect(page.getByTestId("theme-preview")).toHaveAttribute("style", /--brand-primary:\s*127 29 29/);
+  await page.goto("/dashboard/cms/website");
+  await expect(page.getByText(t.websiteEditor.lastPublished)).toBeVisible();
   errors.assertClean();
 });

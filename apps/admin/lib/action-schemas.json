@@ -8604,6 +8604,74 @@
                   }
                 ],
                 "optional": false
+              },
+              "buttonShape": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "square"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "rounded"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "pill"
+                  }
+                ],
+                "optional": false
+              },
+              "fontScale": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "sm"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "md"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "lg"
+                  }
+                ],
+                "optional": false
+              },
+              "headingWeight": {
+                "kind": "number",
+                "optional": false
+              },
+              "headingCase": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "normal"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "uppercase"
+                  }
+                ],
+                "optional": false
+              },
+              "surface": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "tinted"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "neutral"
+                  }
+                ],
+                "optional": false
               }
             },
             "optional": false
@@ -8611,6 +8679,129 @@
           "setup_completed": {
             "kind": "boolean",
             "optional": false
+          },
+          "content_languages": {
+            "kind": "array",
+            "element": {
+              "kind": "union",
+              "variants": [
+                {
+                  "kind": "literal",
+                  "value": "ar"
+                },
+                {
+                  "kind": "literal",
+                  "value": "en"
+                }
+              ]
+            },
+            "optional": false
+          },
+          "primary_language": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "ar"
+              },
+              {
+                "kind": "literal",
+                "value": "en"
+              }
+            ],
+            "optional": false
+          },
+          "business_activity": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "media"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "agency"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "products"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "food"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "services"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "real_estate"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "construction"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "education"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "healthcare"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "events"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "other"
+                  }
+                ]
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "tagline_en": {
+            "kind": "string",
+            "optional": true
+          },
+          "tagline_ar": {
+            "kind": "string",
+            "optional": true
+          },
+          "founded_year": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "number"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "city": {
+            "kind": "string",
+            "optional": true
+          },
+          "country": {
+            "kind": "string",
+            "optional": true
+          },
+          "map_url": {
+            "kind": "string",
+            "optional": true
           },
           "company_name_en": {
             "kind": "string",
@@ -9166,6 +9357,21 @@
       "input": {
         "kind": "object",
         "fields": {
+          "contentLanguages": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "primaryLanguage": {
+            "kind": "string",
+            "optional": false
+          },
+          "businessActivity": {
+            "kind": "string",
+            "optional": false
+          },
           "companyNameEn": {
             "kind": "string",
             "optional": false
@@ -9173,6 +9379,46 @@
           "companyNameAr": {
             "kind": "string",
             "optional": false
+          },
+          "taglineEn": {
+            "kind": "string",
+            "optional": true
+          },
+          "taglineAr": {
+            "kind": "string",
+            "optional": true
+          },
+          "foundedYear": {
+            "kind": "string",
+            "optional": true
+          },
+          "city": {
+            "kind": "string",
+            "optional": true
+          },
+          "country": {
+            "kind": "string",
+            "optional": true
+          },
+          "whatsappPhone": {
+            "kind": "string",
+            "optional": true
+          },
+          "instagramUrl": {
+            "kind": "string",
+            "optional": true
+          },
+          "linkedinUrl": {
+            "kind": "string",
+            "optional": true
+          },
+          "youtubeUrl": {
+            "kind": "string",
+            "optional": true
+          },
+          "mapUrl": {
+            "kind": "string",
+            "optional": true
           },
           "crNumber": {
             "kind": "string",
@@ -9392,6 +9638,74 @@
               }
             ],
             "optional": false
+          },
+          "buttonShape": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "square"
+              },
+              {
+                "kind": "literal",
+                "value": "rounded"
+              },
+              {
+                "kind": "literal",
+                "value": "pill"
+              }
+            ],
+            "optional": false
+          },
+          "fontScale": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "sm"
+              },
+              {
+                "kind": "literal",
+                "value": "md"
+              },
+              {
+                "kind": "literal",
+                "value": "lg"
+              }
+            ],
+            "optional": false
+          },
+          "headingWeight": {
+            "kind": "number",
+            "optional": false
+          },
+          "headingCase": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "normal"
+              },
+              {
+                "kind": "literal",
+                "value": "uppercase"
+              }
+            ],
+            "optional": false
+          },
+          "surface": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "tinted"
+              },
+              {
+                "kind": "literal",
+                "value": "neutral"
+              }
+            ],
+            "optional": false
           }
         },
         "optional": false
@@ -9496,9 +9810,39 @@
       }
     }
   },
+  "saveSetupWebsiteAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "enabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "config": {
+            "kind": "unknown",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "completeSetupAction": {
     "kind": "object",
-    "fields": {}
+    "fields": {
+      "options": {
+        "kind": "object",
+        "fields": {
+          "publishWebsite": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
   },
   "getSignatureModeAction": {
     "kind": "object",

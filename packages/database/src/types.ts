@@ -111,7 +111,7 @@ export interface CompanySettings {
   business_activity: BusinessActivity | null;
   tagline_en?: string;
   tagline_ar?: string;
-  founded_year?: number;
+  founded_year?: number | null;
   city?: string;
   country?: string;
   map_url?: string;

@@ -31,3 +31,9 @@ export async function requireFeatureEnabled(moduleKey:string) {
   const feature=await db.featureToggle.findUnique({where:{moduleKey},select:{isEnabled:true}});
   if(feature?.isEnabled === false) throw new Error(serverMessages.featureDisabled);
 }
+
+/** Whether a module is on; a module that has never been toggled counts as on, as in requireFeatureEnabled. */
+export async function isFeatureEnabled(moduleKey: string) {
+  const feature = await db.featureToggle.findUnique({ where: { moduleKey }, select: { isEnabled: true } });
+  return feature?.isEnabled !== false;
+}

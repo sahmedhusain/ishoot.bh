@@ -7872,14 +7872,16 @@
       "brand": "Colours & fonts",
       "assets": "Logos & files",
       "configuration": "Configuration",
-      "review": "Review"
+      "review": "Review",
+      "website": "Website"
     },
     "stepDescriptions": {
-      "company": "Your registered name and contact details appear on every document.",
+      "company": "Your languages, what your company does, and the details customers and documents show.",
       "brand": "Pick the colours and fonts both the admin and your website will use.",
       "assets": "Logos show in the apps and on documents; the stamp and signature go on approved documents.",
       "configuration": "Currency, tax, document numbers and the modules your team needs.",
-      "review": "Check everything, then open your workspace."
+      "review": "Check everything, then open your workspace.",
+      "website": "Decide whether you need a public website, then set it up for what your company does."
     },
     "back": "Back",
     "next": "Save and continue",
@@ -7896,7 +7898,87 @@
       "phone": "Phone",
       "email": "Email",
       "website": "Website",
-      "required": "Both company names are required"
+      "required": "Enter the company name",
+      "languagesTitle": "Content languages",
+      "languagesHint": "The languages you write your content in. With one language you fill every field once, and the website shows only that language.",
+      "languageOptions": {
+        "both": "Arabic and English",
+        "ar": "Arabic only",
+        "en": "English only"
+      },
+      "primaryLanguage": "Main language",
+      "primaryHint": "Shown first on the website and in new documents.",
+      "activityTitle": "What does your company do?",
+      "activityHint": "This shapes your website, its wording and the modules we recommend. You can change it later.",
+      "activities": {
+        "media": {
+          "name": "Media & production",
+          "description": "Film, video, photography and creative studios."
+        },
+        "agency": {
+          "name": "Marketing & creative agency",
+          "description": "Branding, advertising, digital and social campaigns."
+        },
+        "products": {
+          "name": "Products & retail",
+          "description": "Shops, brands, distributors and online stores."
+        },
+        "food": {
+          "name": "Restaurant & café",
+          "description": "Restaurants, cafés, bakeries and catering."
+        },
+        "services": {
+          "name": "Professional services",
+          "description": "Consulting, legal, accounting, IT and business services."
+        },
+        "real_estate": {
+          "name": "Real estate",
+          "description": "Sales, rentals, developments and property management."
+        },
+        "construction": {
+          "name": "Construction & engineering",
+          "description": "Contracting, engineering, fit-out and interior design."
+        },
+        "education": {
+          "name": "Education & training",
+          "description": "Academies, training centres, courses and tutoring."
+        },
+        "healthcare": {
+          "name": "Health & clinics",
+          "description": "Clinics, dental, wellness and beauty care."
+        },
+        "events": {
+          "name": "Events & hospitality",
+          "description": "Event management, venues, weddings and exhibitions."
+        },
+        "other": {
+          "name": "Something else",
+          "description": "A general company website you can shape yourself."
+        }
+      },
+      "identityTitle": "Name & registration",
+      "contactTitle": "Contact",
+      "profileTitle": "About the company",
+      "socialTitle": "Social media",
+      "name": "Company name",
+      "address": "Address",
+      "tagline": "Tagline",
+      "taglineEn": "Tagline (English)",
+      "taglineAr": "Tagline (Arabic)",
+      "taglineHint": "One short line that says what you do, shown under your name on the website.",
+      "foundedYear": "Year founded",
+      "city": "City",
+      "country": "Country",
+      "whatsapp": "WhatsApp number",
+      "instagram": "Instagram link",
+      "linkedin": "LinkedIn link",
+      "youtube": "YouTube link",
+      "mapUrl": "Map link",
+      "requiredBoth": "Both company names are required",
+      "languageNames": {
+        "ar": "العربية",
+        "en": "English"
+      }
     },
     "brand": {
       "colours": "Brand colours",
@@ -8041,7 +8123,8 @@
       "numberPreview": "Example: {example}",
       "paymentTerms": "Payment terms (days)",
       "modules": "Modules",
-      "modulesHint": "Switch off what your team does not use. You can turn modules on again later."
+      "modulesHint": "Switch off what your team does not use. You can turn modules on again later.",
+      "modulesRecommended": "Recommended for {activity}: switched on or off to match. You can change any of them."
     },
     "review": {
       "company": "Company",
@@ -8052,11 +8135,103 @@
       "missing": "Not set",
       "uploaded": "Uploaded",
       "enabledModules": "{count} module(s) on",
-      "ready": "Everything is ready. Finishing opens your dashboard."
+      "ready": "Everything is ready. Finishing opens your dashboard.",
+      "website": "Website",
+      "websiteOff": "No public website",
+      "websiteOn": "{type} website",
+      "languages": "Languages",
+      "activity": "Activity",
+      "willPublish": "Will be published when you finish",
+      "draftOnly": "Saved as a draft"
     },
     "waiting": {
       "title": "Your workspace is being set up",
       "body": "An administrator is completing the first-run setup. Please check back shortly."
+    },
+    "website": {
+      "enabledTitle": "Do you need a public website?",
+      "yes": {
+        "title": "Yes, set up our website",
+        "description": "Your catalogue, services, contact form and reviews, managed from this admin."
+      },
+      "no": {
+        "title": "No website for now",
+        "description": "Switch it on any time from Settings → Modules. Until then your web address shows a simple page with your contact details."
+      },
+      "typeTitle": "Website type",
+      "typeHint": "Matches what your company does. Applying a type resets the settings below to its recommendations.",
+      "applyRecommended": "Apply recommended settings",
+      "recommended": "Recommended",
+      "applied": "Recommended settings applied.",
+      "catalogueTitle": "Catalogue",
+      "catalogueHint": "The main collection your visitors browse: projects, products, a menu, properties…",
+      "collectionNav": "Name in the menu",
+      "collectionTitle": "Page title",
+      "collectionSubtitle": "Page introduction",
+      "collectionSlug": "Web address",
+      "collectionLayout": "How items are shown",
+      "layouts": {
+        "media": "Video projects",
+        "product": "Products with prices",
+        "listing": "Listings with details",
+        "case": "Case studies"
+      },
+      "heroTitle": "Homepage opening",
+      "heroStyles": {
+        "cinematic": {
+          "name": "Full-screen media",
+          "description": "A large photo or video behind your headline."
+        },
+        "split": {
+          "name": "Text and image",
+          "description": "Your headline beside a photo, clear and calm."
+        },
+        "centered": {
+          "name": "Centred headline",
+          "description": "A bold headline on your brand colour, no media needed."
+        }
+      },
+      "pagesTitle": "Pages",
+      "pageNames": {
+        "works": "Catalogue",
+        "about": "About",
+        "contact": "Contact"
+      },
+      "sectionsTitle": "Homepage sections",
+      "sectionsHint": "Choose the order and what is shown. A section with no content stays hidden until you add some.",
+      "sectionNames": {
+        "about": "About",
+        "clients": "Client logos",
+        "services": "Services",
+        "portfolio": "Catalogue highlights",
+        "stats": "Numbers",
+        "reviews": "Reviews",
+        "faq": "Questions",
+        "cta": "Closing call to action"
+      },
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "contactTitle": "Contact form",
+      "contactHint": "Extra questions on the quote request. Name, contact details and message are always asked.",
+      "inquiry": {
+        "budget": "Ask for a budget",
+        "timeline": "Ask when they need it",
+        "location": "Ask for a location",
+        "reference": "Ask for a reference link"
+      },
+      "whatsappButton": "Show a WhatsApp chat button",
+      "whatsappMissing": "Add a WhatsApp number in the Company step to show the button.",
+      "equipment": "Show the equipment list on the About page",
+      "hours": "Working hours",
+      "hoursPlaceholder": "e.g. Sunday to Thursday, 9:00 to 18:00",
+      "seoTitle": "Search engines & sharing",
+      "seoHint": "Shown in Google results and when your link is shared. Leave empty to use your company name.",
+      "seoSiteTitle": "Site title",
+      "seoDescription": "Site description",
+      "publishOnFinish": "Publish the website when I finish setup",
+      "publishHint": "Add banners, items and services afterwards from Website. You can also publish later.",
+      "summary": "At a glance",
+      "summaryAddress": "Catalogue address"
     }
   }
 }
