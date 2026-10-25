@@ -381,3 +381,23 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
 - Decision: the preview needs the admin and the website on the same site (for example `admin.example.com` and
   `example.com`, or localhost) for the preview cookie to reach the frame; on unrelated domains the "open in a
   tab" link still works.
+
+### Phase 5a: products (done)
+
+- `ProductCategory` (nested), `Product` (SKU, barcode, names and descriptions, category, brand, unit, cost,
+  price, VAT exempt, pictures, up to 3 options with 20 values, track stock, on sale) and `ProductVariant` (one per
+  combination of option values, own SKU and barcode, price and cost that fall back to the product's); migration
+  `20261026180000_products`. SKUs and barcodes are unique across products and variants.
+- Admin: Products list (search by name, SKU, barcode, brand or a variant's SKU; category and status filters;
+  server paging; put several on or off sale), product editor (margin shown as you type, pictures through the
+  normal upload, options with values in each language, generated variants with "fill empty SKUs"), and
+  categories (nested, inline editing; deleting moves products to no category and subcategories up a level).
+- **One price**: "Show on the website" creates a catalogue item from the product and links them; saving the
+  product keeps the catalogue item's price in step. Removing it from the website deletes that catalogue item.
+- New module `products` (off by default; on for products, online store, food, pharmacy, automotive, manufacturing
+  and beauty in the wizard) and permission resource `products` with role defaults (administrator, sales manager,
+  procurement officer edit; sales, marketing, warehouse, operations, finance, accounting and customer service read).
+- Fixed while here: switching a module on or off in Settings → Modules failed (a `require()` inside the server
+  action); the Modules page now also lists modules added after a company was set up, and module defaults are
+  honoured when a module has never been toggled. The e2e sign-in step allows for the first dashboard compile.
+- Stock (5b) will block deleting variants and products that have stock movements; until then deleting is free.

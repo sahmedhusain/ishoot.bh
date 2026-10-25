@@ -80,6 +80,12 @@ export const ROUTES = {
   team: "/dashboard/team",
   profile: (query?: HighlightQuery) => withQuery("/dashboard/profile", query),
   services: "/dashboard/services",
+  products: {
+    list: "/dashboard/products",
+    new: "/dashboard/products/new",
+    detail: (id: string) => `/dashboard/products/${encodeURIComponent(id)}`,
+    categories: "/dashboard/products/categories",
+  },
   cms: {
     banners: "/dashboard/cms/banners",
     clients: "/dashboard/cms/clients",

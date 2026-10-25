@@ -7452,6 +7452,206 @@
     "kind": "object",
     "fields": {}
   },
+  "saveProductAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "sku": {
+            "kind": "string",
+            "optional": false
+          },
+          "barcode": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "descriptionEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "descriptionAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "categoryId": {
+            "kind": "string",
+            "optional": true
+          },
+          "brand": {
+            "kind": "string",
+            "optional": false
+          },
+          "unit": {
+            "kind": "string",
+            "optional": false
+          },
+          "cost": {
+            "kind": "string",
+            "optional": false
+          },
+          "price": {
+            "kind": "string",
+            "optional": false
+          },
+          "vatExempt": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "imageUrls": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "options": {
+            "kind": "unknown",
+            "optional": false
+          },
+          "variants": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "sku": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "barcode": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "optionValues": {
+                  "kind": "array",
+                  "element": {
+                    "kind": "string"
+                  },
+                  "optional": false
+                },
+                "price": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "cost": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "isActive": {
+                  "kind": "boolean",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "trackStock": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteProductAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "setProductsActiveAction": {
+    "kind": "object",
+    "fields": {
+      "ids": {
+        "kind": "array",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      },
+      "isActive": {
+        "kind": "boolean",
+        "optional": false
+      }
+    }
+  },
+  "setProductOnWebsiteAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "onWebsite": {
+        "kind": "boolean",
+        "optional": false
+      }
+    }
+  },
+  "saveProductCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "parentId": {
+            "kind": "string",
+            "optional": true
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteProductCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "updateMyProfileAction": {
     "kind": "object",
     "fields": {

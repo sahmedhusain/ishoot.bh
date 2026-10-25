@@ -38,6 +38,7 @@ export const ALL_RESOURCES = [
   "pages",
   "articles",
   "cms_code",
+  "products",
 ] as const;
 
 export const ALL_ACTIONS = [
@@ -109,6 +110,7 @@ export const DEFAULT_ROLE_RULES: Record<
     ALL_RESOURCES.map((resource) => [resource, [...ALL_ACTIONS]]),
   ),
   admin: {
+    products: [...CRUD, "export"],
     support: CRUD,
     reviews: CRUD,
     faqs: CRUD,
@@ -154,6 +156,7 @@ export const DEFAULT_ROLE_RULES: Record<
     cms_code: ["read", "edit"],
   },
   finance_manager: {
+    products: ["read", "export"],
     announcements: ["read", "write", "create", "edit"],
     letters: ["read"],
     invoices: ["read", "write", "create", "edit", "export"],
@@ -174,6 +177,7 @@ export const DEFAULT_ROLE_RULES: Record<
     assets: ["read", "export", "approve"],
   },
   accountant: {
+    products: ["read"],
     announcements: ["read"],
     invoices: ["read", "write", "create", "edit", "export"],
     payments: ["read", "write", "create", "edit", "export"],
@@ -191,6 +195,7 @@ export const DEFAULT_ROLE_RULES: Record<
     assets: ["read"],
   },
   operations_manager: {
+    products: ["read"],
     announcements: ["read", "write", "create", "edit"],
     deals: ["read", "write", "create", "edit", "export"],
     contacts: ["read", "write", "create", "edit"],
@@ -220,6 +225,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   sales: {
+    products: ["read"],
     announcements: ["read"],
     deals: [...CRUD, "export"],
     contacts: [...CRUD, "export"],
@@ -232,6 +238,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   marketing: {
+    products: ["read"],
     pages: ["read", "write", "create", "edit"],
     articles: [...CRUD, "approve"],
     announcements: ["read"],
@@ -282,6 +289,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   sales_manager: {
+    products: ["read", "write", "create", "edit", "export"],
     announcements: ["read", "write", "create", "edit"],
     deals: [...CRUD, "export", "assign", "approve"],
     contacts: [...CRUD, "export"],
@@ -319,6 +327,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   procurement_officer: {
+    products: ["read", "write", "create", "edit"],
     announcements: ["read"],
     contacts: ["read", "write", "create", "edit"],
     expenses: ["read", "write", "create", "edit"],
@@ -328,6 +337,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   warehouse_keeper: {
+    products: ["read"],
     announcements: ["read"],
     assets: ["read", "write", "create", "edit"],
     equipment: ["read", "write", "create", "edit"],
@@ -347,6 +357,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   customer_service: {
+    products: ["read"],
     announcements: ["read"],
     support: [...CRUD, "assign"],
     contacts: ["read", "write", "create", "edit"],

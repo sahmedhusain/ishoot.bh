@@ -8,7 +8,7 @@ import { websiteMedia } from "../../lib/website-media";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { uploadFileDirectly } from "../../lib/upload-client";
 
-type CmsAssetResource = "banners" | "portfolio" | "clients" | "equipment" | "reviews" | "settings" | "pages" | "articles";
+type CmsAssetResource = "banners" | "portfolio" | "clients" | "equipment" | "reviews" | "settings" | "pages" | "articles" | "products";
 
 interface AssetUrlInputProps {
   value: string;

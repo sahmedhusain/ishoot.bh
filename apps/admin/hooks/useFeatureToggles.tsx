@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { moduleOnByDefault } from "@platform/database/constants/features";
 
 interface FeatureTogglesContextType {
   features: Record<string, boolean>;
@@ -38,9 +39,8 @@ export function FeatureTogglesProvider({
 
   const isFeatureEnabled = React.useCallback(
     (moduleKey: string) => {
-      // If it's not in the map, assume it's enabled by default, or you can default to false.
-      // Let's default to true if undefined, so core modules don't break.
-      return features[moduleKey] ?? true;
+      // A module never toggled follows its default: most are on, newer ones (products) start off.
+      return features[moduleKey] ?? moduleOnByDefault(moduleKey);
     },
     [features]
   );

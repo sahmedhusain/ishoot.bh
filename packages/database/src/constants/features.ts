@@ -6,4 +6,12 @@ export const DEFAULT_FEATURE_MODULES = [
   { moduleKey: "equipment", nameEn: "Equipment Inventory", nameAr: "مخزون المعدات" },
   { moduleKey: "cms", nameEn: "Website Content", nameAr: "إدارة محتوى الموقع" },
   { moduleKey: "reviews", nameEn: "Customer Reviews", nameAr: "تقييمات العملاء" },
+  // Off until a company that sells goods switches it on (activities with stock do in the setup wizard).
+  { moduleKey: "products", nameEn: "Products", nameAr: "المنتجات", isEnabled: false },
 ] as const;
+
+/** Whether a module is on before anyone has chosen (a module missing from the database). */
+export const moduleOnByDefault = (moduleKey: string) => {
+  const entry = DEFAULT_FEATURE_MODULES.find((m) => m.moduleKey === moduleKey);
+  return !entry || !("isEnabled" in entry) || entry.isEnabled !== false;
+};

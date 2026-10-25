@@ -271,6 +271,8 @@ model PortfolioItem {
   createdAt       DateTime           @default(now())
   /// Sample content added by "Start with sample content"; removed in one click.
   isSample        Boolean            @default(false)
+  /// The product this catalogue item shows; its price then comes from the product.
+  product         Product?
 }
 
 model ClientLogo {
@@ -2875,4 +2877,76 @@ model OfficialLetter {
   updatedAt             DateTime        @default(now()) @updatedAt
 
   @@index([status])
+}
+
+/// Product categories, nested (Products → Categories).
+model ProductCategory {
+  id        String            @id @default(uuid())
+  nameEn    String
+  nameAr    String
+  parentId  String?
+  parent    ProductCategory?  @relation("ProductCategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  ProductCategory[] @relation("ProductCategoryTree")
+  sortOrder Int               @default(0)
+  isActive  Boolean           @default(true)
+  products  Product[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([parentId])
+}
+
+/// Something the company sells or buys and keeps in stock. Prices are in the company currency.
+model Product {
+  id              String           @id @default(uuid())
+  sku             String           @unique
+  barcode         String?          @unique
+  nameEn          String
+  nameAr          String
+  descriptionEn   String?          @db.Text
+  descriptionAr   String?          @db.Text
+  categoryId      String?
+  category        ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brand           String?
+  /// piece | box | pack | kg | g | l | ml | m | hour | service
+  unit            String           @default("piece")
+  cost            Decimal          @default(0) @db.Decimal(12, 3)
+  price           Decimal          @default(0) @db.Decimal(12, 3)
+  /// VAT is charged at the company rate unless the product is exempt.
+  vatExempt       Boolean          @default(false)
+  imageUrls       String[]         @default([])
+  /// Up to three options with their values: [{ nameEn, nameAr, values: [{ en, ar }] }].
+  options         Json             @default("[]")
+  /// Services and digital items are sold without stock.
+  trackStock      Boolean          @default(true)
+  isActive        Boolean          @default(true)
+  /// The website catalogue item showing this product.
+  catalogueItemId String?          @unique
+  catalogueItem   PortfolioItem?   @relation(fields: [catalogueItemId], references: [id], onDelete: SetNull)
+  variants        ProductVariant[]
+  createdById     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([isActive, nameEn])
+}
+
+/// One combination of a product's options (size M, red). Without a price or cost it uses the product's.
+model ProductVariant {
+  id           String   @id @default(uuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku          String   @unique
+  barcode      String?  @unique
+  /// The English value of each option, in the product's option order.
+  optionValues String[] @default([])
+  price        Decimal? @db.Decimal(12, 3)
+  cost         Decimal? @db.Decimal(12, 3)
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([productId])
 }

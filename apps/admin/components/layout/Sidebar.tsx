@@ -12,6 +12,8 @@ import {
   Settings,
   ArrowRightLeft,
   LayoutDashboard,
+  Package,
+  FolderTree,
   Calendar,
   Kanban,
   Users,
@@ -512,6 +514,14 @@ export function Sidebar() {
           ROUTES.quotations.list,
           ROUTES.services,
         ]),
+      },
+      {
+        id: "products",
+        title: t.navigationGroups.products,
+        items: [
+          { href: ROUTES.products.list, label: t.products.navTitle, icon: Package, resource: "products", moduleKey: "products" },
+          { href: ROUTES.products.categories, label: t.products.navCategories, icon: FolderTree, resource: "products", moduleKey: "products" },
+        ],
       },
       {
         id: "operations",
