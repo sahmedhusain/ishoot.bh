@@ -2,10 +2,14 @@
 import { DomainSettingsCard } from "../settings/DomainSettingsCard";
 import { ShowExampleButton } from "../cms/SampleContentCard";
 import { addSampleContentAction } from "../../app/actions/samples";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { WebsitePreviewPane } from "./WebsitePreviewPane";
+import { ActivityThumb } from "./ActivityThumb";
+import { BASE_ROLES, DEPARTMENT_CATALOGUE, DEPARTMENT_ROLES, activityDepartments, type DepartmentKey } from "@platform/database/constants/departments";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Building2, Palette, Image as ImageIcon, SlidersHorizontal, ClipboardCheck, Check, Upload, Trash2, Globe, MonitorSmartphone, Ban } from "lucide-react";
+import { Building2, Palette, Image as ImageIcon, SlidersHorizontal, ClipboardCheck, Check, Upload, Trash2, Globe, MonitorSmartphone, Ban, PartyPopper } from "lucide-react";
 import { Button, Card, Input, Select } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { getCurrencyLabel } from "@platform/config/currency";
@@ -24,6 +28,7 @@ import {
   saveSetupThemeAction,
   saveSetupConfigAction,
   saveSetupWebsiteAction,
+  saveSetupWebsiteDraftAction,
   completeSetupAction,
   type SetupCompanyInput,
   type SetupConfigInput,
@@ -44,6 +49,8 @@ export interface SetupWizardProps {
   /** The saved website and admin domains (the domain card saves them itself). */
   domains: { websiteDomain: string; adminDomain: string };
   modules: { moduleKey: string; nameEn: string; nameAr: string }[];
+  /** Catalogue departments the company already has (kept whatever is chosen). */
+  existingDepartments: string[];
 }
 
 const STEPS = ["company", "brand", "assets", "website", "configuration", "review"] as const;
@@ -82,7 +89,7 @@ function Group({ title, hint, children }: { title: string; hint?: string; childr
   );
 }
 
-function ChoiceCard({ selected, onSelect, icon: Icon, title, description, testId }: { selected: boolean; onSelect: () => void; icon: React.ComponentType<{ className?: string }>; title: string; description: string; testId?: string }) {
+function ChoiceCard({ selected, onSelect, icon: Icon, title, description, testId, preview }: { selected: boolean; onSelect: () => void; icon: React.ComponentType<{ className?: string }>; title: string; description: string; testId?: string; preview?: React.ReactNode }) {
   return (
     <button
       type="button"
@@ -90,8 +97,9 @@ function ChoiceCard({ selected, onSelect, icon: Icon, title, description, testId
       aria-checked={selected}
       onClick={onSelect}
       data-testid={testId}
-      className={`flex items-start gap-3 rounded-xl border p-3.5 text-start transition-colors ${selected ? "border-accent bg-accent/10" : "border-ink/15 hover:border-ink/30"}`}
+      className={`flex w-full flex-wrap items-start gap-3 rounded-xl border p-3.5 text-start transition-colors ${selected ? "border-accent bg-accent/10" : "border-ink/15 hover:border-ink/30"}`}
     >
+      {preview ? <span className="block w-full">{preview}</span> : null}
       <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${selected ? "bg-accent text-accent-foreground" : "bg-ink/[0.06] text-accent"}`}>
         <Icon className="h-4 w-4" />
       </span>
@@ -116,7 +124,11 @@ export function SetupWizard(props: SetupWizardProps) {
   const [publishWebsite, setPublishWebsite] = React.useState(true);
   const [sampleContent, setSampleContent] = React.useState(false);
   // Recommendations follow the chosen activity until the person changes that part by hand.
-  const touched = React.useRef({ theme: false, modules: false });
+  const touched = React.useRef({ theme: false, modules: false, departments: false });
+  const [previewRevision, setPreviewRevision] = React.useState(0);
+  const [finished, setFinished] = React.useState(false);
+  const [direction, setDirection] = React.useState(1);
+  const reduceMotion = useReducedMotion();
   const [saving, setSaving] = React.useState(false);
   const [uploading, setUploading] = React.useState<AssetSlot | null>(null);
   const [error, setError] = React.useState("");
@@ -129,6 +141,7 @@ export function SetupWizard(props: SetupWizardProps) {
 
   const go = (next: Step) => {
     setError("");
+    setDirection(STEPS.indexOf(next) >= STEPS.indexOf(step) ? 1 : -1);
     setStep(next);
   };
 
@@ -151,9 +164,25 @@ export function SetupWizard(props: SetupWizardProps) {
     setWebsite((current) => ({ ...current, config: { ...current.config, ...websiteConfigForActivity(next, current.config) } as ResolvedWebsiteConfig }));
     if (!touched.current.modules)
       setConfig((current) => ({ ...current, modules: current.modules.map((m) => ({ ...m, isEnabled: preset.modules[m.moduleKey as keyof typeof preset.modules] ?? m.isEnabled })) }));
+    if (!touched.current.departments)
+      setConfig((current) => ({ ...current, departments: Array.from(new Set([...props.existingDepartments, ...activityDepartments(next)])) }));
     const style = STYLE_PRESETS.find((s) => s.id === preset.stylePreset);
     if (!touched.current.theme && style) setTheme((current) => ({ ...current, ...style.theme }));
   };
+
+  // The preview shows the website settings as they are edited: saved as a draft shortly after each change.
+  const draftReady = React.useRef(false);
+  React.useEffect(() => {
+    if (step !== "website" || !website.enabled) return;
+    if (!draftReady.current) {
+      draftReady.current = true;
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      saveSetupWebsiteDraftAction(website.config).then(() => setPreviewRevision((n) => n + 1), () => undefined);
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [step, website.enabled, website.config]);
 
   const chooseLanguages = (next: ContentLanguage[]) =>
     setCompany((current) => ({ ...current, contentLanguages: next, primaryLanguage: next.includes(current.primaryLanguage as ContentLanguage) ? current.primaryLanguage : next[0] }));
@@ -164,7 +193,11 @@ export function SetupWizard(props: SetupWizardProps) {
       if (!activity) return setError(t.serverErrors.messages.businessActivityInvalid);
       const missing = languages.some((l) => !(l === "en" ? company.companyNameEn : company.companyNameAr).trim());
       if (missing) return setError(languages.length > 1 ? copy.company.requiredBoth : copy.company.required);
-      return run(() => saveSetupCompanyAction(company), next);
+      // The website draft follows the activity now, so the Brand step's preview already shows it.
+      return run(async () => {
+        await saveSetupCompanyAction(company);
+        await saveSetupWebsiteDraftAction(website.config);
+      }, next);
     }
     if (step === "brand") return run(() => saveSetupThemeAction(theme), next);
     if (step === "assets") {
@@ -180,8 +213,16 @@ export function SetupWizard(props: SetupWizardProps) {
       }, next);
     }
     if (step === "configuration") return run(() => saveSetupConfigAction(config), next);
+    // The celebration shows while setup is finished (the page moves to the dashboard as soon as it is), and at
+    // least a moment; a failure takes it away again and shows the error.
+    setFinished(true);
     return run(async () => {
-      await completeSetupAction({ publishWebsite: website.enabled && publishWebsite });
+      try {
+        await Promise.all([completeSetupAction({ publishWebsite: website.enabled && publishWebsite }), new Promise((resolve) => window.setTimeout(resolve, reduceMotion ? 300 : 1400))]);
+      } catch (err) {
+        setFinished(false);
+        throw err;
+      }
       router.replace("/dashboard");
       router.refresh();
     });
@@ -235,6 +276,13 @@ export function SetupWizard(props: SetupWizardProps) {
   const enabled = (key: string) => config.modules.find((m) => m.moduleKey === key)?.isEnabled ?? true;
   const languageChoice = LANGUAGE_CHOICES.find((c) => c.languages.join() === languages.join())?.id ?? "both";
   const activityName = activity ? copy.company.activities[activity].name : copy.review.missing;
+  // Beside the Website step; below the Brand step, whose editor needs the width for its style gallery.
+  const showPreview = step === "brand" || (step === "website" && website.enabled);
+  const previewBeside = step === "website";
+  const chosenDepartments = new Set(config.departments);
+  const departmentNames = t.departmentCatalogue as Record<DepartmentKey, string>;
+  const roleNames = t.roles as Record<string, string>;
+  const readyRoles = Array.from(new Set([...BASE_ROLES, ...DEPARTMENT_CATALOGUE.filter((d) => chosenDepartments.has(d)).flatMap((d) => DEPARTMENT_ROLES[d])]));
   const nameIn = (lang: string) => (lang === "ar" ? company.companyNameAr : company.companyNameEn);
 
   return (
@@ -282,6 +330,10 @@ export function SetupWizard(props: SetupWizardProps) {
           </ol>
         </nav>
 
+        <div className="h-1.5 overflow-hidden rounded-full bg-ink/10" role="progressbar" aria-label={copy.title} aria-valuemin={1} aria-valuemax={STEPS.length} aria-valuenow={index + 1}>
+          <motion.div className="h-full rounded-full bg-accent" initial={false} animate={{ width: `${((index + 1) / STEPS.length) * 100}%` }} transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 140, damping: 22 }} />
+        </div>
+
         <Card className="space-y-6 rounded-2xl border border-ink/15 bg-white p-5 shadow-xs dark:bg-surface sm:p-8">
           <div className="space-y-1 border-b border-ink/10 pb-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-accent">{formatMessage(copy.stepOf, { current: index + 1, total: STEPS.length })}</p>
@@ -289,6 +341,16 @@ export function SetupWizard(props: SetupWizardProps) {
             <p className="text-sm text-slate-600 dark:text-ink-muted">{copy.stepDescriptions[step]}</p>
           </div>
 
+          <div className={showPreview ? `grid items-start gap-6 ${previewBeside ? "xl:grid-cols-[minmax(0,1fr)_minmax(320px,440px)]" : ""}` : undefined}>
+          <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={step}
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, x: (locale === "ar" ? -1 : 1) * direction * 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -((locale === "ar" ? -1 : 1) * direction * 24) }}
+            transition={{ duration: reduceMotion ? 0.01 : 0.22, ease: "easeOut" }}
+            className="min-w-0"
+          >
           {step === "company" ? (
             <div className="space-y-8">
               <Group title={copy.company.languagesTitle} hint={copy.company.languagesHint}>
@@ -321,15 +383,18 @@ export function SetupWizard(props: SetupWizardProps) {
               <Group title={copy.company.activityTitle} hint={copy.company.activityHint}>
                 <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label={copy.company.activityTitle}>
                   {BUSINESS_ACTIVITIES.map((a) => (
-                    <ChoiceCard
-                      key={a}
-                      selected={activity === a}
-                      onSelect={() => chooseActivity(a)}
-                      icon={activityIcon(a)}
-                      title={copy.company.activities[a].name}
-                      description={copy.company.activities[a].description}
-                      testId={`activity-${a}`}
-                    />
+                    <div key={a} className="relative">
+                      <ChoiceCard
+                        selected={activity === a}
+                        onSelect={() => chooseActivity(a)}
+                        icon={activityIcon(a)}
+                        title={copy.company.activities[a].name}
+                        description={copy.company.activities[a].description}
+                        testId={`activity-${a}`}
+                        preview={<ActivityThumb activity={a} locale={locale} />}
+                      />
+                      <ShowExampleButton activity={a} compact className="absolute end-2 top-2" />
+                    </div>
                   ))}
                 </div>
               </Group>
@@ -537,6 +602,38 @@ export function SetupWizard(props: SetupWizardProps) {
                   ))}
                 </div>
               </fieldset>
+
+              <fieldset className="space-y-3" data-testid="setup-departments">
+                <legend className="text-sm font-bold text-slate-900 dark:text-white">{copy.configuration.departments}</legend>
+                <p className="text-xs text-slate-500 dark:text-ink-muted">{activity ? formatMessage(copy.configuration.departmentsRecommended, { activity: activityName }) : copy.configuration.departmentsHint}</p>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {DEPARTMENT_CATALOGUE.map((key) => {
+                    const kept = props.existingDepartments.includes(key);
+                    return (
+                      <label key={key} className="flex items-center gap-3 rounded-lg border border-ink/15 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 accent-accent"
+                          checked={kept || chosenDepartments.has(key)}
+                          disabled={kept}
+                          onChange={(e) => {
+                            touched.current.departments = true;
+                            setConfig({ ...config, departments: e.target.checked ? [...config.departments, key] : config.departments.filter((d) => d !== key) });
+                          }}
+                        />
+                        {departmentNames[key]}
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="space-y-2 rounded-xl bg-ink/[0.03] p-4">
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">{copy.configuration.rolesReady}</p>
+                  <ul className="flex flex-wrap gap-1.5" aria-label={copy.configuration.rolesReady}>
+                    {readyRoles.map((role) => <li key={role} className="rounded-full border border-ink/15 bg-white px-2.5 py-1 text-xs text-slate-700 dark:bg-surface dark:text-slate-200">{roleNames[role] ?? role}</li>)}
+                  </ul>
+                  <p className="text-xs text-slate-500 dark:text-ink-muted">{copy.configuration.rolesHint}</p>
+                </div>
+              </fieldset>
             </div>
           ) : null}
 
@@ -556,7 +653,7 @@ export function SetupWizard(props: SetupWizardProps) {
                       ]
                     : [copy.review.websiteOff],
                 ],
-                ["configuration", [`${config.defaultCurrency} · ${config.vatEnabled ? `${config.vatPercentage}%` : "—"}`, formatMessage(copy.review.enabledModules, { count: props.modules.filter((m) => enabled(m.moduleKey)).length })]],
+                ["configuration", [`${config.defaultCurrency} · ${config.vatEnabled ? `${config.vatPercentage}%` : "—"}`, formatMessage(copy.review.enabledModules, { count: props.modules.filter((m) => enabled(m.moduleKey)).length }), formatMessage(copy.review.departmentCount, { count: new Set([...props.existingDepartments, ...config.departments]).size })]],
               ] as [Exclude<Step, "review">, string[]][]).map(([section, lines]) => (
                 <div key={section} className="space-y-2 rounded-xl border border-ink/15 p-4">
                   <div className="flex items-center justify-between">
@@ -575,6 +672,10 @@ export function SetupWizard(props: SetupWizardProps) {
               <p className="text-sm text-slate-700 dark:text-slate-200 sm:col-span-2">{copy.review.ready}</p>
             </dl>
           ) : null}
+          </motion.div>
+          </AnimatePresence>
+          {showPreview ? <WebsitePreviewPane theme={theme} revision={previewRevision} /> : null}
+          </div>
 
           {error ? <p role="alert" className="rounded-lg bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-300">{error}</p> : null}
 
@@ -588,6 +689,31 @@ export function SetupWizard(props: SetupWizardProps) {
           </div>
         </Card>
       </div>
+      <AnimatePresence>
+        {finished ? (
+          <motion.div role="status" className="fixed inset-0 z-50 flex items-center justify-center bg-brand-base/90 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="relative flex flex-col items-center gap-4 text-center">
+              {!reduceMotion
+                ? Array.from({ length: 14 }, (_, i) => (
+                    <motion.span
+                      key={i}
+                      aria-hidden="true"
+                      className={`absolute h-2 w-2 rounded-full ${i % 2 ? "bg-accent" : "bg-primary"}`}
+                      initial={{ x: 0, y: 0, opacity: 1, scale: 0.6 }}
+                      animate={{ x: Math.cos((i / 14) * Math.PI * 2) * 140, y: Math.sin((i / 14) * Math.PI * 2) * 140, opacity: 0, scale: 1.2 }}
+                      transition={{ duration: 1.2, ease: "easeOut" }}
+                    />
+                  ))
+                : null}
+              <motion.span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-foreground" initial={reduceMotion ? false : { scale: 0.4, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 220, damping: 12 }}>
+                <PartyPopper className="h-7 w-7" />
+              </motion.span>
+              <p className="text-lg font-bold text-slate-900 dark:text-white">{copy.finished}</p>
+              <p className="text-sm text-slate-600 dark:text-ink-muted">{copy.finishedHint}</p>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }

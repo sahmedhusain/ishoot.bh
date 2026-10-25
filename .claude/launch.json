@@ -125,14 +125,35 @@
     },
     {
       "name": "admin-blank-v2",
-      "runtimeExecutable": "node",
+      "runtimeExecutable": "env",
       "runtimeArgs": [
+        "WEB_URL=http://localhost:3025",
+        "NEXT_PUBLIC_WEB_URL=http://localhost:3025",
+        "ADMIN_URL=http://localhost:3024",
+        "NEXT_PUBLIC_ADMIN_URL=http://localhost:3024",
+        "node",
         "tests/e2e/serve.cjs",
         "admin",
         "3024",
         "pv2_blank_test"
       ],
       "port": 3024
+    },
+    {
+      "name": "web-blank-v2",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "WEB_URL=http://localhost:3025",
+        "NEXT_PUBLIC_WEB_URL=http://localhost:3025",
+        "ADMIN_URL=http://localhost:3024",
+        "NEXT_PUBLIC_ADMIN_URL=http://localhost:3024",
+        "node",
+        "tests/e2e/serve.cjs",
+        "web",
+        "3025",
+        "pv2_blank_test"
+      ],
+      "port": 3025
     }
   ]
 }

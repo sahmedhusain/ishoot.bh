@@ -8262,7 +8262,12 @@
       "paymentTerms": "Payment terms (days)",
       "modules": "Modules",
       "modulesHint": "Switch off what your team does not use. You can turn modules on again later.",
-      "modulesRecommended": "Recommended for {activity}: switched on or off to match. You can change any of them."
+      "modulesRecommended": "Recommended for {activity}: switched on or off to match. You can change any of them.",
+      "departments": "Departments and roles",
+      "departmentsRecommended": "Recommended for {activity}. Departments you already have stay; add more here or later in Settings → Departments.",
+      "departmentsHint": "Choose the departments to create. You can rename, nest or add more later in Settings → Departments.",
+      "rolesReady": "Roles ready for these departments",
+      "rolesHint": "Each role comes with sensible permissions. Adjust them in Settings → Roles."
     },
     "review": {
       "company": "Company",
@@ -8280,7 +8285,8 @@
       "languages": "Languages",
       "activity": "Activity",
       "willPublish": "Will be published when you finish",
-      "draftOnly": "Saved as a draft"
+      "draftOnly": "Saved as a draft",
+      "departmentCount": "{count} department(s)"
     },
     "waiting": {
       "title": "Your workspace is being set up",
@@ -8370,7 +8376,16 @@
       "publishHint": "Add banners, items and services afterwards from Website. You can also publish later.",
       "summary": "At a glance",
       "summaryAddress": "Catalogue address"
-    }
+    },
+    "preview": {
+      "title": "Your website",
+      "desktop": "Desktop",
+      "phone": "Phone",
+      "open": "Open in a new tab",
+      "hint": "Colours and fonts change as you edit them; website settings show a moment after each change. Nothing is public until you publish."
+    },
+    "finished": "You are all set",
+    "finishedHint": "Opening your dashboard…"
   },
   "pipelineSettings": {
     "title": "Sales pipeline",

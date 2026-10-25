@@ -1,4 +1,5 @@
 import { isWebsitePreview, websiteExample } from "../../lib/website";
+import { PreviewBridge } from "../../components/site/PreviewBridge";
 import * as React from "react";
 import { formatMessage } from "@platform/locales";
 import { notFound } from "next/navigation";
@@ -17,6 +18,15 @@ import { SiteProvider } from "../../components/site/SiteProvider";
 import { getSocialLinks } from "@platform/database";
 import { pickText } from "@platform/database/constants/languages";
 import { googleFontsHref, themeStylesheet } from "@platform/database/constants/theme";
+
+/** The admin app's origin, the only one a preview frame takes theme changes from. */
+const originOf = (url?: string) => {
+  try {
+    return url ? new URL(url).origin : "";
+  } catch {
+    return "";
+  }
+};
 // Database content must not be frozen into empty pages when the build database is unavailable.
 export const dynamic = "force-dynamic";
 
@@ -42,6 +52,7 @@ export default async function LocaleLayout({
     siteTranslations(locale),
   ]);
   const isRTL = locale === "ar";
+  const adminOrigin = originOf(process.env.ADMIN_URL);
   const menus = siteMenus(website, config, info, locale);
   const fontsHref = googleFontsHref(company.theme);
   const head = (
@@ -92,6 +103,7 @@ export default async function LocaleLayout({
             </form>
           </div>
         )}
+        {preview && adminOrigin ? <PreviewBridge adminOrigin={adminOrigin} /> : null}
         <SiteProvider site={info}>
           <FloatingScrollbar />
           <BackToTop />

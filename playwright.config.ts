@@ -17,7 +17,13 @@ const server = (app: "admin" | "web", port: number, database: string) => ({
   stdout: "ignore" as const,
   stderr: "pipe" as const,
   // The admin previews website media from the website's origin, so both point at the test servers.
-  env: { NEXT_PUBLIC_WEB_URL: `http://localhost:${ports.web}`, NEXT_PUBLIC_ADMIN_URL: `http://localhost:${ports.admin}` },
+  // Preview links and cache refreshes go to the test website too, never to a developer's own servers.
+  env: {
+    NEXT_PUBLIC_WEB_URL: `http://localhost:${ports.web}`,
+    NEXT_PUBLIC_ADMIN_URL: `http://localhost:${ports.admin}`,
+    WEB_URL: `http://localhost:${ports.web}`,
+    ADMIN_URL: `http://localhost:${ports.admin}`,
+  },
 });
 
 export default defineConfig({

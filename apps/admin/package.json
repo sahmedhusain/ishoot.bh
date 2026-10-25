@@ -28,6 +28,7 @@
     "@tiptap/react": "3.31.4",
     "@tiptap/starter-kit": "3.31.4",
     "bcryptjs": "^3.0.3",
+    "framer-motion": "^13.4.6",
     "jose": "^6.2.12",
     "libphonenumber-js": "^1.13.14",
     "lucide-react": "^0.475.0",

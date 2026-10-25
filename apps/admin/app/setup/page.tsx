@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { ensureDefaultFeatureModules, getWebsiteEditor } from "@platform/database";
+import { db, ensureDefaultFeatureModules, getWebsiteEditor } from "@platform/database";
+import { activityDepartments, isDepartmentKey } from "@platform/database/constants/departments";
 import { resolveWebsiteConfig, validateWebsiteConfig, websiteConfigForActivity } from "@platform/database/website-config";
 import { companyMetadata } from "../../lib/company-metadata";
 import { getCachedCompanySettings } from "../../lib/cached-queries";
@@ -19,7 +20,8 @@ export default async function SetupPage() {
   const permissions = await getCurrentPermissions();
   if (permissions["settings:write"] !== true) return <SetupWaitingView />;
 
-  const [toggles, website] = await Promise.all([ensureDefaultFeatureModules(), getWebsiteEditor()]);
+  const [toggles, website, departmentRows] = await Promise.all([ensureDefaultFeatureModules(), getWebsiteEditor(), db.department.findMany({ select: { catalogueKey: true } })]);
+  const existingDepartments = departmentRows.map((row) => row.catalogueKey).filter(isDepartmentKey);
   const draft = validateWebsiteConfig(website.draft);
   const activity = company.business_activity ?? "media";
   // A draft that was never set up for an activity starts from the activity's recommendations.
@@ -71,7 +73,9 @@ export default async function SetupPage() {
         receiptNextNumber: company.receipt_next_number,
         paymentTermsDays: company.payment_terms_days,
         modules: toggles.map((m) => ({ moduleKey: m.moduleKey, isEnabled: m.isEnabled })),
+        departments: Array.from(new Set([...existingDepartments, ...(company.business_activity ? activityDepartments(company.business_activity) : [])])),
       }}
+      existingDepartments={existingDepartments}
       domains={{ websiteDomain: company.website_domain ?? "", adminDomain: company.admin_domain ?? "" }}
       website={{ enabled: toggles.find((m) => m.moduleKey === "cms")?.isEnabled !== false, config: websiteConfig }}
       modules={toggles.map((m) => ({ moduleKey: m.moduleKey, nameEn: m.nameEn, nameAr: m.nameAr }))}

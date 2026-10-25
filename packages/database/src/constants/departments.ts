@@ -74,3 +74,24 @@ export const ACTIVITY_DEPARTMENTS: Record<string, readonly DepartmentKey[]> = {
 export function activityDepartments(activity: string | null | undefined): readonly DepartmentKey[] {
   return ACTIVITY_DEPARTMENTS[activity ?? ""] ?? ACTIVITY_DEPARTMENTS.other;
 }
+
+/** The role templates (constants/permissions) that usually work in each catalogue department, for the wizard. */
+export const DEPARTMENT_ROLES: Record<DepartmentKey, readonly string[]> = {
+  management: ["department_manager"],
+  finance: ["finance_manager", "accountant"],
+  hr: ["hr_manager", "hr_officer"],
+  sales: ["sales_manager", "sales"],
+  marketing: ["marketing", "editor"],
+  pr: ["pr_officer"],
+  legal: ["legal_counsel"],
+  procurement: ["procurement_officer"],
+  warehouse: ["warehouse_keeper"],
+  delivery: ["delivery_coordinator", "driver"],
+  customer_service: ["customer_service"],
+  operations: ["operations_manager", "project_lead"],
+  it: ["admin"],
+  administration: ["employee"],
+};
+
+/** Roles every company has, whatever its departments. */
+export const BASE_ROLES = ["super_admin", "admin", "employee", "viewer"] as const;

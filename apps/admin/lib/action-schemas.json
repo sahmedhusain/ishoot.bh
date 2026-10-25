@@ -10338,6 +10338,13 @@
               }
             },
             "optional": false
+          },
+          "departments": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
           }
         },
         "optional": false
@@ -10374,6 +10381,24 @@
             "optional": false
           }
         },
+        "optional": false
+      }
+    }
+  },
+  "setupPreviewAction": {
+    "kind": "object",
+    "fields": {
+      "locale": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveSetupWebsiteDraftAction": {
+    "kind": "object",
+    "fields": {
+      "config": {
+        "kind": "unknown",
         "optional": false
       }
     }

@@ -357,3 +357,27 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   the samples (`exampleSnapshot`) and labels the page "Example website". Nothing is saved.
 - Decision: the example uses the company's current colours and logo (the style gallery already previews
   styles); a per-style example can come with the wizard's live preview in 4c.
+
+### Phase 4c: setup wizard v2 (done)
+
+- **Motion** (framer-motion 13, admin only): steps slide in the reading direction (mirrored in Arabic), a
+  progress bar fills as steps are completed, and finishing shows a short celebration before the dashboard opens.
+  With "reduce motion" the steps only fade and the celebration is a still badge.
+- **Live preview** of the real website (`WebsitePreviewPane`): beside the Website step and below the Brand step
+  (the style gallery needs the width), at desktop or phone width, with a link to open it in a tab. It is the
+  normal signed draft preview; the colours, fonts and light/dark website being edited are sent to the page by
+  `postMessage` (the website accepts them only from `ADMIN_URL`, only while previewing, and nothing is saved),
+  and Website-step changes are saved as a draft a moment after each edit and the page refreshes. The Company
+  step saves the activity's website draft too, so the Brand step already shows the right website.
+- **Activity cards** show a small drawing of the activity's sample homepage in its suggested style, with a
+  "Show an example" button (the example website from 4b).
+- **Departments and roles** section in the Configuration step: the activity's recommended departments are
+  ticked (departments that already exist stay ticked and cannot be removed here), and the roles that come with
+  the chosen departments are listed (`DEPARTMENT_ROLES`, `BASE_ROLES`). Departments are now created when this
+  step is saved, instead of when the activity is chosen, so going back and changing the activity no longer
+  leaves the first activity's departments behind. The review shows how many departments there will be.
+- Test servers now get `WEB_URL`/`ADMIN_URL` for the test website, so preview links and cache refreshes from
+  e2e runs never reach a developer's own servers.
+- Decision: the preview needs the admin and the website on the same site (for example `admin.example.com` and
+  `example.com`, or localhost) for the preview cookie to reach the frame; on unrelated domains the "open in a
+  tab" link still works.

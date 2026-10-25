@@ -11,7 +11,7 @@ import { errorMessage } from "../../lib/error-text";
 import { formatMessage } from "@platform/locales";
 
 /** Opens the demo website of an activity in a new tab. */
-export function ShowExampleButton({ activity, className }: { activity: BusinessActivity; className?: string }) {
+export function ShowExampleButton({ activity, className, compact }: { activity: BusinessActivity; className?: string; compact?: boolean }) {
   const { t, locale } = useAdminLocale();
   const [busy, setBusy] = React.useState(false);
   const open = async () => {
@@ -30,6 +30,12 @@ export function ShowExampleButton({ activity, className }: { activity: BusinessA
       setBusy(false);
     }
   };
+  if (compact)
+    return (
+      <button type="button" aria-label={t.sampleContent.showExample} title={t.sampleContent.showExample} disabled={busy} onClick={open} data-testid={`example-${activity}`} className={`rounded-full bg-surface/90 p-1.5 text-slate-600 shadow-sm ring-1 ring-ink/10 transition-colors hover:text-accent dark:text-slate-200 ${className ?? ""}`}>
+        {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
+      </button>
+    );
   return (
     <Button type="button" variant="outline" size="sm" className={`rounded-full gap-1.5 ${className ?? ""}`} disabled={busy} onClick={open} data-testid={`example-${activity}`}>
       {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
