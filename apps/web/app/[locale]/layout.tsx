@@ -1,5 +1,6 @@
 import { isWebsitePreview, websiteExample } from "../../lib/website";
 import { PreviewBridge } from "../../components/site/PreviewBridge";
+import { storeEnabled } from "../../lib/customer";
 import * as React from "react";
 import { formatMessage } from "@platform/locales";
 import { notFound } from "next/navigation";
@@ -52,6 +53,7 @@ export default async function LocaleLayout({
     siteTranslations(locale),
   ]);
   const isRTL = locale === "ar";
+  const store = await storeEnabled().catch(() => false);
   const adminOrigin = originOf(process.env.ADMIN_URL);
   const menus = siteMenus(website, config, info, locale);
   const fontsHref = googleFontsHref(company.theme);
@@ -108,7 +110,7 @@ export default async function LocaleLayout({
           <FloatingScrollbar />
           <BackToTop />
           <SmoothScroll>
-            <Navbar company={company} pages={config.pages} links={menus?.header} />
+            <Navbar company={company} pages={config.pages} links={menus?.header} accountHref={store ? `/${locale}/account` : undefined} />
             <main id="main-content" className="w-full">
               {children}
             </main>

@@ -469,3 +469,21 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   copy of the form). It has not recurred on any second load or clean rerun; it should be checked against a
   production build (`E2E_SERVER_MODE=start`) before release. Full e2e: 46 of 48 passed in that run, and both
   affected specs passed on rerun.
+
+### Phase 6a: customer accounts on the website (done)
+
+- New module `store` ("Online store", off by default; on for online store, products and pharmacy companies).
+  Migration `20261026210000_customers`: `Customer` (separate from staff), sessions, addresses, e-mailed sign-in
+  codes and wishlist items.
+- Website `/[locale]/account`: sign in with e-mail and password, with an e-mailed six-digit code (a first code
+  sign-in creates the account), or create an account; **Sign in with Google** and **Sign in with Apple** appear
+  when set up in Settings → Integrations (new "Customer sign-in" kind with the redirect address in the
+  description). Signed in: profile (name, phone, e-mail language, new password, news opt-in), addresses,
+  orders (filled by 6b), wishlist (heart on each catalogue item) and "Delete my account".
+- Customers link to CRM contacts (matched by e-mail or created). Security model in `docs/SECURITY.md`
+  (hashed tokens and codes, rate limits, same-origin posts, PKCE/state/nonce, ID tokens verified against the
+  providers' keys). `CUSTOMER_AUTH_SECRET` added to `.env.example`.
+- Tested: unit tests for the sign-in state, PKCE, Apple's client secret and ID-token verification with locally
+  generated keys; e2e for sign-up, password and code sign-in, address, wishlist and account deletion. Google and
+  Apple sign-in themselves need real credentials ("needs live credentials"), so they are covered up to the
+  provider redirect and the token checks.

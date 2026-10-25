@@ -1,7 +1,7 @@
 // Integration catalog shared by Settings → Integrations, the sync worker and analytics.
 // Runtime-free so client components can import it. Secret fields are never sent to the browser.
 
-export type IntegrationKind = "social" | "messaging" | "email";
+export type IntegrationKind = "social" | "messaging" | "email" | "sign_in";
 
 export interface IntegrationField {
   key: string;
@@ -21,7 +21,7 @@ export interface IntegrationProvider {
 export const SOCIAL_PLATFORM_IDS = ["facebook", "instagram", "youtube", "tiktok", "x", "linkedin"] as const;
 export type SocialPlatformId = (typeof SOCIAL_PLATFORM_IDS)[number];
 
-export const INTEGRATION_PROVIDER_IDS = ["meta", "whatsapp", "youtube", "tiktok", "x", "linkedin", "resend"] as const;
+export const INTEGRATION_PROVIDER_IDS = ["meta", "whatsapp", "youtube", "tiktok", "x", "linkedin", "resend", "google_signin", "apple_signin"] as const;
 export type IntegrationProviderId = (typeof INTEGRATION_PROVIDER_IDS)[number];
 
 export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
@@ -93,6 +93,28 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
       { key: "fromEmail", required: true },
     ],
     docsUrl: "https://resend.com/docs/dashboard/domains/introduction",
+  },
+  {
+    id: "google_signin",
+    kind: "sign_in",
+    platforms: [],
+    fields: [
+      { key: "clientId", required: true },
+      { key: "clientSecret", secret: true, required: true },
+    ],
+    docsUrl: "https://developers.google.com/identity/protocols/oauth2/web-server",
+  },
+  {
+    id: "apple_signin",
+    kind: "sign_in",
+    platforms: [],
+    fields: [
+      { key: "serviceId", required: true },
+      { key: "teamId", required: true },
+      { key: "keyId", required: true },
+      { key: "privateKey", secret: true, required: true },
+    ],
+    docsUrl: "https://developer.apple.com/documentation/sign_in_with_apple/configuring_your_environment_for_sign_in_with_apple",
   },
 ];
 

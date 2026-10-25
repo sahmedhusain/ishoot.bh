@@ -6,6 +6,8 @@ import type { IntegrationProviderId, SocialPlatformId } from "../constants/integ
  * contain credentials. Every call has a timeout; failures surface the provider's own message.
  */
 
+import { checkSignInCredentials } from "../services/oauth-signin";
+
 export type Credentials = Record<string, string>;
 
 export interface ConnectionCheck {
@@ -345,6 +347,7 @@ export async function checkConnection(provider: IntegrationProviderId, credentia
   try {
     if (provider === "whatsapp") return await checkWhatsApp(credentials);
     if (provider === "resend") return await checkResend(credentials);
+    if (provider === "google_signin" || provider === "apple_signin") return checkSignInCredentials(provider === "google_signin" ? "google" : "apple", credentials);
     const snapshot = await fetchSocialSnapshot(provider, credentials);
     return { ok: true, accountName: snapshot.accountName };
   } catch (error) {

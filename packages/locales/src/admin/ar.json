@@ -352,7 +352,8 @@
     "kinds": {
       "social": "التواصل الاجتماعي",
       "messaging": "المراسلة",
-      "email": "البريد الإلكتروني"
+      "email": "البريد الإلكتروني",
+      "sign_in": "تسجيل دخول العملاء"
     },
     "providers": {
       "meta": {
@@ -382,6 +383,14 @@
       "resend": {
         "name": "بريد Resend",
         "description": "إرسال الفواتير وعروض الأسعار والإشعارات، مع التحقق من توثيق نطاق المرسِل."
+      },
+      "google_signin": {
+        "name": "تسجيل الدخول بحساب Google",
+        "description": "يتيح للعملاء الدخول إلى المتجر بحساب Google. أضف عنوان الموقع /api/account/google/callback كعنوان إعادة توجيه مصرح به."
+      },
+      "apple_signin": {
+        "name": "تسجيل الدخول بحساب Apple",
+        "description": "يتيح للعملاء الدخول إلى المتجر بمعرّف Apple. سجّل عنوان الموقع /api/account/apple/callback كعنوان عودة لمعرّف الخدمات."
       }
     },
     "fields": {
@@ -396,7 +405,13 @@
       "username": "اسم المستخدم",
       "bearerToken": "رمز Bearer",
       "organizationId": "معرّف المؤسسة",
-      "fromEmail": "بريد المرسِل"
+      "fromEmail": "بريد المرسِل",
+      "clientId": "معرّف العميل",
+      "clientSecret": "سر العميل",
+      "serviceId": "معرّف الخدمات",
+      "teamId": "معرّف الفريق",
+      "keyId": "معرّف المفتاح",
+      "privateKey": "المفتاح الخاص (.p8)"
     },
     "status": {
       "healthy": "متصل",
@@ -5738,7 +5753,19 @@
       "procurementBillDuplicate": "سُجلت فاتورة بهذا الرقم من المورّد من قبل.",
       "procurementBillMismatch": "الفاتورة لا تطابق الأمر والمستلم. اذكر سببًا لاعتمادها رغم ذلك.",
       "procurementPaymentMethodInvalid": "اختر طريقة الدفع.",
-      "procurementOverpaid": "هذا أكثر من المتبقي على هذه الفاتورة."
+      "procurementOverpaid": "هذا أكثر من المتبقي على هذه الفاتورة.",
+      "customerAddressIncomplete": "أدخل الاسم والهاتف والعنوان والمدينة والدولة.",
+      "customerEmailInvalid": "أدخل بريدًا إلكترونيًا صحيحًا.",
+      "customerEmailTaken": "يوجد حساب بهذا البريد. سجّل الدخول بدلًا من ذلك.",
+      "customerItemMissing": "هذا العنصر لم يعد متاحًا.",
+      "customerNameRequired": "أدخل اسمك.",
+      "customerPasswordWeak": "استخدم كلمة مرور من 8 أحرف على الأقل.",
+      "customerProviderEmailMissing": "لم يشارك حسابك هناك بريدًا إلكترونيًا مؤكدًا.",
+      "customerSignInUnavailable": "تسجيل دخول العملاء غير مُعد في هذا الموقع.",
+      "signInGoogleClientId": "يجب أن ينتهي معرّف العميل بـ .apps.googleusercontent.com.",
+      "signInGoogleSecret": "أدخل سر العميل.",
+      "signInAppleKey": "تعذرت قراءة المفتاح الخاص؛ الصق ملف .p8 كاملًا.",
+      "signInAppleIds": "معرّف الفريق ومعرّف المفتاح من 10 أحرف وأرقام."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",

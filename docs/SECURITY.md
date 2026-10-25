@@ -44,6 +44,21 @@
   nofollow"`), images, tables and frames for the embed providers only; scripts, event handlers and other schemes
   are dropped. Code blocks and site code are previewed through the normal signed draft preview before publishing.
 
+## Customer accounts (online store)
+
+- Customers are a separate account type from staff (`Customer`); a customer session never opens the admin.
+- Passwords are bcrypt-hashed (cost 12); a missing account is compared against a fixed hash so response timing
+  does not reveal which e-mails exist. Sessions are random 256-bit tokens stored only as SHA-256 hashes, in an
+  HttpOnly, SameSite=Lax cookie, for 30 days.
+- E-mailed sign-in codes are six digits, stored hashed, valid 10 minutes, at most 5 attempts, one live code per
+  e-mail; sending is limited per e-mail and per address, as are password sign-ins and sign-ups.
+- Account API posts must come from the website's own origin.
+- Google and Apple use the authorization code flow with PKCE (S256), a random state and nonce kept in a signed,
+  10-minute cookie (`CUSTOMER_AUTH_SECRET`), and ID tokens verified against the provider's published keys,
+  audience, issuer, expiry and nonce. An existing account is linked only when the provider confirms the e-mail.
+- "Delete my account" removes sessions, addresses, wishlist, sign-in methods, name and e-mail; orders are kept
+  without the personal details.
+
 ## Data protection
 
 - Integration credentials (WhatsApp, Facebook and others) are encrypted with AES-256-GCM using `ENCRYPTION_KEY`.

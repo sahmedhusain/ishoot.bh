@@ -273,6 +273,7 @@ model PortfolioItem {
   isSample        Boolean            @default(false)
   /// The product this catalogue item shows; its price then comes from the product.
   product         Product?
+  wishlistItems   WishlistItem[]
 }
 
 model ClientLogo {
@@ -517,6 +518,8 @@ model CrmContact {
   purchaseOrders           PurchaseOrder[]
   rfqQuotes                RfqQuote[]
   supplierBills            SupplierBill[]
+  /// The website customer account this contact belongs to.
+  customer                 Customer?
 
   @@index([emailNorm])
   @@index([phoneE164])
@@ -3343,4 +3346,85 @@ model SupplierPayment {
   reference   String?
   createdById String?
   createdAt   DateTime     @default(now())
+}
+
+/// Someone who buys on the website. Separate from staff users: customers never reach the admin.
+model Customer {
+  id              String            @id @default(uuid())
+  /// Lower-case; unique among accounts that are not deleted.
+  email           String            @unique
+  name            String
+  phone           String?
+  /// bcrypt; empty for accounts that only use e-mailed codes or Google / Apple.
+  passwordHash    String?
+  emailVerifiedAt DateTime?
+  /// en | ar: the language of e-mails to this customer.
+  locale          String            @default("ar")
+  googleSub       String?           @unique
+  appleSub        String?           @unique
+  marketingOptIn  Boolean           @default(false)
+  /// The CRM contact for this customer (created or matched by e-mail at sign-up).
+  crmContactId    String?           @unique
+  crmContact      CrmContact?       @relation(fields: [crmContactId], references: [id], onDelete: SetNull)
+  sessions        CustomerSession[]
+  addresses       CustomerAddress[]
+  wishlist        WishlistItem[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model CustomerSession {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  /// SHA-256 of the cookie token; the token itself is never stored.
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+model CustomerAddress {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label      String?
+  name       String
+  phone      String
+  line1      String
+  line2      String?
+  area       String?
+  city       String
+  country    String
+  postalCode String?
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+/// A one-time sign-in code sent by e-mail (stored hashed, a few attempts, ten minutes).
+model CustomerAuthCode {
+  id        String    @id @default(uuid())
+  email     String
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, createdAt])
+}
+
+model WishlistItem {
+  id              String        @id @default(uuid())
+  customerId      String
+  customer        Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  catalogueItemId String
+  catalogueItem   PortfolioItem @relation(fields: [catalogueItemId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@unique([customerId, catalogueItemId])
 }

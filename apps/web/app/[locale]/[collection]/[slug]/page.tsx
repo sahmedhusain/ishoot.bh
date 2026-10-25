@@ -9,6 +9,9 @@ import { collectionHref, formatPrice } from "../../../../lib/site-copy";
 import { publicSiteUrl } from "../../../../lib/site-url";
 import { ArticleView, liveArticles } from "../../../../components/articles/ArticleViews";
 import { isWebsitePreview } from "../../../../lib/website";
+import { db } from "@platform/database";
+import { currentCustomer, storeEnabled } from "../../../../lib/customer";
+import { WishlistButton } from "../../../../components/account/WishlistButton";
 
 /** One catalogue item: a project, product, property, dish, program… shown with the details its activity uses. */
 export default async function CollectionItemPage({
@@ -36,6 +39,11 @@ export default async function CollectionItemPage({
   const isRTL = locale === "ar";
 
   const item = website.portfolio.find((project) => project.slug === slug);
+  // With the online store on, items can be saved to the customer's wishlist.
+  const customer = item && (await storeEnabled()) ? { signedIn: true, profile: await currentCustomer() } : null;
+  const store = customer
+    ? { signedIn: !!customer.profile, saved: !!customer.profile && !!(await db.wishlistItem.findUnique({ where: { customerId_catalogueItemId: { customerId: customer.profile.id, catalogueItemId: item!.id } }, select: { id: true } })) }
+    : null;
 
   if (!item) {
     notFound();
@@ -82,6 +90,7 @@ export default async function CollectionItemPage({
         ) : null}
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-display">{title}</h1>
         {subtitle ? <p className="max-w-3xl text-lg text-ink-muted">{subtitle}</p> : null}
+        {store ? <WishlistButton itemId={item.id} initiallySaved={store.saved} signedIn={store.signedIn} next={`/${locale}/${collection}/${slug}`} /> : null}
       </Reveal>
 
       <Reveal className={`relative w-full overflow-hidden rounded-brand bg-black ${layout === "product" ? "aspect-[4/3] sm:aspect-[16/9]" : "aspect-video"}`}>

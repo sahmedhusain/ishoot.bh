@@ -32,7 +32,7 @@ import { SettingsNavTabs } from "./SettingsNavTabs";
 import { CalendarSyncCard } from "./CalendarSyncCard";
 import type { CalendarLayer } from "@platform/database/types";
 
-const KINDS: IntegrationKind[] = ["social", "messaging", "email"];
+const KINDS: IntegrationKind[] = ["social", "messaging", "email", "sign_in"];
 
 const fieldClass =
   "w-full min-w-0 rounded-lg border border-ink/15 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/40";
