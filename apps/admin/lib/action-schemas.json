@@ -3635,6 +3635,48 @@
       }
     }
   },
+  "checkDomainAction": {
+    "kind": "object",
+    "fields": {
+      "kind": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "website"
+          },
+          {
+            "kind": "literal",
+            "value": "admin"
+          }
+        ],
+        "optional": false
+      },
+      "domain": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveDomainsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "websiteDomain": {
+            "kind": "string",
+            "optional": false
+          },
+          "adminDomain": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "updateEmployeeIdentityAction": {
     "kind": "object",
     "fields": {
@@ -8834,6 +8876,14 @@
             "optional": true
           },
           "map_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "website_domain": {
+            "kind": "string",
+            "optional": true
+          },
+          "admin_domain": {
             "kind": "string",
             "optional": true
           },

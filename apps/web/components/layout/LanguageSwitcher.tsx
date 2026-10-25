@@ -19,6 +19,7 @@ export function LanguageSwitcher() {
   return (
     <Link
       href={targetPathname}
+      hrefLang={targetLocale}
       className="inline-flex min-h-11 items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-white/90 hover:text-white bg-tone-5/85 hover:bg-tone-5 border border-white/20 transition-colors duration-150"
       title={t("nav.switchLang")}
     >

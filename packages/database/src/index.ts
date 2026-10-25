@@ -55,6 +55,7 @@ export * from "./observability";
 export * from "./services/email-outbox";
 export * from "./services/revalidation-outbox";
 export * from "./services/storage";
+export * from "./services/installation";
 export * from "./services/sample-files";
 export type { Prisma } from "@prisma/client";
 export * from "./services/maintenance";

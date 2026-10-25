@@ -72,6 +72,7 @@ export default async function SetupPage() {
         paymentTermsDays: company.payment_terms_days,
         modules: toggles.map((m) => ({ moduleKey: m.moduleKey, isEnabled: m.isEnabled })),
       }}
+      domains={{ websiteDomain: company.website_domain ?? "", adminDomain: company.admin_domain ?? "" }}
       website={{ enabled: toggles.find((m) => m.moduleKey === "cms")?.isEnabled !== false, config: websiteConfig }}
       modules={toggles.map((m) => ({ moduleKey: m.moduleKey, nameEn: m.nameEn, nameAr: m.nameAr }))}
     />

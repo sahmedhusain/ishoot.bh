@@ -208,3 +208,32 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
 - Forward-only auto-advance and the integrity rule "deal stage is not behind its documents" now use the
   company's stage order.
 - Decision: custom stages are always "open"; only the built-in won and lost stages close a deal.
+
+### Phase 1b: link and attachment audit (done)
+
+- `tests/e2e/crawl.ts` with `specs/admin/links.spec.ts` and `specs/web/links.spec.ts`: a breadth-first crawler
+  (two pages per route pattern) that fails on error statuses, crash and not-found pages, broken images, failed
+  page requests, downloads that answer with a page or nothing, new-tab links without `rel="noreferrer"`, and, on
+  the website, links without a language or into the other language. The sitemap's addresses must all answer.
+- Attachments: every file the company archive lists downloads for the administrator; a visitor without a
+  session gets nothing that is not public; a viewer can open exactly the files their archive lists and is refused
+  the rest; files linked from client, deal, invoice, payment, expense and employee pages are in the archive.
+- Found and fixed: the language switcher had no `hreflang` (now marked, so crawlers and screen readers know it
+  leaves the page's language); password-reset emails pointed at port 3000 (the website) when `ADMIN_APP_URL` was
+  unset, and put the person's name into the HTML unescaped.
+- Test note: Playwright API contexts created inside a project inherit its signed-in `storageState`, so the
+  "visitor" check passes an explicit empty session. A new disposable `viewer` account was added to
+  `tests/e2e/fixtures/users.json`.
+
+### Phase 1c: domains (done)
+
+- `CompanySetting.websiteDomain` / `adminDomain` (migration `20261026110000_company_domains`), normalised by
+  `constants/domains.ts` (host names only: no IP, port, credentials or localhost).
+- Used for the website's canonical URL, sitemap and metadata (`publicSiteUrl`), and the admin's public origin
+  (password reset, signing, calendar feeds, PDFs). `WEB_URL` / `ADMIN_URL` still win.
+- Settings → Website and the wizard's Website step show a Domains card with the DNS records for Vercel or an
+  own server and a **Check domain** button. `/api/health` on both apps answers with the app and a hash of the
+  company id; the check refuses private addresses, uses https only, no redirects, 8-second timeout
+  (documented in `docs/SECURITY.md` and `docs/OPERATIONS.md`).
+- Emails do not link to the website today (the brand email layout's website field is unused), so nothing else
+  needed changing there.

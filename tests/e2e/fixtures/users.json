@@ -1,4 +1,15 @@
 {
   "_note": "Disposable test-only accounts for local and CI end-to-end runs. Never reuse these values anywhere real.",
-  "admin": { "email": "e2e-admin@example.test", "password": "e2e-NWZfb3wTSf-sbCGnegvjvgKk", "fullName": "E2E Admin", "role": "super_admin" }
+  "admin": {
+    "email": "e2e-admin@example.test",
+    "password": "e2e-NWZfb3wTSf-sbCGnegvjvgKk",
+    "fullName": "E2E Admin",
+    "role": "super_admin"
+  },
+  "viewer": {
+    "email": "e2e-viewer@example.test",
+    "password": "e2e-JaWtbvSxiOsEeSilznx1_6j7",
+    "fullName": "E2E Viewer",
+    "role": "viewer"
+  }
 }

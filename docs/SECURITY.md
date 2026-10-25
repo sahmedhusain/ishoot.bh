@@ -20,6 +20,12 @@
 - The last active Super Admin cannot be suspended, archived or deleted.
 - Files are served only to people allowed to see the record they belong to. Public brand files (logos, icons, fonts) are the only public uploads.
 
+- **Check domain** (Settings → Website) is the only place the server fetches an address someone typed. It needs
+  `settings:edit`, accepts only a plain host name (no IP literal, port, credentials or `localhost`), resolves it and
+  refuses private, loopback and link-local addresses, fetches only `https://<host>/api/health` with an 8-second
+  timeout and no redirects, and reports a state, never the response body. `/api/health` returns the app name and a
+  hash of the company record's id, nothing else.
+
 ## Data protection
 
 - Integration credentials (WhatsApp, Facebook and others) are encrypted with AES-256-GCM using `ENCRYPTION_KEY`.

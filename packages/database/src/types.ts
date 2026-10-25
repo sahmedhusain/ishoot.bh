@@ -115,6 +115,10 @@ export interface CompanySettings {
   city?: string;
   country?: string;
   map_url?: string;
+  /** The public website's domain, without https:// ("example.com"). */
+  website_domain?: string;
+  /** The admin's own domain, if any ("admin.example.com"). */
+  admin_domain?: string;
   company_name_en: string;
   company_name_ar: string;
   cr_number: string;
@@ -1071,6 +1075,7 @@ export type PublicCompanySettings = Pick<
   | "city"
   | "country"
   | "map_url"
+  | "website_domain"
   | "default_currency"
   | "company_name_en"
   | "company_name_ar"

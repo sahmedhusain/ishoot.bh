@@ -5,6 +5,7 @@ import { db } from "../db";
 import { CONTENT_LANGUAGES, mirrorBilingual, normalizeLanguages, normalizePrimaryLanguage } from "../constants/languages";
 import { isBusinessActivity } from "../website-presets";
 import { safeWebsiteUrl } from "../website-config";
+import { normalizeDomain } from "../constants/domains";
 import { CompanySettings, SupportedCurrency } from "../types";
 
 function mapSettings(s: any): CompanySettings {
@@ -76,6 +77,8 @@ function mapSettings(s: any): CompanySettings {
     city: s.city || undefined,
     country: s.country || undefined,
     map_url: s.mapUrl || undefined,
+    website_domain: s.websiteDomain || undefined,
+    admin_domain: s.adminDomain || undefined,
     updated_at: s.updatedAt.toISOString(),
   };
 }
@@ -99,6 +102,7 @@ export async function updateCompanySettings(
   if (input.founded_year !== undefined && input.founded_year !== null && !(Number.isInteger(input.founded_year) && input.founded_year >= 1800 && input.founded_year <= new Date().getFullYear()))
     throw new Error(serverMessages.invalidFoundedYear);
   if (input.map_url && !/^https?:\/\//.test(safeWebsiteUrl(input.map_url))) throw new Error(serverMessages.invalidMapLink);
+  for (const value of [input.website_domain, input.admin_domain]) if (value && !normalizeDomain(value)) throw new Error(serverMessages.invalidDomain);
   // A company writing in one language gets the same text on both sides of every pair it saves.
   const stored = await db.companySetting.findUnique({ where: { singleton: 1 }, select: { contentLanguages: true } });
   const languages = normalizeLanguages(input.content_languages ?? stored?.contentLanguages);
@@ -191,6 +195,8 @@ export async function updateCompanySettings(
       city: updates.city,
       country: updates.country,
       mapUrl: updates.map_url,
+      websiteDomain: updates.website_domain === undefined ? undefined : normalizeDomain(updates.website_domain) || null,
+      adminDomain: updates.admin_domain === undefined ? undefined : normalizeDomain(updates.admin_domain) || null,
     },
   });
   return mapSettings(updated);

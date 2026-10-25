@@ -5637,7 +5637,9 @@
       "dealStageInvalid": "This stage is not part of the sales pipeline.",
       "dealStageNameRequired": "Give the new stage a name.",
       "dealStageSystemRequired": "The locked stages must stay in the pipeline.",
-      "dealStageInUse": "A stage that still holds deals cannot be removed or switched off. Move its deals first."
+      "dealStageInUse": "A stage that still holds deals cannot be removed or switched off. Move its deals first.",
+      "invalidDomain": "Enter a domain name only, such as example.com.",
+      "domainsMustDiffer": "The website and the admin need different domains."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -8278,5 +8280,35 @@
     "addCustom": "A stage of my own",
     "add": "Add",
     "customize": "Customize stages"
+  },
+  "domains": {
+    "title": "Domains",
+    "subtitle": "The address of your public website and, if you want one, of this admin. Links in emails, invoices, quotations, the sitemap and search results use them. The app never changes your DNS: add the records below at your domain registrar.",
+    "websiteLabel": "Website domain",
+    "websitePlaceholder": "example.com",
+    "websiteHint": "For example example.com or www.example.com.",
+    "adminLabel": "Admin domain (optional)",
+    "adminPlaceholder": "admin.example.com",
+    "adminHint": "Leave empty to keep using the address you open the admin on now.",
+    "invalid": "Enter a domain name only, such as example.com.",
+    "save": "Save domains",
+    "saving": "Saving…",
+    "saved": "Domains saved.",
+    "check": "Check domain",
+    "dnsIntro": "Add one of these records where you bought the domain. Changes can take up to 48 hours to reach everyone.",
+    "hosting": "Hosting",
+    "type": "Type",
+    "name": "Name",
+    "value": "Value",
+    "hostingVercel": "Vercel",
+    "hostingServer": "Your own server",
+    "serverAddress": "Your server's IP address",
+    "result": {
+      "connected": "Connected: the domain reaches this installation.",
+      "other": "The domain answers, but not as this installation (status {status}). Check the DNS records and the hosting settings.",
+      "unreachable": "The domain cannot be reached yet. If you just added the DNS records, try again later.",
+      "private": "The domain points at a private address, so it cannot be checked from here."
+    },
+    "scheme": "https://"
   }
 }

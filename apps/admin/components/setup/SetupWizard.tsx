@@ -1,4 +1,5 @@
 "use client";
+import { DomainSettingsCard } from "../settings/DomainSettingsCard";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -38,6 +39,8 @@ export interface SetupWizardProps {
   assets: Record<AssetSlot, string>;
   config: SetupConfigInput;
   website: { enabled: boolean; config: ResolvedWebsiteConfig };
+  /** The saved website and admin domains (the domain card saves them itself). */
+  domains: { websiteDomain: string; adminDomain: string };
   modules: { moduleKey: string; nameEn: string; nameAr: string }[];
 }
 
@@ -434,6 +437,7 @@ export function SetupWizard(props: SetupWizardProps) {
                     companyActivity={activity}
                     hasWhatsapp={!!company.whatsappPhone?.trim()}
                   />
+                  <DomainSettingsCard compact canEdit initialWebsiteDomain={props.domains.websiteDomain} initialAdminDomain={props.domains.adminDomain} />
                   <label className="flex items-start gap-3 rounded-xl border border-accent/40 bg-accent/[0.06] p-4 text-sm text-slate-800 dark:text-slate-100">
                     <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={publishWebsite} onChange={(e) => setPublishWebsite(e.target.checked)} />
                     <span>

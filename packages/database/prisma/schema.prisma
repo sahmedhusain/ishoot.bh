@@ -184,6 +184,10 @@ model CompanySetting {
   country                      String?
   /// Map link shown on the contact page.
   mapUrl                       String?
+  /// The public website's domain ("example.com"); WEB_URL wins when set.
+  websiteDomain                String?
+  /// The admin's own domain, if it has one ("admin.example.com"); ADMIN_URL wins when set.
+  adminDomain                  String?
 }
 
 model CompanyAsset {
