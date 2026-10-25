@@ -234,6 +234,7 @@ export function ClientAutocomplete({
           <Link
             href={ROUTES.crm.customer(selectedContact.id)}
             target="_blank"
+                  rel="noopener noreferrer"
             className="text-accent hover:underline inline-flex items-center gap-1 text-[11px] font-medium"
           >
             <span>{t.crm.viewDossier}</span>

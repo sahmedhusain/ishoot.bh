@@ -130,7 +130,8 @@ export function DomainSettingsCard({ initialWebsiteDomain, initialAdminDomain, c
       <div className="flex items-start gap-3">
         <Globe className="w-5 h-5 text-accent shrink-0 mt-0.5" />
         <div>
-          <h2 className="font-bold text-ink">{copy.title}</h2>
+          {/* Inside the wizard the step title is the page's h2. */}
+          {compact ? <h3 className="font-bold text-ink">{copy.title}</h3> : <h2 className="font-bold text-ink">{copy.title}</h2>}
           <p className="text-xs text-ink-muted mt-1 leading-relaxed">{copy.subtitle}</p>
         </div>
       </div>

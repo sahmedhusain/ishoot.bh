@@ -192,6 +192,7 @@ export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFor
                     href={ROUTES.crm.customer(selectedContact.id)}
                     className="text-[11px] text-primary dark:text-accent hover:underline font-semibold flex items-center gap-1"
                     target="_blank"
+                  rel="noopener noreferrer"
                   >
                     <span>{t.crm.customerDossier}</span>
                     <ExternalLink className="w-3.5 h-3.5" />

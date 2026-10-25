@@ -402,6 +402,7 @@ export function NewInvoiceFormView({
               <Link
                 href={ROUTES.crm.customer(selectedContact.id)}
                 target="_blank"
+                  rel="noopener noreferrer"
                 className="text-xs text-accent hover:underline flex items-center gap-1 font-semibold"
               >
                 <span>{t.invoiceForm.clientProfile}</span>
