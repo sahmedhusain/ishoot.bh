@@ -1,3 +1,4 @@
+import { slaDueFor } from "../services/service-sla";
 import { serverMessages } from "@platform/locales";
 import type { Prisma } from "@prisma/client";
 import { db, runAtomicMutation } from "../db";
@@ -64,7 +65,7 @@ export async function createConsolidatedRequest(
         team: data.team || null,
         assignedToId: data.assignedToId || null,
         customerId: data.customerId || null,
-        slaDueDate: data.slaDueDate || null,
+        slaDueDate: data.slaDueDate || (await slaDueFor(data.priority, new Date(), tx)),
         workflowStatus: data.assignedToId ? "assigned" : "received",
       },
       include: {

@@ -821,7 +821,9 @@
       "deliverySlotRequired": "اختر وقت التوصيل.",
       "deliverySlotUnavailable": "لم يعد وقت التوصيل هذا متاحًا. اختر وقتًا آخر.",
       "deliveryNotCovered": "لا نوصل إلى هذه المنطقة بعد.",
-      "deliveryBelowMinimum": "قيمة طلبك أقل من الحد الأدنى للتوصيل إلى هذه المنطقة."
+      "deliveryBelowMinimum": "قيمة طلبك أقل من الحد الأدنى للتوصيل إلى هذه المنطقة.",
+      "serviceReplyEmpty": "أخبرنا بمزيد من التفاصيل أولًا.",
+      "requestNotFound": "لم نعثر على هذا الطلب."
     },
     "codeEmail": {
       "subject": "رمز تسجيل الدخول",
@@ -831,6 +833,15 @@
     "languages": {
       "ar": "العربية",
       "en": "English"
+    },
+    "help": {
+      "open": "احصل على مساعدة بخصوص هذا الطلب",
+      "question": "لدي سؤال",
+      "problem": "هناك مشكلة",
+      "message": "أخبرنا بما تحتاجه",
+      "send": "أرسل",
+      "cancel": "إلغاء",
+      "sent": "شكرًا لك. طلبك {reference} لدى فريقنا."
     }
   },
   "store": {

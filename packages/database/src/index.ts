@@ -130,3 +130,4 @@ export * from "./queries/couriers";
 export { isApiCourier } from "./couriers/adapters";
 export * from "./constants/tasks";
 export * from "./queries/tasks";
+export * from "./queries/service-desk";

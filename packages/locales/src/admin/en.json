@@ -5877,7 +5877,13 @@
       "taskAssignNotAllowed": "You can give tasks only to yourself. Ask a manager to assign it to someone else.",
       "taskNotFound": "That task is not there or not yours to see.",
       "taskCommentEmpty": "Write a comment first.",
-      "projectInvalid": "A project needs a name, a status and a colour."
+      "projectInvalid": "A project needs a name, a status and a colour.",
+      "serviceSlaInvalid": "Resolution times are whole hours: up to 720 for urgent and high, 2160 for normal.",
+      "cannedReplyInvalid": "A saved reply needs a title and its text.",
+      "serviceReplyEmpty": "Write the reply first.",
+      "serviceReplyNoEmail": "This request has no e-mail address to reply to.",
+      "serviceReplyNoPhone": "This request has no phone number for WhatsApp.",
+      "serviceReplyNotSent": "The e-mail could not be sent, so the reply was not saved. Check the e-mail settings or reply by WhatsApp."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -10260,6 +10266,53 @@
         "title": "Due soon: {title}",
         "message": "{number} \"{title}\" is due {date}."
       }
+    }
+  },
+  "serviceDesk": {
+    "nav": "Service settings",
+    "reply": {
+      "title": "Reply to the customer",
+      "saved": "Saved replies",
+      "pick": "Insert a saved reply",
+      "placeholder": "Write your reply",
+      "email": "Send by e-mail",
+      "whatsapp": "Send by WhatsApp",
+      "sent": "Reply sent.",
+      "queued": "Reply queued for e-mail.",
+      "openWhatsapp": "WhatsApp is not connected: send it from the chat that just opened.",
+      "history": "Replies",
+      "noHistory": "No replies yet.",
+      "via": {
+        "email": "E-mail",
+        "whatsapp": "WhatsApp"
+      },
+      "order": "Order {number}"
+    },
+    "settings": {
+      "title": "Service settings",
+      "subtitle": "How fast requests should be resolved, and the replies your team uses most.",
+      "sla": "Resolution time (hours)",
+      "urgent": "Urgent",
+      "high": "High",
+      "normal": "Normal",
+      "slaHint": "New requests get a due time from their priority; staff can still change it.",
+      "save": "Save times",
+      "saved": "Saved.",
+      "replies": "Saved replies",
+      "addReply": "Add saved reply",
+      "replyTitle": "Title",
+      "replyBody": "Text",
+      "active": "In use",
+      "inactive": "Not in use",
+      "saveReply": "Save reply",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "noReplies": "No saved replies yet."
+    },
+    "orderRequests": "Customer requests",
+    "email": {
+      "subject": "{company}: about your request {reference}",
+      "greeting": "Hello {name},"
     }
   }
 }

@@ -10416,6 +10416,83 @@
       }
     }
   },
+  "replyToRequestAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "channel": {
+            "kind": "string",
+            "optional": false
+          },
+          "body": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveServiceSettingsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "urgent": {
+            "kind": "string",
+            "optional": false
+          },
+          "high": {
+            "kind": "string",
+            "optional": false
+          },
+          "normal": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveCannedReplyAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "bodyEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "bodyAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "createServiceAction": {
     "kind": "object",
     "fields": {

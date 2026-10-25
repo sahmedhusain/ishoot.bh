@@ -15,6 +15,7 @@ import {
   Package,
   FolderTree,
   ShoppingBag,
+  Timer,
   ListTodo,
   FolderKanban,
   MapPinned,
@@ -185,6 +186,14 @@ export function Sidebar() {
             label: t.requestInbox.title,
             icon: ShieldAlert,
             resource: "requests",
+            moduleKey: "crm_deals",
+          },
+          {
+            href: ROUTES.requests.settings,
+            label: t.serviceDesk.nav,
+            icon: Timer,
+            resource: "requests",
+            action: "edit",
             moduleKey: "crm_deals",
           },
           {

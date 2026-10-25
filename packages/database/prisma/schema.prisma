@@ -349,6 +349,9 @@ model Inquiry {
   mergeFlag              Boolean               @default(false)
   requestType            String                @default("inquiry") // "SR", "CR", "inquiry", "quote_request"
   slaDueDate             DateTime?
+  /// The store order the customer is asking about.
+  orderId                String?
+  order                  SalesOrder?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
   createdAt              DateTime              @default(now())
   quotations             Quotation[]
   communicationThreads   CommunicationThread[]
@@ -363,6 +366,7 @@ model Inquiry {
   @@index([emailNorm])
   @@index([phoneE164])
   @@index([workflowStatus, createdAt])
+  @@index([orderId])
 }
 
 model InquiryNote {
@@ -1613,6 +1617,8 @@ model RequestComment {
   author          User     @relation("RequestCommentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
   body            String   @db.Text
   isClientVisible Boolean  @default(false)
+  /// For replies sent to the customer: email | whatsapp.
+  channel         String?
   attachments     Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -3554,6 +3560,7 @@ model SalesOrder {
   events          SalesOrderEvent[]
   paymentAttempts PaymentAttempt[]
   shipments       Shipment[]
+  inquiries       Inquiry[]
   updatedAt       DateTime          @updatedAt
 
   @@index([status])
@@ -3891,4 +3898,25 @@ model TaskComment {
   createdAt DateTime @default(now())
 
   @@index([taskId, createdAt])
+}
+
+/// How fast the service desk answers: resolution time by priority.
+model ServiceSettings {
+  id             String   @id @default("default")
+  slaUrgentHours Int      @default(4)
+  slaHighHours   Int      @default(24)
+  slaNormalHours Int      @default(72)
+  updatedAt      DateTime @updatedAt
+}
+
+/// A saved answer staff can drop into a reply, in each content language.
+model CannedReply {
+  id        String   @id @default(uuid())
+  title     String
+  bodyEn    String   @db.Text
+  bodyAr    String   @db.Text
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

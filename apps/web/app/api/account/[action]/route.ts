@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { getWebsiteTranslations, formatMessage } from "@platform/locales";
 import {
   consumeAbuseLimit,
+  createOrderHelpRequest,
   createCustomerSession,
   customerFromSession,
   deleteCustomerAccount,
@@ -98,6 +99,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ action
           return NextResponse.json({ success: true });
         case "wishlist":
           return NextResponse.json({ success: true, saved: await toggleWishlist(customer.id, str(body.itemId, 60)) });
+        case "order-help": {
+          // A question or a problem about one of the customer's own orders goes to the service desk.
+          await consumeAbuseLimit("customer-order-help", customer.id, 5, 3600);
+          const result = await createOrderHelpRequest({ id: customer.id, name: customer.name, email: customer.email, phone: customer.phone }, { orderId: str(body.orderId, 60), kind: body.kind === "problem" ? "problem" : "question", message: str(body.message, 5000), locale: str(body.locale, 2) === "en" ? "en" : "ar" });
+          return NextResponse.json({ success: true, reference: result.reference });
+        }
         case "delete": {
           if (normalizeCustomerEmail(str(body.confirmEmail, 254)) !== customer.email) return NextResponse.json({ error: "confirm_email" }, { status: 400 });
           await deleteCustomerAccount(customer.id);

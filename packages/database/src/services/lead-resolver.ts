@@ -1,3 +1,4 @@
+import { slaDueFor } from "./service-sla";
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
 import { referencePrefixFor } from "../constants/requests";
@@ -38,6 +39,9 @@ export interface ResolveLeadInput {
   serviceIds?: string[];
   projectReference?: string;
   location?: string;
+  /** The store order the customer is asking about (their own, checked by the caller). */
+  orderId?: string;
+  priority?: "urgent" | "high" | "normal";
 }
 
 export interface ResolvedLeadResult {
@@ -150,6 +154,10 @@ export async function resolveIncomingLead(
         notificationStatus: "pending",
         mergeFlag: resolution === "merge_conflict",
         customerId,
+        orderId: data.orderId || null,
+        priority: data.priority || "normal",
+        // Every request starts with the service desk's promised resolution time for its priority.
+        slaDueDate: await slaDueFor(data.priority, new Date(), tx),
       },
     });
     return {

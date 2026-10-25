@@ -821,7 +821,9 @@
       "deliverySlotRequired": "Choose a delivery time.",
       "deliverySlotUnavailable": "That delivery time is no longer available. Please choose another.",
       "deliveryNotCovered": "We do not deliver to that area yet.",
-      "deliveryBelowMinimum": "Your order is below the minimum for delivery to that area."
+      "deliveryBelowMinimum": "Your order is below the minimum for delivery to that area.",
+      "serviceReplyEmpty": "Tell us a little more first.",
+      "requestNotFound": "We could not find that order."
     },
     "codeEmail": {
       "subject": "Your sign-in code",
@@ -831,6 +833,15 @@
     "languages": {
       "ar": "العربية",
       "en": "English"
+    },
+    "help": {
+      "open": "Get help with this order",
+      "question": "I have a question",
+      "problem": "Something is wrong",
+      "message": "Tell us what you need",
+      "send": "Send",
+      "cancel": "Cancel",
+      "sent": "Thank you. Your request {reference} is with our team."
     }
   },
   "store": {

@@ -666,3 +666,22 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
 - Tested: unit (due buckets, progress, defaults for every working role, copy); e2e (a manager creates a project
   and assigns a task, the assignee is notified, sees it in My tasks, comments, finishes it and the asker is told;
   without the assign right the only assignee choice is oneself); navigation crawl with the new pages.
+
+### Phase 8b: customer service on the existing request desk (done)
+
+- The request desk (website inquiries, service requests, complaints with assignment, workflow and SLA dates)
+  already covered most of customer service, so this extends it rather than adding a second ticket system.
+- Migration `20261027050000_service_desk`: `ServiceSettings` (resolution hours for urgent / high / normal),
+  `CannedReply` (title and text in each content language), `Inquiry.orderId`, and `RequestComment.channel`.
+- Every new request gets a due time from its priority (website inquiries through the lead resolver, and staff
+  requests when no date is given); staff can still change it.
+- Request page: "Reply to the customer" with saved replies inserted in the customer's language, sent by e-mail
+  (through the mailer; if it cannot be sent, nothing is recorded and the agent is told) or by WhatsApp (through
+  the WhatsApp integration when on, otherwise the reply is kept and a wa.me chat opens for the agent). Replies are
+  kept as customer-visible comments and move a new request to "under review". The linked order is shown.
+- Requests → Service settings: resolution times and saved replies. The order page lists requests about it.
+- Website: in the account, each order has "Get help with this order" (a question, or a problem raised as a
+  high-priority complaint), linked to the order; rate-limited per customer.
+- Tested: e2e (a customer reports a damaged order from their account → complaint, high priority, due in 24 hours,
+  linked to the order; staff save a reply, insert it, the e-mail reply is refused without a mail service and not
+  stored, the WhatsApp reply is stored and opens the chat, and the order lists the request).

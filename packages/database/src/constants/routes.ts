@@ -241,6 +241,7 @@ export const ROUTES = {
     list: "/dashboard/requests",
     detail: (id: string) => `/dashboard/requests/${encode(id)}`,
     create: "/dashboard/requests/new",
+    settings: "/dashboard/requests/settings",
   },
   settings: {
     root: "/dashboard/settings",

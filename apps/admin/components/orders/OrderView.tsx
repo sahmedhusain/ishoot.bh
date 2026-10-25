@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Copy, CreditCard, Link2, Loader2 } from "lucide-react";
 import { Button, Card, CurrencyDisplay, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
-import type { OrderRecord, orderPaymentAttempts } from "@platform/database";
+import type { OrderRecord, orderPaymentAttempts, requestsForOrder } from "@platform/database";
 import { ORDER_TRANSITIONS, type OrderStatus } from "@platform/database/constants/store";
 import { ROUTES } from "../../constants/routes";
 import { addOrderNoteAction, issueOrderInvoiceAction, moveOrderAction, recordOrderPaymentAction, recordOrderRefundAction } from "../../app/actions/orders";
@@ -17,8 +17,9 @@ import { OrderStatusPill, PaymentStatusPill } from "./OrderPills";
 
 /** One order: who and where, the items and totals, moving it along, payments, refunds, invoice and history. */
 type Attempt = Awaited<ReturnType<typeof orderPaymentAttempts>>[number];
+type OrderRequest = Awaited<ReturnType<typeof requestsForOrder>>[number];
 
-export function OrderView({ order, attempts, paymentLink, rights }: { order: OrderRecord; attempts: Attempt[]; paymentLink: string; rights: { edit: boolean; refund: boolean; invoice: boolean } }) {
+export function OrderView({ order, attempts, requests, paymentLink, rights }: { order: OrderRecord; attempts: Attempt[]; requests: OrderRequest[]; paymentLink: string; rights: { edit: boolean; refund: boolean; invoice: boolean } }) {
   const { t, locale } = useAdminLocale();
   const copy = t.orders.detail;
   const router = useRouter();
@@ -180,6 +181,20 @@ export function OrderView({ order, attempts, paymentLink, rights }: { order: Ord
                 {a.amount_refunded > 0 && <span className="text-xs text-ink-muted">{copy.refunded} {money(a.amount_refunded)}</span>}
                 <span className="font-mono text-xs text-ink-muted" dir="ltr">{a.reference}</span>
                 <span className="ms-auto text-xs text-ink-muted">{formatDate(a.created_at, locale, "time")}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      {requests.length > 0 && (
+        <Card className="p-5 space-y-3" data-testid="order-requests">
+          <h2 className="font-bold text-ink">{t.serviceDesk.orderRequests}</h2>
+          <ul className="divide-y divide-ink/10 text-sm">
+            {requests.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
+                <Link href={ROUTES.requests.detail(r.id)} className="font-mono text-xs font-semibold hover:text-accent" dir="ltr">{r.reference}</Link>
+                <span className="text-xs text-ink-muted">{formatDate(r.created_at, locale, "time")}</span>
               </li>
             ))}
           </ul>

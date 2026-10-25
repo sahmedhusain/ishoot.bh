@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { requireRecordInScope } from "../../../../lib/data-scope";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { getConsolidatedRequestById, db, findPendingApproval, canDecideApproval } from "@platform/database";
+import { getConsolidatedRequestById, db, findPendingApproval, canDecideApproval, listCannedReplies, requestReplies } from "@platform/database";
+import { ServiceReplyPanel } from "../../../../components/requests/ServiceReplyPanel";
 import { RequestDetailView } from "../../../../components/requests/RequestDetailView";
 
 export const dynamic = "force-dynamic";
@@ -39,13 +40,24 @@ export default async function RequestDetailPage({
     department: u.department,
   }));
 
+  // Replying to the customer, and the order the request is about.
+  const [contact, replies, cannedReplies, canReply] = await Promise.all([
+    db.inquiry.findUnique({ where: { id }, select: { email: true, phone: true, phoneE164: true, locale: true, order: { select: { id: true, number: true } } } }),
+    requestReplies(id),
+    listCannedReplies(true),
+    hasPermission("requests", "edit"),
+  ]);
+
   return (
-    <RequestDetailView
-      request={request}
-      users={userList}
-      currentUserId={currentUser.id}
-      canDecideApproval={!!pendingApproval && canDecideApproval(pendingApproval, currentUser)}
-      canSell={leadsWrite && contactsWrite && dealsWrite}
-    />
+    <div className="space-y-6">
+      <RequestDetailView
+        request={request}
+        users={userList}
+        currentUserId={currentUser.id}
+        canDecideApproval={!!pendingApproval && canDecideApproval(pendingApproval, currentUser)}
+        canSell={leadsWrite && contactsWrite && dealsWrite}
+      />
+      <ServiceReplyPanel requestId={id} customerLocale={contact?.locale ?? "ar"} hasEmail={!!contact?.email} hasPhone={!!(contact?.phoneE164 || contact?.phone)} order={contact?.order ?? null} replies={replies} cannedReplies={cannedReplies} canReply={canReply} />
+    </div>
   );
 }

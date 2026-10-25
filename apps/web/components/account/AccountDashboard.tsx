@@ -144,13 +144,14 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
           ) : (
             <ul className="divide-y divide-white/10" data-testid="account-orders">
               {orders.map((o) => (
-                <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
+                <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm" data-testid={`account-order-${o.number}`}>
                   <span className="font-mono text-xs font-semibold text-white" dir="ltr">{o.number}</span>
                   <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs">{t(`store.statuses.${o.status}`)}</span>
                   <span className="text-ink-muted">{new Date(o.placed_at).toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}</span>
                   <span className="text-ink-muted">{t("store.orderItems", { count: o.lines.reduce((sum, l) => sum + l.quantity, 0) })}</span>
                   {o.tracking_token && <Link href={`/${locale}/track/${o.tracking_token}`} className="text-xs font-semibold text-[var(--web-accent)] hover:underline">{t("store.track")}</Link>}
                   <span className="ms-auto font-semibold text-white">{formatPrice(o.total, o.currency, locale)}</span>
+                  <OrderHelp orderId={o.id} locale={locale} />
                 </li>
               ))}
             </ul>
@@ -184,6 +185,49 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
           {note("delete")}
           <button type="button" className={`${secondaryButton} border-rose-500/40 text-rose-300`} disabled={!!busy || !confirmEmail} onClick={() => run("delete", () => accountPost("delete", { confirmEmail }))} data-testid="account-delete">{t("account.delete")}</button>
         </section>
+      </div>
+    </div>
+  );
+}
+
+/** A question or a problem about one order, sent to the service desk with the order attached. */
+function OrderHelp({ orderId, locale }: { orderId: string; locale: string }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = React.useState(false);
+  const [kind, setKind] = React.useState<"question" | "problem">("question");
+  const [message, setMessage] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const [sent, setSent] = React.useState("");
+  const [error, setError] = React.useState("");
+  if (sent) return <p role="status" className="basis-full text-xs text-emerald-400">{t("account.help.sent", { reference: sent })}</p>;
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className="basis-full text-start text-xs font-semibold text-[var(--web-accent)] hover:underline" data-testid="order-help-open">{t("account.help.open")}</button>;
+  const send = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const result = await accountPost<{ reference: string }>("order-help", { orderId, kind, message, locale });
+      setSent(result.reference);
+    } catch (err) {
+      const key = err instanceof Error ? err.message : "generic";
+      setError(t(`account.errors.${key}`) === `account.errors.${key}` ? t("account.errors.generic") : t(`account.errors.${key}`));
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="basis-full space-y-2 rounded-xl border border-white/10 p-3" data-testid="order-help">
+      <div className="flex gap-2">
+        {(["question", "problem"] as const).map((k) => (
+          <label key={k} className={`rounded-full border px-3 py-1 text-xs cursor-pointer ${kind === k ? "border-[var(--web-accent)] text-white" : "border-white/10 text-ink-muted"}`}>
+            <input type="radio" name={`help-kind-${orderId}`} value={k} checked={kind === k} onChange={() => setKind(k)} className="sr-only" />
+            {t(`account.help.${k}`)}
+          </label>
+        ))}
+      </div>
+      <textarea aria-label={t("account.help.message")} placeholder={t("account.help.message")} name="helpMessage" rows={3} maxLength={5000} value={message} onChange={(e) => setMessage(e.target.value)} className={field} />
+      {error && <p role="alert" className="text-xs text-rose-400">{error}</p>}
+      <div className="flex gap-2">
+        <button type="button" disabled={busy || message.trim().length < 5} onClick={() => void send()} className={primaryButton} data-testid="order-help-send">{t("account.help.send")}</button>
+        <button type="button" onClick={() => setOpen(false)} className={secondaryButton}>{t("account.help.cancel")}</button>
       </div>
     </div>
   );
