@@ -964,5 +964,21 @@
     },
     "trackAgency": "تنقلها {agency}، رقم التتبّع {number}",
     "trackAtAgency": "تتبّع لدى {agency}"
+  },
+  "marketing": {
+    "unsubscribe": "أوقف هذه الرسائل",
+    "unsubscribedTitle": "لن تصلك هذه الرسائل بعد الآن",
+    "unsubscribedText": "يمكنك إعادة تفعيلها من حسابك.",
+    "unsubscribeInvalid": "هذا الرابط غير صالح."
+  },
+  "press": {
+    "title": "الصحافة",
+    "subtitle": "أخبار الشركة، وطريقة التواصل معنا للاستفسارات الإعلامية.",
+    "releases": "البيانات الصحفية",
+    "noReleases": "لا توجد بيانات صحفية بعد.",
+    "kit": "الملف الصحفي",
+    "logo": "حمّل شعارنا",
+    "contact": "الاستفسارات الإعلامية",
+    "about": "من نحن"
   }
 }

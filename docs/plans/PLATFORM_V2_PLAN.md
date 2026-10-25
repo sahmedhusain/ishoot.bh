@@ -685,3 +685,34 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
 - Tested: e2e (a customer reports a damaged order from their account → complaint, high priority, due in 24 hours,
   linked to the order; staff save a reply, insert it, the e-mail reply is refused without a mail service and not
   stored, the WhatsApp reply is stored and opens the chat, and the order lists the request).
+
+### Phase 8c–8e: marketing, public relations and legal (done)
+
+- Three new modules (off by default): `marketing`, `pr` ("Public relations"), `legal`; resources `marketing`,
+  `press`, `legal` in new permission groups "Marketing and PR" and "Legal"; marketing, PR officer and legal counsel
+  roles manage their own, admins all, department managers read. Migration `20261027061000_department_permissions`
+  gives existing roles the defaults. Migration `20261027060000_department_modules` holds the tables below.
+- **Marketing**: `Campaign` (`MKT-…`, channel, status, dates, budget, spend, `utm_campaign`, optional coupon).
+  Results are orders (by utm_campaign or coupon), their revenue, website requests and return on spend. A tracked-link
+  builder per campaign. The website keeps a visitor's utm_campaign/source/medium for 30 days (first-party cookie)
+  and stores them on orders and requests. `CustomerSegment` (minimum orders or spend, ordered within / not for N
+  days, city) with size and how many agreed to e-mail; `Broadcast` e-mails go only to customers who agreed to
+  marketing e-mail, are frozen at sending, sent in batches by the scheduled job, and every e-mail carries a signed
+  unsubscribe link (`/[locale]/unsubscribe/<token>`). WhatsApp broadcasts are left out: they need templates
+  approved by Meta (deferred).
+- **PR**: press releases are articles in the existing "press release" category ("Write a press release" opens the
+  article editor in it); `MediaContact` list; `MediaCoverage` log (outlet, link, date, audience, tone, the release
+  it came from) with a 90-day summary. Website `/[locale]/press` (when the module is on): releases, a short about,
+  the logo and the media e-mail.
+- **Legal**: `LegalMatter` (`LGL-…`, type, status, other party, court/case reference, next hearing or deadline,
+  counsel, amount at stake, description, outcome) with a history of status and date changes and notes; counsel is
+  reminded a week before the next date (once per date). The legal page also lists licences and registrations from
+  the company archive (which already reminds before expiry) and a contracts register (contracts are made from
+  deals; there was no list of them before).
+- The website's dev server gets the same `devtoolSegmentExplorer: false` as the admin (a hydration mismatch on
+  `/en` showed it there too).
+- Tested: unit (tracking names and links, segment rules, return on spend, copy); e2e (a campaign's tracked link →
+  the order carries the utm values and counts on the campaign; a segment and broadcast reach only customers who
+  agreed, the scheduled job processes it and the unsubscribe link works while a forged one is refused; a press
+  release, coverage with its summary and the website press page; a legal matter with a note, one reminder per
+  date and closing with an outcome); navigation crawl and website pages.

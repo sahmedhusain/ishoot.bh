@@ -15,6 +15,8 @@ import {
   Package,
   FolderTree,
   ShoppingBag,
+  Scale,
+  Users2,
   Timer,
   ListTodo,
   FolderKanban,
@@ -561,6 +563,20 @@ export function Sidebar() {
           { href: ROUTES.orders.new, label: t.orders.nav.newSale, icon: ScanLine, resource: "orders", action: "create", moduleKey: "store" },
           { href: ROUTES.orders.settings, label: t.orders.nav.settings, icon: Store, resource: "settings", moduleKey: "store" },
         ],
+      },
+      {
+        id: "marketing",
+        title: t.permissionLabels.groups.outreach,
+        items: [
+          { href: ROUTES.marketing.campaigns, label: t.marketing.nav.campaigns, icon: Megaphone, resource: "marketing", moduleKey: "marketing" },
+          { href: ROUTES.marketing.audience, label: t.marketing.nav.audience, icon: Users2, resource: "marketing", moduleKey: "marketing" },
+          { href: ROUTES.press.overview, label: t.press.nav.overview, icon: Newspaper, resource: "press", moduleKey: "pr" },
+        ],
+      },
+      {
+        id: "legal",
+        title: t.legal.navGroup,
+        items: [{ href: ROUTES.legal.matters, label: t.legal.nav.matters, icon: Scale, resource: "legal", moduleKey: "legal" }],
       },
       {
         id: "work",

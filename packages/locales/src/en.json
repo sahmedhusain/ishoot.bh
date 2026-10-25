@@ -964,5 +964,21 @@
     },
     "trackAgency": "Carried by {agency}, tracking number {number}",
     "trackAtAgency": "Track at {agency}"
+  },
+  "marketing": {
+    "unsubscribe": "Stop these e-mails",
+    "unsubscribedTitle": "You will not get these e-mails any more",
+    "unsubscribedText": "You can turn them back on from your account.",
+    "unsubscribeInvalid": "This link is not valid."
+  },
+  "press": {
+    "title": "Press",
+    "subtitle": "News from the company, and how to reach us for media enquiries.",
+    "releases": "Press releases",
+    "noReleases": "No press releases yet.",
+    "kit": "Press kit",
+    "logo": "Download our logo",
+    "contact": "Media enquiries",
+    "about": "About us"
   }
 }

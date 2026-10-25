@@ -63,6 +63,8 @@ export function notificationHref(n: Notification): string | null {
       return ROUTES.orders.detail(id);
     case "task":
       return ROUTES.tasks.detail(id);
+    case "legal_matter":
+      return ROUTES.legal.matter(id);
     case "stock_count":
       return ROUTES.inventory.count(id);
     case "announcement":

@@ -1,7 +1,7 @@
 import { serverMessages } from "@platform/locales";
 
 import { NextResponse } from "next/server";
-import { db, expireOnlinePayments, remindDueTasks, syncAgencyTracking, processEmailJobs, processRevalidationJobs, removeExpiredUploads, markOverdueInvoices, sendExpiryReminders, processRecurringExpenses } from "@platform/database";
+import { db, expireOnlinePayments, remindDueTasks, remindLegalDates, sendBroadcastBatch, syncAgencyTracking, processEmailJobs, processRevalidationJobs, removeExpiredUploads, markOverdueInvoices, sendExpiryReminders, processRecurringExpenses } from "@platform/database";
 import { sendEmail } from "@platform/email";
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -20,7 +20,10 @@ export async function GET(req: Request) {
     const onlinePayments = await expireOnlinePayments();
     const courierTracking = await syncAgencyTracking();
     const taskReminders = await remindDueTasks();
-    return NextResponse.json({ success: true, removedUploads, invoicesMarkedOverdue, expiryReminders, recurringExpenses, onlinePayments, courierTracking, taskReminders });
+    const legalReminders = await remindLegalDates();
+    // Marketing e-mail goes out in batches, each with an unsubscribe link back to the website.
+    const broadcastsSent = process.env.WEB_URL ? await sendBroadcastBatch(async (message) => (await sendEmail(message).catch(() => null))?.success === true, process.env.WEB_URL) : 0;
+    return NextResponse.json({ success: true, removedUploads, invoicesMarkedOverdue, expiryReminders, recurringExpenses, onlinePayments, courierTracking, taskReminders, legalReminders, broadcastsSent });
   } catch {
     console.error("Scheduled maintenance failed");
     return NextResponse.json({ error: serverMessages.runtimeMaintenanceFailed }, { status: 500 });

@@ -218,6 +218,8 @@ export interface PlaceOrderInput {
   createdById?: string | null;
   /** The delivery slot the customer chose, if any. */
   slot?: ShipmentSlotChoice | null;
+  /** The marketing campaign that brought the customer, when known. */
+  utm?: { campaign: string; source: string; medium: string } | null;
 }
 
 /** The CRM contact for an order: the customer's, the one given, else one matched or created by e-mail. */
@@ -314,6 +316,9 @@ export async function placeOrder(input: PlaceOrderInput) {
         note: input.note?.trim().slice(0, 1000) || null,
         warehouseId: warehouse.id,
         createdById: input.createdById ?? null,
+        utmCampaign: input.utm?.campaign || null,
+        utmSource: input.utm?.source || null,
+        utmMedium: input.utm?.medium || null,
         lines: { create: quote.lines.map((l, index) => ({ productId: l.productId, variantKey: l.variantKey, sku: l.sku, description: l.description, quantity: l.quantity, unitPrice: l.unitPrice, vatExempt: l.vatExempt, lineTotal: round3(l.quantity * l.unitPrice), locationId: held[index].locationId, sortOrder: index })) },
         events: { create: { kind: "status", status: "placed", byId: input.createdById ?? null } },
       },

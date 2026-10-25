@@ -42,6 +42,8 @@ export interface ResolveLeadInput {
   /** The store order the customer is asking about (their own, checked by the caller). */
   orderId?: string;
   priority?: "urgent" | "high" | "normal";
+  /** The marketing campaign that brought the visitor (utm_campaign). */
+  utmCampaign?: string | null;
 }
 
 export interface ResolvedLeadResult {
@@ -155,6 +157,7 @@ export async function resolveIncomingLead(
         mergeFlag: resolution === "merge_conflict",
         customerId,
         orderId: data.orderId || null,
+        utmCampaign: data.utmCampaign || null,
         priority: data.priority || "normal",
         // Every request starts with the service desk's promised resolution time for its priority.
         slaDueDate: await slaDueFor(data.priority, new Date(), tx),

@@ -338,6 +338,7 @@ async function main() {
   );
   const inquiryRoute = load("apps/web/app/api/inquiry/route.ts", {
     "node:crypto": require("node:crypto"),
+    "../../../lib/utm": { campaignFrom: () => null },
     "../../../lib/submissions": {
       readSubmission: async () => {
         throw new Error("INVALID_INPUT");

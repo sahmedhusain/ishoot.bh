@@ -8076,6 +8076,318 @@
       }
     }
   },
+  "saveCampaignAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "channel": {
+            "kind": "string",
+            "optional": false
+          },
+          "status": {
+            "kind": "string",
+            "optional": false
+          },
+          "startDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "endDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "budget": {
+            "kind": "string",
+            "optional": false
+          },
+          "spend": {
+            "kind": "string",
+            "optional": false
+          },
+          "utmCampaign": {
+            "kind": "string",
+            "optional": false
+          },
+          "couponCode": {
+            "kind": "string",
+            "optional": false
+          },
+          "notes": {
+            "kind": "string",
+            "optional": false
+          },
+          "ownerId": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveSegmentAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "minOrders": {
+            "kind": "string",
+            "optional": false
+          },
+          "minSpent": {
+            "kind": "string",
+            "optional": false
+          },
+          "orderedWithinDays": {
+            "kind": "string",
+            "optional": false
+          },
+          "notOrderedForDays": {
+            "kind": "string",
+            "optional": false
+          },
+          "city": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveBroadcastAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "segmentId": {
+            "kind": "string",
+            "optional": false
+          },
+          "campaignId": {
+            "kind": "string",
+            "optional": true
+          },
+          "subjectEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "subjectAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "bodyEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "bodyAr": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "sendBroadcastAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveMediaContactAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "outlet": {
+            "kind": "string",
+            "optional": false
+          },
+          "role": {
+            "kind": "string",
+            "optional": false
+          },
+          "beat": {
+            "kind": "string",
+            "optional": false
+          },
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": false
+          },
+          "notes": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveCoverageAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "outlet": {
+            "kind": "string",
+            "optional": false
+          },
+          "url": {
+            "kind": "string",
+            "optional": false
+          },
+          "publishedOn": {
+            "kind": "string",
+            "optional": false
+          },
+          "reach": {
+            "kind": "string",
+            "optional": false
+          },
+          "sentiment": {
+            "kind": "string",
+            "optional": false
+          },
+          "articleId": {
+            "kind": "string",
+            "optional": true
+          },
+          "notes": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveLegalMatterAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "string",
+            "optional": false
+          },
+          "status": {
+            "kind": "string",
+            "optional": false
+          },
+          "counterparty": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "string",
+            "optional": false
+          },
+          "nextDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "assigneeId": {
+            "kind": "string",
+            "optional": true
+          },
+          "amountAtStake": {
+            "kind": "string",
+            "optional": false
+          },
+          "description": {
+            "kind": "string",
+            "optional": false
+          },
+          "outcome": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "addLegalNoteAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "body": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "generatePayrollRunAction": {
     "kind": "object",
     "fields": {

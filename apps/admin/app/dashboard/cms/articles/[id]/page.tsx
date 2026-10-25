@@ -7,8 +7,10 @@ import { ArticleEditorView } from "../../../../../components/cms/ArticleEditorVi
 export const dynamic = "force-dynamic";
 
 /** An article's editor; "new" starts an empty draft. */
-export default async function CmsArticleEditorPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CmsArticleEditorPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ category?: string }> }) {
   const { id } = await params;
+  // "New" can start in a category, e.g. a press release from the press page.
+  const { category } = await searchParams;
   const user = await requirePagePermission("articles", id === "new" ? "create" : "read");
   await requireFeatureEnabled("cms");
   const [article, company, content, canPublish, canDelete] = await Promise.all([
@@ -20,7 +22,7 @@ export default async function CmsArticleEditorPage({ params }: { params: Promise
   ]);
   if (id !== "new" && !article) notFound();
   const empty: CmsArticleRecord = {
-    id: "", slug: "", title_en: "", title_ar: "", excerpt_en: "", excerpt_ar: "", body_html_en: "", body_html_ar: "", cover_url: "", category: "news", tags: [], author_name: user.full_name,
+    id: "", slug: "", title_en: "", title_ar: "", excerpt_en: "", excerpt_ar: "", body_html_en: "", body_html_ar: "", cover_url: "", category: category && /^[a-z_]{2,40}$/.test(category) ? category : "news", tags: [], author_name: user.full_name,
     publish_at: null, featured: false, seo_title_en: "", seo_title_ar: "", seo_description_en: "", seo_description_ar: "", status: "draft", body_en: null, body_ar: null, author_id: user.id, updated_at: "",
   };
   const articlesSlug = resolveWebsiteConfig(validateWebsiteConfig(content.draft)).articles.slug;

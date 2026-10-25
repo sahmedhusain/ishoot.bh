@@ -2276,7 +2276,9 @@
       "administration": "Administration",
       "communications": "Communications",
       "commerce": "Products & stock",
-      "work": "Tasks and projects"
+      "work": "Tasks and projects",
+      "outreach": "Marketing and PR",
+      "legal": "Legal"
     },
     "actions": {
       "read": "View",
@@ -2332,7 +2334,10 @@
       "procurement": "Purchasing",
       "orders": "Orders",
       "deliveries": "Deliveries",
-      "tasks": "Tasks and projects"
+      "tasks": "Tasks and projects",
+      "marketing": "Marketing",
+      "press": "Public relations",
+      "legal": "Legal"
     }
   },
   "approvals": {
@@ -5883,7 +5888,17 @@
       "serviceReplyEmpty": "Write the reply first.",
       "serviceReplyNoEmail": "This request has no e-mail address to reply to.",
       "serviceReplyNoPhone": "This request has no phone number for WhatsApp.",
-      "serviceReplyNotSent": "The e-mail could not be sent, so the reply was not saved. Check the e-mail settings or reply by WhatsApp."
+      "serviceReplyNotSent": "The e-mail could not be sent, so the reply was not saved. Check the e-mail settings or reply by WhatsApp.",
+      "campaignInvalid": "A campaign needs a name, a channel and a status; amounts cannot be negative.",
+      "campaignUtmInvalid": "The tracking name is 2 to 60 lower-case letters, digits, dashes or underscores.",
+      "campaignUtmTaken": "Another campaign already uses that tracking name.",
+      "segmentInvalid": "A segment needs a name; numbers cannot be negative.",
+      "broadcastInvalid": "A broadcast needs a name, a segment, a subject and a message.",
+      "broadcastAlreadySent": "This broadcast has already been sent.",
+      "broadcastNoRecipients": "Nobody in that segment has agreed to receive marketing e-mail.",
+      "mediaContactInvalid": "A media contact needs a name and an outlet.",
+      "coverageInvalid": "Coverage needs a headline, an outlet, a date and a sentiment; the link must be a web address.",
+      "legalMatterInvalid": "A matter needs a title, a type and a status; the amount cannot be negative."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -10313,6 +10328,209 @@
     "email": {
       "subject": "{company}: about your request {reference}",
       "greeting": "Hello {name},"
+    }
+  },
+  "marketing": {
+    "navGroup": "Marketing",
+    "nav": {
+      "campaigns": "Campaigns",
+      "audience": "Segments and e-mail"
+    },
+    "campaigns": {
+      "title": "Campaigns",
+      "subtitle": "Budgets, dates and what each campaign brought: orders and requests from its links or its coupon.",
+      "new": "New campaign",
+      "empty": "No campaigns yet.",
+      "name": "Name",
+      "channel": "Channel",
+      "status": "Status",
+      "startDate": "Start",
+      "endDate": "End",
+      "budget": "Budget ({currency})",
+      "spend": "Spent ({currency})",
+      "utm": "Tracking name (utm_campaign)",
+      "utmHint": "Left empty, it is made from the name.",
+      "coupon": "Coupon code (optional)",
+      "notes": "Notes",
+      "save": "Save campaign",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "saved": "Saved.",
+      "orders": "{count} orders",
+      "revenue": "Revenue",
+      "requests": "{count} requests",
+      "returnOnSpend": "{value}× return",
+      "linkBuilder": "Tracked link",
+      "linkPage": "Website page",
+      "linkSource": "Source (e.g. instagram)",
+      "linkMedium": "Medium (e.g. social)",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "channels": {
+        "social": "Social media",
+        "email": "E-mail",
+        "ads": "Online ads",
+        "whatsapp": "WhatsApp",
+        "event": "Event",
+        "print": "Print",
+        "other": "Other"
+      },
+      "statuses": {
+        "planned": "Planned",
+        "running": "Running",
+        "done": "Done",
+        "cancelled": "Cancelled"
+      }
+    },
+    "audience": {
+      "title": "Segments and e-mail",
+      "subtitle": "Group store customers by what they bought, and e-mail the ones who agreed to hear from you.",
+      "segments": "Segments",
+      "newSegment": "New segment",
+      "noSegments": "No segments yet.",
+      "segmentName": "Name",
+      "minOrders": "At least this many orders",
+      "minSpent": "Spent at least ({currency})",
+      "orderedWithinDays": "Ordered in the last … days",
+      "notOrderedForDays": "No order for … days",
+      "city": "City",
+      "size": "{size} customers, {reachable} agreed to e-mail",
+      "saveSegment": "Save segment",
+      "broadcasts": "E-mail broadcasts",
+      "newBroadcast": "New broadcast",
+      "noBroadcasts": "No broadcasts yet.",
+      "broadcastName": "Name",
+      "segment": "Segment",
+      "campaign": "Campaign (optional)",
+      "noCampaign": "No campaign",
+      "subject": "Subject",
+      "body": "Message",
+      "saveBroadcast": "Save draft",
+      "send": "Send",
+      "sendConfirm": "Send this e-mail to everyone in the segment who agreed to marketing e-mail?",
+      "statuses": {
+        "draft": "Draft",
+        "sending": "Sending",
+        "sent": "Sent"
+      },
+      "progress": "{sent} sent, {pending} waiting, {failed} not sent",
+      "queued": "Queued for {count} customers.",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "saved": "Saved."
+    }
+  },
+  "press": {
+    "navGroup": "Public relations",
+    "nav": {
+      "overview": "Press and media"
+    },
+    "title": "Press and media",
+    "subtitle": "Press releases, the journalists you work with, and what was published about you.",
+    "summary": "Last 90 days: {pieces} pieces, about {reach} readers",
+    "releases": "Press releases",
+    "releasesHint": "Press releases are articles in the \"press release\" category; they appear on the website's press page.",
+    "newRelease": "Write a press release",
+    "noReleases": "No press releases yet.",
+    "contacts": "Media contacts",
+    "newContact": "Add contact",
+    "noContacts": "No media contacts yet.",
+    "coverage": "Coverage",
+    "newCoverage": "Log coverage",
+    "noCoverage": "No coverage logged yet.",
+    "fields": {
+      "name": "Name",
+      "outlet": "Outlet",
+      "role": "Role",
+      "beat": "Beat",
+      "email": "E-mail",
+      "phone": "Phone",
+      "notes": "Notes",
+      "active": "Active",
+      "title": "Headline",
+      "url": "Link",
+      "publishedOn": "Published",
+      "reach": "Audience (estimate)",
+      "sentiment": "Tone",
+      "release": "From press release",
+      "noRelease": "None"
+    },
+    "sentiments": {
+      "positive": "Positive",
+      "neutral": "Neutral",
+      "negative": "Negative"
+    },
+    "statuses": {
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "saved": "Saved."
+  },
+  "legal": {
+    "navGroup": "Legal",
+    "nav": {
+      "matters": "Legal matters"
+    },
+    "title": "Legal matters",
+    "subtitle": "Disputes, claims and regulatory matters, with the next hearing or deadline; contracts and licences alongside.",
+    "new": "New matter",
+    "search": "Search matters",
+    "openOnly": "Open",
+    "all": "All",
+    "empty": "No legal matters.",
+    "kinds": {
+      "dispute": "Dispute",
+      "claim": "Claim",
+      "regulatory": "Regulatory",
+      "employment": "Employment",
+      "intellectual_property": "Intellectual property",
+      "other": "Other"
+    },
+    "statuses": {
+      "open": "Open",
+      "in_progress": "In progress",
+      "on_hold": "On hold",
+      "closed": "Closed"
+    },
+    "fields": {
+      "title": "Title",
+      "kind": "Type",
+      "status": "Status",
+      "counterparty": "Other party",
+      "reference": "Court or case reference",
+      "nextDate": "Next hearing or deadline",
+      "assignee": "Counsel",
+      "noAssignee": "Not assigned",
+      "amount": "Amount at stake ({currency})",
+      "description": "What it is about",
+      "outcome": "Outcome"
+    },
+    "next": "Next: {date}",
+    "save": "Save matter",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "saved": "Saved.",
+    "back": "All matters",
+    "history": "History",
+    "note": "Add a note",
+    "addNote": "Add",
+    "events": {
+      "status": "Status: {value}",
+      "date": "Next date: {value}",
+      "note": "Note"
+    },
+    "licences": "Licences and registrations",
+    "licencesHint": "From the company archive, which keeps the files and reminds before they expire.",
+    "noLicences": "No documents with an expiry date in the company archive.",
+    "contracts": "Contracts",
+    "notifications": {
+      "nextDate": {
+        "title": "Coming up: {title}",
+        "message": "{number} \"{title}\" has a hearing or deadline on {date}."
+      }
     }
   }
 }

@@ -12,6 +12,7 @@ import {
   normalizeToE164,
 } from "@platform/database";
 import { sendEmail } from "@platform/email";
+import { campaignFrom } from "../../../lib/utm";
 
 import {
   readSubmission,
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest) {
     const key = submissionKey(body);
     const resolved = await resolveIncomingLead({
       ...data,
+      utmCampaign: campaignFrom(req)?.campaign ?? null,
       submissionKey: key,
       requestHash: createHash("sha256")
         .update(JSON.stringify(data))

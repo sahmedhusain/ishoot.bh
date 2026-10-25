@@ -14,6 +14,9 @@ const nextConfig = {
   transpilePackages: ['@platform/ui', '@platform/database', '@platform/locales', '@platform/email', '@platform/config'],
   experimental: {
     optimizePackageImports: ['lucide-react', '@platform/ui'],
+    // The development-only Segment Explorer wraps pages in a node the server and the browser disagree on, which
+    // logs hydration mismatches; production is unaffected.
+    devtoolSegmentExplorer: false,
   },
   images: {
     remotePatterns: [

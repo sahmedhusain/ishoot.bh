@@ -349,6 +349,8 @@ model Inquiry {
   mergeFlag              Boolean               @default(false)
   requestType            String                @default("inquiry") // "SR", "CR", "inquiry", "quote_request"
   slaDueDate             DateTime?
+  /// The marketing campaign (utm_campaign) that brought the visitor, when known.
+  utmCampaign            String?
   /// The store order the customer is asking about.
   orderId                String?
   order                  SalesOrder?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
@@ -3561,6 +3563,10 @@ model SalesOrder {
   paymentAttempts PaymentAttempt[]
   shipments       Shipment[]
   inquiries       Inquiry[]
+  /// Where the customer came from (utm_campaign, utm_source, utm_medium), when known.
+  utmCampaign     String?
+  utmSource       String?
+  utmMedium       String?
   updatedAt       DateTime          @updatedAt
 
   @@index([status])
@@ -3919,4 +3925,158 @@ model CannedReply {
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+/// A marketing push with a budget, dates and results (orders and requests that carry its utm_campaign or coupon).
+model Campaign {
+  id          String      @id @default(uuid())
+  /// MKT-YYYY-NNNNNN
+  code        String      @unique
+  name        String
+  /// email | social | ads | whatsapp | event | print | other
+  channel     String      @default("social")
+  /// planned | running | done | cancelled
+  status      String      @default("planned")
+  startDate   DateTime?   @db.Date
+  endDate     DateTime?   @db.Date
+  budget      Decimal     @default(0) @db.Decimal(12, 3)
+  spend       Decimal     @default(0) @db.Decimal(12, 3)
+  /// The utm_campaign value its links carry.
+  utmCampaign String      @unique
+  couponCode  String?
+  notes       String?     @db.Text
+  ownerId     String?
+  createdById String?
+  broadcasts  Broadcast[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([status])
+}
+
+/// A group of store customers chosen by rules (orders, spend, recency, city), for broadcasts.
+model CustomerSegment {
+  id         String      @id @default(uuid())
+  name       String
+  /// { minOrders?, minSpent?, orderedWithinDays?, notOrderedForDays?, city? }
+  rules      Json        @default("{}")
+  broadcasts Broadcast[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+/// An e-mail to the customers of a segment who agreed to hear from the store.
+model Broadcast {
+  id          String               @id @default(uuid())
+  name        String
+  segmentId   String?
+  segment     CustomerSegment?     @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  campaignId  String?
+  campaign    Campaign?            @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  subjectEn   String
+  subjectAr   String
+  bodyEn      String               @db.Text
+  bodyAr      String               @db.Text
+  /// draft | sending | sent
+  status      String               @default("draft")
+  createdById String?
+  queuedAt    DateTime?
+  sentAt      DateTime?
+  recipients  BroadcastRecipient[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+}
+
+model BroadcastRecipient {
+  id          String    @id @default(uuid())
+  broadcastId String
+  broadcast   Broadcast @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  customerId  String
+  email       String
+  locale      String
+  /// pending | sent | failed
+  status      String    @default("pending")
+  error       String?
+  sentAt      DateTime?
+
+  @@unique([broadcastId, customerId])
+  @@index([broadcastId, status])
+}
+
+/// A journalist or outlet the company talks to.
+model MediaContact {
+  id        String   @id @default(uuid())
+  name      String
+  outlet    String
+  role      String?
+  beat      String?
+  email     String?
+  phone     String?
+  notes     String?  @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Something the media published about the company.
+model MediaCoverage {
+  id          String   @id @default(uuid())
+  title       String
+  outlet      String
+  url         String?
+  publishedOn DateTime @db.Date
+  /// Estimated audience.
+  reach       Int?
+  /// positive | neutral | negative
+  sentiment   String   @default("neutral")
+  /// The press release (article) it came from, if any.
+  articleId   String?
+  notes       String?  @db.Text
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([publishedOn])
+}
+
+/// A legal case or matter: a dispute, claim, regulatory issue…, with its next date and outcome.
+model LegalMatter {
+  id            String             @id @default(uuid())
+  /// LGL-YYYY-NNNNNN
+  number        String             @unique
+  title         String
+  /// dispute | claim | regulatory | employment | intellectual_property | other
+  kind          String             @default("dispute")
+  /// open | in_progress | on_hold | closed
+  status        String             @default("open")
+  counterparty  String?
+  /// Court, authority or case reference.
+  reference     String?
+  /// The next hearing or deadline.
+  nextDate      DateTime?          @db.Date
+  assigneeId    String?
+  amountAtStake Decimal?           @db.Decimal(14, 3)
+  description   String?            @db.Text
+  outcome       String?            @db.Text
+  createdById   String?
+  closedAt      DateTime?
+  /// When the "next date" reminder went out, so it goes once per date.
+  remindedFor   DateTime?          @db.Date
+  events        LegalMatterEvent[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([status, nextDate])
+}
+
+model LegalMatterEvent {
+  id       String      @id @default(uuid())
+  matterId String
+  matter   LegalMatter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+  /// note | status | date
+  kind     String
+  body     String      @db.Text
+  byId     String?
+  at       DateTime    @default(now())
+
+  @@index([matterId, at])
 }

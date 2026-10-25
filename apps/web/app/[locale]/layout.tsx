@@ -17,6 +17,7 @@ import { WhatsAppButton } from "../../components/layout/WhatsAppButton";
 import { WebsiteOffline } from "../../components/layout/WebsiteOffline";
 import { SiteProvider } from "../../components/site/SiteProvider";
 import { getSocialLinks } from "@platform/database";
+import { UtmCapture } from "../../components/store/UtmCapture";
 import { pickText } from "@platform/database/constants/languages";
 import { googleFontsHref, themeStylesheet } from "@platform/database/constants/theme";
 
@@ -109,6 +110,7 @@ export default async function LocaleLayout({
         <SiteProvider site={info}>
           <FloatingScrollbar />
           <BackToTop />
+          <UtmCapture />
           <SmoothScroll>
             <Navbar company={company} pages={config.pages} links={menus?.header} accountHref={store ? `/${locale}/account` : undefined} />
             <main id="main-content" className="w-full">

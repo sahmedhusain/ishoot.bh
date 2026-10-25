@@ -131,3 +131,7 @@ export { isApiCourier } from "./couriers/adapters";
 export * from "./constants/tasks";
 export * from "./queries/tasks";
 export * from "./queries/service-desk";
+export * from "./constants/outreach";
+export * from "./queries/marketing";
+export * from "./queries/press";
+export * from "./queries/legal";

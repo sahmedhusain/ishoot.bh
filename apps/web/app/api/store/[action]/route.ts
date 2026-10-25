@@ -4,6 +4,7 @@ import { consumeAbuseLimit, deliveryOptions, getOrder, orderTrackingTokens, meas
 import type { CartLine } from "@platform/database/constants/store";
 import { escapeEmailHtml, sendEmail } from "@platform/email";
 import { currentCustomer, jsonError, sameOrigin, storeEnabled } from "../../../../lib/customer";
+import { campaignFrom } from "../../../../lib/utm";
 
 const str = (value: unknown, max = 300) => (typeof value === "string" ? value.slice(0, max) : "");
 /** The website's public address, for the gateway's return and notification addresses. */
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ action
         channel: "website",
         customerId: customer?.id ?? null,
         slot: slotChoice(body.slot),
+        utm: campaignFrom(req),
       });
       await sendConfirmation(order.id, locale, siteUrl(req));
       // The people who handle orders hear about it at once.
