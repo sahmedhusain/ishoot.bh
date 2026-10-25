@@ -24,8 +24,8 @@ async function main() {
       const stamp = Date.now();
       const user = (role, extra = {}) =>
         tx.user.create({ data: { email: `${role}-${stamp}@claims.test`, fullName: `Claims ${role}`, passwordHash: "x", role, ...extra } });
-      const manager = await user("production_manager");
-      const producer = await user("producer", { managerId: manager.id });
+      const manager = await user("operations_manager");
+      const producer = await user("project_lead", { managerId: manager.id });
       const finance = await tx.user.findFirstOrThrow({ where: { role: "finance_manager", isActive: true } });
       const category = await tx.expenseCategory.findFirstOrThrow({ where: { slug: "fuel_transport" } });
       const deal = await tx.crmDeal.findFirstOrThrow({ where: { contactId: { not: null } } });

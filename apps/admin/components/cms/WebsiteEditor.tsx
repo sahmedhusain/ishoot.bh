@@ -21,6 +21,7 @@ import {
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import type { WebsiteSnapshotSection } from "@platform/database";
 import { UnpublishedChangesNotice } from "./UnpublishedChangesNotice";
+import { SampleContentCard } from "./SampleContentCard";
 export function WebsiteEditor({
   config,
   revision,
@@ -30,10 +31,12 @@ export function WebsiteEditor({
   deliveryStatus,
   publication,
   company,
+  sampleCount,
 }: {
   config: ResolvedWebsiteConfig;
   company: { languages: ContentLanguage[]; primaryLanguage: ContentLanguage; activity: BusinessActivity | null; hasWhatsapp: boolean };
   deliveryStatus?: string;
+  sampleCount: number;
   publication: { isPublished: boolean; changedSections: WebsiteSnapshotSection[] };
   revision: number;
   publishedAt?: string;
@@ -107,6 +110,9 @@ export function WebsiteEditor({
         )}
         <div className="mt-3">
           <UnpublishedChangesNotice status={publication} canPublish />
+        </div>
+        <div className="mt-3">
+          <SampleContentCard activity={company.activity} count={sampleCount} />
         </div>
         {deliveryStatus && (
           <p className="text-xs text-slate-500 mt-2">

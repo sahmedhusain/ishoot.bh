@@ -2,6 +2,7 @@ import { serverMessages } from "@platform/locales";
 import { measureOperation } from "@platform/database";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { isBusinessActivity } from "@platform/database/website-presets";
 export async function GET(req: NextRequest) {
   return measureOperation("web:preview:GET", async () => {
   const expires = req.nextUrl.searchParams.get("expires") || "";
@@ -16,14 +17,21 @@ export async function GET(req: NextRequest) {
     !/^[a-f0-9]{64}$/.test(token)
   )
     return new NextResponse("Preview expired or unavailable", { status: 403 });
+  // An example link shows an activity's demo website; its activity is part of what is signed.
+  const example = req.nextUrl.searchParams.get("example") ?? "";
+  if (example && !isBusinessActivity(example))
+    return new NextResponse("Invalid preview", { status: 403 });
   const expected = createHmac("sha256", secret)
-    .update(`website-preview:${expires}`)
+    .update(example ? `website-example:${example}:${expires}` : `website-preview:${expires}`)
     .digest("hex");
   if (!timingSafeEqual(Buffer.from(expected), Buffer.from(token)))
     return new NextResponse("Invalid preview", { status: 403 });
   const locale = req.nextUrl.searchParams.get("locale") === "ar" ? "ar" : "en";
-  const response = NextResponse.redirect(new URL(`/${locale}`, req.url));
-  response.cookies.set("platform_preview", `${expires}.${token}`, {
+  // Only a path of this website in one of its languages; anything else opens the home page.
+  const path = req.nextUrl.searchParams.get("path") ?? "";
+  const target = /^\/(en|ar)(\/[a-z0-9-/]*)?$/.test(path) && !path.includes("//") ? path : `/${locale}`;
+  const response = NextResponse.redirect(new URL(target, req.url));
+  response.cookies.set("platform_preview", example ? `${expires}.${token}.${example}` : `${expires}.${token}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

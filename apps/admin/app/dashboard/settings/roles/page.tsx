@@ -1,6 +1,6 @@
 import { forbidden } from "next/navigation";
 import { requirePagePermission } from "../../../../lib/auth";
-import { db, ALL_RESOURCES, ALL_ACTIONS } from "@platform/database";
+import { db, ALL_RESOURCES, ALL_ACTIONS, ensureRoleTemplates, getRoleDataScopes, resolveGrant } from "@platform/database";
 import { RolesManagementView } from "../../../../components/settings/RolesManagementView";
 import type { RoleWithGrants } from "../../../../types/roles";
 
@@ -9,6 +9,7 @@ export default async function RolesSettingsPage() {
   // Role design is governance: only super administrators.
   if (actor.role !== "super_admin") forbidden();
 
+  await ensureRoleTemplates();
   const [roles, userCounts, permissions] = await Promise.all([
     db.role.findMany({ orderBy: { createdAt: "asc" } }),
     db.user.groupBy({ by: ["role"], _count: { id: true } }),
@@ -18,16 +19,13 @@ export default async function RolesSettingsPage() {
   const countMap = new Map(userCounts.map((u) => [u.role, u._count.id]));
   const stored = new Map(permissions.map((p) => [`${p.role}|${p.resource}:${p.action}`, p.allowed]));
 
-  const enrichedRoles: RoleWithGrants[] = roles.map((role) => {
+  const scopes = await Promise.all(roles.map((role) => getRoleDataScopes(role.id)));
+  const enrichedRoles: RoleWithGrants[] = roles.map((role, index) => {
     const grants: Record<string, boolean> = {};
     for (const resource of ALL_RESOURCES) {
       for (const action of ALL_ACTIONS) {
-        const key = `${resource}:${action}`;
-        const value = stored.get(`${role.id}|${key}`);
-        // Mirrors getEffectivePermissions: unstored create/edit fall back to the legacy write grant.
-        const fallback =
-          (action === "create" || action === "edit") ? stored.get(`${role.id}|${resource}:write`) : undefined;
-        grants[key] = role.id === "super_admin" || (value ?? fallback ?? false);
+        // The same rule getEffectivePermissions applies.
+        grants[`${resource}:${action}`] = resolveGrant(role.id, resource, action, (res, act) => stored.get(`${role.id}|${res}:${act}`));
       }
     }
     return {
@@ -37,6 +35,7 @@ export default async function RolesSettingsPage() {
       isSystem: role.isSystem,
       userCount: countMap.get(role.id) ?? 0,
       grants,
+      scopes: scopes[index],
     };
   });
 

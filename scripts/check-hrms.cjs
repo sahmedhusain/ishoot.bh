@@ -50,7 +50,7 @@ async function main() {
   const paths = (node, prefix = '') => Object.entries(node).flatMap(([key, value]) => value && typeof value === 'object' ? paths(value, prefix + key + '.') : [prefix + key]);
   assert.deepEqual(paths(en).sort(), paths(ar).sort());
   assert.deepEqual(Object.keys(en.hrExtensions).sort(), Object.keys(ar.hrExtensions).sort());
-  let actor = { id: 'employee-user', role: 'producer' }, manager = false, creates = [], audit = [], submissions = [];
+  let actor = { id: 'employee-user', role: 'project_lead' }, manager = false, creates = [], audit = [], submissions = [];
   const actions = load('apps/admin/app/actions/salary-documents.ts', {
     '@platform/locales': { getTranslations: () => ({ admin: en }) },
     '@platform/database': {
@@ -71,9 +71,9 @@ async function main() {
   assert.equal(submissions[0].targetType, 'salary_document');
   assert.equal(submissions[0].requesterId, 'employee-user', 'the employee is the requester so they cannot approve it');
   await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2025-12'], languages: ['ar'] }), /not approved yet/);
-  actor = { id: 'other-user', role: 'producer' };
+  actor = { id: 'other-user', role: 'project_lead' };
   await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'salary_certificate', months: [], languages: ['ar'] }), /only request your own/);
-  actor = { id: 'employee-user', role: 'producer' };
+  actor = { id: 'employee-user', role: 'project_lead' };
   await assert.rejects(actions.requestSalaryDocumentAction({ employeeId: 'employee', kind: 'payslip', months: ['2026-13'], languages: ['en'] }), /valid months/);
   // HR filing on an employee's behalf still routes the approval to someone other than that employee.
   actor = { id: 'super-user', role: 'super_admin' }; manager = true;

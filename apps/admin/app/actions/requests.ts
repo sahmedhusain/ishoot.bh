@@ -20,6 +20,13 @@ import {
 } from "@platform/database";
 import { revalidatePath } from "next/cache";
 import { requireAuth, requirePermission, getCurrentUser } from "../../lib/auth";
+import { assertRecordInScope } from "../../lib/data-scope";
+
+/** A request outside the person's data scope cannot be changed, even by someone who knows its id. */
+async function requireRequestInScope(id: string) {
+  const request = await db.inquiry.findUnique({ where: { id }, select: { assignedToId: true } });
+  if (request) await assertRecordInScope("requests", request.assignedToId);
+}
 
 export async function assignRequestAction(
   id: string,
@@ -32,6 +39,7 @@ export async function assignRequestAction(
   return measureOperation("action:assignRequestAction", async () => {
     const actor = await requirePermission("requests", "assign");
     validateActionArguments("assignRequestAction", { id, assignment });
+    await requireRequestInScope(id);
 
     const updated = await assignConsolidatedRequest(id, assignment.assignedToId, actor.id, assignment.team, assignment.notes);
 
@@ -55,6 +63,7 @@ export async function reassignRequestAction(
   return measureOperation("action:reassignRequestAction", async () => {
     const actor = await requirePermission("requests", "assign");
     validateActionArguments("reassignRequestAction", { id, assignment });
+    await requireRequestInScope(id);
 
     const updated = await assignConsolidatedRequest(id, assignment.newAssignedToId, actor.id, assignment.newTeam, assignment.notes);
 
@@ -76,6 +85,7 @@ export async function returnRequestAction(
   return measureOperation("action:returnRequestAction", async () => {
     const actor = await requirePermission("requests", "write");
     validateActionArguments("returnRequestAction", { id, details });
+    await requireRequestInScope(id);
     const user = await getCurrentUser();
 
     const updated = await runAtomicMutation(async () => {
@@ -106,6 +116,7 @@ export async function approveRequestAction(
     // Who may approve is defined by the service request approval policy and enforced by the engine.
     const actor = await requireAuth();
     validateActionArguments("approveRequestAction", { id, details });
+    await requireRequestInScope(id);
 
     const outcome = await runAtomicMutation(async () => {
       const pending = await findPendingApproval("service_request", id);
@@ -129,6 +140,7 @@ export async function submitRequestForApprovalAction(
   return measureOperation("action:submitRequestForApprovalAction", async () => {
     const actor = await requirePermission("requests", "write");
     validateActionArguments("submitRequestForApprovalAction", { id, details });
+    await requireRequestInScope(id);
 
     const outcome = await runAtomicMutation(async () => {
       await submitRequestForApproval(id, { submittedById: actor.id, submittedByName: actor.full_name, notes: details.notes });
@@ -157,6 +169,7 @@ export async function confirmRequestAction(
   return measureOperation("action:confirmRequestAction", async () => {
     const actor = await requirePermission("requests", "approve");
     validateActionArguments("confirmRequestAction", { id, details });
+    await requireRequestInScope(id);
     const user = await getCurrentUser();
 
     const updated = await confirmRequest(id, {
@@ -183,6 +196,7 @@ export async function resolveRequestAction(
   return measureOperation("action:resolveRequestAction", async () => {
     const actor = await requirePermission("requests", "write");
     validateActionArguments("resolveRequestAction", { id, details });
+    await requireRequestInScope(id);
     const user = await getCurrentUser();
 
     const updated = await resolveRequest(id, {
@@ -257,6 +271,7 @@ export async function assignRequestWithAvailabilityAction(
   return measureOperation("action:assignRequestWithAvailabilityAction", async () => {
     const actor = await requirePermission("requests", "assign");
     validateActionArguments("assignRequestWithAvailabilityAction", { id, assignment });
+    await requireRequestInScope(id);
 
     const updated = await assignConsolidatedRequest(
       id,
@@ -281,6 +296,7 @@ export async function addRequestCommentAction(
   return measureOperation("action:addRequestCommentAction", async () => {
     const actor = await requirePermission("requests", "write");
     validateActionArguments("addRequestCommentAction", { inquiryId, body, isClientVisible, attachments });
+    await requireRequestInScope(inquiryId);
 
     const { addRequestComment } = await import("@platform/database");
     const comment = await addRequestComment(inquiryId, actor.id, body, isClientVisible, attachments);

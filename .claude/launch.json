@@ -79,6 +79,81 @@
         "platform_e2e_blank_test"
       ],
       "port": 3015
+    },
+    {
+      "name": "admin-v2",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "WEB_URL=http://localhost:3022",
+        "NEXT_PUBLIC_WEB_URL=http://localhost:3022",
+        "ADMIN_URL=http://localhost:3021",
+        "NEXT_PUBLIC_ADMIN_URL=http://localhost:3021",
+        "node",
+        "tests/e2e/serve.cjs",
+        "admin",
+        "3021",
+        "pv2_seeded_test"
+      ],
+      "port": 3021
+    },
+    {
+      "name": "web-v2",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "WEB_URL=http://localhost:3022",
+        "NEXT_PUBLIC_WEB_URL=http://localhost:3022",
+        "ADMIN_URL=http://localhost:3021",
+        "NEXT_PUBLIC_ADMIN_URL=http://localhost:3021",
+        "node",
+        "tests/e2e/serve.cjs",
+        "web",
+        "3022",
+        "pv2_seeded_test"
+      ],
+      "port": 3022
+    },
+    {
+      "name": "admin-volume",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "admin",
+        "3023",
+        "pv2_volume_test"
+      ],
+      "port": 3023
+    },
+    {
+      "name": "admin-blank-v2",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "WEB_URL=http://localhost:3025",
+        "NEXT_PUBLIC_WEB_URL=http://localhost:3025",
+        "ADMIN_URL=http://localhost:3024",
+        "NEXT_PUBLIC_ADMIN_URL=http://localhost:3024",
+        "node",
+        "tests/e2e/serve.cjs",
+        "admin",
+        "3024",
+        "pv2_blank_test"
+      ],
+      "port": 3024
+    },
+    {
+      "name": "web-blank-v2",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "WEB_URL=http://localhost:3025",
+        "NEXT_PUBLIC_WEB_URL=http://localhost:3025",
+        "ADMIN_URL=http://localhost:3024",
+        "NEXT_PUBLIC_ADMIN_URL=http://localhost:3024",
+        "node",
+        "tests/e2e/serve.cjs",
+        "web",
+        "3025",
+        "pv2_blank_test"
+      ],
+      "port": 3025
     }
   ]
 }

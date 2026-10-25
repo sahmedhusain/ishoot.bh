@@ -12,10 +12,17 @@ import { StatsSection } from "../../components/about/StatsSection";
 import { ReviewsSection } from "../../components/about/ReviewsSection";
 import { FAQSection } from "../../components/about/FAQSection";
 import type { WebsiteSection } from "@platform/database/website-config";
+import { notFound } from "next/navigation";
+import { isWebsitePreview } from "../../lib/website";
+import { CmsPageView, findPage } from "../../components/blocks/CmsPageView";
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  const [{ website: snapshot, company, info }, reviews] = await Promise.all([getSite(), getReviews(false)]);
+  const [{ website: snapshot, company, info }, reviews, preview] = await Promise.all([getSite(), getReviews(false), isWebsitePreview()]);
   if (!snapshot) return null;
+  // The homepage built from blocks; websites published before pages existed keep the fixed layout below.
+  const page = findPage(snapshot.pages, { type: "home" }, preview);
+  if (page === null) notFound();
+  if (page) return <CmsPageView page={page} locale={locale} />;
   const website = snapshot;
   const name = pickText(company.company_name_en, company.company_name_ar, locale);
   const tagline = pickText(company.tagline_en, company.tagline_ar, locale);

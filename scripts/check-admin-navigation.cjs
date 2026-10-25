@@ -43,7 +43,9 @@ const { ROUTES } = realConstants(
 for (const [role, group] of Object.entries({
   accountant: "finance",
   sales: "sales",
-  producer: "operations",
+  project_lead: "operations",
+  hr_manager: "people",
+  procurement_officer: "operations",
   marketing: "content",
   admin: "people",
 })) {

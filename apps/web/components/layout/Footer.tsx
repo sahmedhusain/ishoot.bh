@@ -1,4 +1,5 @@
 "use client";
+import { siteIcon, siteLogo } from "../../lib/brand-images";
 import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
@@ -16,9 +17,11 @@ interface FooterProps {
   company: PublicCompanySettings;
   socialLinks?: SocialLink[];
   pages?: { id: string; visible: boolean }[];
+  /** Footer links built from the website's pages (lib/menus.ts); missing for websites published before pages existed. */
+  links?: { id: string; href: string; label: string }[];
 }
 
-export function Footer({ company, socialLinks = [], pages }: FooterProps) {
+export function Footer({ company, socialLinks = [], pages, links }: FooterProps) {
   const { t, locale, isRTL, site } = useTranslation();
   const pathname = usePathname();
   const showInvitation =
@@ -34,7 +37,7 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
     return map;
   }, [pages]);
 
-  const navLinks = [
+  const navLinks = links ?? [
     { id: "home", href: `/${locale}`, label: t("nav.home") },
     { id: "works", href: site ? collectionHref(site, locale) : `/${locale}/works`, label: t("nav.works") },
     { id: "about", href: `/${locale}/about`, label: t("nav.about") },
@@ -118,16 +121,14 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
             >
               <ContentImage
                 src={
-                  company.dark_icon_url ||
-                  company.icon_url
+                  siteIcon(company)
                 }
                 alt={t("common.brandIconAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
                 className="h-9 w-9 object-contain"
                width={40} height={40} />
               <ContentImage
                 src={
-                  company.dark_logo_url ||
-                  company.logo_url
+                  siteLogo(company)
                 }
                 alt={t("common.brandLogoAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
                 className="h-7 w-auto object-contain"

@@ -57,6 +57,10 @@ pnpm exec playwright test --ui
 
 `pnpm exec playwright test` reuses the prepared databases. Run `pnpm test:e2e:prepare` again after the setup-wizard test, because that test completes the blank company's setup. `E2E_SERVER_MODE=start` serves production builds, as CI does; build them first with `NEXT_DIST_DIR=.next-e2e`. Reports, traces, videos and screenshots go to `tests/.results/`.
 
+`specs/admin/links.spec.ts` and `specs/web/links.spec.ts` crawl every page (`tests/e2e/crawl.ts`): error statuses,
+broken images and downloads, new-tab links without `rel="noreferrer"`, links into the other language, and who may
+open each attachment. They take several minutes; run them with `--project=admin` or `--project=web` and a spec path.
+
 Tests read their expectations from the repository instead of hardcoding them: the demo company and theme come from `company/profiles/demo`, and labels come from the admin's Arabic locale file.
 
 ## Writing tests
@@ -65,6 +69,17 @@ Tests read their expectations from the repository instead of hardcoding them: th
 - Pure functions go in `tests/unit/*.test.ts` (Vitest).
 - User journeys go in `tests/e2e/specs/<project>/*.spec.ts`. Use the helpers in `tests/e2e/helpers.ts` (`watchErrors`, `brokenImages`, `visibleContent`, `themeVariable`, `testDatabase`).
 - The admin tests share one sign-in (`tests/e2e/auth/admin.setup.ts`), because the login rate limit is enforced.
+
+## Volume
+
+```bash
+pnpm test:volume
+```
+
+Rebuilds `platform_volume_test` from the demo seed, adds 2,000 employees (1,500 with accounts) in a nested
+department tree and 50,000 requests, deals and expenses, then times the people and record lists (users, employees,
+directory, org chart, data scopes, deals, expenses, request inbox) against a 1.5-second budget each. The database
+keeps the volume, so `node tests/e2e/serve.cjs admin 3023 platform_volume_test` opens it in the browser.
 
 ## Manual diagnostics
 

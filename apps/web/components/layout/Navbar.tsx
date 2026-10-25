@@ -1,4 +1,5 @@
 "use client";
+import { siteIcon, siteLogo } from "../../lib/brand-images";
 import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
@@ -8,15 +9,20 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { collectionHref } from "../../lib/site-copy";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
-import { Menu } from "lucide-react";
+import { CartLink } from "../store/CartLink";
+import { Menu, UserRound } from "lucide-react";
 import type { PublicCompanySettings } from "@platform/database/types";
 
 interface NavbarProps {
   company: PublicCompanySettings;
   pages?: { id: string; visible: boolean }[];
+  /** Menu links built from the website's pages (lib/menus.ts); missing for websites published before pages existed. */
+  links?: { id: string; href: string; label: string; external?: boolean }[];
+  /** The customer account page, when the online store is on. */
+  accountHref?: string;
 }
 
-export function Navbar({ company, pages }: NavbarProps) {
+export function Navbar({ company, pages, links, accountHref }: NavbarProps) {
   const { t, locale, site } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -51,12 +57,12 @@ export function Navbar({ company, pages }: NavbarProps) {
     return map;
   }, [pages]);
 
-  const navLinks = [
+  const navLinks = links ?? [
     { id: "home", href: `/${locale}`, label: t("nav.home") },
     { id: "works", href: site ? collectionHref(site, locale) : `/${locale}/works`, label: t("nav.works") },
     { id: "about", href: `/${locale}/about`, label: t("nav.about") },
     { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
-  ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
+  ] .filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
 
   return (
     <>
@@ -72,8 +78,7 @@ export function Navbar({ company, pages }: NavbarProps) {
             <div className="relative h-11 w-11 flex items-center justify-center shrink-0">
               <ContentImage
                 src={
-                  company.dark_icon_url ||
-                  company.icon_url
+                  siteIcon(company)
                 }
                 alt={t("common.brandIconAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
                 className="h-full w-full object-contain "
@@ -81,8 +86,7 @@ export function Navbar({ company, pages }: NavbarProps) {
             </div>
             <ContentImage
               src={
-                company.dark_logo_url ||
-                company.logo_url
+                siteLogo(company)
               }
               alt={t("common.brandLogoAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
               className="h-7 w-auto object-contain"
@@ -107,7 +111,7 @@ export function Navbar({ company, pages }: NavbarProps) {
                   className={`relative px-4 py-3 text-sm font-sans transition-colors duration-150 rounded-md select-none ${
                     isActive
                       ? "text-mint font-bold"
-                      : "text-slate-200 hover:text-white hover:bg-white/10"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   {isActive && (
@@ -123,13 +127,25 @@ export function Navbar({ company, pages }: NavbarProps) {
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
+            {accountHref ? <CartLink className="w-10 h-10 grid place-items-center rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors" /> : null}
+            {accountHref ? (
+              <Link href={accountHref} aria-label={t("nav.account")} title={t("nav.account")} className="w-10 h-10 grid place-items-center rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors" data-testid="nav-account">
+                <UserRound className="w-5 h-5" aria-hidden="true" />
+              </Link>
+            ) : null}
             <LanguageSwitcher />
           </div>
 
           <div className="flex items-center gap-3 lg:hidden">
+            {accountHref ? <CartLink className="w-11 h-11 flex items-center justify-center rounded-md border border-white/20 text-white" /> : null}
+            {accountHref ? (
+              <Link href={accountHref} aria-label={t("nav.account")} className="w-11 h-11 flex items-center justify-center rounded-md border border-white/20 text-white">
+                <UserRound className="w-4 h-4" aria-hidden="true" />
+              </Link>
+            ) : null}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="w-11 h-11 flex items-center justify-center rounded-md bg-brand-surface border border-white/20 text-white hover:bg-primary transition-colors duration-150"
+              className="w-11 h-11 flex items-center justify-center rounded-md bg-brand-surface border border-white/20 text-paper hover:bg-primary transition-colors duration-150"
               aria-label={t("common.openMenu")}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"

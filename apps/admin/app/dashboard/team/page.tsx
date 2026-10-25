@@ -31,7 +31,7 @@ export default async function TeamPage({ searchParams }: { searchParams: Promise
     getTeamPerformance(ids, from, to),
     Promise.all(ids.map(async (id) => [id, await getMemberHistory(id, 8)] as const)),
     seesAll
-      ? db.user.findMany({ where: { isActive: true, OR: [{ subordinates: { some: {} } }, { role: { in: ["production_manager", "finance_manager"] } }] }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" } })
+      ? db.user.findMany({ where: { isActive: true, OR: [{ subordinates: { some: {} } }, { role: { in: ["operations_manager", "finance_manager"] } }] }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" } })
       : Promise.resolve([]),
   ]);
   return (

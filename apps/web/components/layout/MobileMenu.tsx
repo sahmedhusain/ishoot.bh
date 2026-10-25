@@ -1,4 +1,5 @@
 "use client";
+import { siteIcon, siteLogo } from "../../lib/brand-images";
 import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
@@ -69,16 +70,14 @@ export function MobileMenu({
         >
           <ContentImage
             src={
-              company.dark_icon_url ||
-              company.icon_url
+              siteIcon(company)
             }
             alt={t("common.brandIconAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
             className="h-8 w-auto object-contain"
            width={40} height={40} />
           <ContentImage
             src={
-              company.dark_logo_url ||
-              company.logo_url
+              siteLogo(company)
             }
             alt={t("common.brandLogoAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
             className="h-6 w-auto object-contain"

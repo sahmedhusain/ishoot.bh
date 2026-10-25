@@ -17,6 +17,9 @@ function mapUser(u: any): Profile {
     commission_rate_percent: u.commissionRatePercent == null ? null : Number(u.commissionRatePercent),
     phone: u.phone || undefined,
     department: u.department || undefined,
+    department_id: u.departmentId ?? null,
+    department_name_en: u.departmentRecord?.nameEn || undefined,
+    department_name_ar: u.departmentRecord?.nameAr || undefined,
     manager_id: u.managerId || undefined,
     manager_name: u.manager?.fullName || undefined,
     is_active: u.isActive,
@@ -37,6 +40,7 @@ export async function getAllUsers(): Promise<Profile[]> {
       include: {
         manager: { select: { fullName: true } },
         employee: { select: { id: true, status: true } },
+        departmentRecord: { select: { nameEn: true, nameAr: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -54,6 +58,7 @@ export async function getUserById(id: string): Promise<Profile | null> {
       include: {
         manager: { select: { fullName: true } },
         employee: { select: { id: true, status: true } },
+        departmentRecord: { select: { nameEn: true, nameAr: true } },
       },
     });
     return user ? mapUser(user) : null;
@@ -70,6 +75,7 @@ export async function createUser(data: {
   role: string;
   phone?: string;
   department?: string;
+  department_id?: string | null;
   signature_url?: string;
   manager_id?: string;
 }): Promise<Profile> {
@@ -84,6 +90,7 @@ export async function createUser(data: {
       role: data.role,
       phone: data.phone || null,
       department: data.department || null,
+      departmentId: data.department_id || null,
       signatureUrl: data.signature_url || null,
       managerId: data.manager_id || null,
       isActive: true,
@@ -114,6 +121,7 @@ export async function updateUser(
       updateData.signatureUrl = data.signature_url;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.department !== undefined) updateData.department = data.department;
+    if (data.department_id !== undefined) updateData.departmentId = data.department_id || null;
     if (data.manager_id !== undefined)
       updateData.managerId = data.manager_id || null;
     if (data.is_active !== undefined) updateData.isActive = data.is_active;
@@ -129,6 +137,7 @@ export async function updateUser(
       include: {
         manager: { select: { fullName: true } },
         employee: { select: { id: true, status: true } },
+        departmentRecord: { select: { nameEn: true, nameAr: true } },
       },
     });
     return mapUser(updated);
@@ -232,4 +241,54 @@ export async function setUserDiscountLimit(userId: string, limit: number | null)
     select: { id: true, discountLimitPercent: true },
   });
   return { id: updated.id, discount_limit_percent: updated.discountLimitPercent == null ? null : Number(updated.discountLimitPercent) };
+}
+
+export interface UserListFilters {
+  q?: string;
+  role?: string;
+  departmentId?: string;
+  /** "active" (default), "suspended", "archived", "inactive" or "all". */
+  status?: string;
+  page?: number;
+}
+
+const USER_STATUSES = ["active", "suspended", "archived", "inactive", "all"] as const;
+
+/** One page (50) of staff accounts, searched and filtered on the server, for lists of any size. */
+export async function getUsersPage(filters: UserListFilters) {
+  const q = (filters.q ?? "").trim().slice(0, 120);
+  const status = (USER_STATUSES as readonly string[]).includes(filters.status ?? "") ? filters.status! : "all";
+  const where: Record<string, unknown> = {
+    ...(filters.role && filters.role !== "all" ? { role: filters.role } : {}),
+    ...(filters.departmentId === "none" ? { departmentId: null } : filters.departmentId && filters.departmentId !== "all" ? { departmentId: filters.departmentId } : {}),
+    ...(status === "active" ? { isActive: true, suspendedAt: null, archivedAt: null } : {}),
+    ...(status === "suspended" ? { suspendedAt: { not: null }, archivedAt: null } : {}),
+    ...(status === "archived" ? { archivedAt: { not: null } } : {}),
+    ...(status === "inactive" ? { isActive: false, suspendedAt: null, archivedAt: null } : {}),
+    ...(q
+      ? {
+          OR: [
+            { fullName: { contains: q, mode: "insensitive" } },
+            { email: { contains: q, mode: "insensitive" } },
+            { phone: { contains: q } },
+            { employee: { OR: [{ firstNameAr: { contains: q } }, { lastNameAr: { contains: q } }, { employeeNumber: { contains: q, mode: "insensitive" } }] } },
+          ],
+        }
+      : {}),
+  };
+  const total = await db.user.count({ where });
+  const pageSize = 50;
+  const page = Math.min(Math.max(1, filters.page || 1), Math.max(1, Math.ceil(total / pageSize)));
+  const rows = await db.user.findMany({
+    where,
+    include: {
+      manager: { select: { fullName: true } },
+      employee: { select: { id: true, status: true } },
+      departmentRecord: { select: { nameEn: true, nameAr: true } },
+    },
+    orderBy: [{ fullName: "asc" }, { id: "asc" }],
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  });
+  return { items: rows.map(mapUser), total, page, pageSize, filters: { q, role: filters.role || "all", departmentId: filters.departmentId || "all", status } };
 }

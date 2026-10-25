@@ -21,6 +21,7 @@ export const getPublicCompanySettings = cache(
       city: company.city,
       country: company.country,
       map_url: company.map_url,
+      website_domain: company.website_domain,
       default_currency: company.default_currency,
       company_name_en: company.company_name_en,
       company_name_ar: company.company_name_ar,

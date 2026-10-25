@@ -8,6 +8,7 @@ import {
   getApprovalWorkload,
   getRequestWorkload,
   getComplaintWorkload,
+  getActiveDealStages,
 } from "@platform/database";
 import { readableApprovalTypes } from "../../lib/approval-access";
 import { dashboardFocus } from "../../lib/dashboard-focus";
@@ -35,7 +36,7 @@ export default async function DashboardPage() {
   const canDeals = grants["deals:read"] === true;
   const canLeads = grants["leads:read"] === true;
   const canCalendar = grants["calendar:read"] === true;
-  const [finance, monthlyCashflow, deals, inquiries, company, upcomingEvents] =
+  const [finance, monthlyCashflow, deals, inquiries, company, upcomingEvents, dealStages] =
     await Promise.all([
       canFinance
         ? getFinancialSummary()
@@ -69,6 +70,7 @@ export default async function DashboardPage() {
         : Promise.resolve(0),
       getCachedCompanySettings(),
       canCalendar ? getUpcomingEventsFor(user.id, 3) : Promise.resolve([]),
+      canDeals ? getActiveDealStages() : Promise.resolve([]),
     ]);
 
   return (
@@ -85,6 +87,7 @@ export default async function DashboardPage() {
       finance={finance}
       monthlyCashflow={monthlyCashflow}
       dealOverview={deals}
+      dealStages={dealStages}
       inquiryCount={inquiries}
       company={
         canFinance

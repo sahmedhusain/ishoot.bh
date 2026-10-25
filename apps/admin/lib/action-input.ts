@@ -125,6 +125,15 @@ function valid(
   }
   return false;
 }
+/** Actions that carry a whole file (CSV imports) may send more than the usual 250 kB, within Next's 1 MB body limit. */
+const PAYLOAD_LIMITS: Partial<Record<keyof typeof contracts, number>> = {
+  previewPeopleImportAction: 900_000,
+  importPeopleAction: 900_000,
+  // Page blocks and articles carry editor documents with long text.
+  saveCmsPageAction: 900_000,
+  saveCmsArticleAction: 900_000,
+};
+
 export function validateActionArguments(
   name: keyof typeof contracts,
   values: Record<string, unknown>,
@@ -135,6 +144,6 @@ export function validateActionArguments(
   } catch {
     throw new Error(serverMessages.invalidActionInput);
   }
-  if (bytes > 250000 || !valid(values, contracts[name] as Schema, name))
+  if (bytes > (PAYLOAD_LIMITS[name] ?? 250000) || !valid(values, contracts[name] as Schema, name))
     throw new Error(formatMessage(serverTemplates.invalidInputFor0, { 0: name }));
 }

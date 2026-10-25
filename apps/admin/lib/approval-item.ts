@@ -491,6 +491,34 @@ async function describe(
       b.recordUrl = ROUTES.requests.detail(id);
       return b;
     }
+    case "purchase_requisition": {
+      const r = await db.purchaseRequisition.findUnique({ where: { id }, include: { lines: { orderBy: { sortOrder: "asc" } } } });
+      if (!r) return null;
+      b.reference = r.number;
+      b.subjectUserId = r.requestedById;
+      const requester = await userName(r.requestedById);
+      b.subject = requester ? { name: requester } : null;
+      push(b, "amount", money(r.estimatedTotal));
+      push(b, "neededBy", day(r.neededBy));
+      push(b, "lineCount", { kind: "number", value: r.lines.length });
+      b.note = [r.note, ...r.lines.map((l) => `• ${l.description} × ${Number(l.quantity)}`)].filter(Boolean).join("\n");
+      b.recordUrl = ROUTES.procurement.requisition(id);
+      return b;
+    }
+    case "purchase_order": {
+      const o = await db.purchaseOrder.findUnique({ where: { id }, include: { supplier: true, lines: { orderBy: { sortOrder: "asc" } } } });
+      if (!o) return null;
+      b.reference = o.number;
+      b.subjectUserId = o.createdById;
+      push(b, "vendor", text(o.supplier.companyName || [o.supplier.firstName, o.supplier.lastName].filter(Boolean).join(" ")));
+      push(b, "total", money(o.total));
+      push(b, "date", day(o.orderDate));
+      push(b, "expectedDate", day(o.expectedDate));
+      push(b, "lineCount", { kind: "number", value: o.lines.length });
+      b.note = [o.note, ...o.lines.map((l) => `• ${l.description} × ${Number(l.quantity)} @ ${Number(l.unitPrice)}`)].filter(Boolean).join("\n");
+      b.recordUrl = ROUTES.procurement.order(id);
+      return b;
+    }
     default:
       return null;
   }

@@ -2,7 +2,7 @@ import { getCurrencyDecimals, getCurrencyLabel } from "@platform/config/currency
 import type { WebsiteCopyOverlay } from "@platform/locales";
 import type { ContentLanguage } from "@platform/database/constants/languages";
 import type { BusinessActivity, HeroStyle, InquiryOptions } from "@platform/database/website-presets";
-import type { WebsiteCollection } from "@platform/database/website-config";
+import type { WebsiteArticles, WebsiteCollection } from "@platform/database/website-config";
 
 /** What every page needs to know about this company's website (from the published config and company settings). */
 export interface SiteInfo {
@@ -10,6 +10,7 @@ export interface SiteInfo {
   languages: ContentLanguage[];
   primaryLanguage: ContentLanguage;
   collection: WebsiteCollection;
+  articles: WebsiteArticles;
   heroStyle: HeroStyle;
   inquiry: InquiryOptions;
   whatsappButton: boolean;
@@ -18,11 +19,11 @@ export interface SiteInfo {
 }
 
 /** The company's own catalogue names, layered over the activity's wording. */
-export function siteCopyOverrides(site: Pick<SiteInfo, "collection">, locale: string): WebsiteCopyOverlay {
+export function siteCopyOverrides(site: Pick<SiteInfo, "collection"> & Partial<Pick<SiteInfo, "articles">>, locale: string): WebsiteCopyOverlay {
   const ar = locale === "ar";
   const { collection } = site;
   return {
-    nav: { works: ar ? collection.navAr : collection.navEn },
+    nav: { works: ar ? collection.navAr : collection.navEn, ...(site.articles ? { articles: ar ? site.articles.navAr : site.articles.navEn } : {}) },
     portfolio: { title: ar ? collection.titleAr : collection.titleEn, subtitle: ar ? collection.subtitleAr : collection.subtitleEn },
   };
 }

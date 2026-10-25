@@ -1,6 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { ROUTES } from "../constants/routes";
-import { DEAL_STAGE_ON_EVENT, DEAL_STAGE_PROBABILITY, dealStagesBefore, isActiveDealStage, type DealProgressEvent } from "../constants/crm";
+import { DEAL_STAGE_DEFAULTS, DEAL_STAGE_ON_EVENT, isActiveDealStage, type DealProgressEvent } from "../constants/crm";
 import { getCompanySettings } from "./company-settings";
 import { db } from "../db";
 import { ClientAddress, ClientProfileInput, CRMContact, CRMDeal, DealStage, SupportedCurrency } from "../types";
@@ -606,15 +606,20 @@ export async function updateDealStage(
  * backwards and never reopens a closed one; a single conditional update keeps it race-free.
  */
 export async function advanceDealForEvent(
-  client: Pick<typeof db, "crmDeal">,
+  client: Pick<typeof db, "crmDeal" | "dealPipelineStage">,
   dealId: string | null | undefined,
   event: DealProgressEvent,
 ): Promise<boolean> {
   if (!dealId) return false;
   const target = DEAL_STAGE_ON_EVENT[event];
+  // The company's own pipeline decides what "before" means: every open stage ordered ahead of the target.
+  const stages = await client.dealPipelineStage.findMany({ select: { id: true, sortOrder: true, kind: true, probability: true } });
+  const goal = stages.find((stage) => stage.id === target);
+  if (!goal) return false;
+  const before = stages.filter((stage) => stage.kind === "open" && stage.sortOrder < goal.sortOrder).map((stage) => stage.id);
   const { count } = await client.crmDeal.updateMany({
-    where: { id: dealId, dealStage: { in: dealStagesBefore(target) } },
-    data: { dealStage: target, probability: DEAL_STAGE_PROBABILITY[target] },
+    where: { id: dealId, dealStage: { in: before } },
+    data: { dealStage: target, probability: goal.probability ?? DEAL_STAGE_DEFAULTS[target].probability },
   });
   return count > 0;
 }
@@ -665,7 +670,7 @@ export async function searchCRMContacts(
 }
 
 export interface GlobalSearchResult {
-  category: "customers" | "invoices" | "deals";
+  category: "customers" | "invoices" | "deals" | "people";
   id: string;
   title: string;
   subtitle: string;
@@ -677,6 +682,8 @@ export async function globalAdminSearch(
   query: string,
   limit: number = 8,
   categories: ReadonlySet<string> = new Set(["customers", "invoices", "deals"]),
+  /** Data scope for deals: the owners whose deals may appear; null or missing for all. */
+  dealScope?: string[] | null,
 ): Promise<GlobalSearchResult[]> {
   if (
     typeof query !== "string" ||
@@ -777,6 +784,7 @@ export async function globalAdminSearch(
     const deals = categories.has("deals")
       ? await db.crmDeal.findMany({
           where: {
+            ...(dealScope ? { assignedTo: { in: dealScope } } : {}),
             OR: [
               { title: { contains: clean, mode: "insensitive" } },
               {
@@ -806,6 +814,34 @@ export async function globalAdminSearch(
         subtitle: `${Number(d.dealValue).toFixed(3)} ${d.currency} • ${d.contact?.companyName || d.contact?.firstName || ""}`,
         url: ROUTES.crm.deal(d.id),
         badge: d.dealStage,
+      });
+    }
+    // 4. People: colleagues by name (either language), email or phone; links open the directory.
+    const people = categories.has("people")
+      ? await db.user.findMany({
+          where: {
+            isActive: true,
+            archivedAt: null,
+            OR: [
+              { fullName: { contains: clean, mode: "insensitive" } },
+              { email: { contains: clean, mode: "insensitive" } },
+              { phone: { contains: clean } },
+              { employee: { OR: [{ firstNameAr: { contains: clean } }, { lastNameAr: { contains: clean } }] } },
+            ],
+          },
+          select: { id: true, fullName: true, email: true, role: true, employee: { select: { jobTitleEn: true } } },
+          orderBy: { fullName: "asc" },
+          take: limit,
+        })
+      : [];
+    for (const p of people) {
+      results.push({
+        category: "people",
+        id: p.id,
+        title: p.fullName,
+        subtitle: [p.employee?.jobTitleEn, p.email].filter(Boolean).join(" • "),
+        url: `${ROUTES.directory}?q=${encodeURIComponent(p.email)}`,
+        badge: p.role,
       });
     }
   } catch (e) {

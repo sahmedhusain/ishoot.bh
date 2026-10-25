@@ -1,4 +1,6 @@
 "use client";
+import { domainOrigin } from "@platform/database/constants/domains";
+import { DomainSettingsCard } from "./DomainSettingsCard";
 
 import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
@@ -31,6 +33,7 @@ updateSocialLinkAction,
 deleteSocialLinkAction,
 } from "../../app/actions/settings";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
+import { usePermissions } from "../../hooks/usePermissions";
 import { SettingsNavTabs } from "./SettingsNavTabs";
 import { IconPicker } from "../shared/LazyIconPicker";
 import { PlatformPicker, SocialBrandIcon } from "../shared/PlatformPicker";
@@ -56,6 +59,7 @@ export function WebSettingsView({
   socialLinks = [],
 }: WebSettingsViewProps) {
   const {t} = useAdminLocale();
+  const { can } = usePermissions();
   const [settings, setSettings] =
     React.useState<CompanySettings>(initialSettings);
   const [activeTab, setActiveTab] = React.useState<
@@ -141,7 +145,7 @@ export function WebSettingsView({
     }
   };
 
-  const webUrl = process.env.NEXT_PUBLIC_WEB_URL || settings.website || "";
+  const webUrl = process.env.NEXT_PUBLIC_WEB_URL || domainOrigin(settings.website_domain) || settings.website || "";
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-16 animate-fade-in select-none">
@@ -198,6 +202,8 @@ export function WebSettingsView({
 
       {/* Settings Navigation Tabs */}
       <SettingsNavTabs />
+
+      <DomainSettingsCard initialWebsiteDomain={settings.website_domain} initialAdminDomain={settings.admin_domain} canEdit={can("settings", "write")} />
 
       {/* Web Management Sub-Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/10 pb-3 overflow-x-auto">

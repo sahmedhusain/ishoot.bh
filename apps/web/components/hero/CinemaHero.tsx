@@ -117,7 +117,7 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-[#d4dfd8]">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
               {subtitle}
             </p>
           )}
@@ -143,7 +143,7 @@ export function CinemaHero({ banners, companyName }: { banners: HeroBanner[]; co
           </div>
         </motion.div>
         <div className="mt-12 flex items-center justify-between gap-4 border-t border-white/20 pt-5">
-          <span className="text-xs text-[#bdcec4]">{t("hero.caption")}</span>
+          <span className="text-xs text-ink-muted">{t("hero.caption")}</span>
           <div className="flex items-center gap-3">
             {banners.length > 1 &&
               banners.map((item, i) => (

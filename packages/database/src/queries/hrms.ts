@@ -72,6 +72,7 @@ export async function createEmployee(
         employmentRecords: { where: { isCurrent: true } },
       },
     });
+    if (data.userId && data.departmentId) await tx.user.update({ where: { id: data.userId }, data: { departmentId: data.departmentId } });
 
     return emp;
   });
@@ -302,6 +303,11 @@ export async function updateEmployee(
         status: data.status,
       },
     });
+    // The staff account follows its employee record into the new department.
+    if (data.departmentId !== undefined) {
+      const linked = await tx.employee.findUnique({ where: { id }, select: { userId: true } });
+      if (linked?.userId) await tx.user.update({ where: { id: linked.userId }, data: { departmentId: data.departmentId } });
+    }
 
     const compensationFields = ["basicSalary", "housingAllowance", "transportAllowance", "otherAllowances", "contractType", "payrollSettings"] as const;
     if (compensationFields.some(key => data[key] !== undefined)) {

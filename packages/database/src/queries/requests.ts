@@ -336,10 +336,12 @@ const kindWhere = (kind: RequestKind): Prisma.InquiryWhereInput =>
         ? { requestType: { notIn: ["SR", "CR"] }, OR: [{ requestType: "quote_request" }, { intent: "quote_request" }] }
         : { requestType: { notIn: ["SR", "CR", "quote_request"] }, intent: "inquiry" };
 
-function requestWhere(filters: RequestListFilters, viewerId: string): Prisma.InquiryWhereInput {
+function requestWhere(filters: RequestListFilters, viewerId: string, visible?: string[] | null): Prisma.InquiryWhereInput {
   const now = new Date();
   const open: Prisma.InquiryWhereInput = { workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] } };
   const and: Prisma.InquiryWhereInput[] = [];
+  // Data scope: only requests assigned to someone the viewer may see.
+  if (visible) and.push({ assignedToId: { in: visible } });
   if (filters.kind && filters.kind !== "all") and.push(kindWhere(filters.kind));
   const status = filters.status || "open";
   if (status === "open") and.push(open);
@@ -429,8 +431,8 @@ function toRow(r: ListRecord, now: Date): RequestListRow {
 }
 
 /** Every match for the CSV export, walked by id. */
-export async function getRequestExportBatch(filters: RequestListFilters, viewerId: string, batch: { after?: string; batchSize: number }) {
-  const where = requestWhere(filters, viewerId);
+export async function getRequestExportBatch(filters: RequestListFilters, viewerId: string, batch: { after?: string; batchSize: number }, visible?: string[] | null) {
+  const where = requestWhere(filters, viewerId, visible);
   const rows = await db.inquiry.findMany({
     where: { AND: [where, ...(batch.after ? [{ id: { gt: batch.after } }] : [])] },
     select: listSelect,
@@ -442,10 +444,11 @@ export async function getRequestExportBatch(filters: RequestListFilters, viewerI
 }
 
 /** The request inbox: lean rows, server-side filters and sorting, and the counters the managers need. */
-export async function getRequestList(filters: RequestListFilters, viewerId: string, page = 1) {
+export async function getRequestList(filters: RequestListFilters, viewerId: string, page = 1, visible?: string[] | null) {
   const now = new Date();
-  const open: Prisma.InquiryWhereInput = { workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] } };
-  const where = requestWhere(filters, viewerId);
+  const scope: Prisma.InquiryWhereInput = visible ? { assignedToId: { in: visible } } : {};
+  const open: Prisma.InquiryWhereInput = { ...scope, workflowStatus: { notIn: [...REQUEST_CLOSED_STATUSES] } };
+  const where = requestWhere(filters, viewerId, visible);
   const sort: RequestSort = (REQUEST_SORTS as readonly string[]).includes(filters.sort ?? "") ? (filters.sort as RequestSort) : "urgency";
   const safePage = Number.isInteger(page) && page >= 1 ? Math.min(page, 10000) : 1;
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
@@ -457,9 +460,9 @@ export async function getRequestList(filters: RequestListFilters, viewerId: stri
         db.inquiry.count({ where: open }),
         db.inquiry.count({ where: { ...open, slaDueDate: { lt: now } } }),
         db.inquiry.count({ where: { ...open, assignedToId: null } }),
-        db.inquiry.count({ where: { workflowStatus: "pending_approval" } }),
+        db.inquiry.count({ where: { ...scope, workflowStatus: "pending_approval" } }),
         db.inquiry.count({ where: { ...open, assignedToId: viewerId } }),
-        db.inquiry.count({ where: { workflowStatus: "resolved", resolvedAt: { gte: monthStart } } }),
+        db.inquiry.count({ where: { ...scope, workflowStatus: "resolved", resolvedAt: { gte: monthStart } } }),
       ]),
     "RepeatableRead",
   );

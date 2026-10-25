@@ -1,6 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { db } from "../db";
-import { DEFAULT_FEATURE_MODULES } from "../constants/features";
+import { DEFAULT_FEATURE_MODULES, moduleOnByDefault } from "../constants/features";
 
 export async function getFeatureToggles() {
   return await db.featureToggle.findMany({
@@ -14,10 +14,14 @@ export async function getFeatureToggle(moduleKey: string) {
   });
 }
 
+/** Switches a module on or off; a known module missing from the database (added in a later version) is created. */
 export async function updateFeatureToggle(moduleKey: string, isEnabled: boolean) {
-  return await db.featureToggle.update({
+  const known = DEFAULT_FEATURE_MODULES.find((m) => m.moduleKey === moduleKey);
+  if (!known) return await db.featureToggle.update({ where: { moduleKey }, data: { isEnabled } });
+  return await db.featureToggle.upsert({
     where: { moduleKey },
-    data: { isEnabled },
+    update: { isEnabled },
+    create: { moduleKey, nameEn: known.nameEn, nameAr: known.nameAr, isEnabled },
   });
 }
 
@@ -29,11 +33,11 @@ export async function ensureDefaultFeatureModules() {
 
 export async function requireFeatureEnabled(moduleKey:string) {
   const feature=await db.featureToggle.findUnique({where:{moduleKey},select:{isEnabled:true}});
-  if(feature?.isEnabled === false) throw new Error(serverMessages.featureDisabled);
+  if (feature ? !feature.isEnabled : !moduleOnByDefault(moduleKey)) throw new Error(serverMessages.featureDisabled);
 }
 
-/** Whether a module is on; a module that has never been toggled counts as on, as in requireFeatureEnabled. */
+/** Whether a module is on; one never toggled follows its default (most are on), as in requireFeatureEnabled. */
 export async function isFeatureEnabled(moduleKey: string) {
   const feature = await db.featureToggle.findUnique({ where: { moduleKey }, select: { isEnabled: true } });
-  return feature?.isEnabled !== false;
+  return feature ? feature.isEnabled : moduleOnByDefault(moduleKey);
 }

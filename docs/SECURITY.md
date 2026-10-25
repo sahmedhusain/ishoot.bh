@@ -20,6 +20,65 @@
 - The last active Super Admin cannot be suspended, archived or deleted.
 - Files are served only to people allowed to see the record they belong to. Public brand files (logos, icons, fonts) are the only public uploads.
 
+- **Check domain** (Settings → Website) is the only place the server fetches an address someone typed. It needs
+  `settings:edit`, accepts only a plain host name (no IP literal, port, credentials or `localhost`), resolves it and
+  refuses private, loopback and link-local addresses, fetches only `https://<host>/api/health` with an 8-second
+  timeout and no redirects, and reports a state, never the response body. `/api/health` returns the app name and a
+  hash of the company record's id, nothing else.
+
+## Website custom code and embeds
+
+- Custom-code blocks and site-wide code need `cms_code:edit` (owner and administrators by default). Adding or
+  changing them is refused without it, even through the general website save, and every change is written to the
+  audit log with the code itself.
+- Custom code always runs in a sandboxed iframe (`srcdoc`, `sandbox="allow-scripts allow-popups allow-forms"`, no
+  `allow-same-origin`): it cannot read the website's cookies, storage or DOM, or call its APIs as the visitor. The
+  frame reports its height with `postMessage`; the page accepts only messages from that frame. There is no
+  "trusted inline script" mode. Site-wide head and body code runs in a hidden frame of the same kind.
+- Analytics are not free-form code: the company enters a Google Analytics, Meta Pixel or TikTok Pixel id, checked
+  against a strict pattern, and the website builds the official tag around it.
+- Embeds (YouTube, Vimeo, Instagram, Google Maps, Calendly, Typeform) load only https addresses on each provider's
+  own hosts (`embedSource` in `packages/database/src/cms/blocks.ts`).
+- Article and rich-text HTML is built on the server from the editor's document (never taken from the browser) and
+  cleaned with an allow-list (`apps/admin/lib/rich-text/render.ts`): formatting, links (`rel="noopener noreferrer
+  nofollow"`), images, tables and frames for the embed providers only; scripts, event handlers and other schemes
+  are dropped. Code blocks and site code are previewed through the normal signed draft preview before publishing.
+
+## Customer accounts (online store)
+
+- Customers are a separate account type from staff (`Customer`); a customer session never opens the admin.
+- Passwords are bcrypt-hashed (cost 12); a missing account is compared against a fixed hash so response timing
+  does not reveal which e-mails exist. Sessions are random 256-bit tokens stored only as SHA-256 hashes, in an
+  HttpOnly, SameSite=Lax cookie, for 30 days.
+- E-mailed sign-in codes are six digits, stored hashed, valid 10 minutes, at most 5 attempts, one live code per
+  e-mail; sending is limited per e-mail and per address, as are password sign-ins and sign-ups.
+- Account API posts must come from the website's own origin.
+- Google and Apple use the authorization code flow with PKCE (S256), a random state and nonce kept in a signed,
+  10-minute cookie (`CUSTOMER_AUTH_SECRET`), and ID tokens verified against the provider's published keys,
+  audience, issuer, expiry and nonce. An existing account is linked only when the provider confirms the e-mail.
+- "Delete my account" removes sessions, addresses, wishlist, sign-in methods, name and e-mail; orders are kept
+  without the personal details.
+
+## Online payments
+
+- Card details never reach the platform: every gateway is used through its hosted payment page (Stripe Checkout,
+  Tap, PayPal, Checkout.com Hosted Payments, PayTabs, Moyasar invoices) or its hosted card frame (HyperPay
+  COPYandPAY, loaded with the integrity hash HyperPay returns).
+- Gateway keys are integration credentials (AES-256-GCM with `ENCRYPTION_KEY`); the browser only ever sees the
+  last characters of a secret.
+- Whether an order is paid is always asked of the gateway (on the customer's return and from webhooks), never
+  read from the browser. Webhooks are verified per gateway: Stripe's timestamped HMAC (5-minute window), Tap's
+  hashstring, Checkout.com's and PayTabs' body HMAC, Moyasar's secret token, PayPal's verify-signature API and
+  HyperPay's AES-GCM encryption; anything else is refused with 401.
+- Each webhook delivery is stored (`PaymentWebhookEvent`) so a retry changes nothing, and moving a payment attempt
+  to paid is a guarded update, so the webhook and the customer's return record the money once.
+- Payment links are `orderId.HMAC` (`CUSTOMER_AUTH_SECRET`, falling back to `REVALIDATION_SECRET`): a link pays
+  what is owed on that one order and shows nothing else about the customer.
+- Unpaid online orders release their stock after `ONLINE_PAYMENT_TIMEOUT_MINUTES` (the scheduled job asks the
+  gateway once more before giving up).
+- `PAYMENT_GATEWAY_BASE_URL_<GATEWAY>` points a gateway at another API host; it exists for local sandboxes and the
+  end-to-end tests and must be unset in production.
+
 ## Data protection
 
 - Integration credentials (WhatsApp, Facebook and others) are encrypted with AES-256-GCM using `ENCRYPTION_KEY`.

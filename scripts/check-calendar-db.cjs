@@ -45,7 +45,7 @@ async function main() {
               },
             });
           const ceo = await user("ceo", "admin");
-          const lead = await user("lead", "production_manager", ceo.id);
+          const lead = await user("lead", "operations_manager", ceo.id);
           const alice = await user("alice", "sales", lead.id);
           const bob = await user("bob", "sales", lead.id);
           const finance = await user("fin", "accountant");

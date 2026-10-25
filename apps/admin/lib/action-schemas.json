@@ -1293,6 +1293,222 @@
       }
     }
   },
+  "saveCmsArticleAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "slug": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "excerpt_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "excerpt_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "body_en": {
+            "kind": "unknown",
+            "optional": false
+          },
+          "body_ar": {
+            "kind": "unknown",
+            "optional": false
+          },
+          "cover_url": {
+            "kind": "string",
+            "optional": false
+          },
+          "category": {
+            "kind": "string",
+            "optional": false
+          },
+          "tags": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "author_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "status": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "draft"
+              },
+              {
+                "kind": "literal",
+                "value": "published"
+              }
+            ],
+            "optional": false
+          },
+          "publish_at": {
+            "kind": "string",
+            "optional": false
+          },
+          "featured": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "seo_title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_description_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_description_ar": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteCmsArticleAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveCmsPageAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "slug": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_description_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_description_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "blocks": {
+            "kind": "unknown",
+            "optional": false
+          },
+          "is_visible": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "in_header": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "in_footer": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "duplicateCmsPageAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "deleteCmsPageAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateCmsPagesListAction": {
+    "kind": "object",
+    "fields": {
+      "pages": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "id": {
+              "kind": "string",
+              "optional": false
+            },
+            "is_visible": {
+              "kind": "boolean",
+              "optional": false
+            },
+            "in_header": {
+              "kind": "boolean",
+              "optional": false
+            },
+            "in_footer": {
+              "kind": "boolean",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "toggleBannerStatusAction": {
     "kind": "object",
     "fields": {
@@ -2723,45 +2939,7 @@
         "optional": false
       },
       "stage": {
-        "kind": "union",
-        "variants": [
-          {
-            "kind": "literal",
-            "value": "lead"
-          },
-          {
-            "kind": "literal",
-            "value": "proposal_sent"
-          },
-          {
-            "kind": "literal",
-            "value": "contract_signed"
-          },
-          {
-            "kind": "literal",
-            "value": "production"
-          },
-          {
-            "kind": "literal",
-            "value": "post_production"
-          },
-          {
-            "kind": "literal",
-            "value": "delivered"
-          },
-          {
-            "kind": "literal",
-            "value": "invoiced"
-          },
-          {
-            "kind": "literal",
-            "value": "closed_won"
-          },
-          {
-            "kind": "literal",
-            "value": "closed_lost"
-          }
-        ],
+        "kind": "string",
         "optional": false
       }
     }
@@ -2781,45 +2959,7 @@
             "optional": false
           },
           "stage": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "lead"
-              },
-              {
-                "kind": "literal",
-                "value": "proposal_sent"
-              },
-              {
-                "kind": "literal",
-                "value": "contract_signed"
-              },
-              {
-                "kind": "literal",
-                "value": "production"
-              },
-              {
-                "kind": "literal",
-                "value": "post_production"
-              },
-              {
-                "kind": "literal",
-                "value": "delivered"
-              },
-              {
-                "kind": "literal",
-                "value": "invoiced"
-              },
-              {
-                "kind": "literal",
-                "value": "closed_won"
-              },
-              {
-                "kind": "literal",
-                "value": "closed_lost"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "contact_id": {
@@ -2904,45 +3044,7 @@
             "optional": true
           },
           "stage": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "lead"
-              },
-              {
-                "kind": "literal",
-                "value": "proposal_sent"
-              },
-              {
-                "kind": "literal",
-                "value": "contract_signed"
-              },
-              {
-                "kind": "literal",
-                "value": "production"
-              },
-              {
-                "kind": "literal",
-                "value": "post_production"
-              },
-              {
-                "kind": "literal",
-                "value": "delivered"
-              },
-              {
-                "kind": "literal",
-                "value": "invoiced"
-              },
-              {
-                "kind": "literal",
-                "value": "closed_won"
-              },
-              {
-                "kind": "literal",
-                "value": "closed_lost"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "probability": {
@@ -3667,6 +3769,528 @@
       }
     }
   },
+  "moveShipmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "to": {
+            "kind": "string",
+            "optional": false
+          },
+          "reason": {
+            "kind": "string",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          },
+          "codCollected": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveDeliverySettingsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "mode": {
+            "kind": "string",
+            "optional": false
+          },
+          "slaHours": {
+            "kind": "string",
+            "optional": false
+          },
+          "timeZone": {
+            "kind": "string",
+            "optional": false
+          },
+          "slotDays": {
+            "kind": "string",
+            "optional": false
+          },
+          "leadMinutes": {
+            "kind": "string",
+            "optional": false
+          },
+          "requireSlot": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveDeliveryZoneAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "areas": {
+            "kind": "string",
+            "optional": false
+          },
+          "fee": {
+            "kind": "string",
+            "optional": false
+          },
+          "minOrder": {
+            "kind": "string",
+            "optional": false
+          },
+          "freeOver": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveDeliverySlotAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "zoneId": {
+            "kind": "string",
+            "optional": true
+          },
+          "weekdays": {
+            "kind": "array",
+            "element": {
+              "kind": "number"
+            },
+            "optional": false
+          },
+          "start": {
+            "kind": "string",
+            "optional": false
+          },
+          "end": {
+            "kind": "string",
+            "optional": false
+          },
+          "capacity": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteDeliverySlotAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "assignShipmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "driverId": {
+            "kind": "string",
+            "optional": false
+          },
+          "vehicleId": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "completeDeliveryAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "photoUrl": {
+            "kind": "string",
+            "optional": true
+          },
+          "signature": {
+            "kind": "string",
+            "optional": true
+          },
+          "codCollected": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveVehicleAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "plate": {
+            "kind": "string",
+            "optional": false
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "string",
+            "optional": false
+          },
+          "notes": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "createRouteSheetAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "date": {
+            "kind": "string",
+            "optional": false
+          },
+          "driverId": {
+            "kind": "string",
+            "optional": false
+          },
+          "vehicleId": {
+            "kind": "string",
+            "optional": true
+          },
+          "shipmentIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "startRouteSheetAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "closeRouteSheetAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "settleCashAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "driverId": {
+            "kind": "string",
+            "optional": false
+          },
+          "shipmentIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "received": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveCourierAgencyAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "string",
+            "optional": false
+          },
+          "trackingUrl": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": false
+          },
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "fee": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "handToAgencyAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "agencyId": {
+            "kind": "string",
+            "optional": false
+          },
+          "trackingNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "fee": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "recordAgencyInvoiceAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "agencyId": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "string",
+            "optional": false
+          },
+          "invoiceDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "amount": {
+            "kind": "string",
+            "optional": false
+          },
+          "shipmentIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveDepartmentAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "parent_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "manager_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "deputy_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "cost_centre": {
+            "kind": "string",
+            "optional": false
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteDepartmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "addCatalogueDepartmentsAction": {
+    "kind": "object",
+    "fields": {
+      "keys": {
+        "kind": "array",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      }
+    }
+  },
   "createCompanyDocumentAction": {
     "kind": "object",
     "fields": {
@@ -3745,6 +4369,48 @@
     "fields": {
       "id": {
         "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "checkDomainAction": {
+    "kind": "object",
+    "fields": {
+      "kind": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "website"
+          },
+          {
+            "kind": "literal",
+            "value": "admin"
+          }
+        ],
+        "optional": false
+      },
+      "domain": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveDomainsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "websiteDomain": {
+            "kind": "string",
+            "optional": false
+          },
+          "adminDomain": {
+            "kind": "string",
+            "optional": false
+          }
+        },
         "optional": false
       }
     }
@@ -6287,6 +6953,313 @@
       }
     }
   },
+  "changeStockAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "type": {
+            "kind": "string",
+            "optional": false
+          },
+          "productId": {
+            "kind": "string",
+            "optional": false
+          },
+          "variantId": {
+            "kind": "string",
+            "optional": true
+          },
+          "locationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "quantity": {
+            "kind": "number",
+            "optional": false
+          },
+          "direction": {
+            "kind": "string",
+            "optional": true
+          },
+          "unitCost": {
+            "kind": "number",
+            "optional": true
+          },
+          "batchNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "expiryDate": {
+            "kind": "string",
+            "optional": true
+          },
+          "reason": {
+            "kind": "string",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "transferStockAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "productId": {
+            "kind": "string",
+            "optional": false
+          },
+          "variantId": {
+            "kind": "string",
+            "optional": true
+          },
+          "fromLocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "toLocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "quantity": {
+            "kind": "number",
+            "optional": false
+          },
+          "batchNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveReorderPointsAction": {
+    "kind": "object",
+    "fields": {
+      "productId": {
+        "kind": "string",
+        "optional": false
+      },
+      "levels": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "variantKey": {
+              "kind": "string",
+              "optional": false
+            },
+            "reorderPoint": {
+              "kind": "string",
+              "optional": false
+            },
+            "reorderQuantity": {
+              "kind": "string",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveWarehouseAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "address": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "isDefault": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveLocationAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "warehouseId": {
+            "kind": "string",
+            "optional": false
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "createStockCountAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "warehouseId": {
+            "kind": "string",
+            "optional": false
+          },
+          "scope": {
+            "kind": "string",
+            "optional": false
+          },
+          "productIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "categoryId": {
+            "kind": "string",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveCountedAction": {
+    "kind": "object",
+    "fields": {
+      "countId": {
+        "kind": "string",
+        "optional": false
+      },
+      "entries": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "lineId": {
+              "kind": "string",
+              "optional": false
+            },
+            "counted": {
+              "kind": "string",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "scanCountItemAction": {
+    "kind": "object",
+    "fields": {
+      "countId": {
+        "kind": "string",
+        "optional": false
+      },
+      "code": {
+        "kind": "string",
+        "optional": false
+      },
+      "locationId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "setStockCountStatusAction": {
+    "kind": "object",
+    "fields": {
+      "countId": {
+        "kind": "string",
+        "optional": false
+      },
+      "status": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "review"
+          },
+          {
+            "kind": "literal",
+            "value": "counting"
+          },
+          {
+            "kind": "literal",
+            "value": "cancelled"
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "approveStockCountAction": {
+    "kind": "object",
+    "fields": {
+      "countId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "createLeaveRequestAction": {
     "kind": "object",
     "fields": {
@@ -6803,6 +7776,306 @@
       }
     }
   },
+  "moveOrderAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "status": {
+        "kind": "string",
+        "optional": false
+      },
+      "note": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "recordOrderPaymentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "amount": {
+            "kind": "string",
+            "optional": false
+          },
+          "method": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "recordOrderRefundAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "amount": {
+        "kind": "string",
+        "optional": false
+      },
+      "reason": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "addOrderNoteAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "note": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "issueOrderInvoiceAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createStaffOrderAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "channel": {
+            "kind": "string",
+            "optional": false
+          },
+          "contactId": {
+            "kind": "string",
+            "optional": true
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "productId": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "variantId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "couponCode": {
+            "kind": "string",
+            "optional": false
+          },
+          "fulfilment": {
+            "kind": "string",
+            "optional": false
+          },
+          "address": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "object",
+                "fields": {
+                  "name": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "phone": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "line1": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "line2": {
+                    "kind": "string",
+                    "optional": true
+                  },
+                  "area": {
+                    "kind": "string",
+                    "optional": true
+                  },
+                  "city": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "country": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "postalCode": {
+                    "kind": "string",
+                    "optional": true
+                  }
+                }
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "paidWith": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveStoreSettingsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "guestCheckout": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "deliveryEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "deliveryFee": {
+            "kind": "string",
+            "optional": false
+          },
+          "freeDeliveryOver": {
+            "kind": "string",
+            "optional": false
+          },
+          "pickupEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "codEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "bankTransferEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "bankInstructionsEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "bankInstructionsAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "orderNotifyEmail": {
+            "kind": "string",
+            "optional": false
+          },
+          "paymentGateway": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveCouponAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "string",
+            "optional": false
+          },
+          "value": {
+            "kind": "string",
+            "optional": false
+          },
+          "minOrder": {
+            "kind": "string",
+            "optional": false
+          },
+          "startsAt": {
+            "kind": "string",
+            "optional": false
+          },
+          "endsAt": {
+            "kind": "string",
+            "optional": false
+          },
+          "maxUses": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "generatePayrollRunAction": {
     "kind": "object",
     "fields": {
@@ -7125,6 +8398,36 @@
       }
     }
   },
+  "previewPeopleImportAction": {
+    "kind": "object",
+    "fields": {
+      "rows": {
+        "kind": "array",
+        "element": {
+          "kind": "array",
+          "element": {
+            "kind": "string"
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "importPeopleAction": {
+    "kind": "object",
+    "fields": {
+      "rows": {
+        "kind": "array",
+        "element": {
+          "kind": "array",
+          "element": {
+            "kind": "string"
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "setUserPermissionOverridesAction": {
     "kind": "object",
     "fields": {
@@ -7137,6 +8440,787 @@
         "element": {
           "kind": "boolean"
         },
+        "optional": false
+      }
+    }
+  },
+  "saveDealPipelineAction": {
+    "kind": "object",
+    "fields": {
+      "stages": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "id": {
+              "kind": "string",
+              "optional": false
+            },
+            "name_en": {
+              "kind": "string",
+              "optional": false
+            },
+            "name_ar": {
+              "kind": "string",
+              "optional": false
+            },
+            "probability": {
+              "kind": "number",
+              "optional": false
+            },
+            "color": {
+              "kind": "string",
+              "optional": false
+            },
+            "is_active": {
+              "kind": "boolean",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "resetDealPipelineAction": {
+    "kind": "object",
+    "fields": {}
+  },
+  "saveSupplierAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "companyName": {
+            "kind": "string",
+            "optional": false
+          },
+          "contactName": {
+            "kind": "string",
+            "optional": false
+          },
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": false
+          },
+          "vatNumber": {
+            "kind": "string",
+            "optional": false
+          },
+          "leadTimeDays": {
+            "kind": "string",
+            "optional": false
+          },
+          "paymentTermsDays": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveRequisitionAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "neededBy": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "productId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "variantId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "submitRequisitionAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "cancelRequisitionAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createRfqAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "dueDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "requisitionId": {
+            "kind": "string",
+            "optional": true
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "productId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "variantId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveRfqQuotesAction": {
+    "kind": "object",
+    "fields": {
+      "rfqId": {
+        "kind": "string",
+        "optional": false
+      },
+      "supplierId": {
+        "kind": "string",
+        "optional": false
+      },
+      "quotes": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "lineId": {
+              "kind": "string",
+              "optional": false
+            },
+            "unitPrice": {
+              "kind": "string",
+              "optional": false
+            },
+            "leadTimeDays": {
+              "kind": "string",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "awardRfqAction": {
+    "kind": "object",
+    "fields": {
+      "rfqId": {
+        "kind": "string",
+        "optional": false
+      },
+      "quoteIds": {
+        "kind": "array",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      }
+    }
+  },
+  "cancelRfqAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "savePurchaseOrderAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "supplierId": {
+            "kind": "string",
+            "optional": false
+          },
+          "orderDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "expectedDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "warehouseId": {
+            "kind": "string",
+            "optional": true
+          },
+          "requisitionId": {
+            "kind": "string",
+            "optional": true
+          },
+          "vatEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "terms": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "productId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "variantId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "submitPurchaseOrderAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "emailPurchaseOrderAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "markPurchaseOrderSentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "via": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "whatsapp"
+          },
+          {
+            "kind": "literal",
+            "value": "printed"
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "cancelPurchaseOrderAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "receiveGoodsAction": {
+    "kind": "object",
+    "fields": {
+      "orderId": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "locationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "orderLineId": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "rejectedQuantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "rejectReason": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "batchNumber": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "expiryDate": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveSupplierBillAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "supplierId": {
+            "kind": "string",
+            "optional": false
+          },
+          "purchaseOrderId": {
+            "kind": "string",
+            "optional": true
+          },
+          "supplierRef": {
+            "kind": "string",
+            "optional": false
+          },
+          "billDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "dueDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "vatAmount": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "attachmentUrl": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "orderLineId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "approveSupplierBillAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "overrideReason": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "cancelSupplierBillAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "recordSupplierPaymentAction": {
+    "kind": "object",
+    "fields": {
+      "billId": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "amount": {
+            "kind": "string",
+            "optional": false
+          },
+          "paidOn": {
+            "kind": "string",
+            "optional": false
+          },
+          "method": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveProductAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "sku": {
+            "kind": "string",
+            "optional": false
+          },
+          "barcode": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "descriptionEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "descriptionAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "categoryId": {
+            "kind": "string",
+            "optional": true
+          },
+          "brand": {
+            "kind": "string",
+            "optional": false
+          },
+          "unit": {
+            "kind": "string",
+            "optional": false
+          },
+          "cost": {
+            "kind": "string",
+            "optional": false
+          },
+          "price": {
+            "kind": "string",
+            "optional": false
+          },
+          "vatExempt": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "imageUrls": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "options": {
+            "kind": "unknown",
+            "optional": false
+          },
+          "variants": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "id": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "sku": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "barcode": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "optionValues": {
+                  "kind": "array",
+                  "element": {
+                    "kind": "string"
+                  },
+                  "optional": false
+                },
+                "price": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "cost": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "isActive": {
+                  "kind": "boolean",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "trackStock": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "trackBatches": {
+            "kind": "boolean",
+            "optional": true
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteProductAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "setProductsActiveAction": {
+    "kind": "object",
+    "fields": {
+      "ids": {
+        "kind": "array",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      },
+      "isActive": {
+        "kind": "boolean",
+        "optional": false
+      }
+    }
+  },
+  "setProductOnWebsiteAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "onWebsite": {
+        "kind": "boolean",
+        "optional": false
+      }
+    }
+  },
+  "saveProductCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "parentId": {
+            "kind": "string",
+            "optional": true
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteProductCategoryAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
         "optional": false
       }
     }
@@ -8074,6 +10158,13 @@
               "kind": "boolean"
             },
             "optional": false
+          },
+          "scopes": {
+            "kind": "record",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
           }
         },
         "optional": false
@@ -8294,6 +10385,32 @@
         "optional": false
       },
       "month": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "addSampleContentAction": {
+    "kind": "object",
+    "fields": {
+      "activity": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "removeSampleContentAction": {
+    "kind": "object",
+    "fields": {}
+  },
+  "exampleWebsiteAction": {
+    "kind": "object",
+    "fields": {
+      "activity": {
+        "kind": "string",
+        "optional": false
+      },
+      "locale": {
         "kind": "string",
         "optional": false
       }
@@ -8778,6 +10895,20 @@
                   }
                 ],
                 "optional": false
+              },
+              "websiteMode": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "dark"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "light"
+                  }
+                ],
+                "optional": false
               }
             },
             "optional": false
@@ -8865,6 +10996,54 @@
                   },
                   {
                     "kind": "literal",
+                    "value": "online_store"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "beauty"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "fitness"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "automotive"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "logistics"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "travel"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "hotel"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "law_firm"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "nonprofit"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "pharmacy"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "manufacturing"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "it_software"
+                  },
+                  {
+                    "kind": "literal",
                     "value": "other"
                   }
                 ]
@@ -8906,6 +11085,14 @@
             "optional": true
           },
           "map_url": {
+            "kind": "string",
+            "optional": true
+          },
+          "website_domain": {
+            "kind": "string",
+            "optional": true
+          },
+          "admin_domain": {
             "kind": "string",
             "optional": true
           },
@@ -9812,6 +11999,20 @@
               }
             ],
             "optional": false
+          },
+          "websiteMode": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "dark"
+              },
+              {
+                "kind": "literal",
+                "value": "light"
+              }
+            ],
+            "optional": false
           }
         },
         "optional": false
@@ -9910,6 +12111,13 @@
               }
             },
             "optional": false
+          },
+          "departments": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
           }
         },
         "optional": false
@@ -9946,6 +12154,24 @@
             "optional": false
           }
         },
+        "optional": false
+      }
+    }
+  },
+  "setupPreviewAction": {
+    "kind": "object",
+    "fields": {
+      "locale": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveSetupWebsiteDraftAction": {
+    "kind": "object",
+    "fields": {
+      "config": {
+        "kind": "unknown",
         "optional": false
       }
     }
@@ -10981,6 +13207,19 @@
             "kind": "string",
             "optional": true
           },
+          "department_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
           "manager_id": {
             "kind": "string",
             "optional": true
@@ -11031,6 +13270,19 @@
           },
           "department": {
             "kind": "string",
+            "optional": true
+          },
+          "department_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
             "optional": true
           },
           "manager_id": {
@@ -11112,6 +13364,32 @@
       }
     }
   },
+  "bulkUpdateUsersAction": {
+    "kind": "object",
+    "fields": {
+      "change": {
+        "kind": "object",
+        "fields": {
+          "userIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "role": {
+            "kind": "string",
+            "optional": true
+          },
+          "departmentId": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "saveWebsiteDraftAction": {
     "kind": "object",
     "fields": {
@@ -11149,6 +13427,10 @@
       "locale": {
         "kind": "string",
         "optional": false
+      },
+      "path": {
+        "kind": "string",
+        "optional": true
       }
     }
   },
@@ -11165,6 +13447,169 @@
       },
       "imageUrl": {
         "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveWebsiteMenusAction": {
+    "kind": "object",
+    "fields": {
+      "menus": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "object",
+            "fields": {
+              "header": {
+                "kind": "array",
+                "element": {
+                  "kind": "object",
+                  "fields": {
+                    "kind": {
+                      "kind": "union",
+                      "variants": [
+                        {
+                          "kind": "literal",
+                          "value": "page"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "catalogue"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "articles"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "external"
+                        }
+                      ],
+                      "optional": false
+                    },
+                    "pageId": {
+                      "kind": "string",
+                      "optional": true
+                    },
+                    "url": {
+                      "kind": "string",
+                      "optional": true
+                    },
+                    "labelEn": {
+                      "kind": "string",
+                      "optional": false
+                    },
+                    "labelAr": {
+                      "kind": "string",
+                      "optional": false
+                    }
+                  }
+                },
+                "optional": false
+              },
+              "footer": {
+                "kind": "array",
+                "element": {
+                  "kind": "object",
+                  "fields": {
+                    "kind": {
+                      "kind": "union",
+                      "variants": [
+                        {
+                          "kind": "literal",
+                          "value": "page"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "catalogue"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "articles"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "external"
+                        }
+                      ],
+                      "optional": false
+                    },
+                    "pageId": {
+                      "kind": "string",
+                      "optional": true
+                    },
+                    "url": {
+                      "kind": "string",
+                      "optional": true
+                    },
+                    "labelEn": {
+                      "kind": "string",
+                      "optional": false
+                    },
+                    "labelAr": {
+                      "kind": "string",
+                      "optional": false
+                    }
+                  }
+                },
+                "optional": false
+              }
+            }
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": false
+      },
+      "articles": {
+        "kind": "object",
+        "fields": {
+          "slug": {
+            "kind": "string",
+            "optional": false
+          },
+          "navEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "navAr": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveWebsiteCodeAction": {
+    "kind": "object",
+    "fields": {
+      "code": {
+        "kind": "object",
+        "fields": {
+          "googleAnalyticsId": {
+            "kind": "string",
+            "optional": false
+          },
+          "metaPixelId": {
+            "kind": "string",
+            "optional": false
+          },
+          "tiktokPixelId": {
+            "kind": "string",
+            "optional": false
+          },
+          "headHtml": {
+            "kind": "string",
+            "optional": false
+          },
+          "bodyHtml": {
+            "kind": "string",
+            "optional": false
+          }
+        },
         "optional": false
       }
     }

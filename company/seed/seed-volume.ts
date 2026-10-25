@@ -148,7 +148,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   const vatEnabled = company.vatEnabled;
   const vatPercentage = Number(company.vatPercentage);
   const u = ctx.users;
-  const owner = u.super_admin, finance = u.finance_manager, prodManager = u.production_manager, sales = u.sales;
+  const owner = u.super_admin, finance = u.finance_manager, prodManager = u.operations_manager, sales = u.sales;
   const usedEmails = new Set((await prisma.crmContact.findMany({ select: { emailNorm: true } })).map((c) => c.emailNorm));
   const usedPhones = new Set<string>();
   const counts: Record<string, number> = {};
@@ -158,9 +158,9 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   const departments = Object.fromEntries((await prisma.department.findMany()).map((d) => [d.code, d.id]));
   const SIO = { employee: { mode: "percentage" as const, value: 7 }, employer: { mode: "percentage" as const, value: 12 }, supports: [] };
   const staffPlan: Array<{ role: string | null; dept: string; deptCode: string; titleEn: string; titleAr: string; salary: [number, number] }> = [
-    { role: "producer", dept: "production", deptCode: "PROD", titleEn: "Line Producer", titleAr: "منتج منفذ", salary: [1300, 1700] },
-    { role: "producer", dept: "production", deptCode: "PROD", titleEn: "Field Producer", titleAr: "منتج ميداني", salary: [1100, 1400] },
-    { role: "producer", dept: "production", deptCode: "PROD", titleEn: "Director of Photography", titleAr: "مدير تصوير", salary: [1600, 2100] },
+    { role: "project_lead", dept: "production", deptCode: "PROD", titleEn: "Line Producer", titleAr: "منتج منفذ", salary: [1300, 1700] },
+    { role: "project_lead", dept: "production", deptCode: "PROD", titleEn: "Field Producer", titleAr: "منتج ميداني", salary: [1100, 1400] },
+    { role: "project_lead", dept: "production", deptCode: "PROD", titleEn: "Director of Photography", titleAr: "مدير تصوير", salary: [1600, 2100] },
     { role: "editor", dept: "post_production", deptCode: "POST", titleEn: "Senior Editor", titleAr: "مونتير أول", salary: [1400, 1800] },
     { role: "editor", dept: "post_production", deptCode: "POST", titleEn: "Colorist", titleAr: "أخصائي تلوين", salary: [1300, 1700] },
     { role: "editor", dept: "post_production", deptCode: "POST", titleEn: "Motion Designer", titleAr: "مصمم موشن جرافيك", salary: [1100, 1500] },
@@ -168,8 +168,8 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
     { role: "sales", dept: "sales", deptCode: "COMM", titleEn: "Business Development Executive", titleAr: "تنفيذي تطوير أعمال", salary: [1000, 1300] },
     { role: "accountant", dept: "finance", deptCode: "FIN", titleEn: "Accounts Payable Officer", titleAr: "موظف حسابات دائنة", salary: [900, 1200] },
     { role: "marketing", dept: "marketing", deptCode: "COMM", titleEn: "Social Media Coordinator", titleAr: "منسق وسائل التواصل", salary: [850, 1100] },
-    { role: "production_manager", dept: "production", deptCode: "PROD", titleEn: "Studio Operations Manager", titleAr: "مدير عمليات الاستوديو", salary: [1700, 2200] },
-    { role: "producer", dept: "production", deptCode: "PROD", titleEn: "Sound Recordist", titleAr: "مهندس تسجيل صوتي", salary: [1000, 1300] },
+    { role: "operations_manager", dept: "production", deptCode: "PROD", titleEn: "Studio Operations Manager", titleAr: "مدير عمليات الاستوديو", salary: [1700, 2200] },
+    { role: "project_lead", dept: "production", deptCode: "PROD", titleEn: "Sound Recordist", titleAr: "مهندس تسجيل صوتي", salary: [1000, 1300] },
     // HR-only crew without a login
     { role: null, dept: "production", deptCode: "PROD", titleEn: "Gaffer", titleAr: "فني إضاءة رئيسي", salary: [800, 1000] },
     { role: null, dept: "production", deptCode: "PROD", titleEn: "Grip", titleAr: "فني معدات التصوير", salary: [650, 800] },
@@ -217,7 +217,7 @@ export async function seedVolume(prisma: PrismaClient, ctx: { users: Record<stri
   // Sales staff may give up to 7.5% without approval; everyone else uses the 5% company default.
   await prisma.user.updateMany({ where: { role: "sales" }, data: { discountLimitPercent: 7.5, commissionRatePercent: 5 } });
   await prisma.user.updateMany({ where: { role: "admin" }, data: { commissionRatePercent: 2 } });
-  const productionTeam = allStaff.filter((x) => ["producer", "production_manager", "editor"].includes(x.role) && x.id !== u.editor?.id);
+  const productionTeam = allStaff.filter((x) => ["project_lead", "operations_manager", "editor"].includes(x.role) && x.id !== u.editor?.id);
 
   // ============================================================ 2. customers
   const companies = shuffle(PLACES.flatMap((p) => SECTORS.map((s) => `${p} ${s}`))).slice(0, 110);
@@ -834,7 +834,7 @@ export async function reconcileSeed(prisma: PrismaClient) {
   const orphanRequests = await prisma.inquiry.findMany({ where: { workflowStatus: "pending_approval" }, select: { id: true, reference: true, requestType: true, assignedToId: true } });
   for (const r of orphanRequests) {
     if (await prisma.approvalRequest.findFirst({ where: { targetId: r.id, status: "pending" } })) continue;
-    const requester = r.assignedToId ?? (await prisma.user.findFirstOrThrow({ where: { role: "production_manager" } })).id;
+    const requester = r.assignedToId ?? (await prisma.user.findFirstOrThrow({ where: { role: "operations_manager" } })).id;
     await submit("service_request", r.id, requester, { reference: r.reference, requestType: r.requestType });
   }
   // Hand-written fixtures are credited like migrated data: to their issuer, invoices to their quotation's owner.

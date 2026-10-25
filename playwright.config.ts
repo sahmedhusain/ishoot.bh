@@ -7,8 +7,10 @@ import { defineConfig, devices } from "@playwright/test";
 // `pnpm exec playwright test` reuses them. E2E_SERVER_MODE=start serves production builds.
 const seeded = process.env.E2E_SEEDED_DATABASE || "platform_e2e_test";
 const blank = process.env.E2E_BLANK_DATABASE || "platform_e2e_blank_test";
-export const ports = { admin: 3101, web: 3102, setup: 3103 };
+export const ports = { admin: 3101, web: 3102, setup: 3103, stripe: 3199 };
 const session = "tests/.results/admin-session.json";
+/** The test servers' own secret for the scheduled-jobs endpoint, so specs can run the jobs. */
+export const cronSecret = "e2e-cron-secret";
 const server = (app: "admin" | "web", port: number, database: string) => ({
   command: `node tests/e2e/serve.cjs ${app} ${port} ${database}`,
   url: `http://localhost:${port}${app === "admin" ? "/login" : "/en"}`,
@@ -17,7 +19,16 @@ const server = (app: "admin" | "web", port: number, database: string) => ({
   stdout: "ignore" as const,
   stderr: "pipe" as const,
   // The admin previews website media from the website's origin, so both point at the test servers.
-  env: { NEXT_PUBLIC_WEB_URL: `http://localhost:${ports.web}`, NEXT_PUBLIC_ADMIN_URL: `http://localhost:${ports.admin}` },
+  // Preview links and cache refreshes go to the test website too, never to a developer's own servers.
+  env: {
+    NEXT_PUBLIC_WEB_URL: `http://localhost:${ports.web}`,
+    NEXT_PUBLIC_ADMIN_URL: `http://localhost:${ports.admin}`,
+    WEB_URL: `http://localhost:${ports.web}`,
+    ADMIN_URL: `http://localhost:${ports.admin}`,
+    // Card payments go to a local stand-in for Stripe's API that the payment specs start (tests/e2e/stripe-stand-in.ts).
+    PAYMENT_GATEWAY_BASE_URL_STRIPE: `http://localhost:${ports.stripe}`,
+    CRON_SECRET: cronSecret,
+  },
 });
 
 export default defineConfig({

@@ -5,16 +5,27 @@ import { PortfolioGrid } from "../../../components/portfolio/PortfolioGrid";
 import { SectionBadge } from "../../../components/shared/SectionBadge";
 import { getSite, siteTranslations } from "../../../lib/site";
 import { collectionHref } from "../../../lib/site-copy";
+import { CmsPageView, findPage } from "../../../components/blocks/CmsPageView";
+import { ArticlesIndex, liveArticles } from "../../../components/articles/ArticleViews";
 
 /** The website's catalogue at the address chosen in the website settings (works, products, menu…). */
 export default async function CollectionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; collection: string }>;
+  searchParams: Promise<{ category?: string }>;
 }) {
   const { locale, collection } = await params;
-  const [{ website, config, info }, isPreview, t] = await Promise.all([getSite(), isWebsitePreview(), siteTranslations(locale)]);
+  const [{ website, config, info }, isPreview, t, query] = await Promise.all([getSite(), isWebsitePreview(), siteTranslations(locale), searchParams]);
   if (!website) notFound();
+  // The same address level also holds the articles list and the company's own pages.
+  if (collection === info.articles.slug && collection !== info.collection.slug)
+    return <ArticlesIndex articles={liveArticles(website.articles)} locale={locale} base={`/${locale}/${info.articles.slug}`} category={typeof query.category === "string" ? query.category.slice(0, 40) : ""} />;
+  if (collection !== info.collection.slug) {
+    const page = findPage(website.pages, { slug: collection }, isPreview);
+    if (page) return <CmsPageView page={page} locale={locale} />;
+  }
   // Links shared before the catalogue was renamed still arrive.
   if (collection !== info.collection.slug) {
     if (collection === "works") permanentRedirect(collectionHref(info, locale));

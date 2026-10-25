@@ -11,6 +11,7 @@ import {
   isDefaultAllowed,
   type PermissionAction,
 } from "@platform/database/constants/permissions";
+import { DATA_SCOPES, DATA_SCOPE_AREAS, defaultDataScope } from "@platform/database/constants/data-scope";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { upsertRoleAction, deleteRoleAction } from "../../app/actions/roles";
 import type { RoleWithGrants } from "../../types/roles";
@@ -31,6 +32,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
   const [nameEn, setNameEn] = React.useState("");
   const [nameAr, setNameAr] = React.useState("");
   const [grants, setGrants] = React.useState<Record<string, boolean>>({});
+  const [scopes, setScopes] = React.useState<Record<string, string>>({});
   const isSuperAdmin = editingRole?.id === "super_admin";
 
   const baseline = React.useMemo(() => editingRole?.grants ?? {}, [editingRole]);
@@ -44,6 +46,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
     setNameEn(role?.nameEn ?? "");
     setNameAr(role?.nameAr ?? "");
     setGrants({ ...(role?.grants ?? {}) });
+    setScopes({ ...(role?.scopes ?? Object.fromEntries(DATA_SCOPE_AREAS.map((area) => [area, "all"]))) });
     setIsModalOpen(true);
   };
 
@@ -60,6 +63,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
         for (const action of MATRIX_ACTIONS)
           next[`${resource}:${action}`] = isDefaultAllowed(editingRole.id, resource, action);
     setGrants(next);
+    setScopes(Object.fromEntries(DATA_SCOPE_AREAS.map((area) => [area, defaultDataScope(editingRole.id, area)])));
   };
 
   const handleSave = async (event: React.FormEvent) => {
@@ -70,7 +74,7 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
       const submitted = editingRole
         ? Object.fromEntries(changedKeys.map((key) => [key, grants[key] === true]))
         : Object.fromEntries(Object.entries(grants).filter(([key]) => !key.endsWith(":write")));
-      await upsertRoleAction({ id: editingRole?.id, nameEn, nameAr, grants: submitted });
+      await upsertRoleAction({ id: editingRole?.id, nameEn, nameAr, grants: submitted, scopes: isSuperAdmin ? undefined : scopes });
       toast.success(t.rolesView.saveSuccess);
       window.location.reload();
     } catch (error) {
@@ -160,6 +164,25 @@ export function RolesManagementView({ initialRoles }: { initialRoles: RoleWithGr
 
           {isSuperAdmin && (
             <p className="text-sm text-slate-500" role="note">{t.rolesView.superAdminPermissionsNotice}</p>
+          )}
+
+          {!isSuperAdmin && (
+            <fieldset className="rounded-xl border border-ink/10 p-4 space-y-3">
+              <legend className="px-1 text-xs font-bold">{t.dataScope.title}</legend>
+              <p className="text-xs text-slate-500">{t.dataScope.hint}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                {DATA_SCOPE_AREAS.map((area) => (
+                  <label key={area} className="text-xs font-medium space-y-1">
+                    <span className="block">{t.dataScope.areas[area]}</span>
+                    <select value={scopes[area] ?? "all"} onChange={(e) => setScopes((prev) => ({ ...prev, [area]: e.target.value }))} className="w-full h-9 rounded-lg border border-ink/15 bg-surface px-2 text-xs">
+                      {DATA_SCOPES.map((scope) => (
+                        <option key={scope} value={scope}>{t.dataScope.scopes[scope]}</option>
+                      ))}
+                    </select>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
           )}
 
           <div className="border rounded-xl overflow-auto max-h-[55vh] dark:border-white/10">

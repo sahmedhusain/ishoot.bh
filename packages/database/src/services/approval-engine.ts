@@ -93,6 +93,14 @@ export async function approvalMetrics(
   targetId: string,
 ): Promise<ApprovalMetrics> {
   switch (targetType) {
+    case "purchase_requisition": {
+      const r = await db.purchaseRequisition.findUnique({ where: { id: targetId }, select: { estimatedTotal: true } });
+      return r ? { amount: Number(r.estimatedTotal) } : {};
+    }
+    case "purchase_order": {
+      const o = await db.purchaseOrder.findUnique({ where: { id: targetId }, select: { total: true } });
+      return o ? { amount: Number(o.total) } : {};
+    }
     case "quotation": {
       const q = await db.quotation.findUnique({
         where: { id: targetId },
@@ -415,12 +423,27 @@ async function resolveStep(
         ? activeUserIds({ id: requester.managerId })
         : [];
     case "department_manager": {
-      const employee = await db.employee.findUnique({
-        where: { userId: requester.id },
-        select: { department: { select: { managerId: true } } },
+      // The requester's department head and deputy; a department without either goes to its parent's.
+      const account = await db.user.findUnique({
+        where: { id: requester.id },
+        select: { departmentId: true, employee: { select: { departmentId: true } } },
       });
-      const managerId = employee?.department?.managerId;
-      return managerId ? activeUserIds({ id: managerId }) : [];
+      let departmentId = account?.departmentId ?? account?.employee?.departmentId ?? null;
+      for (let level = 0; departmentId && level < 8; level++) {
+        const department = await db.department.findUnique({
+          where: { id: departmentId },
+          select: { managerId: true, deputyId: true, parentId: true },
+        });
+        const leaders = [department?.managerId, department?.deputyId].filter(
+          (id): id is string => !!id && id !== requester.id,
+        );
+        if (leaders.length) {
+          const active = await activeUserIds({ id: { in: leaders } });
+          if (active.length) return active;
+        }
+        departmentId = department?.parentId ?? null;
+      }
+      return [];
     }
     case "role":
       return step.roleKey ? activeUserIds({ role: step.roleKey }) : [];

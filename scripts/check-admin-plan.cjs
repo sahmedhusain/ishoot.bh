@@ -81,7 +81,7 @@ async function runTests() {
     "./leave-balances": { getLeaveBalance: async () => ({}), refreshLeaveBalanceCache: async () => {} },
     "../db": {
       db: {
-        user: { findUnique: async ({ where }) => ({ id: where.id, role: where.id === "super-admin" ? "super_admin" : "producer" }) },
+        user: { findUnique: async ({ where }) => ({ id: where.id, role: where.id === "super-admin" ? "super_admin" : "project_lead" }) },
         employee: {
           findFirst: async ({ where }) => {
             const matches =

@@ -1,8 +1,11 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { createHmac } from "node:crypto";
 import { serverMessages } from "@platform/locales";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import {
+  applyActivityDealPipeline,
+  applyActivityDepartments,
   completeCompanySetup,
   createActivityLog,
   db,
@@ -19,6 +22,7 @@ import {
 import type { SupportedCurrency } from "@platform/database/types";
 import { mirrorBilingual, normalizeLanguages, normalizePrimaryLanguage } from "@platform/database/constants/languages";
 import { isBusinessActivity, type BusinessActivity } from "@platform/database/website-presets";
+import { isDepartmentKey } from "@platform/database/constants/departments";
 import { safeWebsiteUrl, validateWebsiteConfig, type WebsiteConfig } from "@platform/database/website-config";
 import { publishWebsiteAction } from "./website";
 import { revalidatePublicSite } from "../../lib/revalidate-web";
@@ -71,6 +75,8 @@ export interface SetupConfigInput {
   receiptNextNumber: number;
   paymentTermsDays: number;
   modules: SetupModuleChoice[];
+  /** Catalogue departments to create (existing ones are kept; nothing is removed). */
+  departments: string[];
 }
 
 const PREFIX = /^[A-Z0-9-]{1,10}$/;
@@ -94,6 +100,7 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
     if (!input.contentLanguages.length || languages.length !== new Set(input.contentLanguages).size) throw new Error(serverMessages.contentLanguagesInvalid);
     const year = trim(input.foundedYear);
     const url = (value?: string) => (trim(value) ? safeWebsiteUrl(trim(value)) || trim(value) : "");
+    const previousActivity = (await getCompanySettings()).business_activity;
     await runAtomicMutation(async () => {
       await updateCompanySettings({
         content_languages: languages,
@@ -119,6 +126,10 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
         email: trim(input.email),
         website: trim(input.website),
       });
+      // A new activity brings its own sales pipeline; stages that hold deals are kept.
+      if (previousActivity !== input.businessActivity) {
+        await applyActivityDealPipeline(input.businessActivity);
+      }
       await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "company" } });
     });
     revalidateEverywhere();
@@ -164,6 +175,7 @@ export async function saveSetupConfigAction(input: SetupConfigInput) {
       });
       const known = new Set((await ensureDefaultFeatureModules()).map((m) => m.moduleKey));
       for (const choice of input.modules) if (known.has(choice.moduleKey)) await updateFeatureToggle(choice.moduleKey, choice.isEnabled);
+      await applyActivityDepartments(null, input.departments.filter(isDepartmentKey));
       await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "configuration" } });
     });
     revalidateEverywhere();
@@ -218,5 +230,32 @@ export async function completeSetupAction(options: { publishWebsite: boolean }) 
     }
     revalidateEverywhere();
     return { success: true, websitePublished };
+  });
+}
+
+/** A short-lived link to the draft website for the wizard's live preview (works before the website module is on). */
+export async function setupPreviewAction(locale: string) {
+  return measureOperation("action:setupPreviewAction", async () => {
+    await requirePermission("settings", "write");
+    validateActionArguments("setupPreviewAction", { locale });
+    const secret = process.env.REVALIDATION_SECRET;
+    const web = process.env.WEB_URL;
+    if (!secret || !web) throw new Error(serverMessages.websitePreviewNotConfigured);
+    const expires = String(Date.now() + 10 * 60 * 1000);
+    const token = createHmac("sha256", secret).update(`website-preview:${expires}`).digest("hex");
+    return `${web}/api/preview?expires=${expires}&token=${token}&locale=${locale === "ar" ? "ar" : "en"}`;
+  });
+}
+
+/** Saves the website settings as a draft while the wizard previews them; the module switch waits for Next. */
+export async function saveSetupWebsiteDraftAction(config: unknown) {
+  return measureOperation("action:saveSetupWebsiteDraftAction", async () => {
+    await requirePermission("settings", "write");
+    validateActionArguments("saveSetupWebsiteDraftAction", { config });
+    const company = await getCompanySettings();
+    const draft = validateWebsiteConfig(mirrorBilingual(config as WebsiteConfig, company.content_languages));
+    await getWebsiteEditor();
+    await db.websiteContent.update({ where: { id: "main" }, data: { draft: JSON.parse(JSON.stringify(draft)), revision: { increment: 1 } } });
+    return { success: true };
   });
 }

@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card,Button,Input,Select } from "@platform/ui";
 import { ArrowLeft,CheckCircle2,Kanban } from "lucide-react";
-import { DEAL_STAGES } from "@platform/config/constants";
+import type { DealPipelineStage } from "@platform/database";
+import { dealStageLabel } from "../../lib/deal-stages";
 import type { CRMContact, DealStage } from "@platform/database/types";
 import { toast } from "sonner";
 import { createCRMDealAction } from "../../app/actions/crm";
@@ -18,14 +19,16 @@ export function NewDealFormView({
   canPickContact,
   canCreateContact,
   initialContact,
+  stages,
 }: {
   defaultCurrency: string;
   canPickContact: boolean;
   canCreateContact: boolean;
   initialContact: CRMContact | null;
+  stages: DealPipelineStage[];
 }) {
   const router = useRouter();
-  const { t } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
 
   const [title, setTitle] = React.useState("");
   const [value, setValue] = React.useState<number>(0);
@@ -129,13 +132,9 @@ export function NewDealFormView({
                 value={stage}
                 onChange={(e) => setStage(e.target.value as DealStage)}
               >
-                {DEAL_STAGES.map((s) => (
-                  <option
-                    key={s.value}
-                    value={s.value}
-                    className="bg-surface text-ink"
-                  >
-                    {t.crm.stages[s.value as keyof typeof t.crm.stages] || s.value}
+                {stages.map((s) => (
+                  <option key={s.id} value={s.id} className="bg-surface text-ink">
+                    {dealStageLabel(s, t, locale)}
                   </option>
                 ))}
               </Select>

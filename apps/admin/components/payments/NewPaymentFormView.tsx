@@ -299,6 +299,7 @@ export function NewPaymentFormView({
                 <Link
                   href={ROUTES.invoices.detail(selectedInvoice.id)}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className=" font-bold text-accent hover:underline flex items-center gap-1"
                 >
                   <span>{selectedInvoice.invoice_number}</span>

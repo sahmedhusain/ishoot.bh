@@ -64,7 +64,7 @@ async function main() {
               email: `flow-mgr-${stamp}@flows.test`,
               fullName: "Flow Manager",
               passwordHash: "x",
-              role: "production_manager",
+              role: "operations_manager",
             },
           });
           const requester = await tx.user.create({
@@ -72,7 +72,7 @@ async function main() {
               email: `flow-req-${stamp}@flows.test`,
               fullName: "Flow Requester",
               passwordHash: "x",
-              role: "producer",
+              role: "project_lead",
               managerId: manager.id,
             },
           });

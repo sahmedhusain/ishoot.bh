@@ -12,6 +12,23 @@ import {
   Settings,
   ArrowRightLeft,
   LayoutDashboard,
+  Package,
+  FolderTree,
+  ShoppingBag,
+  MapPinned,
+  Navigation,
+  Route,
+  Coins,
+  CarFront,
+  ScanLine,
+  Store,
+  FileQuestion,
+  ShoppingCart,
+  Truck,
+  Boxes,
+  History,
+  ClipboardCheck,
+  Warehouse,
   Calendar,
   Kanban,
   Users,
@@ -43,6 +60,9 @@ import {
   HandHeart,
   FileCheck2,
   ClipboardList,
+  Newspaper,
+  Menu,
+  Code2,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -59,7 +79,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   resource?: PermissionResource;
   /** Permission needed on the resource (default read). */
-  action?: "read" | "edit";
+  action?: "read" | "edit" | "create" | "assign";
   moduleKey?: string;
   /** Only for people who manage a team. */
   managersOnly?: boolean;
@@ -355,6 +375,35 @@ export function Sidebar() {
             moduleKey: "cms",
           },
           {
+            href: ROUTES.cms.pages,
+            label: t.nav.pages,
+            icon: FileText,
+            resource: "pages",
+            moduleKey: "cms",
+          },
+          {
+            href: ROUTES.cms.articles,
+            label: t.nav.articles,
+            icon: Newspaper,
+            resource: "articles",
+            moduleKey: "cms",
+          },
+          {
+            href: ROUTES.cms.menus,
+            label: t.nav.menus,
+            icon: Menu,
+            resource: "pages",
+            action: "edit",
+            moduleKey: "cms",
+          },
+          {
+            href: ROUTES.cms.code,
+            label: t.nav.siteCode,
+            icon: Code2,
+            resource: "cms_code",
+            moduleKey: "cms",
+          },
+          {
             href: ROUTES.cms.banners,
             label: t.nav.banners,
             icon: Film,
@@ -482,6 +531,51 @@ export function Sidebar() {
         ]),
       },
       {
+        id: "products",
+        title: t.navigationGroups.products,
+        items: [
+          { href: ROUTES.products.list, label: t.products.navTitle, icon: Package, resource: "products", moduleKey: "products" },
+          { href: ROUTES.products.categories, label: t.products.navCategories, icon: FolderTree, resource: "products", moduleKey: "products" },
+          { href: ROUTES.inventory.stock, label: t.inventory.nav.stock, icon: Boxes, resource: "inventory", moduleKey: "products" },
+          { href: ROUTES.inventory.movements(), label: t.inventory.nav.movements, icon: History, resource: "inventory", moduleKey: "products" },
+          { href: ROUTES.inventory.counts, label: t.inventory.nav.counts, icon: ClipboardCheck, resource: "inventory", moduleKey: "products" },
+          { href: ROUTES.inventory.warehouses, label: t.inventory.nav.warehouses, icon: Warehouse, resource: "inventory", moduleKey: "products" },
+        ],
+      },
+      {
+        id: "store",
+        title: t.orders.navGroup,
+        items: [
+          { href: ROUTES.orders.list, label: t.orders.nav.orders, icon: ShoppingBag, resource: "orders", moduleKey: "store" },
+          { href: ROUTES.orders.new, label: t.orders.nav.newSale, icon: ScanLine, resource: "orders", action: "create", moduleKey: "store" },
+          { href: ROUTES.orders.settings, label: t.orders.nav.settings, icon: Store, resource: "settings", moduleKey: "store" },
+        ],
+      },
+      {
+        id: "delivery",
+        title: t.delivery.navGroup,
+        items: [
+          { href: ROUTES.delivery.driver, label: t.delivery.nav.driver, icon: Navigation, resource: "deliveries", action: "edit", moduleKey: "delivery" },
+          { href: ROUTES.delivery.shipments, label: t.delivery.nav.shipments, icon: Truck, resource: "deliveries", moduleKey: "delivery" },
+          { href: ROUTES.delivery.routes, label: t.delivery.nav.routes, icon: Route, resource: "deliveries", action: "assign", moduleKey: "delivery" },
+          { href: ROUTES.delivery.cash, label: t.delivery.nav.cash, icon: Coins, resource: "deliveries", action: "assign", moduleKey: "delivery" },
+          { href: ROUTES.delivery.fleet, label: t.delivery.nav.fleet, icon: CarFront, resource: "deliveries", action: "assign", moduleKey: "delivery" },
+          { href: ROUTES.delivery.agencies, label: t.delivery.nav.agencies, icon: Package, resource: "deliveries", action: "assign", moduleKey: "delivery" },
+          { href: ROUTES.delivery.settings, label: t.delivery.nav.settings, icon: MapPinned, resource: "settings", moduleKey: "delivery" },
+        ],
+      },
+      {
+        id: "procurement",
+        title: t.procurement.navGroup,
+        items: [
+          { href: ROUTES.procurement.requisitions, label: t.procurement.nav.requisitions, icon: ClipboardList, resource: "procurement", action: "create", moduleKey: "procurement" },
+          { href: ROUTES.procurement.rfqs, label: t.procurement.nav.rfqs, icon: FileQuestion, resource: "procurement", moduleKey: "procurement" },
+          { href: ROUTES.procurement.orders, label: t.procurement.nav.orders, icon: ShoppingCart, resource: "procurement", moduleKey: "procurement" },
+          { href: ROUTES.procurement.bills, label: t.procurement.nav.bills, icon: Receipt, resource: "procurement", moduleKey: "procurement" },
+          { href: ROUTES.procurement.suppliers, label: t.procurement.nav.suppliers, icon: Truck, resource: "procurement", moduleKey: "procurement" },
+        ],
+      },
+      {
         id: "operations",
         title: t.navigationGroups.operations,
         items: take([
@@ -548,6 +642,9 @@ export function Sidebar() {
         items: take([
           ROUTES.analytics,
           ROUTES.cms.website,
+          ROUTES.cms.pages,
+          ROUTES.cms.articles,
+          ROUTES.cms.menus,
           ROUTES.cms.portfolio,
           ROUTES.cms.banners,
           ROUTES.cms.clients,
@@ -574,6 +671,20 @@ export function Sidebar() {
             action: "edit",
           },
           {
+            href: ROUTES.settings.departments,
+            label: t.nav.departments,
+            icon: Building2,
+            resource: "settings",
+          },
+          {
+            href: ROUTES.settings.pipeline,
+            label: t.nav.pipeline,
+            icon: Kanban,
+            resource: "settings",
+            action: "edit",
+            moduleKey: "crm_deals",
+          },
+          {
             href: ROUTES.settings.integrations,
             label: t.navigationGroups.integrations,
             icon: Settings,
@@ -581,6 +692,7 @@ export function Sidebar() {
             action: "edit",
           },
           ...take([
+            ROUTES.cms.code,
             ROUTES.settings.web,
             ROUTES.settings.modules,
             ROUTES.settings.audit,

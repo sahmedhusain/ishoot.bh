@@ -25,6 +25,7 @@ export const getSite = cache(async () => {
     languages: company.content_languages,
     primaryLanguage: company.primary_language,
     collection: config.collection,
+    articles: config.articles,
     heroStyle: config.heroStyle,
     inquiry: config.inquiry,
     whatsappButton: config.whatsappButton,

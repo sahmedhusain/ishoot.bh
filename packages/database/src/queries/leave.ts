@@ -422,10 +422,13 @@ export async function listLeaveRequests(filters: {
   endDate?: Date;
   page?: number;
   pageSize?: number;
+  /** Data scope: the staff accounts whose leave the viewer may see; null or missing for everyone. */
+  userIds?: string[] | null;
 }): Promise<{ items: LeaveRequest[]; total: number }> {
   const page = Math.max(1, filters.page || 1);
   const pageSize = Math.min(100, Math.max(1, filters.pageSize || 25));
   const where: any = {};
+  if (filters.userIds) where.employee = { userId: { in: filters.userIds } };
 
   if (filters.employeeId && filters.includeIds?.length)
     where.OR = [{ employeeId: filters.employeeId }, { id: { in: filters.includeIds } }];

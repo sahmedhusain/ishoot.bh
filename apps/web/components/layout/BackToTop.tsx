@@ -61,7 +61,7 @@ export function BackToTop() {
         isVisible
           ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
           : "opacity-0 scale-75 translate-y-4 pointer-events-none"
-      } bg-brand-surface/90 backdrop-blur-2xl border border-white/15 text-white hover:border-accent hover:bg-primary shadow-[0_10px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_0_24px_rgb(var(--brand-accent)/0.55)] active:scale-95`}
+      } bg-brand-surface/90 backdrop-blur-2xl border border-white/15 text-paper hover:border-accent hover:bg-primary shadow-[0_10px_30px_rgba(0,0,0,0.6)] hover:shadow-[0_0_24px_rgb(var(--brand-accent)/0.55)] active:scale-95`}
     >
       <svg
         className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-1"

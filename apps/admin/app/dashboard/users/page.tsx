@@ -1,18 +1,21 @@
 import { requirePagePermission, hasPermission } from "../../../lib/auth";
-import { getAllUsers, db, ALL_RESOURCES, ALL_ACTIONS } from "@platform/database";
+import { getUsersPage, getDepartmentTree, db, ALL_RESOURCES, ALL_ACTIONS, ensureRoleTemplates, resolveGrant } from "@platform/database";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
 
 export const dynamic = "force-dynamic";
 
-export default async function UsersPage() {
+export default async function UsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requirePagePermission("users", "read");
   const [canWrite, canDelete, canCreateEmployees] = await Promise.all([
     hasPermission("users", "write"),
     hasPermission("users", "delete"),
     hasPermission("employees", "create"),
   ]);
-  const [users, roles, grants] = await Promise.all([
-    getAllUsers(),
+  await ensureRoleTemplates();
+  const query = await searchParams;
+  const text = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
+  const [result, roles, grants, departments, people] = await Promise.all([
+    getUsersPage({ q: text("q"), role: text("role"), departmentId: text("departmentId"), status: text("status"), page: Number(text("page")) || 1 }),
     db.role.findMany({
       select: { id: true, nameEn: true, nameAr: true },
       orderBy: { createdAt: "asc" },
@@ -20,22 +23,20 @@ export default async function UsersPage() {
     db.permission.findMany({
       select: { role: true, resource: true, action: true, allowed: true },
     }),
+    getDepartmentTree(),
+    db.user.findMany({ where: { isActive: true, archivedAt: null }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" }, take: 5000 }),
   ]);
-  const rolePermissions: Record<string, Record<string, boolean>> = {};
-  for (const role of roles) {
-    rolePermissions[role.id] = Object.fromEntries(
-      ALL_RESOURCES.flatMap((resource) =>
-        ALL_ACTIONS.map((action) => [
-          `${resource}:${action}`,
-          role.id === "super_admin",
-        ]),
+  const stored = new Map(grants.map((g) => [`${g.role}|${g.resource}:${g.action}`, g.allowed]));
+  const rolePermissions: Record<string, Record<string, boolean>> = Object.fromEntries(
+    roles.map((role) => [
+      role.id,
+      Object.fromEntries(
+        ALL_RESOURCES.flatMap((resource) =>
+          ALL_ACTIONS.map((action) => [`${resource}:${action}`, resolveGrant(role.id, resource, action, (res, act) => stored.get(`${role.id}|${res}:${act}`))]),
+        ),
       ),
-    );
-  }
-  for (const grant of grants)
-    if (rolePermissions[grant.role] && grant.role !== "super_admin")
-      rolePermissions[grant.role][`${grant.resource}:${grant.action}`] =
-        grant.allowed;
+    ]),
+  );
   const employees = await db.employee.findMany({
     where: { userId: null, status: { in: ["active", "on_leave"] } },
     select: {
@@ -53,10 +54,16 @@ export default async function UsersPage() {
       canDelete={canDelete}
       canCreateEmployees={canCreateEmployees}
       employees={employees}
-      initialUsers={users}
+      initialUsers={result.items}
+      total={result.total}
+      page={result.page}
+      pageSize={result.pageSize}
+      filters={result.filters}
+      people={people}
       roles={roles}
       resources={[...ALL_RESOURCES]}
       rolePermissions={rolePermissions}
+      departments={departments.filter((d) => d.is_active)}
     />
   );
 }

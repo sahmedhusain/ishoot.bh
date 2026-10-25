@@ -35,6 +35,14 @@ export const ALL_RESOURCES = [
   "assets",
   "announcements",
   "letters",
+  "pages",
+  "articles",
+  "cms_code",
+  "products",
+  "inventory",
+  "procurement",
+  "orders",
+  "deliveries",
 ] as const;
 
 export const ALL_ACTIONS = [
@@ -54,15 +62,34 @@ export const ALL_ACTIONS = [
 export const ALL_ROLES = [
   "super_admin",
   "admin",
+  "department_manager",
   "finance_manager",
   "accountant",
-  "production_manager",
-  "producer",
+  "hr_manager",
+  "hr_officer",
+  "sales_manager",
   "sales",
   "marketing",
+  "pr_officer",
+  "legal_counsel",
+  "procurement_officer",
+  "warehouse_keeper",
+  "delivery_coordinator",
+  "driver",
+  "customer_service",
+  "operations_manager",
+  "project_lead",
   "editor",
+  "employee",
   "viewer",
 ] as const;
+
+/** Role ids from before the role templates, still accepted wherever a role id is read (profiles, imports). */
+export const LEGACY_ROLE_IDS: Record<string, RoleKey> = {
+  production_manager: "operations_manager",
+  producer: "project_lead",
+};
+export const canonicalRoleId = (role: string): string => LEGACY_ROLE_IDS[role] ?? role;
 
 export type PermissionResource = (typeof ALL_RESOURCES)[number];
 export type PermissionAction = (typeof ALL_ACTIONS)[number];
@@ -87,6 +114,11 @@ export const DEFAULT_ROLE_RULES: Record<
     ALL_RESOURCES.map((resource) => [resource, [...ALL_ACTIONS]]),
   ),
   admin: {
+    deliveries: [...CRUD, "export", "approve", "assign"],
+    orders: [...CRUD, "export", "approve"],
+    procurement: [...CRUD, "export", "approve"],
+    inventory: [...CRUD, "export", "approve"],
+    products: [...CRUD, "export"],
     support: CRUD,
     reviews: CRUD,
     faqs: CRUD,
@@ -127,8 +159,15 @@ export const DEFAULT_ROLE_RULES: Record<
     assets: [...CRUD, "export", "approve"],
     announcements: [...CRUD, "export", "approve"],
     letters: [...CRUD, "export", "approve", "issue_send"],
+    pages: CRUD,
+    articles: [...CRUD, "approve"],
+    cms_code: ["read", "edit"],
   },
   finance_manager: {
+    orders: ["read", "export", "approve"],
+    procurement: ["read", "write", "create", "edit", "export", "approve"],
+    inventory: ["read", "export", "approve"],
+    products: ["read", "export"],
     announcements: ["read", "write", "create", "edit"],
     letters: ["read"],
     invoices: ["read", "write", "create", "edit", "export"],
@@ -149,6 +188,10 @@ export const DEFAULT_ROLE_RULES: Record<
     assets: ["read", "export", "approve"],
   },
   accountant: {
+    orders: ["read", "export"],
+    procurement: ["read", "write", "create", "edit", "export"],
+    inventory: ["read", "export"],
+    products: ["read"],
     announcements: ["read"],
     invoices: ["read", "write", "create", "edit", "export"],
     payments: ["read", "write", "create", "edit", "export"],
@@ -165,7 +208,12 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
     assets: ["read"],
   },
-  production_manager: {
+  operations_manager: {
+    deliveries: [...CRUD, "export", "assign"],
+    orders: ["read", "export"],
+    procurement: ["read", "create", "export", "approve"],
+    inventory: ["read", "export", "approve"],
+    products: ["read"],
     announcements: ["read", "write", "create", "edit"],
     deals: ["read", "write", "create", "edit", "export"],
     contacts: ["read", "write", "create", "edit"],
@@ -182,7 +230,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
     assets: ["read", "write", "create", "edit"],
   },
-  producer: {
+  project_lead: {
     announcements: ["read"],
     deals: ["read", "write", "create", "edit"],
     contacts: ["read", "write", "create", "edit"],
@@ -195,6 +243,9 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   sales: {
+    orders: ["read", "write", "create", "edit"],
+    inventory: ["read"],
+    products: ["read"],
     announcements: ["read"],
     deals: [...CRUD, "export"],
     contacts: [...CRUD, "export"],
@@ -207,6 +258,9 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   marketing: {
+    products: ["read"],
+    pages: ["read", "write", "create", "edit"],
+    articles: [...CRUD, "approve"],
     announcements: ["read"],
     banners: CRUD,
     portfolio: CRUD,
@@ -218,10 +272,156 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
     social: [...CRUD, "export"],
   },
+  department_manager: {
+    deliveries: ["read", "export"],
+    procurement: ["create"],
+    announcements: ["read", "write", "create", "edit"],
+    letters: ["read"],
+    deals: [...CRUD, "export", "assign"],
+    contacts: ["read", "write", "create", "edit"],
+    leads: ["read", "write", "create", "edit"],
+    requests: [...CRUD, "assign", "approve"],
+    moms: [...CRUD, "approve"],
+    calendar: CRUD,
+    employees: ["read", "approve"],
+    expenses: ["read", "approve"],
+    reports: ["read"],
+    assets: ["read", "approve"],
+    self_service: SELF_SERVICE,
+  },
+  hr_manager: {
+    announcements: [...CRUD, "approve"],
+    letters: [...CRUD, "export", "approve", "issue_send"],
+    employees: ["read", "write", "create", "edit", "assign", "export", "approve"],
+    payroll: ["read"],
+    benefits: CRUD,
+    profile_changes: ["read", "approve"],
+    calendar: ["read", "write", "create", "edit"],
+    assets: ["read", "approve"],
+    reports: ["read"],
+    self_service: SELF_SERVICE,
+  },
+  hr_officer: {
+    announcements: ["read", "write", "create", "edit"],
+    letters: ["read", "write", "create", "edit"],
+    employees: ["read", "write", "create", "edit"],
+    benefits: ["read"],
+    profile_changes: ["read"],
+    calendar: ["read"],
+    self_service: SELF_SERVICE,
+  },
+  sales_manager: {
+    deliveries: ["read"],
+    orders: [...CRUD, "export", "approve"],
+    inventory: ["read"],
+    products: ["read", "write", "create", "edit", "export"],
+    announcements: ["read", "write", "create", "edit"],
+    deals: [...CRUD, "export", "assign", "approve"],
+    contacts: [...CRUD, "export"],
+    leads: [...CRUD, "export", "assign"],
+    contracts: ["read", "write", "create", "edit", "export"],
+    quotations: ["read", "write", "create", "edit", "export", "approve"],
+    invoices: ["read"],
+    requests: [...CRUD, "assign", "approve"],
+    support: ["read"],
+    calendar: CRUD,
+    reports: ["read", "export"],
+    self_service: SELF_SERVICE,
+  },
+  pr_officer: {
+    articles: [...CRUD, "approve"],
+    pages: ["read"],
+    announcements: [...CRUD, "approve"],
+    letters: ["read", "write", "create", "edit"],
+    social: [...CRUD, "export"],
+    banners: ["read", "write", "create", "edit"],
+    portfolio: ["read", "write", "create", "edit"],
+    clients: ["read", "write", "create", "edit"],
+    faqs: ["read"],
+    calendar: ["read", "write", "create", "edit"],
+    self_service: SELF_SERVICE,
+  },
+  legal_counsel: {
+    announcements: ["read"],
+    contracts: [...CRUD, "export", "approve"],
+    letters: [...CRUD, "export", "issue_send"],
+    contacts: ["read"],
+    deals: ["read"],
+    quotations: ["read"],
+    settings: ["read"],
+    self_service: SELF_SERVICE,
+  },
+  procurement_officer: {
+    procurement: [...CRUD, "export"],
+    inventory: ["read", "write", "create", "edit"],
+    products: ["read", "write", "create", "edit"],
+    announcements: ["read"],
+    contacts: ["read", "write", "create", "edit"],
+    expenses: ["read", "write", "create", "edit"],
+    assets: ["read", "write", "create", "edit"],
+    requests: ["read", "write", "create", "edit"],
+    reports: ["read"],
+    self_service: SELF_SERVICE,
+  },
+  warehouse_keeper: {
+    deliveries: ["read", "edit"],
+    orders: ["read", "write", "edit"],
+    procurement: ["read", "create"],
+    inventory: ["read", "write", "create", "edit", "export"],
+    products: ["read"],
+    announcements: ["read"],
+    assets: ["read", "write", "create", "edit"],
+    equipment: ["read", "write", "create", "edit"],
+    requests: ["read"],
+    self_service: SELF_SERVICE,
+  },
+  delivery_coordinator: {
+    deliveries: [...CRUD, "export", "assign"],
+    orders: ["read", "write", "edit"],
+    inventory: ["read"],
+    announcements: ["read"],
+    calendar: CRUD,
+    contacts: ["read"],
+    requests: ["read", "write", "create", "edit", "assign"],
+    self_service: SELF_SERVICE,
+  },
+  driver: {
+    deliveries: ["read", "edit"],
+    announcements: ["read"],
+    calendar: ["read"],
+    self_service: SELF_SERVICE,
+  },
+  customer_service: {
+    deliveries: ["read"],
+    orders: ["read", "write", "edit"],
+    inventory: ["read"],
+    products: ["read"],
+    announcements: ["read"],
+    support: [...CRUD, "assign"],
+    contacts: ["read", "write", "create", "edit"],
+    leads: ["read", "write", "create", "edit"],
+    requests: [...CRUD, "assign"],
+    reviews: ["read", "write", "edit"],
+    faqs: ["read"],
+    calendar: ["read"],
+    self_service: SELF_SERVICE,
+  },
+  employee: {
+    procurement: ["create"],
+    announcements: ["read"],
+    calendar: ["read"],
+    self_service: SELF_SERVICE,
+  },
   editor: {
+    pages: ["read", "write", "create", "edit"],
+    articles: ["read", "write", "create", "edit"],
     announcements: ["read"],
     portfolio: ["read", "write", "create", "edit"],
-    banners: ["read"],
+    banners: ["read", "write", "create", "edit"],
+    faqs: ["read", "write", "create", "edit"],
+    stats: ["read", "write", "create", "edit"],
+    clients: ["read", "write", "create", "edit"],
+    reviews: ["read"],
     equipment: ["read"],
     calendar: ["read"],
     requests: ["read"],
@@ -261,6 +461,9 @@ export const RESOURCE_FEATURES: Partial<Record<PermissionResource, string>> = {
   clients: "cms",
   faqs: "cms",
   stats: "cms",
+  pages: "cms",
+  articles: "cms",
+  cms_code: "cms",
   equipment: "equipment",
   reviews: "reviews",
   employees: "hrms",
@@ -268,6 +471,11 @@ export const RESOURCE_FEATURES: Partial<Record<PermissionResource, string>> = {
   benefits: "hrms",
   profile_changes: "hrms",
   self_service: "hrms",
+  products: "products",
+  inventory: "products",
+  procurement: "procurement",
+  orders: "store",
+  deliveries: "delivery",
 };
 
 /** Roles matrix layout. Every resource must appear exactly once (checked by scripts/check-permissions.cjs). */
@@ -319,12 +527,37 @@ export const PERMISSION_GROUPS: ReadonlyArray<{
       "faqs",
       "stats",
       "social",
+      "pages",
+      "articles",
+      "cms_code",
     ],
   },
+  { key: "commerce", resources: ["products", "inventory", "procurement", "orders", "deliveries"] },
   { key: "operations", resources: ["calendar", "assets"] },
   { key: "communications", resources: ["announcements", "letters"] },
   { key: "administration", resources: ["users", "settings", "audit_logs"] },
 ];
+
+/**
+ * One grant as the app applies it: the stored value; else, for create and edit, the stored write grant (older
+ * installs only stored write); else denied. Missing rows of the role templates are filled in from the templates
+ * by ensureRoleTemplates, so a resource added later reaches existing roles as stored data, not by guesswork.
+ */
+export function resolveGrant(
+  role: string,
+  resource: PermissionResource,
+  action: PermissionAction,
+  stored: (resource: string, action: string) => boolean | undefined,
+): boolean {
+  if (role === "super_admin") return true;
+  const own = stored(resource, action);
+  if (own !== undefined) return own;
+  if (action === "create" || action === "edit") {
+    const write = stored(resource, "write");
+    if (write !== undefined) return write;
+  }
+  return false;
+}
 
 /** Default grant for a role, used by seed/bootstrap and the "reset to defaults" action. */
 export function isDefaultAllowed(

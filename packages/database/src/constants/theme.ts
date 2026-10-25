@@ -13,6 +13,8 @@ export type ThemeButtonShape = "square" | "rounded" | "pill";
 export type ThemeFontScale = "sm" | "md" | "lg";
 export type ThemeHeadingCase = "normal" | "uppercase";
 export type ThemeSurface = "tinted" | "neutral";
+/** The public website's background: dark (the original look) or light. The admin follows each person's choice. */
+export type WebsiteMode = "dark" | "light";
 
 export interface BrandTheme {
   primary: string;
@@ -30,6 +32,7 @@ export interface BrandTheme {
   headingCase: ThemeHeadingCase;
   /** Neutral backgrounds carry a faint tint of the primary colour, or stay pure grey. */
   surface: ThemeSurface;
+  websiteMode: WebsiteMode;
 }
 
 export const DEFAULT_THEME: BrandTheme = {
@@ -47,6 +50,7 @@ export const DEFAULT_THEME: BrandTheme = {
   headingWeight: 700,
   headingCase: "normal",
   surface: "tinted",
+  websiteMode: "dark",
 };
 
 export type FontCategory = "sans" | "serif" | "display" | "handwriting";
@@ -182,35 +186,91 @@ export function weightFromFileName(name: string): number | null {
 export const STYLE_PRESETS: { id: string; theme: Omit<BrandTheme, "defaultMode"> }[] = [
   {
     id: "corporate",
-    theme: { primary: "#1E3A8A", accent: "#2563EB", fonts: { body: { kind: "google", family: "IBM Plex Sans Arabic" }, heading: { kind: "google", family: "IBM Plex Sans Arabic" } }, radius: "md", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted" },
+    theme: { primary: "#1E3A8A", accent: "#2563EB", fonts: { body: { kind: "google", family: "IBM Plex Sans Arabic" }, heading: { kind: "google", family: "IBM Plex Sans Arabic" } }, radius: "md", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted", websiteMode: "dark" },
   },
   {
     id: "cinematic",
-    theme: { primary: "#0F172A", accent: "#0D9488", fonts: { body: { kind: "google", family: "Readex Pro" }, heading: { kind: "google", family: "Alexandria" } }, radius: "sm", buttonShape: "square", fontScale: "md", headingWeight: 800, headingCase: "uppercase", surface: "neutral" },
+    theme: { primary: "#0F172A", accent: "#0D9488", fonts: { body: { kind: "google", family: "Readex Pro" }, heading: { kind: "google", family: "Alexandria" } }, radius: "sm", buttonShape: "square", fontScale: "md", headingWeight: 800, headingCase: "uppercase", surface: "neutral", websiteMode: "dark" },
   },
   {
     id: "elegant",
-    theme: { primary: "#3F2A1D", accent: "#B45309", fonts: { body: { kind: "google", family: "Noto Naskh Arabic" }, heading: { kind: "google", family: "Amiri" } }, radius: "none", buttonShape: "square", fontScale: "lg", headingWeight: 700, headingCase: "normal", surface: "neutral" },
+    theme: { primary: "#3F2A1D", accent: "#B45309", fonts: { body: { kind: "google", family: "Noto Naskh Arabic" }, heading: { kind: "google", family: "Amiri" } }, radius: "none", buttonShape: "square", fontScale: "lg", headingWeight: 700, headingCase: "normal", surface: "neutral", websiteMode: "dark" },
   },
   {
     id: "modern",
-    theme: { primary: "#312E81", accent: "#4F46E5", fonts: { body: { kind: "google", family: "Alexandria" }, heading: { kind: "google", family: "Alexandria" } }, radius: "xl", buttonShape: "pill", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted" },
+    theme: { primary: "#312E81", accent: "#4F46E5", fonts: { body: { kind: "google", family: "Alexandria" }, heading: { kind: "google", family: "Alexandria" } }, radius: "xl", buttonShape: "pill", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted", websiteMode: "dark" },
   },
   {
     id: "friendly",
-    theme: { primary: "#9A3412", accent: "#EA580C", fonts: { body: { kind: "google", family: "Tajawal" }, heading: { kind: "google", family: "Baloo Bhaijaan 2" } }, radius: "xl", buttonShape: "pill", fontScale: "lg", headingWeight: 700, headingCase: "normal", surface: "tinted" },
+    theme: { primary: "#9A3412", accent: "#EA580C", fonts: { body: { kind: "google", family: "Tajawal" }, heading: { kind: "google", family: "Baloo Bhaijaan 2" } }, radius: "xl", buttonShape: "pill", fontScale: "lg", headingWeight: 700, headingCase: "normal", surface: "tinted", websiteMode: "dark" },
   },
   {
     id: "fresh",
-    theme: { primary: "#064E3B", accent: "#059669", fonts: { body: { kind: "google", family: "Cairo" }, heading: { kind: "google", family: "Cairo" } }, radius: "lg", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted" },
+    theme: { primary: "#064E3B", accent: "#059669", fonts: { body: { kind: "google", family: "Cairo" }, heading: { kind: "google", family: "Cairo" } }, radius: "lg", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted", websiteMode: "dark" },
   },
   {
     id: "minimal",
-    theme: { primary: "#111827", accent: "#374151", fonts: { body: { kind: "google", family: "Noto Sans Arabic" }, heading: { kind: "google", family: "Noto Kufi Arabic" } }, radius: "sm", buttonShape: "square", fontScale: "sm", headingWeight: 600, headingCase: "normal", surface: "neutral" },
+    theme: { primary: "#111827", accent: "#374151", fonts: { body: { kind: "google", family: "Noto Sans Arabic" }, heading: { kind: "google", family: "Noto Kufi Arabic" } }, radius: "sm", buttonShape: "square", fontScale: "sm", headingWeight: 600, headingCase: "normal", surface: "neutral", websiteMode: "dark" },
   },
   {
     id: "bold",
-    theme: { primary: "#7F1D1D", accent: "#DC2626", fonts: { body: { kind: "google", family: "Almarai" }, heading: { kind: "google", family: "Changa" } }, radius: "md", buttonShape: "rounded", fontScale: "md", headingWeight: 800, headingCase: "uppercase", surface: "tinted" },
+    theme: { primary: "#7F1D1D", accent: "#DC2626", fonts: { body: { kind: "google", family: "Almarai" }, heading: { kind: "google", family: "Changa" } }, radius: "md", buttonShape: "rounded", fontScale: "md", headingWeight: 800, headingCase: "uppercase", surface: "tinted", websiteMode: "dark" },
+  },
+  {
+    id: "daylight",
+    theme: { primary: "#0F4C81", accent: "#0EA5E9", fonts: { body: { kind: "google", family: "IBM Plex Sans Arabic" }, heading: { kind: "google", family: "Readex Pro" } }, radius: "lg", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "neutral", websiteMode: "light" },
+  },
+  {
+    id: "boutique",
+    theme: { primary: "#831843", accent: "#DB2777", fonts: { body: { kind: "google", family: "Tajawal" }, heading: { kind: "google", family: "El Messiri" } }, radius: "xl", buttonShape: "pill", fontScale: "md", headingWeight: 600, headingCase: "normal", surface: "tinted", websiteMode: "light" },
+  },
+  {
+    id: "spa",
+    theme: { primary: "#365314", accent: "#84CC16", fonts: { body: { kind: "google", family: "Noto Sans Arabic" }, heading: { kind: "google", family: "Lalezar" } }, radius: "xl", buttonShape: "pill", fontScale: "lg", headingWeight: 400, headingCase: "normal", surface: "tinted", websiteMode: "light" },
+  },
+  {
+    id: "energetic",
+    theme: { primary: "#111827", accent: "#F59E0B", fonts: { body: { kind: "google", family: "Almarai" }, heading: { kind: "google", family: "Changa" } }, radius: "sm", buttonShape: "square", fontScale: "md", headingWeight: 800, headingCase: "uppercase", surface: "neutral", websiteMode: "dark" },
+  },
+  {
+    id: "motor",
+    theme: { primary: "#1F2937", accent: "#EF4444", fonts: { body: { kind: "google", family: "Readex Pro" }, heading: { kind: "google", family: "Alexandria" } }, radius: "sm", buttonShape: "square", fontScale: "md", headingWeight: 800, headingCase: "uppercase", surface: "neutral", websiteMode: "dark" },
+  },
+  {
+    id: "logistics",
+    theme: { primary: "#1E3A8A", accent: "#F97316", fonts: { body: { kind: "google", family: "Cairo" }, heading: { kind: "google", family: "Cairo" } }, radius: "md", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted", websiteMode: "light" },
+  },
+  {
+    id: "voyage",
+    theme: { primary: "#0C4A6E", accent: "#14B8A6", fonts: { body: { kind: "google", family: "Tajawal" }, heading: { kind: "google", family: "Reem Kufi" } }, radius: "xl", buttonShape: "pill", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted", websiteMode: "light" },
+  },
+  {
+    id: "hospitality",
+    theme: { primary: "#422006", accent: "#CA8A04", fonts: { body: { kind: "google", family: "Noto Naskh Arabic" }, heading: { kind: "google", family: "Aref Ruqaa" } }, radius: "sm", buttonShape: "square", fontScale: "lg", headingWeight: 700, headingCase: "normal", surface: "neutral", websiteMode: "dark" },
+  },
+  {
+    id: "counsel",
+    theme: { primary: "#172554", accent: "#A16207", fonts: { body: { kind: "google", family: "Noto Naskh Arabic" }, heading: { kind: "google", family: "Amiri" } }, radius: "none", buttonShape: "square", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "neutral", websiteMode: "light" },
+  },
+  {
+    id: "civic",
+    theme: { primary: "#14532D", accent: "#22C55E", fonts: { body: { kind: "google", family: "IBM Plex Sans Arabic" }, heading: { kind: "google", family: "Noto Kufi Arabic" } }, radius: "lg", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted", websiteMode: "light" },
+  },
+  {
+    id: "clinical",
+    theme: { primary: "#0F766E", accent: "#06B6D4", fonts: { body: { kind: "google", family: "Noto Sans Arabic" }, heading: { kind: "google", family: "Cairo" } }, radius: "lg", buttonShape: "rounded", fontScale: "md", headingWeight: 600, headingCase: "normal", surface: "neutral", websiteMode: "light" },
+  },
+  {
+    id: "industrial",
+    theme: { primary: "#27272A", accent: "#EAB308", fonts: { body: { kind: "google", family: "Almarai" }, heading: { kind: "google", family: "Changa" } }, radius: "none", buttonShape: "square", fontScale: "md", headingWeight: 800, headingCase: "uppercase", surface: "neutral", websiteMode: "dark" },
+  },
+  {
+    id: "tech",
+    theme: { primary: "#1E1B4B", accent: "#8B5CF6", fonts: { body: { kind: "google", family: "Readex Pro" }, heading: { kind: "google", family: "Readex Pro" } }, radius: "lg", buttonShape: "rounded", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted", websiteMode: "dark" },
+  },
+  {
+    id: "market",
+    theme: { primary: "#7C2D12", accent: "#F97316", fonts: { body: { kind: "google", family: "Cairo" }, heading: { kind: "google", family: "Baloo Bhaijaan 2" } }, radius: "xl", buttonShape: "pill", fontScale: "md", headingWeight: 700, headingCase: "normal", surface: "tinted", websiteMode: "light" },
   },
 ];
 
@@ -315,6 +375,7 @@ export function normalizeTheme(value: unknown): BrandTheme {
     headingWeight: HEADING_WEIGHTS.includes(input.headingWeight as number) ? (input.headingWeight as number) : DEFAULT_THEME.headingWeight,
     headingCase: input.headingCase === "uppercase" ? "uppercase" : "normal",
     surface: input.surface === "neutral" ? "neutral" : "tinted",
+    websiteMode: input.websiteMode === "light" ? "light" : "dark",
   };
 }
 

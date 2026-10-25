@@ -5,6 +5,7 @@ import {
   type PermissionResource,
 } from "@platform/database";
 import { getCurrentUser, requirePermission } from "./auth";
+import { requireShipmentAccess } from "./delivery-scope";
 
 const resources: Record<string, PermissionResource> = {
   employee: "employees",
@@ -24,7 +25,7 @@ const resources: Record<string, PermissionResource> = {
 };
 
 /** Public website media (client logos, banners, portfolio, gear photos): the entity id names the CMS resource. */
-const CMS_ASSET_RESOURCES = ["banners", "portfolio", "clients", "equipment", "reviews", "settings"] as const;
+const CMS_ASSET_RESOURCES = ["banners", "portfolio", "clients", "equipment", "reviews", "settings", "pages", "articles", "products"] as const;
 
 export async function requireAttachmentAccess(
   entityType: string,
@@ -51,6 +52,10 @@ export async function requireAttachmentAccess(
     const claim = entityId && entityId !== "pending" ? await db.expenseClaim.findUnique({ where: { id: entityId }, select: { claimantId: true } }) : null;
     if (claim?.claimantId === user.id) return user;
     return requirePermission("expenses", "read");
+  }
+  if (entityType === "shipment") {
+    // Proof of delivery: whoever may update the shipment (its driver, or people who assign deliveries).
+    return (await requireShipmentAccess(entityId, action === "read" ? "read" : "edit")).user;
   }
   if (entityType === "cms_asset") {
     const resource = CMS_ASSET_RESOURCES.find((r) => r === entityId);

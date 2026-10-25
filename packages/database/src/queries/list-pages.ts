@@ -77,9 +77,11 @@ async function pageQuery<T>(
     { isolationLevel: "RepeatableRead" },
   );
 }
-export async function getDealsPage(input: ListParameters, batch?: ExportBatch) {
+/** `scope`: the staff accounts whose deals the viewer may see (data scope); null or missing for all of them. */
+export async function getDealsPage(input: ListParameters, batch?: ExportBatch, scope?: string[] | null) {
   const f = listParameters(input);
   const where = {
+    ...(scope ? { assignedTo: { in: scope } } : {}),
     ...(f.contactId ? { contactId: f.contactId } : {}),
     ...(f.status !== "all" ? { dealStage: f.status } : {}),
     ...(f.q
@@ -467,7 +469,7 @@ export async function getCompanyDocumentsPage(
 }
 
 export const listDomains = {
-  contacts: (input: ListParameters, batch?: ExportBatch) => getClientsPage(input as ClientListParameters, batch),
+  contacts: (input: ListParameters, batch?: ExportBatch, _scope?: string[] | null) => getClientsPage(input as ClientListParameters, batch),
   deals: getDealsPage,
   invoices: getInvoicesPage,
   payments: getPaymentsPage,
@@ -481,10 +483,12 @@ export const listDomains = {
 export async function* iterateListExport(
   domain: keyof typeof listDomains,
   input: ListParameters,
+  /** Data scope for deals and expenses (other lists ignore it). */
+  scope?: string[] | null,
 ) {
   let after: string | undefined;
   while (true) {
-    const result = await listDomains[domain](input, { after, batchSize: 500 });
+    const result = await (listDomains[domain] as (input: ListParameters, batch: ExportBatch, scope?: string[] | null) => ReturnType<(typeof listDomains)[typeof domain]>)(input, { after, batchSize: 500 }, scope);
     if (!result.items.length) return;
     yield result.items;
     after = result.items[result.items.length - 1].id;
@@ -537,11 +541,14 @@ export async function getAttachmentsPage(
 export async function getExpensesPage(
   input: ListParameters,
   batch?: ExportBatch,
+  /** The staff accounts whose expenses the viewer may see (data scope); null or missing for all of them. */
+  scope?: string[] | null,
 ) {
   return runAtomicMutation(async () => {
     const { mapExpense } = await import("./expenses");
     const f = listParameters(input);
     const where = {
+      ...(scope ? { createdById: { in: scope } } : {}),
       ...(f.status !== "all" ? { categoryId: f.status } : {}),
       ...(f.q
         ? {

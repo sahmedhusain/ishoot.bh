@@ -36,8 +36,8 @@ export const USER_ROLES: RoleConfig[] = [
   { value: "accountant", translationKey: "security.roles.accountant", badgeColorClass: "text-teal-400 bg-teal-500/10 border-teal-500/20" },
   { value: "sales", translationKey: "security.roles.sales", badgeColorClass: "text-blue-400 bg-blue-500/10 border-blue-500/20" },
   { value: "marketing", translationKey: "security.roles.marketing", badgeColorClass: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-  { value: "production_manager", translationKey: "security.roles.productionManager", badgeColorClass: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20" },
-  { value: "producer", translationKey: "security.roles.producer", badgeColorClass: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20" },
+  { value: "operations_manager", translationKey: "security.roles.productionManager", badgeColorClass: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20" },
+  { value: "project_lead", translationKey: "security.roles.producer", badgeColorClass: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20" },
   { value: "editor", translationKey: "security.roles.editor", badgeColorClass: "text-slate-400 bg-slate-500/10 border-slate-500/20" },
   { value: "viewer", translationKey: "security.roles.viewer", badgeColorClass: "text-zinc-400 bg-zinc-500/10 border-zinc-500/20" },
 ];
@@ -84,7 +84,7 @@ export const ROLE_PERMISSION_RULES: Record<
     contacts: ["read"],
     contracts: ["read"],
   },
-  production_manager: {
+  operations_manager: {
     deals: ["read", "write", "export"],
     contacts: ["read", "write"],
     leads: ["read", "write"],

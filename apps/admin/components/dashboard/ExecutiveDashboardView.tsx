@@ -1,4 +1,6 @@
 "use client";
+import type { DealPipelineStage } from "@platform/database";
+import { dealStageLabel } from "../../lib/deal-stages";
 import { formatMessage } from "@platform/locales";
 import { ROUTES } from "../../constants/routes";
 import { DeferredCashflowChart } from "../shared/DeferredCharts";
@@ -44,6 +46,8 @@ interface ExecutiveDashboardViewProps {
   focus?: "executive" | "finance" | "hr" | "sales" | "production" | "staff";
   /** Approvals, requests and complaints panels, shown under the KPIs. */
   workload?: React.ComponentProps<typeof WorkloadPanels>;
+  /** The company's pipeline, for stage names and order. */
+  dealStages?: DealPipelineStage[];
 }
 
 export function ExecutiveDashboardView({
@@ -56,6 +60,7 @@ export function ExecutiveDashboardView({
   upcomingEvents,
   focus,
   workload,
+  dealStages = [],
 }: ExecutiveDashboardViewProps) {
   const { t, locale } = useAdminLocale();
 
@@ -65,6 +70,7 @@ export function ExecutiveDashboardView({
     activeCount,
     activePipelineValue,
   } = dealOverview;
+  const stageRank = (id: string) => { const index = dealStages.findIndex((s) => s.id === id); return index < 0 ? Number.MAX_SAFE_INTEGER : index; };
   const totalStageValue = Object.values(stageStats).reduce(
     (total, stage) => total + stage.value,
     0,
@@ -282,8 +288,9 @@ export function ExecutiveDashboardView({
           </div>
 
           <div className="space-y-3 flex-1 overflow-y-auto max-h-64 py-1">
-            {Object.entries(stageStats).map(([stageKey, data]) => {
-              const label = (t.stages as any)[stageKey] || stageKey;
+            {Object.entries(stageStats).sort(([a], [b]) => stageRank(a) - stageRank(b)).map(([stageKey, data]) => {
+              const stage = dealStages.find((s) => s.id === stageKey);
+              const label = stage ? dealStageLabel(stage, t, locale) : (t.stages as Record<string, string>)[stageKey] || stageKey;
               const percent =
                 totalStageValue > 0
                   ? (data.value / totalStageValue) * 100

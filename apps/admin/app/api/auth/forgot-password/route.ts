@@ -4,7 +4,8 @@ import { serverMessages, getTranslations } from "@platform/locales";
 import { measureOperation, db, consumeAbuseLimit } from "@platform/database";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { sendEmail } from "@platform/email";
+import { escapeEmailHtml, sendEmail } from "@platform/email";
+import { publicOrigin } from "../../../../lib/public-origin";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
@@ -35,12 +36,12 @@ export async function POST(req: NextRequest) {
           }
         });
 
-        const resetUrl = `${process.env.ADMIN_APP_URL || "http://localhost:3000"}/login/reset?token=${resetToken}&email=${encodeURIComponent(emailNorm)}`;
+        const resetUrl = `${await publicOrigin()}/login/reset?token=${resetToken}&email=${encodeURIComponent(emailNorm)}`;
         
         await sendEmail({
           to: user.email,
           subject: "Password Reset Request",
-          html: `<p>Hello ${user.fullName},</p><p>You requested a password reset. Click the link below to reset your password:</p><p><a href="${resetUrl}">Reset Password</a></p><p>If you did not request this, please ignore this email.</p><p>This link expires in 15 minutes.</p>`
+          html: `<p>Hello ${escapeEmailHtml(user.fullName)},</p><p>You requested a password reset. Click the link below to reset your password:</p><p><a href="${escapeEmailHtml(resetUrl)}">Reset Password</a></p><p>If you did not request this, please ignore this email.</p><p>This link expires in 15 minutes.</p>`
         });
       }
 

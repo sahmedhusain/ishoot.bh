@@ -56,7 +56,7 @@ export function CollectionCard({ item, layout, tone = "dark", onOpen }: { item: 
           </span>
         ) : null}
         {layout === "listing" && price ? (
-          <span className="absolute bottom-3 start-3 rounded-brand bg-black/75 px-3 py-1.5 text-sm font-semibold text-white backdrop-blur-sm">
+          <span className="absolute bottom-3 start-3 rounded-brand bg-black/75 px-3 py-1.5 text-sm font-semibold text-paper backdrop-blur-sm">
             {price}
             {priceNote ? <span className="ms-1 text-xs font-normal text-white/75">{priceNote}</span> : null}
           </span>

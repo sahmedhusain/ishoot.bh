@@ -19,7 +19,9 @@ model User {
   avatarUrl                 String?
   signatureUrl              String?
   phone                     String?
-  department                String? // production, finance, marketing, executive
+  department                String? // legacy free-text team name; departmentId is the company's department
+  departmentId              String?
+  departmentRecord          Department?       @relation("UserDepartment", fields: [departmentId], references: [id], onDelete: SetNull)
   managerId                 String?
   manager                   User?             @relation("UserHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
   subordinates              User[]            @relation("UserHierarchy")
@@ -100,8 +102,12 @@ model User {
   clientSignaturesCreated    ClientSignature[]      @relation("ClientSignatureCreator")
   calendarFeed               CalendarFeedToken?
   announcementReceipts       AnnouncementReceipt[]
+  cmsArticles                CmsArticle[]           @relation("CmsArticleAuthor")
 
   @@index([role])
+  @@index([departmentId])
+  @@index([fullName])
+  @@index([isActive, archivedAt])
 }
 
 model CompanySetting {
@@ -184,6 +190,10 @@ model CompanySetting {
   country                      String?
   /// Map link shown on the contact page.
   mapUrl                       String?
+  /// The public website's domain ("example.com"); WEB_URL wins when set.
+  websiteDomain                String?
+  /// The admin's own domain, if it has one ("admin.example.com"); ADMIN_URL wins when set.
+  adminDomain                  String?
 }
 
 model CompanyAsset {
@@ -212,6 +222,8 @@ model HeroBanner {
   ctaLabelAr   String?
   ctaLink      String?
   createdAt    DateTime @default(now())
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample     Boolean  @default(false)
 }
 
 model PortfolioCategory {
@@ -257,6 +269,11 @@ model PortfolioItem {
   isFeatured      Boolean            @default(false)
   displayOrder    Int                @default(0)
   createdAt       DateTime           @default(now())
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample        Boolean            @default(false)
+  /// The product this catalogue item shows; its price then comes from the product.
+  product         Product?
+  wishlistItems   WishlistItem[]
 }
 
 model ClientLogo {
@@ -345,6 +362,7 @@ model Inquiry {
   @@index([customerId])
   @@index([emailNorm])
   @@index([phoneE164])
+  @@index([workflowStatus, createdAt])
 }
 
 model InquiryNote {
@@ -369,74 +387,145 @@ model WebsiteContent {
   updatedAt   DateTime  @updatedAt
 }
 
+/// A website page made of blocks (cms/blocks.ts). Edited as a draft; publishing the website snapshots it.
+model CmsPage {
+  id               String   @id @default(uuid())
+  /// "" for the homepage; otherwise lower-case words joined by dashes.
+  slug             String   @unique
+  /// "home" | "about" | "contact" | "custom"
+  pageType         String   @default("custom")
+  titleEn          String
+  titleAr          String
+  seoTitleEn       String?
+  seoTitleAr       String?
+  seoDescriptionEn String?
+  seoDescriptionAr String?
+  /// Ordered blocks: [{ id, type, visible, data }].
+  blocks           Json     @default("[]")
+  isVisible        Boolean  @default(true)
+  inHeader         Boolean  @default(false)
+  inFooter         Boolean  @default(false)
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+/// News, updates, posts and press releases. Body is TipTap JSON plus the sanitized HTML the website shows.
+model CmsArticle {
+  id               String    @id @default(uuid())
+  slug             String    @unique
+  titleEn          String
+  titleAr          String
+  excerptEn        String?   @db.Text
+  excerptAr        String?   @db.Text
+  bodyEn           Json?
+  bodyAr           Json?
+  bodyHtmlEn       String?   @db.Text
+  bodyHtmlAr       String?   @db.Text
+  coverUrl         String?
+  /// "news" | "update" | "post" | "press_release" | a company's own category key.
+  category         String    @default("news")
+  tags             String[]  @default([])
+  authorId         String?
+  author           User?     @relation("CmsArticleAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  authorName       String?
+  /// "draft" | "published"; a published article with a future publishAt is scheduled.
+  status           String    @default("draft")
+  publishAt        DateTime?
+  featured         Boolean   @default(false)
+  seoTitleEn       String?
+  seoTitleAr       String?
+  seoDescriptionEn String?
+  seoDescriptionAr String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample Boolean @default(false)
+
+  @@index([status, publishAt])
+  @@index([category])
+}
+
 model CrmContact {
-  id                    String                @id @default(uuid())
-  firstName             String
-  lastName              String?
-  email                 String?
-  emailNorm             String? // lower(trim(email)) for dedup
-  phone                 String?
-  phoneE164             String? // E.164 normalized phone
-  companyName           String?
-  vatNumber             String? // buyer VAT registration, printed on tax invoices
-  jobTitle              String?
-  contactType           String                @default("client") // "client", "vendor", "freelancer", "agency"
+  id                       String                @id @default(uuid())
+  firstName                String
+  lastName                 String?
+  email                    String?
+  emailNorm                String? // lower(trim(email)) for dedup
+  phone                    String?
+  phoneE164                String? // E.164 normalized phone
+  companyName              String?
+  vatNumber                String? // buyer VAT registration, printed on tax invoices
+  jobTitle                 String?
+  contactType              String                @default("client") // "client", "vendor", "freelancer", "agency"
   /// "individual" | "company" | "government"
-  clientKind            String                @default("individual")
+  clientKind               String                @default("individual")
   /// Companies only: "local" (registered in Bahrain, has a CR) or "foreign".
-  companyOrigin         String?
-  companyNameAr         String?
+  companyOrigin            String?
+  companyNameAr            String?
   /// "wll", "spc", "bsc_closed", "bsc_public", "sole_proprietorship", "partnership", "foreign_branch", "other"
-  legalForm             String?
+  legalForm                String?
   /// Bahrain commercial registration, e.g. 142859-1. Required for local companies.
-  crNumber              String?
-  crExpiryDate          DateTime?             @db.Date
+  crNumber                 String?
+  crExpiryDate             DateTime?             @db.Date
   /// Foreign companies: registration number in their home country.
-  registrationNumber    String?
+  registrationNumber       String?
   /// ISO 3166 alpha-2 country of registration (companies) or of the entity (government).
-  registrationCountry   String?
+  registrationCountry      String?
   /// "ministry", "authority", "municipality", "semi_government", "royal_court", "embassy", "other"
-  governmentType        String?
+  governmentType           String?
   /// Our supplier number with the government entity, quoted on its purchase orders.
-  supplierNumber        String?
-  requiresPurchaseOrder Boolean               @default(false)
+  supplierNumber           String?
+  requiresPurchaseOrder    Boolean               @default(false)
   /// ISO alpha-2, individuals.
-  nationality           String?
-  industry              String?
-  website               String?
+  nationality              String?
+  industry                 String?
+  website                  String?
   /// Language the client's documents default to: "ar" | "en".
-  preferredLanguage     String?
+  preferredLanguage        String?
   /// Overrides the company's default payment terms for this client.
-  paymentTermsDays      Int?
-  addressCountry        String?
-  addressCity           String?
-  addressArea           String?
-  addressBlock          String?
-  addressRoad           String?
-  addressBuilding       String?
-  addressUnit           String?
-  addressLine           String?
-  addressState          String?
-  addressPostalCode     String?
-  addressPoBox          String?
-  contactPersons        ClientContactPerson[]
-  notes                 String?
-  deals                 CrmDeal[]
-  inquiries             Inquiry[]
-  contracts             Contract[]
-  invoices              Invoice[]
-  reviews               Review[]
-  minutesOfMeetings     MinuteOfMeeting[]
-  expenses              Expense[]
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  quotations            Quotation[]
-  communicationThreads  CommunicationThread[]
+  paymentTermsDays         Int?
+  addressCountry           String?
+  addressCity              String?
+  addressArea              String?
+  addressBlock             String?
+  addressRoad              String?
+  addressBuilding          String?
+  addressUnit              String?
+  addressLine              String?
+  addressState             String?
+  addressPostalCode        String?
+  addressPoBox             String?
+  contactPersons           ClientContactPerson[]
+  notes                    String?
+  deals                    CrmDeal[]
+  inquiries                Inquiry[]
+  contracts                Contract[]
+  invoices                 Invoice[]
+  reviews                  Review[]
+  minutesOfMeetings        MinuteOfMeeting[]
+  expenses                 Expense[]
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+  quotations               Quotation[]
+  communicationThreads     CommunicationThread[]
+  /// A supplier (contactType "vendor"): days to deliver and to pay, used as defaults on purchase orders.
+  supplierLeadTimeDays     Int?
+  supplierPaymentTermsDays Int?
+  purchaseOrders           PurchaseOrder[]
+  rfqQuotes                RfqQuote[]
+  supplierBills            SupplierBill[]
+  /// The website customer account this contact belongs to.
+  customer                 Customer?
 
   @@index([emailNorm])
   @@index([phoneE164])
   @@index([clientKind])
   @@index([crNumber])
+  @@index([createdAt])
 }
 
 /// A point of contact at a company or government client. The primary one is mirrored onto the client
@@ -466,7 +555,7 @@ model CrmDeal {
   sourceInquiryId   String?           @unique
   sourceInquiry     Inquiry?          @relation("InquiryConversion", fields: [sourceInquiryId], references: [id], onDelete: Restrict)
   title             String
-  dealStage         String            @default("lead") // "lead", "proposal_sent", "contract_signed", "production", "post_production", "delivered", "invoiced", "closed_won", "closed_lost"
+  dealStage         String            @default("lead") // DealPipelineStage.id
   dealValue         Decimal           @default(0.000) @db.Decimal(12, 3)
   currency          String            @default("BHD")
   probability       Int               @default(50)
@@ -490,6 +579,27 @@ model CrmDeal {
   @@index([contactId])
   @@index([dealStage])
   @@index([assignedTo])
+  @@index([createdAt])
+}
+
+/// The company's sales pipeline. Stage ids are what CrmDeal.dealStage stores; system stages are the ones
+/// quotations and invoices move deals into, so they can be renamed and reordered but not removed.
+model DealPipelineStage {
+  id          String   @id
+  /// Null shows the built-in label for the company's activity (admin copy `stages.<id>`).
+  nameEn      String?
+  nameAr      String?
+  sortOrder   Int
+  probability Int      @default(50)
+  /// "open", "won" or "lost".
+  kind        String   @default("open")
+  color       String?
+  isSystem    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
 }
 
 model Invoice {
@@ -598,6 +708,7 @@ model Payment {
   @@index([invoiceId])
   @@index([paymentDate])
   @@index([paymentMethod])
+  @@index([createdAt])
 }
 
 model ExpenseCategory {
@@ -661,6 +772,8 @@ model Expense {
   @@index([categoryId])
   @@index([currency, expenseDate])
   @@index([status])
+  @@index([createdAt])
+  @@index([createdById])
 }
 
 model CalendarEvent {
@@ -924,6 +1037,9 @@ model Service {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample Boolean @default(false)
+
   @@index([category])
   @@index([isActive])
 }
@@ -951,6 +1067,15 @@ model Role {
   nameAr      String
   isSystem    Boolean      @default(false) // Prevents deletion of core roles
   createdAt   DateTime     @default(now())
+}
+
+/// Which records a role sees in an area (constants/data-scope.ts): "own", "department" or "all".
+model RoleDataScope {
+  role  String
+  area  String
+  scope String
+
+  @@id([role, area])
 }
 
 model FeatureToggle {
@@ -992,6 +1117,8 @@ model Faq {
   isPublished Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample    Boolean  @default(false)
 }
 
 model Statistic {
@@ -1012,6 +1139,8 @@ model Statistic {
   /// Round computed values down to this step (10 → 157 shows 150) before the suffix.
   roundTo     Int?
   suffix      String?
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample    Boolean @default(false)
 }
 
 // Durable cross-app cache invalidation, committed with publication.
@@ -1185,6 +1314,7 @@ model Quotation {
   @@index([status])
   @@index([validUntilDate])
   @@index([salesOwnerId])
+  @@index([createdAt])
 }
 
 model QuotationLineItem {
@@ -1557,14 +1687,28 @@ model BankSettlement {
 // ==========================================
 
 model Department {
-  id        String     @id @default(uuid())
-  code      String     @unique
-  nameEn    String
-  nameAr    String
-  managerId String?
-  employees Employee[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id           String       @id @default(uuid())
+  code         String       @unique
+  nameEn       String
+  nameAr       String
+  /// DEPARTMENT_CATALOGUE key when it was created from the catalogue.
+  catalogueKey String?
+  /// Nesting: sub-departments roll up to their parent (data scope, approvals, org chart).
+  parentId     String?
+  parent       Department?  @relation("DepartmentTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Department[] @relation("DepartmentTree")
+  /// User ids of the head and their deputy.
+  managerId    String?
+  deputyId     String?
+  costCentre   String?
+  sortOrder    Int          @default(0)
+  isActive     Boolean      @default(true)
+  employees    Employee[]
+  users        User[]       @relation("UserDepartment")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([parentId])
 }
 
 model Employee {
@@ -1616,9 +1760,13 @@ model Employee {
   supports              EmployeeSupport[]
   finalSettlements      FinalSettlement[]
   officialLetters       OfficialLetter[]
+  deliveries            Shipment[]             @relation("ShipmentDriver")
+  routeSheets           RouteSheet[]           @relation("RouteSheetDriver")
+  codSettlements        CodSettlement[]        @relation("CodSettlementDriver")
 
   @@index([departmentId])
   @@index([status])
+  @@index([firstNameEn, lastNameEn])
 }
 
 model EmploymentRecord {
@@ -1764,6 +1912,7 @@ model LeaveRequest {
 
   @@index([employeeId, status])
   @@index([startDate, endDate])
+  @@index([createdAt])
 }
 
 model AttendanceEntry {
@@ -1947,6 +2096,7 @@ model ExpenseClaim {
 
   @@index([claimantId])
   @@index([status])
+  @@index([createdAt])
 }
 
 /// Who a quotation or invoice was credited to, and every reassignment (internal history).
@@ -2739,4 +2889,934 @@ model OfficialLetter {
   updatedAt             DateTime        @default(now()) @updatedAt
 
   @@index([status])
+}
+
+/// Product categories, nested (Products → Categories).
+model ProductCategory {
+  id        String            @id @default(uuid())
+  nameEn    String
+  nameAr    String
+  parentId  String?
+  parent    ProductCategory?  @relation("ProductCategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  ProductCategory[] @relation("ProductCategoryTree")
+  sortOrder Int               @default(0)
+  isActive  Boolean           @default(true)
+  products  Product[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@index([parentId])
+}
+
+/// Something the company sells or buys and keeps in stock. Prices are in the company currency.
+model Product {
+  id              String           @id @default(uuid())
+  sku             String           @unique
+  barcode         String?          @unique
+  nameEn          String
+  nameAr          String
+  descriptionEn   String?          @db.Text
+  descriptionAr   String?          @db.Text
+  categoryId      String?
+  category        ProductCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brand           String?
+  /// piece | box | pack | kg | g | l | ml | m | hour | service
+  unit            String           @default("piece")
+  cost            Decimal          @default(0) @db.Decimal(12, 3)
+  price           Decimal          @default(0) @db.Decimal(12, 3)
+  /// VAT is charged at the company rate unless the product is exempt.
+  vatExempt       Boolean          @default(false)
+  imageUrls       String[]         @default([])
+  /// Up to three options with their values: [{ nameEn, nameAr, values: [{ en, ar }] }].
+  options         Json             @default("[]")
+  /// Services and digital items are sold without stock.
+  trackStock      Boolean          @default(true)
+  /// Stock is kept per batch with an expiry date (medicines, food).
+  trackBatches    Boolean          @default(false)
+  isActive        Boolean          @default(true)
+  /// The website catalogue item showing this product.
+  catalogueItemId String?          @unique
+  catalogueItem   PortfolioItem?   @relation(fields: [catalogueItemId], references: [id], onDelete: SetNull)
+  variants        ProductVariant[]
+  createdById     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([isActive, nameEn])
+}
+
+/// One combination of a product's options (size M, red). Without a price or cost it uses the product's.
+model ProductVariant {
+  id           String   @id @default(uuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku          String   @unique
+  barcode      String?  @unique
+  /// The English value of each option, in the product's option order.
+  optionValues String[] @default([])
+  price        Decimal? @db.Decimal(12, 3)
+  cost         Decimal? @db.Decimal(12, 3)
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([productId])
+}
+
+/// A place stock is kept. Every warehouse has at least one location (its main one); shelves and bins are more.
+model Warehouse {
+  id             String          @id @default(uuid())
+  code           String          @unique
+  nameEn         String
+  nameAr         String
+  address        String?
+  isActive       Boolean         @default(true)
+  /// Where receipts and sales go unless another warehouse is chosen.
+  isDefault      Boolean         @default(false)
+  sortOrder      Int             @default(0)
+  locations      StockLocation[]
+  counts         StockCount[]
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model StockLocation {
+  id          String          @id @default(uuid())
+  warehouseId String
+  warehouse   Warehouse       @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  /// Unique within the warehouse, e.g. MAIN, A-01, COLD.
+  code        String
+  name        String?
+  isActive    Boolean         @default(true)
+  levels      StockLevel[]
+  movements   StockMovement[]
+  createdAt   DateTime        @default(now())
+
+  @@unique([warehouseId, code])
+}
+
+/// What one product (or one variant of it) has in stock across the company: its reorder point and average cost.
+model StockItem {
+  id              String    @id @default(uuid())
+  productId       String
+  /// The variant's id, or "" for a product without variants.
+  variantKey      String    @default("")
+  /// Weighted average unit cost of what is on hand, in the company currency.
+  averageCost     Decimal   @default(0) @db.Decimal(14, 4)
+  /// Alert when available stock falls to this; null for no alert.
+  reorderPoint    Decimal?  @db.Decimal(14, 3)
+  reorderQuantity Decimal?  @db.Decimal(14, 3)
+  /// When the last low-stock alert went out, so one dip alerts once.
+  lowAlertedAt    DateTime?
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([productId, variantKey])
+}
+
+/// A batch of a batch-tracked product, with its expiry date.
+model StockBatch {
+  id          String    @id @default(uuid())
+  productId   String
+  variantKey  String    @default("")
+  batchNumber String
+  expiryDate  DateTime? @db.Date
+  createdAt   DateTime  @default(now())
+
+  @@unique([productId, variantKey, batchNumber])
+  @@index([expiryDate])
+}
+
+/// The stock of one item at one location (and batch): kept in step with the movement ledger in the same transaction.
+model StockLevel {
+  id         String        @id @default(uuid())
+  productId  String
+  variantKey String        @default("")
+  locationId String
+  location   StockLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  /// The batch id, or "" when the product is not batch-tracked.
+  batchKey   String        @default("")
+  onHand     Decimal       @default(0) @db.Decimal(14, 3)
+  /// Held for confirmed orders and not yet shipped.
+  reserved   Decimal       @default(0) @db.Decimal(14, 3)
+  updatedAt  DateTime      @updatedAt
+
+  @@unique([productId, variantKey, locationId, batchKey])
+  @@index([locationId])
+}
+
+/// The stock ledger: every change of stock is one row here and nothing else changes stock.
+model StockMovement {
+  id          String        @id @default(uuid())
+  /// receipt | sale | return | transfer_out | transfer_in | adjustment | write_off | count
+  type        String
+  productId   String
+  variantKey  String        @default("")
+  locationId  String
+  location    StockLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  batchKey    String        @default("")
+  /// Signed: positive into the location, negative out of it.
+  quantity    Decimal       @db.Decimal(14, 3)
+  /// Unit cost in the company currency: what was paid for receipts, the average cost for everything else.
+  unitCost    Decimal       @default(0) @db.Decimal(14, 4)
+  /// What caused it, e.g. purchase_order, order, stock_count, transfer, manual.
+  sourceType  String        @default("manual")
+  sourceId    String?
+  /// Both halves of a transfer share one id.
+  transferId  String?
+  /// adjustment and write-off reasons: damaged | expired | lost | found | correction | sample | other
+  reason      String?
+  note        String?
+  createdById String?
+  createdAt   DateTime      @default(now())
+
+  @@index([productId, variantKey, createdAt])
+  @@index([locationId, createdAt])
+  @@index([sourceType, sourceId])
+  @@index([createdAt])
+}
+
+/// A stock count: what was expected, what was counted, reviewed and approved into adjustments.
+model StockCount {
+  id           String           @id @default(uuid())
+  number       String           @unique
+  warehouseId  String
+  warehouse    Warehouse        @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  /// full (everything in the warehouse) | cycle (chosen products or a category)
+  scope        String           @default("full")
+  /// counting | review | approved | cancelled
+  status       String           @default("counting")
+  note         String?
+  createdById  String?
+  submittedAt  DateTime?
+  approvedById String?
+  approvedAt   DateTime?
+  lines        StockCountLine[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([status])
+}
+
+model StockCountLine {
+  id         String     @id @default(uuid())
+  countId    String
+  count      StockCount @relation(fields: [countId], references: [id], onDelete: Cascade)
+  productId  String
+  variantKey String     @default("")
+  locationId String
+  batchKey   String     @default("")
+  /// On hand when the count started.
+  expected   Decimal    @db.Decimal(14, 3)
+  /// Empty until counted.
+  counted    Decimal?   @db.Decimal(14, 3)
+  note       String?
+
+  @@unique([countId, productId, variantKey, locationId, batchKey])
+}
+
+/// Someone asks to buy: lines with estimated costs, approved through the approval engine before ordering.
+model PurchaseRequisition {
+  id             String                    @id @default(uuid())
+  number         String                    @unique
+  requestedById  String
+  departmentId   String?
+  /// draft | pending_approval | approved | rejected | ordered | cancelled
+  status         String                    @default("draft")
+  neededBy       DateTime?                 @db.Date
+  note           String?
+  decisionNote   String?
+  estimatedTotal Decimal                   @default(0) @db.Decimal(12, 3)
+  lines          PurchaseRequisitionLine[]
+  rfqs           Rfq[]
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@index([status])
+  @@index([requestedById])
+}
+
+model PurchaseRequisitionLine {
+  id                String              @id @default(uuid())
+  requisitionId     String
+  requisition       PurchaseRequisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  /// A catalogue product (and variant), or empty for something described in words.
+  productId         String?
+  variantKey        String              @default("")
+  description       String
+  quantity          Decimal             @db.Decimal(14, 3)
+  estimatedUnitCost Decimal?            @db.Decimal(12, 3)
+  sortOrder         Int                 @default(0)
+}
+
+/// A request for quotation: the same lines sent to several suppliers, whose prices are compared side by side.
+model Rfq {
+  id             String               @id @default(uuid())
+  number         String               @unique
+  requisitionId  String?
+  requisition    PurchaseRequisition? @relation(fields: [requisitionId], references: [id], onDelete: SetNull)
+  title          String
+  /// open | awarded | cancelled
+  status         String               @default("open")
+  dueDate        DateTime?            @db.Date
+  note           String?
+  createdById    String?
+  lines          RfqLine[]
+  quotes         RfqQuote[]
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+}
+
+model RfqLine {
+  id          String     @id @default(uuid())
+  rfqId       String
+  rfq         Rfq        @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  productId   String?
+  variantKey  String     @default("")
+  description String
+  quantity    Decimal    @db.Decimal(14, 3)
+  sortOrder   Int        @default(0)
+  quotes      RfqQuote[]
+}
+
+/// One supplier's price for one line of a request for quotation.
+model RfqQuote {
+  id           String     @id @default(uuid())
+  rfqId        String
+  rfq          Rfq        @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  lineId       String
+  line         RfqLine    @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  supplierId   String
+  supplier     CrmContact @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  unitPrice    Decimal    @db.Decimal(12, 4)
+  leadTimeDays Int?
+  note         String?
+  /// The price chosen for the purchase order.
+  selected     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@unique([rfqId, lineId, supplierId])
+}
+
+/// An order to a supplier. Amounts are in the company currency.
+model PurchaseOrder {
+  id            String               @id @default(uuid())
+  number        String               @unique
+  supplierId    String
+  supplier      CrmContact           @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  /// draft | pending_approval | approved | sent | partially_received | received | closed | cancelled
+  status        String               @default("draft")
+  orderDate     DateTime             @default(now()) @db.Date
+  expectedDate  DateTime?            @db.Date
+  /// Where the goods are delivered.
+  warehouseId   String?
+  warehouse     Warehouse?           @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  requisitionId String?
+  requisition   PurchaseRequisition? @relation(fields: [requisitionId], references: [id], onDelete: SetNull)
+  rfqId         String?
+  rfq           Rfq?                 @relation(fields: [rfqId], references: [id], onDelete: SetNull)
+  note          String?
+  terms         String?
+  vatEnabled    Boolean              @default(false)
+  vatPercentage Decimal              @default(0) @db.Decimal(5, 2)
+  subtotal      Decimal              @default(0) @db.Decimal(12, 3)
+  vatAmount     Decimal              @default(0) @db.Decimal(12, 3)
+  total         Decimal              @default(0) @db.Decimal(12, 3)
+  sentAt        DateTime?
+  /// email | whatsapp | printed
+  sentVia       String?
+  createdById   String?
+  approvedById  String?
+  approvedAt    DateTime?
+  lines         PurchaseOrderLine[]
+  receipts      GoodsReceipt[]
+  bills         SupplierBill[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([supplierId])
+  @@index([status])
+  @@index([orderDate])
+}
+
+model PurchaseOrderLine {
+  id               String             @id @default(uuid())
+  purchaseOrderId  String
+  purchaseOrder    PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId        String?
+  variantKey       String             @default("")
+  description      String
+  quantity         Decimal            @db.Decimal(14, 3)
+  unitPrice        Decimal            @db.Decimal(12, 4)
+  /// Accepted into stock so far (rejected items are not counted here).
+  receivedQuantity Decimal            @default(0) @db.Decimal(14, 3)
+  rejectedQuantity Decimal            @default(0) @db.Decimal(14, 3)
+  billedQuantity   Decimal            @default(0) @db.Decimal(14, 3)
+  sortOrder        Int                @default(0)
+  receiptLines     GoodsReceiptLine[]
+  billLines        SupplierBillLine[]
+}
+
+/// Goods arriving against a purchase order (all or part of it); accepted items enter stock as receipts.
+model GoodsReceipt {
+  id              String             @id @default(uuid())
+  number          String             @unique
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  locationId      String
+  receivedById    String?
+  receivedAt      DateTime           @default(now())
+  note            String?
+  lines           GoodsReceiptLine[]
+  createdAt       DateTime           @default(now())
+}
+
+model GoodsReceiptLine {
+  id               String            @id @default(uuid())
+  receiptId        String
+  receipt          GoodsReceipt      @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  orderLineId      String
+  orderLine        PurchaseOrderLine @relation(fields: [orderLineId], references: [id], onDelete: Restrict)
+  quantity         Decimal           @db.Decimal(14, 3)
+  rejectedQuantity Decimal           @default(0) @db.Decimal(14, 3)
+  rejectReason     String?
+  batchNumber      String?
+  expiryDate       DateTime?         @db.Date
+}
+
+/// The supplier's invoice: matched against what was ordered and received, approved into an expense, then paid.
+model SupplierBill {
+  id              String             @id @default(uuid())
+  /// Our reference, e.g. BILL-2026-000001.
+  number          String             @unique
+  /// The supplier's own invoice number.
+  supplierRef     String?
+  supplierId      String
+  supplier        CrmContact         @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder?     @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  billDate        DateTime           @db.Date
+  dueDate         DateTime?          @db.Date
+  /// draft | approved | partially_paid | paid | cancelled
+  status          String             @default("draft")
+  subtotal        Decimal            @default(0) @db.Decimal(12, 3)
+  vatAmount       Decimal            @default(0) @db.Decimal(12, 3)
+  total           Decimal            @default(0) @db.Decimal(12, 3)
+  amountPaid      Decimal            @default(0) @db.Decimal(12, 3)
+  /// The expense recorded when the bill is approved.
+  expenseId       String?            @unique
+  /// Approved although the three-way match found differences, with the reason.
+  overrideReason  String?
+  attachmentUrl   String?
+  note            String?
+  createdById     String?
+  approvedById    String?
+  approvedAt      DateTime?
+  lines           SupplierBillLine[]
+  payments        SupplierPayment[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@unique([supplierId, supplierRef])
+  @@index([supplierId])
+  @@index([status])
+}
+
+model SupplierBillLine {
+  id          String             @id @default(uuid())
+  billId      String
+  bill        SupplierBill       @relation(fields: [billId], references: [id], onDelete: Cascade)
+  orderLineId String?
+  orderLine   PurchaseOrderLine? @relation(fields: [orderLineId], references: [id], onDelete: SetNull)
+  description String
+  quantity    Decimal            @db.Decimal(14, 3)
+  unitPrice   Decimal            @db.Decimal(12, 4)
+  sortOrder   Int                @default(0)
+}
+
+model SupplierPayment {
+  id          String       @id @default(uuid())
+  billId      String
+  bill        SupplierBill @relation(fields: [billId], references: [id], onDelete: Cascade)
+  amount      Decimal      @db.Decimal(12, 3)
+  paidOn      DateTime     @db.Date
+  /// bank_transfer | cash | cheque | card | other
+  method      String
+  reference   String?
+  createdById String?
+  createdAt   DateTime     @default(now())
+}
+
+/// Someone who buys on the website. Separate from staff users: customers never reach the admin.
+model Customer {
+  id              String            @id @default(uuid())
+  /// Lower-case; unique among accounts that are not deleted.
+  email           String            @unique
+  name            String
+  phone           String?
+  /// bcrypt; empty for accounts that only use e-mailed codes or Google / Apple.
+  passwordHash    String?
+  emailVerifiedAt DateTime?
+  /// en | ar: the language of e-mails to this customer.
+  locale          String            @default("ar")
+  googleSub       String?           @unique
+  appleSub        String?           @unique
+  marketingOptIn  Boolean           @default(false)
+  /// The CRM contact for this customer (created or matched by e-mail at sign-up).
+  crmContactId    String?           @unique
+  crmContact      CrmContact?       @relation(fields: [crmContactId], references: [id], onDelete: SetNull)
+  sessions        CustomerSession[]
+  addresses       CustomerAddress[]
+  wishlist        WishlistItem[]
+  orders          SalesOrder[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model CustomerSession {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  /// SHA-256 of the cookie token; the token itself is never stored.
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+model CustomerAddress {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label      String?
+  name       String
+  phone      String
+  line1      String
+  line2      String?
+  area       String?
+  city       String
+  country    String
+  postalCode String?
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+/// A one-time sign-in code sent by e-mail (stored hashed, a few attempts, ten minutes).
+model CustomerAuthCode {
+  id        String    @id @default(uuid())
+  email     String
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email, createdAt])
+}
+
+model WishlistItem {
+  id              String        @id @default(uuid())
+  customerId      String
+  customer        Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  catalogueItemId String
+  catalogueItem   PortfolioItem @relation(fields: [catalogueItemId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@unique([customerId, catalogueItemId])
+}
+
+/// How the online store sells: guest checkout, delivery fee, pickup and the payment methods offered.
+model StoreSettings {
+  id                  String   @id @default("default")
+  guestCheckout       Boolean  @default(true)
+  deliveryEnabled     Boolean  @default(true)
+  deliveryFee         Decimal  @default(0) @db.Decimal(12, 3)
+  /// Delivery is free from this order subtotal; null for never.
+  freeDeliveryOver    Decimal? @db.Decimal(12, 3)
+  pickupEnabled       Boolean  @default(false)
+  codEnabled          Boolean  @default(true)
+  bankTransferEnabled Boolean  @default(false)
+  bankInstructionsEn  String?
+  bankInstructionsAr  String?
+  /// Where new-order alerts go (besides the people who can see orders).
+  orderNotifyEmail    String?
+  /// The payment gateway behind "Pay online" (an active payments integration), or null for no online payment.
+  paymentGateway      String?
+  updatedAt           DateTime @updatedAt
+}
+
+/// One try at paying an order online: the gateway's session, and what came of it.
+model PaymentAttempt {
+  id               String     @id @default(uuid())
+  orderId          String
+  order            SalesOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  gateway          String
+  /// The gateway's checkout session, charge or order id.
+  sessionId        String?
+  /// The gateway's id for the captured payment (refunds use it).
+  gatewayPaymentId String?
+  amount           Decimal    @db.Decimal(12, 3)
+  currency         String
+  /// created | pending | paid | failed | expired
+  status           String     @default("created")
+  testMode         Boolean    @default(false)
+  /// The receipt recorded when it was paid.
+  paymentId        String?
+  amountRefunded   Decimal    @default(0) @db.Decimal(12, 3)
+  failureReason    String?
+  createdAt        DateTime   @default(now())
+  paidAt           DateTime?
+  updatedAt        DateTime   @updatedAt
+
+  @@unique([gateway, sessionId])
+  @@index([orderId])
+  @@index([status, createdAt])
+}
+
+/// Webhooks already handled, so a gateway's retries change nothing twice.
+model PaymentWebhookEvent {
+  gateway    String
+  eventId    String
+  attemptId  String?
+  receivedAt DateTime @default(now())
+
+  @@id([gateway, eventId])
+}
+
+model Coupon {
+  id        String    @id @default(uuid())
+  /// Upper-case, unique.
+  code      String    @unique
+  /// percent | fixed
+  kind      String
+  value     Decimal   @db.Decimal(12, 3)
+  minOrder  Decimal?  @db.Decimal(12, 3)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  maxUses   Int?
+  usedCount Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+}
+
+/// An order from the website, by phone or WhatsApp, or at the counter. Amounts are in the company currency.
+model SalesOrder {
+  id              String            @id @default(uuid())
+  number          String            @unique
+  customerId      String?
+  customer        Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  /// The CRM contact the order (and its invoice) belongs to.
+  contactId       String?
+  email           String?
+  name            String
+  phone           String?
+  /// website | phone | whatsapp | pos
+  channel         String            @default("website")
+  /// placed | paid | packing | shipped | delivered | cancelled | returned
+  status          String            @default("placed")
+  /// unpaid | pending | paid | partially_refunded | refunded
+  paymentStatus   String            @default("unpaid")
+  /// cod | bank_transfer | pay_later | cash | card | online
+  paymentMethod   String
+  /// delivery | pickup
+  fulfilment      String            @default("delivery")
+  shippingAddress Json?
+  subtotal        Decimal           @db.Decimal(12, 3)
+  discountAmount  Decimal           @default(0) @db.Decimal(12, 3)
+  couponCode      String?
+  vatAmount       Decimal           @default(0) @db.Decimal(12, 3)
+  deliveryFee     Decimal           @default(0) @db.Decimal(12, 3)
+  total           Decimal           @db.Decimal(12, 3)
+  amountPaid      Decimal           @default(0) @db.Decimal(12, 3)
+  amountRefunded  Decimal           @default(0) @db.Decimal(12, 3)
+  currency        String
+  /// en | ar: the language of messages about this order.
+  locale          String            @default("ar")
+  note            String?
+  /// Stock is reserved at this warehouse and leaves it when shipped.
+  warehouseId     String?
+  invoiceId       String?           @unique
+  createdById     String?
+  placedAt        DateTime          @default(now())
+  paidAt          DateTime?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  lines           SalesOrderLine[]
+  events          SalesOrderEvent[]
+  paymentAttempts PaymentAttempt[]
+  shipments       Shipment[]
+  updatedAt       DateTime          @updatedAt
+
+  @@index([status])
+  @@index([customerId])
+  @@index([placedAt])
+}
+
+model SalesOrderLine {
+  id               String     @id @default(uuid())
+  orderId          String
+  order            SalesOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId        String
+  variantKey       String     @default("")
+  sku              String
+  description      String
+  quantity         Decimal    @db.Decimal(14, 3)
+  unitPrice        Decimal    @db.Decimal(12, 3)
+  vatExempt        Boolean    @default(false)
+  lineTotal        Decimal    @db.Decimal(12, 3)
+  /// Where the stock is held for this line (none for products without stock).
+  locationId       String?
+  returnedQuantity Decimal    @default(0) @db.Decimal(14, 3)
+  sortOrder        Int        @default(0)
+}
+
+/// The history of an order: each status change, payment, refund or note, with who did it.
+model SalesOrderEvent {
+  id        String     @id @default(uuid())
+  orderId   String
+  order     SalesOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// status | payment | refund | note | email
+  kind      String
+  status    String?
+  note      String?
+  amount    Decimal?   @db.Decimal(12, 3)
+  byId      String?
+  createdAt DateTime   @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+/// How the company delivers: its own drivers, courier agencies or both, the delivery promise and slot rules.
+model DeliverySettings {
+  id          String   @id @default("default")
+  /// own | agency | both
+  mode        String   @default("own")
+  /// Hours from ordering to delivery when no time slot is chosen.
+  slaHours    Int      @default(48)
+  /// IANA time zone for slot times; null uses the company country's.
+  timeZone    String?
+  /// How many days ahead customers can choose a slot.
+  slotDays    Int      @default(7)
+  /// Minutes between ordering and the start of the earliest slot.
+  leadMinutes Int      @default(120)
+  /// Customers must pick a slot when the zone has slots.
+  requireSlot Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+}
+
+/// An area served at its own fee, minimum order and free-delivery threshold.
+model DeliveryZone {
+  id        String         @id @default(uuid())
+  nameEn    String
+  nameAr    String
+  /// Areas or cities the zone covers (matched without case or spacing); empty covers everywhere else.
+  areas     String[]       @default([])
+  fee       Decimal        @default(0) @db.Decimal(12, 3)
+  minOrder  Decimal?       @db.Decimal(12, 3)
+  freeOver  Decimal?       @db.Decimal(12, 3)
+  isActive  Boolean        @default(true)
+  sortOrder Int            @default(0)
+  slots     DeliverySlot[]
+  shipments Shipment[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+/// A weekly delivery window, for one zone or (without a zone) every zone.
+model DeliverySlot {
+  id        String        @id @default(uuid())
+  zoneId    String?
+  zone      DeliveryZone? @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  /// 0 = Sunday … 6 = Saturday.
+  weekday   Int
+  /// "HH:MM", local to the delivery time zone.
+  start     String
+  end       String
+  /// Shipments per date; null for no limit.
+  capacity  Int?
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+
+  @@index([weekday])
+}
+
+/// Goods on their way to a customer: where, when, who carries them and what happened.
+model Shipment {
+  id              String          @id @default(uuid())
+  /// DL-YYYY-NNNNNN
+  number          String          @unique
+  orderId         String
+  order           SalesOrder      @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  /// pending | assigned | out_for_delivery | delivered | failed | returned | cancelled
+  status          String          @default("pending")
+  /// own | agency
+  method          String          @default("own")
+  zoneId          String?
+  zone            DeliveryZone?   @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  slotId          String?
+  slotDate        DateTime?       @db.Date
+  slotStart       String?
+  slotEnd         String?
+  /// When it was promised: the slot's end, else the order time plus the delivery promise.
+  promisedBy      DateTime
+  recipientName   String
+  recipientPhone  String
+  address         Json
+  /// Cash to collect on delivery.
+  codAmount       Decimal         @default(0) @db.Decimal(12, 3)
+  codCollected    Decimal         @default(0) @db.Decimal(12, 3)
+  /// Opens the customer's tracking page.
+  trackingToken   String          @unique
+  attempts        Int             @default(0)
+  failureReason   String?
+  outAt           DateTime?
+  deliveredAt     DateTime?
+  /// The employee driving it (own fleet).
+  driverId        String?
+  driver          Employee?       @relation("ShipmentDriver", fields: [driverId], references: [id], onDelete: SetNull)
+  vehicleId       String?
+  vehicle         Vehicle?        @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  routeSheetId    String?
+  routeSheet      RouteSheet?     @relation(fields: [routeSheetId], references: [id], onDelete: SetNull)
+  /// Stop number on the route sheet.
+  routeStop       Int?
+  /// Proof of delivery: a photo (a private file) and/or the recipient's drawn signature (PNG data URL).
+  proofPhotoUrl   String?
+  proofSignature  String?
+  /// The cash handover that settled the cash collected on it.
+  codSettlementId String?
+  codSettlement   CodSettlement?  @relation(fields: [codSettlementId], references: [id], onDelete: SetNull)
+  /// Courier agency carrying it (method "agency").
+  agencyId        String?
+  agency          CourierAgency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  trackingNumber  String?
+  /// The agency's shipping label (a private file), when its API provides one.
+  labelUrl        String?
+  /// What the agency charges for it, for checking its invoice.
+  agencyFee       Decimal?        @db.Decimal(12, 3)
+  agencyInvoiceId String?
+  agencyInvoice   AgencyInvoice?  @relation(fields: [agencyInvoiceId], references: [id], onDelete: SetNull)
+  /// When the agency's tracking was last read.
+  trackedAt       DateTime?
+  events          ShipmentEvent[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([orderId])
+  @@index([status, promisedBy])
+  @@index([slotDate])
+  @@index([driverId, status])
+  @@index([routeSheetId])
+  @@index([agencyId, status])
+}
+
+model ShipmentEvent {
+  id         String   @id @default(uuid())
+  shipmentId String
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  status     String
+  reason     String?
+  note       String?
+  byId       String?
+  at         DateTime @default(now())
+
+  @@index([shipmentId, at])
+}
+
+/// A company vehicle used for deliveries.
+model Vehicle {
+  id          String       @id @default(uuid())
+  plate       String       @unique
+  name        String
+  /// car | van | motorbike | truck | bicycle | other
+  kind        String       @default("van")
+  notes       String?
+  isActive    Boolean      @default(true)
+  shipments   Shipment[]
+  routeSheets RouteSheet[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+/// One driver's run on one day: the stops in order, with the vehicle.
+model RouteSheet {
+  id          String     @id @default(uuid())
+  /// RS-YYYY-NNNNNN
+  number      String     @unique
+  date        DateTime   @db.Date
+  driverId    String
+  driver      Employee   @relation("RouteSheetDriver", fields: [driverId], references: [id], onDelete: Restrict)
+  vehicleId   String?
+  vehicle     Vehicle?   @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  /// draft | out | closed
+  status      String     @default("draft")
+  note        String?
+  createdById String?
+  shipments   Shipment[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([date, driverId])
+}
+
+/// A driver handing over the cash collected on deliveries.
+model CodSettlement {
+  id          String     @id @default(uuid())
+  /// CS-YYYY-NNNNNN
+  number      String     @unique
+  driverId    String
+  driver      Employee   @relation("CodSettlementDriver", fields: [driverId], references: [id], onDelete: Restrict)
+  expected    Decimal    @db.Decimal(12, 3)
+  received    Decimal    @db.Decimal(12, 3)
+  note        String?
+  settledById String?
+  settledAt   DateTime   @default(now())
+  shipments   Shipment[]
+
+  @@index([driverId, settledAt])
+}
+
+/// A courier company that delivers for the store: by hand-entered tracking numbers, or through its API.
+model CourierAgency {
+  id             String          @id @default(uuid())
+  name           String
+  /// manual | aramex | dhl_express | smsa
+  kind           String          @default("manual")
+  /// The public tracking page, with {tracking} where the number goes.
+  trackingUrl    String?
+  phone          String?
+  email          String?
+  /// Usual charge per shipment.
+  feePerShipment Decimal?        @db.Decimal(12, 3)
+  isActive       Boolean         @default(true)
+  shipments      Shipment[]
+  invoices       AgencyInvoice[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+/// An agency's bill for the shipments it carried, recorded as an expense.
+model AgencyInvoice {
+  id          String        @id @default(uuid())
+  agencyId    String
+  agency      CourierAgency @relation(fields: [agencyId], references: [id], onDelete: Restrict)
+  /// The agency's invoice number.
+  reference   String
+  invoiceDate DateTime      @db.Date
+  amount      Decimal       @db.Decimal(12, 3)
+  expenseId   String?       @unique
+  createdById String?
+  shipments   Shipment[]
+  createdAt   DateTime      @default(now())
+
+  @@unique([agencyId, reference])
 }

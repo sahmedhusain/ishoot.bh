@@ -227,7 +227,7 @@ export function ContactForm({
                 key={value}
                 className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-150 cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? "bg-accent text-white border border-accent"
+                    ? "bg-accent text-paper border border-accent"
                     : "bg-brand-base text-ink-muted hover:text-white border border-white/10 hover:border-white/20"
                 }`}
               >

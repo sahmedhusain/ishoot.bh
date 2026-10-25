@@ -359,7 +359,7 @@ export async function deletePayment(id: string): Promise<boolean> {
  * fully paid → paid, some paid → partially_paid, nothing paid → overdue/sent by due date. Drafts and voids are left alone.
  */
 async function reconcileInvoicePaymentStatus(
-  tx: Pick<typeof db, "invoice" | "crmDeal">,
+  tx: Pick<typeof db, "invoice" | "crmDeal" | "dealPipelineStage">,
   invoiceId: string,
 ): Promise<void> {
   const invoice = await tx.invoice.findUnique({

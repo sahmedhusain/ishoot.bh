@@ -114,7 +114,7 @@ export function ReviewSubmissionModal({
         handleReset();
       }}
       data-lenis-prevent
-      className="m-auto p-0 w-[calc(100%-2rem)] max-w-lg max-h-[90dvh] overflow-y-auto bg-brand-surface rounded-2xl text-white border border-white/15 backdrop:bg-black/80"
+      className="m-auto p-0 w-[calc(100%-2rem)] max-w-lg max-h-[90dvh] overflow-y-auto bg-brand-surface rounded-2xl text-paper border border-white/15 backdrop:bg-black/80"
       onClick={(e) => {
         if (e.target === e.currentTarget) handleReset();
       }}
@@ -168,7 +168,7 @@ export function ReviewSubmissionModal({
             <button
               type="button"
               onClick={handleReset}
-              className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-semibold text-xs transition-colors border border-accent/40"
+              className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-paper font-semibold text-xs transition-colors border border-accent/40"
             >
               {t("reviews.modal.close")}
             </button>
@@ -282,7 +282,7 @@ export function ReviewSubmissionModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold inline-flex items-center gap-1.5 transition-colors border border-accent/40 shadow-sm disabled:opacity-50"
+                className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-paper text-xs font-bold inline-flex items-center gap-1.5 transition-colors border border-accent/40 shadow-sm disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>

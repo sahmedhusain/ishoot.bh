@@ -3,6 +3,7 @@ import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { canManageSalaryDocuments } from "../../../../lib/salary-documents";
 import { ROUTES } from "../../../../constants/routes";
 import { HrRequestsView, type HrRequestRow } from "../../../../components/hr/HrRequestsView";
+import { dataScope } from "../../../../lib/data-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -40,10 +41,11 @@ export default async function HrRequestsPage({
   const wantDocs = type === "all" || type === "salary_document";
   const wantClaims = (type === "all" || type === "claim") && (!employeeId || !!filterEmployee?.userId);
 
+  const [leaveScope, claimScope] = await Promise.all([dataScope("leave"), dataScope("claims")]);
   const [leave, docs, claims] = await Promise.all([
     wantLeave
       ? db.leaveRequest.findMany({
-          where: { ...(employeeId ? { employeeId } : {}), ...(status !== "all" ? { status } : {}) },
+          where: { ...(employeeId ? { employeeId } : {}), ...(status !== "all" ? { status } : {}), ...(leaveScope ? { employee: { userId: { in: leaveScope } } } : {}) },
           include: { employee: employeeInclude, leaveType: true },
           orderBy: { createdAt: "desc" },
           take: TAKE,
@@ -60,7 +62,7 @@ export default async function HrRequestsPage({
     wantClaims
       ? db.expenseClaim.findMany({
           where: {
-            ...(filterEmployee?.userId ? { claimantId: filterEmployee.userId } : {}),
+            ...(filterEmployee?.userId ? { claimantId: filterEmployee.userId } : claimScope ? { claimantId: { in: claimScope } } : {}),
             ...(status !== "all" ? { status: status === "pending" ? "submitted" : status } : {}),
           },
           include: { claimant: { select: { fullName: true, employee: { select: { firstNameAr: true, lastNameAr: true } } } } },

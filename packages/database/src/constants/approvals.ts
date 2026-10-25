@@ -20,6 +20,8 @@ export const APPROVAL_TARGET_TYPES = [
   "final_settlement",
   "announcement",
   "official_letter",
+  "purchase_requisition",
+  "purchase_order",
 ] as const;
 export type ApprovalTargetType = (typeof APPROVAL_TARGET_TYPES)[number];
 
@@ -56,6 +58,8 @@ export const APPROVAL_CONDITION_FIELDS: Record<
   final_settlement: ["minAmount"],
   announcement: [],
   official_letter: [],
+  purchase_requisition: ["minAmount"],
+  purchase_order: ["minAmount"],
 };
 
 export const APPROVAL_STATUSES = [
@@ -99,6 +103,8 @@ export const APPROVAL_TARGET_ROUTES: Record<
   final_settlement: ROUTES.hr.settlement,
   announcement: ROUTES.announcements.detail,
   official_letter: ROUTES.letters.detail,
+  purchase_requisition: item("purchase_requisition"),
+  purchase_order: item("purchase_order"),
 };
 
 export const approvalTargetUrl = (targetType: string, targetId: string) =>

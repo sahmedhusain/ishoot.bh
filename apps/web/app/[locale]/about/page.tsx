@@ -7,8 +7,10 @@ import { getSite } from "../../../lib/site";
 import { EquipmentGrid } from "../../../components/about/EquipmentGrid";
 import { PillarsOfCraft } from "../../../components/about/PillarsOfCraft";
 import { notFound } from "next/navigation";
+import { CmsPageView, findPage } from "../../../components/blocks/CmsPageView";
 
-export default async function AboutPage() {
+export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   const [equipment, company, website, isPreview, { config }] = await Promise.all([
     getStudioEquipment(),
     getPublicCompanySettings(),
@@ -16,6 +18,10 @@ export default async function AboutPage() {
     isWebsitePreview(),
     getSite(),
   ]);
+
+  const page = findPage(website?.pages, { type: "about" }, isPreview);
+  if (page === null) notFound();
+  if (page) return <CmsPageView page={page} locale={locale} />;
 
   const pageVisible =
     website?.config?.pages?.find((p) => p.id === "about")?.visible ?? true;

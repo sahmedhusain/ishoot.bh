@@ -232,6 +232,7 @@ export function TaxVatSettingsTab({
                 <a
                   href={ROUTES.archive}
                   target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-primary dark:text-mint hover:underline font-semibold"
                 >
                   <FolderArchive className="w-3.5 h-3.5" />

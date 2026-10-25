@@ -310,7 +310,7 @@ async function main() {
     const db = createDb();
     const finalized = [];
     db.state.users.push(
-      { id: "prod", role: "producer", managerId: null, isActive: true },
+      { id: "prod", role: "project_lead", managerId: null, isActive: true },
       { id: "hr", role: "admin", managerId: null, isActive: true },
     );
     db.state.policies.push(structuredClone(leavePolicy));
@@ -328,7 +328,7 @@ async function main() {
     );
     const request = db.state.requests[0];
     assert.equal(
-      engine.canDecideApproval(request, { id: "prod", role: "producer" }),
+      engine.canDecideApproval(request, { id: "prod", role: "project_lead" }),
       false,
     );
     await assert.rejects(

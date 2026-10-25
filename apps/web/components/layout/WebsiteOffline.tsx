@@ -1,3 +1,4 @@
+import { siteLogo } from "../../lib/brand-images";
 import { Mail, Phone, MapPin } from "lucide-react";
 import type { PublicCompanySettings } from "@platform/database/types";
 import { pickText } from "@platform/database/constants/languages";
@@ -13,7 +14,7 @@ export function WebsiteOffline({ company, locale, t }: { company: PublicCompanyS
   return (
     <main id="main-content" className="flex min-h-screen items-center justify-center px-6 py-16" data-testid="website-offline">
       <div className="w-full max-w-md space-y-8 text-center">
-        <ContentImage src={company.dark_logo_url || company.logo_url} alt={formatMessage(t.common.brandLogoAlt, { companyName: name })} fallbackText={name} width={240} height={60} className="mx-auto h-10 w-auto object-contain" />
+        <ContentImage src={siteLogo(company)} alt={formatMessage(t.common.brandLogoAlt, { companyName: name })} fallbackText={name} width={240} height={60} className="mx-auto h-10 w-auto object-contain" />
         <div className="space-y-3">
           <h1 className="font-display text-3xl font-bold text-white">{name}</h1>
           {tagline ? <p className="text-ink-muted">{tagline}</p> : null}

@@ -56,6 +56,7 @@
     "test:signing-db": "node scripts/check-signing-db.cjs",
     "test:stats-db": "node scripts/check-stats-db.cjs",
     "test:dashboard-db": "node scripts/check-dashboard-db.cjs",
+    "test:volume": "node tests/e2e/prepare-db.cjs seeded platform_volume_test && node scripts/check-volume.cjs platform_volume_test",
     "company:demo-assets": "pnpm --filter @platform/company assets:demo",
     "test": "vitest run tests/unit tests/checks/static.test.ts",
     "test:unit": "vitest run tests/unit",

@@ -5,7 +5,7 @@ import { measureOperation } from "@platform/database";
 import { validateActionArguments } from "../../lib/action-input";
 
 import { requirePermission } from "../../lib/auth";
-import { db, ALL_RESOURCES, ALL_ACTIONS } from "@platform/database";
+import { db, ALL_RESOURCES, ALL_ACTIONS, setRoleDataScopes } from "@platform/database";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -17,6 +17,8 @@ export async function upsertRoleAction(data: {
   nameEn: string;
   nameAr: string;
   grants: Record<string, boolean>;
+  /** Which records the role sees per area (constants/data-scope.ts): "own", "department" or "all". */
+  scopes?: Record<string, string>;
 }) {
   return measureOperation("action:upsertRoleAction", async () => {
     const actor = await requirePermission("users", "write");
@@ -43,7 +45,7 @@ export async function upsertRoleAction(data: {
       if (!validKeys.has(key) || key.endsWith(":write")) throw new Error(serverMessages.invalidPermissionResource);
       if (typeof allowed !== "boolean") throw new Error(serverMessages.invalidPermissionValue);
     }
-    await db.$transaction(async (tx) => {
+    const saved = await db.$transaction(async (tx) => {
       const role = data.id
         ? await tx.role.update({
             where: { id: data.id },
@@ -91,10 +93,12 @@ export async function upsertRoleAction(data: {
           action: "update",
           entityType: "role",
           entityId: role.id,
-          diffPayload: { changes },
+          diffPayload: { changes, scopes: data.scopes ?? null },
         },
       });
+      return role;
     });
+    if (data.scopes && saved.id !== "super_admin") await setRoleDataScopes(saved.id, data.scopes);
     revalidatePath(ROUTES.home, "layout");
     return { success: true };
   });

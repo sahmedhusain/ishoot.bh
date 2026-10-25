@@ -67,6 +67,25 @@ Limit both to 10 MiB, with PDF, PNG, JPEG and WebP, plus WOFF2 on `public-assets
 
 On serverless hosting, schedule the authenticated maintenance route (`/api/cron`, with `CRON_SECRET`) instead of running the maintenance worker. `pnpm check:workers` verifies the worker configuration.
 
+## Domains
+
+The setup wizard (Website step) and Settings → Website ask for the public website's domain and, optionally, an
+admin domain. They are stored on the company (`CompanySetting.websiteDomain`, `adminDomain`) and used for the
+website's canonical address, sitemap and page metadata, password-reset links, signing links, calendar feeds and
+PDF links. `WEB_URL` and `ADMIN_URL` (or `ADMIN_APP_URL`) still win when they are set.
+
+The app never changes DNS. Add one record at the registrar:
+
+| Hosting | Domain | Record |
+|---|---|---|
+| Vercel | `example.com` (apex) | `A @ 76.76.21.21` |
+| Vercel | `www.example.com`, `admin.example.com` | `CNAME www cname.vercel-dns.com` |
+| Your own server | any | `A <name> <server IP address>`, with the reverse proxy routing the domain to the app's port |
+
+Then add the domain to the hosting project and press **Check domain**: the admin fetches
+`https://<domain>/api/health`, which answers with the app and a fingerprint of this installation, and reports
+whether the domain reaches this installation.
+
 ## Deploying
 
 1. Create the database and both storage buckets; configure pooling, TLS and backups.

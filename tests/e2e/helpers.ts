@@ -42,7 +42,9 @@ export function watchErrors(page: Page) {
     if (message.type() !== "error") return;
     const text = message.text();
     if (/favicon|Download the React DevTools|\[Fast Refresh\]|webpack-hmr|_next\/webpack|ERR_ABORTED/.test(text)) return;
-    errors.push(`console: ${text}`);
+    // A failed load names only its status; the location says what failed.
+    const where = message.location().url;
+    errors.push(`console: ${text}${where && /Failed to load resource/.test(text) ? ` (${where})` : ""}`);
   });
   return {
     errors,
