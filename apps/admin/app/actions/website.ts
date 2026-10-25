@@ -198,9 +198,7 @@ export async function previewWebsiteAction(locale: string, path?: string) {
     const secret = process.env.REVALIDATION_SECRET;
     const web = process.env.WEB_URL;
     if (!secret || !web)
-      throw new Error(
-        "Set WEB_URL and REVALIDATION_SECRET in both apps to enable preview.",
-      );
+      throw new Error(serverMessages.websitePreviewNotConfigured);
     const expires = String(Date.now() + 10 * 60 * 1000);
     const token = createHmac("sha256", secret)
       .update(`website-preview:${expires}`)

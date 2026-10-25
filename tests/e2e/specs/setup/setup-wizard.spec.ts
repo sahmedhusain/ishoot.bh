@@ -58,6 +58,8 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(page.locator('input[name="collectionNavAr"]')).toHaveCount(0);
   await page.locator('input[name="collectionNavEn"]').fill("Shop");
   await page.getByLabel(copy.website.collectionSlug).fill("shop");
+  await expect(page.getByTestId("example-products")).toBeVisible();
+  await page.getByTestId("sample-content").check();
   await page.getByTestId("setup-next").click();
 
   // Step 5: configuration; modules follow the activity (no studio equipment for a shop)
@@ -86,5 +88,11 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(page.getByTestId("theme-preview")).toHaveAttribute("style", /--brand-primary:\s*127 29 29/);
   await page.goto("/dashboard/cms/website");
   await expect(page.getByRole("main").getByText(t.websiteEditor.lastPublished)).toBeVisible();
+  // The samples went live with the website, and one click removes them
+  await page.goto("/dashboard/cms/portfolio");
+  await expect(page.getByText(/Classic Chair|الكرسي الكلاسيكي/).first()).toBeVisible();
+  await page.goto("/dashboard/cms/website");
+  await page.getByTestId("remove-samples").click();
+  await expect(page.getByTestId("add-samples")).toBeVisible();
   errors.assertClean();
 });

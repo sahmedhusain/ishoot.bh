@@ -1,5 +1,7 @@
 "use client";
 import { DomainSettingsCard } from "../settings/DomainSettingsCard";
+import { ShowExampleButton } from "../cms/SampleContentCard";
+import { addSampleContentAction } from "../../app/actions/samples";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -112,6 +114,7 @@ export function SetupWizard(props: SetupWizardProps) {
   const [config, setConfig] = React.useState(props.config);
   const [website, setWebsite] = React.useState(props.website);
   const [publishWebsite, setPublishWebsite] = React.useState(true);
+  const [sampleContent, setSampleContent] = React.useState(false);
   // Recommendations follow the chosen activity until the person changes that part by hand.
   const touched = React.useRef({ theme: false, modules: false });
   const [saving, setSaving] = React.useState(false);
@@ -171,7 +174,10 @@ export function SetupWizard(props: SetupWizardProps) {
     if (step === "website") {
       // The website module follows this answer; the configuration step shows it already switched.
       setConfig((current) => ({ ...current, modules: current.modules.map((m) => (m.moduleKey === "cms" ? { ...m, isEnabled: website.enabled } : m)) }));
-      return run(() => saveSetupWebsiteAction({ enabled: website.enabled, config: website.config }), next);
+      return run(async () => {
+        await saveSetupWebsiteAction({ enabled: website.enabled, config: website.config });
+        if (website.enabled && sampleContent && activity) await addSampleContentAction(activity);
+      }, next);
     }
     if (step === "configuration") return run(() => saveSetupConfigAction(config), next);
     return run(async () => {
@@ -437,6 +443,16 @@ export function SetupWizard(props: SetupWizardProps) {
                     companyActivity={activity}
                     hasWhatsapp={!!company.whatsappPhone?.trim()}
                   />
+                  <div className="flex flex-col gap-3 rounded-xl border border-ink/10 p-4 sm:flex-row sm:items-start">
+                    <label className="flex flex-1 items-start gap-3 text-sm text-slate-800 dark:text-slate-100">
+                      <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={sampleContent} onChange={(e) => setSampleContent(e.target.checked)} data-testid="sample-content" />
+                      <span>
+                        <span className="block font-semibold">{t.sampleContent.start}</span>
+                        <span className="block text-xs text-slate-500 dark:text-ink-muted">{t.sampleContent.startHint}</span>
+                      </span>
+                    </label>
+                    {activity ? <ShowExampleButton activity={activity} /> : null}
+                  </div>
                   <DomainSettingsCard compact canEdit initialWebsiteDomain={props.domains.websiteDomain} initialAdminDomain={props.domains.adminDomain} />
                   <label className="flex items-start gap-3 rounded-xl border border-accent/40 bg-accent/[0.06] p-4 text-sm text-slate-800 dark:text-slate-100">
                     <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={publishWebsite} onChange={(e) => setPublishWebsite(e.target.checked)} />

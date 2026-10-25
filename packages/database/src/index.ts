@@ -41,6 +41,7 @@ export * from "./queries/social-links";
 export * from "./queries/website";
 export * from "./queries/cms-pages";
 export * from "./queries/cms-articles";
+export * from "./queries/samples";
 export * from "./queries/social-metrics";
 export * from "./queries/moms";
 

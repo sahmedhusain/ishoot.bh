@@ -341,3 +341,19 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   "Website background" and the style gallery shows each style's background.
 - Fixed while here: a hydration mismatch in the block homepage (a server component that rendered nothing inside
   a fragment shifted the client logo strip's generated id).
+
+### Phase 4b: sample content and example websites (done)
+
+- Samples for all 23 activities (`packages/database/src/samples/activity-samples.ts`): a banner, four catalogue
+  items (with prices where the catalogue shows them), three services, three figures, three common questions and a
+  welcome article, written in both languages. Pictures are drawn by the website in the company's own colours
+  (`/api/samples/*.svg`), so no stock images ship with the platform.
+- `isSample` on banners, catalogue items, services, questions, figures and articles (migration
+  `20261026170000_sample_content`). **Start with sample content** in the wizard's website step fills them; the
+  Website page shows how many samples are left with **Remove sample content** (only samples are deleted) or
+  **Add sample content**. Adding twice replaces the earlier samples.
+- **Show an example** (wizard website step and Website page) opens the demo website of the activity: a signed,
+  ten-minute preview link whose activity is part of the signature; the website builds the snapshot in memory from
+  the samples (`exampleSnapshot`) and labels the page "Example website". Nothing is saved.
+- Decision: the example uses the company's current colours and logo (the style gallery already previews
+  styles); a per-style example can come with the wizard's live preview in 4c.

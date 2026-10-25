@@ -42,7 +42,8 @@
     "errorTitle": "المحتوى غير متاح مؤقتاً",
     "errorDescription": "يرجى إعادة تحميل هذه الصفحة.",
     "retry": "إعادة المحاولة",
-    "returnHomeEnglish": "العودة للرئيسية (الإنجليزية)"
+    "returnHomeEnglish": "العودة للرئيسية (الإنجليزية)",
+    "examplePreview": "موقع مثال"
   },
   "nav": {
     "home": "الرئيسية",

@@ -42,7 +42,8 @@
     "errorTitle": "Content is temporarily unavailable",
     "errorDescription": "Please try loading this page again.",
     "retry": "Retry",
-    "returnHomeEnglish": "Return home (English)"
+    "returnHomeEnglish": "Return home (English)",
+    "examplePreview": "Example website"
   },
   "nav": {
     "home": "Home",

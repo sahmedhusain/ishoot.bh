@@ -222,6 +222,8 @@ model HeroBanner {
   ctaLabelAr   String?
   ctaLink      String?
   createdAt    DateTime @default(now())
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample     Boolean  @default(false)
 }
 
 model PortfolioCategory {
@@ -267,6 +269,8 @@ model PortfolioItem {
   isFeatured      Boolean            @default(false)
   displayOrder    Int                @default(0)
   createdAt       DateTime           @default(now())
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample        Boolean            @default(false)
 }
 
 model ClientLogo {
@@ -434,6 +438,9 @@ model CmsArticle {
   seoDescriptionAr String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample Boolean @default(false)
 
   @@index([status, publishAt])
   @@index([category])
@@ -1019,6 +1026,9 @@ model Service {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample Boolean @default(false)
+
   @@index([category])
   @@index([isActive])
 }
@@ -1096,6 +1106,8 @@ model Faq {
   isPublished Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample    Boolean  @default(false)
 }
 
 model Statistic {
@@ -1116,6 +1128,8 @@ model Statistic {
   /// Round computed values down to this step (10 → 157 shows 150) before the suffix.
   roundTo     Int?
   suffix      String?
+  /// Sample content added by "Start with sample content"; removed in one click.
+  isSample    Boolean @default(false)
 }
 
 // Durable cross-app cache invalidation, committed with publication.
@@ -1662,26 +1676,26 @@ model BankSettlement {
 // ==========================================
 
 model Department {
-  id          String       @id @default(uuid())
-  code        String       @unique
-  nameEn      String
-  nameAr      String
+  id           String       @id @default(uuid())
+  code         String       @unique
+  nameEn       String
+  nameAr       String
   /// DEPARTMENT_CATALOGUE key when it was created from the catalogue.
   catalogueKey String?
   /// Nesting: sub-departments roll up to their parent (data scope, approvals, org chart).
-  parentId    String?
-  parent      Department?  @relation("DepartmentTree", fields: [parentId], references: [id], onDelete: SetNull)
-  children    Department[] @relation("DepartmentTree")
+  parentId     String?
+  parent       Department?  @relation("DepartmentTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     Department[] @relation("DepartmentTree")
   /// User ids of the head and their deputy.
-  managerId   String?
-  deputyId    String?
-  costCentre  String?
-  sortOrder   Int          @default(0)
-  isActive    Boolean      @default(true)
-  employees   Employee[]
-  users       User[]       @relation("UserDepartment")
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  managerId    String?
+  deputyId     String?
+  costCentre   String?
+  sortOrder    Int          @default(0)
+  isActive     Boolean      @default(true)
+  employees    Employee[]
+  users        User[]       @relation("UserDepartment")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@index([parentId])
 }

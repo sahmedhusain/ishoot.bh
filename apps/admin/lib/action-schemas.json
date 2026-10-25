@@ -8617,6 +8617,32 @@
       }
     }
   },
+  "addSampleContentAction": {
+    "kind": "object",
+    "fields": {
+      "activity": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "removeSampleContentAction": {
+    "kind": "object",
+    "fields": {}
+  },
+  "exampleWebsiteAction": {
+    "kind": "object",
+    "fields": {
+      "activity": {
+        "kind": "string",
+        "optional": false
+      },
+      "locale": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "createServiceAction": {
     "kind": "object",
     "fields": {

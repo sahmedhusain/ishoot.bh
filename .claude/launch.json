@@ -122,6 +122,17 @@
         "pv2_volume_test"
       ],
       "port": 3023
+    },
+    {
+      "name": "admin-blank-v2",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "admin",
+        "3024",
+        "pv2_blank_test"
+      ],
+      "port": 3024
     }
   ]
 }

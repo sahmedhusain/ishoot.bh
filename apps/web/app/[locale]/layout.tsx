@@ -1,4 +1,4 @@
-import { isWebsitePreview } from "../../lib/website";
+import { isWebsitePreview, websiteExample } from "../../lib/website";
 import * as React from "react";
 import { formatMessage } from "@platform/locales";
 import { notFound } from "next/navigation";
@@ -34,10 +34,11 @@ export default async function LocaleLayout({
   }
   await requireSiteLanguage(locale);
 
-  const [{ company, config, info, enabled, website }, socialLinks, preview, t] = await Promise.all([
+  const [{ company, config, info, enabled, website }, socialLinks, preview, example, t] = await Promise.all([
     getSite(),
     getSocialLinks(),
     isWebsitePreview(),
+    websiteExample(),
     siteTranslations(locale),
   ]);
   const isRTL = locale === "ar";
@@ -85,7 +86,7 @@ export default async function LocaleLayout({
         </a>
         {preview && (
           <div className="fixed bottom-4 start-4 z-[100] bg-amber-100 text-amber-950 p-3 rounded-lg shadow-lg flex gap-4 items-center text-sm">
-            <span>{t.common.preview}</span>
+            <span>{example ? t.common.examplePreview : t.common.preview}</span>
             <form method="post" action="/api/preview">
               <button className="underline">{t.common.exitPreview}</button>
             </form>

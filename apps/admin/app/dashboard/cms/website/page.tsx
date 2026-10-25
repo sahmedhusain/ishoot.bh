@@ -1,12 +1,12 @@
 import { requirePagePermission } from "../../../../lib/auth";
-import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus, getCompanySettings } from "@platform/database";
+import { requireFeatureEnabled, db, getWebsiteEditor, getWebsitePublicationStatus, getCompanySettings, sampleContentCount } from "@platform/database";
 import { resolveWebsiteConfig, validateWebsiteConfig } from "@platform/database/website-config";
 import { WebsiteEditor } from "../../../../components/cms/WebsiteEditor";
 export const dynamic = "force-dynamic";
 export default async function WebsitePage() {
   await requirePagePermission("settings", "read");
   await requireFeatureEnabled("cms");
-  const [content, services, delivery, publication, company] = await Promise.all([
+  const [content, services, delivery, publication, company, sampleCount] = await Promise.all([
     getWebsiteEditor(),
     db.service.findMany({
       where: { isActive: true },
@@ -26,6 +26,7 @@ export default async function WebsitePage() {
     }),
     getWebsitePublicationStatus(),
     getCompanySettings(),
+    sampleContentCount(),
   ]);
   return (
     <WebsiteEditor
@@ -42,6 +43,7 @@ export default async function WebsitePage() {
       publishedAt={content.publishedAt?.toISOString()}
       canRestore={!!content.previous}
       services={services}
+      sampleCount={sampleCount}
     />
   );
 }
