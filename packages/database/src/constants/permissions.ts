@@ -42,6 +42,7 @@ export const ALL_RESOURCES = [
   "inventory",
   "procurement",
   "orders",
+  "deliveries",
 ] as const;
 
 export const ALL_ACTIONS = [
@@ -113,6 +114,7 @@ export const DEFAULT_ROLE_RULES: Record<
     ALL_RESOURCES.map((resource) => [resource, [...ALL_ACTIONS]]),
   ),
   admin: {
+    deliveries: [...CRUD, "export", "approve", "assign"],
     orders: [...CRUD, "export", "approve"],
     procurement: [...CRUD, "export", "approve"],
     inventory: [...CRUD, "export", "approve"],
@@ -207,6 +209,7 @@ export const DEFAULT_ROLE_RULES: Record<
     assets: ["read"],
   },
   operations_manager: {
+    deliveries: [...CRUD, "export", "assign"],
     orders: ["read", "export"],
     procurement: ["read", "create", "export", "approve"],
     inventory: ["read", "export", "approve"],
@@ -270,6 +273,7 @@ export const DEFAULT_ROLE_RULES: Record<
     social: [...CRUD, "export"],
   },
   department_manager: {
+    deliveries: ["read", "export"],
     procurement: ["create"],
     announcements: ["read", "write", "create", "edit"],
     letters: ["read"],
@@ -307,6 +311,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   sales_manager: {
+    deliveries: ["read"],
     orders: [...CRUD, "export", "approve"],
     inventory: ["read"],
     products: ["read", "write", "create", "edit", "export"],
@@ -359,6 +364,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   warehouse_keeper: {
+    deliveries: ["read", "edit"],
     orders: ["read", "write", "edit"],
     procurement: ["read", "create"],
     inventory: ["read", "write", "create", "edit", "export"],
@@ -370,6 +376,7 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   delivery_coordinator: {
+    deliveries: [...CRUD, "export", "assign"],
     orders: ["read", "write", "edit"],
     inventory: ["read"],
     announcements: ["read"],
@@ -379,11 +386,13 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   driver: {
+    deliveries: ["read", "edit"],
     announcements: ["read"],
     calendar: ["read"],
     self_service: SELF_SERVICE,
   },
   customer_service: {
+    deliveries: ["read"],
     orders: ["read", "write", "edit"],
     inventory: ["read"],
     products: ["read"],
@@ -466,6 +475,7 @@ export const RESOURCE_FEATURES: Partial<Record<PermissionResource, string>> = {
   inventory: "products",
   procurement: "procurement",
   orders: "store",
+  deliveries: "delivery",
 };
 
 /** Roles matrix layout. Every resource must appear exactly once (checked by scripts/check-permissions.cjs). */
@@ -522,7 +532,7 @@ export const PERMISSION_GROUPS: ReadonlyArray<{
       "cms_code",
     ],
   },
-  { key: "commerce", resources: ["products", "inventory", "procurement", "orders"] },
+  { key: "commerce", resources: ["products", "inventory", "procurement", "orders", "deliveries"] },
   { key: "operations", resources: ["calendar", "assets"] },
   { key: "communications", resources: ["announcements", "letters"] },
   { key: "administration", resources: ["users", "settings", "audit_logs"] },

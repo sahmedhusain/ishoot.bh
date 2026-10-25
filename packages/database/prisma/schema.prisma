@@ -3550,6 +3550,7 @@ model SalesOrder {
   lines           SalesOrderLine[]
   events          SalesOrderEvent[]
   paymentAttempts PaymentAttempt[]
+  shipments       Shipment[]
   updatedAt       DateTime          @updatedAt
 
   @@index([status])
@@ -3589,4 +3590,111 @@ model SalesOrderEvent {
   createdAt DateTime   @default(now())
 
   @@index([orderId, createdAt])
+}
+
+/// How the company delivers: its own drivers, courier agencies or both, the delivery promise and slot rules.
+model DeliverySettings {
+  id          String   @id @default("default")
+  /// own | agency | both
+  mode        String   @default("own")
+  /// Hours from ordering to delivery when no time slot is chosen.
+  slaHours    Int      @default(48)
+  /// IANA time zone for slot times; null uses the company country's.
+  timeZone    String?
+  /// How many days ahead customers can choose a slot.
+  slotDays    Int      @default(7)
+  /// Minutes between ordering and the start of the earliest slot.
+  leadMinutes Int      @default(120)
+  /// Customers must pick a slot when the zone has slots.
+  requireSlot Boolean  @default(false)
+  updatedAt   DateTime @updatedAt
+}
+
+/// An area served at its own fee, minimum order and free-delivery threshold.
+model DeliveryZone {
+  id        String         @id @default(uuid())
+  nameEn    String
+  nameAr    String
+  /// Areas or cities the zone covers (matched without case or spacing); empty covers everywhere else.
+  areas     String[]       @default([])
+  fee       Decimal        @default(0) @db.Decimal(12, 3)
+  minOrder  Decimal?       @db.Decimal(12, 3)
+  freeOver  Decimal?       @db.Decimal(12, 3)
+  isActive  Boolean        @default(true)
+  sortOrder Int            @default(0)
+  slots     DeliverySlot[]
+  shipments Shipment[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+/// A weekly delivery window, for one zone or (without a zone) every zone.
+model DeliverySlot {
+  id        String        @id @default(uuid())
+  zoneId    String?
+  zone      DeliveryZone? @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  /// 0 = Sunday … 6 = Saturday.
+  weekday   Int
+  /// "HH:MM", local to the delivery time zone.
+  start     String
+  end       String
+  /// Shipments per date; null for no limit.
+  capacity  Int?
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+
+  @@index([weekday])
+}
+
+/// Goods on their way to a customer: where, when, who carries them and what happened.
+model Shipment {
+  id             String          @id @default(uuid())
+  /// DL-YYYY-NNNNNN
+  number         String          @unique
+  orderId        String
+  order          SalesOrder      @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  /// pending | assigned | out_for_delivery | delivered | failed | returned | cancelled
+  status         String          @default("pending")
+  /// own | agency
+  method         String          @default("own")
+  zoneId         String?
+  zone           DeliveryZone?   @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  slotId         String?
+  slotDate       DateTime?       @db.Date
+  slotStart      String?
+  slotEnd        String?
+  /// When it was promised: the slot's end, else the order time plus the delivery promise.
+  promisedBy     DateTime
+  recipientName  String
+  recipientPhone String
+  address        Json
+  /// Cash to collect on delivery.
+  codAmount      Decimal         @default(0) @db.Decimal(12, 3)
+  codCollected   Decimal         @default(0) @db.Decimal(12, 3)
+  /// Opens the customer's tracking page.
+  trackingToken  String          @unique
+  attempts       Int             @default(0)
+  failureReason  String?
+  outAt          DateTime?
+  deliveredAt    DateTime?
+  events         ShipmentEvent[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([orderId])
+  @@index([status, promisedBy])
+  @@index([slotDate])
+}
+
+model ShipmentEvent {
+  id         String   @id @default(uuid())
+  shipmentId String
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  status     String
+  reason     String?
+  note       String?
+  byId       String?
+  at         DateTime @default(now())
+
+  @@index([shipmentId, at])
 }

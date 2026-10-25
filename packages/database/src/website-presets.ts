@@ -79,7 +79,7 @@ export interface InquiryOptions {
 }
 
 /** Optional modules (constants/features.ts) worth switching on for an activity. */
-type ModuleChoice = Partial<Record<"crm_deals" | "invoicing" | "calendar" | "equipment" | "cms" | "reviews" | "products" | "procurement" | "store", boolean>>;
+type ModuleChoice = Partial<Record<"crm_deals" | "invoicing" | "calendar" | "equipment" | "cms" | "reviews" | "products" | "procurement" | "store" | "delivery", boolean>>;
 
 export interface ActivityPreset {
   /** lucide-react icon name shown in the wizard. */
@@ -132,7 +132,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { budget: false, timeline: false, location: true, reference: false },
     showEquipment: false,
-    modules: { crm_deals: true, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true, procurement: true, store: true },
+    modules: { crm_deals: true, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true, procurement: true, store: true, delivery: true },
   },
   food: {
     icon: "UtensilsCrossed",
@@ -220,7 +220,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { ...SOFT_INQUIRY, location: true },
     showEquipment: false,
-    modules: { crm_deals: false, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true, procurement: true, store: true },
+    modules: { crm_deals: false, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true, procurement: true, store: true, delivery: true },
   },
   beauty: {
     icon: "Sparkle",
@@ -319,7 +319,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { ...SOFT_INQUIRY, location: true },
     showEquipment: false,
-    modules: { crm_deals: false, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true, procurement: true, store: true },
+    modules: { crm_deals: false, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true, procurement: true, store: true, delivery: true },
   },
   manufacturing: {
     icon: "Factory",

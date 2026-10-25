@@ -817,7 +817,11 @@
       "storePaymentMethodInvalid": "اختر طريقة الدفع.",
       "storeSignInRequired": "يرجى تسجيل الدخول لإتمام الطلب.",
       "orderAlreadyPaid": "هذا الطلب مدفوع.",
-      "paymentGatewayUnavailable": "الدفع الإلكتروني غير متاح الآن. حاول مرة أخرى أو اختر طريقة دفع أخرى."
+      "paymentGatewayUnavailable": "الدفع الإلكتروني غير متاح الآن. حاول مرة أخرى أو اختر طريقة دفع أخرى.",
+      "deliverySlotRequired": "اختر وقت التوصيل.",
+      "deliverySlotUnavailable": "لم يعد وقت التوصيل هذا متاحًا. اختر وقتًا آخر.",
+      "deliveryNotCovered": "لا نوصل إلى هذه المنطقة بعد.",
+      "deliveryBelowMinimum": "قيمة طلبك أقل من الحد الأدنى للتوصيل إلى هذه المنطقة."
     },
     "codeEmail": {
       "subject": "رمز تسجيل الدخول",
@@ -858,7 +862,9 @@
       "coupon_invalid": "هذه القسيمة غير موجودة.",
       "coupon_expired": "هذه القسيمة غير فعالة الآن.",
       "coupon_used_up": "نفدت استخدامات هذه القسيمة.",
-      "coupon_min_order": "الطلب أقل من الحد الأدنى للقسيمة."
+      "coupon_min_order": "الطلب أقل من الحد الأدنى للقسيمة.",
+      "no_delivery_zone": "لا نوصل إلى هذه المنطقة بعد.",
+      "below_minimum": "قيمة طلبك أقل من الحد الأدنى للتوصيل إلى هذه المنطقة."
     },
     "fulfilment": "كيف تريد استلامه؟",
     "fulfilments": {
@@ -914,6 +920,36 @@
     "payPendingText": "لم تؤكد بوابة الدفع دفع الطلب {number} بعد. سنراسلك بالبريد عند التأكيد.",
     "linkInvalid": "رابط الدفع هذا غير صالح.",
     "alreadyPaid": "الطلب {number} مدفوع. شكرًا لك!",
-    "orderClosed": "لم يعد بالإمكان دفع الطلب {number}."
+    "orderClosed": "لم يعد بالإمكان دفع الطلب {number}.",
+    "deliveryTime": "وقت التوصيل",
+    "anyTime": "في أقرب وقت",
+    "slotLeft": "متبقٍ {count}",
+    "promiseText": "يصل عادة خلال {hours} ساعة.",
+    "track": "تتبّع التوصيل",
+    "trackTitle": "التوصيل {number}",
+    "trackOrder": "الطلب {number}",
+    "trackArea": "التوصيل إلى {area}",
+    "trackSlot": "متوقع {date}، {start}–{end}",
+    "trackPromise": "متوقع قبل {time}",
+    "trackDelivered": "سُلّم {time}",
+    "trackFailed": "حاولنا التوصيل: {reason}. سنتواصل معك لترتيب وقت آخر.",
+    "trackReturned": "أُعيدت هذه الشحنة إلى المتجر.",
+    "trackCancelled": "أُلغيت هذه الشحنة.",
+    "trackNotFound": "لم نعثر على هذه الشحنة.",
+    "trackSteps": {
+      "placed": "استلمنا الطلب",
+      "packing": "قيد التجهيز",
+      "out_for_delivery": "في الطريق إليك",
+      "delivered": "سُلّم"
+    },
+    "trackReasons": {
+      "customer_absent": "لم يكن أحد موجودًا",
+      "unreachable": "تعذّر الوصول إليك",
+      "wrong_address": "العنوان كان ناقصًا",
+      "refused": "رُفض الاستلام",
+      "rescheduled": "طلبت وقتًا آخر",
+      "damaged": "تضررت البضاعة",
+      "other": "حدث خطأ ما"
+    }
   }
 }

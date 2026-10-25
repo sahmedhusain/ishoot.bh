@@ -552,3 +552,36 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   APIs and covered by unit tests, but have not been run against their sandboxes (no merchant test accounts here).
 - Deferred: proof-of-transfer upload for bank-transfer orders (needs the private attachment type noted in 5c-2);
   order confirmations by WhatsApp (e-mail only so far).
+
+### Phase 7a: delivery zones, time slots, shipments and tracking (done)
+
+- New module `delivery` ("Delivery", off by default; on in the presets of the activities with an online store)
+  and resource `deliveries` (Commerce group; delivery coordinators manage and assign, drivers read and edit,
+  warehouse keepers read and edit, customer service and sales managers read).
+- Migration `20261027000000_delivery`: `DeliverySettings` (who delivers: own / agency / both, delivery promise in
+  hours, time zone, days ahead, lead time, slot required), `DeliveryZone` (areas or cities, fee, minimum order,
+  free-delivery threshold), `DeliverySlot` (weekly windows per zone or for every zone, capacity), `Shipment`
+  (`DL-YYYY-NNNNNN`, zone, slot, promise, recipient, address, cash to collect, attempts, failure reason, tracking
+  token) and `ShipmentEvent`, with CHECKs.
+- Zones match the address's area or city without case, spacing or Arabic letter-form differences; a zone without
+  areas covers everywhere else; without zones the store's flat fee applies as before. The checkout re-prices as
+  the address is typed, refuses areas not served and orders below the zone's minimum, and offers the zone's
+  delivery times (time-zone aware, lead time, capacity, an advisory lock per slot and day against overbooking).
+  The time zone defaults from the company country (new setting: there was none; older code assumes one zone).
+- Every delivery order gets a shipment (website and staff orders). Shipments drive their order: going out ships
+  it (stock leaves), delivered delivers it, returned returns it (stock comes back); a failed attempt records one of
+  seven reasons and can go out again. Staff moving the order by hand moves its open shipments.
+- Admin: Delivery → Shipments (board of counts with late shipments, filters by status, zone and day) and a
+  shipment page (recipient with call link, slot and promise, cash to collect and collected, actions with failure
+  reasons, history, the customer's tracking link); Delivery settings (mode, promise, time zone, zones, slots).
+  New sale gained "Cash on delivery" for delivery orders, and now uses the customer's current name and phone for
+  the delivery address.
+- Website: `/[locale]/track/<token>` (steps, slot or promise, delivered time, failed-attempt reason in customer
+  words, returned or cancelled), linked from the order e-mail and the customer's account.
+- Tested: unit (zone matching, time-zone slot maths, capacity and lead time, promise, transitions, copy); e2e web
+  (uncovered area refused, zone fee, slot booked onto the shipment, tracking page, unknown tracking link) and admin
+  (zone and slots created from settings; a phone order's shipment goes out, fails with a reason, goes out again
+  and is delivered with the cash, with the order and stock following).
+- Regression (18 store, payment, delivery and navigation tests): 16 passed; two failed on a dev-mode `useId`
+  hydration mismatch on New sale under a machine load of ~400 and passed on rerun (same open question as 5c-2).
+- Next (7b): drivers, vehicles, route sheets, the driver's phone view with proof of delivery, and cash settlement.

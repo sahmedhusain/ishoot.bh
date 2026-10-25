@@ -15,6 +15,7 @@ import {
   Package,
   FolderTree,
   ShoppingBag,
+  MapPinned,
   ScanLine,
   Store,
   FileQuestion,
@@ -544,6 +545,14 @@ export function Sidebar() {
           { href: ROUTES.orders.list, label: t.orders.nav.orders, icon: ShoppingBag, resource: "orders", moduleKey: "store" },
           { href: ROUTES.orders.new, label: t.orders.nav.newSale, icon: ScanLine, resource: "orders", action: "create", moduleKey: "store" },
           { href: ROUTES.orders.settings, label: t.orders.nav.settings, icon: Store, resource: "settings", moduleKey: "store" },
+        ],
+      },
+      {
+        id: "delivery",
+        title: t.delivery.navGroup,
+        items: [
+          { href: ROUTES.delivery.shipments, label: t.delivery.nav.shipments, icon: Truck, resource: "deliveries", moduleKey: "delivery" },
+          { href: ROUTES.delivery.settings, label: t.delivery.nav.settings, icon: MapPinned, resource: "settings", moduleKey: "delivery" },
         ],
       },
       {

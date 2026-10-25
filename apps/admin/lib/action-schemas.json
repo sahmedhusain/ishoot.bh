@@ -3769,6 +3769,162 @@
       }
     }
   },
+  "moveShipmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "to": {
+            "kind": "string",
+            "optional": false
+          },
+          "reason": {
+            "kind": "string",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          },
+          "codCollected": {
+            "kind": "number",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveDeliverySettingsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "mode": {
+            "kind": "string",
+            "optional": false
+          },
+          "slaHours": {
+            "kind": "string",
+            "optional": false
+          },
+          "timeZone": {
+            "kind": "string",
+            "optional": false
+          },
+          "slotDays": {
+            "kind": "string",
+            "optional": false
+          },
+          "leadMinutes": {
+            "kind": "string",
+            "optional": false
+          },
+          "requireSlot": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveDeliveryZoneAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "areas": {
+            "kind": "string",
+            "optional": false
+          },
+          "fee": {
+            "kind": "string",
+            "optional": false
+          },
+          "minOrder": {
+            "kind": "string",
+            "optional": false
+          },
+          "freeOver": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveDeliverySlotAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "zoneId": {
+            "kind": "string",
+            "optional": true
+          },
+          "weekdays": {
+            "kind": "array",
+            "element": {
+              "kind": "number"
+            },
+            "optional": false
+          },
+          "start": {
+            "kind": "string",
+            "optional": false
+          },
+          "end": {
+            "kind": "string",
+            "optional": false
+          },
+          "capacity": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteDeliverySlotAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "saveDepartmentAction": {
     "kind": "object",
     "fields": {

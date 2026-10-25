@@ -99,6 +99,11 @@ export const ROUTES = {
     detail: (id: string) => `/dashboard/orders/${encodeURIComponent(id)}`,
     settings: "/dashboard/orders/settings",
   },
+  delivery: {
+    shipments: "/dashboard/delivery",
+    shipment: (id: string) => `/dashboard/delivery/${encodeURIComponent(id)}`,
+    settings: "/dashboard/delivery/settings",
+  },
   procurement: {
     suppliers: "/dashboard/procurement/suppliers",
     requisitions: "/dashboard/procurement/requisitions",

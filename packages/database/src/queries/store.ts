@@ -9,6 +9,8 @@ import { createPayment } from "./payments";
 import { getNextSequenceNumber } from "./sequence";
 import { isPaymentGateway } from "../constants/payments";
 import { activePaymentGateway } from "../payments/active";
+import { zoneForAddress } from "../constants/delivery";
+import { activeZoneTerms, createShipmentForOrder, followOrderStatus, type ShipmentSlotChoice } from "./delivery";
 
 type Tx = Prisma.TransactionClient;
 const num = (value: { toString(): string } | null | undefined) => (value == null ? 0 : Number(value.toString()));
@@ -133,13 +135,13 @@ async function availableByItem(productIds: string[], client: Tx | typeof db = db
   return new Map(levels.map((l) => [`${l.productId}|${l.variantKey}`, round3(num(l._sum.onHand) - num(l._sum.reserved))]));
 }
 
-export type CartProblem = "unavailable" | "out_of_stock" | "coupon_invalid" | "coupon_expired" | "coupon_used_up" | "coupon_min_order";
+export type CartProblem = "unavailable" | "out_of_stock" | "coupon_invalid" | "coupon_expired" | "coupon_used_up" | "coupon_min_order" | "no_delivery_zone" | "below_minimum";
 
 /**
  * Prices a cart from the catalogue (never from the browser): each line's current price, whether it can still be
  * sold in that quantity, the coupon, delivery and VAT. Lines that cannot be sold are reported, not priced.
  */
-export async function quoteCart(input: { lines: CartLine[]; couponCode?: string; fulfilment: "delivery" | "pickup" }, client: Tx | typeof db = db) {
+export async function quoteCart(input: { lines: CartLine[]; couponCode?: string; fulfilment: "delivery" | "pickup"; address?: { area?: string; city?: string } | null }, client: Tx | typeof db = db) {
   const cart = input.lines.slice(0, MAX_CART_LINES).filter((l) => Number.isFinite(l.quantity) && l.quantity > 0);
   const products = await client.product.findMany({ where: { id: { in: cart.map((l) => l.productId) }, isActive: true }, include: { variants: true } });
   const available = await availableByItem(products.map((p) => p.id), client);
@@ -174,8 +176,15 @@ export async function quoteCart(input: { lines: CartLine[]; couponCode?: string;
     else coupon = { kind: row!.kind as "percent" | "fixed", value: num(row!.value), minOrder: numOrNull(row!.minOrder) };
   }
   const delivery = input.fulfilment === "delivery";
-  const totals = priceOrder({ lines, vatPercentage: company?.vatEnabled ? num(company.vatPercentage) : 0, coupon, deliveryFee: num(settings.deliveryFee), freeDeliveryOver: numOrNull(settings.freeDeliveryOver), delivery });
-  return { lines, problems, couponCode: coupon ? code! : null, currency: company?.defaultCurrency ?? "BHD", ...totals };
+  // Delivery zones, when the company uses them, set the fee, minimum order and free-delivery threshold by address.
+  // Without an address yet (the cart), the zone that covers everywhere else, or the cheapest, gives the estimate.
+  const zones = delivery ? await activeZoneTerms(client) : [];
+  const hasAddress = !!(input.address?.area?.trim() || input.address?.city?.trim());
+  const zone = zones.length ? (hasAddress ? zoneForAddress(zones, input.address!) : zones.find((z) => !z.areas.length) ?? [...zones].sort((a, b) => a.fee - b.fee)[0]) : null;
+  if (zones.length && hasAddress && !zone) problems.push({ productId: "", problem: "no_delivery_zone" });
+  if (zone?.minOrder != null && hasAddress && goods < zone.minOrder) problems.push({ productId: "", problem: "below_minimum" });
+  const totals = priceOrder({ lines, vatPercentage: company?.vatEnabled ? num(company.vatPercentage) : 0, coupon, deliveryFee: zone ? zone.fee : num(settings.deliveryFee), freeDeliveryOver: zone ? zone.freeOver : numOrNull(settings.freeDeliveryOver), delivery });
+  return { lines, problems, couponCode: coupon ? code! : null, currency: company?.defaultCurrency ?? "BHD", zoneId: hasAddress ? zone?.id ?? null : null, minOrder: zone?.minOrder ?? null, ...totals };
 }
 export type CartQuote = Awaited<ReturnType<typeof quoteCart>>;
 
@@ -207,6 +216,8 @@ export interface PlaceOrderInput {
   customerId?: string | null;
   contactId?: string | null;
   createdById?: string | null;
+  /** The delivery slot the customer chose, if any. */
+  slot?: ShipmentSlotChoice | null;
 }
 
 /** The CRM contact for an order: the customer's, the one given, else one matched or created by e-mail. */
@@ -252,7 +263,10 @@ export async function placeOrder(input: PlaceOrderInput) {
   }
   const warehouse = await ensureDefaultWarehouse();
   return db.$transaction(async (tx) => {
-    const quote = await quoteCart({ lines: input.lines, couponCode: input.couponCode, fulfilment: input.fulfilment }, tx);
+    const quote = await quoteCart({ lines: input.lines, couponCode: input.couponCode, fulfilment: input.fulfilment, address }, tx);
+    const problem = (p: string) => quote.problems.some((x) => x.problem === p);
+    if (problem("no_delivery_zone")) throw new Error(serverMessages.deliveryNotCovered);
+    if (problem("below_minimum")) throw new Error(serverMessages.deliveryBelowMinimum);
     if (quote.problems.length || !quote.lines.length) throw new Error(quote.problems.some((p) => p.problem.startsWith("coupon")) ? serverMessages.couponCannotBeUsed : serverMessages.storeCartChanged);
     // Hold the stock for every line that keeps stock.
     const held: { locationId: string | null }[] = [];
@@ -304,6 +318,7 @@ export async function placeOrder(input: PlaceOrderInput) {
         events: { create: { kind: "status", status: "placed", byId: input.createdById ?? null } },
       },
     });
+    if (input.fulfilment === "delivery") await createShipmentForOrder(tx, order, { zoneId: quote.zoneId, slot: input.slot ?? null, requireSlot: input.channel === "website" });
     return order;
   });
 }
@@ -363,8 +378,8 @@ export async function listOrders(query: { status?: string; channel?: string; sea
 
 /** A customer's own orders, newest first, for the account page. */
 export async function customerOrders(customerId: string) {
-  const rows = await db.salesOrder.findMany({ where: { customerId }, orderBy: { placedAt: "desc" }, take: 100, include: { lines: { orderBy: { sortOrder: "asc" } } } });
-  return rows.map((o) => ({ id: o.id, number: o.number, status: o.status, payment_status: o.paymentStatus, total: num(o.total), currency: o.currency, placed_at: o.placedAt.toISOString(), lines: o.lines.map((l) => ({ description: l.description, quantity: num(l.quantity) })) }));
+  const rows = await db.salesOrder.findMany({ where: { customerId }, orderBy: { placedAt: "desc" }, take: 100, include: { lines: { orderBy: { sortOrder: "asc" } }, shipments: { where: { status: { not: "cancelled" } }, orderBy: { createdAt: "desc" }, take: 1, select: { trackingToken: true } } } });
+  return rows.map((o) => ({ id: o.id, number: o.number, status: o.status, payment_status: o.paymentStatus, total: num(o.total), currency: o.currency, placed_at: o.placedAt.toISOString(), tracking_token: o.shipments[0]?.trackingToken ?? null, lines: o.lines.map((l) => ({ description: l.description, quantity: num(l.quantity) })) }));
 }
 
 // ─── Moving orders along ─────────────────────────────────────────────────────────────────────────────────────────
@@ -378,7 +393,15 @@ async function releaseReservations(tx: Tx, order: { lines: { productId: string; 
  * return puts it back. Returns the low-stock items for alerts.
  */
 export async function moveOrder(id: string, to: OrderStatus, byId: string | null, note?: string) {
-  return db.$transaction(async (tx) => {
+  return db.$transaction((tx) => moveOrderIn(tx, id, to, byId, note, true));
+}
+
+/**
+ * Moves an order inside a transaction. `followShipments` moves its shipments too (staff moving the order); a
+ * shipment moving its order passes false.
+ */
+export async function moveOrderIn(tx: Tx, id: string, to: OrderStatus, byId: string | null, note: string | undefined, followShipments: boolean) {
+  {
     await tx.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${id} FOR UPDATE`;
     const order = await tx.salesOrder.findUnique({ where: { id }, include: { lines: true } });
     if (!order) throw new Error(serverMessages.procurementDocumentMissing);
@@ -399,8 +422,9 @@ export async function moveOrder(id: string, to: OrderStatus, byId: string | null
     const now = new Date();
     await tx.salesOrder.update({ where: { id }, data: { status: to, ...(to === "shipped" ? { shippedAt: now } : {}), ...(to === "delivered" ? { deliveredAt: now } : {}), ...(to === "cancelled" ? { cancelledAt: now } : {}) } });
     await tx.salesOrderEvent.create({ data: { orderId: id, kind: "status", status: to, note: note?.trim().slice(0, 500) || null, byId } });
+    if (followShipments) await followOrderStatus(tx, id, to, byId);
     return low;
-  });
+  }
 }
 
 /** The order's invoice (issued, not a draft: the sale already happened), created the first time it is needed. */

@@ -77,7 +77,7 @@ export function NewSaleView({ products, currency, deliveryEnabled }: { products:
         lines: lines.map((l) => ({ productId: l.productId, variantId: l.variantId || undefined, quantity: l.quantity })),
         couponCode,
         fulfilment,
-        address: fulfilment === "delivery" ? { ...address, line2: "", area: "", postalCode: "" } : null,
+        address: fulfilment === "delivery" ? { ...address, name: customer.name.trim() || copy.walkIn, phone: customer.phone, line2: "", area: "", postalCode: "" } : null,
         paidWith,
         note,
       });
@@ -155,7 +155,7 @@ export function NewSaleView({ products, currency, deliveryEnabled }: { products:
           {deliveryEnabled && channel !== "pos" && (
             <Field label={copy.fulfilment}>
               {(id) => (
-                <Select id={id} value={fulfilment} onChange={(e) => setFulfilment(e.target.value)} className="rounded-lg">
+                <Select id={id} value={fulfilment} onChange={(e) => { setFulfilment(e.target.value); if (e.target.value !== "delivery" && paidWith === "cod") setPaidWith(""); }} className="rounded-lg">
                   <option value="pickup">{t.orders.fulfilments.pickup}</option>
                   <option value="delivery">{t.orders.fulfilments.delivery}</option>
                 </Select>
@@ -163,13 +163,14 @@ export function NewSaleView({ products, currency, deliveryEnabled }: { products:
             </Field>
           )}
           {fulfilment === "delivery" && (["line1", "city", "country"] as const).map((key) => (
-            <Field key={key} label={copy.address[key]}>{(id) => <Input id={id} maxLength={200} value={address[key]} onChange={(e) => setAddress({ ...address, [key]: e.target.value, name: customer.name, phone: customer.phone })} className="rounded-lg" />}</Field>
+            <Field key={key} label={copy.address[key]}>{(id) => <Input id={id} maxLength={200} value={address[key]} onChange={(e) => setAddress({ ...address, [key]: e.target.value })} className="rounded-lg" />}</Field>
           ))}
           <Field label={copy.paidWith}>
             {(id) => (
               <Select id={id} value={paidWith} onChange={(e) => setPaidWith(e.target.value)} className="rounded-lg" data-testid="sale-paid-with">
                 <option value="cash">{t.orders.paymentMethods.cash}</option>
                 <option value="card">{t.orders.paymentMethods.card}</option>
+                {fulfilment === "delivery" && <option value="cod">{t.orders.paymentMethods.cod}</option>}
                 <option value="">{copy.notPaid}</option>
               </Select>
             )}

@@ -10,6 +10,7 @@ export const DEFAULT_FEATURE_MODULES = [
   { moduleKey: "products", nameEn: "Products", nameAr: "المنتجات", isEnabled: false },
   { moduleKey: "procurement", nameEn: "Purchasing", nameAr: "المشتريات", isEnabled: false },
   { moduleKey: "store", nameEn: "Online store", nameAr: "المتجر الإلكتروني", isEnabled: false },
+  { moduleKey: "delivery", nameEn: "Delivery", nameAr: "التوصيل", isEnabled: false },
 ] as const;
 
 /** Whether a module is on before anyone has chosen (a module missing from the database). */

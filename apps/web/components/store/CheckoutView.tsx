@@ -9,6 +9,7 @@ import { useCart, writeCart } from "./cart";
 import { CartTotals } from "./CartTotals";
 import { COUPON_KEY, FULFILMENT_KEY } from "./CartView";
 import { useQuote } from "./useQuote";
+import type { DeliveryOptions } from "@platform/database";
 
 interface Address {
   id: string;
@@ -32,6 +33,31 @@ interface CheckoutViewProps {
   country: string;
 }
 
+const formatDay = (date: string, locale: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString(locale === "ar" ? "ar-u-nu-latn" : "en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+
+/** What delivery offers for the area being typed: whether it is served and the delivery times. */
+function useDeliveryOptions(place: { area: string; city: string } | undefined) {
+  const [options, setOptions] = React.useState<DeliveryOptions | null>(null);
+  const key = place ? `${place.area.trim()}|${place.city.trim()}` : "";
+  React.useEffect(() => {
+    if (!place) return setOptions(null);
+    let live = true;
+    const timer = setTimeout(() => {
+      fetch("/api/store/delivery", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ address: place }) })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data: DeliveryOptions | null) => live && setOptions(data))
+        .catch(() => live && setOptions(null));
+    }, 350);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+    // The key holds everything the request depends on.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return options;
+}
+
 const read = (key: string) => {
   try {
     return window.localStorage.getItem(key) ?? "";
@@ -52,13 +78,22 @@ export function CheckoutView({ locale, settings, customer, addresses, country }:
     const saved = read(FULFILMENT_KEY);
     if ((saved === "delivery" && settings.delivery) || (saved === "pickup" && settings.pickup)) setFulfilment(saved);
   }, [settings.delivery, settings.pickup]);
-  const { quote, loading } = useQuote(lines, coupon, fulfilment);
   const methods = [settings.online && "online", settings.cod && "cod", settings.bankTransfer && "bank_transfer"].filter(Boolean) as string[];
   const [contact, setContact] = React.useState({ name: customer?.name ?? "", email: customer?.email ?? "", phone: customer?.phone ?? "" });
   const defaultAddress = addresses.find((a) => a.is_default) ?? addresses[0];
   const [addressId, setAddressId] = React.useState(defaultAddress?.id ?? "");
   const [address, setAddress] = React.useState({ name: customer?.name ?? "", phone: customer?.phone ?? "", line1: "", line2: "", area: "", city: "", country, postalCode: "" });
   const [paymentMethod, setPaymentMethod] = React.useState(methods[0] ?? "");
+  // The delivery area prices the delivery (zones) and decides the delivery times on offer.
+  const savedAddress = addresses.find((a) => a.id === addressId);
+  const deliveryArea = fulfilment === "delivery" ? (savedAddress ? { area: savedAddress.area, city: savedAddress.city } : { area: address.area, city: address.city }) : undefined;
+  const { quote, loading } = useQuote(lines, coupon, fulfilment, deliveryArea);
+  const delivery = useDeliveryOptions(deliveryArea);
+  const [slot, setSlot] = React.useState("");
+  React.useEffect(() => {
+    // A slot that is no longer offered (another area, or taken) is dropped.
+    if (slot && !delivery?.slots.some((s) => `${s.date}|${s.slotId}` === slot)) setSlot("");
+  }, [delivery, slot]);
   const [note, setNote] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -81,7 +116,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country }:
     const saved = addresses.find((a) => a.id === addressId);
     const shipping = fulfilment === "pickup" ? null : saved ? { name: saved.name, phone: saved.phone, line1: saved.line1, line2: saved.line2, area: saved.area, city: saved.city, country: saved.country, postalCode: saved.postal_code } : address;
     try {
-      const response = await fetch("/api/store/order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lines, couponCode: coupon, fulfilment, address: shipping, ...contact, paymentMethod, note, locale }) });
+      const response = await fetch("/api/store/order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lines, couponCode: coupon, fulfilment, address: shipping, ...contact, paymentMethod, note, locale, slot: fulfilment === "delivery" && slot ? { date: slot.split("|")[0], slotId: slot.split("|")[1] } : null }) });
       const data = (await response.json().catch(() => ({ error: "generic" }))) as { number?: string; payToken?: string; error?: string };
       if (!response.ok || !data.number) throw new Error(data.error || "generic");
       writeCart([]);
@@ -146,6 +181,24 @@ export function CheckoutView({ locale, settings, customer, addresses, country }:
             </fieldset>
           )}
 
+          {fulfilment === "delivery" && delivery && delivery.covered && (delivery.slots.length > 0 || delivery.slaHours) && (
+            <fieldset className="space-y-3" data-testid="checkout-slots">
+              <legend className="text-lg font-bold text-white">{t("store.deliveryTime")}</legend>
+              {delivery.slots.length > 0 ? (
+                <select aria-label={t("store.deliveryTime")} name="slot" required={delivery.requireSlot} value={slot} onChange={(e) => setSlot(e.target.value)} className={field}>
+                  {delivery.requireSlot ? <option value="" disabled>{t("store.deliveryTime")}</option> : <option value="">{t("store.anyTime")}</option>}
+                  {delivery.slots.map((s) => (
+                    <option key={`${s.date}|${s.slotId}`} value={`${s.date}|${s.slotId}`}>
+                      {`${formatDay(s.date, locale)} · ${s.start}–${s.end}`}{s.left != null && s.left <= 3 ? ` (${t("store.slotLeft", { count: s.left })})` : ""}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="text-sm text-ink-muted">{t("store.promiseText", { hours: delivery.slaHours ?? 0 })}</p>
+              )}
+            </fieldset>
+          )}
+
           <fieldset className="space-y-3">
             <legend className="text-lg font-bold text-white">{t("store.payment")}</legend>
             {methods.map((m) => (
@@ -171,7 +224,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country }:
             ))}
           </ul>
           {quote && <CartTotals quote={quote} delivery={fulfilment === "delivery"} />}
-          {quote?.problems.filter((p) => !p.problem.startsWith("coupon")).map((p) => <p key={p.productId} role="alert" className="text-sm text-amber-300">{t(`store.problems.${p.problem}`)}</p>)}
+          {quote?.problems.filter((p) => !p.problem.startsWith("coupon")).map((p) => <p key={`${p.productId}-${p.problem}`} role="alert" className="text-sm text-amber-300">{t(`store.problems.${p.problem}`)}</p>)}
           {error && <p role="alert" className="text-sm text-rose-400" data-testid="checkout-error">{error}</p>}
           <button type="submit" disabled={busy || loading || !quote?.lines.length || !paymentMethod || (quote?.problems.length ?? 0) > 0} className={`${primaryButton} w-full`} data-testid="checkout-place">
             {busy ? t("store.placing") : t("store.placeOrder")}

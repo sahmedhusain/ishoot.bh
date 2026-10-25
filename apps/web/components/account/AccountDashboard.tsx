@@ -42,6 +42,7 @@ interface OrderSummary {
   total: number;
   currency: string;
   placed_at: string;
+  tracking_token?: string | null;
   lines: { description: string; quantity: number }[];
 }
 
@@ -148,6 +149,7 @@ export function AccountDashboard({ locale, customer, addresses, wishlist, orders
                   <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs">{t(`store.statuses.${o.status}`)}</span>
                   <span className="text-ink-muted">{new Date(o.placed_at).toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}</span>
                   <span className="text-ink-muted">{t("store.orderItems", { count: o.lines.reduce((sum, l) => sum + l.quantity, 0) })}</span>
+                  {o.tracking_token && <Link href={`/${locale}/track/${o.tracking_token}`} className="text-xs font-semibold text-[var(--web-accent)] hover:underline">{t("store.track")}</Link>}
                   <span className="ms-auto font-semibold text-white">{formatPrice(o.total, o.currency, locale)}</span>
                 </li>
               ))}

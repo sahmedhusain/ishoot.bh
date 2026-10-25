@@ -2310,7 +2310,8 @@
       "products": "Products",
       "inventory": "Stock and warehouses",
       "procurement": "Purchasing",
-      "orders": "Orders"
+      "orders": "Orders",
+      "deliveries": "Deliveries"
     }
   },
   "approvals": {
@@ -5821,7 +5822,18 @@
       "paymentGatewayUnavailable": "Online payment is not available right now. Please try again or choose another way to pay.",
       "paymentRefundFailed": "The payment gateway did not accept the refund. Check the gateway's dashboard and try again.",
       "paymentBillingCountryInvalid": "The billing country must be a two-letter code, such as BH, SA or AE.",
-      "paymentWebhookKeyInvalid": "The webhook key must be the 64-character key from the HyperPay dashboard."
+      "paymentWebhookKeyInvalid": "The webhook key must be the 64-character key from the HyperPay dashboard.",
+      "deliverySettingsInvalid": "Check the delivery settings: the promise is 1 to 720 hours, slots 1 to 60 days ahead.",
+      "deliveryTimeZoneInvalid": "That is not a time zone name (for example Asia/Bahrain).",
+      "deliveryZoneNameRequired": "Give the zone a name.",
+      "deliverySlotInvalid": "A slot needs at least one day, a start before its end (HH:MM) and a capacity of 1 or more.",
+      "deliverySlotRequired": "Choose a delivery time.",
+      "deliverySlotUnavailable": "That delivery time is no longer available. Please choose another.",
+      "deliveryNotCovered": "We do not deliver to that area yet.",
+      "deliveryBelowMinimum": "The order is below the minimum for delivery to that area.",
+      "shipmentStatusInvalid": "The shipment cannot move to that status from where it is.",
+      "shipmentReasonRequired": "Choose why the delivery failed.",
+      "shipmentCodInvalid": "The cash collected cannot be more than the amount to collect."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -9776,5 +9788,147 @@
       "gatewayTest": "test mode"
     },
     "paymentTimedOut": "Online payment was not completed in time; the items were released."
+  },
+  "delivery": {
+    "navGroup": "Delivery",
+    "nav": {
+      "shipments": "Shipments",
+      "settings": "Delivery settings"
+    },
+    "title": "Shipments",
+    "subtitle": "Every delivery: when it is promised, where it goes and what happened.",
+    "search": "Search by shipment, order, name or phone",
+    "allStatuses": "All statuses",
+    "allZones": "All zones",
+    "lateOnly": "Late only",
+    "empty": "No shipments match.",
+    "late": "Late",
+    "promised": "By {time}",
+    "cod": "Collect {amount}",
+    "counts": {
+      "pending": "To prepare",
+      "assigned": "Assigned",
+      "out_for_delivery": "Out for delivery",
+      "failed": "Failed",
+      "late": "Late"
+    },
+    "statuses": {
+      "pending": "To prepare",
+      "assigned": "Assigned",
+      "out_for_delivery": "Out for delivery",
+      "delivered": "Delivered",
+      "failed": "Failed attempt",
+      "returned": "Returned",
+      "cancelled": "Cancelled"
+    },
+    "methods": {
+      "own": "Own driver",
+      "agency": "Courier agency"
+    },
+    "reasons": {
+      "customer_absent": "Customer not there",
+      "unreachable": "Could not reach the customer",
+      "wrong_address": "Wrong or incomplete address",
+      "refused": "Customer refused it",
+      "rescheduled": "Customer asked for another time",
+      "damaged": "Goods damaged",
+      "other": "Other"
+    },
+    "detail": {
+      "back": "All shipments",
+      "order": "Order {number}",
+      "recipient": "Recipient",
+      "address": "Address",
+      "slot": "Delivery time",
+      "noSlot": "No slot chosen",
+      "promise": "Promised by",
+      "items": "Items",
+      "history": "History",
+      "attempts": "Attempts: {count}",
+      "codToCollect": "Cash to collect",
+      "codCollected": "Cash collected",
+      "trackingLink": "Customer tracking page",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied.",
+      "reason": "Why it failed",
+      "note": "Note (optional)",
+      "saved": "Saved.",
+      "moveTo": {
+        "pending": "Back to preparing",
+        "assigned": "Mark assigned",
+        "out_for_delivery": "Out for delivery",
+        "delivered": "Delivered",
+        "failed": "Delivery failed",
+        "returned": "Returned to store",
+        "cancelled": "Cancel shipment"
+      },
+      "moveConfirm": {
+        "cancelled": "Cancel this shipment? The order is not cancelled.",
+        "returned": "Mark the goods as returned? The order is marked returned and the items go back into stock."
+      }
+    },
+    "settings": {
+      "title": "Delivery settings",
+      "subtitle": "Who delivers, the areas you serve with their fees, and the delivery times customers can choose.",
+      "mode": "Who delivers",
+      "modes": {
+        "own": "Our own drivers",
+        "agency": "Courier agencies",
+        "both": "Both"
+      },
+      "slaHours": "Delivery promise (hours)",
+      "slaHint": "Used when a customer does not pick a delivery time.",
+      "timeZone": "Time zone",
+      "timeZoneHint": "Leave empty to use the company country's ({zone}).",
+      "slotDays": "Days ahead customers can book",
+      "leadMinutes": "Minutes needed before the first slot",
+      "requireSlot": "Customers must choose a delivery time when slots exist",
+      "save": "Save settings",
+      "saved": "Saved.",
+      "zones": "Delivery zones",
+      "zonesHint": "A zone lists the areas or cities it covers, one per line. A zone with no areas covers everywhere else. Without zones, the store's flat delivery fee applies.",
+      "addZone": "Add zone",
+      "noZones": "No zones yet: every address pays the store's delivery fee.",
+      "zoneName": "Zone name",
+      "areas": "Areas and cities (one per line)",
+      "everywhereElse": "Everywhere else",
+      "fee": "Delivery fee ({currency})",
+      "minOrder": "Minimum order ({currency})",
+      "freeOver": "Free delivery from ({currency})",
+      "active": "Active",
+      "inactive": "Off",
+      "editZone": "Edit",
+      "saveZone": "Save zone",
+      "cancel": "Cancel",
+      "slots": "Delivery times",
+      "sharedSlots": "Delivery times for every zone",
+      "addSlot": "Add delivery time",
+      "noSlots": "No delivery times: customers get the delivery promise instead.",
+      "weekdaysLabel": "Days",
+      "start": "From",
+      "end": "To",
+      "capacity": "Deliveries per slot (optional)",
+      "saveSlot": "Add",
+      "removeSlot": "Remove {slot}",
+      "perSlot": "{count} per slot",
+      "weekdays": [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ],
+      "weekdaysShort": [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+      ]
+    }
   }
 }

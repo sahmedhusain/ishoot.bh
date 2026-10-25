@@ -102,7 +102,7 @@ export interface StaffOrderInput {
   couponCode: string;
   fulfilment: string;
   address?: OrderAddress | null;
-  /** Paid at the counter now: cash or card. Empty to take payment later. */
+  /** Paid at the counter now: cash or card; "cod" to collect on delivery; empty to take payment later. */
   paidWith: string;
   note: string;
 }
@@ -123,7 +123,8 @@ export async function createStaffOrderAction(input: StaffOrderInput) {
       name: input.name,
       email: input.email,
       phone: input.phone,
-      paymentMethod: paidNow ? input.paidWith : "pay_later",
+      // Cash on delivery: the driver collects it (delivery orders only).
+      paymentMethod: paidNow ? input.paidWith : input.paidWith === "cod" && input.fulfilment === "delivery" ? "cod" : "pay_later",
       note: input.note,
       locale: "ar",
       channel: input.channel as "phone" | "whatsapp" | "pos",

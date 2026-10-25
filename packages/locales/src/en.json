@@ -817,7 +817,11 @@
       "storePaymentMethodInvalid": "Choose a way to pay.",
       "storeSignInRequired": "Please sign in to check out.",
       "orderAlreadyPaid": "This order is already paid.",
-      "paymentGatewayUnavailable": "Online payment is not available right now. Please try again or choose another way to pay."
+      "paymentGatewayUnavailable": "Online payment is not available right now. Please try again or choose another way to pay.",
+      "deliverySlotRequired": "Choose a delivery time.",
+      "deliverySlotUnavailable": "That delivery time is no longer available. Please choose another.",
+      "deliveryNotCovered": "We do not deliver to that area yet.",
+      "deliveryBelowMinimum": "Your order is below the minimum for delivery to that area."
     },
     "codeEmail": {
       "subject": "Your sign-in code",
@@ -858,7 +862,9 @@
       "coupon_invalid": "That coupon does not exist.",
       "coupon_expired": "That coupon is not active now.",
       "coupon_used_up": "That coupon has been used up.",
-      "coupon_min_order": "The order is below the coupon's minimum."
+      "coupon_min_order": "The order is below the coupon's minimum.",
+      "no_delivery_zone": "We do not deliver to that area yet.",
+      "below_minimum": "Your order is below the minimum for delivery to that area."
     },
     "fulfilment": "How do you want it?",
     "fulfilments": {
@@ -914,6 +920,36 @@
     "payPendingText": "The payment gateway has not confirmed the payment for order {number} yet. We will e-mail you once it does.",
     "linkInvalid": "This payment link is not valid.",
     "alreadyPaid": "Order {number} is already paid. Thank you!",
-    "orderClosed": "Order {number} can no longer be paid."
+    "orderClosed": "Order {number} can no longer be paid.",
+    "deliveryTime": "Delivery time",
+    "anyTime": "As soon as possible",
+    "slotLeft": "{count} left",
+    "promiseText": "Usually delivered within {hours} hours.",
+    "track": "Track your delivery",
+    "trackTitle": "Delivery {number}",
+    "trackOrder": "Order {number}",
+    "trackArea": "Delivering to {area}",
+    "trackSlot": "Expected {date}, {start}–{end}",
+    "trackPromise": "Expected by {time}",
+    "trackDelivered": "Delivered {time}",
+    "trackFailed": "We tried to deliver: {reason}. We will contact you to arrange another time.",
+    "trackReturned": "This delivery was returned to the store.",
+    "trackCancelled": "This delivery was cancelled.",
+    "trackNotFound": "We could not find that delivery.",
+    "trackSteps": {
+      "placed": "Order received",
+      "packing": "Being prepared",
+      "out_for_delivery": "On its way",
+      "delivered": "Delivered"
+    },
+    "trackReasons": {
+      "customer_absent": "nobody was there",
+      "unreachable": "we could not reach you",
+      "wrong_address": "the address was incomplete",
+      "refused": "the delivery was refused",
+      "rescheduled": "you asked for another time",
+      "damaged": "the goods were damaged",
+      "other": "something went wrong"
+    }
   }
 }

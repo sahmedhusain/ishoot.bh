@@ -6,6 +6,7 @@ export async function freshStockedProduct(db: PrismaClient, input: { sku: string
   const ids = old.map((p) => p.id);
   if (ids.length) {
     const orders = await db.salesOrderLine.findMany({ where: { productId: { in: ids } }, select: { orderId: true } });
+    await db.shipment.deleteMany({ where: { orderId: { in: orders.map((o) => o.orderId) } } });
     await db.salesOrder.deleteMany({ where: { id: { in: orders.map((o) => o.orderId) } } });
     await db.stockMovement.deleteMany({ where: { productId: { in: ids } } });
     await db.stockLevel.deleteMany({ where: { productId: { in: ids } } });
@@ -35,4 +36,20 @@ export async function enableStore(db: PrismaClient) {
   await db.storeSettings.upsert({ where: { id: "default" }, update: settings, create: { id: "default", ...settings } });
   // Each spec places several orders from one address; start every spec under the per-address limits.
   await db.abuseWindow.deleteMany({ where: { key: { startsWith: "store-" } } });
+}
+
+/** Delivery on, with one zone ("Muharraq", fee 1.5, minimum 5) and two daily windows for every zone. */
+export async function enableDelivery(db: PrismaClient) {
+  await db.featureToggle.upsert({ where: { moduleKey: "delivery" }, update: { isEnabled: true }, create: { moduleKey: "delivery", nameEn: "Delivery", nameAr: "التوصيل", isEnabled: true } });
+  const settings = { mode: "own", slaHours: 48, timeZone: "UTC", slotDays: 7, leadMinutes: 0, requireSlot: false };
+  await db.deliverySettings.upsert({ where: { id: "default" }, update: settings, create: { id: "default", ...settings } });
+  await db.deliverySlot.deleteMany({});
+  await db.deliveryZone.deleteMany({});
+  const zone = await db.deliveryZone.create({ data: { nameEn: "North", nameAr: "الشمال", areas: ["Muharraq", "Busaiteen"], fee: 1.5, minOrder: 5 } });
+  await db.deliverySlot.createMany({ data: [0, 1, 2, 3, 4, 5, 6].flatMap((weekday) => [{ weekday, start: "00:00", end: "11:59" }, { weekday, start: "12:00", end: "23:59" }]) });
+  return zone;
+}
+
+export async function disableDelivery(db: PrismaClient) {
+  await db.featureToggle.update({ where: { moduleKey: "delivery" }, data: { isEnabled: false } });
 }
