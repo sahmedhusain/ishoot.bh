@@ -1,0 +1,491 @@
+import { Prisma } from "@prisma/client";
+import { serverMessages } from "@platform/locales";
+import { db } from "../db";
+import { allocateDocumentNumber } from "../finance/numbering";
+import { normalizeProductOptions, variantLabel } from "../constants/products";
+import { MAX_CART_LINES, MAX_LINE_QUANTITY, ORDER_PAYMENT_METHODS, RESERVED_STATUSES, canMoveOrder, couponProblem, priceOrder, type CartLine, type OrderChannel, type OrderStatus } from "../constants/store";
+import { ensureDefaultWarehouse, postMovements, reserveStock, type MovementInput } from "./inventory";
+import { createPayment } from "./payments";
+import { getNextSequenceNumber } from "./sequence";
+
+type Tx = Prisma.TransactionClient;
+const num = (value: { toString(): string } | null | undefined) => (value == null ? 0 : Number(value.toString()));
+const numOrNull = (value: { toString(): string } | null | undefined) => (value == null ? null : Number(value.toString()));
+const round3 = (value: number) => Math.round(value * 1000) / 1000;
+
+// ─── Settings and coupons ────────────────────────────────────────────────────────────────────────────────────────
+
+export async function getStoreSettings() {
+  const s = await db.storeSettings.upsert({ where: { id: "default" }, update: {}, create: { id: "default" } });
+  return {
+    guest_checkout: s.guestCheckout,
+    delivery_enabled: s.deliveryEnabled,
+    delivery_fee: num(s.deliveryFee),
+    free_delivery_over: numOrNull(s.freeDeliveryOver),
+    pickup_enabled: s.pickupEnabled,
+    cod_enabled: s.codEnabled,
+    bank_transfer_enabled: s.bankTransferEnabled,
+    bank_instructions_en: s.bankInstructionsEn ?? "",
+    bank_instructions_ar: s.bankInstructionsAr ?? "",
+    order_notify_email: s.orderNotifyEmail ?? "",
+  };
+}
+export type StoreSettingsRecord = Awaited<ReturnType<typeof getStoreSettings>>;
+
+export interface StoreSettingsInput {
+  guestCheckout: boolean;
+  deliveryEnabled: boolean;
+  deliveryFee: string;
+  freeDeliveryOver: string;
+  pickupEnabled: boolean;
+  codEnabled: boolean;
+  bankTransferEnabled: boolean;
+  bankInstructionsEn: string;
+  bankInstructionsAr: string;
+  orderNotifyEmail: string;
+}
+
+export async function saveStoreSettings(input: StoreSettingsInput) {
+  const money = (text: string, optional: boolean) => {
+    if (!text.trim() && optional) return null;
+    const value = Number(text || 0);
+    if (!Number.isFinite(value) || value < 0 || value > 99_999_999) throw new Error(serverMessages.productAmountInvalid);
+    return round3(value);
+  };
+  if (!input.deliveryEnabled && !input.pickupEnabled) throw new Error(serverMessages.storeFulfilmentRequired);
+  const email = input.orderNotifyEmail.trim().toLowerCase();
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error(serverMessages.customerEmailInvalid);
+  const data = {
+    guestCheckout: input.guestCheckout,
+    deliveryEnabled: input.deliveryEnabled,
+    deliveryFee: money(input.deliveryFee, false)!,
+    freeDeliveryOver: money(input.freeDeliveryOver, true),
+    pickupEnabled: input.pickupEnabled,
+    codEnabled: input.codEnabled,
+    bankTransferEnabled: input.bankTransferEnabled,
+    bankInstructionsEn: input.bankInstructionsEn.trim().slice(0, 2000) || null,
+    bankInstructionsAr: input.bankInstructionsAr.trim().slice(0, 2000) || null,
+    orderNotifyEmail: email || null,
+  };
+  await db.storeSettings.upsert({ where: { id: "default" }, update: data, create: { id: "default", ...data } });
+}
+
+export async function listCoupons() {
+  const rows = await db.coupon.findMany({ orderBy: { createdAt: "desc" }, take: 500 });
+  return rows.map((c) => ({ id: c.id, code: c.code, kind: c.kind, value: num(c.value), min_order: numOrNull(c.minOrder), starts_at: c.startsAt?.toISOString().slice(0, 10) ?? null, ends_at: c.endsAt?.toISOString().slice(0, 10) ?? null, max_uses: c.maxUses, used_count: c.usedCount, is_active: c.isActive }));
+}
+
+export interface CouponInput {
+  id?: string;
+  code: string;
+  kind: string;
+  value: string;
+  minOrder: string;
+  startsAt: string;
+  endsAt: string;
+  maxUses: string;
+  isActive: boolean;
+}
+
+export async function saveCoupon(input: CouponInput) {
+  const code = input.code.trim().toUpperCase();
+  if (!/^[A-Z0-9-]{3,30}$/.test(code)) throw new Error(serverMessages.couponCodeInvalid);
+  if (input.kind !== "percent" && input.kind !== "fixed") throw new Error(serverMessages.couponCodeInvalid);
+  const value = Number(input.value);
+  if (!Number.isFinite(value) || value <= 0 || (input.kind === "percent" && value > 100)) throw new Error(serverMessages.productAmountInvalid);
+  const date = (text: string, end = false) => (text ? new Date(`${text}T${end ? "23:59:59.999" : "00:00:00.000"}Z`) : null);
+  const maxUses = input.maxUses.trim() ? Number(input.maxUses) : null;
+  if (maxUses != null && (!Number.isInteger(maxUses) || maxUses < 1)) throw new Error(serverMessages.productAmountInvalid);
+  if (await db.coupon.findFirst({ where: { code, id: { not: input.id ?? "" } }, select: { id: true } })) throw new Error(serverMessages.couponCodeTaken);
+  const data = { code, kind: input.kind, value, minOrder: input.minOrder.trim() ? Number(input.minOrder) : null, startsAt: date(input.startsAt), endsAt: date(input.endsAt, true), maxUses, isActive: input.isActive };
+  return input.id ? db.coupon.update({ where: { id: input.id }, data }) : db.coupon.create({ data });
+}
+
+// ─── What the website sells ──────────────────────────────────────────────────────────────────────────────────────
+
+/** The product behind a catalogue item, with each variant's price and what is available to sell. */
+export async function storeProductForItem(catalogueItemId: string) {
+  const product = await db.product.findFirst({ where: { catalogueItemId, isActive: true }, include: { variants: { where: { isActive: true }, orderBy: { sortOrder: "asc" } } } });
+  if (!product) return null;
+  const options = normalizeProductOptions(product.options) ?? [];
+  const available = await availableByItem([product.id]);
+  const left = (variantKey: string) => (product.trackStock ? available.get(`${product.id}|${variantKey}`) ?? 0 : null);
+  return {
+    product_id: product.id,
+    track_stock: product.trackStock,
+    options,
+    price: num(product.price),
+    available: product.variants.length ? null : left(""),
+    variants: product.variants.map((v) => ({ id: v.id, values: v.optionValues, label_en: variantLabel(options, v.optionValues, "en"), label_ar: variantLabel(options, v.optionValues, "ar"), price: v.price == null ? num(product.price) : num(v.price), available: left(v.id) })),
+  };
+}
+
+async function availableByItem(productIds: string[], client: Tx | typeof db = db) {
+  const levels = await client.stockLevel.groupBy({ by: ["productId", "variantKey"], where: { productId: { in: productIds }, location: { isActive: true, warehouse: { isActive: true } } }, _sum: { onHand: true, reserved: true } });
+  return new Map(levels.map((l) => [`${l.productId}|${l.variantKey}`, round3(num(l._sum.onHand) - num(l._sum.reserved))]));
+}
+
+export type CartProblem = "unavailable" | "out_of_stock" | "coupon_invalid" | "coupon_expired" | "coupon_used_up" | "coupon_min_order";
+
+/**
+ * Prices a cart from the catalogue (never from the browser): each line's current price, whether it can still be
+ * sold in that quantity, the coupon, delivery and VAT. Lines that cannot be sold are reported, not priced.
+ */
+export async function quoteCart(input: { lines: CartLine[]; couponCode?: string; fulfilment: "delivery" | "pickup" }, client: Tx | typeof db = db) {
+  const cart = input.lines.slice(0, MAX_CART_LINES).filter((l) => Number.isFinite(l.quantity) && l.quantity > 0);
+  const products = await client.product.findMany({ where: { id: { in: cart.map((l) => l.productId) }, isActive: true }, include: { variants: true } });
+  const available = await availableByItem(products.map((p) => p.id), client);
+  const problems: { productId: string; variantId?: string; problem: CartProblem }[] = [];
+  const lines: { productId: string; variantKey: string; sku: string; description: string; nameEn: string; nameAr: string; variantEn: string; variantAr: string; imageUrl: string | null; quantity: number; unitPrice: number; vatExempt: boolean; trackStock: boolean }[] = [];
+  for (const line of cart) {
+    const product = products.find((p) => p.id === line.productId);
+    const variant = product?.variants.find((v) => v.id === line.variantId);
+    if (!product || (product.variants.length ? !variant || !variant.isActive : !!line.variantId)) {
+      problems.push({ productId: line.productId, variantId: line.variantId, problem: "unavailable" });
+      continue;
+    }
+    const quantity = Math.min(MAX_LINE_QUANTITY, Math.floor(line.quantity));
+    const variantKey = variant?.id ?? "";
+    if (product.trackStock && (available.get(`${product.id}|${variantKey}`) ?? 0) < quantity) {
+      problems.push({ productId: product.id, variantId: variant?.id, problem: "out_of_stock" });
+      continue;
+    }
+    const options = normalizeProductOptions(product.options) ?? [];
+    const variantEn = variant ? variantLabel(options, variant.optionValues, "en") : "";
+    const variantAr = variant ? variantLabel(options, variant.optionValues, "ar") : "";
+    lines.push({ productId: product.id, variantKey, sku: variant?.sku ?? product.sku, description: [product.nameEn, variantEn].filter(Boolean).join(" · "), nameEn: product.nameEn, nameAr: product.nameAr, variantEn, variantAr, imageUrl: product.imageUrls[0] ?? null, quantity, unitPrice: variant?.price != null ? num(variant.price) : num(product.price), vatExempt: product.vatExempt, trackStock: product.trackStock });
+  }
+  const [settings, company] = await Promise.all([client.storeSettings.upsert({ where: { id: "default" }, update: {}, create: { id: "default" } }), client.companySetting.findFirst({ select: { vatEnabled: true, vatPercentage: true, defaultCurrency: true } })]);
+  let coupon: { kind: "percent" | "fixed"; value: number; minOrder: number | null } | null = null;
+  const code = input.couponCode?.trim().toUpperCase();
+  const goods = round3(lines.reduce((sum, l) => sum + round3(l.unitPrice * l.quantity), 0));
+  if (code) {
+    const row = await client.coupon.findUnique({ where: { code } });
+    const problem = row ? couponProblem({ ...row, minOrder: numOrNull(row.minOrder) }, goods) : "invalid";
+    if (problem) problems.push({ productId: "", problem: `coupon_${problem}` as CartProblem });
+    else coupon = { kind: row!.kind as "percent" | "fixed", value: num(row!.value), minOrder: numOrNull(row!.minOrder) };
+  }
+  const delivery = input.fulfilment === "delivery";
+  const totals = priceOrder({ lines, vatPercentage: company?.vatEnabled ? num(company.vatPercentage) : 0, coupon, deliveryFee: num(settings.deliveryFee), freeDeliveryOver: numOrNull(settings.freeDeliveryOver), delivery });
+  return { lines, problems, couponCode: coupon ? code! : null, currency: company?.defaultCurrency ?? "BHD", ...totals };
+}
+export type CartQuote = Awaited<ReturnType<typeof quoteCart>>;
+
+// ─── Placing orders ──────────────────────────────────────────────────────────────────────────────────────────────
+
+export interface OrderAddress {
+  name: string;
+  phone: string;
+  line1: string;
+  line2?: string;
+  area?: string;
+  city: string;
+  country: string;
+  postalCode?: string;
+}
+
+export interface PlaceOrderInput {
+  lines: CartLine[];
+  couponCode?: string;
+  fulfilment: "delivery" | "pickup";
+  address?: OrderAddress | null;
+  name: string;
+  email: string;
+  phone: string;
+  paymentMethod: string;
+  note?: string;
+  locale: string;
+  channel: OrderChannel;
+  customerId?: string | null;
+  contactId?: string | null;
+  createdById?: string | null;
+}
+
+/** The CRM contact for an order: the customer's, the one given, else one matched or created by e-mail. */
+async function orderContact(tx: Tx, input: PlaceOrderInput) {
+  if (input.contactId) return input.contactId;
+  if (input.customerId) {
+    const customer = await tx.customer.findUnique({ where: { id: input.customerId }, select: { crmContactId: true } });
+    if (customer?.crmContactId) return customer.crmContactId;
+  }
+  const email = input.email.trim().toLowerCase();
+  if (email) {
+    const existing = await tx.crmContact.findFirst({ where: { emailNorm: email, contactType: { not: "vendor" } }, select: { id: true } });
+    if (existing) return existing.id;
+  }
+  const [firstName, ...rest] = input.name.trim().split(/\s+/);
+  return (await tx.crmContact.create({ data: { firstName: firstName || input.name, lastName: rest.join(" ") || null, email: email || null, emailNorm: email || null, phone: input.phone.trim() || null, contactType: "client", clientKind: "individual" } })).id;
+}
+
+/**
+ * Places an order: prices the cart again, holds the stock (at the default warehouse's location with the most
+ * available, else any warehouse), counts the coupon, and records the order with its first history entry.
+ */
+export async function placeOrder(input: PlaceOrderInput) {
+  const name = input.name.trim().slice(0, 120);
+  const email = input.email.trim().toLowerCase().slice(0, 254);
+  if (!name) throw new Error(serverMessages.customerNameRequired);
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error(serverMessages.customerEmailInvalid);
+  if (input.channel === "website" && !email) throw new Error(serverMessages.customerEmailInvalid);
+  if (!(ORDER_PAYMENT_METHODS as readonly string[]).includes(input.paymentMethod)) throw new Error(serverMessages.storePaymentMethodInvalid);
+  const settings = await db.storeSettings.upsert({ where: { id: "default" }, update: {}, create: { id: "default" } });
+  if (input.channel === "website") {
+    if (input.fulfilment === "delivery" ? !settings.deliveryEnabled : !settings.pickupEnabled) throw new Error(serverMessages.storeFulfilmentRequired);
+    // Paying online joins these once a payment gateway is set up (phase 6c).
+    const allowed = [settings.codEnabled && "cod", settings.bankTransferEnabled && "bank_transfer"].filter(Boolean);
+    if (!allowed.includes(input.paymentMethod)) throw new Error(serverMessages.storePaymentMethodInvalid);
+    if (!input.customerId && !settings.guestCheckout) throw new Error(serverMessages.storeSignInRequired);
+  }
+  let address: OrderAddress | null = null;
+  if (input.fulfilment === "delivery") {
+    const a = input.address;
+    if (!a || !a.name?.trim() || !a.phone?.trim() || !a.line1?.trim() || !a.city?.trim() || !a.country?.trim()) throw new Error(serverMessages.customerAddressIncomplete);
+    address = { name: a.name.trim().slice(0, 120), phone: a.phone.trim().slice(0, 40), line1: a.line1.trim().slice(0, 200), line2: a.line2?.trim().slice(0, 200) || "", area: a.area?.trim().slice(0, 80) || "", city: a.city.trim().slice(0, 80), country: a.country.trim().slice(0, 80), postalCode: a.postalCode?.trim().slice(0, 20) || "" };
+  }
+  const warehouse = await ensureDefaultWarehouse();
+  return db.$transaction(async (tx) => {
+    const quote = await quoteCart({ lines: input.lines, couponCode: input.couponCode, fulfilment: input.fulfilment }, tx);
+    if (quote.problems.length || !quote.lines.length) throw new Error(quote.problems.some((p) => p.problem.startsWith("coupon")) ? serverMessages.couponCannotBeUsed : serverMessages.storeCartChanged);
+    // Hold the stock for every line that keeps stock.
+    const held: { locationId: string | null }[] = [];
+    for (const line of quote.lines) {
+      if (!line.trackStock) {
+        held.push({ locationId: null });
+        continue;
+      }
+      const levels = await tx.stockLevel.findMany({ where: { productId: line.productId, variantKey: line.variantKey, batchKey: "", location: { isActive: true, warehouse: { isActive: true } } }, include: { location: true } });
+      const ranked = levels
+        .map((l) => ({ id: l.locationId, free: num(l.onHand) - num(l.reserved), home: l.location.warehouseId === warehouse.id }))
+        .filter((l) => l.free >= line.quantity)
+        .sort((a, b) => Number(b.home) - Number(a.home) || b.free - a.free);
+      if (!ranked.length) throw new Error(serverMessages.storeCartChanged);
+      await reserveStock(tx, { productId: line.productId, variantId: line.variantKey || undefined, locationId: ranked[0].id, quantity: line.quantity });
+      held.push({ locationId: ranked[0].id });
+    }
+    if (quote.couponCode) {
+      const used = await tx.$executeRaw`UPDATE "Coupon" SET "usedCount" = "usedCount" + 1 WHERE code = ${quote.couponCode} AND ("maxUses" IS NULL OR "usedCount" < "maxUses")`;
+      if (!used) throw new Error(serverMessages.couponCannotBeUsed);
+    }
+    const contactId = await orderContact(tx, { ...input, email, name });
+    const number = await getNextSequenceNumber("SO", undefined, tx);
+    const order = await tx.salesOrder.create({
+      data: {
+        number,
+        customerId: input.customerId ?? null,
+        contactId,
+        email: email || null,
+        name,
+        phone: input.phone.trim().slice(0, 40) || null,
+        channel: input.channel,
+        paymentMethod: input.paymentMethod,
+        paymentStatus: input.paymentMethod === "online" ? "pending" : "unpaid",
+        fulfilment: input.fulfilment,
+        shippingAddress: address ? (address as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
+        subtotal: quote.subtotal,
+        discountAmount: quote.discount,
+        couponCode: quote.couponCode,
+        vatAmount: quote.vatAmount,
+        deliveryFee: quote.deliveryFee,
+        total: quote.total,
+        currency: quote.currency,
+        locale: input.locale === "en" ? "en" : "ar",
+        note: input.note?.trim().slice(0, 1000) || null,
+        warehouseId: warehouse.id,
+        createdById: input.createdById ?? null,
+        lines: { create: quote.lines.map((l, index) => ({ productId: l.productId, variantKey: l.variantKey, sku: l.sku, description: l.description, quantity: l.quantity, unitPrice: l.unitPrice, vatExempt: l.vatExempt, lineTotal: round3(l.quantity * l.unitPrice), locationId: held[index].locationId, sortOrder: index })) },
+        events: { create: { kind: "status", status: "placed", byId: input.createdById ?? null } },
+      },
+    });
+    return order;
+  });
+}
+
+// ─── Reading orders ──────────────────────────────────────────────────────────────────────────────────────────────
+
+export async function getOrder(id: string) {
+  const o = await db.salesOrder.findUnique({ where: { id }, include: { lines: { orderBy: { sortOrder: "asc" } }, events: { orderBy: { createdAt: "asc" } } } });
+  if (!o) return null;
+  const people = await db.user.findMany({ where: { id: { in: o.events.map((e) => e.byId).filter((v): v is string => !!v) } }, select: { id: true, fullName: true } });
+  const invoice = o.invoiceId ? await db.invoice.findUnique({ where: { id: o.invoiceId }, select: { id: true, invoiceNumber: true } }) : null;
+  return {
+    id: o.id,
+    number: o.number,
+    customer_id: o.customerId,
+    contact_id: o.contactId,
+    email: o.email ?? "",
+    name: o.name,
+    phone: o.phone ?? "",
+    channel: o.channel,
+    status: o.status,
+    payment_status: o.paymentStatus,
+    payment_method: o.paymentMethod,
+    fulfilment: o.fulfilment,
+    address: (o.shippingAddress as OrderAddress | null) ?? null,
+    subtotal: num(o.subtotal),
+    discount: num(o.discountAmount),
+    coupon_code: o.couponCode,
+    vat_amount: num(o.vatAmount),
+    delivery_fee: num(o.deliveryFee),
+    total: num(o.total),
+    amount_paid: num(o.amountPaid),
+    amount_refunded: num(o.amountRefunded),
+    currency: o.currency,
+    locale: o.locale,
+    note: o.note ?? "",
+    invoice,
+    placed_at: o.placedAt.toISOString(),
+    lines: o.lines.map((l) => ({ id: l.id, product_id: l.productId, variant_key: l.variantKey, sku: l.sku, description: l.description, quantity: num(l.quantity), unit_price: num(l.unitPrice), line_total: num(l.lineTotal), returned: num(l.returnedQuantity) })),
+    events: o.events.map((e) => ({ id: e.id, kind: e.kind, status: e.status, note: e.note, amount: numOrNull(e.amount), by: people.find((p) => p.id === e.byId)?.fullName ?? null, at: e.createdAt.toISOString() })),
+  };
+}
+export type OrderRecord = NonNullable<Awaited<ReturnType<typeof getOrder>>>;
+
+export async function listOrders(query: { status?: string; channel?: string; search?: string; page?: number; pageSize?: number } = {}) {
+  const pageSize = Math.min(Math.max(query.pageSize ?? 25, 1), 100);
+  const page = Math.max(query.page ?? 1, 1);
+  const search = query.search?.trim().slice(0, 80);
+  const where: Prisma.SalesOrderWhereInput = {
+    ...(query.status ? { status: query.status } : {}),
+    ...(query.channel ? { channel: query.channel } : {}),
+    ...(search ? { OR: [{ number: { contains: search, mode: "insensitive" } }, { name: { contains: search, mode: "insensitive" } }, { email: { contains: search, mode: "insensitive" } }, { phone: { contains: search } }] } : {}),
+  };
+  const [rows, total] = await Promise.all([db.salesOrder.findMany({ where, orderBy: [{ placedAt: "desc" }, { id: "asc" }], skip: (page - 1) * pageSize, take: pageSize }), db.salesOrder.count({ where })]);
+  return { rows: rows.map((o) => ({ id: o.id, number: o.number, name: o.name, channel: o.channel, status: o.status, payment_status: o.paymentStatus, payment_method: o.paymentMethod, total: num(o.total), placed_at: o.placedAt.toISOString() })), total, page, pageSize };
+}
+
+/** A customer's own orders, newest first, for the account page. */
+export async function customerOrders(customerId: string) {
+  const rows = await db.salesOrder.findMany({ where: { customerId }, orderBy: { placedAt: "desc" }, take: 100, include: { lines: { orderBy: { sortOrder: "asc" } } } });
+  return rows.map((o) => ({ id: o.id, number: o.number, status: o.status, payment_status: o.paymentStatus, total: num(o.total), currency: o.currency, placed_at: o.placedAt.toISOString(), lines: o.lines.map((l) => ({ description: l.description, quantity: num(l.quantity) })) }));
+}
+
+// ─── Moving orders along ─────────────────────────────────────────────────────────────────────────────────────────
+
+async function releaseReservations(tx: Tx, order: { lines: { productId: string; variantKey: string; locationId: string | null; quantity: Prisma.Decimal }[] }) {
+  for (const line of order.lines) if (line.locationId) await reserveStock(tx, { productId: line.productId, variantId: line.variantKey || undefined, locationId: line.locationId, quantity: -num(line.quantity) });
+}
+
+/**
+ * Moves an order to its next status: shipping takes the held stock out (a sale), cancelling releases it, and a
+ * return puts it back. Returns the low-stock items for alerts.
+ */
+export async function moveOrder(id: string, to: OrderStatus, byId: string | null, note?: string) {
+  return db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${id} FOR UPDATE`;
+    const order = await tx.salesOrder.findUnique({ where: { id }, include: { lines: true } });
+    if (!order) throw new Error(serverMessages.procurementDocumentMissing);
+    if (!canMoveOrder(order.status, to)) throw new Error(serverMessages.orderStatusInvalid);
+    let low: Awaited<ReturnType<typeof postMovements>> = [];
+    const held = (RESERVED_STATUSES as string[]).includes(order.status);
+    if (to === "cancelled" && held) await releaseReservations(tx, order);
+    if (to === "shipped") {
+      await releaseReservations(tx, order);
+      const movements: MovementInput[] = order.lines.filter((l) => l.locationId).map((l) => ({ type: "sale", productId: l.productId, variantId: l.variantKey || undefined, locationId: l.locationId!, quantity: -num(l.quantity), sourceType: "order", sourceId: order.id, note: order.number }));
+      low = await postMovements(tx, movements, byId);
+    }
+    if (to === "returned") {
+      const movements: MovementInput[] = order.lines.filter((l) => l.locationId && num(l.quantity) > num(l.returnedQuantity)).map((l) => ({ type: "return", productId: l.productId, variantId: l.variantKey || undefined, locationId: l.locationId!, quantity: round3(num(l.quantity) - num(l.returnedQuantity)), sourceType: "order", sourceId: order.id, note: order.number }));
+      await postMovements(tx, movements, byId);
+      for (const l of order.lines) await tx.salesOrderLine.update({ where: { id: l.id }, data: { returnedQuantity: l.quantity } });
+    }
+    const now = new Date();
+    await tx.salesOrder.update({ where: { id }, data: { status: to, ...(to === "shipped" ? { shippedAt: now } : {}), ...(to === "delivered" ? { deliveredAt: now } : {}), ...(to === "cancelled" ? { cancelledAt: now } : {}) } });
+    await tx.salesOrderEvent.create({ data: { orderId: id, kind: "status", status: to, note: note?.trim().slice(0, 500) || null, byId } });
+    return low;
+  });
+}
+
+/** The order's invoice (issued, not a draft: the sale already happened), created the first time it is needed. */
+export async function issueOrderInvoice(orderId: string, byId: string | null) {
+  const order = await db.salesOrder.findUnique({ where: { id: orderId }, include: { lines: { orderBy: { sortOrder: "asc" } } } });
+  if (!order) throw new Error(serverMessages.procurementDocumentMissing);
+  if (order.invoiceId) return order.invoiceId;
+  const company = await db.companySetting.findFirst({ select: { vatEnabled: true, vatPercentage: true, paymentTermsDays: true } });
+  const issueDate = new Date();
+  const fee = num(order.deliveryFee);
+  const lines = [...order.lines.map((l) => ({ descriptionEn: `${l.description} (${l.sku})`, quantity: num(l.quantity), unitPrice: num(l.unitPrice), lineTotal: num(l.lineTotal) })), ...(fee > 0 ? [{ descriptionEn: "Delivery", quantity: 1, unitPrice: fee, lineTotal: fee }] : [])];
+  return db.$transaction(async (tx) => {
+    const invoiceNumber = await allocateDocumentNumber("invoice", issueDate, tx);
+    const invoice = await tx.invoice.create({
+      data: {
+        invoiceNumber,
+        clientId: order.contactId,
+        issueDate,
+        dueDate: new Date(issueDate.getTime() + (company?.paymentTermsDays ?? 0) * 86_400_000),
+        subtotal: round3(num(order.subtotal) + fee),
+        discountType: num(order.discountAmount) > 0 ? "fixed" : "none",
+        discountValue: order.discountAmount,
+        discountAmount: order.discountAmount,
+        vatEnabled: num(order.vatAmount) > 0,
+        vatPercentage: company?.vatPercentage ?? 0,
+        vatAmount: order.vatAmount,
+        totalAmount: order.total,
+        currency: order.currency,
+        language: order.locale,
+        status: "sent",
+        approvalStatus: "approved",
+        notesEn: `Order ${order.number}`,
+        createdById: byId,
+        lineItems: { create: lines.map((l, index) => ({ ...l, displayOrder: index + 1 })) },
+      },
+    });
+    await tx.salesOrder.update({ where: { id: orderId }, data: { invoiceId: invoice.id } });
+    return invoice.id;
+  });
+}
+
+/** Records money received for an order: on its invoice (with a receipt), and the order shows it as paid. */
+export async function recordOrderPayment(orderId: string, input: { amount: number; method: "cash" | "card" | "bank_transfer" | "online"; reference?: string }, byId: string | null) {
+  const amount = round3(input.amount);
+  const order = await db.salesOrder.findUnique({ where: { id: orderId } });
+  if (!order) throw new Error(serverMessages.procurementDocumentMissing);
+  if (!Number.isFinite(amount) || amount <= 0 || num(order.amountPaid) + amount > num(order.total) + 0.0005) throw new Error(serverMessages.procurementOverpaid);
+  if (["cancelled", "returned"].includes(order.status)) throw new Error(serverMessages.orderStatusInvalid);
+  const invoiceId = await issueOrderInvoice(orderId, byId);
+  await createPayment({ invoice_id: invoiceId, amount, payment_method: input.method, reference_number: input.reference?.slice(0, 100), created_by: byId ?? undefined, notes: order.number });
+  const paid = round3(num(order.amountPaid) + amount);
+  const full = paid >= num(order.total) - 0.0005;
+  await db.$transaction([
+    db.salesOrder.update({ where: { id: orderId }, data: { amountPaid: paid, paymentStatus: full ? "paid" : "pending", ...(full ? { paidAt: new Date() } : {}), ...(full && order.status === "placed" ? { status: "paid" } : {}) } }),
+    db.salesOrderEvent.create({ data: { orderId, kind: "payment", amount, note: input.reference?.slice(0, 100) || input.method, byId } }),
+    ...(full && order.status === "placed" ? [db.salesOrderEvent.create({ data: { orderId, kind: "status", status: "paid", byId } })] : []),
+  ]);
+}
+
+/** Records a refund given back to the customer (by hand here; online payments refund through their gateway). */
+export async function recordOrderRefund(orderId: string, amountInput: number, reason: string, byId: string | null) {
+  const amount = round3(amountInput);
+  return db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${orderId} FOR UPDATE`;
+    const order = await tx.salesOrder.findUnique({ where: { id: orderId } });
+    if (!order) throw new Error(serverMessages.procurementDocumentMissing);
+    if (!Number.isFinite(amount) || amount <= 0 || num(order.amountRefunded) + amount > num(order.amountPaid) + 0.0005) throw new Error(serverMessages.orderRefundTooLarge);
+    const refunded = round3(num(order.amountRefunded) + amount);
+    await tx.salesOrder.update({ where: { id: orderId }, data: { amountRefunded: refunded, paymentStatus: refunded >= num(order.amountPaid) - 0.0005 ? "refunded" : "partially_refunded" } });
+    await tx.salesOrderEvent.create({ data: { orderId, kind: "refund", amount, note: reason.trim().slice(0, 500) || null, byId } });
+  });
+}
+
+export async function addOrderNote(orderId: string, note: string, byId: string | null) {
+  const text = note.trim().slice(0, 1000);
+  if (!text) return;
+  await db.salesOrderEvent.create({ data: { orderId, kind: "note", note: text, byId } });
+}
+
+/** Products to sell at the counter or by phone: names, codes, prices and variants. */
+export async function saleProductOptions() {
+  const products = await db.product.findMany({ where: { isActive: true }, orderBy: { nameEn: "asc" }, take: 3000, select: { id: true, sku: true, barcode: true, nameEn: true, nameAr: true, price: true, options: true, variants: { where: { isActive: true }, orderBy: { sortOrder: "asc" }, select: { id: true, sku: true, barcode: true, optionValues: true, price: true } } } });
+  return products.map((p) => {
+    const options = normalizeProductOptions(p.options) ?? [];
+    return {
+      id: p.id,
+      sku: p.sku,
+      barcode: p.barcode ?? "",
+      name_en: p.nameEn,
+      name_ar: p.nameAr,
+      price: num(p.price),
+      variants: p.variants.map((v) => ({ id: v.id, sku: v.sku, barcode: v.barcode ?? "", label_en: variantLabel(options, v.optionValues, "en"), label_ar: variantLabel(options, v.optionValues, "ar"), price: v.price == null ? num(p.price) : num(v.price) })),
+    };
+  });
+}
+export type SaleProductOption = Awaited<ReturnType<typeof saleProductOptions>>[number];

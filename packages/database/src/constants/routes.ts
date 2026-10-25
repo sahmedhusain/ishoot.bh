@@ -93,6 +93,12 @@ export const ROUTES = {
     counts: "/dashboard/inventory/counts",
     count: (id: string) => `/dashboard/inventory/counts/${encodeURIComponent(id)}`,
   },
+  orders: {
+    list: "/dashboard/orders",
+    new: "/dashboard/orders/new",
+    detail: (id: string) => `/dashboard/orders/${encodeURIComponent(id)}`,
+    settings: "/dashboard/orders/settings",
+  },
   procurement: {
     suppliers: "/dashboard/procurement/suppliers",
     requisitions: "/dashboard/procurement/requisitions",

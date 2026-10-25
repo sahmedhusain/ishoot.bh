@@ -56,7 +56,8 @@
     "adminPortal": "لوحة الإدارة",
     "webSettings": "إعدادات الموقع",
     "articles": "الأخبار",
-    "account": "حسابي"
+    "account": "حسابي",
+    "cart": "السلة"
   },
   "hero": {
     "badge": "دار إنتاج سينمائي",
@@ -809,7 +810,12 @@
       "wrong_code": "الرمز غير صحيح أو انتهت صلاحيته.",
       "signed_out": "يرجى تسجيل الدخول مرة أخرى.",
       "confirm_email": "اكتب بريدك كما هو في الحساب تمامًا.",
-      "email_unavailable": "لا يمكننا إرسال البريد الآن. سجّل الدخول بطريقة أخرى."
+      "email_unavailable": "لا يمكننا إرسال البريد الآن. سجّل الدخول بطريقة أخرى.",
+      "storeCartChanged": "تغيّر سعر بعض المنتجات أو لم تعد متاحة. راجع سلتك.",
+      "couponCannotBeUsed": "لا يمكن استخدام هذه القسيمة لهذا الطلب.",
+      "storeFulfilmentRequired": "اختر التوصيل أو الاستلام.",
+      "storePaymentMethodInvalid": "اختر طريقة الدفع.",
+      "storeSignInRequired": "يرجى تسجيل الدخول لإتمام الطلب."
     },
     "codeEmail": {
       "subject": "رمز تسجيل الدخول",
@@ -819,6 +825,79 @@
     "languages": {
       "ar": "العربية",
       "en": "English"
+    }
+  },
+  "store": {
+    "addToCart": "أضف إلى السلة",
+    "added": "أُضيف إلى سلتك.",
+    "chooseOption": "اختر {option}",
+    "inStock": "متوفر",
+    "onlyLeft": "متبقٍ {count} فقط",
+    "outOfStock": "نفد من المخزون",
+    "quantity": "الكمية",
+    "viewCart": "اعرض السلة",
+    "cartTitle": "سلتك",
+    "cartEmpty": "سلتك فارغة.",
+    "continueShopping": "تابع التسوق",
+    "remove": "احذف {name}",
+    "quantityFor": "كمية {name}",
+    "subtotal": "المجموع الفرعي",
+    "discount": "الخصم",
+    "delivery": "التوصيل",
+    "freeDelivery": "مجاني",
+    "vat": "ضريبة القيمة المضافة",
+    "total": "الإجمالي",
+    "coupon": "رمز القسيمة",
+    "applyCoupon": "طبّق",
+    "couponApplied": "تم تطبيق القسيمة {code}.",
+    "problems": {
+      "unavailable": "هذا المنتج لم يعد متاحًا وتم استبعاده.",
+      "out_of_stock": "لا يكفي المخزون لهذا المنتج؛ قلّل الكمية.",
+      "coupon_invalid": "هذه القسيمة غير موجودة.",
+      "coupon_expired": "هذه القسيمة غير فعالة الآن.",
+      "coupon_used_up": "نفدت استخدامات هذه القسيمة.",
+      "coupon_min_order": "الطلب أقل من الحد الأدنى للقسيمة."
+    },
+    "fulfilment": "كيف تريد استلامه؟",
+    "fulfilments": {
+      "delivery": "التوصيل",
+      "pickup": "الاستلام من المتجر"
+    },
+    "checkout": "إتمام الطلب",
+    "checkoutTitle": "إتمام الطلب",
+    "contact": "بياناتك",
+    "deliveryAddress": "عنوان التوصيل",
+    "savedAddress": "عنوان محفوظ",
+    "newAddress": "عنوان جديد",
+    "payment": "الدفع",
+    "paymentMethods": {
+      "cod": "الدفع عند الاستلام",
+      "bank_transfer": "تحويل بنكي",
+      "online": "الدفع الإلكتروني"
+    },
+    "bankInstructions": "تعليمات التحويل",
+    "note": "ملاحظة على الطلب (اختياري)",
+    "signInHint": "لديك حساب؟ سجّل الدخول لاستخدام عناوينك المحفوظة.",
+    "placeOrder": "أرسل الطلب",
+    "placing": "جارٍ إرسال طلبك…",
+    "placedTitle": "شكرًا لك!",
+    "placedText": "تم استلام طلبك {number}. أرسلنا تأكيدًا إلى بريدك.",
+    "placedAccount": "اعرضه في حسابك",
+    "statuses": {
+      "placed": "مستلم",
+      "paid": "مدفوع",
+      "packing": "قيد التجهيز",
+      "shipped": "في الطريق",
+      "delivered": "تم التسليم",
+      "cancelled": "ملغى",
+      "returned": "مُرتجع"
+    },
+    "orderItems": "{count} منتج",
+    "confirmationEmail": {
+      "subject": "تأكيد الطلب {number}",
+      "greeting": "مرحبًا {name}،",
+      "body": "شكرًا لطلبك {number}. هذه تفاصيل ما طلبته:",
+      "total": "الإجمالي"
     }
   }
 }

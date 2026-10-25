@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Heart, MapPin, Package, Trash2, User } from "lucide-react";
 import type { CustomerProfile } from "@platform/database";
 import { useTranslation } from "../../hooks/useTranslation";
-import { collectionHref } from "../../lib/site-copy";
+import { collectionHref, formatPrice } from "../../lib/site-copy";
 import { ContentImage } from "../shared/ContentImage";
 import { accountPost, field, label, primaryButton, secondaryButton } from "./ui";
 
@@ -35,7 +35,17 @@ interface WishItem {
 const blankAddress = { id: "", label: "", name: "", phone: "", line1: "", line2: "", area: "", city: "", country: "", postalCode: "", isDefault: false };
 
 /** The signed-in customer's account page. */
-export function AccountDashboard({ locale, customer, addresses, wishlist }: { locale: string; customer: CustomerProfile; addresses: Address[]; wishlist: WishItem[] }) {
+interface OrderSummary {
+  id: string;
+  number: string;
+  status: string;
+  total: number;
+  currency: string;
+  placed_at: string;
+  lines: { description: string; quantity: number }[];
+}
+
+export function AccountDashboard({ locale, customer, addresses, wishlist, orders }: { locale: string; customer: CustomerProfile; addresses: Address[]; wishlist: WishItem[]; orders: OrderSummary[] }) {
   const { t, site } = useTranslation();
   const router = useRouter();
   const [profile, setProfile] = React.useState({ name: customer.name, phone: customer.phone, preferredLocale: customer.locale, marketingOptIn: customer.marketing_opt_in, password: "" });
@@ -128,7 +138,21 @@ export function AccountDashboard({ locale, customer, addresses, wishlist }: { lo
 
         <section className={section} aria-labelledby="account-orders">
           <h2 id="account-orders" className={heading}><Package className="w-5 h-5" aria-hidden="true" />{t("account.sections.orders")}</h2>
-          <p className="text-sm text-ink-muted">{t("account.noOrders")}</p>
+          {orders.length === 0 ? (
+            <p className="text-sm text-ink-muted">{t("account.noOrders")}</p>
+          ) : (
+            <ul className="divide-y divide-white/10" data-testid="account-orders">
+              {orders.map((o) => (
+                <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
+                  <span className="font-mono text-xs font-semibold text-white" dir="ltr">{o.number}</span>
+                  <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs">{t(`store.statuses.${o.status}`)}</span>
+                  <span className="text-ink-muted">{new Date(o.placed_at).toLocaleDateString(locale === "ar" ? "ar-BH-u-nu-latn" : "en-GB")}</span>
+                  <span className="text-ink-muted">{t("store.orderItems", { count: o.lines.reduce((sum, l) => sum + l.quantity, 0) })}</span>
+                  <span className="ms-auto font-semibold text-white">{formatPrice(o.total, o.currency, locale)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className={section} aria-labelledby="account-wishlist">

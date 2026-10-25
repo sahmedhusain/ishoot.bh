@@ -9,6 +9,7 @@ import { useTranslation } from "../../hooks/useTranslation";
 import { collectionHref } from "../../lib/site-copy";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { MobileMenu } from "./MobileMenu";
+import { CartLink } from "../store/CartLink";
 import { Menu, UserRound } from "lucide-react";
 import type { PublicCompanySettings } from "@platform/database/types";
 
@@ -126,6 +127,7 @@ export function Navbar({ company, pages, links, accountHref }: NavbarProps) {
           </nav>
 
           <div className="hidden lg:flex items-center gap-4">
+            {accountHref ? <CartLink className="w-10 h-10 grid place-items-center rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors" /> : null}
             {accountHref ? (
               <Link href={accountHref} aria-label={t("nav.account")} title={t("nav.account")} className="w-10 h-10 grid place-items-center rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors" data-testid="nav-account">
                 <UserRound className="w-5 h-5" aria-hidden="true" />
@@ -135,6 +137,7 @@ export function Navbar({ company, pages, links, accountHref }: NavbarProps) {
           </div>
 
           <div className="flex items-center gap-3 lg:hidden">
+            {accountHref ? <CartLink className="w-11 h-11 flex items-center justify-center rounded-md border border-white/20 text-white" /> : null}
             {accountHref ? (
               <Link href={accountHref} aria-label={t("nav.account")} className="w-11 h-11 flex items-center justify-center rounded-md border border-white/20 text-white">
                 <UserRound className="w-4 h-4" aria-hidden="true" />

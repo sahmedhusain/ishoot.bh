@@ -3369,6 +3369,7 @@ model Customer {
   sessions        CustomerSession[]
   addresses       CustomerAddress[]
   wishlist        WishlistItem[]
+  orders          SalesOrder[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 }
@@ -3427,4 +3428,124 @@ model WishlistItem {
   createdAt       DateTime      @default(now())
 
   @@unique([customerId, catalogueItemId])
+}
+
+/// How the online store sells: guest checkout, delivery fee, pickup and the payment methods offered.
+model StoreSettings {
+  id                  String   @id @default("default")
+  guestCheckout       Boolean  @default(true)
+  deliveryEnabled     Boolean  @default(true)
+  deliveryFee         Decimal  @default(0) @db.Decimal(12, 3)
+  /// Delivery is free from this order subtotal; null for never.
+  freeDeliveryOver    Decimal? @db.Decimal(12, 3)
+  pickupEnabled       Boolean  @default(false)
+  codEnabled          Boolean  @default(true)
+  bankTransferEnabled Boolean  @default(false)
+  bankInstructionsEn  String?
+  bankInstructionsAr  String?
+  /// Where new-order alerts go (besides the people who can see orders).
+  orderNotifyEmail    String?
+  updatedAt           DateTime @updatedAt
+}
+
+model Coupon {
+  id        String    @id @default(uuid())
+  /// Upper-case, unique.
+  code      String    @unique
+  /// percent | fixed
+  kind      String
+  value     Decimal   @db.Decimal(12, 3)
+  minOrder  Decimal?  @db.Decimal(12, 3)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  maxUses   Int?
+  usedCount Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+}
+
+/// An order from the website, by phone or WhatsApp, or at the counter. Amounts are in the company currency.
+model SalesOrder {
+  id              String            @id @default(uuid())
+  number          String            @unique
+  customerId      String?
+  customer        Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  /// The CRM contact the order (and its invoice) belongs to.
+  contactId       String?
+  email           String?
+  name            String
+  phone           String?
+  /// website | phone | whatsapp | pos
+  channel         String            @default("website")
+  /// placed | paid | packing | shipped | delivered | cancelled | returned
+  status          String            @default("placed")
+  /// unpaid | pending | paid | partially_refunded | refunded
+  paymentStatus   String            @default("unpaid")
+  /// cod | bank_transfer | pay_later | cash | card | online
+  paymentMethod   String
+  /// delivery | pickup
+  fulfilment      String            @default("delivery")
+  shippingAddress Json?
+  subtotal        Decimal           @db.Decimal(12, 3)
+  discountAmount  Decimal           @default(0) @db.Decimal(12, 3)
+  couponCode      String?
+  vatAmount       Decimal           @default(0) @db.Decimal(12, 3)
+  deliveryFee     Decimal           @default(0) @db.Decimal(12, 3)
+  total           Decimal           @db.Decimal(12, 3)
+  amountPaid      Decimal           @default(0) @db.Decimal(12, 3)
+  amountRefunded  Decimal           @default(0) @db.Decimal(12, 3)
+  currency        String
+  /// en | ar: the language of messages about this order.
+  locale          String            @default("ar")
+  note            String?
+  /// Stock is reserved at this warehouse and leaves it when shipped.
+  warehouseId     String?
+  invoiceId       String?           @unique
+  createdById     String?
+  placedAt        DateTime          @default(now())
+  paidAt          DateTime?
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  lines           SalesOrderLine[]
+  events          SalesOrderEvent[]
+  updatedAt       DateTime          @updatedAt
+
+  @@index([status])
+  @@index([customerId])
+  @@index([placedAt])
+}
+
+model SalesOrderLine {
+  id               String     @id @default(uuid())
+  orderId          String
+  order            SalesOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId        String
+  variantKey       String     @default("")
+  sku              String
+  description      String
+  quantity         Decimal    @db.Decimal(14, 3)
+  unitPrice        Decimal    @db.Decimal(12, 3)
+  vatExempt        Boolean    @default(false)
+  lineTotal        Decimal    @db.Decimal(12, 3)
+  /// Where the stock is held for this line (none for products without stock).
+  locationId       String?
+  returnedQuantity Decimal    @default(0) @db.Decimal(14, 3)
+  sortOrder        Int        @default(0)
+}
+
+/// The history of an order: each status change, payment, refund or note, with who did it.
+model SalesOrderEvent {
+  id        String     @id @default(uuid())
+  orderId   String
+  order     SalesOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// status | payment | refund | note | email
+  kind      String
+  status    String?
+  note      String?
+  amount    Decimal?   @db.Decimal(12, 3)
+  byId      String?
+  createdAt DateTime   @default(now())
+
+  @@index([orderId, createdAt])
 }

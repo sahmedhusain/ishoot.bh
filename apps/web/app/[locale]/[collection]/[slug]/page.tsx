@@ -9,7 +9,8 @@ import { collectionHref, formatPrice } from "../../../../lib/site-copy";
 import { publicSiteUrl } from "../../../../lib/site-url";
 import { ArticleView, liveArticles } from "../../../../components/articles/ArticleViews";
 import { isWebsitePreview } from "../../../../lib/website";
-import { db } from "@platform/database";
+import { db, storeProductForItem } from "@platform/database";
+import { AddToCart } from "../../../../components/store/AddToCart";
 import { currentCustomer, storeEnabled } from "../../../../lib/customer";
 import { WishlistButton } from "../../../../components/account/WishlistButton";
 
@@ -40,7 +41,9 @@ export default async function CollectionItemPage({
 
   const item = website.portfolio.find((project) => project.slug === slug);
   // With the online store on, items can be saved to the customer's wishlist.
-  const customer = item && (await storeEnabled()) ? { signedIn: true, profile: await currentCustomer() } : null;
+  const storeOn = !!item && (await storeEnabled());
+  const customer = storeOn ? { signedIn: true, profile: await currentCustomer() } : null;
+  const storeProduct = storeOn && !preview ? await storeProductForItem(item!.id) : null;
   const store = customer
     ? { signedIn: !!customer.profile, saved: !!customer.profile && !!(await db.wishlistItem.findUnique({ where: { customerId_catalogueItemId: { customerId: customer.profile.id, catalogueItemId: item!.id } }, select: { id: true } })) }
     : null;
@@ -90,6 +93,7 @@ export default async function CollectionItemPage({
         ) : null}
         <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white font-display">{title}</h1>
         {subtitle ? <p className="max-w-3xl text-lg text-ink-muted">{subtitle}</p> : null}
+        {storeProduct ? <AddToCart product={storeProduct} currency={info.currency} /> : null}
         {store ? <WishlistButton itemId={item.id} initiallySaved={store.saved} signedIn={store.signedIn} next={`/${locale}/${collection}/${slug}`} /> : null}
       </Reveal>
 

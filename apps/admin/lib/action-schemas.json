@@ -7349,6 +7349,302 @@
       }
     }
   },
+  "moveOrderAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "status": {
+        "kind": "string",
+        "optional": false
+      },
+      "note": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "recordOrderPaymentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "amount": {
+            "kind": "string",
+            "optional": false
+          },
+          "method": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "recordOrderRefundAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "amount": {
+        "kind": "string",
+        "optional": false
+      },
+      "reason": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "addOrderNoteAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "note": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "issueOrderInvoiceAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createStaffOrderAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "channel": {
+            "kind": "string",
+            "optional": false
+          },
+          "contactId": {
+            "kind": "string",
+            "optional": true
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "productId": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "variantId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          },
+          "couponCode": {
+            "kind": "string",
+            "optional": false
+          },
+          "fulfilment": {
+            "kind": "string",
+            "optional": false
+          },
+          "address": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "object",
+                "fields": {
+                  "name": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "phone": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "line1": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "line2": {
+                    "kind": "string",
+                    "optional": true
+                  },
+                  "area": {
+                    "kind": "string",
+                    "optional": true
+                  },
+                  "city": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "country": {
+                    "kind": "string",
+                    "optional": false
+                  },
+                  "postalCode": {
+                    "kind": "string",
+                    "optional": true
+                  }
+                }
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
+          "paidWith": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveStoreSettingsAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "guestCheckout": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "deliveryEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "deliveryFee": {
+            "kind": "string",
+            "optional": false
+          },
+          "freeDeliveryOver": {
+            "kind": "string",
+            "optional": false
+          },
+          "pickupEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "codEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "bankTransferEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "bankInstructionsEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "bankInstructionsAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "orderNotifyEmail": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveCouponAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "string",
+            "optional": false
+          },
+          "value": {
+            "kind": "string",
+            "optional": false
+          },
+          "minOrder": {
+            "kind": "string",
+            "optional": false
+          },
+          "startsAt": {
+            "kind": "string",
+            "optional": false
+          },
+          "endsAt": {
+            "kind": "string",
+            "optional": false
+          },
+          "maxUses": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "generatePayrollRunAction": {
     "kind": "object",
     "fields": {

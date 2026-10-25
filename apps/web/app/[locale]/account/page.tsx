@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { listCustomerAddresses, listWishlist } from "@platform/database";
+import { customerOrders, listCustomerAddresses, listWishlist } from "@platform/database";
 import { requireSiteLanguage } from "../../../lib/site";
 import { currentCustomer, signInProviders, storeEnabled } from "../../../lib/customer";
 import { AccountSignIn } from "../../../components/account/AccountSignIn";
@@ -14,6 +14,6 @@ export default async function AccountPage({ params, searchParams }: { params: Pr
   if (!(await storeEnabled())) notFound();
   const [customer, query] = await Promise.all([currentCustomer(), searchParams]);
   if (!customer) return <AccountSignIn locale={locale} providers={await signInProviders()} notice={typeof query.signin === "string" ? query.signin : ""} next={typeof query.next === "string" ? query.next : ""} />;
-  const [addresses, wishlist] = await Promise.all([listCustomerAddresses(customer.id), listWishlist(customer.id)]);
-  return <AccountDashboard locale={locale} customer={customer} addresses={addresses} wishlist={wishlist} />;
+  const [addresses, wishlist, orders] = await Promise.all([listCustomerAddresses(customer.id), listWishlist(customer.id), customerOrders(customer.id)]);
+  return <AccountDashboard locale={locale} customer={customer} addresses={addresses} wishlist={wishlist} orders={orders} />;
 }

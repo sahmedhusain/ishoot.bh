@@ -487,3 +487,34 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   generated keys; e2e for sign-up, password and code sign-in, address, wishlist and account deletion. Google and
   Apple sign-in themselves need real credentials ("needs live credentials"), so they are covered up to the
   provider redirect and the token checks.
+
+### Phase 6b: cart, checkout and orders (done)
+
+- Migration `20261026220000_store_orders`: `StoreSettings`, `Coupon`, `SalesOrder` (numbered `SO-YYYY-NNNNNN`),
+  `SalesOrderLine` (with the location its stock is held at) and `SalesOrderEvent` (history), with CHECKs on
+  statuses, channels, amounts and quantities. New resource `orders` (module `store`, "Commerce" group).
+- **Website**: a product linked to a catalogue item shows price, options, stock left and "Add to cart" on the
+  item page; cart icon in the menu; `/cart` (quantities, coupon, delivery or pickup, totals) and `/checkout`
+  (contact, saved or new address, payment method: cash on delivery or bank transfer with instructions; guests
+  allowed unless turned off). Prices, stock and coupons are always worked out again on the server
+  (`/api/store/quote|order`, same-origin, rate-limited); the browser keeps only product, variant and quantity.
+  Placing an order holds (reserves) the stock, counts the coupon, links a CRM contact, e-mails the confirmation
+  in the customer's language and notifies the people who can see orders. Signed-in customers see their orders
+  in their account.
+- **Admin → Online store**: Orders (search, status and channel filters), each order with its items, totals,
+  history and notes; moves placed → packing → shipped → delivered (shipping posts the sale out of stock,
+  cancelling releases the hold, a return puts it back); payments (cash, card, bank transfer; the first payment
+  issues the order's invoice so the payment is recorded against it), refunds (approve right) and "Issue
+  invoice". **New sale** for counter (scan or search; paid now means handed over at once), phone and WhatsApp
+  orders. **Store settings**: guest checkout, delivery fee and free-delivery threshold, pickup, payment methods,
+  bank instructions in the content languages, an extra e-mail for new orders; and coupons (percent or fixed,
+  minimum order, dates, use limit).
+- Pricing order: lines, coupon (goods only), delivery (free above the threshold after discount), then VAT on the
+  taxable goods after the discount plus delivery.
+- Tested: unit (pricing, coupon checks, order transitions, locale coverage); e2e web (cart → coupon → guest
+  checkout, stock held, server refuses more than is left) and admin (counter sale takes stock, phone order paid
+  later then packed, shipped, invoiced and partly refunded, list search, store settings and a coupon).
+- The doubled-form flake (5c-2 open question) traced further: it appears only while a development Fast Refresh
+  runs (another route compiling), never after the page settles; the store specs wait for one copy before acting.
+- Wording: "Fulfilment" became "Delivery or pickup" (the neutral-wording check reads "film" inside it).
+- "Pay online" exists as a method name only: neither the checkout nor the server accepts it until 6c adds gateways.

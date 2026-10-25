@@ -2268,7 +2268,8 @@
       "cms_code": "Custom code and tracking",
       "products": "Products",
       "inventory": "Stock and warehouses",
-      "procurement": "Purchasing"
+      "procurement": "Purchasing",
+      "orders": "Orders"
     }
   },
   "approvals": {
@@ -5765,7 +5766,16 @@
       "signInGoogleClientId": "The client ID should end with .apps.googleusercontent.com.",
       "signInGoogleSecret": "Enter the client secret.",
       "signInAppleKey": "The private key could not be read; paste the whole .p8 file.",
-      "signInAppleIds": "Team ID and key ID are 10 letters and digits."
+      "signInAppleIds": "Team ID and key ID are 10 letters and digits.",
+      "couponCannotBeUsed": "That coupon cannot be used for this order.",
+      "couponCodeInvalid": "A coupon code is 3 to 30 capital letters, digits or dashes, with a kind of percent or fixed.",
+      "couponCodeTaken": "That coupon code already exists.",
+      "orderRefundTooLarge": "That is more than was paid and not yet refunded.",
+      "orderStatusInvalid": "The order cannot move to that status from where it is.",
+      "storeCartChanged": "Some items changed price or are no longer available. Please check your cart.",
+      "storeFulfilmentRequired": "Choose delivery or pickup.",
+      "storePaymentMethodInvalid": "Choose a way to pay that the store offers.",
+      "storeSignInRequired": "Please sign in to check out."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -9539,6 +9549,162 @@
       "outstanding": "Owed",
       "priceHistory": "Purchase prices",
       "noHistory": "Not ordered yet."
+    }
+  },
+  "orders": {
+    "navGroup": "Online store",
+    "nav": {
+      "orders": "Orders",
+      "newSale": "New sale",
+      "settings": "Store settings"
+    },
+    "notifications": {
+      "placed": {
+        "title": "New order {number}",
+        "message": "{name} ordered {total}."
+      }
+    },
+    "title": "Orders",
+    "subtitle": "Website orders and sales by phone, WhatsApp or at the counter: payment, packing, shipping, returns and refunds.",
+    "search": "Search by number, name, e-mail or phone",
+    "allStatuses": "All statuses",
+    "allChannels": "All channels",
+    "statuses": {
+      "placed": "Placed",
+      "paid": "Paid",
+      "packing": "Packing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "returned": "Returned"
+    },
+    "paymentStatuses": {
+      "unpaid": "Unpaid",
+      "pending": "Part paid",
+      "paid": "Paid",
+      "partially_refunded": "Part refunded",
+      "refunded": "Refunded"
+    },
+    "channels": {
+      "website": "Website",
+      "phone": "Phone",
+      "whatsapp": "WhatsApp",
+      "pos": "Counter"
+    },
+    "paymentMethods": {
+      "cod": "Cash on delivery",
+      "bank_transfer": "Bank transfer",
+      "pay_later": "Pay later",
+      "cash": "Cash",
+      "card": "Card",
+      "online": "Online"
+    },
+    "fulfilments": {
+      "delivery": "Delivery",
+      "pickup": "Pickup"
+    },
+    "empty": "No orders yet.",
+    "detail": {
+      "back": "All orders",
+      "customer": "Customer",
+      "deliverTo": "Deliver to",
+      "pickup": "Pickup at the store",
+      "items": "Items",
+      "subtotal": "Subtotal",
+      "discount": "Discount ({code})",
+      "delivery": "Delivery",
+      "vat": "VAT",
+      "total": "Total",
+      "paid": "Paid",
+      "refunded": "Refunded",
+      "moveTo": {
+        "paid": "Mark paid",
+        "packing": "Start packing",
+        "shipped": "Mark shipped",
+        "delivered": "Mark delivered",
+        "cancelled": "Cancel order",
+        "returned": "Mark returned"
+      },
+      "moveConfirm": {
+        "cancelled": "Cancel this order? Held stock is released.",
+        "returned": "Mark this order returned? Its items go back into stock."
+      },
+      "statusNote": "Note (optional)",
+      "recordPayment": "Record payment",
+      "amount": "Amount",
+      "method": "Method",
+      "reference": "Reference",
+      "refund": "Record refund",
+      "refundReason": "Reason",
+      "invoice": "Invoice {number}",
+      "issueInvoice": "Issue invoice",
+      "history": "History",
+      "addNote": "Add note",
+      "events": {
+        "status": "Status: {status}",
+        "payment": "Payment {amount}",
+        "refund": "Refund {amount}",
+        "note": "Note",
+        "email": "E-mail"
+      },
+      "saved": "Saved."
+    },
+    "pos": {
+      "title": "New sale",
+      "subtitle": "An order taken by phone or WhatsApp, or a sale at the counter. Counter sales paid now leave stock at once.",
+      "channel": "Taken by",
+      "customer": "Customer",
+      "walkIn": "Walk-in customer",
+      "name": "Name",
+      "email": "E-mail",
+      "phone": "Phone",
+      "search": "Find a product by name, SKU or barcode",
+      "add": "Add",
+      "quantityFor": "Quantity of {name}",
+      "removeLine": "Remove {name}",
+      "coupon": "Coupon",
+      "fulfilment": "Delivery or pickup",
+      "paidWith": "Paid now with",
+      "notPaid": "Not paid yet",
+      "create": "Create order",
+      "created": "Order {number} created.",
+      "noLines": "Add at least one product.",
+      "address": {
+        "line1": "Delivery address",
+        "city": "City",
+        "country": "Country"
+      }
+    },
+    "settings": {
+      "title": "Store settings",
+      "subtitle": "How the website sells: checkout, delivery, pickup, payment methods and coupons.",
+      "guestCheckout": "Allow checkout without an account",
+      "deliveryEnabled": "Offer delivery",
+      "deliveryFee": "Delivery fee ({currency})",
+      "freeDeliveryOver": "Free delivery from ({currency})",
+      "pickupEnabled": "Offer pickup at the store",
+      "codEnabled": "Cash on delivery",
+      "bankTransferEnabled": "Bank transfer",
+      "bankInstructions": "Bank transfer instructions",
+      "orderNotifyEmail": "Also e-mail new orders to",
+      "save": "Save settings",
+      "saved": "Settings saved.",
+      "coupons": "Coupons",
+      "addCoupon": "Add coupon",
+      "code": "Code",
+      "kind": "Kind",
+      "kinds": {
+        "percent": "Percent off",
+        "fixed": "Amount off"
+      },
+      "value": "Value",
+      "minOrder": "Minimum order",
+      "startsAt": "From",
+      "endsAt": "Until",
+      "maxUses": "Uses allowed",
+      "used": "{count} used",
+      "active": "Active",
+      "noCoupons": "No coupons yet."
     }
   }
 }

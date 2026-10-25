@@ -2268,7 +2268,8 @@
       "cms_code": "الأكواد المخصصة والتتبع",
       "products": "المنتجات",
       "inventory": "المخزون والمستودعات",
-      "procurement": "المشتريات"
+      "procurement": "المشتريات",
+      "orders": "الطلبات"
     }
   },
   "approvals": {
@@ -5765,7 +5766,16 @@
       "signInGoogleClientId": "يجب أن ينتهي معرّف العميل بـ .apps.googleusercontent.com.",
       "signInGoogleSecret": "أدخل سر العميل.",
       "signInAppleKey": "تعذرت قراءة المفتاح الخاص؛ الصق ملف .p8 كاملًا.",
-      "signInAppleIds": "معرّف الفريق ومعرّف المفتاح من 10 أحرف وأرقام."
+      "signInAppleIds": "معرّف الفريق ومعرّف المفتاح من 10 أحرف وأرقام.",
+      "couponCannotBeUsed": "لا يمكن استخدام هذه القسيمة لهذا الطلب.",
+      "couponCodeInvalid": "رمز القسيمة من 3 إلى 30 حرفًا إنجليزيًا كبيرًا أو رقمًا أو شرطة، ونوعها نسبة أو مبلغ ثابت.",
+      "couponCodeTaken": "رمز القسيمة هذا موجود.",
+      "orderRefundTooLarge": "هذا أكثر مما دُفع ولم يُسترد بعد.",
+      "orderStatusInvalid": "لا يمكن نقل الطلب إلى هذه الحالة من حالته الحالية.",
+      "storeCartChanged": "تغيّر سعر بعض المنتجات أو لم تعد متاحة. راجع سلتك.",
+      "storeFulfilmentRequired": "اختر التوصيل أو الاستلام.",
+      "storePaymentMethodInvalid": "اختر طريقة دفع يقدمها المتجر.",
+      "storeSignInRequired": "يرجى تسجيل الدخول لإتمام الطلب."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -9539,6 +9549,162 @@
       "outstanding": "المستحق",
       "priceHistory": "أسعار الشراء",
       "noHistory": "لم يُطلب بعد."
+    }
+  },
+  "orders": {
+    "navGroup": "المتجر الإلكتروني",
+    "nav": {
+      "orders": "الطلبات",
+      "newSale": "بيع جديد",
+      "settings": "إعدادات المتجر"
+    },
+    "notifications": {
+      "placed": {
+        "title": "طلب جديد {number}",
+        "message": "طلب {name} بقيمة {total}."
+      }
+    },
+    "title": "الطلبات",
+    "subtitle": "طلبات الموقع والمبيعات بالهاتف أو واتساب أو في المتجر: الدفع والتجهيز والشحن والمرتجعات والاستردادات.",
+    "search": "ابحث بالرقم أو الاسم أو البريد أو الهاتف",
+    "allStatuses": "كل الحالات",
+    "allChannels": "كل القنوات",
+    "statuses": {
+      "placed": "مستلم",
+      "paid": "مدفوع",
+      "packing": "قيد التجهيز",
+      "shipped": "تم الشحن",
+      "delivered": "تم التسليم",
+      "cancelled": "ملغى",
+      "returned": "مُرتجع"
+    },
+    "paymentStatuses": {
+      "unpaid": "غير مدفوع",
+      "pending": "مدفوع جزئيًا",
+      "paid": "مدفوع",
+      "partially_refunded": "مسترد جزئيًا",
+      "refunded": "مسترد"
+    },
+    "channels": {
+      "website": "الموقع",
+      "phone": "الهاتف",
+      "whatsapp": "واتساب",
+      "pos": "نقطة البيع"
+    },
+    "paymentMethods": {
+      "cod": "الدفع عند الاستلام",
+      "bank_transfer": "تحويل بنكي",
+      "pay_later": "الدفع لاحقًا",
+      "cash": "نقدًا",
+      "card": "بطاقة",
+      "online": "إلكتروني"
+    },
+    "fulfilments": {
+      "delivery": "توصيل",
+      "pickup": "استلام"
+    },
+    "empty": "لا توجد طلبات بعد.",
+    "detail": {
+      "back": "كل الطلبات",
+      "customer": "العميل",
+      "deliverTo": "التوصيل إلى",
+      "pickup": "الاستلام من المتجر",
+      "items": "المنتجات",
+      "subtotal": "المجموع الفرعي",
+      "discount": "الخصم ({code})",
+      "delivery": "التوصيل",
+      "vat": "ضريبة القيمة المضافة",
+      "total": "الإجمالي",
+      "paid": "المدفوع",
+      "refunded": "المسترد",
+      "moveTo": {
+        "paid": "عُلّم مدفوعًا",
+        "packing": "ابدأ التجهيز",
+        "shipped": "عُلّم مشحونًا",
+        "delivered": "عُلّم مُسلّمًا",
+        "cancelled": "ألغِ الطلب",
+        "returned": "عُلّم مُرتجعًا"
+      },
+      "moveConfirm": {
+        "cancelled": "إلغاء هذا الطلب؟ يُحرَّر المخزون المحجوز.",
+        "returned": "تعليم الطلب مُرتجعًا؟ تعود منتجاته إلى المخزون."
+      },
+      "statusNote": "ملاحظة (اختياري)",
+      "recordPayment": "سجّل دفعة",
+      "amount": "المبلغ",
+      "method": "الطريقة",
+      "reference": "المرجع",
+      "refund": "سجّل استردادًا",
+      "refundReason": "السبب",
+      "invoice": "الفاتورة {number}",
+      "issueInvoice": "أصدر فاتورة",
+      "history": "السجل",
+      "addNote": "أضف ملاحظة",
+      "events": {
+        "status": "الحالة: {status}",
+        "payment": "دفعة {amount}",
+        "refund": "استرداد {amount}",
+        "note": "ملاحظة",
+        "email": "بريد"
+      },
+      "saved": "تم الحفظ."
+    },
+    "pos": {
+      "title": "بيع جديد",
+      "subtitle": "طلب بالهاتف أو واتساب أو بيع في المتجر. مبيعات المتجر المدفوعة الآن تُخرج من المخزون فورًا.",
+      "channel": "القناة",
+      "customer": "العميل",
+      "walkIn": "عميل حضوري",
+      "name": "الاسم",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "search": "ابحث عن منتج بالاسم أو رمز الصنف أو الباركود",
+      "add": "أضف",
+      "quantityFor": "كمية {name}",
+      "removeLine": "احذف {name}",
+      "coupon": "القسيمة",
+      "fulfilment": "طريقة الاستلام",
+      "paidWith": "دُفع الآن",
+      "notPaid": "لم يُدفع بعد",
+      "create": "أنشئ الطلب",
+      "created": "تم إنشاء الطلب {number}.",
+      "noLines": "أضف منتجًا واحدًا على الأقل.",
+      "address": {
+        "line1": "عنوان التوصيل",
+        "city": "المدينة",
+        "country": "الدولة"
+      }
+    },
+    "settings": {
+      "title": "إعدادات المتجر",
+      "subtitle": "كيف يبيع الموقع: إتمام الطلب والتوصيل والاستلام وطرق الدفع والقسائم.",
+      "guestCheckout": "السماح بالطلب دون حساب",
+      "deliveryEnabled": "تقديم التوصيل",
+      "deliveryFee": "رسوم التوصيل ({currency})",
+      "freeDeliveryOver": "توصيل مجاني من ({currency})",
+      "pickupEnabled": "تقديم الاستلام من المتجر",
+      "codEnabled": "الدفع عند الاستلام",
+      "bankTransferEnabled": "تحويل بنكي",
+      "bankInstructions": "تعليمات التحويل البنكي",
+      "orderNotifyEmail": "أرسل الطلبات الجديدة أيضًا إلى",
+      "save": "احفظ الإعدادات",
+      "saved": "تم حفظ الإعدادات.",
+      "coupons": "القسائم",
+      "addCoupon": "أضف قسيمة",
+      "code": "الرمز",
+      "kind": "النوع",
+      "kinds": {
+        "percent": "نسبة خصم",
+        "fixed": "مبلغ خصم"
+      },
+      "value": "القيمة",
+      "minOrder": "الحد الأدنى للطلب",
+      "startsAt": "من",
+      "endsAt": "حتى",
+      "maxUses": "عدد الاستخدامات",
+      "used": "استُخدمت {count}",
+      "active": "فعّالة",
+      "noCoupons": "لا توجد قسائم بعد."
     }
   }
 }

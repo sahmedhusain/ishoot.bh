@@ -14,6 +14,9 @@ import {
   LayoutDashboard,
   Package,
   FolderTree,
+  ShoppingBag,
+  ScanLine,
+  Store,
   FileQuestion,
   ShoppingCart,
   Truck,
@@ -532,6 +535,15 @@ export function Sidebar() {
           { href: ROUTES.inventory.movements(), label: t.inventory.nav.movements, icon: History, resource: "inventory", moduleKey: "products" },
           { href: ROUTES.inventory.counts, label: t.inventory.nav.counts, icon: ClipboardCheck, resource: "inventory", moduleKey: "products" },
           { href: ROUTES.inventory.warehouses, label: t.inventory.nav.warehouses, icon: Warehouse, resource: "inventory", moduleKey: "products" },
+        ],
+      },
+      {
+        id: "store",
+        title: t.orders.navGroup,
+        items: [
+          { href: ROUTES.orders.list, label: t.orders.nav.orders, icon: ShoppingBag, resource: "orders", moduleKey: "store" },
+          { href: ROUTES.orders.new, label: t.orders.nav.newSale, icon: ScanLine, resource: "orders", action: "create", moduleKey: "store" },
+          { href: ROUTES.orders.settings, label: t.orders.nav.settings, icon: Store, resource: "settings", moduleKey: "store" },
         ],
       },
       {

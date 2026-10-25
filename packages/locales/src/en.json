@@ -56,7 +56,8 @@
     "adminPortal": "Admin Portal",
     "webSettings": "Website Settings",
     "articles": "News",
-    "account": "My account"
+    "account": "My account",
+    "cart": "Cart"
   },
   "hero": {
     "badge": "Cinema Production House",
@@ -809,7 +810,12 @@
       "wrong_code": "That code is not right or has expired.",
       "signed_out": "Please sign in again.",
       "confirm_email": "Type your e-mail exactly as on the account.",
-      "email_unavailable": "We cannot send e-mail right now. Please sign in another way."
+      "email_unavailable": "We cannot send e-mail right now. Please sign in another way.",
+      "storeCartChanged": "Some items changed price or are no longer available. Please check your cart.",
+      "couponCannotBeUsed": "That coupon cannot be used for this order.",
+      "storeFulfilmentRequired": "Choose delivery or pickup.",
+      "storePaymentMethodInvalid": "Choose a way to pay.",
+      "storeSignInRequired": "Please sign in to check out."
     },
     "codeEmail": {
       "subject": "Your sign-in code",
@@ -819,6 +825,79 @@
     "languages": {
       "ar": "العربية",
       "en": "English"
+    }
+  },
+  "store": {
+    "addToCart": "Add to cart",
+    "added": "Added to your cart.",
+    "chooseOption": "Choose {option}",
+    "inStock": "In stock",
+    "onlyLeft": "Only {count} left",
+    "outOfStock": "Out of stock",
+    "quantity": "Quantity",
+    "viewCart": "View cart",
+    "cartTitle": "Your cart",
+    "cartEmpty": "Your cart is empty.",
+    "continueShopping": "Continue shopping",
+    "remove": "Remove {name}",
+    "quantityFor": "Quantity of {name}",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "delivery": "Delivery",
+    "freeDelivery": "Free",
+    "vat": "VAT",
+    "total": "Total",
+    "coupon": "Coupon code",
+    "applyCoupon": "Apply",
+    "couponApplied": "Coupon {code} applied.",
+    "problems": {
+      "unavailable": "This item is no longer available and was left out.",
+      "out_of_stock": "Not enough in stock for this item; lower the quantity.",
+      "coupon_invalid": "That coupon does not exist.",
+      "coupon_expired": "That coupon is not active now.",
+      "coupon_used_up": "That coupon has been used up.",
+      "coupon_min_order": "The order is below the coupon's minimum."
+    },
+    "fulfilment": "How do you want it?",
+    "fulfilments": {
+      "delivery": "Delivery",
+      "pickup": "Pickup"
+    },
+    "checkout": "Check out",
+    "checkoutTitle": "Checkout",
+    "contact": "Your details",
+    "deliveryAddress": "Delivery address",
+    "savedAddress": "Saved address",
+    "newAddress": "A new address",
+    "payment": "Payment",
+    "paymentMethods": {
+      "cod": "Cash on delivery",
+      "bank_transfer": "Bank transfer",
+      "online": "Pay online"
+    },
+    "bankInstructions": "Transfer instructions",
+    "note": "Note for the order (optional)",
+    "signInHint": "Have an account? Sign in to use your saved addresses.",
+    "placeOrder": "Place order",
+    "placing": "Placing your order…",
+    "placedTitle": "Thank you!",
+    "placedText": "Your order {number} has been placed. We sent a confirmation to your e-mail.",
+    "placedAccount": "See it in your account",
+    "statuses": {
+      "placed": "Placed",
+      "paid": "Paid",
+      "packing": "Being packed",
+      "shipped": "On its way",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "returned": "Returned"
+    },
+    "orderItems": "{count} item(s)",
+    "confirmationEmail": {
+      "subject": "Order {number} confirmed",
+      "greeting": "Hello {name},",
+      "body": "Thank you for your order {number}. Here is what you ordered:",
+      "total": "Total"
     }
   }
 }
