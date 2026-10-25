@@ -2275,7 +2275,8 @@
       "operations": "الجدولة",
       "administration": "الإدارة",
       "communications": "التواصل",
-      "commerce": "المنتجات والمخزون"
+      "commerce": "المنتجات والمخزون",
+      "work": "المهام والمشاريع"
     },
     "actions": {
       "read": "عرض",
@@ -2330,7 +2331,8 @@
       "inventory": "المخزون والمستودعات",
       "procurement": "المشتريات",
       "orders": "الطلبات",
-      "deliveries": "التوصيل"
+      "deliveries": "التوصيل",
+      "tasks": "المهام والمشاريع"
     }
   },
   "approvals": {
@@ -5868,7 +5870,14 @@
       "courierBookingFailed": "لم تقبل شركة الشحن الحجز. راجع إعداداتها في التكاملات، أو أدخل رقم التتبّع يدويًا.",
       "courierTrackingRequired": "أدخل رقم التتبّع لدى شركة الشحن.",
       "agencyInvoiceInvalid": "تحتاج فاتورة شركة الشحن إلى رقمها وتاريخها ومبلغها والشحنات التي تغطيها.",
-      "agencyInvoiceDuplicate": "رقم الفاتورة هذا مسجّل مسبقًا لهذه الشركة."
+      "agencyInvoiceDuplicate": "رقم الفاتورة هذا مسجّل مسبقًا لهذه الشركة.",
+      "taskInvalid": "تحتاج المهمة إلى عنوان وحالة وأولوية.",
+      "taskDatesInvalid": "يجب أن يكون تاريخ البدء في تاريخ الاستحقاق أو قبله.",
+      "taskAssigneeInvalid": "اختر شخصًا فعّالًا لتنفيذ المهمة.",
+      "taskAssignNotAllowed": "يمكنك إسناد المهام لنفسك فقط. اطلب من مدير إسنادها لغيرك.",
+      "taskNotFound": "هذه المهمة غير موجودة أو لا يحق لك رؤيتها.",
+      "taskCommentEmpty": "اكتب تعليقًا أولًا.",
+      "projectInvalid": "يحتاج المشروع إلى اسم وحالة ولون."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -10126,6 +10135,131 @@
       "label": "ملصق الشحن",
       "track": "تتبّع لدى الشركة",
       "invoiced": "مفوترة ({reference})"
+    }
+  },
+  "tasks": {
+    "navGroup": "العمل",
+    "nav": {
+      "tasks": "المهام",
+      "projects": "المشاريع"
+    },
+    "title": "المهام",
+    "subtitle": "عمل كل الأقسام: من يفعل ماذا، ومتى.",
+    "new": "مهمة جديدة",
+    "search": "ابحث في المهام",
+    "views": {
+      "mine": "مهامي",
+      "board": "اللوحة",
+      "all": "كل المهام"
+    },
+    "allProjects": "كل المشاريع",
+    "allPeople": "الجميع",
+    "allDepartments": "كل الأقسام",
+    "empty": "لا توجد مهام هنا.",
+    "noDate": "بلا تاريخ استحقاق",
+    "unassigned": "غير مسندة",
+    "buckets": {
+      "overdue": "متأخرة",
+      "today": "اليوم",
+      "week": "هذا الأسبوع",
+      "later": "لاحقًا",
+      "none": "بلا تاريخ استحقاق"
+    },
+    "statuses": {
+      "todo": "للتنفيذ",
+      "in_progress": "قيد التنفيذ",
+      "review": "قيد المراجعة",
+      "done": "منجزة",
+      "cancelled": "ملغاة"
+    },
+    "priorities": {
+      "urgent": "عاجلة",
+      "high": "مرتفعة",
+      "normal": "عادية",
+      "low": "منخفضة"
+    },
+    "moveTo": "انقلها إلى {status}",
+    "comments": "{count} تعليقات",
+    "form": {
+      "title": "العنوان",
+      "description": "التفاصيل",
+      "project": "المشروع",
+      "noProject": "بلا مشروع",
+      "status": "الحالة",
+      "priority": "الأولوية",
+      "assignee": "من ينفّذها",
+      "department": "القسم",
+      "noDepartment": "بلا قسم",
+      "startDate": "البدء",
+      "dueDate": "الاستحقاق",
+      "save": "احفظ المهمة",
+      "cancel": "إلغاء",
+      "saved": "تم الحفظ."
+    },
+    "detail": {
+      "back": "كل المهام",
+      "edit": "تعديل",
+      "createdBy": "طلبها {name}",
+      "completed": "أُنجزت {time}",
+      "about": "تخص",
+      "comments": "التعليقات",
+      "noComments": "لا توجد تعليقات بعد.",
+      "comment": "أضف تعليقًا",
+      "send": "علّق"
+    },
+    "links": {
+      "order": "الطلب",
+      "deal": "الصفقة",
+      "request": "الطلب الوارد",
+      "shipment": "الشحنة",
+      "purchase_order": "أمر الشراء",
+      "contact": "جهة الاتصال"
+    },
+    "projects": {
+      "title": "المشاريع",
+      "subtitle": "اجمع المهام في مشاريع وتابع تقدّم كل مشروع.",
+      "new": "مشروع جديد",
+      "empty": "لا توجد مشاريع بعد.",
+      "name": "الاسم",
+      "description": "الوصف",
+      "status": "الحالة",
+      "statuses": {
+        "active": "نشط",
+        "on_hold": "متوقف مؤقتًا",
+        "done": "منجز",
+        "archived": "مؤرشف"
+      },
+      "owner": "المسؤول",
+      "noOwner": "بلا مسؤول",
+      "department": "القسم",
+      "color": "اللون",
+      "startDate": "البدء",
+      "dueDate": "الاستحقاق",
+      "save": "احفظ المشروع",
+      "cancel": "إلغاء",
+      "edit": "تعديل",
+      "progress": "أُنجز {progress}%",
+      "openTasks": "{count} مفتوحة",
+      "tasks": "المهام",
+      "back": "كل المشاريع"
+    },
+    "notifications": {
+      "assigned": {
+        "title": "مهمة جديدة: {title}",
+        "message": "أصبحت المهمة {number} \"{title}\" مسندة إليك."
+      },
+      "done": {
+        "title": "أُنجزت: {title}",
+        "message": "عُلّمت المهمة {number} \"{title}\" منجزة."
+      },
+      "comment": {
+        "title": "تعليق جديد على {title}",
+        "message": "علّق أحدهم على المهمة {number} \"{title}\"."
+      },
+      "due": {
+        "title": "تستحق قريبًا: {title}",
+        "message": "تستحق المهمة {number} \"{title}\" في {date}."
+      }
     }
   }
 }

@@ -2275,7 +2275,8 @@
       "operations": "Scheduling",
       "administration": "Administration",
       "communications": "Communications",
-      "commerce": "Products & stock"
+      "commerce": "Products & stock",
+      "work": "Tasks and projects"
     },
     "actions": {
       "read": "View",
@@ -2330,7 +2331,8 @@
       "inventory": "Stock and warehouses",
       "procurement": "Purchasing",
       "orders": "Orders",
-      "deliveries": "Deliveries"
+      "deliveries": "Deliveries",
+      "tasks": "Tasks and projects"
     }
   },
   "approvals": {
@@ -5868,7 +5870,14 @@
       "courierBookingFailed": "The courier did not accept the booking. Check its settings in Integrations, or enter the tracking number by hand.",
       "courierTrackingRequired": "Enter the agency's tracking number.",
       "agencyInvoiceInvalid": "An agency invoice needs its number, date, amount and the shipments it covers.",
-      "agencyInvoiceDuplicate": "That invoice number is already recorded for this agency."
+      "agencyInvoiceDuplicate": "That invoice number is already recorded for this agency.",
+      "taskInvalid": "A task needs a title, a status and a priority.",
+      "taskDatesInvalid": "The start date must be on or before the due date.",
+      "taskAssigneeInvalid": "Choose an active person to do the task.",
+      "taskAssignNotAllowed": "You can give tasks only to yourself. Ask a manager to assign it to someone else.",
+      "taskNotFound": "That task is not there or not yours to see.",
+      "taskCommentEmpty": "Write a comment first.",
+      "projectInvalid": "A project needs a name, a status and a colour."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -10126,6 +10135,131 @@
       "label": "Shipping label",
       "track": "Track at the agency",
       "invoiced": "Invoiced ({reference})"
+    }
+  },
+  "tasks": {
+    "navGroup": "Work",
+    "nav": {
+      "tasks": "Tasks",
+      "projects": "Projects"
+    },
+    "title": "Tasks",
+    "subtitle": "Work for every department: who does what, by when.",
+    "new": "New task",
+    "search": "Search tasks",
+    "views": {
+      "mine": "My tasks",
+      "board": "Board",
+      "all": "All tasks"
+    },
+    "allProjects": "All projects",
+    "allPeople": "Everyone",
+    "allDepartments": "All departments",
+    "empty": "No tasks here.",
+    "noDate": "No due date",
+    "unassigned": "Unassigned",
+    "buckets": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "week": "This week",
+      "later": "Later",
+      "none": "No due date"
+    },
+    "statuses": {
+      "todo": "To do",
+      "in_progress": "In progress",
+      "review": "In review",
+      "done": "Done",
+      "cancelled": "Cancelled"
+    },
+    "priorities": {
+      "urgent": "Urgent",
+      "high": "High",
+      "normal": "Normal",
+      "low": "Low"
+    },
+    "moveTo": "Move to {status}",
+    "comments": "{count} comments",
+    "form": {
+      "title": "Title",
+      "description": "Details",
+      "project": "Project",
+      "noProject": "No project",
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Who does it",
+      "department": "Department",
+      "noDepartment": "No department",
+      "startDate": "Start",
+      "dueDate": "Due",
+      "save": "Save task",
+      "cancel": "Cancel",
+      "saved": "Saved."
+    },
+    "detail": {
+      "back": "All tasks",
+      "edit": "Edit",
+      "createdBy": "Asked by {name}",
+      "completed": "Done {time}",
+      "about": "About",
+      "comments": "Comments",
+      "noComments": "No comments yet.",
+      "comment": "Add a comment",
+      "send": "Comment"
+    },
+    "links": {
+      "order": "Order",
+      "deal": "Deal",
+      "request": "Request",
+      "shipment": "Shipment",
+      "purchase_order": "Purchase order",
+      "contact": "Contact"
+    },
+    "projects": {
+      "title": "Projects",
+      "subtitle": "Group tasks into projects and see how far along each one is.",
+      "new": "New project",
+      "empty": "No projects yet.",
+      "name": "Name",
+      "description": "Description",
+      "status": "Status",
+      "statuses": {
+        "active": "Active",
+        "on_hold": "On hold",
+        "done": "Done",
+        "archived": "Archived"
+      },
+      "owner": "Owner",
+      "noOwner": "No owner",
+      "department": "Department",
+      "color": "Colour",
+      "startDate": "Start",
+      "dueDate": "Due",
+      "save": "Save project",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "progress": "{progress}% done",
+      "openTasks": "{count} open",
+      "tasks": "Tasks",
+      "back": "All projects"
+    },
+    "notifications": {
+      "assigned": {
+        "title": "New task: {title}",
+        "message": "{number} \"{title}\" is now yours."
+      },
+      "done": {
+        "title": "Done: {title}",
+        "message": "{number} \"{title}\" was marked done."
+      },
+      "comment": {
+        "title": "New comment on {title}",
+        "message": "Someone commented on {number} \"{title}\"."
+      },
+      "due": {
+        "title": "Due soon: {title}",
+        "message": "{number} \"{title}\" is due {date}."
+      }
     }
   }
 }

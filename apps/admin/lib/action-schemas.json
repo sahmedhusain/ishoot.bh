@@ -13113,6 +13113,138 @@
       }
     }
   },
+  "saveTaskAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "description": {
+            "kind": "string",
+            "optional": false
+          },
+          "projectId": {
+            "kind": "string",
+            "optional": true
+          },
+          "status": {
+            "kind": "string",
+            "optional": false
+          },
+          "priority": {
+            "kind": "string",
+            "optional": false
+          },
+          "assigneeId": {
+            "kind": "string",
+            "optional": true
+          },
+          "departmentId": {
+            "kind": "string",
+            "optional": true
+          },
+          "startDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "dueDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "linkType": {
+            "kind": "string",
+            "optional": true
+          },
+          "linkId": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "moveTaskAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "status": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "addTaskCommentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "body": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveProjectAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "description": {
+            "kind": "string",
+            "optional": false
+          },
+          "status": {
+            "kind": "string",
+            "optional": false
+          },
+          "departmentId": {
+            "kind": "string",
+            "optional": true
+          },
+          "ownerId": {
+            "kind": "string",
+            "optional": true
+          },
+          "color": {
+            "kind": "string",
+            "optional": false
+          },
+          "startDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "dueDate": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "saveTaxRateAction": {
     "kind": "object",
     "fields": {

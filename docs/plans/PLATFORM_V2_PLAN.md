@@ -644,3 +644,25 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   already been set up by an earlier run (reset with `prepare-db.cjs blank`, then passed); procurement and, on
   one rerun, the wizard hit the remaining dev-only symptom (a block mounted twice during a Fast Refresh while
   other routes compile) and both passed on rerun. No hydration mismatch was logged in the full run.
+
+### Phase 8a: tasks and projects (done; first phase committed after the merge into `main`)
+
+- Phases 1–7 were merged into `main` (merge commit 2f56e56) at the user's request; work continues on `main`, made
+  in this session's worktree (its branch kept identical to `main`) and merged after each phase, because this
+  session may not edit files in the main checkout directly.
+- New module `tasks` ("Tasks and projects", **on by default**: every department can use it) and resource `tasks`
+  (new permission group "Work"). Every working role creates and edits tasks; managers (admin, department,
+  operations, HR, finance and sales managers, project leads) also assign, delete and export. Migration
+  `20261027041000_tasks_permissions` gives existing roles these defaults.
+- Migration `20261027040000_tasks`: `Project` (`PRJ-…`, status, owner, department, colour, dates), `Task`
+  (`TSK-…`, status to do / in progress / in review / done / cancelled, priority, assignee, department, start and
+  due dates, optional link to an order, deal, request, shipment, purchase order or contact) and `TaskComment`.
+- Visibility: people who assign tasks see all; everyone else sees tasks assigned to them, created by them, in
+  their department, or in projects they own, and can give tasks only to themselves.
+- Admin: Work → Tasks (My tasks grouped by overdue / today / this week / later / no date, All tasks, and a Board
+  with drag and drop plus a status menu for keyboards), a task page (edit, status, comments, the linked record)
+  and Projects (progress bars, open counts; a project page with its own board). Notifications when a task is
+  assigned, commented on, done (to whoever asked) and due by tomorrow (scheduled job, once per due date).
+- Tested: unit (due buckets, progress, defaults for every working role, copy); e2e (a manager creates a project
+  and assigns a task, the assignee is notified, sees it in My tasks, comments, finishes it and the asker is told;
+  without the assign right the only assignee choice is oneself); navigation crawl with the new pages.

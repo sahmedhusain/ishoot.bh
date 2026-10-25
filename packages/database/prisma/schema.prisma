@@ -3820,3 +3820,75 @@ model AgencyInvoice {
 
   @@unique([agencyId, reference])
 }
+
+/// A body of work with its own tasks: a launch, an event, a client job, an internal improvement.
+model Project {
+  id           String    @id @default(uuid())
+  /// PRJ-YYYY-NNNNNN
+  code         String    @unique
+  name         String
+  description  String?   @db.Text
+  /// active | on_hold | done | archived
+  status       String    @default("active")
+  departmentId String?
+  ownerId      String?
+  /// #RRGGBB for the board and lists.
+  color        String    @default("#4F46E5")
+  startDate    DateTime? @db.Date
+  dueDate      DateTime? @db.Date
+  createdById  String?
+  tasks        Task[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+  @@index([departmentId])
+}
+
+/// A piece of work for someone, with a due date; on its own or in a project.
+model Task {
+  id           String        @id @default(uuid())
+  /// TSK-YYYY-NNNNNN
+  number       String        @unique
+  title        String
+  description  String?       @db.Text
+  projectId    String?
+  project      Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  /// todo | in_progress | review | done | cancelled
+  status       String        @default("todo")
+  /// low | normal | high | urgent
+  priority     String        @default("normal")
+  assigneeId   String?
+  departmentId String?
+  startDate    DateTime?     @db.Date
+  dueDate      DateTime?     @db.Date
+  /// Order within its status column on the board.
+  sortOrder    Int           @default(0)
+  /// Optional link to the record the work is about (order, deal, request, shipment…).
+  linkType     String?
+  linkId       String?
+  createdById  String?
+  completedAt  DateTime?
+  /// When the "due soon" reminder went out, so it goes once.
+  remindedAt   DateTime?
+  comments     TaskComment[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([assigneeId, status])
+  @@index([projectId, status])
+  @@index([departmentId, status])
+  @@index([status, dueDate])
+  @@index([linkType, linkId])
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String?
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([taskId, createdAt])
+}

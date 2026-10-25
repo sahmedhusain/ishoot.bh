@@ -11,6 +11,8 @@ export const DEFAULT_FEATURE_MODULES = [
   { moduleKey: "procurement", nameEn: "Purchasing", nameAr: "المشتريات", isEnabled: false },
   { moduleKey: "store", nameEn: "Online store", nameAr: "المتجر الإلكتروني", isEnabled: false },
   { moduleKey: "delivery", nameEn: "Delivery", nameAr: "التوصيل", isEnabled: false },
+  // Every department can use tasks, so the module starts on.
+  { moduleKey: "tasks", nameEn: "Tasks and projects", nameAr: "المهام والمشاريع" },
 ] as const;
 
 /** Whether a module is on before anyone has chosen (a module missing from the database). */

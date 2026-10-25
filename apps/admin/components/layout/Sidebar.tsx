@@ -15,6 +15,8 @@ import {
   Package,
   FolderTree,
   ShoppingBag,
+  ListTodo,
+  FolderKanban,
   MapPinned,
   Navigation,
   Route,
@@ -549,6 +551,14 @@ export function Sidebar() {
           { href: ROUTES.orders.list, label: t.orders.nav.orders, icon: ShoppingBag, resource: "orders", moduleKey: "store" },
           { href: ROUTES.orders.new, label: t.orders.nav.newSale, icon: ScanLine, resource: "orders", action: "create", moduleKey: "store" },
           { href: ROUTES.orders.settings, label: t.orders.nav.settings, icon: Store, resource: "settings", moduleKey: "store" },
+        ],
+      },
+      {
+        id: "work",
+        title: t.tasks.navGroup,
+        items: [
+          { href: ROUTES.tasks.list, label: t.tasks.nav.tasks, icon: ListTodo, resource: "tasks", moduleKey: "tasks" },
+          { href: ROUTES.tasks.projects, label: t.tasks.nav.projects, icon: FolderKanban, resource: "tasks", moduleKey: "tasks" },
         ],
       },
       {

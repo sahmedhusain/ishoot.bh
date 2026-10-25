@@ -1,7 +1,7 @@
 import { serverMessages } from "@platform/locales";
 
 import { NextResponse } from "next/server";
-import { db, expireOnlinePayments, syncAgencyTracking, processEmailJobs, processRevalidationJobs, removeExpiredUploads, markOverdueInvoices, sendExpiryReminders, processRecurringExpenses } from "@platform/database";
+import { db, expireOnlinePayments, remindDueTasks, syncAgencyTracking, processEmailJobs, processRevalidationJobs, removeExpiredUploads, markOverdueInvoices, sendExpiryReminders, processRecurringExpenses } from "@platform/database";
 import { sendEmail } from "@platform/email";
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -19,7 +19,8 @@ export async function GET(req: Request) {
     const recurringExpenses = await processRecurringExpenses();
     const onlinePayments = await expireOnlinePayments();
     const courierTracking = await syncAgencyTracking();
-    return NextResponse.json({ success: true, removedUploads, invoicesMarkedOverdue, expiryReminders, recurringExpenses, onlinePayments, courierTracking });
+    const taskReminders = await remindDueTasks();
+    return NextResponse.json({ success: true, removedUploads, invoicesMarkedOverdue, expiryReminders, recurringExpenses, onlinePayments, courierTracking, taskReminders });
   } catch {
     console.error("Scheduled maintenance failed");
     return NextResponse.json({ error: serverMessages.runtimeMaintenanceFailed }, { status: 500 });
