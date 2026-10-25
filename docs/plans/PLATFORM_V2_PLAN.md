@@ -518,3 +518,37 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   runs (another route compiling), never after the page settles; the store specs wait for one copy before acting.
 - Wording: "Fulfilment" became "Delivery or pickup" (the neutral-wording check reads "film" inside it).
 - "Pay online" exists as a method name only: neither the checkout nor the server accepts it until 6c adds gateways.
+
+### Phase 6c: payment gateways (done)
+
+- One `PaymentGateway` interface (`packages/database/src/payments/gateways.ts`): start a payment on the gateway's
+  hosted page (or hosted card frame), read a payment's state, verify and read webhooks, refund, check
+  credentials. Adapters: **Stripe** (Checkout Sessions), **Tap** (Charges, `src_all`), **PayPal** (Orders v2 with
+  capture), **Checkout.com** (Hosted Payments Page), **PayTabs** (Hosted Payment Page, per-region host),
+  **Moyasar** (hosted invoices) and **HyperPay** (COPYandPAY widget on our pay page, AES-GCM webhooks). Amounts
+  use each currency's decimals (Stripe's three-decimal currencies in whole tens).
+- Each gateway is a new "Payment gateways" integration (encrypted keys, health check via Test connection; test keys
+  or environment show "Test mode"). Store settings choose the gateway behind **Pay online**; checkout offers it
+  only while that integration is on.
+- Migration `20261026230000_online_payments`: `PaymentAttempt` (gateway session, captured payment id, amount,
+  status, test mode, refunded) and `PaymentWebhookEvent` (idempotency), `StoreSettings.paymentGateway`, with CHECKs.
+- Flow: checkout (or a **payment link**) → `/[locale]/pay/<orderId.HMAC>` → gateway → `/api/store/payment/return`
+  (GET or POST; asks the gateway) and `/api/store/payment/webhook/<gateway>` (verified; stored once). The paid
+  attempt is claimed with a guarded update, then recorded with `recordOrderPayment` (method "online"), so the
+  return and the webhook record the money once. Money arriving for a cancelled or already-paid order is kept on
+  the attempt and the order handlers are notified to refund it.
+- Admin order page: online payment attempts (gateway, test badge, status, reference, refunded), a copyable payment
+  link while money is owed, and refunds that go back through the gateway when the order was paid online.
+- Scheduled job (`/api/cron`): attempts left open for 60 minutes are re-checked with the gateway, then expired; an
+  online order with nothing paid and no open attempt is cancelled, releasing its stock.
+- `docs/SECURITY.md` has an "Online payments" section; `PAYMENT_GATEWAY_BASE_URL_<GATEWAY>` (documented in
+  `.env.example`) points a gateway at a local sandbox and must stay unset in production.
+- Tested: unit (each gateway's webhook verification and tampering, Stripe's request and amount rounding, PayPal
+  currency refusal, pay-link signing, catalogue copy); e2e against a local Stripe stand-in started by the specs
+  (checkout → gateway → webhook + return record one receipt, replayed webhook ignored, forged webhook 401, cancel
+  and retry, the expiry job cancels an abandoned order; admin health check, gateway choice, pay-link payment and a
+  refund that reaches the gateway). The e2e servers get `CRON_SECRET=e2e-cron-secret` from the Playwright config.
+- Needs live credentials: Tap, PayPal, Checkout.com, PayTabs, Moyasar and HyperPay are built to their published
+  APIs and covered by unit tests, but have not been run against their sandboxes (no merchant test accounts here).
+- Deferred: proof-of-transfer upload for bank-transfer orders (needs the private attachment type noted in 5c-2);
+  order confirmations by WhatsApp (e-mail only so far).

@@ -31,6 +31,8 @@ export async function enableStore(db: PrismaClient) {
   for (const [moduleKey, nameEn, nameAr] of [["products", "Products", "المنتجات"], ["store", "Online store", "المتجر الإلكتروني"]]) {
     await db.featureToggle.upsert({ where: { moduleKey }, update: { isEnabled: true }, create: { moduleKey, nameEn, nameAr, isEnabled: true } });
   }
-  const settings = { guestCheckout: true, deliveryEnabled: true, deliveryFee: 1, freeDeliveryOver: null, pickupEnabled: true, codEnabled: true, bankTransferEnabled: false };
+  const settings = { guestCheckout: true, deliveryEnabled: true, deliveryFee: 1, freeDeliveryOver: null, pickupEnabled: true, codEnabled: true, bankTransferEnabled: false, paymentGateway: null };
   await db.storeSettings.upsert({ where: { id: "default" }, update: settings, create: { id: "default", ...settings } });
+  // Each spec places several orders from one address; start every spec under the per-address limits.
+  await db.abuseWindow.deleteMany({ where: { key: { startsWith: "store-" } } });
 }

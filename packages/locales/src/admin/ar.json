@@ -353,7 +353,8 @@
       "social": "التواصل الاجتماعي",
       "messaging": "المراسلة",
       "email": "البريد الإلكتروني",
-      "sign_in": "تسجيل دخول العملاء"
+      "sign_in": "تسجيل دخول العملاء",
+      "payments": "بوابات الدفع"
     },
     "providers": {
       "meta": {
@@ -391,6 +392,34 @@
       "apple_signin": {
         "name": "تسجيل الدخول بحساب Apple",
         "description": "يتيح للعملاء الدخول إلى المتجر بمعرّف Apple. سجّل عنوان الموقع /api/account/apple/callback كعنوان عودة لمعرّف الخدمات."
+      },
+      "stripe": {
+        "name": "Stripe",
+        "description": "البطاقات وApple Pay وGoogle Pay عبر صفحة الدفع المستضافة لدى Stripe. مفاتيح الاختبار (sk_test_…) تبقيها في وضع الاختبار. أضف Webhook إلى عنوان الموقع /api/store/payment/webhook/stripe لأحداث checkout.session والصق مفتاح التوقيع."
+      },
+      "tap": {
+        "name": "Tap Payments",
+        "description": "البطاقات وبنفت باي ومدى وكي نت وApple Pay عبر صفحة Tap المستضافة. مفاتيح الاختبار (sk_test_…) تبقيها في وضع الاختبار. ترسل Tap نتيجة كل دفعة إلى الموقع تلقائيًا."
+      },
+      "paypal": {
+        "name": "PayPal",
+        "description": "PayPal والبطاقات عبر PayPal. البيئة: sandbox أو live. أضف Webhook إلى عنوان الموقع /api/store/payment/webhook/paypal لأحداث تحصيل الدفعة والموافقة على الطلب والصق معرّفه. لا يقبل PayPal كل العملات (لا يقبل الدينار البحريني ولا الريال السعودي ولا الدينار الكويتي)."
+      },
+      "checkout_com": {
+        "name": "Checkout.com",
+        "description": "البطاقات والمحافظ عبر صفحة الدفع المستضافة لدى Checkout.com. البيئة: sandbox أو live، وبلد الفوترة رمز من حرفين مثل BH. أضف Webhook إلى عنوان الموقع /api/store/payment/webhook/checkout_com والصق مفتاح التوقيع."
+      },
+      "paytabs": {
+        "name": "PayTabs",
+        "description": "البطاقات ومدى وApple Pay عبر صفحة PayTabs المستضافة. المنطقة هي منطقة حساب PayTabs: ARE أو SAU أو OMN أو JOR أو EGY أو IRQ أو GLOBAL. ترسل PayTabs نتيجة كل دفعة إلى الموقع تلقائيًا."
+      },
+      "moyasar": {
+        "name": "Moyasar",
+        "description": "مدى والبطاقات وApple Pay وSTC Pay عبر صفحة فاتورة Moyasar المستضافة. مفاتيح الاختبار (sk_test_…) تبقيها في وضع الاختبار. أضف Webhook إلى عنوان الموقع /api/store/payment/webhook/moyasar واستخدم الرمز السري نفسه هنا."
+      },
+      "hyperpay": {
+        "name": "HyperPay",
+        "description": "البطاقات ومدى في نموذج بطاقة HyperPay الظاهر في صفحة الدفع على الموقع. البيئة: test أو live، والعلامات مثل VISA MASTER MADA. أضف Webhook إلى عنوان الموقع /api/store/payment/webhook/hyperpay والصق مفتاح فك التشفير."
       }
     },
     "fields": {
@@ -411,7 +440,19 @@
       "serviceId": "معرّف الخدمات",
       "teamId": "معرّف الفريق",
       "keyId": "معرّف المفتاح",
-      "privateKey": "المفتاح الخاص (.p8)"
+      "privateKey": "المفتاح الخاص (.p8)",
+      "secretKey": "المفتاح السري",
+      "webhookSecret": "مفتاح توقيع الـWebhook",
+      "environment": "البيئة",
+      "processingChannelId": "معرّف قناة المعالجة",
+      "billingCountry": "بلد الفوترة",
+      "region": "المنطقة",
+      "profileId": "معرّف الملف",
+      "serverKey": "مفتاح الخادم",
+      "entityId": "معرّف الكيان",
+      "brands": "علامات البطاقات",
+      "webhookKey": "مفتاح فك تشفير الـWebhook",
+      "webhookId": "معرّف الـWebhook"
     },
     "status": {
       "healthy": "متصل",
@@ -5775,7 +5816,12 @@
       "storeCartChanged": "تغيّر سعر بعض المنتجات أو لم تعد متاحة. راجع سلتك.",
       "storeFulfilmentRequired": "اختر التوصيل أو الاستلام.",
       "storePaymentMethodInvalid": "اختر طريقة دفع يقدمها المتجر.",
-      "storeSignInRequired": "يرجى تسجيل الدخول لإتمام الطلب."
+      "storeSignInRequired": "يرجى تسجيل الدخول لإتمام الطلب.",
+      "orderAlreadyPaid": "هذا الطلب مدفوع بالكامل.",
+      "paymentGatewayUnavailable": "الدفع الإلكتروني غير متاح الآن. حاول مرة أخرى أو اختر طريقة دفع أخرى.",
+      "paymentRefundFailed": "لم تقبل بوابة الدفع الاسترداد. راجع لوحة البوابة وحاول مرة أخرى.",
+      "paymentBillingCountryInvalid": "يجب أن يكون بلد الفوترة رمزًا من حرفين مثل BH أو SA أو AE.",
+      "paymentWebhookKeyInvalid": "يجب أن يكون مفتاح الـWebhook المفتاح المكوّن من 64 حرفًا من لوحة HyperPay."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -5833,7 +5879,8 @@
       "theSettlementCanBePaidOnceItIsApproved": "يمكن دفع المخالصة بعد اعتمادها (الحالة الحالية: {0})",
       "senderDomainNotAdded": "نطاق المرسل {0} غير مضاف في Resend",
       "senderDomainStatus": "حالة نطاق المرسل {0}: {1}",
-      "maximumFileSize": "الحد الأقصى لحجم الملف {0} ميغابايت"
+      "maximumFileSize": "الحد الأقصى لحجم الملف {0} ميغابايت",
+      "paymentRegionInvalid": "يجب أن تكون المنطقة إحدى القيم: {0}."
     },
     "generic": "حدث خطأ. حاول مرة أخرى."
   },
@@ -9562,6 +9609,10 @@
       "placed": {
         "title": "طلب جديد {number}",
         "message": "طلب {name} بقيمة {total}."
+      },
+      "paidNeedsAttention": {
+        "title": "دفعة تحتاج متابعة: {number}",
+        "message": "وصلت دفعة إلكترونية للطلب {number} ولا يمكن قبولها (الطلب ملغى أو مدفوع). استردّها من صفحة الطلب."
       }
     },
     "title": "الطلبات",
@@ -9616,7 +9667,7 @@
       "vat": "ضريبة القيمة المضافة",
       "total": "الإجمالي",
       "paid": "المدفوع",
-      "refunded": "المسترد",
+      "refunded": "مستردّ",
       "moveTo": {
         "paid": "عُلّم مدفوعًا",
         "packing": "ابدأ التجهيز",
@@ -9647,7 +9698,21 @@
         "note": "ملاحظة",
         "email": "بريد"
       },
-      "saved": "تم الحفظ."
+      "saved": "تم الحفظ.",
+      "paymentLink": "رابط الدفع",
+      "paymentLinkHint": "أرسل هذا الرابط إلى العميل ليدفع المبلغ المستحق إلكترونيًا.",
+      "copyLink": "انسخ الرابط",
+      "linkCopied": "نُسخ الرابط.",
+      "onlinePayments": "المدفوعات الإلكترونية",
+      "testMode": "اختبار",
+      "attemptStatuses": {
+        "created": "بدأت",
+        "pending": "لدى البوابة",
+        "paid": "مدفوعة",
+        "failed": "لم تكتمل",
+        "expired": "انتهى وقتها"
+      },
+      "refundOnline": "دُفع إلكترونيًا: يعود الاسترداد عبر {gateway}."
     },
     "pos": {
       "title": "بيع جديد",
@@ -9704,7 +9769,12 @@
       "maxUses": "عدد الاستخدامات",
       "used": "استُخدمت {count}",
       "active": "فعّالة",
-      "noCoupons": "لا توجد قسائم بعد."
-    }
+      "noCoupons": "لا توجد قسائم بعد.",
+      "paymentGateway": "الدفع الإلكتروني عبر",
+      "noGateway": "لا تقدّم الدفع الإلكتروني",
+      "gatewayHint": "تظهر هنا بوابات الدفع المفعّلة في الإعدادات ← التكاملات فقط.",
+      "gatewayTest": "وضع الاختبار"
+    },
+    "paymentTimedOut": "لم يكتمل الدفع الإلكتروني في الوقت المحدد، وأُعيدت المنتجات إلى المخزون."
   }
 }

@@ -9,7 +9,7 @@ import {
   moveOrder,
   placeOrder,
   recordOrderPayment,
-  recordOrderRefund,
+  refundOrder,
   requireFeatureEnabled,
   saveCoupon,
   saveStoreSettings,
@@ -61,7 +61,7 @@ export async function recordOrderRefundAction(id: string, amount: string, reason
     await requireFeatureEnabled("store");
     const user = await requirePermission("orders", "approve");
     validateActionArguments("recordOrderRefundAction", { id, amount, reason });
-    await recordOrderRefund(id, Number(amount), reason, user.id);
+    await refundOrder(id, Number(amount), reason, user.id);
     await createActivityLog({ user_id: user.id, action: "refund", entity_type: "sales_order", entity_id: id, details: { amount } });
     refresh(id);
     return { success: true };

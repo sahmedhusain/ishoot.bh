@@ -3,10 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Copy, CreditCard, Link2, Loader2 } from "lucide-react";
 import { Button, Card, CurrencyDisplay, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
-import type { OrderRecord } from "@platform/database";
+import type { OrderRecord, orderPaymentAttempts } from "@platform/database";
 import { ORDER_TRANSITIONS, type OrderStatus } from "@platform/database/constants/store";
 import { ROUTES } from "../../constants/routes";
 import { addOrderNoteAction, issueOrderInvoiceAction, moveOrderAction, recordOrderPaymentAction, recordOrderRefundAction } from "../../app/actions/orders";
@@ -16,7 +16,9 @@ import { Field } from "../setup/LanguageFields";
 import { OrderStatusPill, PaymentStatusPill } from "./OrderPills";
 
 /** One order: who and where, the items and totals, moving it along, payments, refunds, invoice and history. */
-export function OrderView({ order, rights }: { order: OrderRecord; rights: { edit: boolean; refund: boolean; invoice: boolean } }) {
+type Attempt = Awaited<ReturnType<typeof orderPaymentAttempts>>[number];
+
+export function OrderView({ order, attempts, paymentLink, rights }: { order: OrderRecord; attempts: Attempt[]; paymentLink: string; rights: { edit: boolean; refund: boolean; invoice: boolean } }) {
   const { t, locale } = useAdminLocale();
   const copy = t.orders.detail;
   const router = useRouter();
@@ -26,6 +28,8 @@ export function OrderView({ order, rights }: { order: OrderRecord; rights: { edi
   const [busy, setBusy] = React.useState(false);
   const [message, setMessage] = React.useState<{ tone: "ok" | "error"; text: string } | null>(null);
   const money = (value: number) => formatCurrencyValue(value, order.currency, locale === "ar");
+  const gatewayName = (id: string) => (t.integrations.providers as Record<string, { name: string }>)[id]?.name ?? id;
+  const paidOnline = attempts.find((a) => a.status === "paid" && a.amount > a.amount_refunded);
   const next = (ORDER_TRANSITIONS[order.status as OrderStatus] ?? []).filter((s) => s !== "paid");
 
   const run = async (task: () => Promise<unknown>, done = copy.saved) => {
@@ -144,10 +148,43 @@ export function OrderView({ order, rights }: { order: OrderRecord; rights: { edi
               <Field label={copy.amount}>{(id) => <Input id={id} name="refundAmount" type="number" min={0} step="0.001" value={refund.amount} onChange={(e) => setRefund({ ...refund, amount: e.target.value })} className="rounded-lg" />}</Field>
               <Field label={copy.refundReason}>{(id) => <Input id={id} maxLength={500} value={refund.reason} onChange={(e) => setRefund({ ...refund, reason: e.target.value })} className="rounded-lg" />}</Field>
             </div>
+            {paidOnline && <p className="text-xs text-ink-muted">{formatMessage(copy.refundOnline, { gateway: gatewayName(paidOnline.gateway) })}</p>}
             <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy || !refund.amount} onClick={() => run(async () => { await recordOrderRefundAction(order.id, refund.amount, refund.reason); setRefund({ amount: "", reason: "" }); })} data-testid="order-refund">{copy.refund}</Button>
           </Card>
         )}
+        {paymentLink && (
+          <Card className="p-5 space-y-3" data-testid="order-payment-link">
+            <h2 className="font-bold text-ink flex items-center gap-2"><Link2 className="w-4 h-4 text-accent" aria-hidden="true" />{copy.paymentLink}</h2>
+            <p className="text-xs text-ink-muted">{copy.paymentLinkHint}</p>
+            <div className="flex gap-2">
+              <Input readOnly aria-label={copy.paymentLink} value={paymentLink} dir="ltr" className="rounded-lg font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
+              <Button type="button" size="sm" variant="outline" className="rounded-full shrink-0 gap-1.5" onClick={() => void navigator.clipboard?.writeText(paymentLink).then(() => setMessage({ tone: "ok", text: copy.linkCopied }))}>
+                <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                {copy.copyLink}
+              </Button>
+            </div>
+          </Card>
+        )}
       </div>
+
+      {attempts.length > 0 && (
+        <Card className="p-5 space-y-3">
+          <h2 className="font-bold text-ink flex items-center gap-2"><CreditCard className="w-4 h-4 text-accent" aria-hidden="true" />{copy.onlinePayments}</h2>
+          <ul className="divide-y divide-ink/10 text-sm" data-testid="order-attempts">
+            {attempts.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2">
+                <span className="font-semibold text-ink">{gatewayName(a.gateway)}</span>
+                {a.test_mode && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">{copy.testMode}</span>}
+                <span className="text-ink-muted">{(copy.attemptStatuses as Record<string, string>)[a.status] ?? a.status}</span>
+                <span>{money(a.amount)}</span>
+                {a.amount_refunded > 0 && <span className="text-xs text-ink-muted">{copy.refunded} {money(a.amount_refunded)}</span>}
+                <span className="font-mono text-xs text-ink-muted" dir="ltr">{a.reference}</span>
+                <span className="ms-auto text-xs text-ink-muted">{formatDate(a.created_at, locale, "time")}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
 
       <Card className="p-5 space-y-3">
         <h2 className="font-bold text-ink">{copy.history}</h2>

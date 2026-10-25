@@ -26,7 +26,7 @@ interface Address {
 
 interface CheckoutViewProps {
   locale: string;
-  settings: { guestCheckout: boolean; delivery: boolean; pickup: boolean; cod: boolean; bankTransfer: boolean; bankInstructions: string };
+  settings: { guestCheckout: boolean; delivery: boolean; pickup: boolean; cod: boolean; online: boolean; bankTransfer: boolean; bankInstructions: string };
   customer: { name: string; email: string; phone: string } | null;
   addresses: Address[];
   country: string;
@@ -53,7 +53,7 @@ export function CheckoutView({ locale, settings, customer, addresses, country }:
     if ((saved === "delivery" && settings.delivery) || (saved === "pickup" && settings.pickup)) setFulfilment(saved);
   }, [settings.delivery, settings.pickup]);
   const { quote, loading } = useQuote(lines, coupon, fulfilment);
-  const methods = [settings.cod && "cod", settings.bankTransfer && "bank_transfer"].filter(Boolean) as string[];
+  const methods = [settings.online && "online", settings.cod && "cod", settings.bankTransfer && "bank_transfer"].filter(Boolean) as string[];
   const [contact, setContact] = React.useState({ name: customer?.name ?? "", email: customer?.email ?? "", phone: customer?.phone ?? "" });
   const defaultAddress = addresses.find((a) => a.is_default) ?? addresses[0];
   const [addressId, setAddressId] = React.useState(defaultAddress?.id ?? "");
@@ -82,13 +82,14 @@ export function CheckoutView({ locale, settings, customer, addresses, country }:
     const shipping = fulfilment === "pickup" ? null : saved ? { name: saved.name, phone: saved.phone, line1: saved.line1, line2: saved.line2, area: saved.area, city: saved.city, country: saved.country, postalCode: saved.postal_code } : address;
     try {
       const response = await fetch("/api/store/order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ lines, couponCode: coupon, fulfilment, address: shipping, ...contact, paymentMethod, note, locale }) });
-      const data = (await response.json().catch(() => ({ error: "generic" }))) as { number?: string; error?: string };
+      const data = (await response.json().catch(() => ({ error: "generic" }))) as { number?: string; payToken?: string; error?: string };
       if (!response.ok || !data.number) throw new Error(data.error || "generic");
       writeCart([]);
       try {
         window.localStorage.removeItem(COUPON_KEY);
       } catch {}
-      router.push(`/${locale}/checkout/done?number=${encodeURIComponent(data.number)}`);
+      // Paying online continues on the order's payment page, which takes the customer to the gateway.
+      router.push(data.payToken ? `/${locale}/pay/${data.payToken}?start=1` : `/${locale}/checkout/done?number=${encodeURIComponent(data.number)}`);
     } catch (err) {
       const key = err instanceof Error ? err.message : "generic";
       setError(known(`account.errors.${key}`, "account.errors.generic"));

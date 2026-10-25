@@ -353,7 +353,8 @@
       "social": "Social media",
       "messaging": "Messaging",
       "email": "E-mail",
-      "sign_in": "Customer sign-in"
+      "sign_in": "Customer sign-in",
+      "payments": "Payment gateways"
     },
     "providers": {
       "meta": {
@@ -391,6 +392,34 @@
       "apple_signin": {
         "name": "Sign in with Apple",
         "description": "Lets customers sign in to the online store with their Apple ID. Register the website's /api/account/apple/callback address as a return URL of the Services ID."
+      },
+      "stripe": {
+        "name": "Stripe",
+        "description": "Cards, Apple Pay and Google Pay on Stripe's hosted checkout. Test keys (sk_test_…) keep it in test mode. Add a webhook to the website's /api/store/payment/webhook/stripe address for the checkout.session events and paste its signing secret."
+      },
+      "tap": {
+        "name": "Tap Payments",
+        "description": "Cards, BenefitPay, mada, KNET and Apple Pay on Tap's hosted page. Test keys (sk_test_…) keep it in test mode. Tap posts each payment's result to the website by itself."
+      },
+      "paypal": {
+        "name": "PayPal",
+        "description": "PayPal and cards through PayPal. Environment: sandbox or live. Add a webhook to the website's /api/store/payment/webhook/paypal address for the payment capture and order approved events and paste its webhook ID. PayPal does not take every currency (not BHD, SAR or KWD)."
+      },
+      "checkout_com": {
+        "name": "Checkout.com",
+        "description": "Cards and wallets on Checkout.com's hosted payments page. Environment: sandbox or live; billing country is a two-letter code such as BH. Add a webhook to the website's /api/store/payment/webhook/checkout_com address and paste its signature key."
+      },
+      "paytabs": {
+        "name": "PayTabs",
+        "description": "Cards, mada and Apple Pay on PayTabs' hosted page. Region is the PayTabs account's region: ARE, SAU, OMN, JOR, EGY, IRQ or GLOBAL. PayTabs posts each payment's result to the website by itself."
+      },
+      "moyasar": {
+        "name": "Moyasar",
+        "description": "mada, cards, Apple Pay and STC Pay on Moyasar's hosted invoice page. Test keys (sk_test_…) keep it in test mode. Add a webhook to the website's /api/store/payment/webhook/moyasar address and use the same secret token here."
+      },
+      "hyperpay": {
+        "name": "HyperPay",
+        "description": "Cards and mada in HyperPay's card form, shown on the website's own payment page. Environment: test or live; brands such as VISA MASTER MADA. Add a webhook to the website's /api/store/payment/webhook/hyperpay address and paste its decryption key."
       }
     },
     "fields": {
@@ -411,7 +440,19 @@
       "serviceId": "Services ID",
       "teamId": "Team ID",
       "keyId": "Key ID",
-      "privateKey": "Private key (.p8)"
+      "privateKey": "Private key (.p8)",
+      "secretKey": "Secret key",
+      "webhookSecret": "Webhook signing secret",
+      "environment": "Environment",
+      "processingChannelId": "Processing channel ID",
+      "billingCountry": "Billing country",
+      "region": "Region",
+      "profileId": "Profile ID",
+      "serverKey": "Server key",
+      "entityId": "Entity ID",
+      "brands": "Card brands",
+      "webhookKey": "Webhook decryption key",
+      "webhookId": "Webhook ID"
     },
     "status": {
       "healthy": "Connected",
@@ -5775,7 +5816,12 @@
       "storeCartChanged": "Some items changed price or are no longer available. Please check your cart.",
       "storeFulfilmentRequired": "Choose delivery or pickup.",
       "storePaymentMethodInvalid": "Choose a way to pay that the store offers.",
-      "storeSignInRequired": "Please sign in to check out."
+      "storeSignInRequired": "Please sign in to check out.",
+      "orderAlreadyPaid": "This order is already paid in full.",
+      "paymentGatewayUnavailable": "Online payment is not available right now. Please try again or choose another way to pay.",
+      "paymentRefundFailed": "The payment gateway did not accept the refund. Check the gateway's dashboard and try again.",
+      "paymentBillingCountryInvalid": "The billing country must be a two-letter code, such as BH, SA or AE.",
+      "paymentWebhookKeyInvalid": "The webhook key must be the 64-character key from the HyperPay dashboard."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -5833,7 +5879,8 @@
       "theSettlementCanBePaidOnceItIsApproved": "The settlement can be paid once it is approved (current status: {0})",
       "senderDomainNotAdded": "The sender domain {0} is not added in Resend",
       "senderDomainStatus": "The sender domain {0} is {1}",
-      "maximumFileSize": "Maximum file size is {0} MB"
+      "maximumFileSize": "Maximum file size is {0} MB",
+      "paymentRegionInvalid": "The region must be one of {0}."
     },
     "generic": "Something went wrong. Please try again."
   },
@@ -9562,6 +9609,10 @@
       "placed": {
         "title": "New order {number}",
         "message": "{name} ordered {total}."
+      },
+      "paidNeedsAttention": {
+        "title": "Payment needs attention: {number}",
+        "message": "An online payment arrived for order {number}, which could not take it (cancelled or already paid). Refund it from the order."
       }
     },
     "title": "Orders",
@@ -9647,7 +9698,21 @@
         "note": "Note",
         "email": "E-mail"
       },
-      "saved": "Saved."
+      "saved": "Saved.",
+      "paymentLink": "Payment link",
+      "paymentLinkHint": "Send this link to the customer to pay what is owed online.",
+      "copyLink": "Copy link",
+      "linkCopied": "Link copied.",
+      "onlinePayments": "Online payments",
+      "testMode": "Test",
+      "attemptStatuses": {
+        "created": "Started",
+        "pending": "At the gateway",
+        "paid": "Paid",
+        "failed": "Not completed",
+        "expired": "Timed out"
+      },
+      "refundOnline": "Paid online: the refund goes back through {gateway}."
     },
     "pos": {
       "title": "New sale",
@@ -9704,7 +9769,12 @@
       "maxUses": "Uses allowed",
       "used": "{count} used",
       "active": "Active",
-      "noCoupons": "No coupons yet."
-    }
+      "noCoupons": "No coupons yet.",
+      "paymentGateway": "Pay online through",
+      "noGateway": "Do not offer online payment",
+      "gatewayHint": "Only payment gateways switched on in Settings → Integrations are listed.",
+      "gatewayTest": "test mode"
+    },
+    "paymentTimedOut": "Online payment was not completed in time; the items were released."
   }
 }

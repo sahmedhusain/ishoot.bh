@@ -26,7 +26,7 @@ interface CouponRow {
 }
 
 /** Store settings: checkout, delivery, pickup and payment methods; and the coupons. */
-export function StoreSettingsView({ settings, coupons, currency, languages, canEdit, canCoupons }: { settings: StoreSettingsRecord; coupons: CouponRow[]; currency: string; languages: readonly ContentLanguage[]; canEdit: boolean; canCoupons: boolean }) {
+export function StoreSettingsView({ settings, coupons, gateways, currency, languages, canEdit, canCoupons }: { settings: StoreSettingsRecord; coupons: CouponRow[]; gateways: { id: string; test_mode: boolean }[]; currency: string; languages: readonly ContentLanguage[]; canEdit: boolean; canCoupons: boolean }) {
   const { t } = useAdminLocale();
   const copy = t.orders.settings;
   const router = useRouter();
@@ -41,6 +41,7 @@ export function StoreSettingsView({ settings, coupons, currency, languages, canE
     bankInstructionsEn: settings.bank_instructions_en,
     bankInstructionsAr: settings.bank_instructions_ar,
     orderNotifyEmail: settings.order_notify_email,
+    paymentGateway: settings.payment_gateway,
   });
   const [coupon, setCoupon] = React.useState<CouponInput | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -83,6 +84,17 @@ export function StoreSettingsView({ settings, coupons, currency, languages, canE
           {toggle("codEnabled")}
           {toggle("bankTransferEnabled")}
           {form.bankTransferEnabled && <LanguageFields label={copy.bankInstructions} languages={languages} multiline wide maxLength={2000} en={form.bankInstructionsEn} ar={form.bankInstructionsAr} onChange={({ en, ar }) => setForm({ ...form, bankInstructionsEn: en, bankInstructionsAr: ar })} />}
+          <Field label={copy.paymentGateway} hint={copy.gatewayHint}>
+            {(id) => (
+              <Select id={id} name="paymentGateway" value={form.paymentGateway} onChange={(e) => setForm({ ...form, paymentGateway: e.target.value })} className="rounded-lg">
+                <option value="">{copy.noGateway}</option>
+                {gateways.map((g) => (
+                  <option key={g.id} value={g.id}>{`${(t.integrations.providers as Record<string, { name: string }>)[g.id]?.name ?? g.id}${g.test_mode ? ` (${copy.gatewayTest})` : ""}`}</option>
+                ))}
+                {form.paymentGateway && !gateways.some((g) => g.id === form.paymentGateway) && <option value={form.paymentGateway}>{(t.integrations.providers as Record<string, { name: string }>)[form.paymentGateway]?.name ?? form.paymentGateway}</option>}
+              </Select>
+            )}
+          </Field>
           <Field label={copy.orderNotifyEmail}>{(id) => <Input id={id} type="email" dir="ltr" value={form.orderNotifyEmail} onChange={(e) => setForm({ ...form, orderNotifyEmail: e.target.value })} className="rounded-lg" />}</Field>
         </fieldset>
         {canEdit && (

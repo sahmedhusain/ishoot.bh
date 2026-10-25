@@ -3445,7 +3445,47 @@ model StoreSettings {
   bankInstructionsAr  String?
   /// Where new-order alerts go (besides the people who can see orders).
   orderNotifyEmail    String?
+  /// The payment gateway behind "Pay online" (an active payments integration), or null for no online payment.
+  paymentGateway      String?
   updatedAt           DateTime @updatedAt
+}
+
+/// One try at paying an order online: the gateway's session, and what came of it.
+model PaymentAttempt {
+  id               String     @id @default(uuid())
+  orderId          String
+  order            SalesOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  gateway          String
+  /// The gateway's checkout session, charge or order id.
+  sessionId        String?
+  /// The gateway's id for the captured payment (refunds use it).
+  gatewayPaymentId String?
+  amount           Decimal    @db.Decimal(12, 3)
+  currency         String
+  /// created | pending | paid | failed | expired
+  status           String     @default("created")
+  testMode         Boolean    @default(false)
+  /// The receipt recorded when it was paid.
+  paymentId        String?
+  amountRefunded   Decimal    @default(0) @db.Decimal(12, 3)
+  failureReason    String?
+  createdAt        DateTime   @default(now())
+  paidAt           DateTime?
+  updatedAt        DateTime   @updatedAt
+
+  @@unique([gateway, sessionId])
+  @@index([orderId])
+  @@index([status, createdAt])
+}
+
+/// Webhooks already handled, so a gateway's retries change nothing twice.
+model PaymentWebhookEvent {
+  gateway    String
+  eventId    String
+  attemptId  String?
+  receivedAt DateTime @default(now())
+
+  @@id([gateway, eventId])
 }
 
 model Coupon {
@@ -3509,6 +3549,7 @@ model SalesOrder {
   cancelledAt     DateTime?
   lines           SalesOrderLine[]
   events          SalesOrderEvent[]
+  paymentAttempts PaymentAttempt[]
   updatedAt       DateTime          @updatedAt
 
   @@index([status])

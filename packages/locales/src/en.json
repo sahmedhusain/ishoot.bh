@@ -815,7 +815,9 @@
       "couponCannotBeUsed": "That coupon cannot be used for this order.",
       "storeFulfilmentRequired": "Choose delivery or pickup.",
       "storePaymentMethodInvalid": "Choose a way to pay.",
-      "storeSignInRequired": "Please sign in to check out."
+      "storeSignInRequired": "Please sign in to check out.",
+      "orderAlreadyPaid": "This order is already paid.",
+      "paymentGatewayUnavailable": "Online payment is not available right now. Please try again or choose another way to pay."
     },
     "codeEmail": {
       "subject": "Your sign-in code",
@@ -898,6 +900,20 @@
       "greeting": "Hello {name},",
       "body": "Thank you for your order {number}. Here is what you ordered:",
       "total": "Total"
-    }
+    },
+    "redirecting": "Taking you to the secure payment page…",
+    "payTitle": "Pay for order {number}",
+    "payOwed": "To pay: {amount}",
+    "payNow": "Pay now",
+    "payCardHint": "Your card details go straight to the payment gateway; this website never sees them.",
+    "testMode": "Test mode: no real money is taken.",
+    "payFailedTitle": "The payment was not completed",
+    "payFailedText": "Nothing was taken. Your order {number} is kept for a while, so you can try again.",
+    "tryAgain": "Try paying again",
+    "payPendingTitle": "We are waiting for the payment",
+    "payPendingText": "The payment gateway has not confirmed the payment for order {number} yet. We will e-mail you once it does.",
+    "linkInvalid": "This payment link is not valid.",
+    "alreadyPaid": "Order {number} is already paid. Thank you!",
+    "orderClosed": "Order {number} can no longer be paid."
   }
 }

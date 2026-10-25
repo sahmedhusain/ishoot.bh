@@ -6,6 +6,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import {
   ExternalLink,
+  CreditCard,
   Mail,
   PlugZap,
   RefreshCw,
@@ -32,7 +33,7 @@ import { SettingsNavTabs } from "./SettingsNavTabs";
 import { CalendarSyncCard } from "./CalendarSyncCard";
 import type { CalendarLayer } from "@platform/database/types";
 
-const KINDS: IntegrationKind[] = ["social", "messaging", "email", "sign_in"];
+const KINDS: IntegrationKind[] = ["social", "messaging", "email", "sign_in", "payments"];
 
 const fieldClass =
   "w-full min-w-0 rounded-lg border border-ink/15 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/40";
@@ -48,6 +49,7 @@ const statusTone: Record<string, string> = {
 
 function ProviderIcon({ provider }: { provider: IntegrationProvider }) {
   if (provider.id === "resend") return <Mail className="w-5 h-5" />;
+  if (provider.kind === "payments") return <CreditCard className="w-5 h-5" />;
   if (provider.id === "meta")
     return (
       <span className="flex -space-x-1 rtl:space-x-reverse">

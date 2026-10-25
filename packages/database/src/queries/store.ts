@@ -7,6 +7,8 @@ import { MAX_CART_LINES, MAX_LINE_QUANTITY, ORDER_PAYMENT_METHODS, RESERVED_STAT
 import { ensureDefaultWarehouse, postMovements, reserveStock, type MovementInput } from "./inventory";
 import { createPayment } from "./payments";
 import { getNextSequenceNumber } from "./sequence";
+import { isPaymentGateway } from "../constants/payments";
+import { activePaymentGateway } from "../payments/active";
 
 type Tx = Prisma.TransactionClient;
 const num = (value: { toString(): string } | null | undefined) => (value == null ? 0 : Number(value.toString()));
@@ -28,6 +30,7 @@ export async function getStoreSettings() {
     bank_instructions_en: s.bankInstructionsEn ?? "",
     bank_instructions_ar: s.bankInstructionsAr ?? "",
     order_notify_email: s.orderNotifyEmail ?? "",
+    payment_gateway: s.paymentGateway ?? "",
   };
 }
 export type StoreSettingsRecord = Awaited<ReturnType<typeof getStoreSettings>>;
@@ -43,6 +46,8 @@ export interface StoreSettingsInput {
   bankInstructionsEn: string;
   bankInstructionsAr: string;
   orderNotifyEmail: string;
+  /** A payment gateway id for "Pay online", or empty for none. */
+  paymentGateway?: string;
 }
 
 export async function saveStoreSettings(input: StoreSettingsInput) {
@@ -55,6 +60,8 @@ export async function saveStoreSettings(input: StoreSettingsInput) {
   if (!input.deliveryEnabled && !input.pickupEnabled) throw new Error(serverMessages.storeFulfilmentRequired);
   const email = input.orderNotifyEmail.trim().toLowerCase();
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error(serverMessages.customerEmailInvalid);
+  const gateway = (input.paymentGateway ?? "").trim();
+  if (gateway && !isPaymentGateway(gateway)) throw new Error(serverMessages.storePaymentMethodInvalid);
   const data = {
     guestCheckout: input.guestCheckout,
     deliveryEnabled: input.deliveryEnabled,
@@ -66,6 +73,7 @@ export async function saveStoreSettings(input: StoreSettingsInput) {
     bankInstructionsEn: input.bankInstructionsEn.trim().slice(0, 2000) || null,
     bankInstructionsAr: input.bankInstructionsAr.trim().slice(0, 2000) || null,
     orderNotifyEmail: email || null,
+    ...(input.paymentGateway === undefined ? {} : { paymentGateway: gateway || null }),
   };
   await db.storeSettings.upsert({ where: { id: "default" }, update: data, create: { id: "default", ...data } });
 }
@@ -231,8 +239,8 @@ export async function placeOrder(input: PlaceOrderInput) {
   const settings = await db.storeSettings.upsert({ where: { id: "default" }, update: {}, create: { id: "default" } });
   if (input.channel === "website") {
     if (input.fulfilment === "delivery" ? !settings.deliveryEnabled : !settings.pickupEnabled) throw new Error(serverMessages.storeFulfilmentRequired);
-    // Paying online joins these once a payment gateway is set up (phase 6c).
-    const allowed = [settings.codEnabled && "cod", settings.bankTransferEnabled && "bank_transfer"].filter(Boolean);
+    const online = input.paymentMethod === "online" && !!(await activePaymentGateway());
+    const allowed = [settings.codEnabled && "cod", settings.bankTransferEnabled && "bank_transfer", online && "online"].filter(Boolean);
     if (!allowed.includes(input.paymentMethod)) throw new Error(serverMessages.storePaymentMethodInvalid);
     if (!input.customerId && !settings.guestCheckout) throw new Error(serverMessages.storeSignInRequired);
   }

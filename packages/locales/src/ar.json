@@ -815,7 +815,9 @@
       "couponCannotBeUsed": "لا يمكن استخدام هذه القسيمة لهذا الطلب.",
       "storeFulfilmentRequired": "اختر التوصيل أو الاستلام.",
       "storePaymentMethodInvalid": "اختر طريقة الدفع.",
-      "storeSignInRequired": "يرجى تسجيل الدخول لإتمام الطلب."
+      "storeSignInRequired": "يرجى تسجيل الدخول لإتمام الطلب.",
+      "orderAlreadyPaid": "هذا الطلب مدفوع.",
+      "paymentGatewayUnavailable": "الدفع الإلكتروني غير متاح الآن. حاول مرة أخرى أو اختر طريقة دفع أخرى."
     },
     "codeEmail": {
       "subject": "رمز تسجيل الدخول",
@@ -898,6 +900,20 @@
       "greeting": "مرحبًا {name}،",
       "body": "شكرًا لطلبك {number}. هذه تفاصيل ما طلبته:",
       "total": "الإجمالي"
-    }
+    },
+    "redirecting": "جارٍ نقلك إلى صفحة الدفع الآمنة…",
+    "payTitle": "ادفع الطلب {number}",
+    "payOwed": "المبلغ المستحق: {amount}",
+    "payNow": "ادفع الآن",
+    "payCardHint": "تذهب بيانات بطاقتك مباشرة إلى بوابة الدفع، ولا يراها هذا الموقع.",
+    "testMode": "وضع الاختبار: لا تُخصم أموال حقيقية.",
+    "payFailedTitle": "لم يكتمل الدفع",
+    "payFailedText": "لم يُخصم أي مبلغ. نحتفظ بطلبك {number} لبعض الوقت لتتمكن من المحاولة مرة أخرى.",
+    "tryAgain": "حاول الدفع مرة أخرى",
+    "payPendingTitle": "بانتظار تأكيد الدفع",
+    "payPendingText": "لم تؤكد بوابة الدفع دفع الطلب {number} بعد. سنراسلك بالبريد عند التأكيد.",
+    "linkInvalid": "رابط الدفع هذا غير صالح.",
+    "alreadyPaid": "الطلب {number} مدفوع. شكرًا لك!",
+    "orderClosed": "لم يعد بالإمكان دفع الطلب {number}."
   }
 }

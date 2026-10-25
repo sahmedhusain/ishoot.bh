@@ -120,3 +120,5 @@ export * from "./queries/final-settlements";
 export * from "./constants/communications";
 export * from "./queries/announcements";
 export * from "./queries/official-letters";
+export * from "./constants/payments";
+export * from "./queries/online-payments";

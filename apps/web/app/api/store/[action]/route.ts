@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { formatMessage, getTranslations, getWebsiteTranslations } from "@platform/locales";
-import { consumeAbuseLimit, getOrder, measureOperation, notifyUsersWithPermission, placeOrder, quoteCart } from "@platform/database";
+import { consumeAbuseLimit, getOrder, measureOperation, notifyUsersWithPermission, orderFromPaymentLink, paymentLinkToken, placeOrder, quoteCart, startOrderPayment } from "@platform/database";
 import type { CartLine } from "@platform/database/constants/store";
 import { escapeEmailHtml, sendEmail } from "@platform/email";
 import { currentCustomer, jsonError, sameOrigin, storeEnabled } from "../../../../lib/customer";
 
 const str = (value: unknown, max = 300) => (typeof value === "string" ? value.slice(0, max) : "");
+/** The website's public address, for the gateway's return and notification addresses. */
+const siteUrl = (req: NextRequest) => (process.env.WEB_URL || req.nextUrl.origin).replace(/\/$/, "");
 const ip = (req: NextRequest) => req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
 
 /** The cart as posted: product, variant and a whole quantity per line. */
@@ -27,6 +29,14 @@ export async function POST(req: NextRequest, context: { params: Promise<{ action
     const fulfilment = body.fulfilment === "pickup" ? "pickup" : "delivery";
     try {
       if (action === "quote") return NextResponse.json(await quoteCart({ lines: cartLines(body.lines), couponCode: str(body.couponCode, 30), fulfilment }));
+      if (action === "pay") {
+        // Pays what is owed on an order through the store's gateway, from a payment link or right after checkout.
+        await consumeAbuseLimit("store-pay-ip", ip(req), 20, 600);
+        const orderId = orderFromPaymentLink(str(body.token, 120));
+        if (!orderId) return NextResponse.json({ error: "generic" }, { status: 404 });
+        const started = await startOrderPayment(orderId, { url: siteUrl(req), locale: str(body.locale, 2) === "en" ? "en" : "ar" });
+        return NextResponse.json("redirectUrl" in started ? { redirectUrl: started.redirectUrl } : { widget: started.widget, returnUrl: `/api/store/payment/return?attempt=${started.attemptId}`, testMode: started.testMode });
+      }
       if (action !== "order") return NextResponse.json({ error: "generic" }, { status: 404 });
       await consumeAbuseLimit("store-order-ip", ip(req), 10, 600);
       const customer = await currentCustomer();
@@ -51,7 +61,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ action
       const alert = getTranslations("en").admin.orders.notifications.placed;
       const params = { number: order.number, name: order.name, total: `${Number(order.total).toFixed(3)} ${order.currency}` };
       await notifyUsersWithPermission("orders", "read", { title: formatMessage(alert.title, params), message: formatMessage(alert.message, params), message_key: "orders.notifications.placed", message_params: params, type: "action", entity_type: "sales_order", entity_id: order.id }).catch(() => undefined);
-      return NextResponse.json({ success: true, number: order.number });
+      return NextResponse.json({ success: true, number: order.number, ...(order.paymentMethod === "online" ? { payToken: paymentLinkToken(order.id) } : {}) });
     } catch (error) {
       return jsonError(error);
     }

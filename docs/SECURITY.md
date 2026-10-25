@@ -59,6 +59,26 @@
 - "Delete my account" removes sessions, addresses, wishlist, sign-in methods, name and e-mail; orders are kept
   without the personal details.
 
+## Online payments
+
+- Card details never reach the platform: every gateway is used through its hosted payment page (Stripe Checkout,
+  Tap, PayPal, Checkout.com Hosted Payments, PayTabs, Moyasar invoices) or its hosted card frame (HyperPay
+  COPYandPAY, loaded with the integrity hash HyperPay returns).
+- Gateway keys are integration credentials (AES-256-GCM with `ENCRYPTION_KEY`); the browser only ever sees the
+  last characters of a secret.
+- Whether an order is paid is always asked of the gateway (on the customer's return and from webhooks), never
+  read from the browser. Webhooks are verified per gateway: Stripe's timestamped HMAC (5-minute window), Tap's
+  hashstring, Checkout.com's and PayTabs' body HMAC, Moyasar's secret token, PayPal's verify-signature API and
+  HyperPay's AES-GCM encryption; anything else is refused with 401.
+- Each webhook delivery is stored (`PaymentWebhookEvent`) so a retry changes nothing, and moving a payment attempt
+  to paid is a guarded update, so the webhook and the customer's return record the money once.
+- Payment links are `orderId.HMAC` (`CUSTOMER_AUTH_SECRET`, falling back to `REVALIDATION_SECRET`): a link pays
+  what is owed on that one order and shows nothing else about the customer.
+- Unpaid online orders release their stock after `ONLINE_PAYMENT_TIMEOUT_MINUTES` (the scheduled job asks the
+  gateway once more before giving up).
+- `PAYMENT_GATEWAY_BASE_URL_<GATEWAY>` points a gateway at another API host; it exists for local sandboxes and the
+  end-to-end tests and must be unset in production.
+
 ## Data protection
 
 - Integration credentials (WhatsApp, Facebook and others) are encrypted with AES-256-GCM using `ENCRYPTION_KEY`.

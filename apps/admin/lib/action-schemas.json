@@ -7592,6 +7592,10 @@
           "orderNotifyEmail": {
             "kind": "string",
             "optional": false
+          },
+          "paymentGateway": {
+            "kind": "string",
+            "optional": true
           }
         },
         "optional": false
