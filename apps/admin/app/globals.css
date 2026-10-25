@@ -393,3 +393,20 @@ html.light [role="dialog"][aria-modal="true"] {
 @media (prefers-reduced-motion: reduce) {
   [role="dialog"][aria-modal="true"] { animation: none; }
 }
+
+/* The article and rich-text editor (TipTap): the same structure the website shows, in the admin's colours. */
+.rich-text-editor > * + * { margin-top: 0.75em; }
+.rich-text-editor h2 { font-size: 1.5rem; font-weight: 700; }
+.rich-text-editor h3 { font-size: 1.2rem; font-weight: 700; }
+.rich-text-editor ul { list-style: disc; padding-inline-start: 1.5em; }
+.rich-text-editor ol { list-style: decimal; padding-inline-start: 1.5em; }
+.rich-text-editor a { color: rgb(var(--brand-accent)); text-decoration: underline; }
+.rich-text-editor blockquote { border-inline-start: 3px solid rgb(var(--brand-accent)); padding-inline-start: 1em; font-style: italic; }
+.rich-text-editor img { max-width: 100%; border-radius: 0.75rem; }
+.rich-text-editor figcaption { font-size: 0.75rem; opacity: 0.7; }
+.rich-text-editor table { width: 100%; border-collapse: collapse; }
+.rich-text-editor th, .rich-text-editor td { border: 1px solid rgb(var(--ui-ink) / 0.15); padding: 0.4em 0.6em; min-width: 3em; }
+.rich-text-editor .rt-gallery { display: grid; gap: 0.5rem; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+.rich-text-editor iframe, .rich-text-editor .rt-embed { width: 100%; min-height: 200px; border-radius: 0.75rem; background: rgb(var(--ui-ink) / 0.05); }
+.rich-text-editor .ProseMirror-selectednode { outline: 2px solid rgb(var(--brand-accent)); }
+.rich-text-editor:focus { outline: none; }

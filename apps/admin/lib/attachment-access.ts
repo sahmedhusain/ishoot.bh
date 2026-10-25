@@ -24,7 +24,7 @@ const resources: Record<string, PermissionResource> = {
 };
 
 /** Public website media (client logos, banners, portfolio, gear photos): the entity id names the CMS resource. */
-const CMS_ASSET_RESOURCES = ["banners", "portfolio", "clients", "equipment", "reviews", "settings"] as const;
+const CMS_ASSET_RESOURCES = ["banners", "portfolio", "clients", "equipment", "reviews", "settings", "pages", "articles"] as const;
 
 export async function requireAttachmentAccess(
   entityType: string,

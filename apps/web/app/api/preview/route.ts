@@ -22,7 +22,10 @@ export async function GET(req: NextRequest) {
   if (!timingSafeEqual(Buffer.from(expected), Buffer.from(token)))
     return new NextResponse("Invalid preview", { status: 403 });
   const locale = req.nextUrl.searchParams.get("locale") === "ar" ? "ar" : "en";
-  const response = NextResponse.redirect(new URL(`/${locale}`, req.url));
+  // Only a path of this website in one of its languages; anything else opens the home page.
+  const path = req.nextUrl.searchParams.get("path") ?? "";
+  const target = /^\/(en|ar)(\/[a-z0-9-/]*)?$/.test(path) && !path.includes("//") ? path : `/${locale}`;
+  const response = NextResponse.redirect(new URL(target, req.url));
   response.cookies.set("platform_preview", `${expires}.${token}`, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

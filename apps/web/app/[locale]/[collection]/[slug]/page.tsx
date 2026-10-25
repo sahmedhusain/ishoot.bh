@@ -6,6 +6,9 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, MapPin } from "lucide-react";
 import { pickText } from "@platform/database/constants/languages";
 import { getSite, siteTranslations } from "../../../../lib/site";
 import { collectionHref, formatPrice } from "../../../../lib/site-copy";
+import { publicSiteUrl } from "../../../../lib/site-url";
+import { ArticleView, liveArticles } from "../../../../components/articles/ArticleViews";
+import { isWebsitePreview } from "../../../../lib/website";
 
 /** One catalogue item: a project, product, property, dish, program… shown with the details its activity uses. */
 export default async function CollectionItemPage({
@@ -14,8 +17,18 @@ export default async function CollectionItemPage({
   params: Promise<{ locale: string; collection: string; slug: string }>;
 }) {
   const { locale, collection, slug } = await params;
-  const [{ website, info }, t] = await Promise.all([getSite(), siteTranslations(locale)]);
+  const [{ website, info }, t, preview] = await Promise.all([getSite(), siteTranslations(locale), isWebsitePreview()]);
   if (!website) notFound();
+  if (collection === info.articles.slug && collection !== info.collection.slug) {
+    // Scheduled articles stay hidden until their time, except in preview.
+    const articles = preview ? website.articles ?? [] : liveArticles(website.articles);
+    const article = articles.find((entry) => entry.slug === slug);
+    if (!article) notFound();
+    const base = `/${locale}/${info.articles.slug}`;
+    const url = `${(await publicSiteUrl()).href.replace(/\/$/, "")}${base}/${encodeURIComponent(article.slug)}`;
+    const related = liveArticles(website.articles).filter((entry) => entry.id !== article.id && entry.category === article.category).slice(0, 3);
+    return <ArticleView article={article} related={related} locale={locale} base={base} url={url} />;
+  }
   if (collection !== info.collection.slug) {
     if (collection === "works") permanentRedirect(collectionHref(info, locale, slug));
     notFound();

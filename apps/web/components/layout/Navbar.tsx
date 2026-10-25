@@ -14,9 +14,11 @@ import type { PublicCompanySettings } from "@platform/database/types";
 interface NavbarProps {
   company: PublicCompanySettings;
   pages?: { id: string; visible: boolean }[];
+  /** Menu links built from the website's pages (lib/menus.ts); missing for websites published before pages existed. */
+  links?: { id: string; href: string; label: string; external?: boolean }[];
 }
 
-export function Navbar({ company, pages }: NavbarProps) {
+export function Navbar({ company, pages, links }: NavbarProps) {
   const { t, locale, site } = useTranslation();
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
@@ -51,12 +53,12 @@ export function Navbar({ company, pages }: NavbarProps) {
     return map;
   }, [pages]);
 
-  const navLinks = [
+  const navLinks = links ?? [
     { id: "home", href: `/${locale}`, label: t("nav.home") },
     { id: "works", href: site ? collectionHref(site, locale) : `/${locale}/works`, label: t("nav.works") },
     { id: "about", href: `/${locale}/about`, label: t("nav.about") },
     { id: "contact", href: `/${locale}/contact`, label: t("nav.contact") },
-  ].filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
+  ] .filter((item) => item.id === "home" || pageMap.get(item.id) !== false);
 
   return (
     <>

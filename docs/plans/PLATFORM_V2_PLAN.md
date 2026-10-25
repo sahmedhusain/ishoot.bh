@@ -290,3 +290,39 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   50,000 records; 14 lists timed against 1.5 s each. Local run: every list under 40 ms.
 - Fixed while here: my first pipeline migration gave `DealPipelineStage.updatedAt` a database default that the
   Prisma schema does not declare (schema drift); corrected in that unreleased migration.
+
+### Phase 3: CMS v2 (done)
+
+- **Pages** (`CmsPage`, migration `20261026160000_cms_pages_articles`): slug, titles, SEO, page type, order,
+  shown/hidden, header and footer menu flags, and ordered **blocks** (`packages/database/src/cms/blocks.ts`):
+  hero (three styles), about, text, image and text, gallery, video, catalogue, services, figures, testimonials,
+  FAQ, client logos, call to action, contact details and form, map, team, latest articles, columns, space,
+  divider, custom code, embed, leader's message, values, equipment. Data blocks show content managed elsewhere;
+  content blocks hold their own text per content language.
+- The homepage, About and Contact become pages the first time pages are needed (`ensureCmsPages`), built from the
+  current settings: same sections, order and visibility, content still read from the same tables. Websites
+  published before pages existed keep the old fixed layout until they are published again.
+- Website → Pages: reorder, show/hide, menu flags, copy, remove (built-in pages can only be hidden), new pages;
+  page editor with add/reorder/copy/hide/remove blocks and a signed draft preview of that exact page.
+- **Menus** (Website → Menus): header and footer links to pages, the catalogue, the articles or other websites,
+  with the company's own wording; until edited, menus follow the pages' flags. The articles address and name are
+  set here (default per activity: news, blog for products and food, insights for agencies).
+- **Articles** (`CmsArticle`): category (news, update, post, press release), tags, author, cover, excerpt,
+  publish date and scheduling, featured, SEO. Writers save drafts; `articles:approve` publishes. Website:
+  `/{locale}/{articles}` with category filter, article page with share links (X, LinkedIn, WhatsApp, copy),
+  RSS at `/{locale}/{articles}/rss.xml`, the "latest articles" block, sitemap entries. Scheduled articles stay
+  hidden until their time (shown in preview).
+- **Editor**: TipTap 3.31.4 (admin only): headings, bold/italic/underline/strike, links, alignment, right-to-left
+  or left-to-right per paragraph, lists, quotes, tables, images with captions (normal upload flow), galleries,
+  YouTube/Vimeo, embeds; paste from Word or Google Docs is cleaned. Documents are stored as JSON; the website HTML
+  is rendered and sanitized on the server.
+- **Custom code and tracking**: code blocks and site-wide head/body code in sandboxed frames; analytics as
+  validated ids (Google Analytics, Meta Pixel, TikTok Pixel); new permission resources `pages`, `articles` and
+  `cms_code` (owner/administrator get `cms_code`); audit-logged; documented in `docs/SECURITY.md`.
+- Decisions: (1) site-wide "code in head" cannot run on the page itself under the sandbox-only rule, so analytics
+  are offered as id-based presets and free-form code is sandboxed; (2) the website HTML is rendered by a small
+  renderer for the editor's node set instead of `@tiptap/static-renderer`, which broke inside Next's
+  server-action bundle; (3) TipTap's JSON has prototype-less objects that server actions refuse, so the editor
+  sends a plain copy.
+- Found while testing: the link crawler's earlier report (five admin links opening new tabs without
+  `rel="noreferrer"`) and the wizard's second `h2` were fixed in a separate commit.

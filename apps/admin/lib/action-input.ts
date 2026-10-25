@@ -129,6 +129,9 @@ function valid(
 const PAYLOAD_LIMITS: Partial<Record<keyof typeof contracts, number>> = {
   previewPeopleImportAction: 900_000,
   importPeopleAction: 900_000,
+  // Page blocks and articles carry editor documents with long text.
+  saveCmsPageAction: 900_000,
+  saveCmsArticleAction: 900_000,
 };
 
 export function validateActionArguments(

@@ -11,6 +11,8 @@ import { getPortfolioItems } from "./portfolio";
 import { getActiveClientLogos } from "./clients";
 import { getFaqs } from "./faqs";
 import { getStatistics } from "./stats";
+import { listCmsPages } from "./cms-pages";
+import { getPublishedArticles } from "./cms-articles";
 
 export async function getPublicServices(): Promise<PublicService[]> {
   return db.service.findMany({
@@ -27,8 +29,10 @@ export async function getPublicServices(): Promise<PublicService[]> {
   });
 }
 export async function collectWebsiteDraft(config: WebsiteConfig) {
+  // Pages are created from the settings the first time; outside the snapshot transaction so they are kept.
+  await listCmsPages().catch(() => undefined);
   return runAtomicMutation(async () => {
-  const [banners, portfolio, clients, faqs, stats, services] =
+  const [banners, portfolio, clients, faqs, stats, services, pages, articles] =
     await Promise.all([
       getActiveBanners(),
       getPortfolioItems(),
@@ -36,6 +40,8 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
       getFaqs(false),
       getStatistics(),
       getPublicServices(),
+      listCmsPages(),
+      getPublishedArticles(),
     ]);
   // Query failures propagate; no redundant full-table count probes are needed.
   return {
@@ -46,6 +52,8 @@ export async function collectWebsiteDraft(config: WebsiteConfig) {
     faqs,
     stats,
     services,
+    pages,
+    articles,
   };
   }, "RepeatableRead");
 }
@@ -77,7 +85,7 @@ export async function getWebsiteSnapshot(
 }
 
 /** Snapshot sections an editor can change outside the Website page. */
-export const WEBSITE_SNAPSHOT_SECTIONS = ["config", "banners", "portfolio", "clients", "faqs", "stats", "services"] as const;
+export const WEBSITE_SNAPSHOT_SECTIONS = ["config", "banners", "portfolio", "clients", "faqs", "stats", "services", "pages", "articles"] as const;
 export type WebsiteSnapshotSection = (typeof WEBSITE_SNAPSHOT_SECTIONS)[number];
 
 // Postgres jsonb does not keep key order, so compare with keys sorted.

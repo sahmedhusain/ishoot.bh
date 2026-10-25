@@ -16,9 +16,11 @@ interface FooterProps {
   company: PublicCompanySettings;
   socialLinks?: SocialLink[];
   pages?: { id: string; visible: boolean }[];
+  /** Footer links built from the website's pages (lib/menus.ts); missing for websites published before pages existed. */
+  links?: { id: string; href: string; label: string }[];
 }
 
-export function Footer({ company, socialLinks = [], pages }: FooterProps) {
+export function Footer({ company, socialLinks = [], pages, links }: FooterProps) {
   const { t, locale, isRTL, site } = useTranslation();
   const pathname = usePathname();
   const showInvitation =
@@ -34,7 +36,7 @@ export function Footer({ company, socialLinks = [], pages }: FooterProps) {
     return map;
   }, [pages]);
 
-  const navLinks = [
+  const navLinks = links ?? [
     { id: "home", href: `/${locale}`, label: t("nav.home") },
     { id: "works", href: site ? collectionHref(site, locale) : `/${locale}/works`, label: t("nav.works") },
     { id: "about", href: `/${locale}/about`, label: t("nav.about") },

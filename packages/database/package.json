@@ -15,7 +15,8 @@
     "./services/*": "./src/services/*.ts",
     "./constants/*": "./src/constants/*.ts",
     "./finance/*": "./src/finance/*.ts",
-    "./hr/*": "./src/hr/*.ts"
+    "./hr/*": "./src/hr/*.ts",
+    "./cms/*": "./src/cms/*.ts"
   },
   "scripts": {
     "db:generate": "prisma generate --schema=prisma/schema.prisma",

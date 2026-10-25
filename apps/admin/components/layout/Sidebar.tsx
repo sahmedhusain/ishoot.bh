@@ -43,6 +43,9 @@ import {
   HandHeart,
   FileCheck2,
   ClipboardList,
+  Newspaper,
+  Menu,
+  Code2,
 } from "lucide-react";
 import { usePermissions, PermissionResource } from "../../hooks/usePermissions";
 import { useSidebar } from "./SidebarContext";
@@ -355,6 +358,35 @@ export function Sidebar() {
             moduleKey: "cms",
           },
           {
+            href: ROUTES.cms.pages,
+            label: t.nav.pages,
+            icon: FileText,
+            resource: "pages",
+            moduleKey: "cms",
+          },
+          {
+            href: ROUTES.cms.articles,
+            label: t.nav.articles,
+            icon: Newspaper,
+            resource: "articles",
+            moduleKey: "cms",
+          },
+          {
+            href: ROUTES.cms.menus,
+            label: t.nav.menus,
+            icon: Menu,
+            resource: "pages",
+            action: "edit",
+            moduleKey: "cms",
+          },
+          {
+            href: ROUTES.cms.code,
+            label: t.nav.siteCode,
+            icon: Code2,
+            resource: "cms_code",
+            moduleKey: "cms",
+          },
+          {
             href: ROUTES.cms.banners,
             label: t.nav.banners,
             icon: Film,
@@ -548,6 +580,9 @@ export function Sidebar() {
         items: take([
           ROUTES.analytics,
           ROUTES.cms.website,
+          ROUTES.cms.pages,
+          ROUTES.cms.articles,
+          ROUTES.cms.menus,
           ROUTES.cms.portfolio,
           ROUTES.cms.banners,
           ROUTES.cms.clients,
@@ -595,6 +630,7 @@ export function Sidebar() {
             action: "edit",
           },
           ...take([
+            ROUTES.cms.code,
             ROUTES.settings.web,
             ROUTES.settings.modules,
             ROUTES.settings.audit,

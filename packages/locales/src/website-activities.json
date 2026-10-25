@@ -116,7 +116,8 @@
   "agency": {
     "en": {
       "nav": {
-        "works": "Case studies"
+        "works": "Case studies",
+        "articles": "Insights"
       },
       "portfolio": {
         "badge": "Selected work",
@@ -141,11 +142,17 @@
       "footer": {
         "invitationTitle": "Your next campaign. Built together.",
         "invitationAction": "Start a project"
+      },
+      "articles": {
+        "slug": "insights",
+        "title": "Insights",
+        "badge": "Insights"
       }
     },
     "ar": {
       "nav": {
-        "works": "دراسات الحالة"
+        "works": "دراسات الحالة",
+        "articles": "رؤى"
       },
       "portfolio": {
         "badge": "مختارات من أعمالنا",
@@ -170,13 +177,19 @@
       "footer": {
         "invitationTitle": "حملتك القادمة. نبنيها معاً.",
         "invitationAction": "ابدأ مشروعاً"
+      },
+      "articles": {
+        "slug": "insights",
+        "title": "رؤى وأفكار",
+        "badge": "رؤى"
       }
     }
   },
   "products": {
     "en": {
       "nav": {
-        "works": "Products"
+        "works": "Products",
+        "articles": "Blog"
       },
       "portfolio": {
         "badge": "Our range",
@@ -207,11 +220,17 @@
       },
       "cta": {
         "requestTreatment": "Request a quote"
+      },
+      "articles": {
+        "slug": "blog",
+        "title": "From our blog",
+        "badge": "Blog"
       }
     },
     "ar": {
       "nav": {
-        "works": "المنتجات"
+        "works": "المنتجات",
+        "articles": "المدونة"
       },
       "portfolio": {
         "badge": "تشكيلتنا",
@@ -242,13 +261,19 @@
       },
       "cta": {
         "requestTreatment": "اطلب عرض سعر"
+      },
+      "articles": {
+        "slug": "blog",
+        "title": "من مدونتنا",
+        "badge": "المدونة"
       }
     }
   },
   "food": {
     "en": {
       "nav": {
-        "works": "Menu"
+        "works": "Menu",
+        "articles": "Blog"
       },
       "portfolio": {
         "badge": "Our menu",
@@ -282,11 +307,17 @@
       },
       "cta": {
         "requestTreatment": "Book a table"
+      },
+      "articles": {
+        "slug": "blog",
+        "title": "From our kitchen",
+        "badge": "Blog"
       }
     },
     "ar": {
       "nav": {
-        "works": "القائمة"
+        "works": "القائمة",
+        "articles": "المدونة"
       },
       "portfolio": {
         "badge": "قائمتنا",
@@ -320,6 +351,11 @@
       },
       "cta": {
         "requestTreatment": "احجز طاولة"
+      },
+      "articles": {
+        "slug": "blog",
+        "title": "من مطبخنا",
+        "badge": "المدونة"
       }
     }
   },

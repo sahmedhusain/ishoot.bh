@@ -35,6 +35,9 @@ export const ALL_RESOURCES = [
   "assets",
   "announcements",
   "letters",
+  "pages",
+  "articles",
+  "cms_code",
 ] as const;
 
 export const ALL_ACTIONS = [
@@ -146,6 +149,9 @@ export const DEFAULT_ROLE_RULES: Record<
     assets: [...CRUD, "export", "approve"],
     announcements: [...CRUD, "export", "approve"],
     letters: [...CRUD, "export", "approve", "issue_send"],
+    pages: CRUD,
+    articles: [...CRUD, "approve"],
+    cms_code: ["read", "edit"],
   },
   finance_manager: {
     announcements: ["read", "write", "create", "edit"],
@@ -226,6 +232,8 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   marketing: {
+    pages: ["read", "write", "create", "edit"],
+    articles: [...CRUD, "approve"],
     announcements: ["read"],
     banners: CRUD,
     portfolio: CRUD,
@@ -288,6 +296,8 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   pr_officer: {
+    articles: [...CRUD, "approve"],
+    pages: ["read"],
     announcements: [...CRUD, "approve"],
     letters: ["read", "write", "create", "edit"],
     social: [...CRUD, "export"],
@@ -353,6 +363,8 @@ export const DEFAULT_ROLE_RULES: Record<
     self_service: SELF_SERVICE,
   },
   editor: {
+    pages: ["read", "write", "create", "edit"],
+    articles: ["read", "write", "create", "edit"],
     announcements: ["read"],
     portfolio: ["read", "write", "create", "edit"],
     banners: ["read", "write", "create", "edit"],
@@ -399,6 +411,9 @@ export const RESOURCE_FEATURES: Partial<Record<PermissionResource, string>> = {
   clients: "cms",
   faqs: "cms",
   stats: "cms",
+  pages: "cms",
+  articles: "cms",
+  cms_code: "cms",
   equipment: "equipment",
   reviews: "reviews",
   employees: "hrms",
@@ -457,6 +472,9 @@ export const PERMISSION_GROUPS: ReadonlyArray<{
       "faqs",
       "stats",
       "social",
+      "pages",
+      "articles",
+      "cms_code",
     ],
   },
   { key: "operations", resources: ["calendar", "assets"] },

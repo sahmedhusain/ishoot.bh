@@ -26,6 +26,24 @@
   timeout and no redirects, and reports a state, never the response body. `/api/health` returns the app name and a
   hash of the company record's id, nothing else.
 
+## Website custom code and embeds
+
+- Custom-code blocks and site-wide code need `cms_code:edit` (owner and administrators by default). Adding or
+  changing them is refused without it, even through the general website save, and every change is written to the
+  audit log with the code itself.
+- Custom code always runs in a sandboxed iframe (`srcdoc`, `sandbox="allow-scripts allow-popups allow-forms"`, no
+  `allow-same-origin`): it cannot read the website's cookies, storage or DOM, or call its APIs as the visitor. The
+  frame reports its height with `postMessage`; the page accepts only messages from that frame. There is no
+  "trusted inline script" mode. Site-wide head and body code runs in a hidden frame of the same kind.
+- Analytics are not free-form code: the company enters a Google Analytics, Meta Pixel or TikTok Pixel id, checked
+  against a strict pattern, and the website builds the official tag around it.
+- Embeds (YouTube, Vimeo, Instagram, Google Maps, Calendly, Typeform) load only https addresses on each provider's
+  own hosts (`embedSource` in `packages/database/src/cms/blocks.ts`).
+- Article and rich-text HTML is built on the server from the editor's document (never taken from the browser) and
+  cleaned with an allow-list (`apps/admin/lib/rich-text/render.ts`): formatting, links (`rel="noopener noreferrer
+  nofollow"`), images, tables and frames for the embed providers only; scripts, event handlers and other schemes
+  are dropped. Code blocks and site code are previewed through the normal signed draft preview before publishing.
+
 ## Data protection
 
 - Integration credentials (WhatsApp, Facebook and others) are encrypted with AES-256-GCM using `ENCRYPTION_KEY`.

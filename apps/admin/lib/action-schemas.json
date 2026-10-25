@@ -1293,6 +1293,222 @@
       }
     }
   },
+  "saveCmsArticleAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "slug": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "excerpt_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "excerpt_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "body_en": {
+            "kind": "unknown",
+            "optional": false
+          },
+          "body_ar": {
+            "kind": "unknown",
+            "optional": false
+          },
+          "cover_url": {
+            "kind": "string",
+            "optional": false
+          },
+          "category": {
+            "kind": "string",
+            "optional": false
+          },
+          "tags": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "author_name": {
+            "kind": "string",
+            "optional": false
+          },
+          "status": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "draft"
+              },
+              {
+                "kind": "literal",
+                "value": "published"
+              }
+            ],
+            "optional": false
+          },
+          "publish_at": {
+            "kind": "string",
+            "optional": false
+          },
+          "featured": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "seo_title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_description_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_description_ar": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteCmsArticleAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveCmsPageAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "slug": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_title_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_title_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_description_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "seo_description_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "blocks": {
+            "kind": "unknown",
+            "optional": false
+          },
+          "is_visible": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "in_header": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "in_footer": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "duplicateCmsPageAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "deleteCmsPageAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "updateCmsPagesListAction": {
+    "kind": "object",
+    "fields": {
+      "pages": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "id": {
+              "kind": "string",
+              "optional": false
+            },
+            "is_visible": {
+              "kind": "boolean",
+              "optional": false
+            },
+            "in_header": {
+              "kind": "boolean",
+              "optional": false
+            },
+            "in_footer": {
+              "kind": "boolean",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "toggleBannerStatusAction": {
     "kind": "object",
     "fields": {
@@ -11311,6 +11527,10 @@
       "locale": {
         "kind": "string",
         "optional": false
+      },
+      "path": {
+        "kind": "string",
+        "optional": true
       }
     }
   },
@@ -11327,6 +11547,169 @@
       },
       "imageUrl": {
         "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "saveWebsiteMenusAction": {
+    "kind": "object",
+    "fields": {
+      "menus": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "object",
+            "fields": {
+              "header": {
+                "kind": "array",
+                "element": {
+                  "kind": "object",
+                  "fields": {
+                    "kind": {
+                      "kind": "union",
+                      "variants": [
+                        {
+                          "kind": "literal",
+                          "value": "page"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "catalogue"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "articles"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "external"
+                        }
+                      ],
+                      "optional": false
+                    },
+                    "pageId": {
+                      "kind": "string",
+                      "optional": true
+                    },
+                    "url": {
+                      "kind": "string",
+                      "optional": true
+                    },
+                    "labelEn": {
+                      "kind": "string",
+                      "optional": false
+                    },
+                    "labelAr": {
+                      "kind": "string",
+                      "optional": false
+                    }
+                  }
+                },
+                "optional": false
+              },
+              "footer": {
+                "kind": "array",
+                "element": {
+                  "kind": "object",
+                  "fields": {
+                    "kind": {
+                      "kind": "union",
+                      "variants": [
+                        {
+                          "kind": "literal",
+                          "value": "page"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "catalogue"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "articles"
+                        },
+                        {
+                          "kind": "literal",
+                          "value": "external"
+                        }
+                      ],
+                      "optional": false
+                    },
+                    "pageId": {
+                      "kind": "string",
+                      "optional": true
+                    },
+                    "url": {
+                      "kind": "string",
+                      "optional": true
+                    },
+                    "labelEn": {
+                      "kind": "string",
+                      "optional": false
+                    },
+                    "labelAr": {
+                      "kind": "string",
+                      "optional": false
+                    }
+                  }
+                },
+                "optional": false
+              }
+            }
+          },
+          {
+            "kind": "literal",
+            "value": null
+          }
+        ],
+        "optional": false
+      },
+      "articles": {
+        "kind": "object",
+        "fields": {
+          "slug": {
+            "kind": "string",
+            "optional": false
+          },
+          "navEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "navAr": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveWebsiteCodeAction": {
+    "kind": "object",
+    "fields": {
+      "code": {
+        "kind": "object",
+        "fields": {
+          "googleAnalyticsId": {
+            "kind": "string",
+            "optional": false
+          },
+          "metaPixelId": {
+            "kind": "string",
+            "optional": false
+          },
+          "tiktokPixelId": {
+            "kind": "string",
+            "optional": false
+          },
+          "headHtml": {
+            "kind": "string",
+            "optional": false
+          },
+          "bodyHtml": {
+            "kind": "string",
+            "optional": false
+          }
+        },
         "optional": false
       }
     }

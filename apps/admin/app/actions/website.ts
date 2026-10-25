@@ -14,8 +14,12 @@ import {
 import {
   validateWebsiteConfig,
   safeWebsiteUrl,
+  type WebsiteArticles,
+  type WebsiteCode,
+  type WebsiteConfig,
+  type WebsiteMenus,
 } from "@platform/database/website-config";
-import { requirePermission } from "../../lib/auth";
+import { hasPermission, requirePermission } from "../../lib/auth";
 import { revalidatePath } from "next/cache";
 import { revalidatePublicSite } from "../../lib/revalidate-web";
 import { publicSitePaths } from "../../lib/public-paths";
@@ -26,6 +30,9 @@ export async function saveWebsiteDraftAction(value: unknown, revision: number) {
     await requireFeatureEnabled("cms");
     validateActionArguments("saveWebsiteDraftAction", { value, revision });
     const config = validateWebsiteConfig(value);
+    // Site-wide tracking and code only change with the custom-code permission (it runs on every page).
+    const stored = validateWebsiteConfig((await getWebsiteEditor()).draft);
+    if (JSON.stringify(config.code ?? null) !== JSON.stringify(stored.code ?? null) && !(await hasPermission("cms_code", "edit"))) throw new Error(serverMessages.cmsCodePermission);
     await db.$transaction(async (tx) => {
       const updated = await tx.websiteContent.updateMany({
         where: { id: "main", revision },
@@ -182,11 +189,12 @@ export async function restoreWebsiteAction(revision: number) {
     }
   });
 }
-export async function previewWebsiteAction(locale: string) {
+/** A signed link that turns on draft preview in the website and opens `path` (a page of the website, default its home). */
+export async function previewWebsiteAction(locale: string, path?: string) {
   return measureOperation("action:previewWebsiteAction", async () => {
     await requirePermission("settings", "read");
     await requireFeatureEnabled("cms");
-    validateActionArguments("previewWebsiteAction", { locale });
+    validateActionArguments("previewWebsiteAction", { locale, path });
     const secret = process.env.REVALIDATION_SECRET;
     const web = process.env.WEB_URL;
     if (!secret || !web)
@@ -197,7 +205,8 @@ export async function previewWebsiteAction(locale: string) {
     const token = createHmac("sha256", secret)
       .update(`website-preview:${expires}`)
       .digest("hex");
-    return `${web}/api/preview?expires=${expires}&token=${token}&locale=${locale === "ar" ? "ar" : "en"}`;
+    const target = path && /^\/(en|ar)(\/[a-z0-9-/]*)?$/.test(path) ? `&path=${encodeURIComponent(path)}` : "";
+    return `${web}/api/preview?expires=${expires}&token=${token}&locale=${locale === "ar" ? "ar" : "en"}${target}`;
   });
 }
 export async function updateWebsiteServiceAction(
@@ -236,5 +245,40 @@ export async function updateWebsiteServiceAction(
       });
     });
     revalidatePath(ROUTES.cms.website);
+  });
+}
+
+/** Merges part of the website settings into the draft (menus, articles address, site code) and logs it. */
+async function updateWebsiteDraft(userId: string, patch: Partial<WebsiteConfig>, operation: string, details: Record<string, unknown> = {}) {
+  const content = await getWebsiteEditor();
+  const config = validateWebsiteConfig({ ...validateWebsiteConfig(content.draft), ...patch });
+  await db.$transaction(async (tx) => {
+    const updated = await tx.websiteContent.updateMany({ where: { id: "main", revision: content.revision }, data: { draft: JSON.parse(JSON.stringify(config)), revision: { increment: 1 } } });
+    if (!updated.count) throw new Error(serverMessages.contentChangedRefreshBeforePublishing);
+    await tx.activityLog.create({ data: { userId, action: "update", entityType: "website", entityId: "main", details: { operation, ...details } } });
+  });
+  revalidatePath(ROUTES.cms.website);
+  revalidatePath(ROUTES.cms.menus);
+}
+
+/** Website → Menus: the header and footer menus and the articles address and name. */
+export async function saveWebsiteMenusAction(menus: WebsiteMenus | null, articles: WebsiteArticles) {
+  return measureOperation("action:saveWebsiteMenusAction", async () => {
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("pages", "edit");
+    validateActionArguments("saveWebsiteMenusAction", { menus, articles });
+    await updateWebsiteDraft(user.id, { menus: menus ?? undefined, articles }, "menus");
+    return { success: true };
+  });
+}
+
+/** Website → Tracking and code: analytics ids and site-wide code. Owner and administrators by default; audit-logged. */
+export async function saveWebsiteCodeAction(code: WebsiteCode) {
+  return measureOperation("action:saveWebsiteCodeAction", async () => {
+    await requireFeatureEnabled("cms");
+    const user = await requirePermission("cms_code", "edit");
+    validateActionArguments("saveWebsiteCodeAction", { code });
+    await updateWebsiteDraft(user.id, { code }, "code", { code });
+    return { success: true };
   });
 }

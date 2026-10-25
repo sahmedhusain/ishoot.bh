@@ -53,7 +53,8 @@
     "bookNow": "احجز إنتاجك",
     "switchLang": "English",
     "adminPortal": "لوحة الإدارة",
-    "webSettings": "إعدادات الموقع"
+    "webSettings": "إعدادات الموقع",
+    "articles": "الأخبار"
   },
   "hero": {
     "badge": "دار إنتاج سينمائي",
@@ -696,5 +697,30 @@
     "title": "{companyName}",
     "description": "تعرّف على شركتنا وخدماتنا وأعمالنا.",
     "imageAlt": "شعار {companyName}"
+  },
+  "articles": {
+    "slug": "news",
+    "badge": "المركز الإعلامي",
+    "title": "الأخبار والمستجدات",
+    "subtitle": "آخر أعمالنا وإعلاناتنا وبياناتنا الصحفية.",
+    "allCategories": "الكل",
+    "empty": "لم يُنشر شيء بعد.",
+    "readMore": "اقرأ المزيد",
+    "back": "كل المقالات",
+    "by": "بقلم {author}",
+    "share": "مشاركة",
+    "shareX": "مشاركة على X",
+    "shareLinkedIn": "مشاركة على لينكدإن",
+    "shareWhatsApp": "مشاركة عبر واتساب",
+    "copyLink": "نسخ الرابط",
+    "copied": "تم نسخ الرابط",
+    "rss": "خلاصة RSS",
+    "latest": "أحدث المقالات",
+    "categories": {
+      "news": "أخبار",
+      "update": "مستجدات",
+      "post": "مقالات",
+      "press_release": "بيانات صحفية"
+    }
   }
 }

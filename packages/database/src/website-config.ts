@@ -42,6 +42,40 @@ export interface WebsiteCollection {
   subtitleAr: string;
 }
 
+/** Where the website lists articles ("news", "blog", "updates"…) and what the menu calls them. */
+export interface WebsiteArticles {
+  slug: string;
+  navEn: string;
+  navAr: string;
+}
+
+/** One menu link: a page (by id), the catalogue, the articles list, or another website. */
+export interface WebsiteMenuItem {
+  kind: "page" | "catalogue" | "articles" | "external";
+  pageId?: string;
+  url?: string;
+  /** The company's own wording; empty uses the page's or section's name. */
+  labelEn: string;
+  labelAr: string;
+}
+
+export interface WebsiteMenus {
+  header: WebsiteMenuItem[];
+  footer: WebsiteMenuItem[];
+}
+
+/**
+ * Site-wide tracking and code. Analytics are known tags filled from an id (run on the page, built by the website);
+ * free-form code runs in a hidden sandboxed frame, like custom-code blocks (docs/SECURITY.md).
+ */
+export interface WebsiteCode {
+  googleAnalyticsId: string;
+  metaPixelId: string;
+  tiktokPixelId: string;
+  headHtml: string;
+  bodyHtml: string;
+}
+
 export interface WebsiteSeo {
   titleEn: string;
   titleAr: string;
@@ -64,6 +98,10 @@ export interface WebsiteConfig {
   pillars?: WebsitePillar[];
   sections: { id: WebsiteSection; visible: boolean }[];
   pages?: { id: WebsitePage; visible: boolean }[];
+  articles?: WebsiteArticles;
+  /** Missing: built from the pages' header and footer flags. */
+  menus?: WebsiteMenus;
+  code?: WebsiteCode;
   contactTitleEn: string;
   contactTitleAr: string;
   contactIntroEn: string;
@@ -76,7 +114,16 @@ export interface WebsiteConfig {
 
 /** A website config with every optional setting filled in, as the public website reads it. */
 export type ResolvedWebsiteConfig = WebsiteConfig &
-  Required<Pick<WebsiteConfig, "purpose" | "heroStyle" | "collection" | "inquiry" | "seo" | "showEquipment" | "whatsappButton" | "pages">>;
+  Required<Pick<WebsiteConfig, "purpose" | "heroStyle" | "collection" | "inquiry" | "seo" | "showEquipment" | "whatsappButton" | "pages" | "articles" | "code">>;
+
+export const EMPTY_WEBSITE_CODE: WebsiteCode = { googleAnalyticsId: "", metaPixelId: "", tiktokPixelId: "", headHtml: "", bodyHtml: "" };
+
+/** The articles address an activity starts with, named from the website copy. */
+export function articlesForActivity(activity: BusinessActivity): WebsiteArticles {
+  const en = getWebsiteTranslations("en", activity);
+  const ar = getWebsiteTranslations("ar", activity);
+  return { slug: en.articles.slug, navEn: en.nav.articles, navAr: ar.nav.articles };
+}
 
 export const defaultWebsitePages: { id: WebsitePage; visible: boolean }[] = [
   { id: "works", visible: true },
@@ -138,6 +185,8 @@ export function resolveWebsiteConfig(config: WebsiteConfig): ResolvedWebsiteConf
     showEquipment: config.showEquipment ?? preset.showEquipment,
     whatsappButton: config.whatsappButton ?? true,
     pages: config.pages ?? defaultWebsitePages,
+    articles: config.articles ?? articlesForActivity(purpose),
+    code: config.code ?? EMPTY_WEBSITE_CODE,
   };
 }
 
@@ -230,6 +279,48 @@ export function validateWebsiteConfig(value: unknown): WebsiteConfig {
     if (data[key] === undefined) continue;
     if (typeof data[key] !== "boolean") throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
     result[key] = data[key] as boolean;
+  }
+  if (data.articles !== undefined) {
+    const raw = data.articles as Record<string, unknown> | null;
+    const names = textGroup(raw, ["navEn", "navAr"] as const, "articles", 120);
+    const slug = text(raw?.slug, "articles.slug", 40).toLowerCase();
+    if (!COLLECTION_SLUG.test(slug) || RESERVED_COLLECTION_SLUGS.includes(slug) || slug === result.collection?.slug) throw new Error(serverMessages.invalidCollectionAddress);
+    result.articles = { slug, ...names };
+  }
+  if (data.menus !== undefined) {
+    const raw = (data.menus ?? {}) as Record<string, unknown>;
+    const menu = (value: unknown): WebsiteMenuItem[] => {
+      if (!Array.isArray(value) || value.length > 20) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "menus" }));
+      return value.map((item) => {
+        const entry = (item ?? {}) as Record<string, unknown>;
+        const kind = entry.kind as WebsiteMenuItem["kind"];
+        if (!["page", "catalogue", "articles", "external"].includes(kind)) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "menus" }));
+        const labels = textGroup(entry, ["labelEn", "labelAr"] as const, "menus", 80);
+        if (kind === "page") return { kind, pageId: text(entry.pageId, "menus.pageId", 60), ...labels };
+        if (kind === "external") {
+          const url = safeWebsiteUrl(text(entry.url, "menus.url", 500));
+          if (!url || !(labels.labelEn || labels.labelAr)) throw new Error(formatMessage(serverTemplates.invalid0, { 0: "menus" }));
+          return { kind, url, ...labels };
+        }
+        return { kind, ...labels };
+      });
+    };
+    result.menus = { header: menu(raw.header), footer: menu(raw.footer) };
+  }
+  if (data.code !== undefined) {
+    const raw = (data.code ?? {}) as Record<string, unknown>;
+    const id = (key: string, pattern: RegExp) => {
+      const value = text(raw[key] ?? "", `code.${key}`, 40);
+      if (value && !pattern.test(value)) throw new Error(formatMessage(serverTemplates.invalid0, { 0: key }));
+      return value;
+    };
+    result.code = {
+      googleAnalyticsId: id("googleAnalyticsId", /^G-[A-Z0-9]{4,20}$/),
+      metaPixelId: id("metaPixelId", /^\d{6,20}$/),
+      tiktokPixelId: id("tiktokPixelId", /^[A-Z0-9]{8,30}$/),
+      headHtml: typeof raw.headHtml === "string" ? raw.headHtml.slice(0, 50_000) : "",
+      bodyHtml: typeof raw.bodyHtml === "string" ? raw.bodyHtml.slice(0, 50_000) : "",
+    };
   }
   if (!result.contactTitleEn || !result.contactTitleAr)
     throw new Error(serverMessages.contactTitlesAreRequiredInBothLanguages);

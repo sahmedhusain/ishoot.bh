@@ -53,7 +53,8 @@
     "bookNow": "Book Production",
     "switchLang": "العربية",
     "adminPortal": "Admin Portal",
-    "webSettings": "Website Settings"
+    "webSettings": "Website Settings",
+    "articles": "News"
   },
   "hero": {
     "badge": "Cinema Production House",
@@ -696,5 +697,30 @@
     "title": "{companyName}",
     "description": "Learn more about our company, services and work.",
     "imageAlt": "{companyName} logo"
+  },
+  "articles": {
+    "slug": "news",
+    "badge": "Newsroom",
+    "title": "News & updates",
+    "subtitle": "What we have been working on, announcements and press releases.",
+    "allCategories": "All",
+    "empty": "Nothing published yet.",
+    "readMore": "Read more",
+    "back": "All articles",
+    "by": "By {author}",
+    "share": "Share",
+    "shareX": "Share on X",
+    "shareLinkedIn": "Share on LinkedIn",
+    "shareWhatsApp": "Share on WhatsApp",
+    "copyLink": "Copy link",
+    "copied": "Link copied",
+    "rss": "RSS feed",
+    "latest": "Latest articles",
+    "categories": {
+      "news": "News",
+      "update": "Updates",
+      "post": "Posts",
+      "press_release": "Press releases"
+    }
   }
 }

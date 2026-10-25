@@ -89,6 +89,13 @@ export const ROUTES = {
     reviews: "/dashboard/cms/reviews",
     stats: "/dashboard/cms/stats",
     website: "/dashboard/cms/website",
+    pages: "/dashboard/cms/pages",
+    page: (id: string) => `/dashboard/cms/pages/${encodeURIComponent(id)}`,
+    menus: "/dashboard/cms/menus",
+    code: "/dashboard/cms/code",
+    articles: "/dashboard/cms/articles",
+    article: (id: string) => `/dashboard/cms/articles/${encodeURIComponent(id)}`,
+    newArticle: "/dashboard/cms/articles/new",
   },
   company: {
     documents: "/dashboard/company/documents",

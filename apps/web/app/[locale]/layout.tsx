@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { isValidLocale } from "../../lib/i18n";
 import { getSite, requireSiteLanguage, siteTranslations } from "../../lib/site";
 import { Navbar } from "../../components/layout/Navbar";
+import { siteMenus } from "../../lib/menus";
+import { SiteAnalytics, SiteCustomCode } from "../../components/site/SiteCode";
 import { Footer } from "../../components/layout/Footer";
 import { SmoothScroll } from "../../components/layout/SmoothScroll";
 import { FloatingScrollbar } from "../../components/layout/FloatingScrollbar";
@@ -39,6 +41,7 @@ export default async function LocaleLayout({
     siteTranslations(locale),
   ]);
   const isRTL = locale === "ar";
+  const menus = siteMenus(website, config, info, locale);
   const fontsHref = googleFontsHref(company.theme);
   const head = (
     <head>
@@ -50,6 +53,7 @@ export default async function LocaleLayout({
         </>
       ) : null}
       <style id="company-theme" dangerouslySetInnerHTML={{ __html: themeStylesheet(company.theme) }} />
+      {enabled && website && !preview ? <SiteAnalytics code={config.code} /> : null}
     </head>
   );
 
@@ -91,11 +95,12 @@ export default async function LocaleLayout({
           <FloatingScrollbar />
           <BackToTop />
           <SmoothScroll>
-            <Navbar company={company} pages={config.pages} />
+            <Navbar company={company} pages={config.pages} links={menus?.header} />
             <main id="main-content" className="w-full">
               {children}
             </main>
-            <Footer company={company} socialLinks={socialLinks} pages={config.pages} />
+            <Footer company={company} socialLinks={socialLinks} pages={config.pages} links={menus?.footer} />
+            {!preview ? <SiteCustomCode code={config.code} /> : null}
           </SmoothScroll>
           {info.whatsappButton && company.whatsapp_phone ? <WhatsAppButton phone={company.whatsapp_phone} /> : null}
         </SiteProvider>

@@ -770,3 +770,24 @@ body header[class~="fixed"][class~="border-b"] {
     transform: translate(-2px, -2px) scaleX(-1);
   }
 }
+
+/* Articles and rich-text blocks: HTML written in the admin editor (sanitized when saved). */
+.rich-text { color: rgb(var(--ui-ink-muted, 203 213 225)); font-size: 1.0625rem; line-height: 1.8; }
+.rich-text > * + * { margin-top: 1.1em; }
+.rich-text h2, .rich-text h3, .rich-text h4 { color: #fff; font-family: var(--brand-font-heading, inherit); font-weight: 700; line-height: 1.25; margin-top: 1.8em; }
+.rich-text h2 { font-size: 1.75rem; }
+.rich-text h3 { font-size: 1.35rem; }
+.rich-text a { color: rgb(var(--brand-accent)); text-decoration: underline; text-underline-offset: 3px; }
+.rich-text strong { color: #fff; }
+.rich-text ul { list-style: disc; padding-inline-start: 1.5em; }
+.rich-text ol { list-style: decimal; padding-inline-start: 1.5em; }
+.rich-text blockquote { border-inline-start: 3px solid rgb(var(--brand-accent)); padding-inline-start: 1em; color: #fff; font-style: italic; }
+.rich-text figure img, .rich-text > img { border-radius: 1.25rem; width: 100%; height: auto; }
+.rich-text figcaption { font-size: 0.8125rem; margin-top: 0.5em; opacity: 0.8; }
+.rich-text table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.rich-text th, .rich-text td { border: 1px solid rgb(255 255 255 / 0.12); padding: 0.5em 0.75em; text-align: start; }
+.rich-text th { color: #fff; background: rgb(255 255 255 / 0.04); }
+.rich-text .rt-gallery { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.rich-text .rt-gallery img { border-radius: 1rem; aspect-ratio: 4 / 3; object-fit: cover; width: 100%; }
+.rich-text iframe { width: 100%; aspect-ratio: 16 / 9; height: auto; border: 0; border-radius: 1.25rem; }
+.rich-text .rt-embed[data-preset="instagram"] iframe, .rich-text .rt-embed[data-preset="calendly"] iframe, .rich-text .rt-embed[data-preset="typeform"] iframe { aspect-ratio: auto; height: 640px; background: #fff; }
