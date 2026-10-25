@@ -101,6 +101,17 @@
         "pv2_seeded_test"
       ],
       "port": 3022
+    },
+    {
+      "name": "admin-volume",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "admin",
+        "3023",
+        "pv2_volume_test"
+      ],
+      "port": 3023
     }
   ]
 }

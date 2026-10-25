@@ -76,6 +76,7 @@ export const ROUTES = {
     templates: "/dashboard/letters/templates",
   },
   directory: "/dashboard/directory",
+  orgChart: "/dashboard/directory/org",
   team: "/dashboard/team",
   profile: (query?: HighlightQuery) => withQuery("/dashboard/profile", query),
   services: "/dashboard/services",
@@ -126,6 +127,7 @@ export const ROUTES = {
     documents: (query?: HighlightQuery) =>
       withQuery("/dashboard/hr/documents", query),
     employees: "/dashboard/hr/employees",
+    importEmployees: "/dashboard/hr/employees/import",
     employee: (id: string) => `/dashboard/hr/employees/${encode(id)}`,
     newEmployee: (query?: NewEmployeeQuery) =>
       withQuery("/dashboard/hr/employees/new", query),

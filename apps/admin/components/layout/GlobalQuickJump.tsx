@@ -8,8 +8,7 @@ FileText,
 Briefcase,
 ArrowRight,
 Loader2,
-X
-} from "lucide-react";
+X, UserRound } from "lucide-react";
 import { globalSearchAction } from "../../app/actions/crm";
 import type { GlobalSearchResult } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -95,6 +94,12 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
     }
   };
 
+  /** Role, stage and status codes read as words. */
+  const badgeLabel = (category: string, badge: string) => {
+    const table = (category === "people" ? t.roles : category === "deals" ? t.stages : t.statusLabels) as Record<string, string>;
+    return table[badge] ?? badge.replaceAll("_", " ");
+  };
+
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case "customers":
@@ -103,6 +108,8 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
         return <FileText className="w-4 h-4 text-amber-500" />;
       case "deals":
         return <Briefcase className="w-4 h-4 text-emerald-500" />;
+      case "people":
+        return <UserRound className="w-4 h-4 text-sky-500" />;
       default:
         return <Search className="w-4 h-4 text-slate-400" />;
     }
@@ -204,7 +211,7 @@ export function GlobalQuickJump({ className }: { className?: string } = {}) {
                     <div className="flex items-center gap-2 shrink-0">
                       {result.badge && (
                         <span className="px-2 py-0.5 rounded-full text-[10px]  uppercase bg-slate-200/60 dark:bg-white/10">
-                          {result.badge}
+                          {badgeLabel(result.category, result.badge)}
                         </span>
                       )}
                       <ArrowRight className="w-3.5 h-3.5 opacity-50" />

@@ -268,3 +268,25 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   to "all" scopes, so someone with a wider scope triages them.
 - Fixed a pre-existing check failure: `check-followup-db` loaded `actions/website.ts` without a mock for
   `lib/public-paths`.
+
+### Phase 2d: people at scale (done)
+
+- Users: server-side search (name, email, phone, Arabic name, employee number), filters (role, department,
+  status) and 50-row pages; select accounts and change their role or department in bulk
+  (`bulkUpdateUsersAction`, the same guard as editing one account: no Super Admins, never a role above the
+  actor's own). Manager pickers read a light list of active accounts instead of the page.
+- Directory: searched and paged (48) on the server; the department filter includes sub-departments. People also
+  appear in the global search (Cmd+K) for everyone, with role badges in words; the deals in that search now follow
+  the data scope.
+- Org chart (`/dashboard/directory/org`): the department tree with head, deputy, a few people and a link to the
+  rest; collapsible, reduced-motion safe.
+- Import (`/dashboard/hr/employees/import`): CSV (comma or semicolon, quoted cells, BOM) with a downloadable
+  template, a preview of every row's problems (names, titles, dates, salary and payroll access, department codes,
+  emails used or repeated, roles the importer may give, managers), then import of the ready rows: employee
+  records and, where a role is given, accounts (random password; people use "Forgot password"), managers linked
+  last. Up to 2,000 rows; the two import actions may carry up to 900 kB (`PAYLOAD_LIMITS` in `action-input.ts`).
+- Indexes for list order and filters (migration `20261026150000_list_indexes`).
+- `pnpm test:volume` (`scripts/check-volume.cjs`): 2,000 employees, 1,500 accounts, 35 nested departments and
+  50,000 records; 14 lists timed against 1.5 s each. Local run: every list under 40 ms.
+- Fixed while here: my first pipeline migration gave `DealPipelineStage.updatedAt` a database default that the
+  Prisma schema does not declare (schema drift); corrected in that unreleased migration.

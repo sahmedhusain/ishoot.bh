@@ -105,6 +105,8 @@ model User {
 
   @@index([role])
   @@index([departmentId])
+  @@index([fullName])
+  @@index([isActive, archivedAt])
 }
 
 model CompanySetting {
@@ -352,6 +354,7 @@ model Inquiry {
   @@index([customerId])
   @@index([emailNorm])
   @@index([phoneE164])
+  @@index([workflowStatus, createdAt])
 }
 
 model InquiryNote {
@@ -444,6 +447,7 @@ model CrmContact {
   @@index([phoneE164])
   @@index([clientKind])
   @@index([crNumber])
+  @@index([createdAt])
 }
 
 /// A point of contact at a company or government client. The primary one is mirrored onto the client
@@ -497,6 +501,7 @@ model CrmDeal {
   @@index([contactId])
   @@index([dealStage])
   @@index([assignedTo])
+  @@index([createdAt])
 }
 
 /// The company's sales pipeline. Stage ids are what CrmDeal.dealStage stores; system stages are the ones
@@ -625,6 +630,7 @@ model Payment {
   @@index([invoiceId])
   @@index([paymentDate])
   @@index([paymentMethod])
+  @@index([createdAt])
 }
 
 model ExpenseCategory {
@@ -688,6 +694,8 @@ model Expense {
   @@index([categoryId])
   @@index([currency, expenseDate])
   @@index([status])
+  @@index([createdAt])
+  @@index([createdById])
 }
 
 model CalendarEvent {
@@ -1221,6 +1229,7 @@ model Quotation {
   @@index([status])
   @@index([validUntilDate])
   @@index([salesOwnerId])
+  @@index([createdAt])
 }
 
 model QuotationLineItem {
@@ -1669,6 +1678,7 @@ model Employee {
 
   @@index([departmentId])
   @@index([status])
+  @@index([firstNameEn, lastNameEn])
 }
 
 model EmploymentRecord {
@@ -1814,6 +1824,7 @@ model LeaveRequest {
 
   @@index([employeeId, status])
   @@index([startDate, endDate])
+  @@index([createdAt])
 }
 
 model AttendanceEntry {
@@ -1997,6 +2008,7 @@ model ExpenseClaim {
 
   @@index([claimantId])
   @@index([status])
+  @@index([createdAt])
 }
 
 /// Who a quotation or invoice was credited to, and every reassignment (internal history).

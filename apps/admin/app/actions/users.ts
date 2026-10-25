@@ -482,3 +482,38 @@ export async function updateUserDiscountLimitAction(id: string, limit: number | 
     return { success: true, ...result };
   });
 }
+
+/** Users list bulk change: a new role and/or department for several accounts at once (at most 500). */
+export interface BulkUserChange {
+  userIds: string[];
+  role?: string;
+  /** "" moves the accounts out of every department. */
+  departmentId?: string;
+}
+
+export async function bulkUpdateUsersAction(change: BulkUserChange) {
+  return measureOperation("action:bulkUpdateUsersAction", async () => {
+    const actor = await requirePermission("users", "write");
+    validateActionArguments("bulkUpdateUsersAction", { change });
+    const ids = Array.from(new Set(change.userIds)).slice(0, 500);
+    if (!ids.length || (change.role === undefined && change.departmentId === undefined)) return { success: true, updated: 0 };
+    if (change.departmentId && !(await db.department.findUnique({ where: { id: change.departmentId }, select: { id: true } })))
+      throw new Error(serverMessages.departmentNotFound);
+    const updated = await runAtomicMutation(async () => {
+      await db.$queryRaw`SELECT pg_advisory_xact_lock(19041005)::text`;
+      for (const id of ids) {
+        // The same guard as editing one account: no Super Admins, no roles above the actor's own.
+        await checkUserManagement(actor, id, change.role);
+        await updateUser(id, {
+          ...(change.role !== undefined ? { role: change.role } : {}),
+          ...(change.departmentId !== undefined ? { department_id: change.departmentId || null } : {}),
+        });
+        if (change.departmentId !== undefined) await db.employee.updateMany({ where: { userId: id }, data: { departmentId: change.departmentId || null } });
+      }
+      await createActivityLog({ user_id: actor.id, action: "update", entity_type: "user", entity_id: "bulk", details: { count: ids.length, role: change.role ?? null, departmentId: change.departmentId ?? null } });
+      return ids.length;
+    });
+    revalidatePath(ROUTES.users.list);
+    return { success: true, updated };
+  });
+}

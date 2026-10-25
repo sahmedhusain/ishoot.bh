@@ -7148,6 +7148,36 @@
       }
     }
   },
+  "previewPeopleImportAction": {
+    "kind": "object",
+    "fields": {
+      "rows": {
+        "kind": "array",
+        "element": {
+          "kind": "array",
+          "element": {
+            "kind": "string"
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "importPeopleAction": {
+    "kind": "object",
+    "fields": {
+      "rows": {
+        "kind": "array",
+        "element": {
+          "kind": "array",
+          "element": {
+            "kind": "string"
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "setUserPermissionOverridesAction": {
     "kind": "object",
     "fields": {
@@ -11214,6 +11244,32 @@
             "value": null
           }
         ],
+        "optional": false
+      }
+    }
+  },
+  "bulkUpdateUsersAction": {
+    "kind": "object",
+    "fields": {
+      "change": {
+        "kind": "object",
+        "fields": {
+          "userIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "role": {
+            "kind": "string",
+            "optional": true
+          },
+          "departmentId": {
+            "kind": "string",
+            "optional": true
+          }
+        },
         "optional": false
       }
     }

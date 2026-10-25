@@ -7,7 +7,8 @@ import { ContentImage } from "../shared/ContentImage";
 
 import * as React from "react";
 import type { Profile, UserRole } from "@platform/database/types";
-import { createUserAction, deleteUserAction } from "../../app/actions/users";
+import { useRouter } from "next/navigation";
+import { bulkUpdateUsersAction, createUserAction, deleteUserAction } from "../../app/actions/users";
 import { RolePermissionMatrix } from "./RolePermissionMatrix";
 import { UserPermissionOverrides } from "./UserPermissionOverrides";
 import { AccountSettingsDialog, type AccountSettingsValue } from "../shared/AccountSettingsDialog";
@@ -50,6 +51,13 @@ interface UsersManagementViewProps {
   rolePermissions: Record<string, Record<string, boolean>>;
   /** The company's departments, for the department picker. */
   departments: Array<{ id: string; name_en: string; name_ar: string }>;
+  /** Server-side paging: matching accounts, this page and the filters in use. */
+  total: number;
+  page: number;
+  pageSize: number;
+  filters: { q: string; role: string; departmentId: string; status: string };
+  /** Every active account (id and name), for manager names and pickers on any page. */
+  people: Array<{ id: string; fullName: string }>;
 }
 
 export function UsersManagementView({
@@ -62,12 +70,38 @@ export function UsersManagementView({
   resources,
   rolePermissions,
   departments,
+  total,
+  page,
+  pageSize,
+  filters,
+  people,
 }: UsersManagementViewProps) {
   const { t, isRTL } = useAdminLocale();
   const { role: actorRole } = usePermissions();
 
+  const router = useRouter();
   const [users, setUsers] = React.useState<Profile[]>(initialUsers);
-  const [searchQuery, setSearchQuery] = React.useState("");
+  React.useEffect(() => setUsers(initialUsers), [initialUsers]);
+  const [selected, setSelected] = React.useState<string[]>([]);
+  const [bulkRole, setBulkRole] = React.useState("");
+  const [bulkDepartment, setBulkDepartment] = React.useState("");
+  const [bulkBusy, setBulkBusy] = React.useState(false);
+  const selectable = users.filter((u) => u.role !== "super_admin").map((u) => u.id);
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const pageHref = (next: number) => `${ROUTES.users.list}?${new URLSearchParams({ ...filters, page: String(next) })}`;
+  const applyBulk = async (change: { role?: string; departmentId?: string }) => {
+    setBulkBusy(true);
+    try {
+      const result = await bulkUpdateUsersAction({ userIds: selected, ...change });
+      toast.success(formatMessage(t.usersBulk.updated, { count: result.updated }));
+      setSelected([]);
+      router.refresh();
+    } catch (err) {
+      setError(errorMessage(err, t, t.hrExtensions.failed));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
   const [activeTab, setActiveTab] = React.useState<"users" | "matrix">("users");
   const [showCreateModal, setShowCreateModal] = React.useState(false);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(
@@ -96,12 +130,7 @@ export function UsersManagementView({
     color: "rgb(var(--brand-accent))",
   }));
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (departmentName(u) ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredUsers = users;
 
   const statusOf = (u: Profile): AccountSettingsValue["status"] =>
     u.archived_at ? "archived" : u.suspended_at ? "suspended" : u.is_active ? "active" : "inactive";
@@ -187,7 +216,7 @@ export function UsersManagementView({
                   : "text-ink-muted hover:text-ink"
               }`}
             >
-              {t.nav.users} ({users.length})
+              {t.nav.users} ({total})
             </button>
             <button
               onClick={() => setActiveTab("matrix")}
@@ -223,26 +252,66 @@ export function UsersManagementView({
 
       {activeTab === "users" && (
         <Card className="p-0 bg-surface border border-ink/10 rounded-3xl shadow-xl overflow-hidden">
-          <div className="p-4 border-b border-ink/10 flex items-center justify-between">
-            <div className="relative max-w-sm w-full">
+          <form method="get" action={ROUTES.users.list} role="search" className="p-4 border-b border-ink/10 flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search className="w-4 h-4 text-ink-muted absolute start-3 top-2.5" />
               <input
-                type="text"
-                placeholder={t.actions.search}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                type="search"
+                name="q"
+                aria-label={t.actions.search}
+                placeholder={t.usersBulk.searchPlaceholder}
+                defaultValue={filters.q}
                 className="w-full ps-9 pe-4 py-1.5 text-xs rounded-xl bg-surface-sunken border border-ink/10 text-ink placeholder:text-ink-muted/60 focus:outline-none focus:border-accent"
               />
             </div>
-            <div className="text-xs  text-ink-muted">
-              {filteredUsers.length} {t.roles.userCount}
+            <select name="role" defaultValue={filters.role} aria-label={t.usersView.roleHeader} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-ink/10">
+              <option value="all">{t.usersBulk.allRoles}</option>
+              {allRoles.map((r) => <option key={r.key} value={r.key}>{r.name}</option>)}
+            </select>
+            <select name="departmentId" defaultValue={filters.departmentId} aria-label={t.roles.department} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-ink/10">
+              <option value="all">{t.usersBulk.allDepartments}</option>
+              <option value="none">{t.usersBulk.noDepartment}</option>
+              {departments.map((d) => <option key={d.id} value={d.id}>{isRTL ? d.name_ar : d.name_en}</option>)}
+            </select>
+            <select name="status" defaultValue={filters.status} aria-label={t.usersView.statusHeader} className="py-1.5 px-2 text-xs rounded-xl bg-surface-sunken border border-ink/10">
+              {(["all", "active", "suspended", "archived", "inactive"] as const).map((status) => <option key={status} value={status}>{t.usersBulk.statuses[status]}</option>)}
+            </select>
+            <Button type="submit" size="sm" variant="outline" className="rounded-xl">{t.actions.search}</Button>
+            <span className="ms-auto text-xs text-ink-muted">{formatMessage(t.usersBulk.showing, { from: total ? (page - 1) * pageSize + 1 : 0, to: Math.min(total, page * pageSize), total })}</span>
+          </form>
+
+          {canWrite && selected.length > 0 && (
+            <div role="region" aria-label={t.usersBulk.title} className="px-4 py-3 border-b border-ink/10 bg-accent/[0.06] flex flex-wrap items-center gap-2 text-xs animate-in fade-in slide-in-from-top-1 duration-200">
+              <span className="font-semibold">{formatMessage(t.usersBulk.selected, { count: selected.length })}</span>
+              <select value={bulkRole} onChange={(e) => setBulkRole(e.target.value)} aria-label={t.usersBulk.changeRole} className="py-1.5 px-2 rounded-xl bg-surface border border-ink/10">
+                <option value="">{t.usersBulk.changeRole}</option>
+                {allRoles.filter((r) => r.key !== "super_admin").map((r) => <option key={r.key} value={r.key}>{r.name}</option>)}
+              </select>
+              <Button type="button" size="sm" variant="outline" disabled={!bulkRole || bulkBusy} onClick={() => applyBulk({ role: bulkRole })}>{t.usersBulk.apply}</Button>
+              <select value={bulkDepartment} onChange={(e) => setBulkDepartment(e.target.value)} aria-label={t.usersBulk.changeDepartment} className="py-1.5 px-2 rounded-xl bg-surface border border-ink/10">
+                <option value="">{t.usersBulk.changeDepartment}</option>
+                <option value="__none">{t.usersBulk.noDepartment}</option>
+                {departments.map((d) => <option key={d.id} value={d.id}>{isRTL ? d.name_ar : d.name_en}</option>)}
+              </select>
+              <Button type="button" size="sm" variant="outline" disabled={!bulkDepartment || bulkBusy} onClick={() => applyBulk({ departmentId: bulkDepartment === "__none" ? "" : bulkDepartment })}>{t.usersBulk.apply}</Button>
+              <button type="button" className="ms-auto text-ink-muted hover:text-ink" onClick={() => setSelected([])}>{t.usersBulk.clear}</button>
             </div>
-          </div>
+          )}
 
           <div className="overflow-x-auto">
             <table className="w-full text-start text-xs">
               <thead className="bg-surface-sunken text-ink-muted uppercase text-[11px] border-b border-ink/10">
                 <tr>
+                  {canWrite && (
+                    <th className="p-4 w-8">
+                      <input
+                        type="checkbox"
+                        aria-label={t.usersBulk.selectAll}
+                        checked={selectable.length > 0 && selectable.every((id) => selected.includes(id))}
+                        onChange={(e) => setSelected(e.target.checked ? selectable : [])}
+                      />
+                    </th>
+                  )}
                   <th className="p-4 text-start">{t.usersView.userHeader}</th>
                   <th className="p-4 text-start">{t.roles.department}</th>
                   <th className="p-4 text-start">{t.usersManagement.reportsTo}</th>
@@ -260,6 +329,18 @@ export function UsersManagementView({
                       key={u.id}
                       className="hover:bg-ink/[0.02] transition-colors"
                     >
+                      {canWrite && (
+                        <td className="p-4">
+                          {u.role !== "super_admin" && (
+                            <input
+                              type="checkbox"
+                              aria-label={formatMessage(t.usersBulk.selectOne, { name: u.full_name })}
+                              checked={selected.includes(u.id)}
+                              onChange={(e) => setSelected((prev) => (e.target.checked ? [...prev, u.id] : prev.filter((id) => id !== u.id)))}
+                            />
+                          )}
+                        </td>
+                      )}
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl bg-primary border border-accent/40 flex items-center justify-center font-bold text-white text-xs">
@@ -296,7 +377,7 @@ export function UsersManagementView({
                       </td>
 
                       <td className="p-4 text-ink-muted">
-                        {users.find((x) => x.id === u.manager_id)?.full_name ?? t.usersManagement.noneIndependent}
+                        {u.manager_name ?? t.usersManagement.noneIndependent}
                       </td>
 
                       <td className="p-4 text-ink">
@@ -380,6 +461,13 @@ export function UsersManagementView({
               </tbody>
             </table>
           </div>
+          {pages > 1 && (
+            <nav aria-label={t.usersBulk.pages} className="p-4 border-t border-ink/10 flex items-center justify-between text-xs">
+              {page > 1 ? <Link href={pageHref(page - 1)} className="text-primary dark:text-mint font-semibold">{t.usersBulk.previous}</Link> : <span />}
+              <span className="text-ink-muted">{formatMessage(t.usersBulk.pageOf, { page, pages })}</span>
+              {page < pages ? <Link href={pageHref(page + 1)} className="text-primary dark:text-mint font-semibold">{t.usersBulk.next}</Link> : <span />}
+            </nav>
+          )}
         </Card>
       )}
 
@@ -533,9 +621,9 @@ export function UsersManagementView({
               onChange={(e) => setManagerId(e.target.value)}
             >
               <option value="">{t.usersManagement.noneExecutiveLevel}</option>
-              {users.map((u) => (
+              {people.map((u) => (
                 <option key={u.id} value={u.id}>
-                  {u.full_name} ({u.role})
+                  {u.fullName}
                 </option>
               ))}
             </Select>
@@ -572,7 +660,7 @@ export function UsersManagementView({
           value={editing}
           fields={["role", "managerId", "status", "discountLimitPercent"]}
           roles={allRoles.filter((r) => r.key !== "super_admin" || actorRole === "super_admin").map((r) => ({ id: r.key, name: r.name }))}
-          managers={users.filter((x) => x.is_active).map((x) => ({ id: x.id, name: x.full_name }))}
+          managers={people.map((x) => ({ id: x.id, name: x.fullName }))}
           requiresApproval={false}
           onClose={() => setEditing(null)}
           onSaved={() => window.location.reload()}

@@ -242,3 +242,53 @@ export async function setUserDiscountLimit(userId: string, limit: number | null)
   });
   return { id: updated.id, discount_limit_percent: updated.discountLimitPercent == null ? null : Number(updated.discountLimitPercent) };
 }
+
+export interface UserListFilters {
+  q?: string;
+  role?: string;
+  departmentId?: string;
+  /** "active" (default), "suspended", "archived", "inactive" or "all". */
+  status?: string;
+  page?: number;
+}
+
+const USER_STATUSES = ["active", "suspended", "archived", "inactive", "all"] as const;
+
+/** One page (50) of staff accounts, searched and filtered on the server, for lists of any size. */
+export async function getUsersPage(filters: UserListFilters) {
+  const q = (filters.q ?? "").trim().slice(0, 120);
+  const status = (USER_STATUSES as readonly string[]).includes(filters.status ?? "") ? filters.status! : "all";
+  const where: Record<string, unknown> = {
+    ...(filters.role && filters.role !== "all" ? { role: filters.role } : {}),
+    ...(filters.departmentId === "none" ? { departmentId: null } : filters.departmentId && filters.departmentId !== "all" ? { departmentId: filters.departmentId } : {}),
+    ...(status === "active" ? { isActive: true, suspendedAt: null, archivedAt: null } : {}),
+    ...(status === "suspended" ? { suspendedAt: { not: null }, archivedAt: null } : {}),
+    ...(status === "archived" ? { archivedAt: { not: null } } : {}),
+    ...(status === "inactive" ? { isActive: false, suspendedAt: null, archivedAt: null } : {}),
+    ...(q
+      ? {
+          OR: [
+            { fullName: { contains: q, mode: "insensitive" } },
+            { email: { contains: q, mode: "insensitive" } },
+            { phone: { contains: q } },
+            { employee: { OR: [{ firstNameAr: { contains: q } }, { lastNameAr: { contains: q } }, { employeeNumber: { contains: q, mode: "insensitive" } }] } },
+          ],
+        }
+      : {}),
+  };
+  const total = await db.user.count({ where });
+  const pageSize = 50;
+  const page = Math.min(Math.max(1, filters.page || 1), Math.max(1, Math.ceil(total / pageSize)));
+  const rows = await db.user.findMany({
+    where,
+    include: {
+      manager: { select: { fullName: true } },
+      employee: { select: { id: true, status: true } },
+      departmentRecord: { select: { nameEn: true, nameAr: true } },
+    },
+    orderBy: [{ fullName: "asc" }, { id: "asc" }],
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  });
+  return { items: rows.map(mapUser), total, page, pageSize, filters: { q, role: filters.role || "all", departmentId: filters.departmentId || "all", status } };
+}

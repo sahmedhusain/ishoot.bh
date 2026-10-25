@@ -72,6 +72,7 @@ export * from "./queries/fx-settlement";
 export * from "./queries/hrms";
 export * from "./queries/departments";
 export * from "./queries/data-scope";
+export * from "./queries/people-import";
 export * from "./queries/payroll";
 export * from "./queries/finance-reports";
 export * from "./queries/profile-changes";

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Employee, Department } from "@platform/database/types";
 import { Card } from "@platform/ui";
-import { UserPlus, Search, Clock, ArrowRight, AlertCircle } from "lucide-react";
+import { UserPlus, FileUp, Search, Clock, ArrowRight, AlertCircle } from "lucide-react";
 
 interface EmployeesListViewProps {
   employees: Employee[];
@@ -92,6 +92,13 @@ export function EmployeesListView({
         </div>
 
         <div className="flex items-center gap-3">
+          {canCreate && <Link
+            href={ROUTES.hr.importEmployees}
+            className="inline-flex items-center gap-2 border border-ink/15 hover:bg-ink/5 text-ink px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all"
+          >
+            <FileUp className="w-4 h-4" />
+            <span>{t.peopleImport.open}</span>
+          </Link>}
           {canCreate && <Link
             href={ROUTES.hr.newEmployee()}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-sm font-medium active:scale-[0.98] transition-all shadow-xs"

@@ -27,7 +27,7 @@ import { requireInquiryAccess } from "../../lib/inquiry-access";
 import { REQUEST_PRIORITIES } from "@platform/database/constants/requests";
 import { revalidatePath } from "next/cache";
 import { requireAuth,requirePermission } from "../../lib/auth";
-import { assertRecordInScope } from "../../lib/data-scope";
+import { assertRecordInScope, dataScope } from "../../lib/data-scope";
 
 /** A deal outside the person's data scope cannot be changed, even by someone who knows its id. */
 async function requireDealInScope(id: string) {
@@ -247,7 +247,9 @@ export async function globalSearchAction(query: string) {
       )
         allowed.add(category);
     }
-    const results = await globalAdminSearch(query, 8, allowed);
+    // Everyone can find colleagues (the directory is open to all staff); deals follow the data scope.
+    allowed.add("people");
+    const results = await globalAdminSearch(query, 8, allowed, allowed.has("deals") ? await dataScope("deals") : null);
     return {
       success: true,
       results: results.filter((result) => allowed.has(result.category)),

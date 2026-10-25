@@ -1,4 +1,5 @@
 import { db } from "../db";
+import { departmentSubtree } from "./departments";
 
 export interface DirectoryEntry {
   id: string;
@@ -17,16 +18,36 @@ export interface DirectoryEntry {
   onLeave: boolean;
 }
 
+export interface DirectoryFilters {
+  /** Name (either language), job title, email or phone. */
+  q?: string;
+  /** A department; people in its sub-departments are included. */
+  departmentId?: string;
+  page?: number;
+}
+
+const DIRECTORY_PAGE = 48;
+
 /**
- * Everyone at the company with their work contact details: staff accounts and HR-only crew.
- * Only work-facing fields are exposed (no salary, ID or personal records).
+ * Everyone at the company with their work contact details: staff accounts and HR-only crew, searched on the
+ * server and returned a page at a time. Only work-facing fields are exposed (no salary, ID or personal records).
  */
-export async function getCompanyDirectory(): Promise<DirectoryEntry[]> {
+export async function getCompanyDirectory(filters: DirectoryFilters = {}) {
+  const q = (filters.q ?? "").trim().slice(0, 120);
+  const departments = filters.departmentId && filters.departmentId !== "all" ? await departmentSubtree([filters.departmentId]) : null;
+  const text = (field: string, insensitive = true) => ({ [field]: { contains: q, ...(insensitive ? { mode: "insensitive" as const } : {}) } });
+  const employeeMatch = q ? [text("firstNameEn"), text("lastNameEn"), text("firstNameAr", false), text("lastNameAr", false), text("jobTitleEn"), text("jobTitleAr", false), text("phone", false)] : [];
   const [users, crew] = await Promise.all([
     db.user.findMany({
-      where: { isActive: true, archivedAt: null },
+      where: {
+        isActive: true,
+        archivedAt: null,
+        ...(departments ? { OR: [{ departmentId: { in: departments } }, { departmentId: null, employee: { departmentId: { in: departments } } }] } : {}),
+        ...(q ? { AND: [{ OR: [text("fullName"), text("email"), text("phone", false), { employee: { OR: employeeMatch } }] }] } : {}),
+      },
       select: {
         id: true, fullName: true, email: true, phone: true, role: true, department: true, avatarUrl: true,
+        departmentRecord: { select: { nameEn: true, nameAr: true } },
         manager: { select: { fullName: true } },
         employee: {
           select: {
@@ -37,7 +58,12 @@ export async function getCompanyDirectory(): Promise<DirectoryEntry[]> {
       },
     }),
     db.employee.findMany({
-      where: { userId: null, status: { in: ["active", "on_leave"] } },
+      where: {
+        userId: null,
+        status: { in: ["active", "on_leave"] },
+        ...(departments ? { departmentId: { in: departments } } : {}),
+        ...(q ? { OR: [...employeeMatch, text("email")] } : {}),
+      },
       select: {
         id: true, firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true, jobTitleEn: true, jobTitleAr: true,
         email: true, phone: true, status: true, department: { select: { nameEn: true, nameAr: true } },
@@ -55,8 +81,8 @@ export async function getCompanyDirectory(): Promise<DirectoryEntry[]> {
         title: u.employee?.jobTitleEn ?? null,
         titleAr: u.employee?.jobTitleAr ?? null,
         role: u.role,
-        department: u.employee?.department?.nameEn ?? u.department ?? null,
-        departmentAr: u.employee?.department?.nameAr ?? null,
+        department: u.departmentRecord?.nameEn ?? u.employee?.department?.nameEn ?? u.department ?? null,
+        departmentAr: u.departmentRecord?.nameAr ?? u.employee?.department?.nameAr ?? null,
         email: u.email,
         phone: u.phone || u.employee?.phone || null,
         avatarUrl: u.avatarUrl,
@@ -80,5 +106,8 @@ export async function getCompanyDirectory(): Promise<DirectoryEntry[]> {
       onLeave: e.status === "on_leave",
     })),
   ];
-  return entries.sort((a, b) => (a.department ?? "~").localeCompare(b.department ?? "~") || a.name.localeCompare(b.name));
+  entries.sort((a, b) => (a.department ?? "~").localeCompare(b.department ?? "~") || a.name.localeCompare(b.name));
+  const pages = Math.max(1, Math.ceil(entries.length / DIRECTORY_PAGE));
+  const page = Math.min(Math.max(1, filters.page || 1), pages);
+  return { items: entries.slice((page - 1) * DIRECTORY_PAGE, page * DIRECTORY_PAGE), total: entries.length, page, pageSize: DIRECTORY_PAGE, filters: { q, departmentId: filters.departmentId || "all" } };
 }

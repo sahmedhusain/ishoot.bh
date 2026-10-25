@@ -1,10 +1,10 @@
 import { requirePagePermission, hasPermission } from "../../../lib/auth";
-import { getAllUsers, getDepartmentTree, db, ALL_RESOURCES, ALL_ACTIONS, ensureRoleTemplates, resolveGrant } from "@platform/database";
+import { getUsersPage, getDepartmentTree, db, ALL_RESOURCES, ALL_ACTIONS, ensureRoleTemplates, resolveGrant } from "@platform/database";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
 
 export const dynamic = "force-dynamic";
 
-export default async function UsersPage() {
+export default async function UsersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   await requirePagePermission("users", "read");
   const [canWrite, canDelete, canCreateEmployees] = await Promise.all([
     hasPermission("users", "write"),
@@ -12,8 +12,10 @@ export default async function UsersPage() {
     hasPermission("employees", "create"),
   ]);
   await ensureRoleTemplates();
-  const [users, roles, grants, departments] = await Promise.all([
-    getAllUsers(),
+  const query = await searchParams;
+  const text = (key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
+  const [result, roles, grants, departments, people] = await Promise.all([
+    getUsersPage({ q: text("q"), role: text("role"), departmentId: text("departmentId"), status: text("status"), page: Number(text("page")) || 1 }),
     db.role.findMany({
       select: { id: true, nameEn: true, nameAr: true },
       orderBy: { createdAt: "asc" },
@@ -22,6 +24,7 @@ export default async function UsersPage() {
       select: { role: true, resource: true, action: true, allowed: true },
     }),
     getDepartmentTree(),
+    db.user.findMany({ where: { isActive: true, archivedAt: null }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" }, take: 5000 }),
   ]);
   const stored = new Map(grants.map((g) => [`${g.role}|${g.resource}:${g.action}`, g.allowed]));
   const rolePermissions: Record<string, Record<string, boolean>> = Object.fromEntries(
@@ -51,7 +54,12 @@ export default async function UsersPage() {
       canDelete={canDelete}
       canCreateEmployees={canCreateEmployees}
       employees={employees}
-      initialUsers={users}
+      initialUsers={result.items}
+      total={result.total}
+      page={result.page}
+      pageSize={result.pageSize}
+      filters={result.filters}
+      people={people}
       roles={roles}
       resources={[...ALL_RESOURCES]}
       rolePermissions={rolePermissions}

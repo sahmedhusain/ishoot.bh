@@ -162,3 +162,68 @@ export async function applyActivityDepartments(activity: string | null | undefin
     await db.department.create({ data: { code: DEPARTMENT_CODES[key], catalogueKey: key, nameEn: en[key], nameAr: ar[key], sortOrder: ++order } });
   }
 }
+
+/** One department in the org chart: its leaders, a few of its people and how many there are in all. */
+export interface OrgChartNode {
+  id: string;
+  name_en: string;
+  name_ar: string;
+  parent_id: string | null;
+  head: { name: string; avatar_url: string | null; title: string | null } | null;
+  deputy: { name: string; avatar_url: string | null; title: string | null } | null;
+  people: { name: string; name_ar: string | null; title: string | null; avatar_url: string | null }[];
+  count: number;
+}
+
+const ORG_CHART_PEOPLE = 8;
+
+/** The organisation as a tree of active departments, for the org chart. People without a department come last. */
+export async function getOrgChart(): Promise<{ departments: OrgChartNode[]; unassigned: number }> {
+  const [tree, users, crew] = await Promise.all([
+    getDepartmentTree(),
+    db.user.findMany({
+      where: { isActive: true, archivedAt: null },
+      select: { id: true, fullName: true, avatarUrl: true, departmentId: true, employee: { select: { departmentId: true, firstNameAr: true, lastNameAr: true, jobTitleEn: true, status: true } } },
+      orderBy: { fullName: "asc" },
+    }),
+    db.employee.findMany({
+      where: { userId: null, status: { in: ["active", "on_leave"] } },
+      select: { departmentId: true, firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true, jobTitleEn: true },
+      orderBy: { firstNameEn: "asc" },
+    }),
+  ]);
+  const members = new Map<string, OrgChartNode["people"]>();
+  let unassigned = 0;
+  const add = (departmentId: string | null | undefined, person: OrgChartNode["people"][number]) => {
+    if (!departmentId) return void unassigned++;
+    const list = members.get(departmentId) ?? [];
+    list.push(person);
+    members.set(departmentId, list);
+  };
+  for (const user of users) {
+    if (user.employee && user.employee.status === "terminated") continue;
+    const nameAr = user.employee ? `${user.employee.firstNameAr} ${user.employee.lastNameAr}`.trim() : null;
+    add(user.departmentId ?? user.employee?.departmentId, { name: user.fullName, name_ar: nameAr, title: user.employee?.jobTitleEn ?? null, avatar_url: user.avatarUrl });
+  }
+  for (const person of crew) add(person.departmentId, { name: `${person.firstNameEn} ${person.lastNameEn}`, name_ar: `${person.firstNameAr} ${person.lastNameAr}`, title: person.jobTitleEn, avatar_url: null });
+  const leader = (id: string | null) => {
+    const user = id ? users.find((u) => u.id === id) : undefined;
+    return user ? { name: user.fullName, avatar_url: user.avatarUrl, title: user.employee?.jobTitleEn ?? null } : null;
+  };
+  const departments = tree
+    .filter((node) => node.is_active)
+    .map((node) => {
+      const people = members.get(node.id) ?? [];
+      return {
+        id: node.id,
+        name_en: node.name_en,
+        name_ar: node.name_ar,
+        parent_id: node.parent_id,
+        head: leader(node.manager_id),
+        deputy: leader(node.deputy_id),
+        people: people.slice(0, ORG_CHART_PEOPLE),
+        count: people.length,
+      };
+    });
+  return { departments, unassigned };
+}

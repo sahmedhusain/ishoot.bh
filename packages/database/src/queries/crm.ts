@@ -670,7 +670,7 @@ export async function searchCRMContacts(
 }
 
 export interface GlobalSearchResult {
-  category: "customers" | "invoices" | "deals";
+  category: "customers" | "invoices" | "deals" | "people";
   id: string;
   title: string;
   subtitle: string;
@@ -682,6 +682,8 @@ export async function globalAdminSearch(
   query: string,
   limit: number = 8,
   categories: ReadonlySet<string> = new Set(["customers", "invoices", "deals"]),
+  /** Data scope for deals: the owners whose deals may appear; null or missing for all. */
+  dealScope?: string[] | null,
 ): Promise<GlobalSearchResult[]> {
   if (
     typeof query !== "string" ||
@@ -782,6 +784,7 @@ export async function globalAdminSearch(
     const deals = categories.has("deals")
       ? await db.crmDeal.findMany({
           where: {
+            ...(dealScope ? { assignedTo: { in: dealScope } } : {}),
             OR: [
               { title: { contains: clean, mode: "insensitive" } },
               {
@@ -811,6 +814,34 @@ export async function globalAdminSearch(
         subtitle: `${Number(d.dealValue).toFixed(3)} ${d.currency} • ${d.contact?.companyName || d.contact?.firstName || ""}`,
         url: ROUTES.crm.deal(d.id),
         badge: d.dealStage,
+      });
+    }
+    // 4. People: colleagues by name (either language), email or phone; links open the directory.
+    const people = categories.has("people")
+      ? await db.user.findMany({
+          where: {
+            isActive: true,
+            archivedAt: null,
+            OR: [
+              { fullName: { contains: clean, mode: "insensitive" } },
+              { email: { contains: clean, mode: "insensitive" } },
+              { phone: { contains: clean } },
+              { employee: { OR: [{ firstNameAr: { contains: clean } }, { lastNameAr: { contains: clean } }] } },
+            ],
+          },
+          select: { id: true, fullName: true, email: true, role: true, employee: { select: { jobTitleEn: true } } },
+          orderBy: { fullName: "asc" },
+          take: limit,
+        })
+      : [];
+    for (const p of people) {
+      results.push({
+        category: "people",
+        id: p.id,
+        title: p.fullName,
+        subtitle: [p.employee?.jobTitleEn, p.email].filter(Boolean).join(" • "),
+        url: `${ROUTES.directory}?q=${encodeURIComponent(p.email)}`,
+        badge: p.role,
       });
     }
   } catch (e) {

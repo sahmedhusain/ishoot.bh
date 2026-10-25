@@ -2,7 +2,9 @@
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
-import { Mail, Phone, MessageCircle, Search, Users, Plane } from "lucide-react";
+import Link from "next/link";
+import { Mail, Phone, MessageCircle, Search, Users, Plane, Network } from "lucide-react";
+import { ROUTES } from "../../constants/routes";
 import type { DirectoryEntry } from "@platform/database/queries/directory";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { ContentImage } from "../shared/ContentImage";
@@ -17,20 +19,27 @@ function initials(name: string) {
 }
 
 /** Everyone's work contacts with one-tap call, WhatsApp and email. */
-export function DirectoryView({ entries }: { entries: DirectoryEntry[] }) {
+export function DirectoryView({
+  entries,
+  total,
+  page,
+  pageSize,
+  filters,
+  departments,
+}: {
+  entries: DirectoryEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+  filters: { q: string; departmentId: string };
+  departments: { id: string; name_en: string; name_ar: string }[];
+}) {
   const { t, locale } = useAdminLocale();
   const d = t.directory;
   const ar = locale === "ar";
-  const [query, setQuery] = React.useState("");
-  const [department, setDepartment] = React.useState("all");
-
-  const departments = Array.from(new Set(entries.map((e) => e.department).filter((x): x is string => !!x))).sort();
-  const q = query.trim().toLowerCase();
-  const visible = entries.filter(
-    (e) =>
-      (department === "all" || e.department === department) &&
-      (!q || [e.name, e.nameAr, e.title, e.titleAr, e.email, e.phone, e.department].some((v) => v?.toLowerCase().includes(q))),
-  );
+  const visible = entries;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const pageHref = (next: number) => `${ROUTES.directory}?${new URLSearchParams({ ...filters, page: String(next) })}`;
   const roleNames = t.roles as unknown as Record<string, string>;
   const roleName = (role: string | null) => (role ? (typeof roleNames[role] === "string" ? roleNames[role] : role.replace("_", " ")) : null);
 
@@ -42,25 +51,30 @@ export function DirectoryView({ entries }: { entries: DirectoryEntry[] }) {
             <Users className="w-7 h-7 text-accent" />
             {d.title}
           </h1>
-          <p className="text-xs text-ink-muted mt-1">{formatMessage(d.subtitle, { count: String(entries.length) })}</p>
+          <p className="text-xs text-ink-muted mt-1">{formatMessage(d.subtitle, { count: String(total) })}</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <form method="get" action={ROUTES.directory} role="search" className="flex flex-wrap gap-2">
           <label className="relative">
             <Search className="w-4 h-4 text-ink-muted absolute start-3 top-1/2 -translate-y-1/2" />
             <input
               type="search"
+              name="q"
               aria-label={d.search}
               placeholder={d.search}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              defaultValue={filters.q}
               className="ps-9 pe-3 py-2 rounded-full border border-ink/15 bg-surface text-sm text-ink w-60"
             />
           </label>
-          <select aria-label={d.department} value={department} onChange={(e) => setDepartment(e.target.value)} className="px-3 py-2 rounded-full border border-ink/15 bg-surface text-sm text-ink">
+          <select name="departmentId" aria-label={d.department} defaultValue={filters.departmentId} className="px-3 py-2 rounded-full border border-ink/15 bg-surface text-sm text-ink">
             <option value="all">{d.allDepartments}</option>
-            {departments.map((dep) => <option key={dep} value={dep}>{dep}</option>)}
+            {departments.map((dep) => <option key={dep.id} value={dep.id}>{ar ? dep.name_ar : dep.name_en}</option>)}
           </select>
-        </div>
+          <button type="submit" className="px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold">{t.actions.search}</button>
+          <Link href={ROUTES.orgChart} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-ink/15 text-sm font-semibold text-ink hover:bg-ink/5 transition-colors">
+            <Network className="w-4 h-4 text-accent" />
+            {d.orgChart}
+          </Link>
+        </form>
       </div>
 
       {visible.length === 0 ? (
@@ -114,6 +128,13 @@ export function DirectoryView({ entries }: { entries: DirectoryEntry[] }) {
             );
           })}
         </ul>
+      )}
+      {pages > 1 && (
+        <nav aria-label={t.usersBulk.pages} className="flex items-center justify-between text-xs">
+          {page > 1 ? <Link href={pageHref(page - 1)} className="text-primary dark:text-mint font-semibold">{t.usersBulk.previous}</Link> : <span />}
+          <span className="text-ink-muted">{formatMessage(t.usersBulk.pageOf, { page, pages })}</span>
+          {page < pages ? <Link href={pageHref(page + 1)} className="text-primary dark:text-mint font-semibold">{t.usersBulk.next}</Link> : <span />}
+        </nav>
       )}
     </div>
   );
