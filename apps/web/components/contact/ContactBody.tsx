@@ -54,7 +54,7 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
               </h2>
             </div>
 
-            <div className="space-y-4 text-sm text-[#d4dfd8]">
+            <div className="space-y-4 text-sm text-ink-muted">
               {company.email && (
                 <a
                   className="flex gap-3.5 items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:border-accent/60 hover:text-white transition-colors duration-150 break-all group"
@@ -110,7 +110,7 @@ export async function ContactBody({ locale, query }: { locale: string; query: { 
                 href={`https://wa.me/${company.whatsapp_phone.replace(/\D/g, "")}`}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-primary hover:bg-primary/80 border border-accent/50 text-white font-semibold text-sm  transition-colors duration-150"
+                className="w-full flex items-center justify-center gap-2.5 px-5 py-3.5 rounded-xl bg-primary hover:bg-primary/80 border border-accent/50 text-paper font-semibold text-sm  transition-colors duration-150"
               >
                 <MessageSquare className="w-4 h-4 text-mint" />
                 <span>{t.contact.chatWhatsapp}</span>

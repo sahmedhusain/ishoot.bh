@@ -9096,6 +9096,20 @@
                   }
                 ],
                 "optional": false
+              },
+              "websiteMode": {
+                "kind": "union",
+                "variants": [
+                  {
+                    "kind": "literal",
+                    "value": "dark"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "light"
+                  }
+                ],
+                "optional": false
               }
             },
             "optional": false
@@ -9180,6 +9194,54 @@
                   {
                     "kind": "literal",
                     "value": "events"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "online_store"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "beauty"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "fitness"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "automotive"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "logistics"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "travel"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "hotel"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "law_firm"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "nonprofit"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "pharmacy"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "manufacturing"
+                  },
+                  {
+                    "kind": "literal",
+                    "value": "it_software"
                   },
                   {
                     "kind": "literal",
@@ -10135,6 +10197,20 @@
               {
                 "kind": "literal",
                 "value": "neutral"
+              }
+            ],
+            "optional": false
+          },
+          "websiteMode": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "literal",
+                "value": "dark"
+              },
+              {
+                "kind": "literal",
+                "value": "light"
               }
             ],
             "optional": false

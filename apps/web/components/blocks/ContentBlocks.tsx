@@ -52,7 +52,7 @@ export function ImageTextBlock({ data, locale }: { data: BlockData["image_text"]
           {pick(data.title, locale) && <h2 className="text-3xl sm:text-4xl font-display font-bold text-white leading-tight">{pick(data.title, locale)}</h2>}
           <p className="text-base sm:text-lg text-ink-muted leading-relaxed whitespace-pre-line">{pick(data.text, locale)}</p>
           {href && pick(data.buttonLabel, locale) && (
-            <Link href={href} className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-white border border-accent/40 hover:bg-primary/85 transition-colors">
+            <Link href={href} className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-paper border border-accent/40 hover:bg-primary/85 transition-colors">
               {pick(data.buttonLabel, locale)}
               <ArrowUpRight className="w-4 h-4 rtl:-scale-x-100" />
             </Link>

@@ -363,7 +363,9 @@ function ThemePreview({ theme }: { theme: BrandTheme }) {
   const [mode, setMode] = React.useState<"light" | "dark">("light");
   const [surface, setSurface] = React.useState<"admin" | "website">("website");
   const vars = themeVariables(theme);
-  const style = { ...vars.common, ...(mode === "dark" ? vars.dark : vars.light), fontSize: "var(--brand-font-size)" } as React.CSSProperties;
+  // The website preview follows the website's own background; the admin preview follows the toggle.
+  const previewMode = surface === "website" ? theme.websiteMode : mode;
+  const style = { ...vars.common, ...(previewMode === "dark" ? vars.dark : vars.light), fontSize: "var(--brand-font-size)" } as React.CSSProperties;
   const dark = mode === "dark";
   const heading = { fontFamily: "var(--brand-font-heading)", fontWeight: theme.headingWeight, textTransform: theme.headingCase === "uppercase" ? "uppercase" : "none" } as React.CSSProperties;
   const button = { borderRadius: "var(--brand-button-radius)" };
@@ -391,16 +393,16 @@ function ThemePreview({ theme }: { theme: BrandTheme }) {
       </div>
       <div style={style} className="overflow-hidden rounded-brand border border-ink/15 bg-brand-base p-4" data-testid="theme-preview">
         {surface === "website" ? (
-          <div className="space-y-4 rounded-brand bg-tone-10 p-6 text-white" style={{ fontFamily: "var(--brand-font-body)" }}>
-            <p className="text-[0.7em] font-semibold uppercase tracking-[0.14em] text-mint">{copy.previewHeroEyebrow}</p>
+          <div className={`space-y-4 rounded-brand p-6 ${theme.websiteMode === "light" ? "bg-brand-surface text-slate-900" : "bg-tone-10 text-white"}`} style={{ fontFamily: "var(--brand-font-body)" }}>
+            <p className={`text-[0.7em] font-semibold uppercase tracking-[0.14em] ${theme.websiteMode === "light" ? "text-accent-pressed" : "text-mint"}`}>{copy.previewHeroEyebrow}</p>
             <h4 className="text-[1.9em] leading-tight" style={heading}>{copy.previewHeroTitle}</h4>
-            <p className="text-[0.9em] leading-relaxed text-white/75">{copy.previewHeroBody}</p>
+            <p className={`text-[0.9em] leading-relaxed ${theme.websiteMode === "light" ? "text-slate-600" : "text-white/75"}`}>{copy.previewHeroBody}</p>
             <div className="flex flex-wrap gap-2 pt-1">
               <span style={button} className="inline-flex h-10 items-center gap-2 bg-accent-pressed px-4 text-[0.85em] font-semibold text-white">
                 {copy.previewButton}
                 <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" />
               </span>
-              <span style={button} className="inline-flex h-10 items-center border border-white/30 px-4 text-[0.85em] font-semibold text-white">{copy.previewSecondary}</span>
+              <span style={button} className={`inline-flex h-10 items-center border px-4 text-[0.85em] font-semibold ${theme.websiteMode === "light" ? "border-slate-300 text-slate-900" : "border-white/30 text-white"}`}>{copy.previewSecondary}</span>
             </div>
           </div>
         ) : (
@@ -451,14 +453,15 @@ function StylePresets({ theme, onApply }: { theme: BrandTheme; onApply: (preset:
               onClick={() => onApply(preset)}
               className={`space-y-2 rounded-xl border p-3 text-start transition-colors ${active ? "border-accent bg-accent/10" : "border-ink/15 hover:border-ink/30"}`}
             >
-              <span className="flex h-6 overflow-hidden" style={{ borderRadius: p.buttonShape === "pill" ? 9999 : p.buttonShape === "square" ? 0 : 6 }}>
-                <span className="w-2/3" style={{ background: p.primary }} />
-                <span className="w-1/3" style={{ background: p.accent }} />
+              {/* A tiny page: the website background, the primary band and an accent button. */}
+              <span className={`flex h-10 items-end gap-1 overflow-hidden p-1.5 ${p.websiteMode === "light" ? "bg-slate-100" : "bg-slate-900"}`} style={{ borderRadius: p.buttonShape === "pill" ? 12 : p.buttonShape === "square" ? 0 : 6 }}>
+                <span className="h-full w-2/3 rounded-sm" style={{ background: p.primary }} />
+                <span className="h-3 w-1/3" style={{ background: p.accent, borderRadius: p.buttonShape === "pill" ? 9999 : p.buttonShape === "square" ? 0 : 3 }} />
               </span>
               <span className="block truncate text-sm text-slate-900 dark:text-white" style={{ fontFamily: family ? `"${family}", system-ui` : undefined, fontWeight: p.headingWeight }}>
                 {copy.styleNames[preset.id as keyof typeof copy.styleNames]}
               </span>
-              <span className="block truncate text-[11px] text-slate-500 dark:text-ink-muted">{family}</span>
+              <span className="block truncate text-[11px] text-slate-500 dark:text-ink-muted">{family} · {copy.websiteModes[p.websiteMode]}</span>
             </button>
           );
         })}
@@ -543,6 +546,7 @@ export function ThemeEditor({ theme, onChange, languages = ["ar", "en"] }: { the
               <ChoiceGroup label={copy.headingCase} options={["normal", "uppercase"] as const} value={normalized.headingCase} onChange={(headingCase) => set({ headingCase })} render={(c) => copy.headingCases[c]} />
             ) : null}
             <ChoiceGroup label={copy.surface} options={["tinted", "neutral"] as const} value={normalized.surface} onChange={(surface) => set({ surface })} render={(s) => copy.surfaces[s]} />
+            <ChoiceGroup label={copy.websiteMode} options={["dark", "light"] as const} value={normalized.websiteMode} onChange={(websiteMode) => set({ websiteMode })} render={(m) => copy.websiteModes[m]} />
             <ChoiceGroup
               label={copy.radius}
               options={RADII}

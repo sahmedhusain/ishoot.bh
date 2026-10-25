@@ -34,9 +34,9 @@ export async function ArticlesIndex({ articles, locale, base, category }: { arti
         <div className="flex flex-wrap items-center gap-2">
           {categories.length > 1 && (
             <>
-              <Link href={base} className={`px-4 py-1.5 rounded-full text-sm border transition-colors ${!category ? "border-accent bg-accent/15 text-white" : "border-white/15 text-ink-muted hover:text-white"}`}>{t.articles.allCategories}</Link>
+              <Link href={base} className={`px-4 py-1.5 rounded-full text-sm border transition-colors ${!category ? "border-accent bg-accent/15 text-paper" : "border-white/15 text-ink-muted hover:text-paper"}`}>{t.articles.allCategories}</Link>
               {categories.map((key) => (
-                <Link key={key} href={`${base}?category=${encodeURIComponent(key)}`} className={`px-4 py-1.5 rounded-full text-sm border transition-colors ${category === key ? "border-accent bg-accent/15 text-white" : "border-white/15 text-ink-muted hover:text-white"}`}>
+                <Link key={key} href={`${base}?category=${encodeURIComponent(key)}`} className={`px-4 py-1.5 rounded-full text-sm border transition-colors ${category === key ? "border-accent bg-accent/15 text-paper" : "border-white/15 text-ink-muted hover:text-paper"}`}>
                   {label(key)}
                 </Link>
               ))}

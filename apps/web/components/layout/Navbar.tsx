@@ -1,4 +1,5 @@
 "use client";
+import { siteIcon, siteLogo } from "../../lib/brand-images";
 import {ContentImage} from "../shared/ContentImage";
 
 import * as React from "react";
@@ -74,8 +75,7 @@ export function Navbar({ company, pages, links }: NavbarProps) {
             <div className="relative h-11 w-11 flex items-center justify-center shrink-0">
               <ContentImage
                 src={
-                  company.dark_icon_url ||
-                  company.icon_url
+                  siteIcon(company)
                 }
                 alt={t("common.brandIconAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
                 className="h-full w-full object-contain "
@@ -83,8 +83,7 @@ export function Navbar({ company, pages, links }: NavbarProps) {
             </div>
             <ContentImage
               src={
-                company.dark_logo_url ||
-                company.logo_url
+                siteLogo(company)
               }
               alt={t("common.brandLogoAlt", { companyName: locale === "ar" ? company.company_name_ar : company.company_name_en })}
               className="h-7 w-auto object-contain"
@@ -109,7 +108,7 @@ export function Navbar({ company, pages, links }: NavbarProps) {
                   className={`relative px-4 py-3 text-sm font-sans transition-colors duration-150 rounded-md select-none ${
                     isActive
                       ? "text-mint font-bold"
-                      : "text-slate-200 hover:text-white hover:bg-white/10"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   {isActive && (
@@ -131,7 +130,7 @@ export function Navbar({ company, pages, links }: NavbarProps) {
           <div className="flex items-center gap-3 lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="w-11 h-11 flex items-center justify-center rounded-md bg-brand-surface border border-white/20 text-white hover:bg-primary transition-colors duration-150"
+              className="w-11 h-11 flex items-center justify-center rounded-md bg-brand-surface border border-white/20 text-paper hover:bg-primary transition-colors duration-150"
               aria-label={t("common.openMenu")}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-navigation"

@@ -61,7 +61,7 @@ export default async function LocaleLayout({
   // and how to reach it.
   if ((!enabled || !website) && !preview) {
     return (
-      <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className="dark">
+      <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={company.theme.websiteMode}>
         {head}
         <body className={`min-h-screen bg-brand-base text-ink ${isRTL ? "font-arabic" : "font-sans"}`}>
           <WebsiteOffline company={company} locale={locale} t={t} />
@@ -71,10 +71,10 @@ export default async function LocaleLayout({
   }
 
   return (
-    <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className="dark">
+    <html dir={isRTL ? "rtl" : "ltr"} lang={locale} className={company.theme.websiteMode}>
       {head}
       <body
-        className={`min-h-screen bg-brand-base text-ink selection:bg-accent/40 selection:text-white ${isRTL ? "font-arabic" : "font-sans"}`}
+        className={`min-h-screen bg-brand-base text-ink selection:bg-accent/40 selection:text-paper ${isRTL ? "font-arabic" : "font-sans"}`}
         data-activity={info.activity}
       >
         <a

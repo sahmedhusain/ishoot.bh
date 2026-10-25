@@ -326,3 +326,18 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   sends a plain copy.
 - Found while testing: the link crawler's earlier report (five admin links opening new tabs without
   `rel="noreferrer"`) and the wizard's second `h2` were fixed in a separate commit.
+
+### Phase 4a: more activities, more styles, a light website (done)
+
+- 12 new activities in `ACTIVITY_PRESETS` (online store, beauty and salon, fitness, automotive, logistics,
+  travel, hotel, law firm, nonprofit, pharmacy, manufacturing, IT and software), 23 in all, each with its catalogue
+  address and layout, homepage sections, enquiry questions, modules, suggested style, pipeline stages
+  (`ACTIVITY_DEAL_STAGES`), departments (`ACTIVITY_DEPARTMENTS`), articles name and website wording in both
+  languages (`website-activities.json`), and a wizard card.
+- 22 style presets (14 new), several with a **light website**: `BrandTheme.websiteMode` ("dark" | "light").
+  The website's foreground is a token (`white` → `--site-fg`), so layouts are unchanged; text on brand colours
+  and over photos keeps real white (`text-paper`, `.on-media`); the logo and icon made for the background are
+  chosen automatically; white client logos show as dark silhouettes on a light website. The theme editor has
+  "Website background" and the style gallery shows each style's background.
+- Fixed while here: a hydration mismatch in the block homepage (a server component that rendered nothing inside
+  a fragment shifted the client logo strip's generated id).

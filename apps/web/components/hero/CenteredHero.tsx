@@ -13,7 +13,7 @@ export function CenteredHero({ banners, title, subtitle }: { banners: HeroBanner
   const heading = (banner && (ar ? banner.title_ar : banner.title_en)) || title;
   const text = (banner && (ar ? banner.subtitle_ar : banner.subtitle_en)) || subtitle;
   return (
-    <section id="home" data-hero="true" className="relative overflow-hidden bg-gradient-to-b from-primary-dark via-primary to-brand-base">
+    <section id="home" data-hero="true" className="on-media relative overflow-hidden bg-gradient-to-b from-primary-dark via-primary to-brand-base">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgb(var(--brand-accent)/0.35),transparent_60%)]" />
       <motion.div
         initial={reduced ? false : { opacity: 0, y: 16 }}

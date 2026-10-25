@@ -8024,6 +8024,54 @@
         "other": {
           "name": "Something else",
           "description": "A general company website you can shape yourself."
+        },
+        "online_store": {
+          "name": "Online store",
+          "description": "Selling online only, with delivery to customers."
+        },
+        "beauty": {
+          "name": "Beauty & salon",
+          "description": "Salons, spas, barbers and beauty clinics."
+        },
+        "fitness": {
+          "name": "Fitness & gym",
+          "description": "Gyms, trainers, classes and sports clubs."
+        },
+        "automotive": {
+          "name": "Automotive",
+          "description": "Car dealers, garages, rentals and spare parts."
+        },
+        "logistics": {
+          "name": "Logistics & transport",
+          "description": "Freight, couriers, warehousing and fleets."
+        },
+        "travel": {
+          "name": "Travel & tourism",
+          "description": "Travel agencies, tours and experiences."
+        },
+        "hotel": {
+          "name": "Hotel",
+          "description": "Hotels, resorts, serviced apartments and guest houses."
+        },
+        "law_firm": {
+          "name": "Law firm",
+          "description": "Law firms, legal consultants and notaries."
+        },
+        "nonprofit": {
+          "name": "Nonprofit",
+          "description": "Charities, foundations, societies and NGOs."
+        },
+        "pharmacy": {
+          "name": "Pharmacy",
+          "description": "Pharmacies and health product stores."
+        },
+        "manufacturing": {
+          "name": "Manufacturing",
+          "description": "Factories, workshops and producers."
+        },
+        "it_software": {
+          "name": "IT & software",
+          "description": "Software companies, IT services and agencies."
         }
       },
       "identityTitle": "Name & registration",
@@ -8107,7 +8155,21 @@
         "friendly": "Friendly",
         "fresh": "Fresh",
         "minimal": "Minimal",
-        "bold": "Bold"
+        "bold": "Bold",
+        "daylight": "Daylight",
+        "boutique": "Boutique",
+        "spa": "Calm",
+        "energetic": "Energetic",
+        "motor": "Motor",
+        "logistics": "On the move",
+        "voyage": "Voyage",
+        "hospitality": "Hospitality",
+        "counsel": "Counsel",
+        "civic": "Community",
+        "clinical": "Clinical",
+        "industrial": "Industrial",
+        "tech": "Tech",
+        "market": "Market"
       },
       "fontSearch": "Search fonts",
       "fontFilters": {
@@ -8160,7 +8222,12 @@
       "previewAdmin": "Admin",
       "previewHeroEyebrow": "Welcome",
       "previewHeroTitle": "Your story, beautifully told",
-      "previewHeroBody": "How your website headline, text and buttons will look."
+      "previewHeroBody": "How your website headline, text and buttons will look.",
+      "websiteMode": "Website background",
+      "websiteModes": {
+        "dark": "Dark",
+        "light": "Light"
+      }
     },
     "assets": {
       "logo": "Text logo for light backgrounds",

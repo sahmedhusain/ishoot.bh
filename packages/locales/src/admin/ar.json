@@ -8024,6 +8024,54 @@
         "other": {
           "name": "نشاط آخر",
           "description": "موقع عام للشركة تشكّله بنفسك."
+        },
+        "online_store": {
+          "name": "متجر إلكتروني",
+          "description": "بيع عبر الإنترنت فقط مع التوصيل للعملاء."
+        },
+        "beauty": {
+          "name": "التجميل والصالونات",
+          "description": "صالونات ومنتجعات وحلاقة وعيادات تجميل."
+        },
+        "fitness": {
+          "name": "اللياقة والنوادي",
+          "description": "نوادٍ رياضية ومدربون وحصص وأندية."
+        },
+        "automotive": {
+          "name": "السيارات",
+          "description": "معارض سيارات وورش وتأجير وقطع غيار."
+        },
+        "logistics": {
+          "name": "اللوجستيات والنقل",
+          "description": "شحن وتوصيل ومستودعات وأساطيل."
+        },
+        "travel": {
+          "name": "السفر والسياحة",
+          "description": "وكالات سفر وجولات وتجارب."
+        },
+        "hotel": {
+          "name": "فندق",
+          "description": "فنادق ومنتجعات وشقق مخدومة ونُزل."
+        },
+        "law_firm": {
+          "name": "مكتب محاماة",
+          "description": "مكاتب محاماة ومستشارون قانونيون وموثقون."
+        },
+        "nonprofit": {
+          "name": "منظمة غير ربحية",
+          "description": "جمعيات خيرية ومؤسسات وجمعيات أهلية."
+        },
+        "pharmacy": {
+          "name": "صيدلية",
+          "description": "صيدليات ومتاجر المنتجات الصحية."
+        },
+        "manufacturing": {
+          "name": "التصنيع",
+          "description": "مصانع وورش ومنتجون."
+        },
+        "it_software": {
+          "name": "تقنية المعلومات والبرمجيات",
+          "description": "شركات برمجيات وخدمات تقنية ووكالات رقمية."
         }
       },
       "identityTitle": "الاسم والتسجيل",
@@ -8107,7 +8155,21 @@
         "friendly": "ودود",
         "fresh": "منعش",
         "minimal": "بسيط",
-        "bold": "جريء"
+        "bold": "جريء",
+        "daylight": "ضوء النهار",
+        "boutique": "بوتيك",
+        "spa": "هادئ",
+        "energetic": "حيوي",
+        "motor": "محركات",
+        "logistics": "في الطريق",
+        "voyage": "رحلات",
+        "hospitality": "ضيافة",
+        "counsel": "استشارات",
+        "civic": "مجتمعي",
+        "clinical": "طبي",
+        "industrial": "صناعي",
+        "tech": "تقني",
+        "market": "سوق"
       },
       "fontSearch": "ابحث عن خط",
       "fontFilters": {
@@ -8160,7 +8222,12 @@
       "previewAdmin": "لوحة الإدارة",
       "previewHeroEyebrow": "أهلاً بك",
       "previewHeroTitle": "قصتك، بأجمل صورة",
-      "previewHeroBody": "هكذا ستبدو عناوين موقعك ونصوصه وأزراره."
+      "previewHeroBody": "هكذا ستبدو عناوين موقعك ونصوصه وأزراره.",
+      "websiteMode": "خلفية الموقع",
+      "websiteModes": {
+        "dark": "داكنة",
+        "light": "فاتحة"
+      }
     },
     "assets": {
       "logo": "الشعار النصي للخلفيات الفاتحة",

@@ -791,3 +791,10 @@ body header[class~="fixed"][class~="border-b"] {
 .rich-text .rt-gallery img { border-radius: 1rem; aspect-ratio: 4 / 3; object-fit: cover; width: 100%; }
 .rich-text iframe { width: 100%; aspect-ratio: 16 / 9; height: auto; border: 0; border-radius: 1.25rem; }
 .rich-text .rt-embed[data-preset="instagram"] iframe, .rich-text .rt-embed[data-preset="calendly"] iframe, .rich-text .rt-embed[data-preset="typeform"] iframe { aspect-ratio: auto; height: 640px; background: #fff; }
+
+/* Light website (theme.websiteMode): foreground tokens switch; text over photos and brand colours stays white. */
+html.dark, .on-media { --site-fg: 255 255 255; }
+html.light { --site-fg: 15 23 42; --brand-mint: var(--brand-accent-pressed); }
+html.light .on-media { --brand-mint: 255 255 255; }
+/* Client logos are usually supplied in white for the dark website; on a light one they show as dark silhouettes. */
+html.light .client-logo-image { filter: brightness(0) opacity(0.75); }

@@ -13,6 +13,18 @@ import {
   Sparkles,
   Stethoscope,
   UtensilsCrossed,
+  Store,
+  Sparkle,
+  Dumbbell,
+  Car,
+  Truck,
+  Plane,
+  BedDouble,
+  Scale,
+  HeartHandshake,
+  Pill,
+  Factory,
+  Code2,
   type LucideIcon,
 } from "lucide-react";
 import { Input, Textarea } from "@platform/ui";
@@ -32,6 +44,18 @@ const ICONS: Record<string, LucideIcon> = {
   Sparkles,
   Stethoscope,
   UtensilsCrossed,
+  Store,
+  Sparkle,
+  Dumbbell,
+  Car,
+  Truck,
+  Plane,
+  BedDouble,
+  Scale,
+  HeartHandshake,
+  Pill,
+  Factory,
+  Code2,
 };
 
 export function activityIcon(activity: BusinessActivity): LucideIcon {

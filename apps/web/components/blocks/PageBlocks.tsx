@@ -74,12 +74,17 @@ export function PageBlocks({ blocks, context }: { blocks: Block[]; context: Bloc
   );
 
   function renderBlock(block: Block, ctx: BlockContext): ReactNode {
-    const titled = (child: ReactNode) => (
-      <>
-        <BlockTitle title={(block.data as { title?: { en: string; ar: string } }).title} locale={locale} />
-        {child}
-      </>
-    );
+    // An editor's heading over a data block (only when one was written), then the block itself.
+    const title = (block.data as { title?: { en: string; ar: string } }).title;
+    const titled = (child: ReactNode) =>
+      pick(title, locale) ? (
+        <>
+          <BlockTitle title={title} locale={locale} />
+          {child}
+        </>
+      ) : (
+        child
+      );
     switch (block.type) {
       case "hero": {
         const data = block.data as Block<"hero">["data"];

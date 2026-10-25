@@ -103,7 +103,7 @@ export function ReviewsSection({
                         ),
                       )}
                     </div>
-                    <Quote className="w-5 h-5 text-slate-300" />
+                    <Quote className="w-5 h-5 text-ink-muted" />
                   </div>
 
                   <blockquote className="text-sm sm:text-base leading-relaxed text-slate-800 font-sans italic">

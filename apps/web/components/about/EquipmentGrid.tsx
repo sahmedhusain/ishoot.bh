@@ -92,7 +92,7 @@ export function EquipmentGrid({ equipment }: EquipmentGridProps) {
               aria-pressed={selectedCategory === cat.id}
               className={`min-h-11 px-4 py-2 rounded-md text-xs font-bold transition-colors duration-150 cursor-pointer ${
                 selectedCategory === cat.id
-                  ? "bg-primary text-white border border-accent"
+                  ? "bg-primary text-paper border border-accent"
                   : "bg-white text-slate-700 hover:text-slate-950 border border-slate-200 shadow-2xs"
               }`}
             >
