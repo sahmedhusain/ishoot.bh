@@ -7,17 +7,8 @@ import {
   getCurrencyDecimals,
 } from "@platform/config/currency";
 import { SUPPORTED_CURRENCIES } from "./constants/finance";
-export type UserRole =
-  | "super_admin"
-  | "admin"
-  | "finance_manager"
-  | "sales"
-  | "marketing"
-  | "production_manager"
-  | "producer"
-  | "editor"
-  | "accountant"
-  | "viewer";
+/** A role id: one of the templates (constants/permissions.ts ALL_ROLES) or a company's own role. */
+export type UserRole = string;
 
 export interface Profile {
   employee_id?: string;
@@ -30,7 +21,11 @@ export interface Profile {
   role: UserRole;
   avatar_url?: string;
   phone?: string;
+  /** Legacy free-text team name; department_id is the company's department. */
   department?: string;
+  department_id?: string | null;
+  department_name_en?: string;
+  department_name_ar?: string;
   signature_url?: string;
   /** Discount limit (% of subtotal) without approval; null uses the company default. */
   discount_limit_percent?: number | null;

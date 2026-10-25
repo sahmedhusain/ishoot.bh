@@ -48,6 +48,8 @@ interface UsersManagementViewProps {
   roles: Array<{ id: string; nameEn: string; nameAr: string }>;
   resources: string[];
   rolePermissions: Record<string, Record<string, boolean>>;
+  /** The company's departments, for the department picker. */
+  departments: Array<{ id: string; name_en: string; name_ar: string }>;
 }
 
 export function UsersManagementView({
@@ -59,6 +61,7 @@ export function UsersManagementView({
   roles,
   resources,
   rolePermissions,
+  departments,
 }: UsersManagementViewProps) {
   const { t, isRTL } = useAdminLocale();
   const { role: actorRole } = usePermissions();
@@ -79,9 +82,10 @@ export function UsersManagementView({
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [role, setRole] = React.useState<UserRole>("producer");
+  const [role, setRole] = React.useState<UserRole>("employee");
   const [phone, setPhone] = React.useState("");
-  const [department, setDepartment] = React.useState("production");
+  const [departmentId, setDepartmentId] = React.useState("");
+  const departmentName = (u: Profile) => (isRTL ? u.department_name_ar || u.department_name_en : u.department_name_en || u.department_name_ar);
   const [managerId, setManagerId] = React.useState("");
   const [saving, setSaving] = React.useState(false);
   const [successMsg, setSuccessMsg] = React.useState("");
@@ -96,8 +100,7 @@ export function UsersManagementView({
     (u) =>
       u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (u.department &&
-        u.department.toLowerCase().includes(searchQuery.toLowerCase())),
+      (departmentName(u) ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const statusOf = (u: Profile): AccountSettingsValue["status"] =>
@@ -126,7 +129,7 @@ export function UsersManagementView({
         password,
         role,
         phone,
-        department,
+        department_id: departmentId || undefined,
         manager_id: managerId || undefined,
       });
 
@@ -287,10 +290,7 @@ export function UsersManagementView({
                         <div className="flex items-center gap-1.5 text-ink-muted">
                           <Building className="w-3.5 h-3.5 text-accent" />
                           <span className="capitalize">
-                            {(u.department &&
-                              (t.usersView.departments as any)[u.department]) ||
-                              u.department ||
-                              t.usersView.departments.operations}
+                            {departmentName(u) || u.department || "—"}
                           </span>
                         </div>
                       </td>
@@ -498,24 +498,15 @@ export function UsersManagementView({
                 {t.usersView.department}
               </label>
               <Select
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
+                value={departmentId}
+                onChange={(e) => setDepartmentId(e.target.value)}
               >
-                <option value="production">
-                  {t.usersView.departments.production}
-                </option>
-                <option value="finance">
-                  {t.usersView.departments.finance}
-                </option>
-                <option value="post_production">
-                  {t.usersView.departments.post_production}
-                </option>
-                <option value="executive">
-                  {t.usersView.departments.executive}
-                </option>
-                <option value="operations">
-                  {t.usersView.departments.operations}
-                </option>
+                <option value="">{t.departmentsSettings.nobody}</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {isRTL ? d.name_ar : d.name_en}
+                  </option>
+                ))}
               </Select>
             </div>
           </div>

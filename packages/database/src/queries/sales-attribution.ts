@@ -19,7 +19,7 @@ export async function listSalesPeople() {
     where: {
       isActive: true,
       OR: [
-        { role: { in: ["sales", "admin", "super_admin", "marketing", "production_manager"] } },
+        { role: { in: ["sales", "admin", "super_admin", "marketing", "operations_manager"] } },
         { commissionRatePercent: { not: null } },
       ],
     },

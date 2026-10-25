@@ -23,8 +23,8 @@ async function main() {
   try {
     await db.$transaction((tx) => transactionContext.run(tx, async () => {
       const stamp = Date.now();
-      const manager = await tx.user.create({ data: { email: `mgr-${stamp}@sig.test`, fullName: "Sig Manager", passwordHash: "x", role: "production_manager" } });
-      const user = await tx.user.create({ data: { email: `usr-${stamp}@sig.test`, fullName: "Sig User", passwordHash: "x", role: "producer", managerId: manager.id, signatureUrl: "/api/files/general/old_sig.png" } });
+      const manager = await tx.user.create({ data: { email: `mgr-${stamp}@sig.test`, fullName: "Sig Manager", passwordHash: "x", role: "operations_manager" } });
+      const user = await tx.user.create({ data: { email: `usr-${stamp}@sig.test`, fullName: "Sig User", passwordHash: "x", role: "project_lead", managerId: manager.id, signatureUrl: "/api/files/general/old_sig.png" } });
       const upload = async (name, owner = user.id, mimeType = "image/png") => {
         const bytes = mimeType === "image/png" ? PNG : SAMPLE_RECEIPT_JPEG;
         const fileUrl = `/api/files/general/${name}_${stamp}.png`;

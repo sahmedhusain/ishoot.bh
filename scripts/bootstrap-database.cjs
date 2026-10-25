@@ -25,6 +25,7 @@ const {
   remapLegacyPublicFiles,
 } = require("../company/tools/company-profile.ts");
 const { DEFAULT_FEATURE_MODULES } = require("../packages/database/src/constants/features.ts");
+const roleNames = { en: require("../packages/locales/src/admin/en.json").roles, ar: require("../packages/locales/src/admin/ar.json").roles };
 const { createRequire } = require("node:module");
 const bcrypt = createRequire(
   require.resolve("../packages/database/package.json"),
@@ -61,8 +62,8 @@ async function main() {
           update: {},
           create: {
             id: role,
-            nameEn: role.replaceAll("_", " "),
-            nameAr: role.replaceAll("_", " "),
+            nameEn: roleNames.en[role] ?? role.replaceAll("_", " "),
+            nameAr: roleNames.ar[role] ?? role.replaceAll("_", " "),
             isSystem: true,
           },
         });

@@ -17,6 +17,9 @@ function mapUser(u: any): Profile {
     commission_rate_percent: u.commissionRatePercent == null ? null : Number(u.commissionRatePercent),
     phone: u.phone || undefined,
     department: u.department || undefined,
+    department_id: u.departmentId ?? null,
+    department_name_en: u.departmentRecord?.nameEn || undefined,
+    department_name_ar: u.departmentRecord?.nameAr || undefined,
     manager_id: u.managerId || undefined,
     manager_name: u.manager?.fullName || undefined,
     is_active: u.isActive,
@@ -37,6 +40,7 @@ export async function getAllUsers(): Promise<Profile[]> {
       include: {
         manager: { select: { fullName: true } },
         employee: { select: { id: true, status: true } },
+        departmentRecord: { select: { nameEn: true, nameAr: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -54,6 +58,7 @@ export async function getUserById(id: string): Promise<Profile | null> {
       include: {
         manager: { select: { fullName: true } },
         employee: { select: { id: true, status: true } },
+        departmentRecord: { select: { nameEn: true, nameAr: true } },
       },
     });
     return user ? mapUser(user) : null;
@@ -70,6 +75,7 @@ export async function createUser(data: {
   role: string;
   phone?: string;
   department?: string;
+  department_id?: string | null;
   signature_url?: string;
   manager_id?: string;
 }): Promise<Profile> {
@@ -84,6 +90,7 @@ export async function createUser(data: {
       role: data.role,
       phone: data.phone || null,
       department: data.department || null,
+      departmentId: data.department_id || null,
       signatureUrl: data.signature_url || null,
       managerId: data.manager_id || null,
       isActive: true,
@@ -114,6 +121,7 @@ export async function updateUser(
       updateData.signatureUrl = data.signature_url;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.department !== undefined) updateData.department = data.department;
+    if (data.department_id !== undefined) updateData.departmentId = data.department_id || null;
     if (data.manager_id !== undefined)
       updateData.managerId = data.manager_id || null;
     if (data.is_active !== undefined) updateData.isActive = data.is_active;
@@ -129,6 +137,7 @@ export async function updateUser(
       include: {
         manager: { select: { fullName: true } },
         employee: { select: { id: true, status: true } },
+        departmentRecord: { select: { nameEn: true, nameAr: true } },
       },
     });
     return mapUser(updated);

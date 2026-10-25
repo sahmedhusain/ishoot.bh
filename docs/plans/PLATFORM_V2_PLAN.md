@@ -237,3 +237,34 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   (documented in `docs/SECURITY.md` and `docs/OPERATIONS.md`).
 - Emails do not link to the website today (the brand email layout's website field is unused), so nothing else
   needed changing there.
+
+### Phase 2a–2c: departments, role templates, data scope (done)
+
+- **Departments** (migration `20261026120000_departments_tree`): parent department, head, deputy, cost centre,
+  order and on/off; staff accounts belong to a department (`User.departmentId`, filled from their employee
+  record; the old free-text `User.department` stays untouched). Settings → Departments shows the tree, edits
+  departments, refuses loops and only removes empty departments. The catalogue (14 departments, names in both
+  languages) is offered per activity; choosing an activity in the wizard adds its departments (never removes).
+  Moving an employee or a user keeps the two records in the same department.
+- **Approvals**: the "department manager" step now uses the account's department, includes the deputy, skips the
+  requester, and climbs to the parent department when a department has no head.
+- **Role templates** (migration `20261026130000_role_templates`): 22 templates (owner, administrator,
+  department manager, finance manager, accountant, HR manager and officer, sales manager and rep, marketing,
+  PR officer, legal counsel, procurement officer, warehouse keeper, delivery coordinator, driver, customer
+  service, operations manager, project lead, content editor, employee, viewer). `production_manager` →
+  `operations_manager` and `producer` → `project_lead`: the migration copies names and grants, moves users,
+  approval policy steps and calendar/announcement audiences, then removes the old ids. `LEGACY_ROLE_IDS` /
+  `canonicalRoleId` map the old ids wherever they are read.
+- Decision: a missing grant row still means **denied** (the existing rule). `ensureRoleTemplates` stores the
+  template default for any grant a template role is missing (new templates, resources added later), once per
+  server process and on the Roles and Users pages; stored grants are never overwritten.
+- **Data scope** (migration `20261026140000_role_data_scope`): per role and area (deals, requests, expenses,
+  claims, leave): own, department (with sub-departments) or all, chosen in the role editor. Applied to the deals
+  board and export, deal page and deal changes, the request inbox, counters, export, request page and actions,
+  the expenses list and export, the finance claims view, and HR requests (leave and claims).
+- Decision: roles that existed before data scopes (sales, project lead, finance…) default to **all**, so
+  nothing changes for existing companies; the new department-manager, employee and driver templates default to
+  department or own. Records without an owner (an unassigned request, a deal without an owner) are visible only
+  to "all" scopes, so someone with a wider scope triages them.
+- Fixed a pre-existing check failure: `check-followup-db` loaded `actions/website.ts` without a mock for
+  `lib/public-paths`.

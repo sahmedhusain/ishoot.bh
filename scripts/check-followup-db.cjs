@@ -322,6 +322,7 @@ async function main() {
     "../../lib/auth": { requirePermission: async () => ({ id: actor.id }) },
     "next/cache": { revalidatePath: () => {} },
     "../../lib/revalidate-web": { revalidatePublicSite: async () => false },
+    "../../lib/public-paths": { publicSitePaths: async () => ["/"] },
     "@platform/locales": require("../packages/locales/src/index.ts"),
     "../../constants/routes": require("../packages/database/src/constants/routes.ts"),
   };

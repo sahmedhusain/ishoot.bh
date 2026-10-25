@@ -40,7 +40,8 @@
     "socialAnalytics": "Social Analytics",
     "attendance": "Attendance",
     "hrSettings": "HR settings",
-    "pipeline": "Sales pipeline"
+    "pipeline": "Sales pipeline",
+    "departments": "Departments"
   },
   "actions": {
     "newInvoice": "New Invoice",
@@ -159,22 +160,36 @@
     "discountFixed": "Fixed amount"
   },
   "roles": {
-    "super_admin": "Super Admin",
-    "admin": "Executive Admin",
+    "super_admin": "Owner",
+    "admin": "Administrator",
     "finance_manager": "Finance Manager",
     "production_manager": "Operations Manager",
     "producer": "Project Lead",
     "editor": "Content Editor",
     "accountant": "Accountant",
-    "viewer": "General Viewer",
+    "viewer": "Viewer",
     "privilegesMatrix": "Role & Security Privileges Matrix",
     "userCount": "Total Users",
     "lastLogin": "Last Login",
     "department": "Department",
     "statusActive": "Active",
     "statusInactive": "Disabled",
-    "sales": "Sales",
-    "marketing": "Marketing"
+    "sales": "Sales Representative",
+    "marketing": "Marketing Manager",
+    "department_manager": "Department Manager",
+    "hr_manager": "HR Manager",
+    "hr_officer": "HR Officer",
+    "sales_manager": "Sales Manager",
+    "pr_officer": "PR Officer",
+    "legal_counsel": "Legal Counsel",
+    "procurement_officer": "Procurement Officer",
+    "warehouse_keeper": "Warehouse Keeper",
+    "delivery_coordinator": "Delivery Coordinator",
+    "driver": "Driver",
+    "customer_service": "Customer Service Agent",
+    "operations_manager": "Operations Manager",
+    "project_lead": "Project Lead",
+    "employee": "Employee"
   },
   "calendar": {
     "title": "Schedule & Deadlines",
@@ -1344,7 +1359,9 @@
       "production_manager": "Operations Head",
       "producer": "Executive Producer",
       "editor": "Content Editor",
-      "viewer": "Read-Only Observer"
+      "viewer": "Read-Only Observer",
+      "operations_manager": "Operations Head",
+      "project_lead": "Project Lead"
     }
   },
   "branding": {
@@ -5639,7 +5656,15 @@
       "dealStageSystemRequired": "The locked stages must stay in the pipeline.",
       "dealStageInUse": "A stage that still holds deals cannot be removed or switched off. Move its deals first.",
       "invalidDomain": "Enter a domain name only, such as example.com.",
-      "domainsMustDiffer": "The website and the admin need different domains."
+      "domainsMustDiffer": "The website and the admin need different domains.",
+      "departmentCodeInvalid": "Use 1 to 20 capital letters, digits, dashes or underscores for the code.",
+      "departmentCodeTaken": "Another department already uses this code.",
+      "departmentNameRequired": "Give the department a name.",
+      "departmentParentLoop": "A department cannot be part of itself or of one of its own sub-departments.",
+      "departmentNotEmpty": "Move this department's people to another department first.",
+      "departmentNotFound": "Department not found.",
+      "dataScopeInvalid": "Choose own, department or all for each area.",
+      "outsideDataScope": "This record belongs to someone outside the records you can see."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -8310,5 +8335,70 @@
       "private": "The domain points at a private address, so it cannot be checked from here."
     },
     "scheme": "https://"
+  },
+  "departmentCatalogue": {
+    "management": "Management",
+    "finance": "Finance",
+    "hr": "Human Resources",
+    "sales": "Sales",
+    "marketing": "Marketing",
+    "pr": "PR & Communications",
+    "legal": "Legal",
+    "procurement": "Procurement",
+    "warehouse": "Warehouse & Inventory",
+    "delivery": "Delivery & Logistics",
+    "customer_service": "Customer Service",
+    "operations": "Operations",
+    "it": "IT",
+    "administration": "Administration"
+  },
+  "departmentsSettings": {
+    "title": "Departments",
+    "subtitle": "How your company is organised. Departments can sit inside other departments; heads and deputies approve their department's requests, and managers see their department's records.",
+    "add": "New department",
+    "newTitle": "New department",
+    "editTitle": "Edit department",
+    "name": "Department name",
+    "code": "Code",
+    "codeHint": "Short and unique, for example FIN or SALES.",
+    "parent": "Part of",
+    "noParent": "Top level",
+    "manager": "Head",
+    "deputy": "Deputy",
+    "nobody": "Nobody yet",
+    "costCentre": "Cost centre",
+    "costCentreValue": "Cost centre {value}",
+    "active": "In use",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Departments updated.",
+    "deleted": "Department removed.",
+    "managerValue": "Head: {name}",
+    "deputyValue": "Deputy: {name}",
+    "people": "{count} people",
+    "editNamed": "Edit {name}",
+    "deleteNamed": "Remove {name}",
+    "deleteConfirm": "Remove this department? Its sub-departments move up one level.",
+    "empty": "No departments yet. Add your own or start from the ones your activity usually has.",
+    "catalogueTitle": "Add from the catalogue",
+    "catalogueHint": "Pick the departments you have; you can rename them afterwards.",
+    "addPicked": "Add selected",
+    "addRecommended": "Add the ones my activity recommends"
+  },
+  "dataScope": {
+    "title": "Which records this role sees",
+    "hint": "Own: records assigned to or filed by the person. Department: also everyone in their department and its sub-departments. All: every record their permissions allow.",
+    "areas": {
+      "deals": "Deals",
+      "requests": "Requests",
+      "expenses": "Expenses",
+      "claims": "Claims",
+      "leave": "Leave"
+    },
+    "scopes": {
+      "own": "Own",
+      "department": "Department",
+      "all": "All"
+    }
   }
 }

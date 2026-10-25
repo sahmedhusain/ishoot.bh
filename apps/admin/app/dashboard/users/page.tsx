@@ -1,5 +1,5 @@
 import { requirePagePermission, hasPermission } from "../../../lib/auth";
-import { getAllUsers, db, ALL_RESOURCES, ALL_ACTIONS } from "@platform/database";
+import { getAllUsers, getDepartmentTree, db, ALL_RESOURCES, ALL_ACTIONS, ensureRoleTemplates, resolveGrant } from "@platform/database";
 import { UsersManagementView } from "../../../components/users/UsersManagementView";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,8 @@ export default async function UsersPage() {
     hasPermission("users", "delete"),
     hasPermission("employees", "create"),
   ]);
-  const [users, roles, grants] = await Promise.all([
+  await ensureRoleTemplates();
+  const [users, roles, grants, departments] = await Promise.all([
     getAllUsers(),
     db.role.findMany({
       select: { id: true, nameEn: true, nameAr: true },
@@ -20,22 +21,19 @@ export default async function UsersPage() {
     db.permission.findMany({
       select: { role: true, resource: true, action: true, allowed: true },
     }),
+    getDepartmentTree(),
   ]);
-  const rolePermissions: Record<string, Record<string, boolean>> = {};
-  for (const role of roles) {
-    rolePermissions[role.id] = Object.fromEntries(
-      ALL_RESOURCES.flatMap((resource) =>
-        ALL_ACTIONS.map((action) => [
-          `${resource}:${action}`,
-          role.id === "super_admin",
-        ]),
+  const stored = new Map(grants.map((g) => [`${g.role}|${g.resource}:${g.action}`, g.allowed]));
+  const rolePermissions: Record<string, Record<string, boolean>> = Object.fromEntries(
+    roles.map((role) => [
+      role.id,
+      Object.fromEntries(
+        ALL_RESOURCES.flatMap((resource) =>
+          ALL_ACTIONS.map((action) => [`${resource}:${action}`, resolveGrant(role.id, resource, action, (res, act) => stored.get(`${role.id}|${res}:${act}`))]),
+        ),
       ),
-    );
-  }
-  for (const grant of grants)
-    if (rolePermissions[grant.role] && grant.role !== "super_admin")
-      rolePermissions[grant.role][`${grant.resource}:${grant.action}`] =
-        grant.allowed;
+    ]),
+  );
   const employees = await db.employee.findMany({
     where: { userId: null, status: { in: ["active", "on_leave"] } },
     select: {
@@ -57,6 +55,7 @@ export default async function UsersPage() {
       roles={roles}
       resources={[...ALL_RESOURCES]}
       rolePermissions={rolePermissions}
+      departments={departments.filter((d) => d.is_active)}
     />
   );
 }

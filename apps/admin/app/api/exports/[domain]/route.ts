@@ -1,6 +1,7 @@
 import { serverMessages } from "@platform/locales";
 
 import { measureOperation } from "@platform/database";
+import { dataScope } from "../../../../lib/data-scope";
 import { NextRequest, NextResponse } from "next/server";
 import { getDocumentArchiveExportBatch, getRequestExportBatch, iterateListExport, listDomains, type ClientListRow, type RequestListFilters } from "@platform/database";
 import { archiveKindsForCurrentUser } from "../../../../lib/archive-access";
@@ -94,6 +95,7 @@ async function exportRequests(req: NextRequest) {
     team: get("team"), priority: get("priority"), due: get("due"), assignee: get("assignee"), source: get("source"),
     customerId: get("customerId"), from: get("from"), to: get("to"), search: get("search"),
   };
+  const visible = await dataScope("requests");
   const encoder = new TextEncoder();
   let after: string | undefined;
   let header = false;
@@ -103,7 +105,7 @@ async function exportRequests(req: NextRequest) {
       try {
         if (!header) { controller.enqueue(encoder.encode("\uFEFF" + columns.requests.map(csv).join(",") + "\r\n")); header = true; return; }
         if (done || req.signal.aborted) { controller.close(); return; }
-        const rows = await getRequestExportBatch(filters, viewer.id, { after, batchSize: 500 });
+        const rows = await getRequestExportBatch(filters, viewer.id, { after, batchSize: 500 }, visible);
         if (!rows.length) { controller.close(); return; }
         after = rows[rows.length - 1].id;
         done = rows.length < 500;
@@ -132,7 +134,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ doma
   if (contactId) { try { await requirePermission("contacts", "read"); } catch { return NextResponse.json({error:serverMessages.runtimeForbidden},{status:403}); } }
   const search = Object.fromEntries(["kind", "type", "origin", "country", "tier", "balance", "activity", "sort"].map((key) => [key, req.nextUrl.searchParams.get(key) || undefined]));
   const paramsInput = { ...search, dealId, contactId, clientId: contactId, q: req.nextUrl.searchParams.get("q") || "", status: req.nextUrl.searchParams.get("status") || "all" };
-  const iterator = iterateListExport(name, paramsInput);
+  // Deals and expenses follow the exporter's data scope, like their lists.
+  const iterator = iterateListExport(name, paramsInput, name === "deals" || name === "expenses" ? await dataScope(name) : null);
   const encoder = new TextEncoder();
   let header = false;
   const stream = new ReadableStream({

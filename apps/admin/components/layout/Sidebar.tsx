@@ -574,6 +574,12 @@ export function Sidebar() {
             action: "edit",
           },
           {
+            href: ROUTES.settings.departments,
+            label: t.nav.departments,
+            icon: Building2,
+            resource: "settings",
+          },
+          {
             href: ROUTES.settings.pipeline,
             label: t.nav.pipeline,
             icon: Kanban,

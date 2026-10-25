@@ -3553,6 +3553,101 @@
       }
     }
   },
+  "saveDepartmentAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_en": {
+            "kind": "string",
+            "optional": false
+          },
+          "name_ar": {
+            "kind": "string",
+            "optional": false
+          },
+          "parent_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "manager_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "deputy_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": false
+          },
+          "cost_centre": {
+            "kind": "string",
+            "optional": false
+          },
+          "is_active": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "deleteDepartmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "addCatalogueDepartmentsAction": {
+    "kind": "object",
+    "fields": {
+      "keys": {
+        "kind": "array",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      }
+    }
+  },
   "createCompanyDocumentAction": {
     "kind": "object",
     "fields": {
@@ -8044,6 +8139,13 @@
               "kind": "boolean"
             },
             "optional": false
+          },
+          "scopes": {
+            "kind": "record",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
           }
         },
         "optional": false
@@ -10959,6 +11061,19 @@
             "kind": "string",
             "optional": true
           },
+          "department_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
+            "optional": true
+          },
           "manager_id": {
             "kind": "string",
             "optional": true
@@ -11009,6 +11124,19 @@
           },
           "department": {
             "kind": "string",
+            "optional": true
+          },
+          "department_id": {
+            "kind": "union",
+            "variants": [
+              {
+                "kind": "string"
+              },
+              {
+                "kind": "literal",
+                "value": null
+              }
+            ],
             "optional": true
           },
           "manager_id": {

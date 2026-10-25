@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { requireRecordInScope } from "../../../../lib/data-scope";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
 import { getConsolidatedRequestById, db, findPendingApproval, canDecideApproval } from "@platform/database";
 import { RequestDetailView } from "../../../../components/requests/RequestDetailView";
@@ -29,6 +30,7 @@ export default async function RequestDetailPage({
   if (!request) {
     notFound();
   }
+  await requireRecordInScope("requests", request.assignedToId);
 
   const userList = users.map((u) => ({
     id: u.id,

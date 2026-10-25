@@ -1,6 +1,7 @@
 import { getCurrentPermissions, requirePagePermission } from "../../../lib/auth";
 import { getExpenseCategories, listExpenseClaims } from "@platform/database";
 import { ClaimsView } from "../../../components/claims/ClaimsView";
+import { dataScope } from "../../../lib/data-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default async function ClaimsPage({ searchParams }: { searchParams: Promi
   const view = canProcess && params.view === "finance" ? "finance" : "mine";
   const status = STATUSES.includes(params.status ?? "") ? params.status! : view === "finance" ? "approved" : "all";
   const [data, categories] = await Promise.all([
-    listExpenseClaims({ claimantId: view === "mine" ? user.id : undefined, status }),
+    listExpenseClaims({ claimantId: view === "mine" ? user.id : undefined, claimantIds: view === "mine" ? null : await dataScope("claims"), status }),
     canProcess ? getExpenseCategories() : Promise.resolve([]),
   ]);
   return (

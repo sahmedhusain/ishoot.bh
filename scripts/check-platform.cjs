@@ -61,6 +61,7 @@ async function main() {
       getSessionByToken: async () => session,
       hasPermission: async () => false,
       getEffectivePermissions:async()=>({}),
+      ensureRoleTemplatesOnce: async () => {},
     },
   });
   assert.equal(await auth.getCurrentUser(), null, "revoked JWT must fail");
@@ -303,6 +304,7 @@ async function main() {
     "@platform/database": { db: { $transaction: async (fn) => fn(tx) } },
     "next/cache": { revalidatePath() {} },
     "../../lib/auth": { requirePermission: async () => user },
+    "../../lib/data-scope": { assertRecordInScope: async () => {} },
   });
   assert.equal((await crm.convertInquiryToClientAction("q")).dealId, "d");
   assert.equal((await crm.convertInquiryToClientAction("q")).dealId, "d");

@@ -40,7 +40,8 @@
     "socialAnalytics": "تحليلات التواصل الاجتماعي",
     "attendance": "الحضور",
     "hrSettings": "إعدادات الموارد البشرية",
-    "pipeline": "مسار المبيعات"
+    "pipeline": "مسار المبيعات",
+    "departments": "الأقسام"
   },
   "actions": {
     "newInvoice": "فاتورة جديدة",
@@ -159,22 +160,36 @@
     "discountFixed": "مبلغ ثابت"
   },
   "roles": {
-    "super_admin": "مدير النظام العام",
-    "admin": "مدير تنفيذي",
-    "finance_manager": "مدير مالي",
+    "super_admin": "المالك",
+    "admin": "مدير النظام",
+    "finance_manager": "المدير المالي",
     "production_manager": "مدير العمليات",
     "producer": "مسؤول المشاريع",
     "editor": "محرر المحتوى",
     "accountant": "محاسب",
-    "viewer": "مراقب عام",
+    "viewer": "مطّلع",
     "privilegesMatrix": "مصفوفة الصلاحيات والحقوق الأمنية",
     "userCount": "إجمالي المستخدمين",
     "lastLogin": "آخر تسجيل دخول",
     "department": "القسم الإداري",
     "statusActive": "نشط",
     "statusInactive": "معطل",
-    "sales": "المبيعات",
-    "marketing": "التسويق"
+    "sales": "مندوب مبيعات",
+    "marketing": "مدير التسويق",
+    "department_manager": "مدير قسم",
+    "hr_manager": "مدير الموارد البشرية",
+    "hr_officer": "أخصائي الموارد البشرية",
+    "sales_manager": "مدير المبيعات",
+    "pr_officer": "مسؤول العلاقات العامة",
+    "legal_counsel": "مستشار قانوني",
+    "procurement_officer": "مسؤول المشتريات",
+    "warehouse_keeper": "أمين المستودع",
+    "delivery_coordinator": "منسق التوصيل",
+    "driver": "سائق",
+    "customer_service": "موظف خدمة العملاء",
+    "operations_manager": "مدير العمليات",
+    "project_lead": "مسؤول المشاريع",
+    "employee": "موظف"
   },
   "calendar": {
     "title": "المواعيد ومواعيد التسليم",
@@ -1344,7 +1359,9 @@
       "production_manager": "مدير شؤون العمليات",
       "producer": "المنتج المنفذ",
       "editor": "محرر المحتوى",
-      "viewer": "مشاهد للقراءة فقط"
+      "viewer": "مشاهد للقراءة فقط",
+      "operations_manager": "رئيس العمليات",
+      "project_lead": "مسؤول المشاريع"
     }
   },
   "branding": {
@@ -5639,7 +5656,15 @@
       "dealStageSystemRequired": "يجب أن تبقى المراحل المقفلة في المسار.",
       "dealStageInUse": "لا يمكن حذف مرحلة فيها صفقات أو إيقافها. انقل صفقاتها أولًا.",
       "invalidDomain": "أدخل اسم النطاق فقط، مثل example.com.",
-      "domainsMustDiffer": "يحتاج الموقع ولوحة الإدارة إلى نطاقين مختلفين."
+      "domainsMustDiffer": "يحتاج الموقع ولوحة الإدارة إلى نطاقين مختلفين.",
+      "departmentCodeInvalid": "استخدم من 1 إلى 20 حرفًا لاتينيًا كبيرًا أو رقمًا أو شرطة للرمز.",
+      "departmentCodeTaken": "قسم آخر يستخدم هذا الرمز.",
+      "departmentNameRequired": "أعطِ القسم اسمًا.",
+      "departmentParentLoop": "لا يمكن أن يتبع القسم نفسه أو أحد أقسامه الفرعية.",
+      "departmentNotEmpty": "انقل موظفي هذا القسم إلى قسم آخر أولًا.",
+      "departmentNotFound": "القسم غير موجود.",
+      "dataScopeInvalid": "اختر الخاصة أو القسم أو الكل لكل مجال.",
+      "outsideDataScope": "هذا السجل يخص شخصًا خارج نطاق السجلات التي يمكنك رؤيتها."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -8310,5 +8335,70 @@
       "private": "النطاق يشير إلى عنوان خاص، لذا لا يمكن فحصه من هنا."
     },
     "scheme": "https://"
+  },
+  "departmentCatalogue": {
+    "management": "الإدارة العليا",
+    "finance": "المالية",
+    "hr": "الموارد البشرية",
+    "sales": "المبيعات",
+    "marketing": "التسويق",
+    "pr": "العلاقات العامة والاتصال",
+    "legal": "الشؤون القانونية",
+    "procurement": "المشتريات",
+    "warehouse": "المستودعات والمخزون",
+    "delivery": "التوصيل والخدمات اللوجستية",
+    "customer_service": "خدمة العملاء",
+    "operations": "العمليات",
+    "it": "تقنية المعلومات",
+    "administration": "الشؤون الإدارية"
+  },
+  "departmentsSettings": {
+    "title": "الأقسام",
+    "subtitle": "كيف تنتظم شركتك. يمكن أن يتبع قسمٌ قسمًا آخر؛ ويعتمد رؤساء الأقسام ونوابهم طلبات أقسامهم، ويرى المديرون سجلات أقسامهم.",
+    "add": "قسم جديد",
+    "newTitle": "قسم جديد",
+    "editTitle": "تعديل القسم",
+    "name": "اسم القسم",
+    "code": "الرمز",
+    "codeHint": "قصير وفريد، مثل FIN أو SALES.",
+    "parent": "يتبع",
+    "noParent": "المستوى الأعلى",
+    "manager": "رئيس القسم",
+    "deputy": "النائب",
+    "nobody": "لم يُحدَّد بعد",
+    "costCentre": "مركز التكلفة",
+    "costCentreValue": "مركز التكلفة {value}",
+    "active": "مستخدم",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "saved": "تم تحديث الأقسام.",
+    "deleted": "تم حذف القسم.",
+    "managerValue": "الرئيس: {name}",
+    "deputyValue": "النائب: {name}",
+    "people": "{count} أشخاص",
+    "editNamed": "تعديل {name}",
+    "deleteNamed": "حذف {name}",
+    "deleteConfirm": "حذف هذا القسم؟ تنتقل أقسامه الفرعية مستوى واحدًا إلى الأعلى.",
+    "empty": "لا توجد أقسام بعد. أضف أقسامك أو ابدأ بالأقسام المعتادة لنشاطك.",
+    "catalogueTitle": "إضافة من القائمة",
+    "catalogueHint": "اختر الأقسام الموجودة لديك؛ يمكنك تغيير أسمائها لاحقًا.",
+    "addPicked": "إضافة المحدد",
+    "addRecommended": "إضافة الأقسام التي يوصي بها نشاطي"
+  },
+  "dataScope": {
+    "title": "السجلات التي يراها هذا الدور",
+    "hint": "الخاصة: السجلات المسندة إلى الشخص أو التي قدّمها. القسم: وسجلات جميع من في قسمه وأقسامه الفرعية. الكل: كل السجلات التي تسمح بها صلاحياته.",
+    "areas": {
+      "deals": "الصفقات",
+      "requests": "الطلبات",
+      "expenses": "المصروفات",
+      "claims": "المطالبات",
+      "leave": "الإجازات"
+    },
+    "scopes": {
+      "own": "الخاصة",
+      "department": "القسم",
+      "all": "الكل"
+    }
   }
 }

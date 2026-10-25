@@ -20,18 +20,27 @@ globalAdminSearch,
 hasPermission,
 DealStage,
 InquiryStatus,
-assertDealStage
+assertDealStage,
+db
 } from "@platform/database";
 import { requireInquiryAccess } from "../../lib/inquiry-access";
 import { REQUEST_PRIORITIES } from "@platform/database/constants/requests";
 import { revalidatePath } from "next/cache";
 import { requireAuth,requirePermission } from "../../lib/auth";
+import { assertRecordInScope } from "../../lib/data-scope";
+
+/** A deal outside the person's data scope cannot be changed, even by someone who knows its id. */
+async function requireDealInScope(id: string) {
+  const deal = await db.crmDeal.findUnique({ where: { id }, select: { assignedTo: true } });
+  if (deal) await assertRecordInScope("deals", deal.assignedTo);
+}
 import { requireFeatureEnabled } from "@platform/database";
 
 export async function updateDealStageAction(id: string, stage: DealStage) {
   return measureOperation("action:updateDealStageAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
     validateActionArguments("updateDealStageAction", { id, stage });
+    await requireDealInScope(id);
     await assertDealStage(stage);
     const { deal } = await runAtomicMutation(async () => {
       const deal = await updateDealStage(id, stage);
@@ -106,6 +115,8 @@ export async function updateDealAction(
   return measureOperation("action:updateDealAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
     validateActionArguments("updateDealAction", { id, data });
+    await requireDealInScope(id);
+    if (data.assigned_to) await assertRecordInScope("deals", data.assigned_to);
     if (data.stage) await assertDealStage(data.stage);
     if (data.contact_id) await requirePermission("contacts", "read");
     if (data.assigned_to) await requirePermission("users", "read");

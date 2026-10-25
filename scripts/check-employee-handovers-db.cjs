@@ -78,7 +78,7 @@ async function main() {
               email: `eho-leaver-${stamp}@handovers.test`,
               fullName: "Leaving Person",
               passwordHash: "x",
-              role: "producer",
+              role: "project_lead",
             },
           });
           const [mate1, mate2] = await Promise.all(
@@ -88,7 +88,7 @@ async function main() {
                   email: `eho-mate${n}-${stamp}@handovers.test`,
                   fullName: `Team Mate ${n}`,
                   passwordHash: "x",
-                  role: "producer",
+                  role: "project_lead",
                 },
               }),
             ),
@@ -221,7 +221,7 @@ async function main() {
               email: `eho-off-${stamp}@handovers.test`,
               fullName: "Gone",
               passwordHash: "x",
-              role: "producer",
+              role: "project_lead",
               isActive: false,
             },
           });

@@ -31,8 +31,7 @@ export function NewUserFormView({
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [role, setRole] = React.useState<any>("producer");
-  const [department] = React.useState("production");
+  const [role, setRole] = React.useState<any>("employee");
   const [phone] = React.useState("");
   const [saving, setSaving] = React.useState(false);
 
@@ -48,7 +47,6 @@ export function NewUserFormView({
         email,
         password,
         role,
-        department,
         phone: phone || undefined,
       });
 

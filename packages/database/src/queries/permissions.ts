@@ -1,3 +1,4 @@
+import { getTranslations } from "@platform/locales";
 import { db } from "../db";
 import { Permission, UserRole } from "../types";
 
@@ -7,6 +8,7 @@ import {
   ALL_ROLES,
   RESOURCE_FEATURES,
   isDefaultAllowed,
+  resolveGrant,
   type PermissionAction,
   type PermissionResource,
 } from "../constants/permissions";
@@ -20,6 +22,8 @@ export {
   RESOURCE_FEATURES,
   isDefaultAllowed,
   permissionKey,
+  resolveGrant,
+  canonicalRoleId,
 } from "../constants/permissions";
 export type {
   PermissionAction,
@@ -57,42 +61,15 @@ export async function hasPermission(
   }
 
   try {
-    const perm = await db.permission.findUnique({
-      where: {
-        role_resource_action: {
-          role,
-          resource,
-          action,
-        },
-      },
+    const rows = await db.permission.findMany({
+      where: { role, resource, action: { in: [action, "write"] } },
+      select: { action: true, allowed: true },
     });
-
-    if (perm !== null) {
-      return perm.allowed;
-    }
-
-    // Compatibility fallback: write grants map to create and edit only;
-    // assign/approve/credential management must be explicitly granted.
-    if (action === "create" || action === "edit") {
-      const writePerm = await db.permission.findUnique({
-        where: {
-          role_resource_action: {
-            role,
-            resource,
-            action: "write",
-          },
-        },
-      });
-      if (writePerm !== null) {
-        return writePerm.allowed;
-      }
-    }
+    return resolveGrant(role, resource, action, (_resource, act) => rows.find((row) => row.action === act)?.allowed);
   } catch (err) {
     console.error("Error checking permission from DB:", err);
     return false;
   }
-
-  return false;
 }
 
 export async function getAllPermissions(): Promise<Permission[]> {
@@ -190,21 +167,10 @@ export async function getEffectivePermissions(
     where: { role },
     select: { resource: true, action: true, allowed: true },
   });
-  const recordMap = new Set(records.map((r) => `${r.resource}:${r.action}`));
-  for (const record of records) {
-    const key = `${record.resource}:${record.action}`;
-    if (key in permissions) permissions[key] = record.allowed;
-  }
-  // Compatibility fallback: if create/edit not explicitly stored, derive from write
+  const stored = new Map(records.map((r) => [`${r.resource}:${r.action}`, r.allowed]));
   for (const resource of ALL_RESOURCES) {
-    const writeKey = `${resource}:write`;
-    const createKey = `${resource}:create`;
-    const editKey = `${resource}:edit`;
-    if (permissions[writeKey] && !recordMap.has(createKey)) {
-      permissions[createKey] = permissions[writeKey];
-    }
-    if (permissions[writeKey] && !recordMap.has(editKey)) {
-      permissions[editKey] = permissions[writeKey];
+    for (const action of ALL_ACTIONS) {
+      permissions[`${resource}:${action}`] = resolveGrant(role, resource, action, (res, act) => stored.get(`${res}:${act}`));
     }
   }
   for (const [key, allowed] of Object.entries(userOverrides || {})) {
@@ -217,4 +183,40 @@ export async function getEffectivePermissions(
     }
   }
   return permissions;
+}
+
+/**
+ * Creates the role templates an installation does not have yet, named in both languages, and stores every grant
+ * a template role is missing (new templates, or resources added since the role was created) with the template's
+ * default. Grants that are already stored, including a company's own changes, are never touched.
+ */
+export async function ensureRoleTemplates() {
+  const existing = new Set((await db.role.findMany({ select: { id: true } })).map((role) => role.id));
+  const missing = ALL_ROLES.filter((role) => !existing.has(role));
+  if (missing.length) {
+    const en = getTranslations("en").admin.roles as Record<string, string>;
+    const ar = getTranslations("ar").admin.roles as Record<string, string>;
+    await db.role.createMany({
+      data: missing.map((id) => ({ id, nameEn: en[id] ?? id, nameAr: ar[id] ?? id, isSystem: true })),
+      skipDuplicates: true,
+    });
+  }
+  const stored = await db.permission.count({ where: { role: { in: [...ALL_ROLES] } } });
+  if (stored >= ALL_ROLES.length * ALL_RESOURCES.length * ALL_ACTIONS.length) return;
+  await db.permission.createMany({
+    data: ALL_ROLES.flatMap((role) =>
+      ALL_RESOURCES.flatMap((resource) => ALL_ACTIONS.map((action) => ({ role, resource, action, allowed: isDefaultAllowed(role, resource, action) }))),
+    ),
+    skipDuplicates: true,
+  });
+}
+
+let templatesReady: Promise<void> | null = null;
+/** Runs ensureRoleTemplates once per server process (after a deploy that adds roles or resources). */
+export function ensureRoleTemplatesOnce() {
+  templatesReady ??= ensureRoleTemplates().catch((error) => {
+    templatesReady = null;
+    throw error;
+  });
+  return templatesReady;
 }

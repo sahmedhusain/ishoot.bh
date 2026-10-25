@@ -70,6 +70,8 @@ export * from "./queries/quotations";
 export * from "./queries/requests";
 export * from "./queries/fx-settlement";
 export * from "./queries/hrms";
+export * from "./queries/departments";
+export * from "./queries/data-scope";
 export * from "./queries/payroll";
 export * from "./queries/finance-reports";
 export * from "./queries/profile-changes";

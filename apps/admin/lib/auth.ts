@@ -8,6 +8,7 @@ SESSION_COOKIE_NAME,
 } from "./jwt";
 import { getSessionByToken } from "@platform/database/queries/sessions";
 import {
+  ensureRoleTemplatesOnce,
   getEffectivePermissions,
   type PermissionResource,
   type PermissionAction,
@@ -56,6 +57,8 @@ export async function requireAuth(): Promise<Profile> {
 
 export const getCurrentPermissions = cache(async () => memoizeOperation("auth:permissions", async () => {
   const user = await requireAuth();
+  // After an update that adds role templates or resources, their default grants are stored once per process.
+  await ensureRoleTemplatesOnce().catch((error) => console.error("Could not store role template grants:", error));
   return getEffectivePermissions(user.role, user.permissions as Record<string,boolean> | undefined);
 }));
 

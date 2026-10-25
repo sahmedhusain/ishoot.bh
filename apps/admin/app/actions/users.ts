@@ -59,6 +59,7 @@ export async function createUserAction(data: {
   role: string;
   phone?: string;
   department?: string;
+  department_id?: string | null;
   manager_id?: string;
 }) {
   return measureOperation("action:createUserAction", async () => {
@@ -90,6 +91,8 @@ export async function createUserAction(data: {
         throw new Error(serverMessages.selectAnActiveEmployeeWithoutAUser);
       const user = await createUser({
         ...data,
+        // The account starts in its employee record's department unless another one is picked.
+        department_id: data.department_id ?? employee.departmentId,
         password: initialPassword,
       });
       await db.employee.update({
@@ -150,6 +153,7 @@ export async function updateUserAction(
     role?: UserRole;
     phone?: string;
     department?: string;
+    department_id?: string | null;
     manager_id?: string;
       is_active?: boolean;
     password?: string;
@@ -179,11 +183,13 @@ export async function updateUserAction(
         role: data.role,
         phone: data.phone,
         department: data.department,
+        department_id: data.department_id,
         manager_id: data.manager_id,
         is_active: data.is_active,
         password: data.password,
       });
       if (!user) throw new Error(serverMessages.userUpdateFailed);
+      if (data.department_id !== undefined) await db.employee.updateMany({ where: { userId: id }, data: { departmentId: data.department_id || null } });
       await createActivityLog({
         user_id: actor.id,
         action: "update",

@@ -2,6 +2,7 @@ import { db, getRequestList } from "@platform/database";
 import { REQUEST_DUE_FILTERS, REQUEST_KINDS, REQUEST_SORTS, REQUEST_SOURCES, type RequestKind } from "@platform/database/constants/requests";
 import { hasPermission, requirePagePermission } from "../../../lib/auth";
 import { RequestsInboxView } from "../../../components/requests/RequestsInboxView";
+import { dataScope } from "../../../lib/data-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export default async function RequestsPage({
     sort: oneOf("sort", REQUEST_SORTS, "urgency"),
   };
   const [result, canCreate, canExport, staff] = await Promise.all([
-    getRequestList(filters, user.id, Math.max(1, Math.floor(Number(value("page"))) || 1)),
+    getRequestList(filters, user.id, Math.max(1, Math.floor(Number(value("page"))) || 1), await dataScope("requests")),
     hasPermission("requests", "write"),
     hasPermission("requests", "export"),
     db.user.findMany({ where: { isActive: true }, select: { id: true, fullName: true }, orderBy: { fullName: "asc" } }),

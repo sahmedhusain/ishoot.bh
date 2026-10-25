@@ -6,4 +6,6 @@ export interface RoleWithGrants {
   userCount: number;
   /** Map of "resource:action" to allowed. */
   grants: Record<string, boolean>;
+  /** Which records the role sees per data-scope area. */
+  scopes: Record<string, string>;
 }

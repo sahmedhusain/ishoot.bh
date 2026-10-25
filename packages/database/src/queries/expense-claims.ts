@@ -211,8 +211,10 @@ export async function listExpenseClaims(options: {
   claimantId?: string;
   status?: string;
   take?: number;
+  /** Data scope: the claimants whose claims the viewer may see; null or missing for everyone. */
+  claimantIds?: string[] | null;
 }): Promise<ExpenseClaimListResult> {
-  const base = options.claimantId ? { claimantId: options.claimantId } : {};
+  const base = options.claimantId ? { claimantId: options.claimantId } : options.claimantIds ? { claimantId: { in: options.claimantIds } } : {};
   const where = {
     ...base,
     ...(options.status &&

@@ -11,6 +11,7 @@ getRelatedExpenses,
 import { RelatedExpensesPanel } from "../../../../../components/expenses/RelatedExpensesPanel";
 import { notFound } from "next/navigation";
 import { DealDossierView } from "../../../../../components/crm/DealDossierView";
+import { requireRecordInScope } from "../../../../../lib/data-scope";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ export default async function DealDetailPage({
   if (!deal) {
     notFound();
   }
+  await requireRecordInScope("deals", deal.assigned_to);
 
   const grants = await getCurrentPermissions();
   const canContacts = grants["contacts:read"] === true;

@@ -19,6 +19,8 @@ import { storeFileBytes } from "../../packages/database/src/services/uploads";
 import { db as websiteDb } from "../../packages/database/src/db";
 import { importProfileFile, installCompanyProfile, loadCompanyProfile, profileAssetPath } from "../tools/company-profile";
 import demoStaff from "./demo-staff.json";
+import adminEn from "../../packages/locales/src/admin/en.json";
+import adminAr from "../../packages/locales/src/admin/ar.json";
 import demoClients from "./demo-clients.json";
 import { DEFAULT_FEATURE_MODULES } from "../../packages/database/src/constants/features";
 
@@ -105,10 +107,10 @@ async function main() {
     { id: "super_admin", nameEn: "Super Administrator", nameAr: "مسؤول النظام العام", isSystem: true },
     { id: "admin", nameEn: "System Administrator", nameAr: "مدير النظام", isSystem: true },
     { id: "finance_manager", nameEn: "Finance Manager", nameAr: "المدير المالي", isSystem: true },
-    { id: "production_manager", nameEn: "Production Manager", nameAr: "مدير الإنتاج", isSystem: true },
+    { id: "operations_manager", nameEn: "Production Manager", nameAr: "مدير الإنتاج", isSystem: true },
     { id: "sales", nameEn: "Commercial Sales Director", nameAr: "مدير المبيعات التجارية", isSystem: true },
     { id: "marketing", nameEn: "Marketing Manager", nameAr: "مدير التسويق", isSystem: true },
-    { id: "producer", nameEn: "Executive Producer", nameAr: "المنتج المنفذ", isSystem: true },
+    { id: "project_lead", nameEn: "Executive Producer", nameAr: "المنتج المنفذ", isSystem: true },
     { id: "editor", nameEn: "Post-Production Editor", nameAr: "محرر المونتاج", isSystem: true },
     { id: "accountant", nameEn: "Accountant", nameAr: "محاسب", isSystem: true },
     { id: "viewer", nameEn: "Read-Only Observer", nameAr: "مراقب", isSystem: true },
@@ -120,6 +122,12 @@ async function main() {
       update: role,
       create: role,
     });
+  }
+  // The other role templates, with their standard names.
+  for (const id of ALL_ROLES.filter((role) => !systemRoles.some((r) => r.id === role))) {
+    const nameEn = (adminEn.roles as Record<string, string>)[id] ?? id;
+    const nameAr = (adminAr.roles as Record<string, string>)[id] ?? id;
+    await prisma.role.upsert({ where: { id }, update: {}, create: { id, nameEn, nameAr, isSystem: true } });
   }
 
   // Fictional staff (company/seed/demo-staff.json); the first one is the configured super admin.
@@ -156,7 +164,7 @@ async function main() {
   // Establish Reporting To Hierarchy
   const ceo = createdUsers["super_admin"];
   const director = createdUsers["admin"];
-  const prodManager = createdUsers["production_manager"];
+  const prodManager = createdUsers["operations_manager"];
   const finManager = createdUsers["finance_manager"];
 
   if (ceo) {
@@ -167,7 +175,7 @@ async function main() {
     if (createdUsers["marketing"]) await prisma.user.update({ where: { id: createdUsers["marketing"].id }, data: { managerId: ceo.id } });
   }
   if (prodManager) {
-    if (createdUsers["producer"]) await prisma.user.update({ where: { id: createdUsers["producer"].id }, data: { managerId: prodManager.id } });
+    if (createdUsers["project_lead"]) await prisma.user.update({ where: { id: createdUsers["project_lead"].id }, data: { managerId: prodManager.id } });
     if (createdUsers["editor"]) await prisma.user.update({ where: { id: createdUsers["editor"].id }, data: { managerId: prodManager.id } });
   }
   if (finManager && createdUsers["accountant"]) {
@@ -2147,16 +2155,16 @@ async function main() {
   }
 
   const expenses = [
-    { id: "exp-01", categoryId: "expcat-02", dealId: "deal-07", descriptionEn: "Steadicam Operator & 1st AC Wages (3 Shoot Days)", descriptionAr: "أجور مشغل ستيديكام ومساعد المصور الأول (3 أيام)", amount: 1050.0, currency: "BHD", expenseDate: new Date("2026-08-16"), vendorName: "Direct Freelance Crew", createdById: createdUsers.production_manager?.id },
-    { id: "exp-02", categoryId: "expcat-01", dealId: "deal-04", descriptionEn: "Russian Arm Camera Crane Tracking Car Rental", descriptionAr: "استئجار سيارة تتبع بكاميرا كرين متقدمة", amount: 1400.0, currency: "BHD", expenseDate: new Date("2026-09-02"), vendorName: "Gulf Motion Grip Services", createdById: createdUsers.producer?.id },
+    { id: "exp-01", categoryId: "expcat-02", dealId: "deal-07", descriptionEn: "Steadicam Operator & 1st AC Wages (3 Shoot Days)", descriptionAr: "أجور مشغل ستيديكام ومساعد المصور الأول (3 أيام)", amount: 1050.0, currency: "BHD", expenseDate: new Date("2026-08-16"), vendorName: "Direct Freelance Crew", createdById: createdUsers.operations_manager?.id },
+    { id: "exp-02", categoryId: "expcat-01", dealId: "deal-04", descriptionEn: "Russian Arm Camera Crane Tracking Car Rental", descriptionAr: "استئجار سيارة تتبع بكاميرا كرين متقدمة", amount: 1400.0, currency: "BHD", expenseDate: new Date("2026-09-02"), vendorName: "Gulf Motion Grip Services", createdById: createdUsers.project_lead?.id },
     { id: "exp-03", categoryId: "expcat-04", descriptionEn: "Monthly Soundstage A Facility Lease & Electricity", descriptionAr: "إيجار استوديو أ ومصاريف الكهرباء الشهرية", amount: 1250.0, currency: "BHD", expenseDate: new Date("2026-09-01"), vendorName: "Seafront Commercial Real Estate", isRecurring: true, recurrenceInterval: "monthly", createdById: createdUsers.finance_manager?.id },
     { id: "exp-04", categoryId: "expcat-05", descriptionEn: "DaVinci Resolve Studio Cloud & LucidLink 10TB Cinema Cloud", descriptionAr: "اشتراك سحابة دافينشي ومساحة تخأوربت لوسيد لينك 10 تيرابايت", amount: 280.0, currency: "BHD", expenseDate: new Date("2026-09-03"), vendorName: "LucidLink Inc / Blackmagic Cloud", isRecurring: true, recurrenceInterval: "monthly", createdById: createdUsers.editor?.id },
-    { id: "exp-05", categoryId: "expcat-02", dealId: "deal-01", descriptionEn: "Principal Cast Actors & Talent Agency Retainers", descriptionAr: "أجور الممثلين الرئيسيين ورسوم وكالة المواهب", amount: 1800.0, currency: "BHD", expenseDate: new Date("2026-09-15"), vendorName: "Bahrain Talent Casting", createdById: createdUsers.producer?.id },
-    { id: "exp-06", categoryId: "expcat-03", dealId: "deal-01", descriptionEn: "Production Catering & Craft Services (4 Shoot Days)", descriptionAr: "خدمات الضيافة والإعاشة لطاقم التصوير لـ 4 أيام", amount: 650.0, currency: "BHD", expenseDate: new Date("2026-09-18"), vendorName: "Manama Gourmet Catering", createdById: createdUsers.producer?.id },
-    { id: "exp-07", categoryId: "expcat-01", dealId: "deal-03", descriptionEn: "ARRI Master Grips & Wireless Follow Focus Unit Rental", descriptionAr: "استئجار أجهزة تحكم بالعدسات لاسلكية من آرّي", amount: 480.0, currency: "BHD", expenseDate: new Date("2026-09-20"), vendorName: "Gulf Camera Gear Rentals", createdById: createdUsers.production_manager?.id },
+    { id: "exp-05", categoryId: "expcat-02", dealId: "deal-01", descriptionEn: "Principal Cast Actors & Talent Agency Retainers", descriptionAr: "أجور الممثلين الرئيسيين ورسوم وكالة المواهب", amount: 1800.0, currency: "BHD", expenseDate: new Date("2026-09-15"), vendorName: "Bahrain Talent Casting", createdById: createdUsers.project_lead?.id },
+    { id: "exp-06", categoryId: "expcat-03", dealId: "deal-01", descriptionEn: "Production Catering & Craft Services (4 Shoot Days)", descriptionAr: "خدمات الضيافة والإعاشة لطاقم التصوير لـ 4 أيام", amount: 650.0, currency: "BHD", expenseDate: new Date("2026-09-18"), vendorName: "Manama Gourmet Catering", createdById: createdUsers.project_lead?.id },
+    { id: "exp-07", categoryId: "expcat-01", dealId: "deal-03", descriptionEn: "ARRI Master Grips & Wireless Follow Focus Unit Rental", descriptionAr: "استئجار أجهزة تحكم بالعدسات لاسلكية من آرّي", amount: 480.0, currency: "BHD", expenseDate: new Date("2026-09-20"), vendorName: "Gulf Camera Gear Rentals", createdById: createdUsers.operations_manager?.id },
     { id: "exp-08", categoryId: "expcat-06", descriptionEn: "Cannes Corporate Media & TV Awards Submission Fees", descriptionAr: "رسوم التقديم في مهرجان كان لجوائز الأفلام الإعلانية والمؤسسية", amount: 350.0, currency: "BHD", expenseDate: new Date("2026-08-28"), vendorName: "Cannes Corporate Media Festival", createdById: createdUsers.super_admin?.id },
     { id: "exp-09", categoryId: "expcat-05", descriptionEn: "Annual Adobe Creative Cloud Enterprise Suite (10 Seats)", descriptionAr: "اشتراك باقة أدوبي كرييتف كلاود للشركات (10 مستخدمين)", amount: 890.0, currency: "BHD", expenseDate: new Date("2026-07-01"), vendorName: "Adobe Systems Direct", isRecurring: true, recurrenceInterval: "yearly", createdById: createdUsers.finance_manager?.id },
-    { id: "exp-10", categoryId: "expcat-02", dealId: "deal-08", descriptionEn: "High-Speed FPV Drone Pilot Day Rate & Insurance", descriptionAr: "أجر طيار درون FPV السريع ورسوم التأمين", amount: 450.0, currency: "BHD", expenseDate: new Date("2026-09-14"), vendorName: "AeroMotion FPV Pilots", createdById: createdUsers.production_manager?.id },
+    { id: "exp-10", categoryId: "expcat-02", dealId: "deal-08", descriptionEn: "High-Speed FPV Drone Pilot Day Rate & Insurance", descriptionAr: "أجر طيار درون FPV السريع ورسوم التأمين", amount: 450.0, currency: "BHD", expenseDate: new Date("2026-09-14"), vendorName: "AeroMotion FPV Pilots", createdById: createdUsers.operations_manager?.id },
   ];
 
   // Local VAT-registered suppliers (rentals, logistics, premises) charge 10% VAT inside the gross;
@@ -2191,7 +2199,7 @@ async function main() {
       color: "#09937F",
       eventType: "shoot",
       dealId: "deal-01",
-      createdById: createdUsers.production_manager?.id,
+      createdById: createdUsers.operations_manager?.id,
     },
     {
       id: "event-02",
@@ -2205,7 +2213,7 @@ async function main() {
       color: "#09937F",
       eventType: "shoot",
       dealId: "deal-01",
-      createdById: createdUsers.production_manager?.id,
+      createdById: createdUsers.operations_manager?.id,
     },
     {
       id: "event-03",
@@ -2247,7 +2255,7 @@ async function main() {
       color: "#09937F",
       eventType: "shoot",
       dealId: "deal-03",
-      createdById: createdUsers.production_manager?.id,
+      createdById: createdUsers.operations_manager?.id,
     },
     {
       id: "event-06",
@@ -2261,7 +2269,7 @@ async function main() {
       color: "#09937F",
       eventType: "shoot",
       dealId: "deal-08",
-      createdById: createdUsers.production_manager?.id,
+      createdById: createdUsers.operations_manager?.id,
     },
   ];
 
@@ -2294,11 +2302,11 @@ async function main() {
       intent: "inquiry",
       team: "production",
       workflowStatus: "assigned",
-      assignedToId: createdUsers.producer?.id,
+      assignedToId: createdUsers.project_lead?.id,
       locale: "ar",
       customAssignments: [
         {
-          assignedToId: createdUsers.producer?.id,
+          assignedToId: createdUsers.project_lead?.id,
           assignedByName: createdUsers.super_admin?.fullName,
           timestamp: new Date().toISOString(),
           notes: "تم الإسناد إلى المنتج لمراجعة متطلبات النص والجدول الزمني",
@@ -2322,11 +2330,11 @@ async function main() {
       intent: "quote_request",
       team: "production",
       workflowStatus: "in_progress",
-      assignedToId: createdUsers.production_manager?.id,
+      assignedToId: createdUsers.operations_manager?.id,
       locale: "en",
       customAssignments: [
         {
-          assignedToId: createdUsers.production_manager?.id,
+          assignedToId: createdUsers.operations_manager?.id,
           assignedByName: createdUsers.super_admin?.fullName,
           timestamp: new Date().toISOString(),
           notes: "Assigned to production head for BCAA flight permit feasibility and crew quote",
@@ -2350,7 +2358,7 @@ async function main() {
       intent: "quote_request",
       team: "production",
       workflowStatus: "pending_approval",
-      assignedToId: createdUsers.producer?.id,
+      assignedToId: createdUsers.project_lead?.id,
       approvalNotes: "المقترح الفني جاهز بانتظار الاعتماد المالي والتنفيذي",
       locale: "ar",
     },
@@ -2370,7 +2378,7 @@ async function main() {
       intent: "quote_request",
       team: "production",
       workflowStatus: "confirmed",
-      assignedToId: createdUsers.production_manager?.id,
+      assignedToId: createdUsers.operations_manager?.id,
       confirmedById: createdUsers.super_admin?.id,
       confirmedAt: new Date(),
       locale: "en",
@@ -2396,7 +2404,7 @@ async function main() {
       customAssignments: [
         {
           assignedToId: createdUsers.editor?.id,
-          assignedByName: createdUsers.production_manager?.fullName,
+          assignedByName: createdUsers.operations_manager?.fullName,
           timestamp: new Date().toISOString(),
           notes: "تم التحويل لمونتير المشروع لإجراء التعديل فوراً وتصدير نسخة مراجعة",
           action: "assign",
@@ -2519,7 +2527,7 @@ async function main() {
         "Commissioned 15s cutdowns for TikTok, Instagram Reels, and YouTube bumper ads."
       ],
       status: "approved",
-      createdById: createdUsers.production_manager?.id,
+      createdById: createdUsers.operations_manager?.id,
       approvedById: createdUsers.admin?.id,
       signatureUrl: signatureOf("yusuf-rahman"),
     },
@@ -2586,7 +2594,7 @@ async function main() {
         ipAddress: "185.120.45.14",
       },
       {
-        userId: createdUsers.producer.id,
+        userId: createdUsers.project_lead.id,
         action: "stage_change",
         entityType: "deal",
         entityId: "deal-01",
@@ -2929,8 +2937,8 @@ async function main() {
   // 3. HRMS Departments & Leave Types
   const departmentsData = [
     { code: "EXEC", nameEn: "Executive Management", nameAr: "الإدارة التنفيذية", managerId: createdUsers.super_admin?.id },
-    { code: "PROD", nameEn: "Production & Cinematography", nameAr: "إدارة الإنتاج والتصوير السينمائي", managerId: createdUsers.production_manager?.id },
-    { code: "POST", nameEn: "Post-Production & VFX", nameAr: "ما بعد الإنتاج والمونتاج والمؤثرات", managerId: createdUsers.production_manager?.id },
+    { code: "PROD", nameEn: "Production & Cinematography", nameAr: "إدارة الإنتاج والتصوير السينمائي", managerId: createdUsers.operations_manager?.id },
+    { code: "POST", nameEn: "Post-Production & VFX", nameAr: "ما بعد الإنتاج والمونتاج والمؤثرات", managerId: createdUsers.operations_manager?.id },
     { code: "FIN", nameEn: "Finance & Accounts", nameAr: "الشؤون المالية والمحاسبة", managerId: createdUsers.finance_manager?.id },
     { code: "COMM", nameEn: "Commercial & Business Development", nameAr: "الشؤون التجارية وتطوير الأعمال", managerId: createdUsers.sales?.id },
   ];
@@ -3028,7 +3036,7 @@ async function main() {
     },
     {
       employeeNumber: "EMP-2026-000004",
-      userId: createdUsers.production_manager?.id,
+      userId: createdUsers.operations_manager?.id,
       departmentId: deptMap["PROD"],
       firstNameEn: "Ali",
       lastNameEn: "Al-Samahiji",
@@ -3109,13 +3117,13 @@ async function main() {
     },
     {
       employeeNumber: "EMP-2026-000008",
-      userId: createdUsers.producer?.id,
+      userId: createdUsers.project_lead?.id,
       departmentId: deptMap["PROD"],
       firstNameEn: "Hassan",
       lastNameEn: "Al-Mahroos",
       firstNameAr: "حسن",
       lastNameAr: "المحروس",
-      email: createdUsers.producer?.email ?? null,
+      email: createdUsers.project_lead?.email ?? null,
       phone: "+973 3900 8813",
       cprNumber: "930889012",
       jobTitleEn: "Producer",
@@ -3194,7 +3202,7 @@ async function main() {
         days: workingDaysBetween(new Date("2026-10-01"), new Date("2026-10-07"), { weekendDays: [5, 6] }, new Set()),
         status: "approved",
         reason: "Annual vacation & rest after international commercial film project.",
-        approvedById: createdUsers.production_manager?.id || createdUsers.super_admin?.id,
+        approvedById: createdUsers.operations_manager?.id || createdUsers.super_admin?.id,
         approvedAt: new Date("2026-09-28"),
         reviewNotes: "Approved. All Davinci Resolve suites handed over to secondary colorist.",
       },
@@ -3226,7 +3234,7 @@ async function main() {
       workflowStatus: "in_progress",
       priority: "high",
       team: "production",
-      assignedToId: createdUsers.production_manager?.id,
+      assignedToId: createdUsers.operations_manager?.id,
       slaDueDate: new Date("2026-10-10"),
     },
   });
@@ -3238,14 +3246,14 @@ async function main() {
   await prisma.requestEvent.createMany({
     data: [
       { inquiryId: srInquiry.id, actorId: createdUsers.super_admin?.id, eventType: "status_change", details: { from: "received", to: "in_progress" } },
-      { inquiryId: srInquiry.id, actorId: createdUsers.production_manager?.id, eventType: "assignment", details: { assignedTo: "Ali Al-Samahiji" } },
+      { inquiryId: srInquiry.id, actorId: createdUsers.operations_manager?.id, eventType: "assignment", details: { assignedTo: "Ali Al-Samahiji" } },
     ],
   });
 
   await prisma.requestAssignment.create({
     data: {
       inquiryId: srInquiry.id,
-      assignedToId: createdUsers.production_manager?.id || createdUsers.super_admin?.id,
+      assignedToId: createdUsers.operations_manager?.id || createdUsers.super_admin?.id,
       assignedById: createdUsers.super_admin?.id,
       team: "production",
       reason: "Lead production management for Gulfwave 5G pickup shoot.",
@@ -3257,7 +3265,7 @@ async function main() {
     data: [
       {
         inquiryId: srInquiry.id,
-        authorId: createdUsers.production_manager?.id || createdUsers.super_admin?.id,
+        authorId: createdUsers.operations_manager?.id || createdUsers.super_admin?.id,
         body: "Arri Alexa 35 and Cooke Anamorphic lens kit reserved with grip team.",
         isClientVisible: false,
       },
@@ -3291,7 +3299,7 @@ async function main() {
       workflowStatus: "under_review",
       priority: "urgent",
       team: "production",
-      assignedToId: createdUsers.producer?.id,
+      assignedToId: createdUsers.project_lead?.id,
       slaDueDate: new Date("2026-10-08"),
     },
   });
@@ -3307,7 +3315,7 @@ async function main() {
   await prisma.requestAssignment.create({
     data: {
       inquiryId: crInquiry.id,
-      assignedToId: createdUsers.producer?.id || createdUsers.super_admin?.id,
+      assignedToId: createdUsers.project_lead?.id || createdUsers.super_admin?.id,
       assignedById: createdUsers.super_admin?.id,
       team: "production",
       reason: "Evaluating flight permissions and additional equipment rate for sunset shoot.",

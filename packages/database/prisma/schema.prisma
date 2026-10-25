@@ -19,7 +19,9 @@ model User {
   avatarUrl                 String?
   signatureUrl              String?
   phone                     String?
-  department                String? // production, finance, marketing, executive
+  department                String? // legacy free-text team name; departmentId is the company's department
+  departmentId              String?
+  departmentRecord          Department?       @relation("UserDepartment", fields: [departmentId], references: [id], onDelete: SetNull)
   managerId                 String?
   manager                   User?             @relation("UserHierarchy", fields: [managerId], references: [id], onDelete: SetNull)
   subordinates              User[]            @relation("UserHierarchy")
@@ -102,6 +104,7 @@ model User {
   announcementReceipts       AnnouncementReceipt[]
 
   @@index([role])
+  @@index([departmentId])
 }
 
 model CompanySetting {
@@ -977,6 +980,15 @@ model Role {
   createdAt   DateTime     @default(now())
 }
 
+/// Which records a role sees in an area (constants/data-scope.ts): "own", "department" or "all".
+model RoleDataScope {
+  role  String
+  area  String
+  scope String
+
+  @@id([role, area])
+}
+
 model FeatureToggle {
   id          String  @id @default(cuid())
   moduleKey   String  @unique // e.g. "crm_deals", "ticketing", "reviews", "expenses"
@@ -1581,14 +1593,28 @@ model BankSettlement {
 // ==========================================
 
 model Department {
-  id        String     @id @default(uuid())
-  code      String     @unique
-  nameEn    String
-  nameAr    String
-  managerId String?
-  employees Employee[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id          String       @id @default(uuid())
+  code        String       @unique
+  nameEn      String
+  nameAr      String
+  /// DEPARTMENT_CATALOGUE key when it was created from the catalogue.
+  catalogueKey String?
+  /// Nesting: sub-departments roll up to their parent (data scope, approvals, org chart).
+  parentId    String?
+  parent      Department?  @relation("DepartmentTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Department[] @relation("DepartmentTree")
+  /// User ids of the head and their deputy.
+  managerId   String?
+  deputyId    String?
+  costCentre  String?
+  sortOrder   Int          @default(0)
+  isActive    Boolean      @default(true)
+  employees   Employee[]
+  users       User[]       @relation("UserDepartment")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([parentId])
 }
 
 model Employee {

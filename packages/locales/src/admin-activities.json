@@ -23,7 +23,9 @@
       "roles": {
         "production_manager": "Production Manager",
         "producer": "Executive Producer",
-        "editor": "Lead Editor"
+        "editor": "Lead Editor",
+        "operations_manager": "Production Manager",
+        "project_lead": "Executive Producer"
       },
       "calendar": {
         "title": "Production Schedule & Deadlines",
@@ -110,7 +112,8 @@
       "security": {
         "roles": {
           "production_manager": "Production Head",
-          "editor": "Post-Production Editor"
+          "editor": "Post-Production Editor",
+          "operations_manager": "Production Head"
         }
       },
       "customer360": {
@@ -214,7 +217,9 @@
       "roles": {
         "production_manager": "مدير الإنتاج والتصوير",
         "producer": "منتج منفذ",
-        "editor": "مونتير ومحرر محتوى"
+        "editor": "مونتير ومحرر محتوى",
+        "operations_manager": "مدير الإنتاج والتصوير",
+        "project_lead": "منتج منفذ"
       },
       "calendar": {
         "title": "جدول تصوير المشاريع ومواعيد التسليم",
@@ -301,7 +306,8 @@
       "security": {
         "roles": {
           "production_manager": "مدير شؤون الإنتاج",
-          "editor": "مونتير ومحرر الوسائط"
+          "editor": "مونتير ومحرر الوسائط",
+          "operations_manager": "مدير شؤون الإنتاج"
         }
       },
       "customer360": {

@@ -4,6 +4,7 @@ import { serverMessages } from "@platform/locales";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import {
   applyActivityDealPipeline,
+  applyActivityDepartments,
   completeCompanySetup,
   createActivityLog,
   db,
@@ -122,7 +123,10 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
         website: trim(input.website),
       });
       // A new activity brings its own sales pipeline; stages that hold deals are kept.
-      if (previousActivity !== input.businessActivity) await applyActivityDealPipeline(input.businessActivity);
+      if (previousActivity !== input.businessActivity) {
+        await applyActivityDealPipeline(input.businessActivity);
+        await applyActivityDepartments(input.businessActivity);
+      }
       await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "company" } });
     });
     revalidateEverywhere();
