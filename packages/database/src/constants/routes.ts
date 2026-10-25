@@ -86,6 +86,13 @@ export const ROUTES = {
     detail: (id: string) => `/dashboard/products/${encodeURIComponent(id)}`,
     categories: "/dashboard/products/categories",
   },
+  inventory: {
+    stock: "/dashboard/inventory",
+    movements: (query?: { productId?: string }) => (query?.productId ? `/dashboard/inventory/movements?productId=${encodeURIComponent(query.productId)}` : "/dashboard/inventory/movements"),
+    warehouses: "/dashboard/inventory/warehouses",
+    counts: "/dashboard/inventory/counts",
+    count: (id: string) => `/dashboard/inventory/counts/${encodeURIComponent(id)}`,
+  },
   cms: {
     banners: "/dashboard/cms/banners",
     clients: "/dashboard/cms/clients",

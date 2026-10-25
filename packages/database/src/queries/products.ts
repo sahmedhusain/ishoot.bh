@@ -47,6 +47,7 @@ export interface ProductRecord extends ProductRow {
   description_en: string;
   description_ar: string;
   vat_exempt: boolean;
+  track_batches: boolean;
   image_urls: string[];
   options: ProductOption[];
   variants: ProductVariantRecord[];
@@ -139,6 +140,7 @@ export async function getProduct(id: string): Promise<ProductRecord | null> {
     description_en: p.descriptionEn ?? "",
     description_ar: p.descriptionAr ?? "",
     vat_exempt: p.vatExempt,
+    track_batches: p.trackBatches,
     image_urls: p.imageUrls,
     options: normalizeProductOptions(p.options) ?? [],
     variants: p.variants.map((v) => ({ id: v.id, sku: v.sku, barcode: v.barcode, option_values: v.optionValues, price: num(v.price), cost: num(v.cost), is_active: v.isActive })),
@@ -177,6 +179,7 @@ export interface ProductInput {
   options: unknown;
   variants: ProductVariantInput[];
   trackStock: boolean;
+  trackBatches?: boolean;
   isActive: boolean;
 }
 
@@ -254,11 +257,15 @@ export async function saveProduct(input: ProductInput, userId: string | null) {
     imageUrls,
     options: JSON.parse(JSON.stringify(options)),
     trackStock: input.trackStock,
+    trackBatches: input.trackStock && !!input.trackBatches,
     isActive: input.isActive,
   };
   return db.$transaction(async (tx) => {
     const product = input.id ? await tx.product.update({ where: { id: input.id }, data }) : await tx.product.create({ data: { ...data, createdById: userId } });
     const keep = variants.filter((v) => v.id && ownVariantIds.includes(v.id)).map((v) => v.id!);
+    // A variant with stock history stays (it can be taken off sale instead).
+    const removed = ownVariantIds.filter((id) => !keep.includes(id));
+    if (removed.length && (await tx.stockMovement.findFirst({ where: { productId: product.id, variantKey: { in: removed } }, select: { id: true } }))) throw new Error(serverMessages.productHasStock);
     await tx.productVariant.deleteMany({ where: { productId: product.id, id: { notIn: keep } } });
     for (const v of variants) {
       const values = { sku: v.sku, barcode: v.barcode, optionValues: v.optionValues, price: v.price, cost: v.cost, isActive: v.isActive, sortOrder: v.sortOrder };
@@ -272,7 +279,9 @@ export async function saveProduct(input: ProductInput, userId: string | null) {
 
 /** Deletes a product and its variants; a website catalogue item showing it stays, without the link. */
 export async function deleteProduct(id: string) {
-  await db.product.deleteMany({ where: { id } });
+  // Stock history keeps the product: it is taken off sale instead.
+  if (await db.stockMovement.findFirst({ where: { productId: id }, select: { id: true } })) throw new Error(serverMessages.productHasStock);
+  await db.$transaction([db.stockItem.deleteMany({ where: { productId: id } }), db.stockBatch.deleteMany({ where: { productId: id } }), db.stockLevel.deleteMany({ where: { productId: id } }), db.product.deleteMany({ where: { id } })]);
 }
 
 export async function setProductsActive(ids: string[], isActive: boolean) {

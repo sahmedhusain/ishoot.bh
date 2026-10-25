@@ -401,3 +401,29 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   action); the Modules page now also lists modules added after a company was set up, and module defaults are
   honoured when a module has never been toggled. The e2e sign-in step allows for the first dashboard compile.
 - Stock (5b) will block deleting variants and products that have stock movements; until then deleting is free.
+
+### Phase 5b: inventory (done)
+
+- Warehouses with locations (each has its main location; shelves, bins or rooms are more), a default
+  warehouse created on demand. Migration `20261026190000_inventory`.
+- **Stock ledger** `StockMovement` (receipt, sale, return, transfer out/in, adjustment, write-off, count) is the
+  only way stock changes; `StockLevel` (on hand and reserved per item, location and batch) is updated in the same
+  transaction. Outgoing stock can never take what is reserved or go below zero (checked in one conditional
+  update, so two people cannot both take the last unit); the database also refuses negative reservations and
+  zero movements. `reserveStock` holds and releases stock for orders (phase 6).
+- **Valuation**: weighted average cost per item, moved by receipts (`averageCostAfter`); every other movement is
+  recorded at the average cost. The stock page shows the total value.
+- **Reorder points** per item (product or variant) with an order quantity; when available stock falls to the
+  point everyone who can see stock gets one notification per dip (it re-arms when stock recovers).
+- **Batches and expiry** for batch-tracked products ("Keep batches and expiry dates", on by default for new
+  products in pharmacy, food and healthcare companies); batches expiring within 30 days are listed on the stock page.
+- **Stock counts**: full (whole warehouse) or cycle (one category); counts are typed or scanned (barcode or SKU
+  jumps to the line, or adds a line for an item not on the list), sent for review, and approved (permission
+  `inventory: approve`) into one "count" movement per difference. Uncounted lines change nothing.
+- Screens: Stock (search, warehouse, low/out filters, change stock and transfer dialogs), Stock movements (type,
+  warehouse and date filters), Stock counts, Warehouses, and a Stock panel on each product (levels by location
+  and batch, reorder levels, average cost, change stock).
+- Permission resource `inventory` (follows the products module), with a new "Products & stock" group in the roles
+  matrix; `products` was missing from that matrix in 5a and is now there. A unit test now checks every resource
+  appears in the matrix exactly once.
+- Products with stock history cannot be deleted (take them off sale), nor can variants with history be removed.

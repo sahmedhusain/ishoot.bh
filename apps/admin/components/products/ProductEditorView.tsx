@@ -54,10 +54,14 @@ interface ProductEditorViewProps {
   canDelete: boolean;
   /** May put the product in the website catalogue (portfolio access). */
   canPublish: boolean;
+  /** New products start batch-tracked in activities that usually have expiry dates. */
+  batchesByDefault?: boolean;
+  /** The stock panel, when the person may see stock. */
+  stockPanel?: React.ReactNode;
 }
 
 /** Products → one product: details, price, pictures, options and their variants, and the website. */
-export function ProductEditorView({ product, categories, currency, languages, canEdit, canDelete, canPublish }: ProductEditorViewProps) {
+export function ProductEditorView({ product, categories, currency, languages, canEdit, canDelete, canPublish, batchesByDefault = false, stockPanel }: ProductEditorViewProps) {
   const { t, locale } = useAdminLocale();
   const copy = t.products.editor;
   const router = useRouter();
@@ -75,6 +79,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
     price: product ? String(product.price) : "",
     vatExempt: product?.vat_exempt ?? false,
     trackStock: product?.track_stock ?? true,
+    trackBatches: product?.track_batches ?? batchesByDefault,
     isActive: product?.is_active ?? true,
   });
   const [images, setImages] = React.useState<string[]>(product?.image_urls ?? []);
@@ -205,7 +210,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
               {(id) => <Input id={id} name="cost" type="number" min={0} step="0.001" inputMode="decimal" value={form.cost} onChange={(e) => set("cost", e.target.value)} className="rounded-lg" />}
             </Field>
             <div className="space-y-2 pt-6">
-              {([["vatExempt", copy.vatExempt, copy.vatExemptHint], ["trackStock", copy.trackStock, copy.trackStockHint], ["isActive", copy.isActive, ""]] as const).map(([key, label, hint]) => (
+              {([["vatExempt", copy.vatExempt, copy.vatExemptHint], ["trackStock", copy.trackStock, copy.trackStockHint], ...(form.trackStock ? ([["trackBatches", t.inventory.product.trackBatches, t.inventory.product.trackBatchesHint]] as const) : []), ["isActive", copy.isActive, ""]] as const).map(([key, label, hint]) => (
                 <label key={key} className="flex items-start gap-2.5 text-sm text-ink">
                   <input type="checkbox" className="mt-0.5 h-4 w-4 accent-accent" checked={form[key]} onChange={(e) => set(key, e.target.checked)} />
                   <span>
@@ -322,6 +327,8 @@ export function ProductEditorView({ product, categories, currency, languages, ca
           )}
         </Card>
       </fieldset>
+
+      {stockPanel}
 
       <Card className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
         <Globe className="w-5 h-5 text-accent shrink-0" aria-hidden="true" />

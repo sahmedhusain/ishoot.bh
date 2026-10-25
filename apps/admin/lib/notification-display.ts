@@ -57,6 +57,10 @@ export function notificationHref(n: Notification): string | null {
     case "inquiry":
     case "lead":
       return ROUTES.requests.detail(id);
+    case "product":
+      return ROUTES.products.detail(id);
+    case "stock_count":
+      return ROUTES.inventory.count(id);
     case "announcement":
       return ROUTES.announcements.detail(id);
     case "approval":

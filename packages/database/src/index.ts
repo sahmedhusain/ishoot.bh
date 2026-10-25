@@ -43,6 +43,7 @@ export * from "./queries/cms-pages";
 export * from "./queries/cms-articles";
 export * from "./queries/samples";
 export * from "./queries/products";
+export * from "./queries/inventory";
 export * from "./queries/social-metrics";
 export * from "./queries/moms";
 

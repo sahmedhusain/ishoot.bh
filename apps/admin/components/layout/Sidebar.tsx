@@ -14,6 +14,10 @@ import {
   LayoutDashboard,
   Package,
   FolderTree,
+  Boxes,
+  History,
+  ClipboardCheck,
+  Warehouse,
   Calendar,
   Kanban,
   Users,
@@ -521,6 +525,10 @@ export function Sidebar() {
         items: [
           { href: ROUTES.products.list, label: t.products.navTitle, icon: Package, resource: "products", moduleKey: "products" },
           { href: ROUTES.products.categories, label: t.products.navCategories, icon: FolderTree, resource: "products", moduleKey: "products" },
+          { href: ROUTES.inventory.stock, label: t.inventory.nav.stock, icon: Boxes, resource: "inventory", moduleKey: "products" },
+          { href: ROUTES.inventory.movements(), label: t.inventory.nav.movements, icon: History, resource: "inventory", moduleKey: "products" },
+          { href: ROUTES.inventory.counts, label: t.inventory.nav.counts, icon: ClipboardCheck, resource: "inventory", moduleKey: "products" },
+          { href: ROUTES.inventory.warehouses, label: t.inventory.nav.warehouses, icon: Warehouse, resource: "inventory", moduleKey: "products" },
         ],
       },
       {

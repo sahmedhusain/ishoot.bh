@@ -2199,7 +2199,8 @@
       "cms": "محتوى الموقع",
       "operations": "الجدولة",
       "administration": "الإدارة",
-      "communications": "التواصل"
+      "communications": "التواصل",
+      "commerce": "المنتجات والمخزون"
     },
     "actions": {
       "read": "عرض",
@@ -2250,7 +2251,8 @@
       "pages": "صفحات الموقع",
       "articles": "المقالات",
       "cms_code": "الأكواد المخصصة والتتبع",
-      "products": "المنتجات"
+      "products": "المنتجات",
+      "inventory": "المخزون والمستودعات"
     }
   },
   "approvals": {
@@ -5700,7 +5702,22 @@
       "productCategoryMissing": "هذه الفئة لم تعد موجودة.",
       "productMissing": "هذا المنتج لم يعد موجودًا.",
       "productImageRequired": "أضف صورة قبل عرض المنتج في الموقع.",
-      "productCategoryLoop": "لا يمكن وضع فئة داخل نفسها أو داخل إحدى فئاتها الفرعية."
+      "productCategoryLoop": "لا يمكن وضع فئة داخل نفسها أو داخل إحدى فئاتها الفرعية.",
+      "warehouseCodeInvalid": "الرمز حتى 20 حرفًا إنجليزيًا كبيرًا أو رقمًا أو شرطة.",
+      "warehouseCodeTaken": "هذا الرمز مستخدم.",
+      "warehouseHasStock": "ما زال هنا مخزون. انقله أو عدّله أولًا.",
+      "stockNotTracked": "هذا المنتج لا يتتبع المخزون.",
+      "stockVariantRequired": "اختر النوع.",
+      "stockLocationMissing": "اختر موقعًا مستخدمًا.",
+      "stockBatchRequired": "أدخل رقم الدفعة (وتاريخ انتهائها إن كانت جديدة).",
+      "stockInsufficient": "لا يوجد مخزون متاح كافٍ هناك.",
+      "stockQuantityInvalid": "أدخل كمية أكبر من صفر.",
+      "stockReasonRequired": "اختر السبب.",
+      "stockTransferSame": "اختر موقعين مختلفين.",
+      "stockCountScopeInvalid": "اختر ما ستجرده.",
+      "stockCountMissing": "هذا الجرد لم يعد موجودًا.",
+      "stockCountClosed": "لم يعد بالإمكان تغيير هذا الجرد.",
+      "productHasStock": "لهذا المنتج سجل مخزون. أوقف بيعه بدل حذفه."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -9022,6 +9039,207 @@
       "inactive": "مخفية",
       "active": "مستخدمة",
       "empty": "لا توجد فئات بعد."
+    }
+  },
+  "inventory": {
+    "defaultWarehouse": "المستودع الرئيسي",
+    "nav": {
+      "stock": "المخزون",
+      "movements": "حركات المخزون",
+      "counts": "جرد المخزون",
+      "warehouses": "المستودعات"
+    },
+    "notifications": {
+      "lowStock": {
+        "title": "مخزون منخفض: {name}",
+        "message": "المتاح من {sku} هو {available}، عند حد إعادة الطلب {point} أو أقل."
+      }
+    },
+    "movementTypes": {
+      "receipt": "استلام",
+      "sale": "بيع",
+      "return": "مرتجع",
+      "transfer_out": "نقل إلى خارج",
+      "transfer_in": "نقل إلى داخل",
+      "adjustment": "تعديل",
+      "write_off": "إتلاف",
+      "count": "جرد"
+    },
+    "reasons": {
+      "damaged": "تالف",
+      "expired": "منتهي الصلاحية",
+      "lost": "مفقود أو مسروق",
+      "found": "عُثر عليه",
+      "correction": "تصحيح",
+      "sample": "عيّنة أو هدية",
+      "other": "أخرى"
+    },
+    "stock": {
+      "title": "المخزون",
+      "subtitle": "الموجود والمحجوز للطلبات والمتاح لكل منتج ونوع. يُسجَّل كل تغيير في حركات المخزون.",
+      "totalValue": "قيمة المخزون بمتوسط التكلفة: {value}",
+      "search": "ابحث بالاسم أو رمز الصنف أو الباركود",
+      "allWarehouses": "كل المستودعات",
+      "filterAll": "كل الأصناف",
+      "filterLow": "مخزون منخفض",
+      "filterOut": "نفد المخزون",
+      "columns": {
+        "item": "الصنف",
+        "sku": "رمز الصنف",
+        "onHand": "الموجود",
+        "reserved": "المحجوز",
+        "available": "المتاح",
+        "reorderPoint": "حد إعادة الطلب",
+        "averageCost": "متوسط التكلفة",
+        "value": "القيمة"
+      },
+      "low": "منخفض",
+      "empty": "لا توجد منتجات تتتبع المخزون بعد. أضف منتجات وفعّل \"تتبّع المخزون\".",
+      "emptyFiltered": "لا شيء يطابق هذه التصفية.",
+      "change": "غيّر المخزون",
+      "changeFor": "غيّر مخزون {name}",
+      "transfer": "نقل",
+      "transferFor": "انقل {name}",
+      "expiring": "دفعات تنتهي خلال 30 يومًا",
+      "expired": "منتهية",
+      "expiresIn": "متبقٍ {days} يوم",
+      "batchColumn": "الدفعة",
+      "expiryColumn": "الانتهاء"
+    },
+    "change": {
+      "type": "ماذا حدث",
+      "types": {
+        "receipt": "استلام مخزون",
+        "adjustment": "تعديل العدد",
+        "write_off": "إتلاف"
+      },
+      "location": "الموقع",
+      "quantity": "الكمية",
+      "direction": "الاتجاه",
+      "directionIn": "وُجد أكثر",
+      "directionOut": "وُجد أقل",
+      "unitCost": "تكلفة الوحدة ({currency})",
+      "batch": "رقم الدفعة",
+      "expiry": "تاريخ الانتهاء",
+      "reason": "السبب",
+      "note": "ملاحظة",
+      "from": "من",
+      "to": "إلى",
+      "save": "احفظ",
+      "saving": "جارٍ الحفظ…",
+      "cancel": "إلغاء",
+      "saved": "تم تحديث المخزون.",
+      "variant": "النوع"
+    },
+    "movements": {
+      "title": "حركات المخزون",
+      "subtitle": "سجل المخزون: كل استلام وبيع ومرتجع ونقل وتعديل وإتلاف وجرد، الأحدث أولًا.",
+      "allTypes": "كل الحركات",
+      "from": "من",
+      "to": "إلى",
+      "columns": {
+        "date": "التاريخ",
+        "item": "الصنف",
+        "type": "الحركة",
+        "location": "الموقع",
+        "quantity": "الكمية",
+        "unitCost": "تكلفة الوحدة",
+        "by": "بواسطة"
+      },
+      "empty": "لا توجد حركات مخزون بعد.",
+      "forProduct": "حركات هذا المنتج"
+    },
+    "warehouses": {
+      "title": "المستودعات",
+      "subtitle": "أماكن حفظ المخزون. لكل مستودع موقعه الرئيسي، ويمكنك إضافة الرفوف أو الصناديق أو الغرف كمواقع.",
+      "add": "أضف مستودعًا",
+      "code": "الرمز",
+      "name": "الاسم",
+      "address": "العنوان",
+      "active": "مستخدم",
+      "default": "المستودع الافتراضي",
+      "defaultBadge": "افتراضي",
+      "inactive": "غير مستخدم",
+      "save": "احفظ",
+      "cancel": "إلغاء",
+      "edit": "عدّل {name}",
+      "locations": "المواقع",
+      "addLocation": "أضف موقعًا",
+      "locationCode": "رمز الموقع",
+      "locationName": "الوصف",
+      "saved": "تم الحفظ."
+    },
+    "counts": {
+      "title": "جرد المخزون",
+      "subtitle": "اجرد ما على الرفوف وراجع الفروقات ثم اعتمدها في المخزون.",
+      "new": "جرد جديد",
+      "warehouse": "المستودع",
+      "scope": "ما سيُجرد",
+      "scopes": {
+        "full": "كل ما في المستودع",
+        "cycle": "فئة واحدة (جرد دوري)"
+      },
+      "category": "الفئة",
+      "note": "ملاحظة",
+      "start": "ابدأ الجرد",
+      "columns": {
+        "number": "الجرد",
+        "warehouse": "المستودع",
+        "scope": "النطاق",
+        "progress": "المجرود",
+        "status": "الحالة",
+        "date": "البدء"
+      },
+      "progress": "{counted} من {lines}",
+      "statuses": {
+        "counting": "قيد الجرد",
+        "review": "قيد المراجعة",
+        "approved": "معتمد",
+        "cancelled": "ملغى"
+      },
+      "empty": "لا توجد عمليات جرد بعد.",
+      "back": "كل عمليات الجرد",
+      "scan": "امسح أو اكتب الباركود أو رمز الصنف",
+      "scanHint": "اضغط Enter للانتقال إلى الصنف، ويُضاف الصنف غير الموجود في القائمة في الموقع المختار.",
+      "scanLocation": "موقع الأصناف الجديدة",
+      "notFound": "لا يوجد منتج بهذا الباركود أو الرمز.",
+      "lineColumns": {
+        "item": "الصنف",
+        "location": "الموقع",
+        "batch": "الدفعة",
+        "expected": "المتوقع",
+        "counted": "المجرود",
+        "variance": "الفرق"
+      },
+      "countedFor": "المجرود من {name}",
+      "save": "احفظ الأعداد",
+      "saved": "تم حفظ الأعداد.",
+      "submit": "أرسل للمراجعة",
+      "reopen": "عُد إلى الجرد",
+      "approve": "اعتمد وعدّل المخزون",
+      "approveConfirm": "اعتماد هذا الجرد؟ يصبح كل فرق حركة مخزون، ولا تتغير الأسطر غير المجرودة.",
+      "approved": "تم اعتماد الجرد: عُدّل {count} سطر.",
+      "cancel": "ألغِ الجرد",
+      "cancelConfirm": "إلغاء هذا الجرد؟ لن يتغير شيء في المخزون.",
+      "summary": "جُرد {counted} من {lines} · {differences} بفرق",
+      "uncountedNote": "لا تتغير الأسطر غير المجرودة.",
+      "createdBy": "بدأه {name}",
+      "approvedBy": "اعتمده {name}"
+    },
+    "product": {
+      "title": "المخزون",
+      "trackBatches": "تتبّع الدفعات وتواريخ الانتهاء",
+      "trackBatchesHint": "للأدوية والأغذية وكل ما له تاريخ صلاحية.",
+      "levels": "المخزون حسب الموقع",
+      "noStock": "لا يوجد مخزون بعد. استلم المخزون من صفحة المخزون.",
+      "reorderPoint": "حد إعادة الطلب",
+      "reorderQuantity": "كمية الطلب",
+      "reorderHint": "يصلك تنبيه عندما ينخفض المتاح إلى حد إعادة الطلب.",
+      "saveReorder": "احفظ حدود إعادة الطلب",
+      "reorderSaved": "تم حفظ حدود إعادة الطلب.",
+      "averageCost": "متوسط التكلفة",
+      "openStock": "افتح صفحة المخزون",
+      "allMovements": "كل الحركات"
     }
   }
 }

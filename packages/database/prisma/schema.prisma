@@ -2919,6 +2919,8 @@ model Product {
   options         Json             @default("[]")
   /// Services and digital items are sold without stock.
   trackStock      Boolean          @default(true)
+  /// Stock is kept per batch with an expiry date (medicines, food).
+  trackBatches    Boolean          @default(false)
   isActive        Boolean          @default(true)
   /// The website catalogue item showing this product.
   catalogueItemId String?          @unique
@@ -2949,4 +2951,155 @@ model ProductVariant {
   updatedAt    DateTime @updatedAt
 
   @@index([productId])
+}
+
+/// A place stock is kept. Every warehouse has at least one location (its main one); shelves and bins are more.
+model Warehouse {
+  id        String          @id @default(uuid())
+  code      String          @unique
+  nameEn    String
+  nameAr    String
+  address   String?
+  isActive  Boolean         @default(true)
+  /// Where receipts and sales go unless another warehouse is chosen.
+  isDefault Boolean         @default(false)
+  sortOrder Int             @default(0)
+  locations StockLocation[]
+  counts    StockCount[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+}
+
+model StockLocation {
+  id          String          @id @default(uuid())
+  warehouseId String
+  warehouse   Warehouse       @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  /// Unique within the warehouse, e.g. MAIN, A-01, COLD.
+  code        String
+  name        String?
+  isActive    Boolean         @default(true)
+  levels      StockLevel[]
+  movements   StockMovement[]
+  createdAt   DateTime        @default(now())
+
+  @@unique([warehouseId, code])
+}
+
+/// What one product (or one variant of it) has in stock across the company: its reorder point and average cost.
+model StockItem {
+  id              String    @id @default(uuid())
+  productId       String
+  /// The variant's id, or "" for a product without variants.
+  variantKey      String    @default("")
+  /// Weighted average unit cost of what is on hand, in the company currency.
+  averageCost     Decimal   @default(0) @db.Decimal(14, 4)
+  /// Alert when available stock falls to this; null for no alert.
+  reorderPoint    Decimal?  @db.Decimal(14, 3)
+  reorderQuantity Decimal?  @db.Decimal(14, 3)
+  /// When the last low-stock alert went out, so one dip alerts once.
+  lowAlertedAt    DateTime?
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([productId, variantKey])
+}
+
+/// A batch of a batch-tracked product, with its expiry date.
+model StockBatch {
+  id          String    @id @default(uuid())
+  productId   String
+  variantKey  String    @default("")
+  batchNumber String
+  expiryDate  DateTime? @db.Date
+  createdAt   DateTime  @default(now())
+
+  @@unique([productId, variantKey, batchNumber])
+  @@index([expiryDate])
+}
+
+/// The stock of one item at one location (and batch): kept in step with the movement ledger in the same transaction.
+model StockLevel {
+  id         String        @id @default(uuid())
+  productId  String
+  variantKey String        @default("")
+  locationId String
+  location   StockLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  /// The batch id, or "" when the product is not batch-tracked.
+  batchKey   String        @default("")
+  onHand     Decimal       @default(0) @db.Decimal(14, 3)
+  /// Held for confirmed orders and not yet shipped.
+  reserved   Decimal       @default(0) @db.Decimal(14, 3)
+  updatedAt  DateTime      @updatedAt
+
+  @@unique([productId, variantKey, locationId, batchKey])
+  @@index([locationId])
+}
+
+/// The stock ledger: every change of stock is one row here and nothing else changes stock.
+model StockMovement {
+  id          String        @id @default(uuid())
+  /// receipt | sale | return | transfer_out | transfer_in | adjustment | write_off | count
+  type        String
+  productId   String
+  variantKey  String        @default("")
+  locationId  String
+  location    StockLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  batchKey    String        @default("")
+  /// Signed: positive into the location, negative out of it.
+  quantity    Decimal       @db.Decimal(14, 3)
+  /// Unit cost in the company currency: what was paid for receipts, the average cost for everything else.
+  unitCost    Decimal       @default(0) @db.Decimal(14, 4)
+  /// What caused it, e.g. purchase_order, order, stock_count, transfer, manual.
+  sourceType  String        @default("manual")
+  sourceId    String?
+  /// Both halves of a transfer share one id.
+  transferId  String?
+  /// adjustment and write-off reasons: damaged | expired | lost | found | correction | sample | other
+  reason      String?
+  note        String?
+  createdById String?
+  createdAt   DateTime      @default(now())
+
+  @@index([productId, variantKey, createdAt])
+  @@index([locationId, createdAt])
+  @@index([sourceType, sourceId])
+  @@index([createdAt])
+}
+
+/// A stock count: what was expected, what was counted, reviewed and approved into adjustments.
+model StockCount {
+  id           String           @id @default(uuid())
+  number       String           @unique
+  warehouseId  String
+  warehouse    Warehouse        @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  /// full (everything in the warehouse) | cycle (chosen products or a category)
+  scope        String           @default("full")
+  /// counting | review | approved | cancelled
+  status       String           @default("counting")
+  note         String?
+  createdById  String?
+  submittedAt  DateTime?
+  approvedById String?
+  approvedAt   DateTime?
+  lines        StockCountLine[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([status])
+}
+
+model StockCountLine {
+  id         String     @id @default(uuid())
+  countId    String
+  count      StockCount @relation(fields: [countId], references: [id], onDelete: Cascade)
+  productId  String
+  variantKey String     @default("")
+  locationId String
+  batchKey   String     @default("")
+  /// On hand when the count started.
+  expected   Decimal    @db.Decimal(14, 3)
+  /// Empty until counted.
+  counted    Decimal?   @db.Decimal(14, 3)
+  note       String?
+
+  @@unique([countId, productId, variantKey, locationId, batchKey])
 }

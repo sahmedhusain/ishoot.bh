@@ -6526,6 +6526,313 @@
       }
     }
   },
+  "changeStockAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "type": {
+            "kind": "string",
+            "optional": false
+          },
+          "productId": {
+            "kind": "string",
+            "optional": false
+          },
+          "variantId": {
+            "kind": "string",
+            "optional": true
+          },
+          "locationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "quantity": {
+            "kind": "number",
+            "optional": false
+          },
+          "direction": {
+            "kind": "string",
+            "optional": true
+          },
+          "unitCost": {
+            "kind": "number",
+            "optional": true
+          },
+          "batchNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "expiryDate": {
+            "kind": "string",
+            "optional": true
+          },
+          "reason": {
+            "kind": "string",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "transferStockAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "productId": {
+            "kind": "string",
+            "optional": false
+          },
+          "variantId": {
+            "kind": "string",
+            "optional": true
+          },
+          "fromLocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "toLocationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "quantity": {
+            "kind": "number",
+            "optional": false
+          },
+          "batchNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveReorderPointsAction": {
+    "kind": "object",
+    "fields": {
+      "productId": {
+        "kind": "string",
+        "optional": false
+      },
+      "levels": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "variantKey": {
+              "kind": "string",
+              "optional": false
+            },
+            "reorderPoint": {
+              "kind": "string",
+              "optional": false
+            },
+            "reorderQuantity": {
+              "kind": "string",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveWarehouseAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameEn": {
+            "kind": "string",
+            "optional": false
+          },
+          "nameAr": {
+            "kind": "string",
+            "optional": false
+          },
+          "address": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "isDefault": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveLocationAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "warehouseId": {
+            "kind": "string",
+            "optional": false
+          },
+          "code": {
+            "kind": "string",
+            "optional": false
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "createStockCountAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "warehouseId": {
+            "kind": "string",
+            "optional": false
+          },
+          "scope": {
+            "kind": "string",
+            "optional": false
+          },
+          "productIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": true
+          },
+          "categoryId": {
+            "kind": "string",
+            "optional": true
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveCountedAction": {
+    "kind": "object",
+    "fields": {
+      "countId": {
+        "kind": "string",
+        "optional": false
+      },
+      "entries": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "lineId": {
+              "kind": "string",
+              "optional": false
+            },
+            "counted": {
+              "kind": "string",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "scanCountItemAction": {
+    "kind": "object",
+    "fields": {
+      "countId": {
+        "kind": "string",
+        "optional": false
+      },
+      "code": {
+        "kind": "string",
+        "optional": false
+      },
+      "locationId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "setStockCountStatusAction": {
+    "kind": "object",
+    "fields": {
+      "countId": {
+        "kind": "string",
+        "optional": false
+      },
+      "status": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "review"
+          },
+          {
+            "kind": "literal",
+            "value": "counting"
+          },
+          {
+            "kind": "literal",
+            "value": "cancelled"
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "approveStockCountAction": {
+    "kind": "object",
+    "fields": {
+      "countId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "createLeaveRequestAction": {
     "kind": "object",
     "fields": {
@@ -7564,6 +7871,10 @@
           "trackStock": {
             "kind": "boolean",
             "optional": false
+          },
+          "trackBatches": {
+            "kind": "boolean",
+            "optional": true
           },
           "isActive": {
             "kind": "boolean",

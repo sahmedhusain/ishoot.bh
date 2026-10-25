@@ -2199,7 +2199,8 @@
       "cms": "Website Content",
       "operations": "Scheduling",
       "administration": "Administration",
-      "communications": "Communications"
+      "communications": "Communications",
+      "commerce": "Products & stock"
     },
     "actions": {
       "read": "View",
@@ -2250,7 +2251,8 @@
       "pages": "Website pages",
       "articles": "Articles",
       "cms_code": "Custom code and tracking",
-      "products": "Products"
+      "products": "Products",
+      "inventory": "Stock and warehouses"
     }
   },
   "approvals": {
@@ -5700,7 +5702,22 @@
       "productCategoryMissing": "That category no longer exists.",
       "productMissing": "That product no longer exists.",
       "productImageRequired": "Add a picture before showing the product on the website.",
-      "productCategoryLoop": "A category cannot be placed inside itself or one of its subcategories."
+      "productCategoryLoop": "A category cannot be placed inside itself or one of its subcategories.",
+      "warehouseCodeInvalid": "A code is up to 20 capital letters, digits or dashes.",
+      "warehouseCodeTaken": "That code is already used.",
+      "warehouseHasStock": "There is still stock here. Move or adjust it first.",
+      "stockNotTracked": "This product does not keep stock.",
+      "stockVariantRequired": "Choose the variant.",
+      "stockLocationMissing": "Choose a location that is in use.",
+      "stockBatchRequired": "Enter the batch number (and its expiry date when it is new).",
+      "stockInsufficient": "There is not enough stock available there.",
+      "stockQuantityInvalid": "Enter a quantity above zero.",
+      "stockReasonRequired": "Choose a reason.",
+      "stockTransferSame": "Choose two different locations.",
+      "stockCountScopeInvalid": "Choose what to count.",
+      "stockCountMissing": "That stock count no longer exists.",
+      "stockCountClosed": "This count can no longer be changed.",
+      "productHasStock": "This product has stock history. Take it off sale instead of deleting it."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -9022,6 +9039,207 @@
       "inactive": "Hidden",
       "active": "In use",
       "empty": "No categories yet."
+    }
+  },
+  "inventory": {
+    "defaultWarehouse": "Main warehouse",
+    "nav": {
+      "stock": "Stock",
+      "movements": "Stock movements",
+      "counts": "Stock counts",
+      "warehouses": "Warehouses"
+    },
+    "notifications": {
+      "lowStock": {
+        "title": "Low stock: {name}",
+        "message": "{sku} has {available} available, at or below its reorder point of {point}."
+      }
+    },
+    "movementTypes": {
+      "receipt": "Received",
+      "sale": "Sold",
+      "return": "Returned",
+      "transfer_out": "Transferred out",
+      "transfer_in": "Transferred in",
+      "adjustment": "Adjusted",
+      "write_off": "Written off",
+      "count": "Stock count"
+    },
+    "reasons": {
+      "damaged": "Damaged",
+      "expired": "Expired",
+      "lost": "Lost or stolen",
+      "found": "Found",
+      "correction": "Correction",
+      "sample": "Sample or gift",
+      "other": "Other"
+    },
+    "stock": {
+      "title": "Stock",
+      "subtitle": "What is on hand, reserved for orders and available, by product and variant. Every change is recorded in the stock movements.",
+      "totalValue": "Stock value at average cost: {value}",
+      "search": "Search by name, SKU or barcode",
+      "allWarehouses": "All warehouses",
+      "filterAll": "All items",
+      "filterLow": "Low stock",
+      "filterOut": "Out of stock",
+      "columns": {
+        "item": "Item",
+        "sku": "SKU",
+        "onHand": "On hand",
+        "reserved": "Reserved",
+        "available": "Available",
+        "reorderPoint": "Reorder at",
+        "averageCost": "Average cost",
+        "value": "Value"
+      },
+      "low": "Low",
+      "empty": "No products keep stock yet. Add products and turn on \"Keep stock\".",
+      "emptyFiltered": "Nothing matches these filters.",
+      "change": "Change stock",
+      "changeFor": "Change stock of {name}",
+      "transfer": "Transfer",
+      "transferFor": "Transfer {name}",
+      "expiring": "Batches expiring within 30 days",
+      "expired": "Expired",
+      "expiresIn": "{days} day(s) left",
+      "batchColumn": "Batch",
+      "expiryColumn": "Expiry"
+    },
+    "change": {
+      "type": "What happened",
+      "types": {
+        "receipt": "Stock received",
+        "adjustment": "Adjust the count",
+        "write_off": "Write off"
+      },
+      "location": "Location",
+      "quantity": "Quantity",
+      "direction": "Direction",
+      "directionIn": "Found more",
+      "directionOut": "Found less",
+      "unitCost": "Cost per unit ({currency})",
+      "batch": "Batch number",
+      "expiry": "Expiry date",
+      "reason": "Reason",
+      "note": "Note",
+      "from": "From",
+      "to": "To",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "saved": "Stock updated.",
+      "variant": "Variant"
+    },
+    "movements": {
+      "title": "Stock movements",
+      "subtitle": "The stock ledger: every receipt, sale, return, transfer, adjustment, write-off and count, newest first.",
+      "allTypes": "All movements",
+      "from": "From",
+      "to": "To",
+      "columns": {
+        "date": "Date",
+        "item": "Item",
+        "type": "Movement",
+        "location": "Location",
+        "quantity": "Quantity",
+        "unitCost": "Unit cost",
+        "by": "By"
+      },
+      "empty": "No stock movements yet.",
+      "forProduct": "Movements of this product"
+    },
+    "warehouses": {
+      "title": "Warehouses",
+      "subtitle": "Where stock is kept. Each warehouse has its main location; add shelves, bins or rooms as locations.",
+      "add": "Add warehouse",
+      "code": "Code",
+      "name": "Name",
+      "address": "Address",
+      "active": "In use",
+      "default": "Default warehouse",
+      "defaultBadge": "Default",
+      "inactive": "Not in use",
+      "save": "Save",
+      "cancel": "Cancel",
+      "edit": "Edit {name}",
+      "locations": "Locations",
+      "addLocation": "Add location",
+      "locationCode": "Location code",
+      "locationName": "Description",
+      "saved": "Saved."
+    },
+    "counts": {
+      "title": "Stock counts",
+      "subtitle": "Count what is on the shelves, review the differences and approve them into the stock.",
+      "new": "New count",
+      "warehouse": "Warehouse",
+      "scope": "What to count",
+      "scopes": {
+        "full": "Everything in the warehouse",
+        "cycle": "One category (cycle count)"
+      },
+      "category": "Category",
+      "note": "Note",
+      "start": "Start counting",
+      "columns": {
+        "number": "Count",
+        "warehouse": "Warehouse",
+        "scope": "Scope",
+        "progress": "Counted",
+        "status": "Status",
+        "date": "Started"
+      },
+      "progress": "{counted} of {lines}",
+      "statuses": {
+        "counting": "Counting",
+        "review": "In review",
+        "approved": "Approved",
+        "cancelled": "Cancelled"
+      },
+      "empty": "No stock counts yet.",
+      "back": "All stock counts",
+      "scan": "Scan or type a barcode or SKU",
+      "scanHint": "Press Enter to jump to the item; an item not on the list is added at the location chosen.",
+      "scanLocation": "Location for new items",
+      "notFound": "No product has this barcode or SKU.",
+      "lineColumns": {
+        "item": "Item",
+        "location": "Location",
+        "batch": "Batch",
+        "expected": "Expected",
+        "counted": "Counted",
+        "variance": "Difference"
+      },
+      "countedFor": "Counted for {name}",
+      "save": "Save counts",
+      "saved": "Counts saved.",
+      "submit": "Send for review",
+      "reopen": "Back to counting",
+      "approve": "Approve and adjust stock",
+      "approveConfirm": "Approve this count? Each counted difference becomes a stock movement. Lines left uncounted change nothing.",
+      "approved": "Count approved: {count} line(s) adjusted.",
+      "cancel": "Cancel count",
+      "cancelConfirm": "Cancel this count? Nothing in the stock changes.",
+      "summary": "{counted} of {lines} counted · {differences} with a difference",
+      "uncountedNote": "Lines left uncounted are not changed.",
+      "createdBy": "Started by {name}",
+      "approvedBy": "Approved by {name}"
+    },
+    "product": {
+      "title": "Stock",
+      "trackBatches": "Keep batches and expiry dates",
+      "trackBatchesHint": "For medicines, food and anything with a use-by date.",
+      "levels": "Stock by location",
+      "noStock": "No stock yet. Receive stock from the Stock page.",
+      "reorderPoint": "Reorder at",
+      "reorderQuantity": "Order quantity",
+      "reorderHint": "You are alerted when available stock falls to the reorder level.",
+      "saveReorder": "Save reorder levels",
+      "reorderSaved": "Reorder levels saved.",
+      "averageCost": "Average cost",
+      "openStock": "Open stock page",
+      "allMovements": "All movements"
     }
   }
 }

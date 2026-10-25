@@ -1,5 +1,6 @@
 import { getTranslations } from "@platform/locales";
 import { db } from "../db";
+import { moduleOnByDefault } from "../constants/features";
 import { Permission, UserRole } from "../types";
 
 import {
@@ -38,7 +39,7 @@ async function resourceEnabled(resource: PermissionResource) {
   if (!moduleKey) return true;
   try {
     const feature = await db.featureToggle.findUnique({ where: { moduleKey }, select: { isEnabled: true } });
-    return feature?.isEnabled !== false;
+    return feature ? feature.isEnabled : moduleOnByDefault(moduleKey);
   } catch {
     return false;
   }
@@ -162,7 +163,8 @@ export async function getEffectivePermissions(
   // Stored denials and user overrides can never restrict Super Admin.
   if (role === "super_admin") return permissions;
   const features = await db.featureToggle.findMany({ select: { moduleKey: true, isEnabled: true } });
-  const disabled = new Set(features.filter((f) => !f.isEnabled).map((f) => f.moduleKey));
+  const known = new Map(features.map((f) => [f.moduleKey, f.isEnabled]));
+  const moduleOn = (moduleKey: string) => known.get(moduleKey) ?? moduleOnByDefault(moduleKey);
   const records = await db.permission.findMany({
     where: { role },
     select: { resource: true, action: true, allowed: true },
@@ -178,7 +180,8 @@ export async function getEffectivePermissions(
       permissions[key] = allowed;
   }
   for (const resource of ALL_RESOURCES) {
-    if (disabled.has(RESOURCE_FEATURES[resource] || "")) {
+    const moduleKey = RESOURCE_FEATURES[resource];
+    if (moduleKey && !moduleOn(moduleKey)) {
       for (const action of ALL_ACTIONS) permissions[`${resource}:${action}`] = false;
     }
   }
