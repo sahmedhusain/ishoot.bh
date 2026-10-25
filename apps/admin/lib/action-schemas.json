@@ -3925,6 +3925,173 @@
       }
     }
   },
+  "assignShipmentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "driverId": {
+            "kind": "string",
+            "optional": false
+          },
+          "vehicleId": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "completeDeliveryAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "photoUrl": {
+            "kind": "string",
+            "optional": true
+          },
+          "signature": {
+            "kind": "string",
+            "optional": true
+          },
+          "codCollected": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveVehicleAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "plate": {
+            "kind": "string",
+            "optional": false
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "string",
+            "optional": false
+          },
+          "notes": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "createRouteSheetAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "date": {
+            "kind": "string",
+            "optional": false
+          },
+          "driverId": {
+            "kind": "string",
+            "optional": false
+          },
+          "vehicleId": {
+            "kind": "string",
+            "optional": true
+          },
+          "shipmentIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "startRouteSheetAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "closeRouteSheetAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "settleCashAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "driverId": {
+            "kind": "string",
+            "optional": false
+          },
+          "shipmentIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          },
+          "received": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "saveDepartmentAction": {
     "kind": "object",
     "fields": {

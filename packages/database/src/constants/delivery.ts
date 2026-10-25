@@ -135,3 +135,5 @@ export function promisedBy(placedAt: Date, slaHours: number, slot: { date: strin
   if (slot) return zonedMoment(slot.date, slot.end, timeZone);
   return new Date(placedAt.getTime() + Math.max(1, slaHours) * 3_600_000);
 }
+
+export const VEHICLE_KINDS = ["car", "van", "motorbike", "truck", "bicycle", "other"] as const;

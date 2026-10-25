@@ -125,3 +125,4 @@ export * from "./queries/online-payments";
 export * from "./constants/delivery";
 export * from "./queries/delivery";
 export * from "./queries/shipments";
+export * from "./queries/fleet";

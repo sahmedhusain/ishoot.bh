@@ -11,5 +11,11 @@
     "password": "e2e-JaWtbvSxiOsEeSilznx1_6j7",
     "fullName": "E2E Viewer",
     "role": "viewer"
+  },
+  "driver": {
+    "email": "e2e-driver@example.test",
+    "password": "e2e-j1Gc4WDAY80dUlvd97cBqCQn",
+    "fullName": "E2E Driver",
+    "role": "driver"
   }
 }

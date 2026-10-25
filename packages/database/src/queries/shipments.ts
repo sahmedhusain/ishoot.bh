@@ -15,6 +15,8 @@ export interface ShipmentFilters {
   date?: string;
   zoneId?: string;
   late?: boolean;
+  /** Only this driver's shipments (drivers see their own). */
+  driverId?: string;
   page?: number;
 }
 
@@ -24,6 +26,7 @@ export async function listShipments(filters: ShipmentFilters = {}, now = new Dat
   const where: Prisma.ShipmentWhereInput = {};
   if (filters.status && (SHIPMENT_STATUSES as readonly string[]).includes(filters.status)) where.status = filters.status;
   if (filters.zoneId) where.zoneId = filters.zoneId;
+  if (filters.driverId) where.driverId = filters.driverId;
   if (filters.late) Object.assign(where, { status: { in: OPEN_SHIPMENT_STATUSES }, promisedBy: { lt: now } });
   if (filters.date && /^\d{4}-\d{2}-\d{2}$/.test(filters.date)) {
     const day = new Date(`${filters.date}T00:00:00Z`);
@@ -34,7 +37,7 @@ export async function listShipments(filters: ShipmentFilters = {}, now = new Dat
   if (q) where.AND = [{ OR: [{ number: { contains: q, mode: "insensitive" } }, { recipientName: { contains: q, mode: "insensitive" } }, { recipientPhone: { contains: q } }, { order: { number: { contains: q, mode: "insensitive" } } }] }];
   const page = Math.max(1, filters.page ?? 1);
   const [rows, total] = await Promise.all([
-    db.shipment.findMany({ where, orderBy: [{ promisedBy: "asc" }, { createdAt: "asc" }], skip: (page - 1) * PAGE, take: PAGE, include: { order: { select: { number: true } }, zone: { select: { nameEn: true, nameAr: true } } } }),
+    db.shipment.findMany({ where, orderBy: [{ promisedBy: "asc" }, { createdAt: "asc" }], skip: (page - 1) * PAGE, take: PAGE, include: { order: { select: { number: true } }, zone: { select: { nameEn: true, nameAr: true } }, driver: { select: { firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true } } } }),
     db.shipment.count({ where }),
   ]);
   return {
@@ -56,6 +59,8 @@ export async function listShipments(filters: ShipmentFilters = {}, now = new Dat
       promised_by: s.promisedBy.toISOString(),
       late: (OPEN_SHIPMENT_STATUSES as string[]).includes(s.status) && s.promisedBy < now,
       cod_amount: num(s.codAmount),
+      driver_en: s.driver ? `${s.driver.firstNameEn} ${s.driver.lastNameEn}`.trim() : "",
+      driver_ar: s.driver ? `${s.driver.firstNameAr} ${s.driver.lastNameAr}`.trim() : "",
     })),
   };
 }
@@ -67,7 +72,7 @@ export async function shipmentCounts(now = new Date()) {
 }
 
 export async function getShipment(id: string, now = new Date()) {
-  const s = await db.shipment.findUnique({ where: { id }, include: { order: { select: { id: true, number: true, status: true, total: true, currency: true, locale: true, paymentMethod: true, paymentStatus: true, lines: { orderBy: { sortOrder: "asc" }, select: { description: true, sku: true, quantity: true } } } }, zone: { select: { nameEn: true, nameAr: true } }, events: { orderBy: { at: "asc" } } } });
+  const s = await db.shipment.findUnique({ where: { id }, include: { order: { select: { id: true, number: true, status: true, total: true, currency: true, locale: true, paymentMethod: true, paymentStatus: true, lines: { orderBy: { sortOrder: "asc" }, select: { description: true, sku: true, quantity: true } } } }, zone: { select: { nameEn: true, nameAr: true } }, events: { orderBy: { at: "asc" } }, routeSheet: { select: { id: true, number: true } }, codSettlement: { select: { number: true } } } });
   if (!s) return null;
   const people = await db.user.findMany({ where: { id: { in: s.events.map((e) => e.byId).filter((v): v is string => !!v) } }, select: { id: true, fullName: true } });
   return {
@@ -90,6 +95,12 @@ export async function getShipment(id: string, now = new Date()) {
     failure_reason: s.failureReason ?? "",
     tracking_token: s.trackingToken,
     delivered_at: s.deliveredAt?.toISOString() ?? null,
+    driver_id: s.driverId ?? "",
+    vehicle_id: s.vehicleId ?? "",
+    route_sheet: s.routeSheet ? { id: s.routeSheet.id, number: s.routeSheet.number, stop: s.routeStop } : null,
+    proof_photo_url: s.proofPhotoUrl ?? "",
+    proof_signature: s.proofSignature ?? "",
+    cod_settlement: s.codSettlement?.number ?? "",
     events: s.events.map((e) => ({ id: e.id, status: e.status, reason: e.reason ?? "", note: e.note ?? "", at: e.at.toISOString(), by: people.find((p) => p.id === e.byId)?.fullName ?? "" })),
   };
 }

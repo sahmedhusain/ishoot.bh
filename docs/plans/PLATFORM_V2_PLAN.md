@@ -585,3 +585,31 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
 - Regression (18 store, payment, delivery and navigation tests): 16 passed; two failed on a dev-mode `useId`
   hydration mismatch on New sale under a machine load of ~400 and passed on rerun (same open question as 5c-2).
 - Next (7b): drivers, vehicles, route sheets, the driver's phone view with proof of delivery, and cash settlement.
+
+### Phase 7b: own fleet, driver view, proof of delivery and cash handover (done)
+
+- Migration `20261027010000_fleet`: `Vehicle`, `RouteSheet` (`RS-…`, date, driver, vehicle, planned / out /
+  closed), `CodSettlement` (`CS-…`, expected, received), and on `Shipment` the driver, vehicle, route sheet and
+  stop, proof photo (a private file) and drawn signature (validated PNG data, as signatures are stored elsewhere),
+  and the settlement.
+- Drivers are active employees whose user account has the driver or delivery coordinator role. People who assign
+  deliveries see every shipment; anyone else (drivers) sees and can act only on shipments assigned to their own
+  employee record (list, page, actions and proof uploads all check it).
+- Admin: shipment page gains driver and vehicle assignment, the route sheet link, proof of delivery and the cash
+  handover; Delivery → Route sheets (pick waiting shipments, order the stops, create; printable sheet with a
+  signature column; send the driver out, which takes every stop out for delivery and ships its order; close once
+  nothing is still out); Vehicles (with the drivers list); Cash from drivers (per driver, the delivered shipments
+  whose cash is still with them; recording the handover pays each order in cash and keeps any difference).
+- Driver's phone view `/dashboard/driver` ("My deliveries"): stops in route order with navigate and call, "On my
+  way", "Delivered" with a photo from the camera and/or the customer's signature and the cash collected, or
+  "Could not deliver" with a reason.
+- Migration `20261027020000_commerce_permissions`: the default grants for products, inventory, purchasing, orders
+  and deliveries were only given to new installs; existing roles now receive them where the company has not set
+  anything for those resources (found while testing the driver login: until now every commerce test ran as super
+  admin).
+- New disposable e2e account `driver` in `tests/e2e/fixtures/users.json`.
+- Tested: e2e (vehicle added; route sheet with two shipments reordered and sent out; the driver signs one delivery
+  and photographs the other, cannot see or act on another shipment; the sheet is closed and the cash handed over
+  one short, recording the difference and paying both orders).
+- Regression (delivery web and admin, orders, navigation): 8 of 10 passed, 2 hit the dev-mode hydration mismatch
+  (one on Settings → Sales pipeline, untouched here) and passed on rerun at a machine load of ~130.

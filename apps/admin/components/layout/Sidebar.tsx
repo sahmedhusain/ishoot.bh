@@ -16,6 +16,10 @@ import {
   FolderTree,
   ShoppingBag,
   MapPinned,
+  Navigation,
+  Route,
+  Coins,
+  CarFront,
   ScanLine,
   Store,
   FileQuestion,
@@ -75,7 +79,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   resource?: PermissionResource;
   /** Permission needed on the resource (default read). */
-  action?: "read" | "edit" | "create";
+  action?: "read" | "edit" | "create" | "assign";
   moduleKey?: string;
   /** Only for people who manage a team. */
   managersOnly?: boolean;
@@ -551,7 +555,11 @@ export function Sidebar() {
         id: "delivery",
         title: t.delivery.navGroup,
         items: [
+          { href: ROUTES.delivery.driver, label: t.delivery.nav.driver, icon: Navigation, resource: "deliveries", action: "edit", moduleKey: "delivery" },
           { href: ROUTES.delivery.shipments, label: t.delivery.nav.shipments, icon: Truck, resource: "deliveries", moduleKey: "delivery" },
+          { href: ROUTES.delivery.routes, label: t.delivery.nav.routes, icon: Route, resource: "deliveries", action: "assign", moduleKey: "delivery" },
+          { href: ROUTES.delivery.cash, label: t.delivery.nav.cash, icon: Coins, resource: "deliveries", action: "assign", moduleKey: "delivery" },
+          { href: ROUTES.delivery.fleet, label: t.delivery.nav.fleet, icon: CarFront, resource: "deliveries", action: "assign", moduleKey: "delivery" },
           { href: ROUTES.delivery.settings, label: t.delivery.nav.settings, icon: MapPinned, resource: "settings", moduleKey: "delivery" },
         ],
       },

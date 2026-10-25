@@ -1,0 +1,227 @@
+import { serverMessages } from "@platform/locales";
+import { db } from "../db";
+import { getNextSequenceNumber } from "./sequence";
+import { moveShipment } from "./shipments";
+import { recordOrderPayment, type OrderAddress } from "./store";
+import { validateSignatureImage } from "../services/signature-image";
+import { VEHICLE_KINDS } from "../constants/delivery";
+
+const num = (value: { toString(): string } | null | undefined) => (value == null ? 0 : Number(value.toString()));
+const round3 = (value: number) => Math.round(value * 1000) / 1000;
+const NAME = { firstNameEn: true, lastNameEn: true, firstNameAr: true, lastNameAr: true } as const;
+type Named = { firstNameEn: string; lastNameEn: string; firstNameAr: string; lastNameAr: string };
+const nameEn = (e: Named) => `${e.firstNameEn} ${e.lastNameEn}`.trim();
+const nameAr = (e: Named) => `${e.firstNameAr} ${e.lastNameAr}`.trim() || nameEn(e);
+
+/** Roles whose people drive deliveries. */
+const DRIVER_ROLES = ["driver", "delivery_coordinator"];
+
+// ─── Drivers and vehicles ────────────────────────────────────────────────────────────────────────────────────────
+
+/** Active employees who drive: their user account has a driving role. */
+export async function listDrivers() {
+  const rows = await db.employee.findMany({ where: { status: "active", user: { role: { in: DRIVER_ROLES }, isActive: true } }, orderBy: [{ firstNameEn: "asc" }, { lastNameEn: "asc" }], select: { id: true, ...NAME, phone: true } });
+  return rows.map((e) => ({ id: e.id, name_en: nameEn(e), name_ar: nameAr(e), phone: e.phone ?? "" }));
+}
+export type DriverOption = Awaited<ReturnType<typeof listDrivers>>[number];
+
+/** The employee record behind a signed-in user, for the driver's own view. */
+export async function employeeIdForUser(userId: string) {
+  return (await db.employee.findUnique({ where: { userId }, select: { id: true } }))?.id ?? null;
+}
+
+export async function listVehicles() {
+  const rows = await db.vehicle.findMany({ orderBy: [{ isActive: "desc" }, { name: "asc" }] });
+  return rows.map((v) => ({ id: v.id, plate: v.plate, name: v.name, kind: v.kind, notes: v.notes ?? "", is_active: v.isActive }));
+}
+export type VehicleRecord = Awaited<ReturnType<typeof listVehicles>>[number];
+
+export interface VehicleInput {
+  id?: string;
+  plate: string;
+  name: string;
+  kind: string;
+  notes: string;
+  isActive: boolean;
+}
+
+export async function saveVehicle(input: VehicleInput) {
+  const plate = input.plate.trim().toUpperCase().replace(/\s+/g, " ").slice(0, 30);
+  const name = input.name.trim().slice(0, 120);
+  if (!plate || !name || !(VEHICLE_KINDS as readonly string[]).includes(input.kind)) throw new Error(serverMessages.vehicleInvalid);
+  const clash = await db.vehicle.findFirst({ where: { plate, ...(input.id ? { id: { not: input.id } } : {}) }, select: { id: true } });
+  if (clash) throw new Error(serverMessages.vehiclePlateTaken);
+  const data = { plate, name, kind: input.kind, notes: input.notes.trim().slice(0, 500) || null, isActive: input.isActive };
+  return input.id ? db.vehicle.update({ where: { id: input.id }, data }) : db.vehicle.create({ data });
+}
+
+// ─── Assigning ───────────────────────────────────────────────────────────────────────────────────────────────────
+
+async function requireDriver(driverId: string) {
+  const driver = await db.employee.findFirst({ where: { id: driverId, status: "active", user: { role: { in: DRIVER_ROLES } } }, select: { id: true } });
+  if (!driver) throw new Error(serverMessages.driverNotFound);
+}
+
+/** Gives a shipment to a driver (and vehicle). A shipment still being prepared becomes assigned. */
+export async function assignShipment(id: string, input: { driverId: string; vehicleId?: string }, byId: string | null) {
+  if (input.driverId) await requireDriver(input.driverId);
+  const shipment = await db.shipment.findUnique({ where: { id }, select: { status: true } });
+  if (!shipment || !["pending", "assigned", "failed"].includes(shipment.status)) throw new Error(serverMessages.shipmentStatusInvalid);
+  const next = input.driverId ? (shipment.status === "pending" ? "assigned" : shipment.status) : "pending";
+  await db.$transaction([
+    db.shipment.update({ where: { id }, data: { driverId: input.driverId || null, vehicleId: input.vehicleId || null, status: next, method: "own" } }),
+    db.shipmentEvent.create({ data: { shipmentId: id, status: next, byId } }),
+  ]);
+}
+
+// ─── Route sheets ────────────────────────────────────────────────────────────────────────────────────────────────
+
+const ROUTABLE = ["pending", "assigned", "failed"];
+
+export interface RouteSheetInput {
+  date: string;
+  driverId: string;
+  vehicleId?: string;
+  /** In delivery order. */
+  shipmentIds: string[];
+  note?: string;
+}
+
+/** A driver's run for a day: the shipments become assigned to the driver, numbered as stops. */
+export async function createRouteSheet(input: RouteSheetInput, byId: string | null) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !input.shipmentIds.length) throw new Error(serverMessages.routeSheetInvalid);
+  await requireDriver(input.driverId);
+  const ids = Array.from(new Set(input.shipmentIds)).slice(0, 200);
+  return db.$transaction(async (tx) => {
+    const shipments = await tx.shipment.findMany({ where: { id: { in: ids } }, select: { id: true, status: true, routeSheet: { select: { status: true } } } });
+    if (shipments.length !== ids.length || shipments.some((s) => !ROUTABLE.includes(s.status) || (s.routeSheet && s.routeSheet.status !== "closed"))) throw new Error(serverMessages.routeSheetShipmentUnavailable);
+    const number = await getNextSequenceNumber("RS", undefined, tx);
+    const sheet = await tx.routeSheet.create({ data: { number, date: new Date(`${input.date}T00:00:00Z`), driverId: input.driverId, vehicleId: input.vehicleId || null, note: input.note?.trim().slice(0, 500) || null, createdById: byId } });
+    for (let index = 0; index < ids.length; index++) {
+      const id = ids[index];
+      const current = shipments.find((s) => s.id === id)!;
+      const status = current.status === "pending" ? "assigned" : current.status;
+      await tx.shipment.update({ where: { id }, data: { routeSheetId: sheet.id, routeStop: index + 1, driverId: input.driverId, vehicleId: input.vehicleId || null, method: "own", status } });
+      if (status !== current.status) await tx.shipmentEvent.create({ data: { shipmentId: id, status, byId } });
+    }
+    return sheet;
+  });
+}
+
+/** Shipments that can go on a route sheet: being prepared, assigned or to try again, not on an open sheet. */
+export async function routableShipments() {
+  const rows = await db.shipment.findMany({ where: { status: { in: ROUTABLE }, OR: [{ routeSheetId: null }, { routeSheet: { status: "closed" } }] }, orderBy: [{ promisedBy: "asc" }], take: 300, include: { zone: { select: { nameEn: true, nameAr: true } } } });
+  return rows.map((s) => ({ id: s.id, number: s.number, status: s.status, recipient: s.recipientName, area: [(s.address as Partial<OrderAddress>).area, (s.address as Partial<OrderAddress>).city].filter(Boolean).join(", "), zone_en: s.zone?.nameEn ?? "", zone_ar: s.zone?.nameAr ?? "", slot: s.slotDate ? { date: s.slotDate.toISOString().slice(0, 10), start: s.slotStart ?? "", end: s.slotEnd ?? "" } : null, promised_by: s.promisedBy.toISOString(), driver_id: s.driverId ?? "" }));
+}
+
+export async function listRouteSheets(filters: { date?: string; driverId?: string } = {}) {
+  const rows = await db.routeSheet.findMany({
+    where: { ...(filters.date && /^\d{4}-\d{2}-\d{2}$/.test(filters.date) ? { date: new Date(`${filters.date}T00:00:00Z`) } : {}), ...(filters.driverId ? { driverId: filters.driverId } : {}) },
+    orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    take: 100,
+    include: { driver: { select: NAME }, vehicle: { select: { plate: true } }, shipments: { select: { status: true } } },
+  });
+  return rows.map((r) => ({ id: r.id, number: r.number, date: r.date.toISOString().slice(0, 10), status: r.status, driver_en: nameEn(r.driver), driver_ar: nameAr(r.driver), vehicle: r.vehicle?.plate ?? "", stops: r.shipments.length, delivered: r.shipments.filter((s) => s.status === "delivered").length }));
+}
+
+export async function getRouteSheet(id: string) {
+  const r = await db.routeSheet.findUnique({ where: { id }, include: { driver: { select: { id: true, ...NAME, phone: true } }, vehicle: { select: { plate: true, name: true } }, shipments: { orderBy: { routeStop: "asc" }, include: { order: { select: { number: true, currency: true, lines: { orderBy: { sortOrder: "asc" }, select: { description: true, quantity: true } } } } } } } });
+  if (!r) return null;
+  return {
+    id: r.id,
+    number: r.number,
+    date: r.date.toISOString().slice(0, 10),
+    status: r.status,
+    note: r.note ?? "",
+    driver: { id: r.driver.id, name_en: nameEn(r.driver), name_ar: nameAr(r.driver), phone: r.driver.phone ?? "" },
+    vehicle: r.vehicle ? `${r.vehicle.name} · ${r.vehicle.plate}` : "",
+    stops: r.shipments.map((s) => ({ id: s.id, stop: s.routeStop ?? 0, number: s.number, order_number: s.order.number, status: s.status, recipient: s.recipientName, phone: s.recipientPhone, address: s.address as Partial<OrderAddress>, slot: s.slotDate ? { date: s.slotDate.toISOString().slice(0, 10), start: s.slotStart ?? "", end: s.slotEnd ?? "" } : null, cod_amount: num(s.codAmount), cod_collected: num(s.codCollected), currency: s.order.currency, items: s.order.lines.map((l) => ({ description: l.description, quantity: num(l.quantity) })) })),
+  };
+}
+export type RouteSheetRecord = NonNullable<Awaited<ReturnType<typeof getRouteSheet>>>;
+
+/** The driver leaves: every stop still to deliver goes out for delivery (and its order ships). */
+export async function startRouteSheet(id: string, byId: string | null) {
+  const sheet = await db.routeSheet.findUnique({ where: { id }, include: { shipments: { where: { status: { in: ["assigned", "failed", "pending"] } }, select: { id: true } } } });
+  if (!sheet || sheet.status !== "draft") throw new Error(serverMessages.routeSheetStatusInvalid);
+  let low: Awaited<ReturnType<typeof moveShipment>> = [];
+  for (const s of sheet.shipments) low = low.concat(await moveShipment(s.id, { to: "out_for_delivery" }, byId));
+  await db.routeSheet.update({ where: { id }, data: { status: "out" } });
+  return low;
+}
+
+/** The run is over: nothing may still be out for delivery. */
+export async function closeRouteSheet(id: string) {
+  const sheet = await db.routeSheet.findUnique({ where: { id }, include: { shipments: { where: { status: "out_for_delivery" }, select: { id: true } } } });
+  if (!sheet || sheet.status !== "out") throw new Error(serverMessages.routeSheetStatusInvalid);
+  if (sheet.shipments.length) throw new Error(serverMessages.routeSheetStillOut);
+  await db.routeSheet.update({ where: { id }, data: { status: "closed" } });
+}
+
+// ─── The driver's day and proof of delivery ──────────────────────────────────────────────────────────────────────
+
+/** What a driver has to do: their shipments not yet finished, in route order, then by promise. */
+export async function driverShipments(driverId: string) {
+  const rows = await db.shipment.findMany({
+    where: { driverId, status: { in: ["assigned", "out_for_delivery", "failed"] } },
+    orderBy: [{ routeSheet: { date: "asc" } }, { routeStop: "asc" }, { promisedBy: "asc" }],
+    take: 100,
+    include: { order: { select: { number: true, currency: true, lines: { orderBy: { sortOrder: "asc" }, select: { description: true, quantity: true } } } } },
+  });
+  return rows.map((s) => ({ id: s.id, number: s.number, order_number: s.order.number, status: s.status, stop: s.routeStop, recipient: s.recipientName, phone: s.recipientPhone, address: s.address as Partial<OrderAddress>, slot: s.slotDate ? { date: s.slotDate.toISOString().slice(0, 10), start: s.slotStart ?? "", end: s.slotEnd ?? "" } : null, promised_by: s.promisedBy.toISOString(), cod_amount: num(s.codAmount), currency: s.order.currency, items: s.order.lines.map((l) => ({ description: l.description, quantity: num(l.quantity) })) }));
+}
+export type DriverStop = Awaited<ReturnType<typeof driverShipments>>[number];
+
+/** Records the proof of delivery on a shipment (the photo is claimed by the caller as an attachment first). */
+export async function saveDeliveryProof(id: string, proof: { photoUrl?: string | null; signature?: string | null }) {
+  if (proof.signature) validateSignatureImage(proof.signature);
+  await db.shipment.update({ where: { id }, data: { ...(proof.photoUrl ? { proofPhotoUrl: proof.photoUrl } : {}), ...(proof.signature ? { proofSignature: proof.signature } : {}) } });
+}
+
+// ─── Cash on delivery ────────────────────────────────────────────────────────────────────────────────────────────
+
+/** Per driver: cash collected on delivered shipments and not yet handed over. */
+export async function cashToSettle() {
+  const rows = await db.shipment.findMany({ where: { status: "delivered", codCollected: { gt: 0 }, codSettlementId: null, driverId: { not: null } }, orderBy: { deliveredAt: "asc" }, include: { driver: { select: { id: true, ...NAME } }, order: { select: { number: true, currency: true } } } });
+  const drivers = new Map<string, { driver_id: string; name_en: string; name_ar: string; total: number; currency: string; shipments: { id: string; number: string; order_number: string; amount: number; delivered_at: string }[] }>();
+  for (const s of rows) {
+    const entry = drivers.get(s.driverId!) ?? { driver_id: s.driverId!, name_en: nameEn(s.driver!), name_ar: nameAr(s.driver!), total: 0, currency: s.order.currency, shipments: [] };
+    entry.total = round3(entry.total + num(s.codCollected));
+    entry.shipments.push({ id: s.id, number: s.number, order_number: s.order.number, amount: num(s.codCollected), delivered_at: s.deliveredAt?.toISOString() ?? "" });
+    drivers.set(s.driverId!, entry);
+  }
+  return Array.from(drivers.values());
+}
+export type CashToSettle = Awaited<ReturnType<typeof cashToSettle>>[number];
+
+/**
+ * A driver hands over the cash: the shipments are settled, and each order is paid (cash) with what was collected on
+ * it. A shortfall or excess is kept on the settlement as the difference.
+ */
+export async function settleCash(input: { driverId: string; shipmentIds: string[]; received: number; note?: string }, byId: string | null) {
+  const received = round3(input.received);
+  if (!Number.isFinite(received) || received < 0) throw new Error(serverMessages.codSettlementInvalid);
+  const ids = Array.from(new Set(input.shipmentIds));
+  const shipments = await db.shipment.findMany({ where: { id: { in: ids }, driverId: input.driverId, status: "delivered", codSettlementId: null, codCollected: { gt: 0 } } });
+  if (!ids.length || shipments.length !== ids.length) throw new Error(serverMessages.codSettlementInvalid);
+  const expected = round3(shipments.reduce((sum, s) => sum + num(s.codCollected), 0));
+  const settlement = await db.$transaction(async (tx) => {
+    const number = await getNextSequenceNumber("CS", undefined, tx);
+    const created = await tx.codSettlement.create({ data: { number, driverId: input.driverId, expected, received, note: input.note?.trim().slice(0, 500) || null, settledById: byId } });
+    const claimed = await tx.shipment.updateMany({ where: { id: { in: ids }, codSettlementId: null }, data: { codSettlementId: created.id } });
+    if (claimed.count !== ids.length) throw new Error(serverMessages.codSettlementInvalid);
+    return created;
+  });
+  // The money is the company's now: each order takes the cash collected on it (up to what it still owes).
+  for (const s of shipments) {
+    const order = await db.salesOrder.findUniqueOrThrow({ where: { id: s.orderId }, select: { total: true, amountPaid: true } });
+    const amount = round3(Math.min(num(s.codCollected), num(order.total) - num(order.amountPaid)));
+    if (amount > 0) await recordOrderPayment(s.orderId, { amount, method: "cash", reference: settlement.number }, byId);
+  }
+  return { id: settlement.id, number: settlement.number, expected, received, difference: round3(received - expected) };
+}
+
+export async function listCodSettlements() {
+  const rows = await db.codSettlement.findMany({ orderBy: { settledAt: "desc" }, take: 50, include: { driver: { select: NAME }, _count: { select: { shipments: true } } } });
+  return rows.map((r) => ({ id: r.id, number: r.number, driver_en: nameEn(r.driver), driver_ar: nameAr(r.driver), expected: num(r.expected), received: num(r.received), difference: round3(num(r.received) - num(r.expected)), shipments: r._count.shipments, settled_at: r.settledAt.toISOString(), note: r.note ?? "" }));
+}

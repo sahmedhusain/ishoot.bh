@@ -7,16 +7,16 @@ import { ArrowLeft, Copy, Loader2, MapPin, Phone } from "lucide-react";
 import { Button, Card, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { FAILURE_REASONS, SHIPMENT_TRANSITIONS, type ShipmentStatus } from "@platform/database/constants/delivery";
-import type { ShipmentRecord } from "@platform/database";
+import type { DriverOption, ShipmentRecord, VehicleRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
-import { moveShipmentAction } from "../../app/actions/delivery";
+import { assignShipmentAction, moveShipmentAction } from "../../app/actions/delivery";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { LatePill, ShipmentStatusPill } from "./ShipmentPills";
 
 /** One shipment: where and when, what is in it, moving it along (with a reason when it fails) and its history. */
-export function ShipmentView({ shipment, trackingLink, canEdit }: { shipment: ShipmentRecord; trackingLink: string; canEdit: boolean }) {
+export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drivers, vehicles }: { shipment: ShipmentRecord; trackingLink: string; canEdit: boolean; canAssign: boolean; drivers: DriverOption[]; vehicles: VehicleRecord[] }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.detail;
   const router = useRouter();
@@ -26,26 +26,35 @@ export function ShipmentView({ shipment, trackingLink, canEdit }: { shipment: Sh
   const [reason, setReason] = React.useState<string>(FAILURE_REASONS[0]);
   const [note, setNote] = React.useState("");
   const [collected, setCollected] = React.useState(String(shipment.cod_amount));
+  const [assignee, setAssignee] = React.useState({ driverId: shipment.driver_id, vehicleId: shipment.vehicle_id });
+  const assignable = ["pending", "assigned", "failed"].includes(shipment.status);
+  const driverName = (d: DriverOption) => (locale === "ar" ? d.name_ar : d.name_en);
   const money = (value: number) => formatCurrencyValue(value, shipment.order.currency, locale === "ar");
   const next = SHIPMENT_TRANSITIONS[shipment.status as ShipmentStatus] ?? [];
   const address = shipment.address;
   const addressText = [address.line1, address.line2, address.area, address.city, address.country, address.postalCode].filter(Boolean).join(", ");
 
-  const move = async (to: string, extra: { reason?: string; codCollected?: number } = {}) => {
-    const confirm = (copy.moveConfirm as Record<string, string>)[to];
-    if (confirm && !window.confirm(confirm)) return;
+  const run = async (task: () => Promise<unknown>) => {
     setBusy(true);
     setMessage(null);
     try {
-      await moveShipmentAction(shipment.id, { to, note, ...extra });
+      await task();
       setMessage({ tone: "ok", text: copy.saved });
-      setFailing(false);
-      setNote("");
       router.refresh();
+      return true;
     } catch (err) {
       setMessage({ tone: "error", text: errorMessage(err, t) });
+      return false;
     } finally {
       setBusy(false);
+    }
+  };
+  const move = async (to: string, extra: { reason?: string; codCollected?: number } = {}) => {
+    const confirm = (copy.moveConfirm as Record<string, string>)[to];
+    if (confirm && !window.confirm(confirm)) return;
+    if (await run(() => moveShipmentAction(shipment.id, { to, note, ...extra }))) {
+      setFailing(false);
+      setNote("");
     }
   };
 
@@ -122,6 +131,54 @@ export function ShipmentView({ shipment, trackingLink, canEdit }: { shipment: Sh
           {shipment.failure_reason && <p className="text-xs text-rose-600">{(t.delivery.reasons as Record<string, string>)[shipment.failure_reason]}</p>}
         </Card>
       </div>
+
+      {(canAssign || shipment.driver_id || shipment.route_sheet || shipment.proof_photo_url || shipment.proof_signature) && (
+        <Card className="p-5 space-y-3" data-testid="shipment-driver">
+          <h2 className="font-bold text-ink">{t.delivery.assign.title}</h2>
+          {canAssign && assignable ? (
+            <div className="grid sm:grid-cols-3 gap-3 items-end">
+              <Field label={t.delivery.assign.driver}>
+                {(id) => (
+                  <Select id={id} name="driverId" value={assignee.driverId} onChange={(e) => setAssignee({ ...assignee, driverId: e.target.value })} className="rounded-lg">
+                    <option value="">{t.delivery.assign.none}</option>
+                    {drivers.map((d) => <option key={d.id} value={d.id}>{driverName(d)}</option>)}
+                  </Select>
+                )}
+              </Field>
+              <Field label={t.delivery.assign.vehicle}>
+                {(id) => (
+                  <Select id={id} name="vehicleId" value={assignee.vehicleId} onChange={(e) => setAssignee({ ...assignee, vehicleId: e.target.value })} className="rounded-lg">
+                    <option value="">{t.delivery.assign.noVehicle}</option>
+                    {vehicles.map((v) => <option key={v.id} value={v.id}>{`${v.name} · ${v.plate}`}</option>)}
+                  </Select>
+                )}
+              </Field>
+              <Button type="button" size="sm" variant="primary" className="rounded-full" disabled={busy} onClick={() => void run(() => assignShipmentAction(shipment.id, assignee))} data-testid="shipment-assign">{t.delivery.assign.save}</Button>
+            </div>
+          ) : (
+            <p className="text-sm text-ink">{drivers.find((d) => d.id === shipment.driver_id) ? driverName(drivers.find((d) => d.id === shipment.driver_id)!) : shipment.driver_id ? "" : t.delivery.assign.none}</p>
+          )}
+          {shipment.route_sheet && <Link href={ROUTES.delivery.route(shipment.route_sheet.id)} className="text-xs text-ink-muted hover:text-accent">{formatMessage(t.delivery.assign.routeSheet, { number: shipment.route_sheet.number, stop: shipment.route_sheet.stop ?? "" })}</Link>}
+          {shipment.cod_settlement && <p className="text-xs text-ink-muted">{formatMessage(t.delivery.assign.settled, { number: shipment.cod_settlement })}</p>}
+          {(shipment.proof_photo_url || shipment.proof_signature) && (
+            <div className="space-y-2" data-testid="shipment-proof">
+              <h3 className="text-xs font-semibold text-ink">{t.delivery.assign.proof}</h3>
+              <div className="flex flex-wrap gap-4">
+                {shipment.proof_photo_url && (
+                  <a href={shipment.proof_photo_url} target="_blank" rel="noreferrer" className="block">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- a private file served by the owner-checked file route */}
+                    <img src={shipment.proof_photo_url} alt={t.delivery.assign.photo} className="h-32 rounded-lg border border-ink/10 object-cover" />
+                  </a>
+                )}
+                {shipment.proof_signature && (
+                  // eslint-disable-next-line @next/next/no-img-element -- an inline PNG data URL
+                  <img src={shipment.proof_signature} alt={t.delivery.assign.signature} className="h-32 rounded-lg border border-ink/10 bg-white" />
+                )}
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
 
       <Card className="p-5 space-y-3">
         <h2 className="font-bold text-ink">{copy.items}</h2>

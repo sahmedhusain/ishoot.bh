@@ -103,6 +103,11 @@ export const ROUTES = {
     shipments: "/dashboard/delivery",
     shipment: (id: string) => `/dashboard/delivery/${encodeURIComponent(id)}`,
     settings: "/dashboard/delivery/settings",
+    routes: "/dashboard/delivery/routes",
+    route: (id: string) => `/dashboard/delivery/routes/${encodeURIComponent(id)}`,
+    fleet: "/dashboard/delivery/fleet",
+    cash: "/dashboard/delivery/cash",
+    driver: "/dashboard/driver",
   },
   procurement: {
     suppliers: "/dashboard/procurement/suppliers",
