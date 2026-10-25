@@ -7759,6 +7759,360 @@
     "kind": "object",
     "fields": {}
   },
+  "saveSupplierAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "companyName": {
+            "kind": "string",
+            "optional": false
+          },
+          "contactName": {
+            "kind": "string",
+            "optional": false
+          },
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": false
+          },
+          "vatNumber": {
+            "kind": "string",
+            "optional": false
+          },
+          "leadTimeDays": {
+            "kind": "string",
+            "optional": false
+          },
+          "paymentTermsDays": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveRequisitionAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "neededBy": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "productId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "variantId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "submitRequisitionAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "cancelRequisitionAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "createRfqAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "title": {
+            "kind": "string",
+            "optional": false
+          },
+          "dueDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "requisitionId": {
+            "kind": "string",
+            "optional": true
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "productId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "variantId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveRfqQuotesAction": {
+    "kind": "object",
+    "fields": {
+      "rfqId": {
+        "kind": "string",
+        "optional": false
+      },
+      "supplierId": {
+        "kind": "string",
+        "optional": false
+      },
+      "quotes": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "lineId": {
+              "kind": "string",
+              "optional": false
+            },
+            "unitPrice": {
+              "kind": "string",
+              "optional": false
+            },
+            "leadTimeDays": {
+              "kind": "string",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "awardRfqAction": {
+    "kind": "object",
+    "fields": {
+      "rfqId": {
+        "kind": "string",
+        "optional": false
+      },
+      "quoteIds": {
+        "kind": "array",
+        "element": {
+          "kind": "string"
+        },
+        "optional": false
+      }
+    }
+  },
+  "cancelRfqAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "savePurchaseOrderAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "supplierId": {
+            "kind": "string",
+            "optional": false
+          },
+          "orderDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "expectedDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "warehouseId": {
+            "kind": "string",
+            "optional": true
+          },
+          "requisitionId": {
+            "kind": "string",
+            "optional": true
+          },
+          "vatEnabled": {
+            "kind": "boolean",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "terms": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "productId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "variantId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "submitPurchaseOrderAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "emailPurchaseOrderAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "markPurchaseOrderSentAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "via": {
+        "kind": "union",
+        "variants": [
+          {
+            "kind": "literal",
+            "value": "whatsapp"
+          },
+          {
+            "kind": "literal",
+            "value": "printed"
+          }
+        ],
+        "optional": false
+      }
+    }
+  },
+  "cancelPurchaseOrderAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "saveProductAction": {
     "kind": "object",
     "fields": {

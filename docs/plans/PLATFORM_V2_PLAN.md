@@ -427,3 +427,22 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   matrix; `products` was missing from that matrix in 5a and is now there. A unit test now checks every resource
   appears in the matrix exactly once.
 - Products with stock history cannot be deleted (take them off sale), nor can variants with history be removed.
+
+### Phase 5c-1: purchasing — suppliers, requisitions, quotations, purchase orders (done)
+
+- Migration `20261026200000_procurement` holds all of purchasing (requisitions, RFQs and quotes, purchase
+  orders, goods receipts, supplier bills and payments); this step uses the first half. New module `procurement`
+  ("Purchasing", off by default, on with products for activities that buy stock) and permission resource
+  `procurement` (administrator and procurement officer manage; finance approves; warehouse receives; every
+  employee and department manager may ask to buy).
+- **Suppliers** are contacts of type vendor, with delivery and payment days.
+- **Purchase requisitions** (catalogue products or described items, estimated costs) go through the existing
+  approval engine as `purchase_requisition` (Settings → Approvals sets approvers and from which amount; without a
+  policy the administrators approve). People who may only ask to buy see their own requisitions.
+- **Requests for quotation** (from an approved requisition or from scratch): each supplier's prices and delivery
+  days side by side, the cheapest marked and chosen by default; awarding creates one draft purchase order per
+  supplier at the quoted prices.
+- **Purchase orders** (VAT at the company rate, deliver-to warehouse) go through approval as `purchase_order`,
+  then are emailed to the supplier with a PDF in the company letterhead (through the email outbox), sent by
+  WhatsApp (a prepared message) or marked as handed over. Orders with goods received or billed cannot be cancelled.
+- Decision: purchase amounts are in the company currency (multi-currency purchasing can follow the invoices' FX).

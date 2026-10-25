@@ -449,68 +449,74 @@ model CmsArticle {
 }
 
 model CrmContact {
-  id                    String                @id @default(uuid())
-  firstName             String
-  lastName              String?
-  email                 String?
-  emailNorm             String? // lower(trim(email)) for dedup
-  phone                 String?
-  phoneE164             String? // E.164 normalized phone
-  companyName           String?
-  vatNumber             String? // buyer VAT registration, printed on tax invoices
-  jobTitle              String?
-  contactType           String                @default("client") // "client", "vendor", "freelancer", "agency"
+  id                       String                @id @default(uuid())
+  firstName                String
+  lastName                 String?
+  email                    String?
+  emailNorm                String? // lower(trim(email)) for dedup
+  phone                    String?
+  phoneE164                String? // E.164 normalized phone
+  companyName              String?
+  vatNumber                String? // buyer VAT registration, printed on tax invoices
+  jobTitle                 String?
+  contactType              String                @default("client") // "client", "vendor", "freelancer", "agency"
   /// "individual" | "company" | "government"
-  clientKind            String                @default("individual")
+  clientKind               String                @default("individual")
   /// Companies only: "local" (registered in Bahrain, has a CR) or "foreign".
-  companyOrigin         String?
-  companyNameAr         String?
+  companyOrigin            String?
+  companyNameAr            String?
   /// "wll", "spc", "bsc_closed", "bsc_public", "sole_proprietorship", "partnership", "foreign_branch", "other"
-  legalForm             String?
+  legalForm                String?
   /// Bahrain commercial registration, e.g. 142859-1. Required for local companies.
-  crNumber              String?
-  crExpiryDate          DateTime?             @db.Date
+  crNumber                 String?
+  crExpiryDate             DateTime?             @db.Date
   /// Foreign companies: registration number in their home country.
-  registrationNumber    String?
+  registrationNumber       String?
   /// ISO 3166 alpha-2 country of registration (companies) or of the entity (government).
-  registrationCountry   String?
+  registrationCountry      String?
   /// "ministry", "authority", "municipality", "semi_government", "royal_court", "embassy", "other"
-  governmentType        String?
+  governmentType           String?
   /// Our supplier number with the government entity, quoted on its purchase orders.
-  supplierNumber        String?
-  requiresPurchaseOrder Boolean               @default(false)
+  supplierNumber           String?
+  requiresPurchaseOrder    Boolean               @default(false)
   /// ISO alpha-2, individuals.
-  nationality           String?
-  industry              String?
-  website               String?
+  nationality              String?
+  industry                 String?
+  website                  String?
   /// Language the client's documents default to: "ar" | "en".
-  preferredLanguage     String?
+  preferredLanguage        String?
   /// Overrides the company's default payment terms for this client.
-  paymentTermsDays      Int?
-  addressCountry        String?
-  addressCity           String?
-  addressArea           String?
-  addressBlock          String?
-  addressRoad           String?
-  addressBuilding       String?
-  addressUnit           String?
-  addressLine           String?
-  addressState          String?
-  addressPostalCode     String?
-  addressPoBox          String?
-  contactPersons        ClientContactPerson[]
-  notes                 String?
-  deals                 CrmDeal[]
-  inquiries             Inquiry[]
-  contracts             Contract[]
-  invoices              Invoice[]
-  reviews               Review[]
-  minutesOfMeetings     MinuteOfMeeting[]
-  expenses              Expense[]
-  createdAt             DateTime              @default(now())
-  updatedAt             DateTime              @updatedAt
-  quotations            Quotation[]
-  communicationThreads  CommunicationThread[]
+  paymentTermsDays         Int?
+  addressCountry           String?
+  addressCity              String?
+  addressArea              String?
+  addressBlock             String?
+  addressRoad              String?
+  addressBuilding          String?
+  addressUnit              String?
+  addressLine              String?
+  addressState             String?
+  addressPostalCode        String?
+  addressPoBox             String?
+  contactPersons           ClientContactPerson[]
+  notes                    String?
+  deals                    CrmDeal[]
+  inquiries                Inquiry[]
+  contracts                Contract[]
+  invoices                 Invoice[]
+  reviews                  Review[]
+  minutesOfMeetings        MinuteOfMeeting[]
+  expenses                 Expense[]
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+  quotations               Quotation[]
+  communicationThreads     CommunicationThread[]
+  /// A supplier (contactType "vendor"): days to deliver and to pay, used as defaults on purchase orders.
+  supplierLeadTimeDays     Int?
+  supplierPaymentTermsDays Int?
+  purchaseOrders           PurchaseOrder[]
+  rfqQuotes                RfqQuote[]
+  supplierBills            SupplierBill[]
 
   @@index([emailNorm])
   @@index([phoneE164])
@@ -2955,19 +2961,20 @@ model ProductVariant {
 
 /// A place stock is kept. Every warehouse has at least one location (its main one); shelves and bins are more.
 model Warehouse {
-  id        String          @id @default(uuid())
-  code      String          @unique
-  nameEn    String
-  nameAr    String
-  address   String?
-  isActive  Boolean         @default(true)
+  id             String          @id @default(uuid())
+  code           String          @unique
+  nameEn         String
+  nameAr         String
+  address        String?
+  isActive       Boolean         @default(true)
   /// Where receipts and sales go unless another warehouse is chosen.
-  isDefault Boolean         @default(false)
-  sortOrder Int             @default(0)
-  locations StockLocation[]
-  counts    StockCount[]
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  isDefault      Boolean         @default(false)
+  sortOrder      Int             @default(0)
+  locations      StockLocation[]
+  counts         StockCount[]
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model StockLocation {
@@ -3102,4 +3109,238 @@ model StockCountLine {
   note       String?
 
   @@unique([countId, productId, variantKey, locationId, batchKey])
+}
+
+/// Someone asks to buy: lines with estimated costs, approved through the approval engine before ordering.
+model PurchaseRequisition {
+  id             String                    @id @default(uuid())
+  number         String                    @unique
+  requestedById  String
+  departmentId   String?
+  /// draft | pending_approval | approved | rejected | ordered | cancelled
+  status         String                    @default("draft")
+  neededBy       DateTime?                 @db.Date
+  note           String?
+  decisionNote   String?
+  estimatedTotal Decimal                   @default(0) @db.Decimal(12, 3)
+  lines          PurchaseRequisitionLine[]
+  rfqs           Rfq[]
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@index([status])
+  @@index([requestedById])
+}
+
+model PurchaseRequisitionLine {
+  id                String              @id @default(uuid())
+  requisitionId     String
+  requisition       PurchaseRequisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  /// A catalogue product (and variant), or empty for something described in words.
+  productId         String?
+  variantKey        String              @default("")
+  description       String
+  quantity          Decimal             @db.Decimal(14, 3)
+  estimatedUnitCost Decimal?            @db.Decimal(12, 3)
+  sortOrder         Int                 @default(0)
+}
+
+/// A request for quotation: the same lines sent to several suppliers, whose prices are compared side by side.
+model Rfq {
+  id             String               @id @default(uuid())
+  number         String               @unique
+  requisitionId  String?
+  requisition    PurchaseRequisition? @relation(fields: [requisitionId], references: [id], onDelete: SetNull)
+  title          String
+  /// open | awarded | cancelled
+  status         String               @default("open")
+  dueDate        DateTime?            @db.Date
+  note           String?
+  createdById    String?
+  lines          RfqLine[]
+  quotes         RfqQuote[]
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+}
+
+model RfqLine {
+  id          String     @id @default(uuid())
+  rfqId       String
+  rfq         Rfq        @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  productId   String?
+  variantKey  String     @default("")
+  description String
+  quantity    Decimal    @db.Decimal(14, 3)
+  sortOrder   Int        @default(0)
+  quotes      RfqQuote[]
+}
+
+/// One supplier's price for one line of a request for quotation.
+model RfqQuote {
+  id           String     @id @default(uuid())
+  rfqId        String
+  rfq          Rfq        @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  lineId       String
+  line         RfqLine    @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  supplierId   String
+  supplier     CrmContact @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  unitPrice    Decimal    @db.Decimal(12, 4)
+  leadTimeDays Int?
+  note         String?
+  /// The price chosen for the purchase order.
+  selected     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@unique([rfqId, lineId, supplierId])
+}
+
+/// An order to a supplier. Amounts are in the company currency.
+model PurchaseOrder {
+  id            String               @id @default(uuid())
+  number        String               @unique
+  supplierId    String
+  supplier      CrmContact           @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  /// draft | pending_approval | approved | sent | partially_received | received | closed | cancelled
+  status        String               @default("draft")
+  orderDate     DateTime             @default(now()) @db.Date
+  expectedDate  DateTime?            @db.Date
+  /// Where the goods are delivered.
+  warehouseId   String?
+  warehouse     Warehouse?           @relation(fields: [warehouseId], references: [id], onDelete: SetNull)
+  requisitionId String?
+  requisition   PurchaseRequisition? @relation(fields: [requisitionId], references: [id], onDelete: SetNull)
+  rfqId         String?
+  rfq           Rfq?                 @relation(fields: [rfqId], references: [id], onDelete: SetNull)
+  note          String?
+  terms         String?
+  vatEnabled    Boolean              @default(false)
+  vatPercentage Decimal              @default(0) @db.Decimal(5, 2)
+  subtotal      Decimal              @default(0) @db.Decimal(12, 3)
+  vatAmount     Decimal              @default(0) @db.Decimal(12, 3)
+  total         Decimal              @default(0) @db.Decimal(12, 3)
+  sentAt        DateTime?
+  /// email | whatsapp | printed
+  sentVia       String?
+  createdById   String?
+  approvedById  String?
+  approvedAt    DateTime?
+  lines         PurchaseOrderLine[]
+  receipts      GoodsReceipt[]
+  bills         SupplierBill[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([supplierId])
+  @@index([status])
+  @@index([orderDate])
+}
+
+model PurchaseOrderLine {
+  id               String             @id @default(uuid())
+  purchaseOrderId  String
+  purchaseOrder    PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  productId        String?
+  variantKey       String             @default("")
+  description      String
+  quantity         Decimal            @db.Decimal(14, 3)
+  unitPrice        Decimal            @db.Decimal(12, 4)
+  /// Accepted into stock so far (rejected items are not counted here).
+  receivedQuantity Decimal            @default(0) @db.Decimal(14, 3)
+  rejectedQuantity Decimal            @default(0) @db.Decimal(14, 3)
+  billedQuantity   Decimal            @default(0) @db.Decimal(14, 3)
+  sortOrder        Int                @default(0)
+  receiptLines     GoodsReceiptLine[]
+  billLines        SupplierBillLine[]
+}
+
+/// Goods arriving against a purchase order (all or part of it); accepted items enter stock as receipts.
+model GoodsReceipt {
+  id              String             @id @default(uuid())
+  number          String             @unique
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  locationId      String
+  receivedById    String?
+  receivedAt      DateTime           @default(now())
+  note            String?
+  lines           GoodsReceiptLine[]
+  createdAt       DateTime           @default(now())
+}
+
+model GoodsReceiptLine {
+  id               String            @id @default(uuid())
+  receiptId        String
+  receipt          GoodsReceipt      @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  orderLineId      String
+  orderLine        PurchaseOrderLine @relation(fields: [orderLineId], references: [id], onDelete: Restrict)
+  quantity         Decimal           @db.Decimal(14, 3)
+  rejectedQuantity Decimal           @default(0) @db.Decimal(14, 3)
+  rejectReason     String?
+  batchNumber      String?
+  expiryDate       DateTime?         @db.Date
+}
+
+/// The supplier's invoice: matched against what was ordered and received, approved into an expense, then paid.
+model SupplierBill {
+  id              String             @id @default(uuid())
+  /// Our reference, e.g. BILL-2026-000001.
+  number          String             @unique
+  /// The supplier's own invoice number.
+  supplierRef     String?
+  supplierId      String
+  supplier        CrmContact         @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  purchaseOrderId String?
+  purchaseOrder   PurchaseOrder?     @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  billDate        DateTime           @db.Date
+  dueDate         DateTime?          @db.Date
+  /// draft | approved | partially_paid | paid | cancelled
+  status          String             @default("draft")
+  subtotal        Decimal            @default(0) @db.Decimal(12, 3)
+  vatAmount       Decimal            @default(0) @db.Decimal(12, 3)
+  total           Decimal            @default(0) @db.Decimal(12, 3)
+  amountPaid      Decimal            @default(0) @db.Decimal(12, 3)
+  /// The expense recorded when the bill is approved.
+  expenseId       String?            @unique
+  /// Approved although the three-way match found differences, with the reason.
+  overrideReason  String?
+  attachmentUrl   String?
+  note            String?
+  createdById     String?
+  approvedById    String?
+  approvedAt      DateTime?
+  lines           SupplierBillLine[]
+  payments        SupplierPayment[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@unique([supplierId, supplierRef])
+  @@index([supplierId])
+  @@index([status])
+}
+
+model SupplierBillLine {
+  id          String             @id @default(uuid())
+  billId      String
+  bill        SupplierBill       @relation(fields: [billId], references: [id], onDelete: Cascade)
+  orderLineId String?
+  orderLine   PurchaseOrderLine? @relation(fields: [orderLineId], references: [id], onDelete: SetNull)
+  description String
+  quantity    Decimal            @db.Decimal(14, 3)
+  unitPrice   Decimal            @db.Decimal(12, 4)
+  sortOrder   Int                @default(0)
+}
+
+model SupplierPayment {
+  id          String       @id @default(uuid())
+  billId      String
+  bill        SupplierBill @relation(fields: [billId], references: [id], onDelete: Cascade)
+  amount      Decimal      @db.Decimal(12, 3)
+  paidOn      DateTime     @db.Date
+  /// bank_transfer | cash | cheque | card | other
+  method      String
+  reference   String?
+  createdById String?
+  createdAt   DateTime     @default(now())
 }

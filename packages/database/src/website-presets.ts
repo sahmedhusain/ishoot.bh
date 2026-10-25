@@ -79,7 +79,7 @@ export interface InquiryOptions {
 }
 
 /** Optional modules (constants/features.ts) worth switching on for an activity. */
-type ModuleChoice = Partial<Record<"crm_deals" | "invoicing" | "calendar" | "equipment" | "cms" | "reviews" | "products", boolean>>;
+type ModuleChoice = Partial<Record<"crm_deals" | "invoicing" | "calendar" | "equipment" | "cms" | "reviews" | "products" | "procurement", boolean>>;
 
 export interface ActivityPreset {
   /** lucide-react icon name shown in the wizard. */
@@ -132,7 +132,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { budget: false, timeline: false, location: true, reference: false },
     showEquipment: false,
-    modules: { crm_deals: true, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true },
+    modules: { crm_deals: true, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true, procurement: true },
   },
   food: {
     icon: "UtensilsCrossed",
@@ -143,7 +143,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { ...SOFT_INQUIRY, timeline: true },
     showEquipment: false,
-    modules: { crm_deals: false, invoicing: true, calendar: true, equipment: false, cms: true, reviews: true, products: true },
+    modules: { crm_deals: false, invoicing: true, calendar: true, equipment: false, cms: true, reviews: true, products: true, procurement: true },
   },
   services: {
     icon: "BriefcaseBusiness",
@@ -220,7 +220,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { ...SOFT_INQUIRY, location: true },
     showEquipment: false,
-    modules: { crm_deals: false, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true },
+    modules: { crm_deals: false, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true, procurement: true },
   },
   beauty: {
     icon: "Sparkle",
@@ -231,7 +231,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { ...SOFT_INQUIRY, timeline: true },
     showEquipment: false,
-    modules: { crm_deals: false, invoicing: true, calendar: true, equipment: false, cms: true, reviews: true, products: true },
+    modules: { crm_deals: false, invoicing: true, calendar: true, equipment: false, cms: true, reviews: true, products: true, procurement: true },
   },
   fitness: {
     icon: "Dumbbell",
@@ -253,7 +253,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { budget: true, timeline: true, location: false, reference: false },
     showEquipment: false,
-    modules: { crm_deals: true, invoicing: true, calendar: true, equipment: false, cms: true, reviews: true, products: true },
+    modules: { crm_deals: true, invoicing: true, calendar: true, equipment: false, cms: true, reviews: true, products: true, procurement: true },
   },
   logistics: {
     icon: "Truck",
@@ -319,7 +319,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { ...SOFT_INQUIRY, location: true },
     showEquipment: false,
-    modules: { crm_deals: false, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true },
+    modules: { crm_deals: false, invoicing: true, calendar: false, equipment: false, cms: true, reviews: true, products: true, procurement: true },
   },
   manufacturing: {
     icon: "Factory",
@@ -330,7 +330,7 @@ export const ACTIVITY_PRESETS: Record<BusinessActivity, ActivityPreset> = {
     pages: ALL_PAGES,
     inquiry: { budget: true, timeline: true, location: true, reference: true },
     showEquipment: false,
-    modules: { crm_deals: true, invoicing: true, calendar: true, equipment: false, cms: true, reviews: false, products: true },
+    modules: { crm_deals: true, invoicing: true, calendar: true, equipment: false, cms: true, reviews: false, products: true, procurement: true },
   },
   it_software: {
     icon: "Code2",

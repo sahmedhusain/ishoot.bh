@@ -93,6 +93,14 @@ export async function approvalMetrics(
   targetId: string,
 ): Promise<ApprovalMetrics> {
   switch (targetType) {
+    case "purchase_requisition": {
+      const r = await db.purchaseRequisition.findUnique({ where: { id: targetId }, select: { estimatedTotal: true } });
+      return r ? { amount: Number(r.estimatedTotal) } : {};
+    }
+    case "purchase_order": {
+      const o = await db.purchaseOrder.findUnique({ where: { id: targetId }, select: { total: true } });
+      return o ? { amount: Number(o.total) } : {};
+    }
     case "quotation": {
       const q = await db.quotation.findUnique({
         where: { id: targetId },

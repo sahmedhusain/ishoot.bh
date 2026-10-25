@@ -2252,7 +2252,8 @@
       "articles": "Articles",
       "cms_code": "Custom code and tracking",
       "products": "Products",
-      "inventory": "Stock and warehouses"
+      "inventory": "Stock and warehouses",
+      "procurement": "Purchasing"
     }
   },
   "approvals": {
@@ -2288,7 +2289,9 @@
       "employee_handover": "Employee handover",
       "final_settlement": "Final settlement",
       "announcement": "Announcements",
-      "official_letter": "Official letters"
+      "official_letter": "Official letters",
+      "purchase_requisition": "Purchase requisition",
+      "purchase_order": "Purchase order"
     },
     "kpis": {
       "awaiting": "Awaiting your decision",
@@ -2409,7 +2412,10 @@
         "total": "Total",
         "requestType": "Request type",
         "company": "Company",
-        "priority": "Priority"
+        "priority": "Priority",
+        "neededBy": "Needed by",
+        "lineCount": "Lines",
+        "expectedDate": "Expected delivery"
       },
       "fileNames": {
         "attachment": "Attachment",
@@ -5717,7 +5723,17 @@
       "stockCountScopeInvalid": "Choose what to count.",
       "stockCountMissing": "That stock count no longer exists.",
       "stockCountClosed": "This count can no longer be changed.",
-      "productHasStock": "This product has stock history. Take it off sale instead of deleting it."
+      "productHasStock": "This product has stock history. Take it off sale instead of deleting it.",
+      "procurementDateInvalid": "Enter a valid date.",
+      "procurementDaysInvalid": "Enter a whole number of days from 0 to 365.",
+      "procurementDocumentMissing": "That document no longer exists.",
+      "procurementNotEditable": "This document can no longer be changed.",
+      "procurementSupplierMissing": "Choose a supplier.",
+      "procurementLinesRequired": "Add at least one line with a description.",
+      "procurementNeedsApproval": "This needs to be approved first.",
+      "procurementHasReceipts": "Goods were already received or billed on this order.",
+      "procurementAwardInvalid": "Choose one price for each line you are ordering.",
+      "procurementSupplierEmailMissing": "Add the supplier's email address first."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -9240,6 +9256,171 @@
       "averageCost": "Average cost",
       "openStock": "Open stock page",
       "allMovements": "All movements"
+    }
+  },
+  "procurement": {
+    "nav": {
+      "suppliers": "Suppliers",
+      "requisitions": "Purchase requisitions",
+      "rfqs": "Requests for quotation",
+      "orders": "Purchase orders",
+      "bills": "Supplier bills"
+    },
+    "navGroup": "Purchasing",
+    "statuses": {
+      "draft": "Draft",
+      "pending_approval": "Awaiting approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "ordered": "Ordered",
+      "cancelled": "Cancelled",
+      "open": "Open",
+      "awarded": "Awarded",
+      "sent": "Sent",
+      "partially_received": "Partly received",
+      "received": "Received",
+      "closed": "Closed",
+      "partially_paid": "Partly paid",
+      "paid": "Paid"
+    },
+    "lines": {
+      "title": "Lines",
+      "product": "Product",
+      "freeText": "Something else (describe it)",
+      "variant": "Variant",
+      "description": "Description",
+      "quantity": "Quantity",
+      "estimatedCost": "Estimated unit cost",
+      "unitPrice": "Unit price",
+      "lineTotal": "Line total",
+      "add": "Add line",
+      "remove": "Remove line {number}"
+    },
+    "common": {
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "back": "Back",
+      "edit": "Edit",
+      "note": "Note",
+      "total": "Total",
+      "subtotal": "Subtotal",
+      "vat": "VAT",
+      "empty": "Nothing here yet.",
+      "number": "Number",
+      "status": "Status",
+      "date": "Date",
+      "createdBy": "Created by {name}",
+      "approvedBy": "Approved by {name}",
+      "cancelConfirm": "Cancel this document?"
+    },
+    "suppliers": {
+      "title": "Suppliers",
+      "subtitle": "Companies you buy from. They are contacts of type supplier, with their delivery and payment days.",
+      "add": "Add supplier",
+      "search": "Search suppliers",
+      "companyName": "Company",
+      "contactName": "Contact person",
+      "email": "Email",
+      "phone": "Phone",
+      "vatNumber": "VAT number",
+      "leadTime": "Delivery days",
+      "paymentTerms": "Payment days",
+      "openOrders": "{count} open order(s)",
+      "edit": "Edit {name}",
+      "empty": "No suppliers yet."
+    },
+    "requisitions": {
+      "title": "Purchase requisitions",
+      "subtitle": "Ask for something to be bought. Approved requisitions become requests for quotation or purchase orders.",
+      "new": "New requisition",
+      "neededBy": "Needed by",
+      "requestedBy": "Requested by",
+      "estimatedTotal": "Estimated total",
+      "lineCount": "{count} line(s)",
+      "submit": "Send for approval",
+      "submitted": "Sent for approval.",
+      "approvedNow": "Approved.",
+      "toRfq": "Ask suppliers for prices",
+      "toOrder": "Create purchase order",
+      "rejectedBecause": "Rejected: {reason}",
+      "editorTitle": "New requisition",
+      "empty": "No requisitions yet."
+    },
+    "rfqs": {
+      "title": "Requests for quotation",
+      "subtitle": "Ask several suppliers for prices on the same lines, compare them and order from the best.",
+      "new": "New request for quotation",
+      "titleField": "Title",
+      "dueDate": "Answers due",
+      "suppliers": "{count} supplier(s)",
+      "compare": "Prices",
+      "addQuote": "Enter a supplier's prices",
+      "supplier": "Supplier",
+      "leadTime": "Delivery days",
+      "best": "Best price",
+      "choose": "Order {line} from {supplier}",
+      "award": "Create purchase orders",
+      "awardHint": "Choose a price for each line to order; one purchase order is created per supplier.",
+      "awarded": "Purchase orders created.",
+      "noQuotes": "No prices yet. Enter each supplier's prices as they answer.",
+      "empty": "No requests for quotation yet."
+    },
+    "orders": {
+      "title": "Purchase orders",
+      "subtitle": "Orders to suppliers: approved, sent, received into stock and billed.",
+      "new": "New purchase order",
+      "search": "Search by number or supplier",
+      "allStatuses": "All statuses",
+      "supplier": "Supplier",
+      "orderDate": "Order date",
+      "expectedDate": "Expected delivery",
+      "deliverTo": "Deliver to",
+      "vat": "Charge VAT",
+      "terms": "Terms",
+      "submit": "Send for approval",
+      "submitted": "Sent for approval.",
+      "approvedNow": "Approved.",
+      "sendEmail": "Email to supplier",
+      "emailQueued": "The order is on its way to {email}.",
+      "noEmail": "Add the supplier's email address first.",
+      "sendWhatsApp": "Send by WhatsApp",
+      "whatsappText": "Purchase order {number} from {company}: {total}. Expected by {date}.",
+      "markPrinted": "Mark as handed over",
+      "pdf": "PDF",
+      "download": "Download",
+      "cancelOrder": "Cancel order",
+      "fromRequisition": "From requisition {number}",
+      "fromRfq": "From {number}",
+      "received": "Received",
+      "billed": "Billed",
+      "receipts": "Goods received",
+      "bills": "Bills",
+      "sentOn": "Sent {date} by {via}",
+      "via": {
+        "email": "email",
+        "whatsapp": "WhatsApp",
+        "printed": "hand"
+      },
+      "empty": "No purchase orders yet."
+    },
+    "pdf": {
+      "title": "Purchase order",
+      "supplier": "Supplier",
+      "deliverTo": "Deliver to",
+      "orderDate": "Order date",
+      "expectedDate": "Expected delivery",
+      "description": "Description",
+      "qty": "Qty",
+      "unitPrice": "Unit price",
+      "total": "Total",
+      "subtotal": "Subtotal",
+      "vat": "VAT",
+      "grandTotal": "Order total",
+      "terms": "Terms",
+      "reference": "Please quote this order number on your invoice and delivery note.",
+      "authorized": "Authorized by",
+      "emailBody": "Please find our purchase order {number} attached."
     }
   }
 }

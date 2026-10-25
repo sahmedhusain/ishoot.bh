@@ -8,6 +8,7 @@ export const DEFAULT_FEATURE_MODULES = [
   { moduleKey: "reviews", nameEn: "Customer Reviews", nameAr: "تقييمات العملاء" },
   // Off until a company that sells goods switches it on (activities with stock do in the setup wizard).
   { moduleKey: "products", nameEn: "Products", nameAr: "المنتجات", isEnabled: false },
+  { moduleKey: "procurement", nameEn: "Purchasing", nameAr: "المشتريات", isEnabled: false },
 ] as const;
 
 /** Whether a module is on before anyone has chosen (a module missing from the database). */

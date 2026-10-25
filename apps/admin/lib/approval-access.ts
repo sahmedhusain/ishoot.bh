@@ -16,6 +16,8 @@ const READ_ACCESS: Array<[string, Parameters<typeof hasPermission>]> = [
   ["final_settlement", ["payroll", "read"]],
   ["announcement", ["announcements", "read"]],
   ["official_letter", ["letters", "read"]],
+  ["purchase_requisition", ["procurement", "read"]],
+  ["purchase_order", ["procurement", "read"]],
 ];
 
 export async function readableApprovalTypes(): Promise<string[]> {

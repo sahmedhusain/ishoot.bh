@@ -2252,7 +2252,8 @@
       "articles": "المقالات",
       "cms_code": "الأكواد المخصصة والتتبع",
       "products": "المنتجات",
-      "inventory": "المخزون والمستودعات"
+      "inventory": "المخزون والمستودعات",
+      "procurement": "المشتريات"
     }
   },
   "approvals": {
@@ -2288,7 +2289,9 @@
       "employee_handover": "تسليم مهام موظف",
       "final_settlement": "المخالصة النهائية",
       "announcement": "الإعلانات الرسمية",
-      "official_letter": "الخطابات الرسمية"
+      "official_letter": "الخطابات الرسمية",
+      "purchase_requisition": "طلب شراء داخلي",
+      "purchase_order": "أمر شراء"
     },
     "kpis": {
       "awaiting": "بانتظار قرارك",
@@ -2409,7 +2412,10 @@
         "total": "الإجمالي",
         "requestType": "نوع الطلب",
         "company": "الشركة",
-        "priority": "الأولوية"
+        "priority": "الأولوية",
+        "neededBy": "مطلوب بحلول",
+        "lineCount": "الأسطر",
+        "expectedDate": "التسليم المتوقع"
       },
       "fileNames": {
         "attachment": "المرفق",
@@ -5717,7 +5723,17 @@
       "stockCountScopeInvalid": "اختر ما ستجرده.",
       "stockCountMissing": "هذا الجرد لم يعد موجودًا.",
       "stockCountClosed": "لم يعد بالإمكان تغيير هذا الجرد.",
-      "productHasStock": "لهذا المنتج سجل مخزون. أوقف بيعه بدل حذفه."
+      "productHasStock": "لهذا المنتج سجل مخزون. أوقف بيعه بدل حذفه.",
+      "procurementDateInvalid": "أدخل تاريخًا صحيحًا.",
+      "procurementDaysInvalid": "أدخل عددًا صحيحًا من الأيام من 0 إلى 365.",
+      "procurementDocumentMissing": "هذا المستند لم يعد موجودًا.",
+      "procurementNotEditable": "لم يعد بالإمكان تغيير هذا المستند.",
+      "procurementSupplierMissing": "اختر المورّد.",
+      "procurementLinesRequired": "أضف سطرًا واحدًا على الأقل مع وصف.",
+      "procurementNeedsApproval": "يجب اعتماد هذا أولًا.",
+      "procurementHasReceipts": "تم استلام بضائع أو فوترة على هذا الطلب.",
+      "procurementAwardInvalid": "اختر سعرًا واحدًا لكل سطر تطلبه.",
+      "procurementSupplierEmailMissing": "أضف البريد الإلكتروني للمورّد أولًا."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -9240,6 +9256,171 @@
       "averageCost": "متوسط التكلفة",
       "openStock": "افتح صفحة المخزون",
       "allMovements": "كل الحركات"
+    }
+  },
+  "procurement": {
+    "nav": {
+      "suppliers": "الموردون",
+      "requisitions": "طلبات الشراء الداخلية",
+      "rfqs": "طلبات عروض الأسعار",
+      "orders": "أوامر الشراء",
+      "bills": "فواتير الموردين"
+    },
+    "navGroup": "المشتريات",
+    "statuses": {
+      "draft": "مسودة",
+      "pending_approval": "بانتظار الاعتماد",
+      "approved": "معتمد",
+      "rejected": "مرفوض",
+      "ordered": "تم الطلب",
+      "cancelled": "ملغى",
+      "open": "مفتوح",
+      "awarded": "تمت الترسية",
+      "sent": "مُرسل",
+      "partially_received": "مستلم جزئيًا",
+      "received": "مستلم",
+      "closed": "مغلق",
+      "partially_paid": "مدفوع جزئيًا",
+      "paid": "مدفوع"
+    },
+    "lines": {
+      "title": "الأسطر",
+      "product": "المنتج",
+      "freeText": "شيء آخر (صِفه)",
+      "variant": "النوع",
+      "description": "الوصف",
+      "quantity": "الكمية",
+      "estimatedCost": "التكلفة التقديرية للوحدة",
+      "unitPrice": "سعر الوحدة",
+      "lineTotal": "إجمالي السطر",
+      "add": "أضف سطرًا",
+      "remove": "احذف السطر {number}"
+    },
+    "common": {
+      "save": "احفظ",
+      "saving": "جارٍ الحفظ…",
+      "cancel": "إلغاء",
+      "back": "رجوع",
+      "edit": "تعديل",
+      "note": "ملاحظة",
+      "total": "الإجمالي",
+      "subtotal": "المجموع الفرعي",
+      "vat": "ضريبة القيمة المضافة",
+      "empty": "لا شيء هنا بعد.",
+      "number": "الرقم",
+      "status": "الحالة",
+      "date": "التاريخ",
+      "createdBy": "أنشأه {name}",
+      "approvedBy": "اعتمده {name}",
+      "cancelConfirm": "إلغاء هذا المستند؟"
+    },
+    "suppliers": {
+      "title": "الموردون",
+      "subtitle": "الشركات التي تشتري منها. هم جهات اتصال من نوع مورّد، مع أيام التسليم والدفع.",
+      "add": "أضف مورّدًا",
+      "search": "ابحث في الموردين",
+      "companyName": "الشركة",
+      "contactName": "الشخص المسؤول",
+      "email": "البريد الإلكتروني",
+      "phone": "الهاتف",
+      "vatNumber": "الرقم الضريبي",
+      "leadTime": "أيام التسليم",
+      "paymentTerms": "أيام الدفع",
+      "openOrders": "{count} أمر مفتوح",
+      "edit": "عدّل {name}",
+      "empty": "لا يوجد موردون بعد."
+    },
+    "requisitions": {
+      "title": "طلبات الشراء الداخلية",
+      "subtitle": "اطلب شراء شيء ما. تتحول الطلبات المعتمدة إلى طلبات عروض أسعار أو أوامر شراء.",
+      "new": "طلب جديد",
+      "neededBy": "مطلوب بحلول",
+      "requestedBy": "مقدم الطلب",
+      "estimatedTotal": "الإجمالي التقديري",
+      "lineCount": "{count} سطر",
+      "submit": "أرسل للاعتماد",
+      "submitted": "أُرسل للاعتماد.",
+      "approvedNow": "تم الاعتماد.",
+      "toRfq": "اطلب أسعارًا من الموردين",
+      "toOrder": "أنشئ أمر شراء",
+      "rejectedBecause": "مرفوض: {reason}",
+      "editorTitle": "طلب جديد",
+      "empty": "لا توجد طلبات بعد."
+    },
+    "rfqs": {
+      "title": "طلبات عروض الأسعار",
+      "subtitle": "اطلب أسعار الأسطر نفسها من عدة موردين، وقارن بينها، واطلب من الأفضل.",
+      "new": "طلب عرض أسعار جديد",
+      "titleField": "العنوان",
+      "dueDate": "موعد الردود",
+      "suppliers": "{count} مورّد",
+      "compare": "الأسعار",
+      "addQuote": "أدخل أسعار مورّد",
+      "supplier": "المورّد",
+      "leadTime": "أيام التسليم",
+      "best": "أفضل سعر",
+      "choose": "اطلب {line} من {supplier}",
+      "award": "أنشئ أوامر الشراء",
+      "awardHint": "اختر سعرًا لكل سطر تطلبه، ويُنشأ أمر شراء لكل مورّد.",
+      "awarded": "تم إنشاء أوامر الشراء.",
+      "noQuotes": "لا توجد أسعار بعد. أدخل أسعار كل مورّد عند وصول رده.",
+      "empty": "لا توجد طلبات عروض أسعار بعد."
+    },
+    "orders": {
+      "title": "أوامر الشراء",
+      "subtitle": "الطلبات إلى الموردين: تُعتمد وتُرسل وتُستلم في المخزون وتُفوتر.",
+      "new": "أمر شراء جديد",
+      "search": "ابحث بالرقم أو المورّد",
+      "allStatuses": "كل الحالات",
+      "supplier": "المورّد",
+      "orderDate": "تاريخ الطلب",
+      "expectedDate": "التسليم المتوقع",
+      "deliverTo": "التسليم إلى",
+      "vat": "احتسب ضريبة القيمة المضافة",
+      "terms": "الشروط",
+      "submit": "أرسل للاعتماد",
+      "submitted": "أُرسل للاعتماد.",
+      "approvedNow": "تم الاعتماد.",
+      "sendEmail": "أرسل بالبريد إلى المورّد",
+      "emailQueued": "الطلب في طريقه إلى {email}.",
+      "noEmail": "أضف البريد الإلكتروني للمورّد أولًا.",
+      "sendWhatsApp": "أرسل عبر واتساب",
+      "whatsappText": "أمر الشراء {number} من {company}: {total}. التسليم المتوقع {date}.",
+      "markPrinted": "سُلّم يدويًا",
+      "pdf": "PDF",
+      "download": "تنزيل",
+      "cancelOrder": "ألغِ الأمر",
+      "fromRequisition": "من الطلب {number}",
+      "fromRfq": "من {number}",
+      "received": "المستلم",
+      "billed": "المفوتر",
+      "receipts": "البضائع المستلمة",
+      "bills": "الفواتير",
+      "sentOn": "أُرسل {date} عبر {via}",
+      "via": {
+        "email": "البريد",
+        "whatsapp": "واتساب",
+        "printed": "التسليم باليد"
+      },
+      "empty": "لا توجد أوامر شراء بعد."
+    },
+    "pdf": {
+      "title": "أمر شراء",
+      "supplier": "المورّد",
+      "deliverTo": "التسليم إلى",
+      "orderDate": "تاريخ الطلب",
+      "expectedDate": "التسليم المتوقع",
+      "description": "الوصف",
+      "qty": "الكمية",
+      "unitPrice": "سعر الوحدة",
+      "total": "الإجمالي",
+      "subtotal": "المجموع الفرعي",
+      "vat": "ضريبة القيمة المضافة",
+      "grandTotal": "إجمالي الطلب",
+      "terms": "الشروط",
+      "reference": "يرجى ذكر رقم هذا الأمر في فاتورتكم ومذكرة التسليم.",
+      "authorized": "اعتمده",
+      "emailBody": "مرفق أمر الشراء {number}."
     }
   }
 }

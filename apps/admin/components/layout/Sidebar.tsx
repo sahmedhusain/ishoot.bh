@@ -14,6 +14,9 @@ import {
   LayoutDashboard,
   Package,
   FolderTree,
+  FileQuestion,
+  ShoppingCart,
+  Truck,
   Boxes,
   History,
   ClipboardCheck,
@@ -68,7 +71,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   resource?: PermissionResource;
   /** Permission needed on the resource (default read). */
-  action?: "read" | "edit";
+  action?: "read" | "edit" | "create";
   moduleKey?: string;
   /** Only for people who manage a team. */
   managersOnly?: boolean;
@@ -529,6 +532,16 @@ export function Sidebar() {
           { href: ROUTES.inventory.movements(), label: t.inventory.nav.movements, icon: History, resource: "inventory", moduleKey: "products" },
           { href: ROUTES.inventory.counts, label: t.inventory.nav.counts, icon: ClipboardCheck, resource: "inventory", moduleKey: "products" },
           { href: ROUTES.inventory.warehouses, label: t.inventory.nav.warehouses, icon: Warehouse, resource: "inventory", moduleKey: "products" },
+        ],
+      },
+      {
+        id: "procurement",
+        title: t.procurement.navGroup,
+        items: [
+          { href: ROUTES.procurement.requisitions, label: t.procurement.nav.requisitions, icon: ClipboardList, resource: "procurement", action: "create", moduleKey: "procurement" },
+          { href: ROUTES.procurement.rfqs, label: t.procurement.nav.rfqs, icon: FileQuestion, resource: "procurement", moduleKey: "procurement" },
+          { href: ROUTES.procurement.orders, label: t.procurement.nav.orders, icon: ShoppingCart, resource: "procurement", moduleKey: "procurement" },
+          { href: ROUTES.procurement.suppliers, label: t.procurement.nav.suppliers, icon: Truck, resource: "procurement", moduleKey: "procurement" },
         ],
       },
       {
