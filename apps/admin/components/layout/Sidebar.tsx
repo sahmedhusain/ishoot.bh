@@ -560,6 +560,7 @@ export function Sidebar() {
           { href: ROUTES.delivery.routes, label: t.delivery.nav.routes, icon: Route, resource: "deliveries", action: "assign", moduleKey: "delivery" },
           { href: ROUTES.delivery.cash, label: t.delivery.nav.cash, icon: Coins, resource: "deliveries", action: "assign", moduleKey: "delivery" },
           { href: ROUTES.delivery.fleet, label: t.delivery.nav.fleet, icon: CarFront, resource: "deliveries", action: "assign", moduleKey: "delivery" },
+          { href: ROUTES.delivery.agencies, label: t.delivery.nav.agencies, icon: Package, resource: "deliveries", action: "assign", moduleKey: "delivery" },
           { href: ROUTES.delivery.settings, label: t.delivery.nav.settings, icon: MapPinned, resource: "settings", moduleKey: "delivery" },
         ],
       },

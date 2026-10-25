@@ -7,16 +7,16 @@ import { ArrowLeft, Copy, Loader2, MapPin, Phone } from "lucide-react";
 import { Button, Card, Input, Select, formatCurrencyValue, formatDate } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { FAILURE_REASONS, SHIPMENT_TRANSITIONS, type ShipmentStatus } from "@platform/database/constants/delivery";
-import type { DriverOption, ShipmentRecord, VehicleRecord } from "@platform/database";
+import type { CourierAgencyRecord, DriverOption, ShipmentRecord, VehicleRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
-import { assignShipmentAction, moveShipmentAction } from "../../app/actions/delivery";
+import { assignShipmentAction, handToAgencyAction, moveShipmentAction } from "../../app/actions/delivery";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { Field } from "../setup/LanguageFields";
 import { LatePill, ShipmentStatusPill } from "./ShipmentPills";
 
 /** One shipment: where and when, what is in it, moving it along (with a reason when it fails) and its history. */
-export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drivers, vehicles }: { shipment: ShipmentRecord; trackingLink: string; canEdit: boolean; canAssign: boolean; drivers: DriverOption[]; vehicles: VehicleRecord[] }) {
+export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drivers, vehicles, agencies, currency }: { shipment: ShipmentRecord; trackingLink: string; canEdit: boolean; canAssign: boolean; drivers: DriverOption[]; vehicles: VehicleRecord[]; agencies: CourierAgencyRecord[]; currency: string }) {
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.detail;
   const router = useRouter();
@@ -29,6 +29,7 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
   const [assignee, setAssignee] = React.useState({ driverId: shipment.driver_id, vehicleId: shipment.vehicle_id });
   const assignable = ["pending", "assigned", "failed"].includes(shipment.status);
   const driverName = (d: DriverOption) => (locale === "ar" ? d.name_ar : d.name_en);
+  const [handover, setHandover] = React.useState({ agencyId: shipment.agency?.id ?? agencies[0]?.id ?? "", trackingNumber: "", fee: "" });
   const money = (value: number) => formatCurrencyValue(value, shipment.order.currency, locale === "ar");
   const next = SHIPMENT_TRANSITIONS[shipment.status as ShipmentStatus] ?? [];
   const address = shipment.address;
@@ -175,6 +176,36 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
                   <img src={shipment.proof_signature} alt={t.delivery.assign.signature} className="h-32 rounded-lg border border-ink/10 bg-white" />
                 )}
               </div>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {(shipment.agency || (canAssign && assignable && agencies.length > 0)) && (
+        <Card className="p-5 space-y-3" data-testid="shipment-agency">
+          <h2 className="font-bold text-ink">{t.delivery.handover.title}</h2>
+          {shipment.agency && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+              <span className="font-semibold">{shipment.agency.name}</span>
+              <span className="font-mono text-xs" dir="ltr" data-testid="shipment-tracking-number">{shipment.agency.tracking_number}</span>
+              {shipment.agency.tracking_link && <a href={shipment.agency.tracking_link} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary dark:text-mint">{t.delivery.handover.track}</a>}
+              {shipment.agency.label_url && <a href={shipment.agency.label_url} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary dark:text-mint">{t.delivery.handover.label}</a>}
+              {shipment.agency.fee != null && <span className="text-xs text-ink-muted">{formatCurrencyValue(shipment.agency.fee, currency, locale === "ar")}</span>}
+              {shipment.agency.invoice && <span className="text-xs text-ink-muted">{formatMessage(t.delivery.handover.invoiced, { reference: shipment.agency.invoice })}</span>}
+            </div>
+          )}
+          {canAssign && assignable && agencies.length > 0 && (
+            <div className="grid sm:grid-cols-4 gap-3 items-end">
+              <Field label={t.delivery.handover.agency}>
+                {(id) => (
+                  <Select id={id} name="agencyId" value={handover.agencyId} onChange={(e) => setHandover({ ...handover, agencyId: e.target.value })} className="rounded-lg">
+                    {agencies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </Select>
+                )}
+              </Field>
+              <Field label={t.delivery.handover.trackingNumber} hint={agencies.find((a) => a.id === handover.agencyId)?.kind !== "manual" ? t.delivery.handover.trackingHint : undefined}>{(id) => <Input id={id} name="trackingNumber" dir="ltr" maxLength={60} value={handover.trackingNumber} onChange={(e) => setHandover({ ...handover, trackingNumber: e.target.value })} className="rounded-lg" />}</Field>
+              <Field label={formatMessage(t.delivery.handover.fee, { currency })}>{(id) => <Input id={id} name="agencyFee" type="number" min={0} step="0.001" placeholder={agencies.find((a) => a.id === handover.agencyId)?.fee?.toString() ?? ""} value={handover.fee} onChange={(e) => setHandover({ ...handover, fee: e.target.value })} className="rounded-lg" />}</Field>
+              <Button type="button" size="sm" variant="primary" className="rounded-full" disabled={busy || !handover.agencyId} onClick={() => void run(() => handToAgencyAction(shipment.id, handover))} data-testid="shipment-handover">{t.delivery.handover.save}</Button>
             </div>
           )}
         </Card>

@@ -354,7 +354,8 @@
       "messaging": "المراسلة",
       "email": "البريد الإلكتروني",
       "sign_in": "تسجيل دخول العملاء",
-      "payments": "بوابات الدفع"
+      "payments": "بوابات الدفع",
+      "couriers": "شركات الشحن"
     },
     "providers": {
       "meta": {
@@ -420,6 +421,18 @@
       "hyperpay": {
         "name": "HyperPay",
         "description": "البطاقات ومدى في نموذج بطاقة HyperPay الظاهر في صفحة الدفع على الموقع. البيئة: test أو live، والعلامات مثل VISA MASTER MADA. أضف Webhook إلى عنوان الموقع /api/store/payment/webhook/hyperpay والصق مفتاح فك التشفير."
+      },
+      "aramex": {
+        "name": "Aramex",
+        "description": "يحجز الشحنات عبر واجهة Aramex مع رابط للملصق، ويقرأ تتبّعها. البيئة: test أو live، وبيانات الحساب في عقدك مع Aramex."
+      },
+      "dhl_express": {
+        "name": "DHL Express",
+        "description": "يحجز الشحنات عبر واجهة MyDHL مع ملصق PDF، ويقرأ تتبّعها. البيئة: test أو live."
+      },
+      "smsa": {
+        "name": "SMSA Express",
+        "description": "يحجز الشحنات عبر واجهة SMSA للتجارة الإلكترونية مع بوليصة PDF، ويقرأ تتبّعها. البيئة: test أو live."
       }
     },
     "fields": {
@@ -452,7 +465,13 @@
       "entityId": "معرّف الكيان",
       "brands": "علامات البطاقات",
       "webhookKey": "مفتاح فك تشفير الـWebhook",
-      "webhookId": "معرّف الـWebhook"
+      "webhookId": "معرّف الـWebhook",
+      "password": "كلمة المرور",
+      "accountNumber": "رقم الحساب",
+      "accountPin": "الرقم السري للحساب",
+      "accountEntity": "كيان الحساب",
+      "accountCountryCode": "رمز بلد الحساب",
+      "apiSecret": "سرّ الواجهة"
     },
     "status": {
       "healthy": "متصل",
@@ -5843,7 +5862,13 @@
       "routeSheetStillOut": "بعض شحنات هذا الكشف ما زالت خارجة للتوصيل: علّمها مسلّمة أو متعذرة أولًا.",
       "codSettlementInvalid": "اختر شحنات السائق المسلّمة التي حُصّل عليها نقد، وأدخل المبلغ المستلم.",
       "deliveryProofRequired": "التقط صورة أو اطلب توقيع العميل قبل تعليمها مسلّمة.",
-      "shipmentNotYours": "هذه الشحنة غير مسندة إليك."
+      "shipmentNotYours": "هذه الشحنة غير مسندة إليك.",
+      "courierAgencyInvalid": "اختر شركة شحن فعّالة لها اسم ونوع.",
+      "courierTrackingUrlInvalid": "يجب أن تكون صفحة التتبّع عنوان https يحتوي {tracking} مكان الرقم.",
+      "courierBookingFailed": "لم تقبل شركة الشحن الحجز. راجع إعداداتها في التكاملات، أو أدخل رقم التتبّع يدويًا.",
+      "courierTrackingRequired": "أدخل رقم التتبّع لدى شركة الشحن.",
+      "agencyInvoiceInvalid": "تحتاج فاتورة شركة الشحن إلى رقمها وتاريخها ومبلغها والشحنات التي تغطيها.",
+      "agencyInvoiceDuplicate": "رقم الفاتورة هذا مسجّل مسبقًا لهذه الشركة."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -9807,7 +9832,8 @@
       "routes": "كشوف المسارات",
       "fleet": "المركبات",
       "cash": "النقد من السائقين",
-      "driver": "توصيلاتي"
+      "driver": "توصيلاتي",
+      "agencies": "شركات الشحن"
     },
     "title": "الشحنات",
     "subtitle": "كل عملية توصيل: موعدها الموعود، ووجهتها، وما حدث فيها.",
@@ -10050,6 +10076,56 @@
       "expected": "المتوقع",
       "difference": "الفرق",
       "saved": "سُجّل الاستلام."
+    },
+    "agencies": {
+      "title": "شركات الشحن",
+      "subtitle": "شركات الشحن التي توصل لك. الشركات ذات الواجهة البرمجية (المفعّلة في التكاملات) تُحجز تلقائيًا، والبقية بإدخال رقم التتبّع يدويًا.",
+      "add": "أضف شركة",
+      "name": "الاسم",
+      "kind": "طريقة الربط",
+      "kinds": {
+        "manual": "أرقام التتبّع يدويًا",
+        "aramex": "واجهة Aramex",
+        "dhl_express": "واجهة DHL Express",
+        "smsa": "واجهة SMSA"
+      },
+      "trackingUrl": "صفحة التتبّع العامة",
+      "trackingUrlHint": "عنوان https يحتوي {tracking} مكان الرقم.",
+      "phone": "الهاتف",
+      "email": "البريد الإلكتروني",
+      "fee": "الرسوم المعتادة للشحنة ({currency})",
+      "active": "فعّالة",
+      "inactive": "غير مستخدمة",
+      "save": "احفظ الشركة",
+      "cancel": "إلغاء",
+      "edit": "تعديل",
+      "empty": "لا توجد شركات شحن بعد.",
+      "shipments": "{count} شحنات",
+      "saved": "تم الحفظ.",
+      "invoice": "سجّل فاتورة",
+      "invoiceReference": "رقم الفاتورة",
+      "invoiceDate": "تاريخ الفاتورة",
+      "invoiceAmount": "المبلغ ({currency})",
+      "invoiceShipments": "الشحنات التي تغطيها",
+      "invoiceExpected": "المتوقع من الرسوم: {amount}",
+      "invoiceSave": "سجّلها مصروفًا",
+      "noUnbilled": "لا توجد شحنات بانتظار فاتورة من هذه الشركة.",
+      "invoices": "الفواتير",
+      "noInvoices": "لا توجد فواتير شحن بعد.",
+      "difference": "الفرق",
+      "expenseCategory": "التوصيل",
+      "expenseDescription": "فاتورة شركة شحن"
+    },
+    "handover": {
+      "title": "شركة الشحن",
+      "agency": "الشركة",
+      "trackingNumber": "رقم التتبّع",
+      "trackingHint": "اتركه فارغًا للحجز عبر واجهة الشركة.",
+      "fee": "الرسوم ({currency})",
+      "save": "سلّمها لشركة الشحن",
+      "label": "ملصق الشحن",
+      "track": "تتبّع لدى الشركة",
+      "invoiced": "مفوترة ({reference})"
     }
   }
 }

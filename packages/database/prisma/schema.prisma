@@ -3695,6 +3695,18 @@ model Shipment {
   /// The cash handover that settled the cash collected on it.
   codSettlementId String?
   codSettlement   CodSettlement?  @relation(fields: [codSettlementId], references: [id], onDelete: SetNull)
+  /// Courier agency carrying it (method "agency").
+  agencyId        String?
+  agency          CourierAgency?  @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  trackingNumber  String?
+  /// The agency's shipping label (a private file), when its API provides one.
+  labelUrl        String?
+  /// What the agency charges for it, for checking its invoice.
+  agencyFee       Decimal?        @db.Decimal(12, 3)
+  agencyInvoiceId String?
+  agencyInvoice   AgencyInvoice?  @relation(fields: [agencyInvoiceId], references: [id], onDelete: SetNull)
+  /// When the agency's tracking was last read.
+  trackedAt       DateTime?
   events          ShipmentEvent[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -3704,6 +3716,7 @@ model Shipment {
   @@index([slotDate])
   @@index([driverId, status])
   @@index([routeSheetId])
+  @@index([agencyId, status])
 }
 
 model ShipmentEvent {
@@ -3770,4 +3783,40 @@ model CodSettlement {
   shipments   Shipment[]
 
   @@index([driverId, settledAt])
+}
+
+/// A courier company that delivers for the store: by hand-entered tracking numbers, or through its API.
+model CourierAgency {
+  id             String          @id @default(uuid())
+  name           String
+  /// manual | aramex | dhl_express | smsa
+  kind           String          @default("manual")
+  /// The public tracking page, with {tracking} where the number goes.
+  trackingUrl    String?
+  phone          String?
+  email          String?
+  /// Usual charge per shipment.
+  feePerShipment Decimal?        @db.Decimal(12, 3)
+  isActive       Boolean         @default(true)
+  shipments      Shipment[]
+  invoices       AgencyInvoice[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+/// An agency's bill for the shipments it carried, recorded as an expense.
+model AgencyInvoice {
+  id          String        @id @default(uuid())
+  agencyId    String
+  agency      CourierAgency @relation(fields: [agencyId], references: [id], onDelete: Restrict)
+  /// The agency's invoice number.
+  reference   String
+  invoiceDate DateTime      @db.Date
+  amount      Decimal       @db.Decimal(12, 3)
+  expenseId   String?       @unique
+  createdById String?
+  shipments   Shipment[]
+  createdAt   DateTime      @default(now())
+
+  @@unique([agencyId, reference])
 }

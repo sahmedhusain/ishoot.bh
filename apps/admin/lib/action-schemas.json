@@ -4092,6 +4092,110 @@
       }
     }
   },
+  "saveCourierAgencyAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "name": {
+            "kind": "string",
+            "optional": false
+          },
+          "kind": {
+            "kind": "string",
+            "optional": false
+          },
+          "trackingUrl": {
+            "kind": "string",
+            "optional": false
+          },
+          "phone": {
+            "kind": "string",
+            "optional": false
+          },
+          "email": {
+            "kind": "string",
+            "optional": false
+          },
+          "fee": {
+            "kind": "string",
+            "optional": false
+          },
+          "isActive": {
+            "kind": "boolean",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "handToAgencyAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "agencyId": {
+            "kind": "string",
+            "optional": false
+          },
+          "trackingNumber": {
+            "kind": "string",
+            "optional": true
+          },
+          "fee": {
+            "kind": "string",
+            "optional": true
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "recordAgencyInvoiceAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "agencyId": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "string",
+            "optional": false
+          },
+          "invoiceDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "amount": {
+            "kind": "string",
+            "optional": false
+          },
+          "shipmentIds": {
+            "kind": "array",
+            "element": {
+              "kind": "string"
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "saveDepartmentAction": {
     "kind": "object",
     "fields": {

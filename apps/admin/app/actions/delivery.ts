@@ -12,6 +12,12 @@ import {
   saveVehicle,
   settleCash,
   startRouteSheet,
+  handToAgency,
+  recordAgencyInvoice,
+  saveCourierAgency,
+  type AgencyInvoiceInput,
+  type CourierAgencyInput,
+  type HandToAgencyInput,
   type RouteSheetInput,
   type VehicleInput,
   deleteDeliverySlot,
@@ -201,5 +207,44 @@ export async function settleCashAction(input: { driverId: string; shipmentIds: s
     revalidatePath(ROUTES.delivery.cash);
     revalidatePath(ROUTES.orders.list);
     return { success: true, ...result };
+  });
+}
+
+export async function saveCourierAgencyAction(input: CourierAgencyInput) {
+  return measureOperation("action:saveCourierAgencyAction", async () => {
+    await requireFeatureEnabled("delivery");
+    const user = await requirePermission("deliveries", "assign");
+    validateActionArguments("saveCourierAgencyAction", { input });
+    const agency = await saveCourierAgency(input);
+    await createActivityLog({ user_id: user.id, action: input.id ? "update" : "create", entity_type: "courier_agency", entity_id: agency.id, details: { name: agency.name } });
+    revalidatePath(ROUTES.delivery.agencies);
+    return { success: true };
+  });
+}
+
+/** Gives a shipment to a courier agency: booked through its API when it has one, else with the tracking number given. */
+export async function handToAgencyAction(id: string, input: HandToAgencyInput) {
+  return measureOperation("action:handToAgencyAction", async () => {
+    await requireFeatureEnabled("delivery");
+    const user = await requirePermission("deliveries", "assign");
+    validateActionArguments("handToAgencyAction", { id, input });
+    const result = await handToAgency(id, input, user.id);
+    await createActivityLog({ user_id: user.id, action: "assign", entity_type: "shipment", entity_id: id, details: { agencyId: input.agencyId, trackingNumber: result.trackingNumber } });
+    refreshShipment(id);
+    return { success: true, ...result };
+  });
+}
+
+/** Records a courier agency's invoice for the shipments it covers, as a delivery expense. */
+export async function recordAgencyInvoiceAction(input: AgencyInvoiceInput) {
+  return measureOperation("action:recordAgencyInvoiceAction", async () => {
+    await requireFeatureEnabled("delivery");
+    const user = await requirePermission("deliveries", "assign");
+    await requirePermission("expenses", "create");
+    validateActionArguments("recordAgencyInvoiceAction", { input });
+    const invoice = await recordAgencyInvoice(input, user.id);
+    await createActivityLog({ user_id: user.id, action: "create", entity_type: "agency_invoice", entity_id: invoice.id, details: { reference: invoice.reference, amount: input.amount } });
+    revalidatePath(ROUTES.delivery.agencies);
+    return { success: true };
   });
 }

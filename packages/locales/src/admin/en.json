@@ -354,7 +354,8 @@
       "messaging": "Messaging",
       "email": "E-mail",
       "sign_in": "Customer sign-in",
-      "payments": "Payment gateways"
+      "payments": "Payment gateways",
+      "couriers": "Courier agencies"
     },
     "providers": {
       "meta": {
@@ -420,6 +421,18 @@
       "hyperpay": {
         "name": "HyperPay",
         "description": "Cards and mada in HyperPay's card form, shown on the website's own payment page. Environment: test or live; brands such as VISA MASTER MADA. Add a webhook to the website's /api/store/payment/webhook/hyperpay address and paste its decryption key."
+      },
+      "aramex": {
+        "name": "Aramex",
+        "description": "Books shipments through Aramex's API with a label link, and reads their tracking. Environment: test or live; the account details are on your Aramex contract."
+      },
+      "dhl_express": {
+        "name": "DHL Express",
+        "description": "Books shipments through the MyDHL API with a PDF label, and reads their tracking. Environment: test or live."
+      },
+      "smsa": {
+        "name": "SMSA Express",
+        "description": "Books shipments through SMSA's e-commerce API with a PDF waybill, and reads their tracking. Environment: test or live."
       }
     },
     "fields": {
@@ -452,7 +465,13 @@
       "entityId": "Entity ID",
       "brands": "Card brands",
       "webhookKey": "Webhook decryption key",
-      "webhookId": "Webhook ID"
+      "webhookId": "Webhook ID",
+      "password": "Password",
+      "accountNumber": "Account number",
+      "accountPin": "Account PIN",
+      "accountEntity": "Account entity",
+      "accountCountryCode": "Account country code",
+      "apiSecret": "API secret"
     },
     "status": {
       "healthy": "Connected",
@@ -5843,7 +5862,13 @@
       "routeSheetStillOut": "Some shipments on this sheet are still out for delivery: mark them delivered or failed first.",
       "codSettlementInvalid": "Choose the driver's delivered shipments with cash collected, and enter the amount received.",
       "deliveryProofRequired": "Take a photo or have the customer sign before marking it delivered.",
-      "shipmentNotYours": "This shipment is not assigned to you."
+      "shipmentNotYours": "This shipment is not assigned to you.",
+      "courierAgencyInvalid": "Choose an active courier agency with a name and type.",
+      "courierTrackingUrlInvalid": "The tracking page must be an https address containing {tracking} where the number goes.",
+      "courierBookingFailed": "The courier did not accept the booking. Check its settings in Integrations, or enter the tracking number by hand.",
+      "courierTrackingRequired": "Enter the agency's tracking number.",
+      "agencyInvoiceInvalid": "An agency invoice needs its number, date, amount and the shipments it covers.",
+      "agencyInvoiceDuplicate": "That invoice number is already recorded for this agency."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -9807,7 +9832,8 @@
       "routes": "Route sheets",
       "fleet": "Vehicles",
       "cash": "Cash from drivers",
-      "driver": "My deliveries"
+      "driver": "My deliveries",
+      "agencies": "Courier agencies"
     },
     "title": "Shipments",
     "subtitle": "Every delivery: when it is promised, where it goes and what happened.",
@@ -10050,6 +10076,56 @@
       "expected": "Expected",
       "difference": "Difference",
       "saved": "Handover recorded."
+    },
+    "agencies": {
+      "title": "Courier agencies",
+      "subtitle": "Couriers who deliver for you. Agencies with an API (switched on in Integrations) are booked automatically; others take a tracking number by hand.",
+      "add": "Add agency",
+      "name": "Name",
+      "kind": "Connection",
+      "kinds": {
+        "manual": "Tracking numbers by hand",
+        "aramex": "Aramex API",
+        "dhl_express": "DHL Express API",
+        "smsa": "SMSA API"
+      },
+      "trackingUrl": "Public tracking page",
+      "trackingUrlHint": "An https address with {tracking} where the number goes.",
+      "phone": "Phone",
+      "email": "E-mail",
+      "fee": "Usual fee per shipment ({currency})",
+      "active": "Active",
+      "inactive": "Not used",
+      "save": "Save agency",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "empty": "No courier agencies yet.",
+      "shipments": "{count} shipments",
+      "saved": "Saved.",
+      "invoice": "Record an invoice",
+      "invoiceReference": "Invoice number",
+      "invoiceDate": "Invoice date",
+      "invoiceAmount": "Amount ({currency})",
+      "invoiceShipments": "Shipments it covers",
+      "invoiceExpected": "Expected from fees: {amount}",
+      "invoiceSave": "Record as expense",
+      "noUnbilled": "No shipments waiting for an invoice from this agency.",
+      "invoices": "Invoices",
+      "noInvoices": "No agency invoices yet.",
+      "difference": "Difference",
+      "expenseCategory": "Delivery",
+      "expenseDescription": "Courier invoice"
+    },
+    "handover": {
+      "title": "Courier agency",
+      "agency": "Agency",
+      "trackingNumber": "Tracking number",
+      "trackingHint": "Leave empty to book through the agency's API.",
+      "fee": "Fee ({currency})",
+      "save": "Hand to agency",
+      "label": "Shipping label",
+      "track": "Track at the agency",
+      "invoiced": "Invoiced ({reference})"
     }
   }
 }

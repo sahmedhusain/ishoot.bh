@@ -126,3 +126,5 @@ export * from "./constants/delivery";
 export * from "./queries/delivery";
 export * from "./queries/shipments";
 export * from "./queries/fleet";
+export * from "./queries/couriers";
+export { isApiCourier } from "./couriers/adapters";

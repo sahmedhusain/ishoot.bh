@@ -613,3 +613,34 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   one short, recording the difference and paying both orders).
 - Regression (delivery web and admin, orders, navigation): 8 of 10 passed, 2 hit the dev-mode hydration mismatch
   (one on Settings → Sales pipeline, untouched here) and passed on rerun at a machine load of ~130.
+
+### Phase 7c: courier agencies, tracking and agency invoices (done)
+
+- Migration `20261027030000_couriers`: `CourierAgency` (manual, Aramex, DHL Express or SMSA; public tracking page
+  template, contact, usual fee), `AgencyInvoice`, and on `Shipment` the agency, tracking number, label, fee,
+  invoice and when tracking was last read.
+- One courier adapter interface (`packages/database/src/couriers/adapters.ts`: book with tracking number and
+  label, read tracking, check credentials) for **Aramex** (Shipping and Tracking JSON services, label link),
+  **DHL Express** (MyDHL API, PDF label) and **SMSA** (e-commerce API, PDF waybill), configured as a new
+  "Courier agencies" integration group. PDF labels are stored as private files on the shipment.
+- Shipment page: hand to an agency (booked through its API when switched on and no number is given; otherwise
+  the tracking number by hand), with the fee, label and the agency's tracking link. The scheduled job reads the
+  tracking of API-booked shipments and moves them on (out, delivered, failed, returned), their orders following.
+- Delivery → Courier agencies: agencies, and their invoices recorded against the shipments they cover as an
+  approved expense in a "Delivery" expense category (created on first use), showing the difference from the
+  per-shipment fees. The customer's tracking page shows the agency and links to its tracking page.
+- Needs live credentials: Aramex, DHL Express and SMSA are built to their published APIs and covered by unit tests
+  with a mocked network; none has been run against its sandbox.
+- Deferred: cash collected by agencies on delivery (remittance) is not reconciled yet; agency COD shipments keep
+  the order unpaid until payment is recorded by hand.
+- Fixed the long-standing development-only hydration failures (open question since 5c-2): Next 15.5's Segment
+  Explorer wraps each page in a node the server and browser disagree on, shifting every `useId` under the page.
+  `experimental.devtoolSegmentExplorer: false` in the admin config removes it; production never had it.
+- Tested: unit (country codes, event words to states, Aramex/DHL/SMSA booking and tracking parsing with a mocked
+  network, catalogue copy); e2e (agency created, shipment handed over with a tracking number, the customer's
+  tracking page links to the agency, delivered, the agency's invoice recorded as a delivery expense with its
+  difference).
+- Full e2e suite after Phase 7: 66 of 68 passed. The setup wizard failed because the blank test database had
+  already been set up by an earlier run (reset with `prepare-db.cjs blank`, then passed); procurement and, on
+  one rerun, the wizard hit the remaining dev-only symptom (a block mounted twice during a Fast Refresh while
+  other routes compile) and both passed on rerun. No hydration mismatch was logged in the full run.

@@ -950,6 +950,8 @@
       "rescheduled": "you asked for another time",
       "damaged": "the goods were damaged",
       "other": "something went wrong"
-    }
+    },
+    "trackAgency": "Carried by {agency}, tracking number {number}",
+    "trackAtAgency": "Track at {agency}"
   }
 }

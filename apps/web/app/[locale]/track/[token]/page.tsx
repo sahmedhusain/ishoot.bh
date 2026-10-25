@@ -63,6 +63,18 @@ export default async function TrackPage({ params }: { params: Promise<{ locale: 
         )}
       </div>
 
+      {shipment.agency && (
+        <p className="text-sm text-ink-muted" data-testid="track-agency">
+          {formatMessage(t.store.trackAgency, { agency: shipment.agency.name, number: shipment.agency.tracking_number })}
+          {shipment.agency.tracking_link && (
+            <>
+              {" · "}
+              <a href={shipment.agency.tracking_link} target="_blank" rel="noreferrer" className="font-semibold text-[var(--web-accent)] hover:underline">{formatMessage(t.store.trackAtAgency, { agency: shipment.agency.name })}</a>
+            </>
+          )}
+        </p>
+      )}
+
       <ul className="space-y-1 text-sm text-ink-muted">
         {shipment.lines.map((l, index) => <li key={index}>{l.description} × {l.quantity}</li>)}
       </ul>

@@ -1,7 +1,7 @@
 // Integration catalog shared by Settings → Integrations, the sync worker and analytics.
 // Runtime-free so client components can import it. Secret fields are never sent to the browser.
 
-export type IntegrationKind = "social" | "messaging" | "email" | "sign_in" | "payments";
+export type IntegrationKind = "social" | "messaging" | "email" | "sign_in" | "payments" | "couriers";
 
 export interface IntegrationField {
   key: string;
@@ -21,7 +21,7 @@ export interface IntegrationProvider {
 export const SOCIAL_PLATFORM_IDS = ["facebook", "instagram", "youtube", "tiktok", "x", "linkedin"] as const;
 export type SocialPlatformId = (typeof SOCIAL_PLATFORM_IDS)[number];
 
-export const INTEGRATION_PROVIDER_IDS = ["meta", "whatsapp", "youtube", "tiktok", "x", "linkedin", "resend", "google_signin", "apple_signin", "stripe", "tap", "paypal", "checkout_com", "paytabs", "moyasar", "hyperpay"] as const;
+export const INTEGRATION_PROVIDER_IDS = ["meta", "whatsapp", "youtube", "tiktok", "x", "linkedin", "resend", "google_signin", "apple_signin", "stripe", "tap", "paypal", "checkout_com", "paytabs", "moyasar", "hyperpay", "aramex", "dhl_express", "smsa"] as const;
 export type IntegrationProviderId = (typeof INTEGRATION_PROVIDER_IDS)[number];
 
 export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
@@ -193,6 +193,44 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
       { key: "webhookKey", secret: true, required: true },
     ],
     docsUrl: "https://hyperpay.docs.oppwa.com/integrations/widget",
+  },
+  // Courier agencies with an API: booking returns the tracking number (and a label), and tracking updates come back.
+  {
+    id: "aramex",
+    kind: "couriers",
+    platforms: [],
+    fields: [
+      { key: "environment", required: true },
+      { key: "username", required: true },
+      { key: "password", secret: true, required: true },
+      { key: "accountNumber", required: true },
+      { key: "accountPin", secret: true, required: true },
+      { key: "accountEntity", required: true },
+      { key: "accountCountryCode", required: true },
+    ],
+    docsUrl: "https://www.aramex.com/us/en/developers-solution-center/aramex-apis",
+  },
+  {
+    id: "dhl_express",
+    kind: "couriers",
+    platforms: [],
+    fields: [
+      { key: "environment", required: true },
+      { key: "apiKey", required: true },
+      { key: "apiSecret", secret: true, required: true },
+      { key: "accountNumber", required: true },
+    ],
+    docsUrl: "https://developer.dhl.com/api-reference/dhl-express-mydhl-api",
+  },
+  {
+    id: "smsa",
+    kind: "couriers",
+    platforms: [],
+    fields: [
+      { key: "environment", required: true },
+      { key: "apiKey", secret: true, required: true },
+    ],
+    docsUrl: "https://www.smsaexpress.com/",
   },
 ];
 

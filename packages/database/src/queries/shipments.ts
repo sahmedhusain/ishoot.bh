@@ -4,6 +4,9 @@ import { db } from "../db";
 import { FAILURE_REASONS, OPEN_SHIPMENT_STATUSES, SHIPMENT_STATUSES, canMoveShipment, type ShipmentStatus } from "../constants/delivery";
 import { moveOrderIn, type OrderAddress } from "./store";
 
+/** The agency's public tracking page for a number, when the agency has one. */
+const agencyTrackingLink = (template: string | null | undefined, trackingNumber: string | null | undefined) => (template && trackingNumber ? template.replace("{tracking}", encodeURIComponent(trackingNumber)) : "");
+
 type Tx = Prisma.TransactionClient;
 const num = (value: { toString(): string } | null | undefined) => (value == null ? 0 : Number(value.toString()));
 const round3 = (value: number) => Math.round(value * 1000) / 1000;
@@ -72,7 +75,7 @@ export async function shipmentCounts(now = new Date()) {
 }
 
 export async function getShipment(id: string, now = new Date()) {
-  const s = await db.shipment.findUnique({ where: { id }, include: { order: { select: { id: true, number: true, status: true, total: true, currency: true, locale: true, paymentMethod: true, paymentStatus: true, lines: { orderBy: { sortOrder: "asc" }, select: { description: true, sku: true, quantity: true } } } }, zone: { select: { nameEn: true, nameAr: true } }, events: { orderBy: { at: "asc" } }, routeSheet: { select: { id: true, number: true } }, codSettlement: { select: { number: true } } } });
+  const s = await db.shipment.findUnique({ where: { id }, include: { order: { select: { id: true, number: true, status: true, total: true, currency: true, locale: true, paymentMethod: true, paymentStatus: true, lines: { orderBy: { sortOrder: "asc" }, select: { description: true, sku: true, quantity: true } } } }, zone: { select: { nameEn: true, nameAr: true } }, events: { orderBy: { at: "asc" } }, routeSheet: { select: { id: true, number: true } }, codSettlement: { select: { number: true } }, agency: { select: { id: true, name: true, trackingUrl: true } }, agencyInvoice: { select: { reference: true } } } });
   if (!s) return null;
   const people = await db.user.findMany({ where: { id: { in: s.events.map((e) => e.byId).filter((v): v is string => !!v) } }, select: { id: true, fullName: true } });
   return {
@@ -101,6 +104,7 @@ export async function getShipment(id: string, now = new Date()) {
     proof_photo_url: s.proofPhotoUrl ?? "",
     proof_signature: s.proofSignature ?? "",
     cod_settlement: s.codSettlement?.number ?? "",
+    agency: s.agency ? { id: s.agency.id, name: s.agency.name, tracking_number: s.trackingNumber ?? "", tracking_link: agencyTrackingLink(s.agency.trackingUrl, s.trackingNumber), label_url: s.labelUrl ?? "", fee: s.agencyFee == null ? null : num(s.agencyFee), invoice: s.agencyInvoice?.reference ?? "" } : null,
     events: s.events.map((e) => ({ id: e.id, status: e.status, reason: e.reason ?? "", note: e.note ?? "", at: e.at.toISOString(), by: people.find((p) => p.id === e.byId)?.fullName ?? "" })),
   };
 }
@@ -172,7 +176,7 @@ export async function moveShipment(id: string, input: MoveShipmentInput, byId: s
 /** What the customer's tracking page shows: no staff names, no internal notes. */
 export async function shipmentForTracking(token: string) {
   if (!/^[A-Za-z0-9_-]{20,40}$/.test(token)) return null;
-  const s = await db.shipment.findUnique({ where: { trackingToken: token }, include: { order: { select: { number: true, status: true, placedAt: true, locale: true, lines: { orderBy: { sortOrder: "asc" }, select: { description: true, quantity: true } } } }, events: { orderBy: { at: "asc" }, select: { status: true, reason: true, at: true } } } });
+  const s = await db.shipment.findUnique({ where: { trackingToken: token }, include: { agency: { select: { name: true, trackingUrl: true } }, order: { select: { number: true, status: true, placedAt: true, locale: true, lines: { orderBy: { sortOrder: "asc" }, select: { description: true, quantity: true } } } }, events: { orderBy: { at: "asc" }, select: { status: true, reason: true, at: true } } } });
   if (!s) return null;
   const address = s.address as Partial<OrderAddress>;
   return {
@@ -186,6 +190,7 @@ export async function shipmentForTracking(token: string) {
     delivered_at: s.deliveredAt?.toISOString() ?? null,
     failure_reason: s.failureReason ?? "",
     area: [address.area, address.city].filter(Boolean).join(", "),
+    agency: s.agency ? { name: s.agency.name, tracking_number: s.trackingNumber ?? "", tracking_link: agencyTrackingLink(s.agency.trackingUrl, s.trackingNumber) } : null,
     lines: s.order.lines.map((l) => ({ description: l.description, quantity: num(l.quantity) })),
     events: s.events.map((e) => ({ status: e.status, reason: e.reason ?? "", at: e.at.toISOString() })),
   };

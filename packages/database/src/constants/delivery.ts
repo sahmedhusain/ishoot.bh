@@ -137,3 +137,7 @@ export function promisedBy(placedAt: Date, slaHours: number, slot: { date: strin
 }
 
 export const VEHICLE_KINDS = ["car", "van", "motorbike", "truck", "bicycle", "other"] as const;
+
+/** How a courier agency is reached: tracking numbers entered by hand, or its API. */
+export const COURIER_KINDS = ["manual", "aramex", "dhl_express", "smsa"] as const;
+export type CourierKind = (typeof COURIER_KINDS)[number];

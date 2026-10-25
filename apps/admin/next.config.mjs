@@ -16,6 +16,9 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', '@platform/ui'],
     // Enables forbidden(): pages a role may not open render app/forbidden.tsx with HTTP 403.
     authInterrupts: true,
+    // The development-only Segment Explorer wraps each page in an extra node that the server and the browser do
+    // not agree on, which shifts every useId under the page and logs hydration mismatches. Production is unaffected.
+    devtoolSegmentExplorer: false,
   },
   images: {
     remotePatterns: [

@@ -9,6 +9,7 @@ import type { IntegrationProviderId, SocialPlatformId } from "../constants/integ
 import { checkSignInCredentials } from "../services/oauth-signin";
 import { isPaymentGateway } from "../constants/payments";
 import { GatewayError, paymentGateway } from "../payments/gateways";
+import { CourierError, courierAdapter, isApiCourier } from "../couriers/adapters";
 
 export type Credentials = Record<string, string>;
 
@@ -351,10 +352,11 @@ export async function checkConnection(provider: IntegrationProviderId, credentia
     if (provider === "resend") return await checkResend(credentials);
     if (provider === "google_signin" || provider === "apple_signin") return checkSignInCredentials(provider === "google_signin" ? "google" : "apple", credentials);
     if (isPaymentGateway(provider)) return await paymentGateway(provider).check(credentials);
+    if (isApiCourier(provider)) return await courierAdapter(provider).check(credentials);
     const snapshot = await fetchSocialSnapshot(provider, credentials);
     return { ok: true, accountName: snapshot.accountName };
   } catch (error) {
-    return { ok: false, error: error instanceof ProviderError || error instanceof GatewayError ? error.message : "Connection check failed" };
+    return { ok: false, error: error instanceof ProviderError || error instanceof GatewayError || error instanceof CourierError ? error.message : "Connection check failed" };
   }
 }
 
