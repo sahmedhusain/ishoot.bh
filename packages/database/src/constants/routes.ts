@@ -190,6 +190,7 @@ export const ROUTES = {
     company: "/dashboard/settings/company",
     integrations: "/dashboard/settings/integrations",
     modules: "/dashboard/settings/modules",
+    pipeline: "/dashboard/settings/pipeline",
     preferences: "/dashboard/settings/preferences",
     roles: "/dashboard/settings/roles",
     security: "/dashboard/settings/security",

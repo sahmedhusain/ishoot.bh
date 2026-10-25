@@ -553,16 +553,8 @@ export interface CustomerDossier {
   };
 }
 
-export type DealStage =
-  | "lead"
-  | "proposal_sent"
-  | "contract_signed"
-  | "production"
-  | "post_production"
-  | "delivered"
-  | "invoiced"
-  | "closed_won"
-  | "closed_lost";
+/** A DealPipelineStage id (constants/crm.ts lists the built-in ones). */
+export type DealStage = string;
 
 export interface CRMDeal {
   id: string;

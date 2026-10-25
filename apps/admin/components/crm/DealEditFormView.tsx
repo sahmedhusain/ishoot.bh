@@ -7,6 +7,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { CRMDeal, CRMContact, DealStage } from "@platform/database/types";
+import type { DealPipelineStage } from "@platform/database";
+import { dealStageLabel } from "../../lib/deal-stages";
 import { Card, Input, Select, Button, Textarea } from "@platform/ui";
 import { ArrowLeft, CheckCircle2, Briefcase, ExternalLink } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
@@ -17,9 +19,10 @@ interface DealEditFormViewProps {
   deal: CRMDeal;
   contacts: CRMContact[];
   owners: Array<{ id: string; fullName: string }>;
+  stages: DealPipelineStage[];
 }
 
-export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewProps) {
+export function DealEditFormView({ deal, contacts, owners, stages }: DealEditFormViewProps) {
   const router = useRouter();
   const {t, locale } = useAdminLocale();
   const bhd = getCurrencyLabel("BHD", locale === "ar");
@@ -124,25 +127,7 @@ export function DealEditFormView({ deal, contacts, owners }: DealEditFormViewPro
     }
   };
 
-  const stageOptions = [
-    { value: "lead", label: t.stages.lead },
-    {
-      value: "proposal_sent",
-      label: t.stages.proposal_sent,
-    },
-    {
-      value: "contract_signed",
-      label: t.stages.contract_signed,
-    },
-    { value: "production", label: t.stages.production },
-    {
-      value: "post_production",
-      label: t.stages.post_production,
-    },
-    { value: "delivered", label: t.stages.delivered },
-    { value: "closed_won", label: t.stages.closed_won },
-    { value: "closed_lost", label: t.stages.closed_lost },
-  ];
+  const stageOptions = stages.map((stage) => ({ value: stage.id, label: dealStageLabel(stage, t, locale) }));
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-16">

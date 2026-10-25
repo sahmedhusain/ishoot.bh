@@ -39,7 +39,8 @@
     "webSettings": "Website Settings",
     "socialAnalytics": "Social Analytics",
     "attendance": "Attendance",
-    "hrSettings": "HR settings"
+    "hrSettings": "HR settings",
+    "pipeline": "Sales pipeline"
   },
   "actions": {
     "newInvoice": "New Invoice",
@@ -118,7 +119,12 @@
     "delivered": "Delivered",
     "invoiced": "Invoiced",
     "closed_won": "Closed Won",
-    "closed_lost": "Closed Lost"
+    "closed_lost": "Closed Lost",
+    "scheduled": "Scheduled",
+    "processing": "Processing",
+    "shipped": "Shipped",
+    "viewing": "Viewing",
+    "negotiation": "Negotiation"
   },
   "finance": {
     "invoiceNumber": "Invoice #",
@@ -4451,7 +4457,11 @@
     "returned": "Returned",
     "assigned": "Assigned",
     "pending_approval": "Pending approval",
-    "superseded": "Superseded"
+    "superseded": "Superseded",
+    "processing": "Processing",
+    "shipped": "Shipped",
+    "viewing": "Viewing",
+    "negotiation": "Negotiation"
   },
   "payroll": {
     "attendanceWindow": "Attendance {start} – {end}",
@@ -5623,7 +5633,11 @@
       "contentLanguagesInvalid": "Choose at least one content language.",
       "invalidFoundedYear": "Enter the year the company was founded, for example 2015.",
       "invalidMapLink": "Enter a full map link starting with https://.",
-      "invalidPrice": "Enter a price of zero or more."
+      "invalidPrice": "Enter a price of zero or more.",
+      "dealStageInvalid": "This stage is not part of the sales pipeline.",
+      "dealStageNameRequired": "Give the new stage a name.",
+      "dealStageSystemRequired": "The locked stages must stay in the pipeline.",
+      "dealStageInUse": "A stage that still holds deals cannot be removed or switched off. Move its deals first."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -8239,5 +8253,30 @@
       "summary": "At a glance",
       "summaryAddress": "Catalogue address"
     }
+  },
+  "pipelineSettings": {
+    "title": "Sales pipeline",
+    "subtitle": "The stages your deals move through. Rename them in your own words, change their order and colour, and add the steps your work needs. Quotations and invoices move deals through the locked stages.",
+    "save": "Save pipeline",
+    "saving": "Saving…",
+    "saved": "Pipeline saved.",
+    "reset": "Use my activity's stages",
+    "resetConfirm": "Rebuild the pipeline your business activity recommends? Stages that still hold deals are kept.",
+    "name": "Stage name",
+    "nameHint": "Leave empty to use the standard name.",
+    "probability": "Win %",
+    "color": "Colour",
+    "active": "In use",
+    "system": "Locked",
+    "systemHint": "Quotations, invoices and payments move deals into this stage, so it cannot be removed.",
+    "dealCount": "{count} deals",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "remove": "Remove {stage}",
+    "addLabel": "Add a stage",
+    "addChoose": "Choose a stage…",
+    "addCustom": "A stage of my own",
+    "add": "Add",
+    "customize": "Customize stages"
   }
 }

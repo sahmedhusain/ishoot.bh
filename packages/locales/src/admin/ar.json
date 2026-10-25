@@ -39,7 +39,8 @@
     "webSettings": "إعدادات الموقع",
     "socialAnalytics": "تحليلات التواصل الاجتماعي",
     "attendance": "الحضور",
-    "hrSettings": "إعدادات الموارد البشرية"
+    "hrSettings": "إعدادات الموارد البشرية",
+    "pipeline": "مسار المبيعات"
   },
   "actions": {
     "newInvoice": "فاتورة جديدة",
@@ -118,7 +119,12 @@
     "delivered": "تم التسليم",
     "invoiced": "تم إصدار الفاتورة",
     "closed_won": "صفقة ناجحة مكتملة",
-    "closed_lost": "صفقة ملغاة"
+    "closed_lost": "صفقة ملغاة",
+    "scheduled": "مجدولة",
+    "processing": "قيد التجهيز",
+    "shipped": "تم الشحن",
+    "viewing": "معاينة",
+    "negotiation": "تفاوض"
   },
   "finance": {
     "invoiceNumber": "رقم الفاتورة",
@@ -4451,7 +4457,11 @@
     "returned": "معاد",
     "assigned": "مسند",
     "pending_approval": "بانتظار الاعتماد",
-    "superseded": "مستبدل"
+    "superseded": "مستبدل",
+    "processing": "قيد التجهيز",
+    "shipped": "تم الشحن",
+    "viewing": "معاينة",
+    "negotiation": "تفاوض"
   },
   "payroll": {
     "attendanceWindow": "الحضور {start} – {end}",
@@ -5623,7 +5633,11 @@
       "contentLanguagesInvalid": "اختر لغة محتوى واحدة على الأقل.",
       "invalidFoundedYear": "أدخل سنة تأسيس الشركة، مثل 2015.",
       "invalidMapLink": "أدخل رابط خريطة كاملاً يبدأ بـ https://.",
-      "invalidPrice": "أدخل سعراً يساوي صفراً أو أكثر."
+      "invalidPrice": "أدخل سعراً يساوي صفراً أو أكثر.",
+      "dealStageInvalid": "هذه المرحلة ليست ضمن مسار المبيعات.",
+      "dealStageNameRequired": "أعطِ المرحلة الجديدة اسمًا.",
+      "dealStageSystemRequired": "يجب أن تبقى المراحل المقفلة في المسار.",
+      "dealStageInUse": "لا يمكن حذف مرحلة فيها صفقات أو إيقافها. انقل صفقاتها أولًا."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -8239,5 +8253,30 @@
       "summary": "لمحة سريعة",
       "summaryAddress": "عنوان الكتالوج"
     }
+  },
+  "pipelineSettings": {
+    "title": "مسار المبيعات",
+    "subtitle": "المراحل التي تمر بها صفقاتك. سمّها بكلماتك، وغيّر ترتيبها ولونها، وأضف الخطوات التي يحتاجها عملك. عروض الأسعار والفواتير تنقل الصفقات عبر المراحل المقفلة.",
+    "save": "حفظ المسار",
+    "saving": "جارٍ الحفظ…",
+    "saved": "تم حفظ المسار.",
+    "reset": "استخدم مراحل نشاطي",
+    "resetConfirm": "إعادة بناء المسار الذي يوصي به نشاط شركتك؟ تبقى المراحل التي فيها صفقات.",
+    "name": "اسم المرحلة",
+    "nameHint": "اتركه فارغًا لاستخدام الاسم المعتاد.",
+    "probability": "نسبة الفوز ٪",
+    "color": "اللون",
+    "active": "مستخدمة",
+    "system": "مقفلة",
+    "systemHint": "عروض الأسعار والفواتير والدفعات تنقل الصفقات إلى هذه المرحلة، لذا لا يمكن حذفها.",
+    "dealCount": "{count} صفقات",
+    "moveUp": "تحريك للأعلى",
+    "moveDown": "تحريك للأسفل",
+    "remove": "حذف {stage}",
+    "addLabel": "إضافة مرحلة",
+    "addChoose": "اختر مرحلة…",
+    "addCustom": "مرحلة خاصة بي",
+    "add": "إضافة",
+    "customize": "تخصيص المراحل"
   }
 }

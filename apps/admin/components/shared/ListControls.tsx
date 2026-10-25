@@ -19,6 +19,7 @@ export function ListControls({
   total,
   filters,
   statuses = [],
+  statusNames = {},
   exportDomain,
 }: {
   path: string;
@@ -26,10 +27,13 @@ export function ListControls({
   total: number;
   filters: { q: string; status: string; dealId?: string };
   statuses?: string[];
+  /** A company's own names for some statuses (deal stages); they win over the standard labels. */
+  statusNames?: Record<string, { en: string | null; ar: string | null }>;
   exportDomain?: string;
 }) {
   const { can } = usePermissions();
-  const { t } = useAdminLocale();
+  const { t, locale } = useAdminLocale();
+  const ownName = (s: string) => (locale === "ar" ? statusNames[s]?.ar || statusNames[s]?.en : statusNames[s]?.en || statusNames[s]?.ar);
   const pages = Math.max(1, Math.ceil(total / 50));
   const href = (next: number) =>
     `${path}?${new URLSearchParams({ ...(filters.dealId ? { dealId: filters.dealId } : {}), q: filters.q, status: filters.status, page: String(next) })}`;
@@ -69,7 +73,7 @@ export function ListControls({
             <option value="all">{t.listControls.all}</option>
             {statuses.map((s) => (
               <option key={s} value={s}>
-                {(t.statusLabels as Record<string, string>)[s] ?? s.replaceAll("_", " ")}
+                {ownName(s) || ((t.statusLabels as Record<string, string>)[s] ?? s.replaceAll("_", " "))}
               </option>
             ))}
           </select>

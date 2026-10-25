@@ -186,3 +186,25 @@ customization the user asked for first) before commerce.
 - Customers are a separate account type from staff; staff sign-in is unchanged.
 - Gateways and couriers get real adapters where a public sandbox exists; anything that cannot be tested without
   a merchant contract stays behind the same interface, clearly marked as "needs live credentials".
+
+## Progress log
+
+Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest entries last.
+
+### Phase 1a: activity matrix and per-company deal pipeline (done)
+
+- `docs/audits/ADMIN_ACTIVITY_MATRIX.md`: every admin route with the activities that need it, its module and its
+  permission, plus the screens that assumed a media company and what changed.
+- `DealPipelineStage` (migration `20261026100000_deal_pipeline_stages`): the company's stages, seeded with the nine
+  stages in use today. **No stored deal stage changed** (the admin-wording proposal: do not rename `production` /
+  `post_production`; they are now ordinary, renameable stages).
+- System stages (lead, proposal sent, contract signed, invoiced, won, lost) are the ones quotations, invoices and
+  payments move deals into: renameable and reorderable, not removable. Working stages come from
+  `ACTIVITY_DEAL_STAGES` per activity; choosing an activity in the wizard applies them without dropping stages
+  that hold deals.
+- Settings → Sales pipeline (`/dashboard/settings/pipeline`, `settings:read`, edit with `settings:edit`): names per
+  content language (empty = the built-in, activity-aware label), order, colour, win %, on/off, custom stages.
+  The deals board, deal forms, the status filter and the dashboard pipeline panel read the company's stages.
+- Forward-only auto-advance and the integrity rule "deal stage is not behind its documents" now use the
+  company's stage order.
+- Decision: custom stages are always "open"; only the built-in won and lost stages close a deal.

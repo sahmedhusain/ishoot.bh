@@ -6,6 +6,7 @@ export * from "./queries/clients";
 export * from "./queries/equipment";
 export * from "./queries/inquiries";
 export * from "./queries/crm";
+export * from "./queries/deal-pipeline";
 export * from "./queries/invoices";
 export * from "./queries/payments";
 export * from "./queries/expenses";

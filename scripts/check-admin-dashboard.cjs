@@ -32,6 +32,7 @@ async function main() {
       '@platform/ui': { Button: node('button'), CurrencyDisplay: ({ amount }) => React.createElement('span', null, amount), DateDisplay: node('span'), StatusBadge: node('span') },
       'lucide-react': new Proxy({}, { get: () => () => React.createElement('svg') }),
       '../../hooks/useAdminLocale': { useAdminLocale: () => ({ t, locale }) },
+      '../../lib/deal-stages': { dealStageLabel: (stage) => stage.name_en || t.stages[stage.id] || stage.id },
     }, true);
     const props = { finance: { revenue: 9876, outstanding: 22, overdue: 0, expenses: 44, netProfit: 9832, profitMargin: 99 }, monthlyCashflow: [], dealOverview: { recent: [], stageStats: {}, activeCount: 0, activePipelineValue: 0 }, inquiryCount: 0, company: { company_name_en: 'Test company', company_name_ar: 'شركة اختبار', cr_number: 'TEST', vat_enabled: false }, upcomingEvents: [] };
     const viewer = renderToStaticMarkup(React.createElement(ExecutiveDashboardView, { ...props, capabilities: { finance: false, deals: true, leads: false, calendar: true, createInvoice: false, settings: false } }));
@@ -84,7 +85,9 @@ async function main() {
   const { advanceDealForEvent } = load('packages/database/src/queries/crm.ts', {
     './company-settings': {}, '../services/lead-resolver': {}, '../db': { db: {} },
   });
-  const tx = { crmDeal: { updateMany: async (args) => { advances.push(args); return { count: 1 }; } } };
+  const pipeline = ['lead', 'proposal_sent', 'contract_signed', 'production', 'delivered', 'invoiced', 'closed_won', 'closed_lost']
+    .map((id, sortOrder) => ({ id, sortOrder, kind: id === 'closed_won' ? 'won' : id === 'closed_lost' ? 'lost' : 'open', probability: 50 }));
+  const tx = { crmDeal: { updateMany: async (args) => { advances.push(args); return { count: 1 }; } }, dealPipelineStage: { findMany: async () => pipeline } };
   assert.equal(await advanceDealForEvent(tx, null, 'invoice_paid'), false, 'Unlinked documents never touch deals');
   await advanceDealForEvent(tx, 'd1', 'quotation_issued');
   await advanceDealForEvent(tx, 'd1', 'invoice_paid');

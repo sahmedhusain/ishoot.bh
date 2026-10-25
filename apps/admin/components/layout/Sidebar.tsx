@@ -574,6 +574,14 @@ export function Sidebar() {
             action: "edit",
           },
           {
+            href: ROUTES.settings.pipeline,
+            label: t.nav.pipeline,
+            icon: Kanban,
+            resource: "settings",
+            action: "edit",
+            moduleKey: "crm_deals",
+          },
+          {
             href: ROUTES.settings.integrations,
             label: t.navigationGroups.integrations,
             icon: Settings,

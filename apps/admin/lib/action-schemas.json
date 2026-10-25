@@ -2723,45 +2723,7 @@
         "optional": false
       },
       "stage": {
-        "kind": "union",
-        "variants": [
-          {
-            "kind": "literal",
-            "value": "lead"
-          },
-          {
-            "kind": "literal",
-            "value": "proposal_sent"
-          },
-          {
-            "kind": "literal",
-            "value": "contract_signed"
-          },
-          {
-            "kind": "literal",
-            "value": "production"
-          },
-          {
-            "kind": "literal",
-            "value": "post_production"
-          },
-          {
-            "kind": "literal",
-            "value": "delivered"
-          },
-          {
-            "kind": "literal",
-            "value": "invoiced"
-          },
-          {
-            "kind": "literal",
-            "value": "closed_won"
-          },
-          {
-            "kind": "literal",
-            "value": "closed_lost"
-          }
-        ],
+        "kind": "string",
         "optional": false
       }
     }
@@ -2781,45 +2743,7 @@
             "optional": false
           },
           "stage": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "lead"
-              },
-              {
-                "kind": "literal",
-                "value": "proposal_sent"
-              },
-              {
-                "kind": "literal",
-                "value": "contract_signed"
-              },
-              {
-                "kind": "literal",
-                "value": "production"
-              },
-              {
-                "kind": "literal",
-                "value": "post_production"
-              },
-              {
-                "kind": "literal",
-                "value": "delivered"
-              },
-              {
-                "kind": "literal",
-                "value": "invoiced"
-              },
-              {
-                "kind": "literal",
-                "value": "closed_won"
-              },
-              {
-                "kind": "literal",
-                "value": "closed_lost"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "contact_id": {
@@ -2904,45 +2828,7 @@
             "optional": true
           },
           "stage": {
-            "kind": "union",
-            "variants": [
-              {
-                "kind": "literal",
-                "value": "lead"
-              },
-              {
-                "kind": "literal",
-                "value": "proposal_sent"
-              },
-              {
-                "kind": "literal",
-                "value": "contract_signed"
-              },
-              {
-                "kind": "literal",
-                "value": "production"
-              },
-              {
-                "kind": "literal",
-                "value": "post_production"
-              },
-              {
-                "kind": "literal",
-                "value": "delivered"
-              },
-              {
-                "kind": "literal",
-                "value": "invoiced"
-              },
-              {
-                "kind": "literal",
-                "value": "closed_won"
-              },
-              {
-                "kind": "literal",
-                "value": "closed_lost"
-              }
-            ],
+            "kind": "string",
             "optional": true
           },
           "probability": {
@@ -7140,6 +7026,48 @@
         "optional": false
       }
     }
+  },
+  "saveDealPipelineAction": {
+    "kind": "object",
+    "fields": {
+      "stages": {
+        "kind": "array",
+        "element": {
+          "kind": "object",
+          "fields": {
+            "id": {
+              "kind": "string",
+              "optional": false
+            },
+            "name_en": {
+              "kind": "string",
+              "optional": false
+            },
+            "name_ar": {
+              "kind": "string",
+              "optional": false
+            },
+            "probability": {
+              "kind": "number",
+              "optional": false
+            },
+            "color": {
+              "kind": "string",
+              "optional": false
+            },
+            "is_active": {
+              "kind": "boolean",
+              "optional": false
+            }
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "resetDealPipelineAction": {
+    "kind": "object",
+    "fields": {}
   },
   "updateMyProfileAction": {
     "kind": "object",

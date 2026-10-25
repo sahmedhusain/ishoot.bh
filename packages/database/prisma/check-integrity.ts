@@ -11,11 +11,6 @@ const prisma = new PrismaClient();
 
 type Rule = { area: string; name: string; sql: string };
 
-// Pipeline order used to decide whether a deal is behind its own documents.
-const STAGE_RANK = `CASE d."dealStage"
-  WHEN 'lead' THEN 0 WHEN 'proposal_sent' THEN 1 WHEN 'contract_signed' THEN 2 WHEN 'production' THEN 3
-  WHEN 'post_production' THEN 4 WHEN 'delivered' THEN 5 WHEN 'invoiced' THEN 6 WHEN 'closed_won' THEN 7 ELSE NULL END`;
-
 const totalsRule = (table: string, lineTable: string, fk: string) => `
   WITH lines AS (SELECT "${fk}" id, SUM("lineTotal") s FROM "${lineTable}" GROUP BY 1)
   SELECT d.id, d.subtotal, l.s lines, d."discountAmount", d."vatAmount", d."totalAmount"
@@ -129,12 +124,16 @@ const RULES: Rule[] = [
   { area: "crm", name: "lost deals have a lost reason",
     sql: `SELECT id, title FROM "CrmDeal" WHERE "dealStage" = 'closed_lost' AND COALESCE(TRIM("lostReason"), '') = ''` },
   { area: "crm", name: "deal stage is not behind its own quotations and invoices",
+    // The company's own pipeline order decides what "behind" means (DealPipelineStage.sortOrder).
     sql: `WITH need AS (
-        SELECT "dealId" id, MAX(CASE status WHEN 'issued' THEN 1 WHEN 'accepted' THEN 2 WHEN 'converted' THEN 2 ELSE 0 END) r FROM "Quotation" WHERE "dealId" IS NOT NULL GROUP BY 1
+        SELECT "dealId" id, CASE WHEN status IN ('accepted','converted') THEN 'contract_signed' ELSE 'proposal_sent' END stage FROM "Quotation" WHERE "dealId" IS NOT NULL AND status IN ('issued','accepted','converted')
         UNION ALL
-        SELECT "dealId", MAX(CASE WHEN status = 'paid' THEN 7 WHEN status IN ('sent','partially_paid','overdue') THEN 6 ELSE 0 END) FROM "Invoice" WHERE "dealId" IS NOT NULL GROUP BY 1)
-      SELECT d.id, d.title, d."dealStage", MAX(n.r) needed FROM "CrmDeal" d JOIN need n ON n.id = d.id
-      WHERE d."dealStage" <> 'closed_lost' GROUP BY d.id HAVING MAX(n.r) > ${STAGE_RANK}` },
+        SELECT "dealId", CASE WHEN status = 'paid' THEN 'closed_won' ELSE 'invoiced' END FROM "Invoice" WHERE "dealId" IS NOT NULL AND status IN ('sent','partially_paid','overdue','paid'))
+      SELECT d.id, d.title, d."dealStage", MAX(ns."sortOrder") needed FROM "CrmDeal" d
+      JOIN need n ON n.id = d.id
+      JOIN "DealPipelineStage" ns ON ns.id = n.stage
+      LEFT JOIN "DealPipelineStage" ds ON ds.id = d."dealStage"
+      WHERE d."dealStage" <> 'closed_lost' GROUP BY d.id, ds."sortOrder" HAVING MAX(ns."sortOrder") > COALESCE(ds."sortOrder", -1)` },
   { area: "crm", name: "lost deals have no paid or open invoices",
     sql: `SELECT d.title FROM "CrmDeal" d JOIN "Invoice" i ON i."dealId" = d.id
       WHERE d."dealStage" = 'closed_lost' AND i.status IN ('sent','partially_paid','paid','overdue')` },

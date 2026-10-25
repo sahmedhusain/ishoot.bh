@@ -466,7 +466,7 @@ model CrmDeal {
   sourceInquiryId   String?           @unique
   sourceInquiry     Inquiry?          @relation("InquiryConversion", fields: [sourceInquiryId], references: [id], onDelete: Restrict)
   title             String
-  dealStage         String            @default("lead") // "lead", "proposal_sent", "contract_signed", "production", "post_production", "delivered", "invoiced", "closed_won", "closed_lost"
+  dealStage         String            @default("lead") // DealPipelineStage.id
   dealValue         Decimal           @default(0.000) @db.Decimal(12, 3)
   currency          String            @default("BHD")
   probability       Int               @default(50)
@@ -490,6 +490,26 @@ model CrmDeal {
   @@index([contactId])
   @@index([dealStage])
   @@index([assignedTo])
+}
+
+/// The company's sales pipeline. Stage ids are what CrmDeal.dealStage stores; system stages are the ones
+/// quotations and invoices move deals into, so they can be renamed and reordered but not removed.
+model DealPipelineStage {
+  id          String   @id
+  /// Null shows the built-in label for the company's activity (admin copy `stages.<id>`).
+  nameEn      String?
+  nameAr      String?
+  sortOrder   Int
+  probability Int      @default(50)
+  /// "open", "won" or "lost".
+  kind        String   @default("open")
+  color       String?
+  isSystem    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
 }
 
 model Invoice {

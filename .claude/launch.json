@@ -79,6 +79,28 @@
         "platform_e2e_blank_test"
       ],
       "port": 3015
+    },
+    {
+      "name": "admin-v2",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "admin",
+        "3021",
+        "pv2_seeded_test"
+      ],
+      "port": 3021
+    },
+    {
+      "name": "web-v2",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tests/e2e/serve.cjs",
+        "web",
+        "3022",
+        "pv2_seeded_test"
+      ],
+      "port": 3022
     }
   ]
 }

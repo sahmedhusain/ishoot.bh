@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { serverMessages } from "@platform/locales";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import {
+  applyActivityDealPipeline,
   completeCompanySetup,
   createActivityLog,
   db,
@@ -94,6 +95,7 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
     if (!input.contentLanguages.length || languages.length !== new Set(input.contentLanguages).size) throw new Error(serverMessages.contentLanguagesInvalid);
     const year = trim(input.foundedYear);
     const url = (value?: string) => (trim(value) ? safeWebsiteUrl(trim(value)) || trim(value) : "");
+    const previousActivity = (await getCompanySettings()).business_activity;
     await runAtomicMutation(async () => {
       await updateCompanySettings({
         content_languages: languages,
@@ -119,6 +121,8 @@ export async function saveSetupCompanyAction(input: SetupCompanyInput) {
         email: trim(input.email),
         website: trim(input.website),
       });
+      // A new activity brings its own sales pipeline; stages that hold deals are kept.
+      if (previousActivity !== input.businessActivity) await applyActivityDealPipeline(input.businessActivity);
       await createActivityLog({ user_id: user.id, action: "update", entity_type: "settings", entity_id: "setup", details: { step: "company" } });
     });
     revalidateEverywhere();

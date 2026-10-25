@@ -5,40 +5,28 @@ import * as React from "react";
 import Link from "next/link";
 import { DndContext, DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { CRMDeal, CRMContact, DealStage } from "@platform/database/types";
+import type { DealPipelineStage } from "@platform/database";
+import { dealStageColor, dealStageLabel } from "../../lib/deal-stages";
 import { updateDealStageAction } from "../../app/actions/crm";
 import { KanbanColumn } from "./KanbanColumn";
 import { Button } from "@platform/ui";
-import { Plus } from "lucide-react";
+import { Plus, SlidersHorizontal } from "lucide-react";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 
 interface KanbanBoardProps {
   initialDeals: CRMDeal[];
   contacts?: CRMContact[];
+  /** The company's pipeline, in order. */
+  stages: DealPipelineStage[];
+  /** Shows the link to Settings → Sales pipeline. */
+  canCustomize?: boolean;
 }
 
-export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
-  const { t } = useAdminLocale();
+export function KanbanBoard({ initialDeals, contacts = [], stages, canCustomize }: KanbanBoardProps) {
+  const { t, locale } = useAdminLocale();
   const [deals, setDeals] = React.useState<CRMDeal[]>(initialDeals);
 
-  const columns: Array<{ stage: DealStage; label: string; color: string }> = [
-    { stage: "lead", label: t.stages.lead, color: "#3B82F6" },
-    { stage: "proposal_sent", label: t.stages.proposal_sent, color: "#F59E0B" },
-    {
-      stage: "contract_signed",
-      label: t.stages.contract_signed,
-      color: "#8B5CF6",
-    },
-    { stage: "production", label: t.stages.production, color: "rgb(var(--brand-accent))" },
-    {
-      stage: "post_production",
-      label: t.stages.post_production,
-      color: "#A855F7",
-    },
-    { stage: "invoiced", label: t.stages.invoiced, color: "#0D9488" },
-    { stage: "delivered", label: t.stages.delivered, color: "#10B981" },
-    { stage: "closed_won", label: t.stages.closed_won, color: "#059669" },
-    { stage: "closed_lost", label: t.stages.closed_lost, color: "#E11D48" },
-  ];
+  const columns = stages.map((stage) => ({ stage: stage.id, label: dealStageLabel(stage, t, locale), color: dealStageColor(stage) }));
 
   // A click is not a drag: require a short move before dragging starts, so cards stay clickable.
   const sensors = useSensors(
@@ -75,6 +63,13 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
           </h1>
         </div>
 
+        <div className="flex items-center gap-2">
+        {canCustomize && (
+          <Link href={ROUTES.settings.pipeline} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold text-ink-muted hover:text-ink hover:bg-ink/5 transition-colors">
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            {t.pipelineSettings.customize}
+          </Link>
+        )}
         <Link href={ROUTES.crm.newDeal()}>
           <Button
             variant="primary"
@@ -85,6 +80,7 @@ export function KanbanBoard({ initialDeals, contacts = [] }: KanbanBoardProps) {
             <span>{t.actions.newDeal}</span>
           </Button>
         </Link>
+        </div>
       </div>
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>

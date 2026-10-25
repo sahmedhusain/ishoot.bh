@@ -19,7 +19,8 @@ searchCRMContacts,
 globalAdminSearch,
 hasPermission,
 DealStage,
-InquiryStatus
+InquiryStatus,
+assertDealStage
 } from "@platform/database";
 import { requireInquiryAccess } from "../../lib/inquiry-access";
 import { REQUEST_PRIORITIES } from "@platform/database/constants/requests";
@@ -31,6 +32,7 @@ export async function updateDealStageAction(id: string, stage: DealStage) {
   return measureOperation("action:updateDealStageAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
     validateActionArguments("updateDealStageAction", { id, stage });
+    await assertDealStage(stage);
     const { deal } = await runAtomicMutation(async () => {
       const deal = await updateDealStage(id, stage);
       if (!deal)
@@ -65,6 +67,7 @@ export async function createCRMDealAction(data: {
   return measureOperation("action:createCRMDealAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
     validateActionArguments("createCRMDealAction", { data });
+    if (data.stage) await assertDealStage(data.stage);
     if (data.contact_id) await requirePermission("contacts", "read");
     const { deal } = await runAtomicMutation(async () => {
       const deal = await createCRMDeal(data);
@@ -103,6 +106,7 @@ export async function updateDealAction(
   return measureOperation("action:updateDealAction", async () => {
     await requireFeatureEnabled("crm_deals"); const user = await requirePermission("deals", "write");
     validateActionArguments("updateDealAction", { id, data });
+    if (data.stage) await assertDealStage(data.stage);
     if (data.contact_id) await requirePermission("contacts", "read");
     if (data.assigned_to) await requirePermission("users", "read");
     const { deal } = await runAtomicMutation(async () => {
