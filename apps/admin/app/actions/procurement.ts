@@ -24,7 +24,16 @@ import {
   type RequisitionInput,
   type RfqInput,
   type SupplierInput,
+  approveSupplierBill,
+  cancelSupplierBill,
+  receiveGoods,
+  recordSupplierPayment,
+  saveSupplierBill,
+  type GoodsReceiptInput,
+  type SupplierBillInput,
+  type SupplierPaymentInput,
 } from "@platform/database";
+import { notifyLowStock } from "../../lib/low-stock";
 import { ROUTES } from "../../constants/routes";
 import { hasPermission, requirePermission } from "../../lib/auth";
 import { validateActionArguments } from "../../lib/action-input";
@@ -229,5 +238,75 @@ export async function cancelPurchaseOrderAction(id: string) {
     revalidatePath(ROUTES.procurement.orders);
     revalidatePath(ROUTES.procurement.order(id));
     return { success: true };
+  });
+}
+
+/** Records goods arriving against an order; accepted items enter stock at the ordered price. */
+export async function receiveGoodsAction(orderId: string, input: GoodsReceiptInput) {
+  return measureOperation("action:receiveGoodsAction", async () => {
+    await requireFeatureEnabled("procurement");
+    const user = await requirePermission("procurement", "create");
+    validateActionArguments("receiveGoodsAction", { orderId, input });
+    const { receipt, low } = await receiveGoods(orderId, input, user.id);
+    await log(user.id, "receive", "purchase_order", orderId, { receipt: receipt.number });
+    await notifyLowStock(low);
+    revalidatePath(ROUTES.procurement.order(orderId));
+    revalidatePath(ROUTES.procurement.orders);
+    revalidatePath(ROUTES.inventory.stock);
+    return { success: true, number: receipt.number };
+  });
+}
+
+export async function saveSupplierBillAction(input: SupplierBillInput) {
+  return measureOperation("action:saveSupplierBillAction", async () => {
+    await requireFeatureEnabled("procurement");
+    const user = await requirePermission("procurement", input.id ? "edit" : "create");
+    validateActionArguments("saveSupplierBillAction", { input });
+    const bill = await saveSupplierBill(input, user.id);
+    await log(user.id, input.id ? "update" : "create", "supplier_bill", bill.id, { number: bill.number });
+    revalidatePath(ROUTES.procurement.bills);
+    revalidatePath(ROUTES.procurement.bill(bill.id));
+    return { success: true, id: bill.id };
+  });
+}
+
+/** Approves a bill into an expense; differences from the three-way match need a reason. */
+export async function approveSupplierBillAction(id: string, overrideReason: string) {
+  return measureOperation("action:approveSupplierBillAction", async () => {
+    await requireFeatureEnabled("procurement");
+    const user = await requirePermission("procurement", "approve");
+    validateActionArguments("approveSupplierBillAction", { id, overrideReason });
+    const bill = await approveSupplierBill(id, user.id, overrideReason);
+    await log(user.id, "approve", "supplier_bill", id, { overridden: !!bill.overrideReason });
+    revalidatePath(ROUTES.procurement.bills);
+    revalidatePath(ROUTES.procurement.bill(id));
+    if (bill.purchaseOrderId) revalidatePath(ROUTES.procurement.order(bill.purchaseOrderId));
+    revalidatePath(ROUTES.expenses.list());
+    return { success: true };
+  });
+}
+
+export async function cancelSupplierBillAction(id: string) {
+  return measureOperation("action:cancelSupplierBillAction", async () => {
+    await requireFeatureEnabled("procurement");
+    const user = await requirePermission("procurement", "edit");
+    validateActionArguments("cancelSupplierBillAction", { id });
+    await cancelSupplierBill(id);
+    await log(user.id, "cancel", "supplier_bill", id);
+    revalidatePath(ROUTES.procurement.bill(id));
+    return { success: true };
+  });
+}
+
+export async function recordSupplierPaymentAction(billId: string, input: SupplierPaymentInput) {
+  return measureOperation("action:recordSupplierPaymentAction", async () => {
+    await requireFeatureEnabled("procurement");
+    const user = await requirePermission("procurement", "edit");
+    validateActionArguments("recordSupplierPaymentAction", { billId, input });
+    const bill = await recordSupplierPayment(billId, input, user.id);
+    await log(user.id, "pay", "supplier_bill", billId, { amount: input.amount, method: input.method });
+    revalidatePath(ROUTES.procurement.bill(billId));
+    revalidatePath(ROUTES.procurement.bills);
+    return { success: true, status: bill.status };
   });
 }

@@ -5733,7 +5733,12 @@
       "procurementNeedsApproval": "This needs to be approved first.",
       "procurementHasReceipts": "Goods were already received or billed on this order.",
       "procurementAwardInvalid": "Choose one price for each line you are ordering.",
-      "procurementSupplierEmailMissing": "Add the supplier's email address first."
+      "procurementSupplierEmailMissing": "Add the supplier's email address first.",
+      "procurementOverReceived": "That is more than is left to receive on this order.",
+      "procurementBillDuplicate": "A bill with this supplier invoice number is already recorded.",
+      "procurementBillMismatch": "The bill does not match the order and what was received. Give a reason to approve it anyway.",
+      "procurementPaymentMethodInvalid": "Choose how it was paid.",
+      "procurementOverpaid": "That is more than is still owed on this bill."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -9421,6 +9426,92 @@
       "reference": "Please quote this order number on your invoice and delivery note.",
       "authorized": "Authorized by",
       "emailBody": "Please find our purchase order {number} attached."
+    },
+    "receive": {
+      "title": "Receive goods",
+      "location": "Into location",
+      "remaining": "Left to receive",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "reason": "Reason",
+      "reasons": {
+        "damaged": "Damaged",
+        "wrong_item": "Wrong item",
+        "quality": "Quality",
+        "expired": "Expired",
+        "other": "Other"
+      },
+      "batch": "Batch",
+      "expiry": "Expiry",
+      "note": "Delivery note",
+      "save": "Record delivery",
+      "saved": "Delivery recorded {number}.",
+      "acceptedFor": "Accepted of {name}",
+      "rejectedFor": "Rejected of {name}",
+      "nothingLeft": "Everything on this order has been received."
+    },
+    "bills": {
+      "title": "Supplier bills",
+      "subtitle": "Suppliers' invoices, checked against what was ordered and received, approved into expenses and paid.",
+      "new": "New bill",
+      "fromOrder": "Record supplier bill",
+      "expenseCategory": "Purchases",
+      "expenseDescription": "Supplier bill",
+      "supplier": "Supplier",
+      "supplierRef": "Supplier invoice number",
+      "billDate": "Bill date",
+      "dueDate": "Due date",
+      "vatAmount": "VAT on the bill",
+      "attachment": "Bill copy",
+      "order": "Purchase order",
+      "match": "Three-way match",
+      "matched": "Matches the order and the deliveries.",
+      "mismatched": "Differences found: check them before approving.",
+      "issues": {
+        "not_ordered": "Not on the order",
+        "over_ordered": "More than ordered",
+        "over_received": "More than received",
+        "price": "Price differs from the order"
+      },
+      "ordered": "Ordered",
+      "receivedQty": "Received",
+      "orderedPrice": "Order price",
+      "billedBefore": "Billed before",
+      "approve": "Approve bill",
+      "approveAnyway": "Approve anyway",
+      "overrideReason": "Reason to approve with differences",
+      "approved": "Bill approved and recorded as an expense.",
+      "overridden": "Approved with differences: {reason}",
+      "expense": "View expense",
+      "payments": "Payments",
+      "paid": "Paid",
+      "balance": "Still owed",
+      "recordPayment": "Record payment",
+      "amount": "Amount",
+      "paidOn": "Paid on",
+      "method": "Method",
+      "methods": {
+        "bank_transfer": "Bank transfer",
+        "cash": "Cash",
+        "cheque": "Cheque",
+        "card": "Card",
+        "other": "Other"
+      },
+      "reference": "Reference",
+      "paymentSaved": "Payment recorded.",
+      "allStatuses": "All bills",
+      "empty": "No supplier bills yet."
+    },
+    "performance": {
+      "title": "Performance",
+      "orders": "{count} order(s)",
+      "leadTime": "{days} days to deliver on average",
+      "onTime": "{percent}% on time",
+      "rejected": "{percent}% rejected",
+      "billed": "Billed",
+      "outstanding": "Owed",
+      "priceHistory": "Purchase prices",
+      "noHistory": "Not ordered yet."
     }
   }
 }

@@ -446,3 +446,26 @@ Kept by the implementation session on branch `claude/platform-v2-0b8ad0`. Newest
   then are emailed to the supplier with a PDF in the company letterhead (through the email outbox), sent by
   WhatsApp (a prepared message) or marked as handed over. Orders with goods received or billed cannot be cancelled.
 - Decision: purchase amounts are in the company currency (multi-currency purchasing can follow the invoices' FX).
+
+### Phase 5c-2: purchasing — receiving, supplier bills, payments, supplier performance (done)
+
+- **Goods receipts** on an approved or sent order: per line, accepted and rejected quantities (with a reason),
+  batch and expiry for batch-tracked products, into a location of the order's warehouse. Accepted catalogue items
+  enter stock as ledger receipts at the ordered price (moving the average cost, with low-stock alerts); the order
+  becomes partly received or received. Nothing can be received beyond what was ordered.
+- **Supplier bills** (from an order — what was received and not yet billed, at the ordered price — or by hand),
+  with the supplier's invoice number unique per supplier. The **three-way match** checks each line against the
+  order and the receipts (not on the order, more than ordered, more than received, price beyond a 1% tolerance);
+  approving (permission `procurement: approve`) needs the match to pass or a written reason, adds the billed
+  quantities to the order and records the bill as an approved expense (category "Purchases", created on first
+  use) with its input VAT. **Payments** (bank transfer, cash, cheque, card, other) move the bill to partly paid
+  and paid; nothing can be paid beyond what is owed.
+- **Supplier performance** on the Suppliers page: orders, average days to first delivery, share delivered by the
+  expected date, share of items rejected, billed and still owed. **Purchase price history** on each product.
+- Deferred: attaching a copy of the supplier's bill. The existing image upload stores files in the public
+  website bucket, which is not right for invoices; this needs a private attachment type for bills.
+- Open question (dev mode only so far): under heavy machine load, a page's very first on-demand compile
+  sometimes hydrates with mismatched generated ids (React then re-renders it on the client, once leaving a second
+  copy of the form). It has not recurred on any second load or clean rerun; it should be checked against a
+  production build (`E2E_SERVER_MODE=start`) before release. Full e2e: 46 of 48 passed in that run, and both
+  affected specs passed on rerun.

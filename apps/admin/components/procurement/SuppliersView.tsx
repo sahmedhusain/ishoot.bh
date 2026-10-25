@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Pencil, Plus, Search, Truck } from "lucide-react";
-import { Button, Card, Input } from "@platform/ui";
+import { Button, Card, Input, formatCurrencyValue } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import type { SupplierInput, SupplierRecord } from "@platform/database";
 import { ROUTES } from "../../constants/routes";
@@ -15,9 +15,12 @@ import { Field } from "../setup/LanguageFields";
 const blank = (): SupplierInput => ({ companyName: "", contactName: "", email: "", phone: "", vatNumber: "", leadTimeDays: "", paymentTermsDays: "" });
 
 /** Purchasing → suppliers: the vendor contacts with their delivery and payment days. */
-export function SuppliersView({ suppliers, search, canEdit }: { suppliers: SupplierRecord[]; search: string; canEdit: boolean }) {
-  const { t } = useAdminLocale();
+type Performance = Record<string, { orders: number; average_lead_days: number | null; on_time_percent: number | null; rejected_percent: number | null; billed: number; outstanding: number }>;
+
+export function SuppliersView({ suppliers, performance, currency, search, canEdit }: { suppliers: SupplierRecord[]; performance: Performance; currency: string; search: string; canEdit: boolean }) {
+  const { t, locale } = useAdminLocale();
   const copy = t.procurement.suppliers;
+  const perf = t.procurement.performance;
   const router = useRouter();
   const [query, setQuery] = React.useState(search);
   const [draft, setDraft] = React.useState<SupplierInput | null>(null);
@@ -96,6 +99,18 @@ export function SuppliersView({ suppliers, search, canEdit }: { suppliers: Suppl
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-ink truncate">{s.name}</p>
                   <p className="text-xs text-ink-muted truncate">{[s.contact_name !== s.name ? s.contact_name : "", s.email, s.phone].filter(Boolean).join(" · ")}</p>
+                  {performance[s.id] && (
+                    <p className="text-xs text-ink-muted mt-0.5" data-testid="supplier-performance">
+                      {[
+                        formatMessage(perf.orders, { count: performance[s.id].orders }),
+                        performance[s.id].average_lead_days != null && formatMessage(perf.leadTime, { days: performance[s.id].average_lead_days! }),
+                        performance[s.id].on_time_percent != null && formatMessage(perf.onTime, { percent: performance[s.id].on_time_percent! }),
+                        performance[s.id].rejected_percent != null && formatMessage(perf.rejected, { percent: performance[s.id].rejected_percent! }),
+                        `${perf.billed}: ${formatCurrencyValue(performance[s.id].billed, currency, locale === "ar")}`,
+                        performance[s.id].outstanding > 0 && `${perf.outstanding}: ${formatCurrencyValue(performance[s.id].outstanding, currency, locale === "ar")}`,
+                      ].filter(Boolean).join(" · ")}
+                    </p>
+                  )}
                 </div>
                 <div className="hidden sm:block text-xs text-ink-muted text-end">
                   {s.lead_time_days != null && <span className="block">{`${copy.leadTime}: ${s.lead_time_days}`}</span>}

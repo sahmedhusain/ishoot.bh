@@ -5733,7 +5733,12 @@
       "procurementNeedsApproval": "يجب اعتماد هذا أولًا.",
       "procurementHasReceipts": "تم استلام بضائع أو فوترة على هذا الطلب.",
       "procurementAwardInvalid": "اختر سعرًا واحدًا لكل سطر تطلبه.",
-      "procurementSupplierEmailMissing": "أضف البريد الإلكتروني للمورّد أولًا."
+      "procurementSupplierEmailMissing": "أضف البريد الإلكتروني للمورّد أولًا.",
+      "procurementOverReceived": "هذا أكثر مما تبقى لاستلامه في هذا الأمر.",
+      "procurementBillDuplicate": "سُجلت فاتورة بهذا الرقم من المورّد من قبل.",
+      "procurementBillMismatch": "الفاتورة لا تطابق الأمر والمستلم. اذكر سببًا لاعتمادها رغم ذلك.",
+      "procurementPaymentMethodInvalid": "اختر طريقة الدفع.",
+      "procurementOverpaid": "هذا أكثر من المتبقي على هذه الفاتورة."
     },
     "templates": {
       "0MustBeZeroOrMore": "يجب أن تكون قيمة {0} صفراً أو أكثر",
@@ -9421,6 +9426,92 @@
       "reference": "يرجى ذكر رقم هذا الأمر في فاتورتكم ومذكرة التسليم.",
       "authorized": "اعتمده",
       "emailBody": "مرفق أمر الشراء {number}."
+    },
+    "receive": {
+      "title": "استلام البضائع",
+      "location": "إلى الموقع",
+      "remaining": "المتبقي للاستلام",
+      "accepted": "المقبول",
+      "rejected": "المرفوض",
+      "reason": "السبب",
+      "reasons": {
+        "damaged": "تالف",
+        "wrong_item": "صنف خاطئ",
+        "quality": "الجودة",
+        "expired": "منتهي الصلاحية",
+        "other": "أخرى"
+      },
+      "batch": "الدفعة",
+      "expiry": "الانتهاء",
+      "note": "مذكرة التسليم",
+      "save": "سجّل الاستلام",
+      "saved": "تم تسجيل الاستلام {number}.",
+      "acceptedFor": "المقبول من {name}",
+      "rejectedFor": "المرفوض من {name}",
+      "nothingLeft": "تم استلام كل ما في هذا الأمر."
+    },
+    "bills": {
+      "title": "فواتير الموردين",
+      "subtitle": "فواتير الموردين تُطابق مع المطلوب والمستلم، وتُعتمد مصروفات ثم تُدفع.",
+      "new": "فاتورة جديدة",
+      "fromOrder": "سجّل فاتورة المورّد",
+      "expenseCategory": "المشتريات",
+      "expenseDescription": "فاتورة مورّد",
+      "supplier": "المورّد",
+      "supplierRef": "رقم فاتورة المورّد",
+      "billDate": "تاريخ الفاتورة",
+      "dueDate": "تاريخ الاستحقاق",
+      "vatAmount": "ضريبة القيمة المضافة في الفاتورة",
+      "attachment": "نسخة الفاتورة",
+      "order": "أمر الشراء",
+      "match": "المطابقة الثلاثية",
+      "matched": "تطابق الأمر والاستلامات.",
+      "mismatched": "وُجدت فروقات: راجعها قبل الاعتماد.",
+      "issues": {
+        "not_ordered": "غير موجود في الأمر",
+        "over_ordered": "أكثر من المطلوب",
+        "over_received": "أكثر من المستلم",
+        "price": "السعر يختلف عن الأمر"
+      },
+      "ordered": "المطلوب",
+      "receivedQty": "المستلم",
+      "orderedPrice": "سعر الأمر",
+      "billedBefore": "فُوتر سابقًا",
+      "approve": "اعتمد الفاتورة",
+      "approveAnyway": "اعتمد رغم ذلك",
+      "overrideReason": "سبب الاعتماد رغم الفروقات",
+      "approved": "تم اعتماد الفاتورة وتسجيلها مصروفًا.",
+      "overridden": "اعتُمدت مع فروقات: {reason}",
+      "expense": "اعرض المصروف",
+      "payments": "المدفوعات",
+      "paid": "المدفوع",
+      "balance": "المتبقي",
+      "recordPayment": "سجّل دفعة",
+      "amount": "المبلغ",
+      "paidOn": "تاريخ الدفع",
+      "method": "الطريقة",
+      "methods": {
+        "bank_transfer": "تحويل بنكي",
+        "cash": "نقدًا",
+        "cheque": "شيك",
+        "card": "بطاقة",
+        "other": "أخرى"
+      },
+      "reference": "المرجع",
+      "paymentSaved": "تم تسجيل الدفعة.",
+      "allStatuses": "كل الفواتير",
+      "empty": "لا توجد فواتير موردين بعد."
+    },
+    "performance": {
+      "title": "الأداء",
+      "orders": "{count} أمر",
+      "leadTime": "{days} يوم للتسليم في المتوسط",
+      "onTime": "{percent}% في الموعد",
+      "rejected": "{percent}% مرفوض",
+      "billed": "المفوتر",
+      "outstanding": "المستحق",
+      "priceHistory": "أسعار الشراء",
+      "noHistory": "لم يُطلب بعد."
     }
   }
 }

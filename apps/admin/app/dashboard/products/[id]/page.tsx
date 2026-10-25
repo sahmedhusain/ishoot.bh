@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { getProduct, getProductStock, listProductCategories, listWarehouses, requireFeatureEnabled } from "@platform/database";
+import { getProduct, getProductStock, isFeatureEnabled, listProductCategories, listWarehouses, purchasePriceHistory, requireFeatureEnabled } from "@platform/database";
+import { PurchasePricesCard } from "../../../../components/procurement/PurchasePricesCard";
 import { ProductStockPanel } from "../../../../components/inventory/ProductStockPanel";
 import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { ProductEditorView } from "../../../../components/products/ProductEditorView";
@@ -21,6 +22,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     hasPermission("inventory", "read"),
     hasPermission("inventory", "edit"),
   ]);
+  const showPrices = (await isFeatureEnabled("procurement")) && (await hasPermission("procurement", "read"));
+  const prices = showPrices && product ? await purchasePriceHistory(product.id) : null;
   if (!product) notFound();
   const [stock, warehouses] = canSeeStock && product.track_stock ? await Promise.all([getProductStock(product.id), listWarehouses()]) : [null, []];
   const stockPanel = stock ? (
@@ -38,5 +41,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       canEdit={canEditStock}
     />
   ) : null;
-  return <ProductEditorView product={product} categories={categories} currency={company.default_currency} languages={company.content_languages} canEdit={canEdit} canDelete={canDelete} canPublish={canPublish} stockPanel={stockPanel} />;
+  const panels =
+    stockPanel || prices ? (
+      <div key="panels" className="space-y-6">
+        {stockPanel}
+        {prices ? <PurchasePricesCard rows={prices} currency={company.default_currency} /> : null}
+      </div>
+    ) : null;
+  return <ProductEditorView product={product} categories={categories} currency={company.default_currency} languages={company.content_languages} canEdit={canEdit} canDelete={canDelete} canPublish={canPublish} stockPanel={panels} />;
 }

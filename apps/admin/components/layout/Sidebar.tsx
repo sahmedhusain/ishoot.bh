@@ -541,6 +541,7 @@ export function Sidebar() {
           { href: ROUTES.procurement.requisitions, label: t.procurement.nav.requisitions, icon: ClipboardList, resource: "procurement", action: "create", moduleKey: "procurement" },
           { href: ROUTES.procurement.rfqs, label: t.procurement.nav.rfqs, icon: FileQuestion, resource: "procurement", moduleKey: "procurement" },
           { href: ROUTES.procurement.orders, label: t.procurement.nav.orders, icon: ShoppingCart, resource: "procurement", moduleKey: "procurement" },
+          { href: ROUTES.procurement.bills, label: t.procurement.nav.bills, icon: Receipt, resource: "procurement", moduleKey: "procurement" },
           { href: ROUTES.procurement.suppliers, label: t.procurement.nav.suppliers, icon: Truck, resource: "procurement", moduleKey: "procurement" },
         ],
       },

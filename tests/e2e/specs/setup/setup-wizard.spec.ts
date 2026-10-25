@@ -88,7 +88,8 @@ test("a new company completes the setup wizard and gets its own brand and websit
   await expect(page.getByText(copy.review.willPublish)).toBeVisible();
   await page.getByTestId("setup-next").click();
   await expect(page.getByRole("status").filter({ hasText: copy.finished })).toBeVisible();
-  await expect(page).toHaveURL(/\/dashboard$/);
+  // The dashboard may be compiling for the first time on a development server.
+  await expect(page).toHaveURL(/\/dashboard$/, { timeout: 60_000 });
   await expect(page).toHaveTitle(/Acme Trading/);
 
   // Setup never shows again, the theme stays editable in settings, and the website is live

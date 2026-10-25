@@ -104,6 +104,7 @@ export const ROUTES = {
     newOrder: (query?: { requisitionId?: string }) => (query?.requisitionId ? `/dashboard/procurement/orders/new?requisitionId=${encodeURIComponent(query.requisitionId)}` : "/dashboard/procurement/orders/new"),
     order: (id: string) => `/dashboard/procurement/orders/${encodeURIComponent(id)}`,
     bills: "/dashboard/procurement/bills",
+    newBill: (query?: { orderId?: string }) => (query?.orderId ? `/dashboard/procurement/bills/new?orderId=${encodeURIComponent(query.orderId)}` : "/dashboard/procurement/bills/new"),
     bill: (id: string) => `/dashboard/procurement/bills/${encodeURIComponent(id)}`,
   },
   cms: {

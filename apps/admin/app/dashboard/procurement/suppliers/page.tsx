@@ -1,5 +1,6 @@
 import { hasPermission, requirePagePermission } from "../../../../lib/auth";
-import { listSuppliers, requireFeatureEnabled } from "@platform/database";
+import { listSuppliers, requireFeatureEnabled, supplierPerformance } from "@platform/database";
+import { getCachedCompanySettings } from "../../../../lib/cached-queries";
 import { SuppliersView } from "../../../../components/procurement/SuppliersView";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,6 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
   await requireFeatureEnabled("procurement");
   const query = await searchParams;
   const search = typeof query.q === "string" ? query.q : "";
-  const [suppliers, canEdit] = await Promise.all([listSuppliers(search), hasPermission("procurement", "edit")]);
-  return <SuppliersView suppliers={suppliers} search={search} canEdit={canEdit} />;
+  const [suppliers, performance, company, canEdit] = await Promise.all([listSuppliers(search), supplierPerformance(), getCachedCompanySettings(), hasPermission("procurement", "edit")]);
+  return <SuppliersView suppliers={suppliers} performance={performance} currency={company.default_currency} search={search} canEdit={canEdit} />;
 }

@@ -23,14 +23,16 @@ interface PurchaseOrderViewProps {
   warehouses: WarehouseRecord[];
   products: ProcurementProductOption[];
   company: { currency: string; vatEnabled: boolean; vatPercentage: number; name: string };
-  rights: { edit: boolean; export: boolean; cancel: boolean };
+  rights: { edit: boolean; export: boolean; cancel: boolean; receive?: boolean; bill?: boolean };
+  /** Receiving goods, shown while the order can still receive. */
+  receivePanel?: React.ReactNode;
 }
 
 const pdfUrl = (id: string, download = false) => `/api/procurement/orders/${encodeURIComponent(id)}/pdf${download ? "?download=true" : ""}`;
 const lineDraft = (l: { product_id: string | null; variant_key: string; description: string; quantity: number; unit_price: number | null }): LineDraft => ({ productId: l.product_id ?? "", variantId: l.variant_key, description: l.product_id ? "" : l.description, quantity: String(l.quantity), unitPrice: l.unit_price == null ? "" : String(l.unit_price) });
 
 /** One purchase order: edited as a draft, then approved, sent (email, WhatsApp, PDF), received and billed. */
-export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouses, products, company, rights }: PurchaseOrderViewProps) {
+export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouses, products, company, rights, receivePanel }: PurchaseOrderViewProps) {
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.orders;
   const common = t.procurement.common;
@@ -141,6 +143,9 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
               {copy.markPrinted}
             </Button>
           )}
+          {order && rights.bill && order.lines.some((l) => l.received > l.billed) && (
+            <Link href={ROUTES.procurement.newBill({ orderId: order.id })} className="inline-flex items-center rounded-full border border-ink/15 px-3 h-9 text-sm hover:border-accent" data-testid="order-bill">{t.procurement.bills.fromOrder}</Link>
+          )}
           {order && rights.cancel && ["draft", "pending_approval", "approved", "sent"].includes(order.status) && (
             <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => window.confirm(common.cancelConfirm) && run(() => cancelPurchaseOrderAction(order.id))}>{copy.cancelOrder}</Button>
           )}
@@ -217,6 +222,8 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
           <div className="flex justify-between font-bold border-t border-ink/10 pt-1"><dt>{common.total}</dt><dd><CurrencyDisplay amount={totals.total} currency={company.currency} /></dd></div>
         </dl>
       </Card>
+
+      {receivePanel}
 
       {order && (order.receipts.length > 0 || order.bills.length > 0) && (
         <div className="grid sm:grid-cols-2 gap-4">

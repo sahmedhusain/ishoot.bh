@@ -8113,6 +8113,187 @@
       }
     }
   },
+  "receiveGoodsAction": {
+    "kind": "object",
+    "fields": {
+      "orderId": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "locationId": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "orderLineId": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "rejectedQuantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "rejectReason": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "batchNumber": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "expiryDate": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "saveSupplierBillAction": {
+    "kind": "object",
+    "fields": {
+      "input": {
+        "kind": "object",
+        "fields": {
+          "id": {
+            "kind": "string",
+            "optional": true
+          },
+          "supplierId": {
+            "kind": "string",
+            "optional": false
+          },
+          "purchaseOrderId": {
+            "kind": "string",
+            "optional": true
+          },
+          "supplierRef": {
+            "kind": "string",
+            "optional": false
+          },
+          "billDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "dueDate": {
+            "kind": "string",
+            "optional": false
+          },
+          "vatAmount": {
+            "kind": "string",
+            "optional": false
+          },
+          "note": {
+            "kind": "string",
+            "optional": false
+          },
+          "attachmentUrl": {
+            "kind": "string",
+            "optional": false
+          },
+          "lines": {
+            "kind": "array",
+            "element": {
+              "kind": "object",
+              "fields": {
+                "orderLineId": {
+                  "kind": "string",
+                  "optional": true
+                },
+                "description": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "quantity": {
+                  "kind": "string",
+                  "optional": false
+                },
+                "unitPrice": {
+                  "kind": "string",
+                  "optional": false
+                }
+              }
+            },
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
+  "approveSupplierBillAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      },
+      "overrideReason": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "cancelSupplierBillAction": {
+    "kind": "object",
+    "fields": {
+      "id": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
+  "recordSupplierPaymentAction": {
+    "kind": "object",
+    "fields": {
+      "billId": {
+        "kind": "string",
+        "optional": false
+      },
+      "input": {
+        "kind": "object",
+        "fields": {
+          "amount": {
+            "kind": "string",
+            "optional": false
+          },
+          "paidOn": {
+            "kind": "string",
+            "optional": false
+          },
+          "method": {
+            "kind": "string",
+            "optional": false
+          },
+          "reference": {
+            "kind": "string",
+            "optional": false
+          }
+        },
+        "optional": false
+      }
+    }
+  },
   "saveProductAction": {
     "kind": "object",
     "fields": {

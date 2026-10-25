@@ -45,6 +45,7 @@ export * from "./queries/samples";
 export * from "./queries/products";
 export * from "./queries/inventory";
 export * from "./queries/procurement";
+export * from "./queries/procurement-billing";
 export * from "./queries/social-metrics";
 export * from "./queries/moms";
 
