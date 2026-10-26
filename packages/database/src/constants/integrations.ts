@@ -91,6 +91,7 @@ export const INTEGRATION_PROVIDERS: readonly IntegrationProvider[] = [
     fields: [
       { key: "apiKey", secret: true, required: true },
       { key: "fromEmail", required: true },
+      { key: "webhookSecret", secret: true },
     ],
     docsUrl: "https://resend.com/docs/dashboard/domains/introduction",
   },

@@ -113,6 +113,11 @@ async function main() {
       assert.match(failed.lastError, /Session has expired/);
       assert.ok((await analytics.getSocialAnalytics({ days: 30, now })).accounts.find((a) => a.platform === "facebook").isStale);
 
+      // Cron and the standalone worker share a lease; one due account is fetched once.
+      await tx.integrationSetting.update({ where: { provider: "meta" }, data: { lastCheckedAt: new Date(now.getTime() - 600000), lastSyncedAt: new Date(now.getTime() - 7 * 3600000), config: { ...failed.config, needsReconnect: false, retryAfterAt: null } } });
+      const runs = await Promise.all([integrations.syncDueSocialIntegrations(6, now), integrations.syncDueSocialIntegrations(6, now)]);
+      assert.equal(runs.reduce((sum, result) => sum + result.synced, 0), 1, "concurrent maintenance sources share one sync lease");
+
       // Resend checks that the sender domain is verified.
       await integrations.saveIntegrationSettings("resend", { isActive: true, values: { apiKey: "re_test_123456789", fromEmail: "billing@example.com" } }, actor.id);
       assert.equal((await integrations.testIntegration("resend")).ok, true);

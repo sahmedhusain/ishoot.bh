@@ -126,8 +126,8 @@ function check() {
   need(!!env.SUPABASE_URL || !production, "SUPABASE_URL is empty: files would be kept on local disk");
   need(!env.SUPABASE_URL || !!env.SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY is empty: files are kept on local disk instead of Supabase Storage", production ? problems : warnings);
   need(!!env.CRON_SECRET, "CRON_SECRET is empty: /api/cron (reminders, payments, tracking, reports) cannot run", production ? problems : warnings);
-  need(!!env.RESEND_API_KEY && !!env.FROM_EMAIL, "RESEND_API_KEY or FROM_EMAIL is empty: e-mail stays queued", production ? problems : warnings);
-  need(!!env.RESEND_WEBHOOK_SECRET, "RESEND_WEBHOOK_SECRET is empty: delivery webhooks are refused", production ? problems : warnings);
+  need(!!env.RESEND_API_KEY && !!env.FROM_EMAIL, "No legacy mail credentials: configure the encrypted Resend integration in Settings", warnings);
+  need(!!env.RESEND_WEBHOOK_SECRET, "No legacy webhook secret: configure the signing secret in the encrypted Resend integration", warnings);
   need(!!env.CUSTOMER_AUTH_SECRET, "CUSTOMER_AUTH_SECRET is empty: customer sign-in falls back to REVALIDATION_SECRET", warnings);
   if (production) {
     need(env.NODE_ENV === "production", 'NODE_ENV should be "production"');

@@ -217,15 +217,19 @@ export async function syncDueSocialIntegrations(maxAgeHours = 6, now = new Date(
       isActive: true,
       provider: { in: INTEGRATION_PROVIDERS.filter((p) => p.kind === "social").map((p) => p.id) },
       OR: [{ lastSyncedAt: null }, { lastSyncedAt: { lt: new Date(now.getTime() - maxAgeHours * 3_600_000) } }],
+      AND: [{ OR: [{ lastCheckedAt: null }, { lastCheckedAt: { lt: new Date(now.getTime() - 300_000) } }] }],
     },
-    select: { provider: true, config: true },
+    select: { provider: true, config: true, lastCheckedAt: true },
   });
   let synced = 0;
   let failed = 0;
-  for (const { provider, config } of due) {
+  for (const { provider, config, lastCheckedAt } of due) {
     const retryAfterAt = (config as Record<string, unknown> | null)?.retryAfterAt;
     if (typeof retryAfterAt === "string" && new Date(retryAfterAt) > now) continue;
     if ((config as Record<string, unknown> | null)?.needsReconnect === true) continue;
+    // Claim a short lease so cron and the standalone maintenance worker do not sync the same account together.
+    const claimed = await db.integrationSetting.updateMany({ where: { provider, lastCheckedAt }, data: { lastCheckedAt: now } });
+    if (!claimed.count) continue;
     try {
       await syncSocialIntegration(provider, now);
       synced++;

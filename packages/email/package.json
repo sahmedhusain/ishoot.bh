@@ -6,7 +6,8 @@
   "types": "./src/index.ts",
   "dependencies": {
     "@platform/locales": "workspace:*",
-    "resend": "^4.1.2"
+    "resend": "^4.1.2",
+    "@platform/database": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",

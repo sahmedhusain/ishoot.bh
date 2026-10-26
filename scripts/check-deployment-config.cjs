@@ -10,9 +10,20 @@ need(!!process.env.SUPABASE_URL,'Configure SUPABASE_URL for server-side object s
 need(!!process.env.SUPABASE_SERVICE_ROLE_KEY,'Configure SUPABASE_SERVICE_ROLE_KEY on the server only');
 need(Buffer.byteLength(process.env.ENCRYPTION_KEY||'', 'utf8')===32,'Set a separate 32-byte ENCRYPTION_KEY for integrations');
 need(!!process.env.CRON_SECRET,'Configure CRON_SECRET for authenticated maintenance');
-need(!!process.env.RESEND_WEBHOOK_SECRET,'Configure RESEND_WEBHOOK_SECRET for signed delivery webhooks');
-need(!!process.env.RESEND_API_KEY&&!!process.env.FROM_EMAIL,'Configure the mail provider and verified FROM_EMAIL before starting its worker');
 need(!process.env.TRUSTED_CLIENT_IP_HEADER||/^[a-z0-9-]{1,80}$/.test(process.env.TRUSTED_CLIENT_IP_HEADER),'Trusted ingress header name is invalid');
+async function finish() {
+ require('ts-node').register({transpileOnly:true,skipProject:true,compilerOptions:{module:'CommonJS',target:'ES2022',moduleResolution:'Node',esModuleInterop:true,resolveJsonModule:true}});
+ const {db}=require('../packages/database/src/db.ts');
+ try {
+  const {getResendCredentials}=require('../packages/email/src/index.ts');
+  const mail=await getResendCredentials();
+  need(!!mail?.apiKey&&!!mail.fromEmail,'Configure an active encrypted Resend integration with a verified sender (or legacy environment keys)');
+  need(!!mail?.webhookSecret,'Configure the Resend webhook signing secret in the active integration');
+ } catch { failures.push('Could not validate mail settings; check database connectivity and the integration encryption key'); }
+ finally { await db.$disconnect(); }
 for(const item of failures)console.error('FAIL: '+item);
 console.log(JSON.stringify({checksFailed:failures.length,productionValidated:false,manualChecks:['Total pool budget across apps, workers and replicas','Ingress must overwrite the trusted header and block backend bypass','Supabase buckets: private-assets is private; public-assets contains only public branding; enforce 10 MiB and allowed MIME types','Mail domain verification and provider delivery evidence','Shared cache invalidation, backup restore and worker alerts','App/database regions and measured production p95']}));
 if(failures.length)process.exitCode=1;
+
+}
+finish().catch(()=>{console.error('Deployment configuration check failed');process.exitCode=1;});

@@ -28,9 +28,9 @@ creates `.env` and generates every secret; on an existing `.env`, `./run.sh env 
 | `ENCRYPTION_KEY` | yes | Exactly 32 characters; encrypts saved integration credentials (gateways, couriers, WhatsApp, sign-in). Keep it stable |
 | `CUSTOMER_AUTH_SECRET` | | Website customer accounts: Google and Apple sign-in state and payment links. Falls back to `REVALIDATION_SECRET` |
 | `CRON_SECRET` | production | Authenticates the scheduled job (`/api/cron`) |
-| `RESEND_API_KEY`, `FROM_EMAIL` | email | Outbound email through Resend; without them email stays queued |
+| `RESEND_API_KEY`, `FROM_EMAIL` | email | Legacy fallback only when no Resend settings record exists; prefer encrypted credentials in Settings → Integrations |
 | `NOTIFICATION_EMAIL` | | Receives website enquiries (default: the company email) |
-| `RESEND_WEBHOOK_SECRET` | email | Verifies delivery webhooks |
+| `RESEND_WEBHOOK_SECRET` | email | Legacy fallback for delivery webhook signing; prefer the encrypted Resend integration field |
 | `FX_API_URL`, `FX_LIVE_DISABLED` | | Live exchange rates for BHD (defaults to open.er-api.com); `1` uses stored rates only |
 | `OBSERVABILITY_ENABLED`, `TRUSTED_CLIENT_IP_HEADER` | | Operation timing logs; the header your proxy overwrites with the client IP |
 | `WORKER_ALERT_AFTER_SECONDS` | | `check:workers` flags queues older than this (default 300) |
@@ -67,7 +67,7 @@ Generate a secret by hand with `openssl rand -base64 32` (`openssl rand -hex 16`
 
 Limit both to 10 MiB, with PDF, PNG, JPEG and WebP, plus WOFF2 on `public-assets`.
 
-**Resend (email).** Messages are saved as queued before they are sent, so a failure is retried instead of lost. Delivery events arrive at `/api/webhooks/resend`, verified with `svix` signatures and de-duplicated. Inbound email is not implemented.
+**Resend (email).** Settings → Integrations holds the API key, verified sender and webhook signing secret encrypted. These settings drive both apps, the email worker and webhook verification. An explicit disabled/disconnected integration prevents legacy environment keys from sending mail. With no stored record, the environment-only installation remains supported. Messages are saved as queued before they are sent, so a failure is retried instead of lost. Delivery events arrive at `/api/webhooks/resend`, verified with `svix` signatures and de-duplicated. Inbound email is not implemented.
 
 **Integrations (Settings → Integrations).** Credentials are saved encrypted with `ENCRYPTION_KEY`, each with a **Test connection** health check, and never come from `.env`:
 

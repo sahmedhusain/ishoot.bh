@@ -1,7 +1,6 @@
 import { serverMessages } from "@platform/locales";
 import { Webhook } from "svix";
-export function verifyResendWebhook(payload: string, headers: Headers) {
-  const secret = process.env.RESEND_WEBHOOK_SECRET;
+export function verifyResendWebhook(payload: string, headers: Headers, secret = process.env.RESEND_WEBHOOK_SECRET) {
   if (!secret) throw new Error(serverMessages.webhookNotConfigured);
   const id = headers.get("svix-id");
   const timestamp = headers.get("svix-timestamp");

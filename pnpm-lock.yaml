@@ -463,6 +463,9 @@ importers:
 
   packages/email:
     dependencies:
+      '@platform/database':
+        specifier: workspace:*
+        version: link:../database
       '@platform/locales':
         specifier: workspace:*
         version: link:../locales

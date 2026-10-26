@@ -1,3 +1,4 @@
+import { getResendCredentials } from "@platform/email";
 import { serverMessages } from "@platform/locales";
 import { NextResponse } from "next/server";
 import { db,type Prisma } from "@platform/database";
@@ -5,7 +6,8 @@ import { verifyResendWebhook } from "../../../../lib/resend-webhook";
 
 export async function POST(req: Request) {
   try {
-    const { id, event } = verifyResendWebhook(await req.text(), req.headers);
+    const credentials = await getResendCredentials();
+    const { id, event } = verifyResendWebhook(await req.text(), req.headers, credentials?.webhookSecret || "");
     const statuses: Record<string, string> = { "email.delivered": "delivered", "email.bounced": "bounced", "email.complained": "failed" };
     const status = statuses[event.type];
     const emailId = event.data?.email_id;
