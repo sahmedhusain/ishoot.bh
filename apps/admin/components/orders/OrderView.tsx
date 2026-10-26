@@ -10,7 +10,7 @@ import { formatMessage } from "@platform/locales";
 import type { OrderRecord, orderPaymentAttempts, requestsForOrder } from "@platform/database";
 import { ORDER_TRANSITIONS, type OrderStatus } from "@platform/database/constants/store";
 import { ROUTES } from "../../constants/routes";
-import { addOrderNoteAction, issueOrderInvoiceAction, moveOrderAction, recordOrderPaymentAction, recordOrderRefundAction } from "../../app/actions/orders";
+import { recheckOrderPaymentAction, addOrderNoteAction, issueOrderInvoiceAction, moveOrderAction, recordOrderPaymentAction, recordOrderRefundAction } from "../../app/actions/orders";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { errorMessage } from "../../lib/error-text";
 import { uploadForClaim } from "../../lib/upload-client";
@@ -197,10 +197,12 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
                 <span className="font-semibold text-ink">{gatewayName(a.gateway)}</span>
                 {a.test_mode && <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">{copy.testMode}</span>}
                 <span className="text-ink-muted">{(copy.attemptStatuses as Record<string, string>)[a.status] ?? a.status}</span>
-                <span>{money(a.amount)}</span>
+                <span>{formatMessage(copy.requestedAmount, { amount: money(a.amount) })}</span>
                 {a.amount_refunded > 0 && <span className="text-xs text-ink-muted">{copy.refunded} {money(a.amount_refunded)}</span>}
                 <span className="font-mono text-xs text-ink-muted" dir="ltr">{a.reference}</span>
                 <span className="ms-auto text-xs text-ink-muted">{formatDate(a.created_at, locale, "time")}</span>
+                {a.failure && <p className="basis-full text-xs text-amber-800 dark:text-amber-200">{errorMessage(a.failure, t)}</p>}
+                {rights.edit && ["created", "pending", "review"].includes(a.status) && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => void run(() => recheckOrderPaymentAction(order.id, a.id), copy.paymentChecked)}>{copy.recheckPayment}</Button>}
               </li>
             ))}
           </ul>

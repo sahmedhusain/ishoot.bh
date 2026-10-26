@@ -4,6 +4,7 @@ import { serverMessages } from "@platform/locales";
 import {
   addOrderNote,
   claimUpload,
+  confirmReturn,
   db,
   createActivityLog,
   issueOrderInvoice,
@@ -176,5 +177,23 @@ export async function saveCouponAction(input: CouponInput) {
     await createActivityLog({ user_id: user.id, action: input.id ? "update" : "create", entity_type: "coupon", entity_id: coupon.id, details: { code: coupon.code } });
     revalidatePath(ROUTES.orders.settings);
     return { success: true };
+  });
+}
+
+
+/** Reconciles a previously started payment using the gateway's stored session, never a browser-supplied payment ID. */
+export async function recheckOrderPaymentAction(orderId: string, attemptId: string) {
+  return measureOperation("action:recheckOrderPaymentAction", async () => {
+    await requireFeatureEnabled("store");
+    const user = await requirePermission("orders", "edit");
+    validateActionArguments("recheckOrderPaymentAction", { orderId, attemptId });
+    const attempt = await db.paymentAttempt.findFirst({ where: { id: attemptId, orderId }, select: { id: true } });
+    if (!attempt) throw new Error(serverMessages.procurementDocumentMissing);
+    const result = await confirmReturn(attemptId, {});
+    if (!result) throw new Error(serverMessages.procurementDocumentMissing);
+    if ("unavailable" in result && result.unavailable) throw new Error(serverMessages.paymentGatewayUnavailable);
+    await createActivityLog({ user_id: user.id, action: "update", entity_type: "sales_order", entity_id: orderId, details: { checkedPaymentAttempt: attemptId, state: result.state } });
+    refresh(orderId);
+    return { success: true, state: result.state };
   });
 }

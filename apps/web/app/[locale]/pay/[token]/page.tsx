@@ -24,24 +24,25 @@ export default async function PayPage({ params, searchParams }: { params: Promis
   );
   if (!order) return shell(<p className="text-ink-muted" role="alert">{t.store.linkInvalid}</p>);
   const values = { number: order.number };
-  if (order.owed <= 0)
+  if (order.owed <= 0 && !order.payment_review)
     return shell(
       <div className="space-y-4 text-center">
         <CheckCircle2 className="mx-auto w-14 h-14 text-emerald-400" aria-hidden="true" />
         <p className="text-lg text-white" data-testid="pay-state">{formatMessage(t.store.alreadyPaid, values)}</p>
       </div>,
     );
-  if (order.closed) return shell(<p className="text-ink-muted" role="alert" data-testid="pay-state">{formatMessage(t.store.orderClosed, values)}</p>);
+  if (order.closed && !order.payment_review) return shell(<p className="text-ink-muted" role="alert" data-testid="pay-state">{formatMessage(t.store.orderClosed, values)}</p>);
   const online = await onlinePaymentAvailable();
   return shell(
     <>
-      {query.failed === "1" && (
+      {order.payment_review && <div role="status" className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 space-y-1" data-testid="pay-review"><p className="font-semibold text-white">{t.store.payReviewTitle}</p><p className="text-sm text-ink-muted">{formatMessage(t.store.payReviewText, values)}</p></div>}
+      {!order.payment_review && query.failed === "1" && (
         <div role="alert" className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 space-y-1" data-testid="pay-state">
           <p className="font-semibold text-white">{t.store.payFailedTitle}</p>
           <p className="text-sm text-ink-muted">{formatMessage(t.store.payFailedText, values)}</p>
         </div>
       )}
-      {query.pending === "1" && (
+      {!order.payment_review && query.pending === "1" && (
         <div role="status" className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-1" data-testid="pay-state">
           <p className="font-semibold text-white">{t.store.payPendingTitle}</p>
           <p className="text-sm text-ink-muted">{formatMessage(t.store.payPendingText, values)}</p>
@@ -60,7 +61,7 @@ export default async function PayPage({ params, searchParams }: { params: Promis
         ))}
         <li className="flex justify-between gap-3 border-t border-white/10 pt-2 font-bold text-white" data-testid="pay-owed">{formatMessage(t.store.payOwed, { amount: formatPrice(order.owed, order.currency, locale) })}</li>
       </ul>
-      {online ? <PayButton token={token} locale={locale} autoStart={query.start === "1"} /> : <p className="text-ink-muted" role="alert">{t.account.errors.paymentGatewayUnavailable}</p>}
+      {!order.payment_review && (online ? <PayButton token={token} locale={locale} autoStart={query.start === "1"} /> : <p className="text-ink-muted" role="alert">{t.account.errors.paymentGatewayUnavailable}</p>)}
     </>,
   );
 }

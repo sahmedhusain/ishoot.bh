@@ -523,7 +523,7 @@
             "Save the server key and that endpoint signing secret, enable and test.",
             "Choose Stripe in Store settings, then complete a test checkout, webhook replay and refund before going live."
           ],
-          "verify": "Test connection reads account access without charging. Checkout, wallet presentation, event verification and refund acceptance need sandbox transactions.",
+          "verify": "Test connection reads account access without charging. Checkout, wallet presentation, event verification and refund acceptance need sandbox transactions. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
           "errors": "401: verify the server key/environment. Signature error: use the endpoint secret from the matching mode. Disabled payment methods need account activation.",
           "limits": "Card details stay on Stripe hosted checkout. A healthy credential check does not prove Apple Pay, Google Pay or every settlement currency is enabled."
         }
@@ -540,7 +540,7 @@
             "Select Tap in Store settings; the app supplies the notification URL for each charge.",
             "Complete a sandbox checkout, signed notification and refund for each enabled method."
           ],
-          "verify": "The connection check is a non-charging account request. Tap notifications are verified using the secret key.",
+          "verify": "The connection check is a non-charging account request. Tap notifications are verified using the secret key. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
           "errors": "Unauthorized: confirm the secret key. Missing methods/currency: request merchant activation. Signature mismatch: use the key matching the charge.",
           "limits": "BenefitPay, mada, KNET and wallets appear only when Tap enables them for the merchant. Browser return alone does not prove settlement."
         }
@@ -557,7 +557,7 @@
             "Save the matching client credentials, environment and webhook ID, then test.",
             "Select PayPal in Store settings and verify sandbox approval, capture, webhook replay and refund."
           ],
-          "verify": "Test connection obtains an application access token. Payment settlement is recorded only after capture confirmation.",
+          "verify": "Test connection obtains an application access token. Payment settlement is recorded only after capture confirmation. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
           "errors": "invalid_client: match app keys and environment. Webhook verification failure: check webhook ID. Unsupported currency requires another gateway or store currency.",
           "limits": "BHD, SAR and KWD are not assumed supported. Available cards and wallets depend on the merchant region/account."
         }
@@ -574,7 +574,7 @@
             "Save environment, API prefix if assigned, key, channel, billing country and signing secret.",
             "Test, select this gateway in Store settings, then verify sandbox checkout, notifications and refunds."
           ],
-          "verify": "Test connection performs a read-only payment query. Billing country is an ISO two-letter code such as BH.",
+          "verify": "Test connection performs a read-only payment query. Billing country is an ISO two-letter code such as BH. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
           "errors": "401/403: check key permissions and processing channel. Host errors: copy only the account prefix. Signature mismatch: check the matching endpoint secret.",
           "limits": "An omitted API prefix retains the legacy host for existing accounts. Merchant-specific wallet and payment-method activation still needs sandbox acceptance."
         }
@@ -591,7 +591,7 @@
             "Save region, profile ID and server key, enable and test.",
             "Select PayTabs in Store settings. The app adds the callback per payment; verify a test-profile checkout and refund."
           ],
-          "verify": "Test connection runs a transaction query without creating a charge. A no-record/provider error is reported as an error rather than a successful credential test.",
+          "verify": "Test connection runs a transaction query without creating a charge. A no-record/provider error is reported as an error rather than a successful credential test. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
           "errors": "Unauthorized: verify regional host, profile and server key together. Signature mismatch: use the profile server key. No-record query results need account-backed verification.",
           "limits": "Confirm test mode with PayTabs directly. Browser return signatures and raw callback signatures are distinct; callback verification is handled by the adapter."
         }
@@ -608,7 +608,7 @@
             "Save the server key, enable and run Test connection.",
             "Select Moyasar in Store settings, then verify a test invoice, payment event and refund."
           ],
-          "verify": "Test connection reads invoice access. The invoice success URL is a browser return; invoice callback_url is not pointed at that browser handler.",
+          "verify": "Test connection reads invoice access. The invoice success URL is a browser return; invoice callback_url is not pointed at that browser handler. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
           "errors": "401: verify the secret key. Secret-token mismatch: check the webhook setting. Small amounts/currency restrictions require an accepted amount or another gateway.",
           "limits": "Invoice creation and payment notifications are separate contracts. The app relies on the configured verified payment webhook for settlement notifications."
         }
@@ -625,7 +625,7 @@
             "Save environment, entity, token, space-separated brands and webhook key, then test.",
             "Select HyperPay in Store settings and verify hosted widget, encrypted notification and refund in test mode."
           ],
-          "verify": "The test performs a non-charging entity request. Status errors stay unavailable and do not cancel unresolved remote payments.",
+          "verify": "The test performs a non-charging entity request. Status errors stay unavailable and do not cancel unresolved remote payments. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.",
           "errors": "Unauthorized: match entity/token/environment. Decryption errors: check the 32-byte hex key. Excess amount precision: choose another payment method.",
           "limits": "The current COPYandPAY contract accepts two decimal places. Amounts such as 12.345 BHD are rejected before checkout/refund, rather than rounded. Widget/wallet availability needs merchant acceptance."
         }
@@ -6243,7 +6243,10 @@
       "courierCountryInvalid": "Enter a recognized sender and recipient country or a two-letter country code before booking.",
       "courierAddressIncomplete": "Complete the sender and recipient name, phone, street address and city before booking.",
       "courierBookingPending": "A carrier booking is in progress. Wait for its result before changing this shipment.",
-      "courierBookingUncertain": "The carrier booking needs reconciliation. Check the shipment reference with the original carrier and record its tracking number. Do not create another booking unless the carrier confirms none exists."
+      "courierBookingUncertain": "The carrier booking needs reconciliation. Check the shipment reference with the original carrier and record its tracking number. Do not create another booking unless the carrier confirms none exists.",
+      "paymentNeedsReview": "The gateway payment needs review. Its captured reference, amount and currency must match this attempt before crediting the order. Do not charge the customer again; check the provider record and recheck the payment.",
+      "paymentReferenceAlreadyUsed": "This gateway payment reference is already associated with another payment attempt. Reconcile it before changing the order.",
+      "paymentCurrencyPrecisionInvalid": "This amount has more decimal places than the payment currency supports. Choose a supported amount or another payment method."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -10139,13 +10142,17 @@
         "pending": "At the gateway",
         "paid": "Paid",
         "failed": "Not completed",
-        "expired": "Timed out"
+        "expired": "Timed out",
+        "review": "Needs review"
       },
       "refundOnline": "Paid online: the refund goes back through {gateway}.",
       "addProof": "Attach proof of transfer",
       "proofAdded": "Proof attached",
       "files": "Files",
-      "refundConfirm": "Refund {amount} for order {number}? Online refunds are sent to the payment gateway."
+      "refundConfirm": "Refund {amount} for order {number}? Online refunds are sent to the payment gateway.",
+      "requestedAmount": "Requested {amount}",
+      "recheckPayment": "Recheck payment",
+      "paymentChecked": "Payment status checked"
     },
     "pos": {
       "title": "New sale",

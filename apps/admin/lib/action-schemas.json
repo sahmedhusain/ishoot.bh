@@ -8148,6 +8148,19 @@
       }
     }
   },
+  "recheckOrderPaymentAction": {
+    "kind": "object",
+    "fields": {
+      "orderId": {
+        "kind": "string",
+        "optional": false
+      },
+      "attemptId": {
+        "kind": "string",
+        "optional": false
+      }
+    }
+  },
   "saveCampaignAction": {
     "kind": "object",
     "fields": {

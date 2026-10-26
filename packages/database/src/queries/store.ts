@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db, runAtomicMutation } from "../db";
 import { allocateDocumentNumber } from "../finance/numbering";
 import { normalizeProductOptions, variantLabel } from "../constants/products";
 import { MAX_CART_LINES, MAX_LINE_QUANTITY, ORDER_PAYMENT_METHODS, RESERVED_STATUSES, canMoveOrder, couponProblem, priceOrder, type CartLine, type OrderChannel, type OrderStatus } from "../constants/store";
@@ -476,13 +476,15 @@ export async function issueOrderInvoice(orderId: string, byId: string | null) {
 
 /** Records money received for an order: on its invoice (with a receipt), and the order shows it as paid. */
 export async function recordOrderPayment(orderId: string, input: { amount: number; method: "cash" | "card" | "bank_transfer" | "online"; reference?: string }, byId: string | null) {
+  return runAtomicMutation(async () => {
+  await db.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${orderId} FOR UPDATE`;
   const amount = round3(input.amount);
   const order = await db.salesOrder.findUnique({ where: { id: orderId } });
   if (!order) throw new Error(serverMessages.procurementDocumentMissing);
   if (!Number.isFinite(amount) || amount <= 0 || num(order.amountPaid) + amount > num(order.total) + 0.0005) throw new Error(serverMessages.procurementOverpaid);
   if (["cancelled", "returned"].includes(order.status)) throw new Error(serverMessages.orderStatusInvalid);
   const invoiceId = await issueOrderInvoice(orderId, byId);
-  await createPayment({ invoice_id: invoiceId, amount, payment_method: input.method, reference_number: input.reference?.slice(0, 100), created_by: byId ?? undefined, notes: order.number });
+  const receipt = await createPayment({ invoice_id: invoiceId, amount, payment_method: input.method, reference_number: input.reference?.slice(0, 100), created_by: byId ?? undefined, notes: order.number });
   const paid = round3(num(order.amountPaid) + amount);
   const full = paid >= num(order.total) - 0.0005;
   await db.$transaction([
@@ -490,6 +492,8 @@ export async function recordOrderPayment(orderId: string, input: { amount: numbe
     db.salesOrderEvent.create({ data: { orderId, kind: "payment", amount, note: input.reference?.slice(0, 100) || input.method, byId } }),
     ...(full && order.status === "placed" ? [db.salesOrderEvent.create({ data: { orderId, kind: "status", status: "paid", byId } })] : []),
   ]);
+  return receipt.id;
+  });
 }
 
 /** Records a refund given back to the customer (by hand here; online payments refund through their gateway). */

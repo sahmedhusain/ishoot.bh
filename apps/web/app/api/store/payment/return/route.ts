@@ -23,7 +23,7 @@ async function handle(req: NextRequest) {
     const target =
       result.state === "paid"
         ? `/${locale}/checkout/done?number=${encodeURIComponent(result.order.number)}`
-        : `/${locale}/pay/${paymentLinkToken(result.order.id)}?${result.state === "pending" ? "pending" : "failed"}=1`;
+        : `/${locale}/pay/${paymentLinkToken(result.order.id)}?${result.state === "review" ? "review" : result.state === "pending" ? "pending" : "failed"}=1`;
     return NextResponse.redirect(new URL(target, home), 303);
   });
 }

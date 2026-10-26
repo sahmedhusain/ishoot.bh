@@ -3493,7 +3493,7 @@ model PaymentAttempt {
   gatewayPaymentId String?
   amount           Decimal    @db.Decimal(12, 3)
   currency         String
-  /// created | pending | paid | failed | expired
+  /// created | pending | paid | failed | expired | review
   status           String     @default("created")
   testMode         Boolean    @default(false)
   /// The receipt recorded when it was paid.
@@ -3505,6 +3505,7 @@ model PaymentAttempt {
   updatedAt        DateTime   @updatedAt
 
   @@unique([gateway, sessionId])
+  @@unique([gateway, gatewayPaymentId])
   @@index([orderId])
   @@index([status, createdAt])
 }

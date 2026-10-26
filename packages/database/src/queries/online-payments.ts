@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
 import { formatMessage, getTranslations, serverMessages } from "@platform/locales";
-import { db } from "../db";
+import { db, runAtomicMutation } from "../db";
+import { getCurrencyDecimals } from "@platform/config/currency";
 import { ONLINE_PAYMENT_TIMEOUT_MINUTES, PAYMENT_GATEWAY_IDS, isPaymentGateway, type PaymentGatewayId } from "../constants/payments";
 import { activePaymentGateway, gatewayWithCredentials } from "../payments/active";
 import { GatewayError, WebhookSignatureError, type GatewayPayment, type StartedPayment } from "../payments/gateways";
@@ -34,8 +34,10 @@ export async function startOrderPayment(orderId: string, site: { url: string; lo
   if (!active) throw new Error(serverMessages.storePaymentMethodInvalid);
   const order = await db.salesOrder.findUnique({ where: { id: orderId } });
   if (!order || ["cancelled", "returned"].includes(order.status)) throw new Error(serverMessages.orderStatusInvalid);
+  if (await db.paymentAttempt.count({ where: { orderId, OR: [{ status: "review" }, { status: "paid", paymentId: null }] } })) throw new Error(serverMessages.paymentNeedsReview);
   const owed = round3(num(order.total) - num(order.amountPaid));
   if (owed <= 0) throw new Error(serverMessages.orderAlreadyPaid);
+  if (Number(owed.toFixed(getCurrencyDecimals(order.currency))) !== owed) throw new Error(serverMessages.paymentCurrencyPrecisionInvalid);
   const attempt = await db.paymentAttempt.create({ data: { orderId, gateway: active.id, amount: owed, currency: order.currency, testMode: active.testMode } });
   const back = `${site.url}/api/store/payment/return?attempt=${attempt.id}`;
   try {
@@ -71,55 +73,60 @@ export async function openPaymentAttempt(attemptId: string) {
  * Applies what the gateway says about an attempt. Moving an attempt to paid is a guarded change, so the webhook and
  * the customer's return can both arrive and the money is recorded once.
  */
-export async function settleAttempt(attemptId: string, payment: GatewayPayment) {
-  const attempt = await db.paymentAttempt.findUnique({ where: { id: attemptId }, include: { order: true } });
-  if (!attempt) return null;
-  if (payment.state === "pending") {
-    await db.paymentAttempt.updateMany({ where: { id: attemptId, status: "created" }, data: { status: "pending" } });
-    return { state: "pending" as const, order: attempt.order };
-  }
-  if (payment.state === "failed") {
-    await db.paymentAttempt.updateMany({ where: { id: attemptId, status: { in: OPEN } }, data: { status: "failed" } });
-    return { state: "failed" as const, order: attempt.order };
-  }
-  // Paid: claim the attempt first (an expired attempt that was paid after all is claimed too).
-  const claimed = await db.paymentAttempt.updateMany({ where: { id: attemptId, status: { not: "paid" } }, data: { status: "paid", paidAt: new Date(), gatewayPaymentId: payment.paymentId ?? null } });
-  if (claimed.count === 0) return { state: "paid" as const, order: attempt.order };
-  const sameCurrency = !payment.currency || payment.currency.toUpperCase() === attempt.currency.toUpperCase();
-  const paid = round3(Math.min(sameCurrency && payment.amount ? payment.amount : num(attempt.amount), num(attempt.order.total) - num(attempt.order.amountPaid)));
-  try {
-    if (paid <= 0) throw new Error(serverMessages.orderAlreadyPaid);
-    await recordOrderPayment(attempt.orderId, { amount: paid, method: "online", reference: `${attempt.gateway} ${payment.paymentId ?? attempt.sessionId ?? ""}`.trim() }, null);
-    const invoiceId = (await db.salesOrder.findUnique({ where: { id: attempt.orderId }, select: { invoiceId: true } }))?.invoiceId;
-    const receipt = invoiceId ? await db.payment.findFirst({ where: { invoiceId, paymentMethod: "online" }, orderBy: { createdAt: "desc" }, select: { id: true } }) : null;
-    await db.paymentAttempt.update({ where: { id: attemptId }, data: { paymentId: receipt?.id ?? null, ...(sameCurrency ? {} : { failureReason: `currency ${payment.currency}` }) } });
-  } catch (error) {
-    // Money arrived for an order that can no longer take it (cancelled after timing out, or already paid): keep the
-    // attempt paid so it can be refunded, and tell the people who handle orders.
-    const reason = error instanceof Error ? error.message : "error";
-    await db.paymentAttempt.update({ where: { id: attemptId }, data: { failureReason: reason.slice(0, 300) } });
-    const alert = getTranslations("en").admin.orders.notifications.paidNeedsAttention;
-    const params = { number: attempt.order.number };
-    await notifyUsersWithPermission("orders", "edit", { title: formatMessage(alert.title, params), message: formatMessage(alert.message, params), message_key: "orders.notifications.paidNeedsAttention", message_params: params, type: "warning", entity_type: "sales_order", entity_id: attempt.orderId }).catch(() => undefined);
-  }
-  return { state: "paid" as const, order: attempt.order };
+export async function settleAttempt(attemptId: string, payment: GatewayPayment, providerEventId?: string) {
+  return runAtomicMutation(async () => {
+    await db.$queryRaw`SELECT id FROM "PaymentAttempt" WHERE id = ${attemptId} FOR UPDATE`;
+    const attempt = await db.paymentAttempt.findUnique({ where: { id: attemptId }, include: { order: true } });
+    if (!attempt) return null;
+    if (providerEventId) {
+      const event = await db.paymentWebhookEvent.createMany({ data: [{ gateway: attempt.gateway, eventId: providerEventId.slice(0, 200), attemptId }], skipDuplicates: true });
+      if (!event.count) return { state: attempt.status === "paid" && attempt.paymentId ? "paid" as const : attempt.status === "review" ? "review" as const : "pending" as const, order: attempt.order, duplicate: true };
+    }
+    if (attempt.status === "paid" && attempt.paymentId) return { state: "paid" as const, order: attempt.order };
+    if (payment.state !== "paid") {
+      if (attempt.status === "review" || attempt.status === "paid") return { state: "review" as const, order: attempt.order };
+      await db.paymentAttempt.updateMany({ where: { id: attemptId, status: { in: OPEN } }, data: { status: payment.state } });
+      return { state: payment.state, order: attempt.order };
+    }
+    const reference = payment.paymentId?.trim();
+    const paymentId = reference && reference.length <= 200 ? reference : undefined;
+    if (paymentId) await db.$queryRaw`SELECT 1 FROM pg_advisory_xact_lock(hashtextextended(${`${attempt.gateway}:${paymentId}`}, 0))`;
+    const used = paymentId ? await db.paymentAttempt.findFirst({ where: { id: { not: attemptId }, gateway: attempt.gateway, gatewayPaymentId: paymentId }, select: { id: true } }) : null;
+    await db.$queryRaw`SELECT id FROM "SalesOrder" WHERE id = ${attempt.orderId} FOR UPDATE`;
+    const order = await db.salesOrder.findUniqueOrThrow({ where: { id: attempt.orderId } });
+    const amount = payment.amount;
+    const currency = payment.currency?.toUpperCase();
+    const verified = !!paymentId && !used && typeof amount === "number" && Number.isFinite(amount) && amount > 0 && !!currency && /^[A-Z]{3}$/.test(currency) && currency === attempt.currency.toUpperCase() && Number(amount.toFixed(getCurrencyDecimals(currency))) === amount && amount === num(attempt.amount);
+    if (!verified || ["cancelled", "returned"].includes(order.status) || num(order.amountPaid) + (amount ?? 0) > num(order.total) + 0.0005) {
+      const reason = used ? serverMessages.paymentReferenceAlreadyUsed : serverMessages.paymentNeedsReview;
+      await db.paymentAttempt.update({ where: { id: attemptId }, data: { status: "review", paidAt: attempt.paidAt ?? new Date(), failureReason: reason, ...(!used && paymentId ? { gatewayPaymentId: paymentId } : {}) } });
+      if (attempt.status !== "review" || attempt.failureReason !== reason) {
+        const alert = getTranslations("en").admin.orders.notifications.paidNeedsAttention;
+        const params = { number: order.number };
+        await notifyUsersWithPermission("orders", "edit", { title: formatMessage(alert.title, params), message: formatMessage(alert.message, params), message_key: "orders.notifications.paidNeedsAttention", message_params: params, type: "warning", entity_type: "sales_order", entity_id: order.id });
+      }
+      return { state: "review" as const, order };
+    }
+    const receiptId = await recordOrderPayment(attempt.orderId, { amount: amount!, method: "online", reference: `${attempt.gateway} ${paymentId}` }, null);
+    await db.paymentAttempt.update({ where: { id: attemptId }, data: { status: "paid", paidAt: attempt.paidAt ?? new Date(), gatewayPaymentId: paymentId!, paymentId: receiptId, failureReason: null } });
+    return { state: "paid" as const, order };
+  });
 }
 
 /** The customer is back from the gateway: ask the gateway (never the browser) how it went. */
 export async function confirmReturn(attemptId: string, params: Record<string, string>) {
   const attempt = await db.paymentAttempt.findUnique({ where: { id: attemptId }, include: { order: true } });
   if (!attempt) return null;
-  if (attempt.status === "paid" || !attempt.sessionId || !isPaymentGateway(attempt.gateway)) return { state: attempt.status === "paid" ? ("paid" as const) : ("failed" as const), order: attempt.order };
+  if (attempt.status === "paid" && attempt.paymentId) return { state: "paid" as const, order: attempt.order };
+  if (!attempt.sessionId || !isPaymentGateway(attempt.gateway)) return { state: attempt.status === "review" || attempt.status === "paid" ? "review" as const : OPEN.includes(attempt.status) ? "pending" as const : "failed" as const, order: attempt.order, unavailable: true };
   const active = await gatewayWithCredentials(attempt.gateway);
-  if (!active) return { state: "pending" as const, order: attempt.order };
+  if (!active) return { state: attempt.status === "review" || attempt.status === "paid" ? "review" as const : "pending" as const, order: attempt.order, unavailable: true };
   try {
     const payment = await active.gateway.status(active.credentials, attempt.sessionId, params);
-    // Leaving the gateway's page without paying ends this attempt; the order can be paid again.
-    if (payment.state === "pending" && params.cancelled === "1") return settleAttempt(attemptId, { state: "failed" });
     return settleAttempt(attemptId, payment);
   } catch (error) {
     console.error(`Payment gateway ${attempt.gateway} status check failed`);
-    return { state: "pending" as const, order: attempt.order };
+    return { state: attempt.status === "review" || attempt.status === "paid" ? "review" as const : "pending" as const, order: attempt.order, unavailable: true };
   }
 }
 
@@ -135,18 +142,12 @@ export async function handlePaymentWebhook(gatewayId: string, request: { headers
     : event.sessionId
       ? await db.paymentAttempt.findUnique({ where: { gateway_sessionId: { gateway: gatewayId, sessionId: event.sessionId } } })
       : null;
-  if (!attempt) return { handled: false };
-  try {
-    await db.paymentWebhookEvent.create({ data: { gateway: gatewayId, eventId: event.eventId.slice(0, 200), attemptId: attempt.id } });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return { handled: true, duplicate: true };
-    throw error;
-  }
+  if (!attempt || attempt.gateway !== gatewayId) return { handled: false };
   let payment: GatewayPayment = event;
-  // PayPal reports approval first; the payment exists once captured, which reading the order does.
+  // PayPal approval precedes capture; resolve the external operation before opening the receipt transaction.
   if (gatewayId === "paypal" && event.state === "pending" && attempt.sessionId) payment = await active.gateway.status(active.credentials, attempt.sessionId, {});
-  await settleAttempt(attempt.id, payment);
-  return { handled: true };
+  const result = await settleAttempt(attempt.id, payment, event.eventId);
+  return { handled: true, ...(result && "duplicate" in result && result.duplicate ? { duplicate: true } : {}) };
 }
 
 /**
@@ -155,7 +156,7 @@ export async function handlePaymentWebhook(gatewayId: string, request: { headers
  */
 export async function refundOrder(orderId: string, amountInput: number, reason: string, byId: string | null) {
   const amount = round3(amountInput);
-  const attempts = await db.paymentAttempt.findMany({ where: { orderId, status: "paid", gatewayPaymentId: { not: null } }, orderBy: { paidAt: "desc" } });
+  const attempts = await db.paymentAttempt.findMany({ where: { orderId, status: "paid", paymentId: { not: null }, gatewayPaymentId: { not: null } }, orderBy: { paidAt: "desc" } });
   if (!attempts.length) return recordOrderRefund(orderId, amount, reason, byId);
   const refundable = round3(attempts.reduce((sum, a) => sum + num(a.amount) - num(a.amountRefunded), 0));
   if (!Number.isFinite(amount) || amount <= 0 || amount > refundable + 0.0005) throw new Error(serverMessages.orderRefundTooLarge);
@@ -181,7 +182,7 @@ export async function refundOrder(orderId: string, amountInput: number, reason: 
 /** The order's online payment attempts, newest first, for the order page. */
 export async function orderPaymentAttempts(orderId: string) {
   const rows = await db.paymentAttempt.findMany({ where: { orderId }, orderBy: { createdAt: "desc" }, take: 20 });
-  return rows.map((a) => ({ id: a.id, gateway: a.gateway, status: a.status, amount: num(a.amount), amount_refunded: num(a.amountRefunded), currency: a.currency, test_mode: a.testMode, reference: a.gatewayPaymentId ?? a.sessionId ?? "", created_at: a.createdAt.toISOString(), failure: a.failureReason ?? "" }));
+  return rows.map((a) => ({ id: a.id, gateway: a.gateway, status: a.status === "paid" && !a.paymentId ? "review" : a.status, amount: num(a.amount), amount_refunded: num(a.amountRefunded), currency: a.currency, test_mode: a.testMode, reference: a.gatewayPaymentId ?? a.sessionId ?? "", created_at: a.createdAt.toISOString(), failure: a.failureReason ?? "" }));
 }
 
 /**
@@ -220,7 +221,7 @@ export async function expireOnlinePayments(now = new Date()) {
 
 /** What a payment link page shows: the order and what is still owed. */
 export async function paymentLinkOrder(orderId: string) {
-  const order = await db.salesOrder.findUnique({ where: { id: orderId }, include: { lines: { orderBy: { sortOrder: "asc" } } } });
+  const order = await db.salesOrder.findUnique({ where: { id: orderId }, include: { lines: { orderBy: { sortOrder: "asc" } }, paymentAttempts: { where: { OR: [{ status: "review" }, { status: "paid", paymentId: null }] }, select: { id: true } } } });
   if (!order) return null;
   return {
     id: order.id,
@@ -230,6 +231,7 @@ export async function paymentLinkOrder(orderId: string) {
     total: num(order.total),
     owed: round3(num(order.total) - num(order.amountPaid)),
     closed: ["cancelled", "returned"].includes(order.status),
+    payment_review: order.paymentAttempts.length > 0,
     lines: order.lines.map((l) => ({ description: l.description, quantity: num(l.quantity), line_total: num(l.lineTotal) })),
   };
 }

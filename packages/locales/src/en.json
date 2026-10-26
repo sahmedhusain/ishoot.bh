@@ -823,7 +823,10 @@
       "deliveryNotCovered": "We do not deliver to that area yet.",
       "deliveryBelowMinimum": "Your order is below the minimum for delivery to that area.",
       "serviceReplyEmpty": "Tell us a little more first.",
-      "requestNotFound": "We could not find that order."
+      "requestNotFound": "We could not find that order.",
+      "paymentNeedsReview": "The gateway payment needs review. Its captured reference, amount and currency must match this attempt before crediting the order. Do not charge the customer again; check the provider record and recheck the payment.",
+      "paymentReferenceAlreadyUsed": "This gateway payment reference is already associated with another payment attempt. Reconcile it before changing the order.",
+      "paymentCurrencyPrecisionInvalid": "This amount has more decimal places than the payment currency supports. Choose a supported amount or another payment method."
     },
     "codeEmail": {
       "subject": "Your sign-in code",
@@ -963,7 +966,9 @@
       "other": "something went wrong"
     },
     "trackAgency": "Carried by {agency}, tracking number {number}",
-    "trackAtAgency": "Track at {agency}"
+    "trackAtAgency": "Track at {agency}",
+    "payReviewTitle": "Your payment needs review",
+    "payReviewText": "We could not reconcile the gateway payment for order {number}. Please contact the store. Do not pay again while the team checks the existing payment."
   },
   "marketing": {
     "unsubscribe": "Stop these e-mails",

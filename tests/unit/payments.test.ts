@@ -157,3 +157,12 @@ test("HyperPay rejects precision loss before creating a checkout or refund", asy
   await hyperpay.start(credentials, { ...input, amount: 12.34 });
   expect(new URLSearchParams(String(calls[0].init.body)).get("amount")).toBe("12.34");
 });
+
+test("Checkout.com resolves payment identity from the stored hosted page, ignoring browser substitutions", async () => {
+  const fetcher = vi.fn()
+    .mockResolvedValueOnce(new Response(JSON.stringify({ _links: { payment: { href: "https://api.sandbox.checkout.com/payments/pay_bound" } } }), { status: 200 }))
+    .mockResolvedValueOnce(new Response(JSON.stringify({ id: "pay_bound", status: "Captured", amount: 12500, currency: "BHD" }), { status: 200 }));
+  vi.stubGlobal("fetch", fetcher);
+  expect((await checkoutCom.status({ environment: "sandbox", secretKey: "key" }, "stored-page", { "cko-payment-id": "pay_substituted" })).state).toBe("paid");
+  expect(fetcher.mock.calls.map(call => call[0])).toEqual(["https://api.sandbox.checkout.com/hosted-payments/stored-page", "https://api.sandbox.checkout.com/payments/pay_bound"]);
+});

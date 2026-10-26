@@ -410,14 +410,10 @@ export const checkoutCom: PaymentGateway = {
     if (!href) throw new GatewayError("Checkout.com did not return a payment page");
     return { sessionId: page.id, redirectUrl: href };
   },
-  async status(c, sessionId, params) {
-    // The customer comes back with cko-payment-id; without it, the hosted page itself says if a payment was made.
-    let paymentId = params["cko-payment-id"];
-    if (!paymentId) {
-      const page = await call<{ _links?: { payment?: { href?: string } } }>(`${ckoBase(c)}/hosted-payments/${encodeURIComponent(sessionId)}`, { headers: { Authorization: `Bearer ${c.secretKey}` } });
-      paymentId = page._links?.payment?.href?.split("/").pop() ?? "";
-      if (!paymentId) return { state: "pending" };
-    }
+  async status(c, sessionId) {
+    const page = await call<{ _links?: { payment?: { href?: string } } }>(`${ckoBase(c)}/hosted-payments/${encodeURIComponent(sessionId)}`, { headers: { Authorization: `Bearer ${c.secretKey}` } });
+    const paymentId = page._links?.payment?.href?.split("/").pop() ?? "";
+    if (!paymentId) return { state: "pending" };
     return ckoPayment(await call<Record<string, unknown>>(`${ckoBase(c)}/payments/${encodeURIComponent(paymentId)}`, { headers: { Authorization: `Bearer ${c.secretKey}` } }));
   },
   async webhook(c, request) {

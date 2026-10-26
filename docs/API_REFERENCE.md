@@ -57,7 +57,7 @@ Generated from the code by `pnpm docs:api`; do not edit by hand. Input contracts
 | `/api/upload/local/[folder]/[name]` | PUT | Local-disk upload target used when Supabase Storage is not configured. Only the user who started the upload may |
 | `/api/webhooks/resend` | POST |  |
 
-## Server actions (318 in `apps/admin/app/actions`)
+## Server actions (321 in `apps/admin/app/actions`)
 
 Every action checks the caller's permission (`resource:action`) before touching data, validates its input against the generated schema, and runs its writes in one transaction.
 
@@ -210,6 +210,13 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `convertInquiryToClientAction` | `inquiryId` | contacts:write |
 | `manageInquiryAction` | `id, data` |  |
 | `linkInquiryCustomerAction` | `inquiryId, customerId` | contacts:write |
+
+### dashboard.ts
+
+| Action | Arguments | Permission |
+|---|---|---|
+| `saveDashboardLayoutAction` | `widgets` |  |
+| `resetDashboardLayoutAction` |  |  |
 
 ### delivery.ts
 
@@ -386,6 +393,7 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `createStaffOrderAction` | `input` |  |
 | `saveStoreSettingsAction` | `input` | settings:edit |
 | `saveCouponAction` | `input` | orders:approve |
+| `recheckOrderPaymentAction` | `orderId, attemptId` |  |
 
 ### outreach.ts
 
@@ -669,6 +677,6 @@ Every action checks the caller's permission (`resource:action`) before touching 
 | `saveWebsiteMenusAction` | `menus, articles` |  |
 | `saveWebsiteCodeAction` | `code` |  |
 
-## Database models (179)
+## Database models (181)
 
-`User`, `CompanySetting`, `CompanyAsset`, `HeroBanner`, `PortfolioCategory`, `PortfolioItem`, `ClientLogo`, `StudioEquipment`, `Inquiry`, `InquiryNote`, `WebsiteContent`, `CmsPage`, `CmsArticle`, `CrmContact`, `ClientContactPerson`, `CrmDeal`, `DealPipelineStage`, `Invoice`, `InvoiceLineItem`, `Payment`, `ExpenseCategory`, `Expense`, `CalendarEvent`, `ActivityLog`, `Notification`, `Tag`, `Attachment`, `Permission`, `Session`, `DocumentTemplate`, `Contract`, `MinuteOfMeeting`, `GeneratedDocument`, `CompanyDocument`, `Service`, `SocialLink`, `Role`, `RoleDataScope`, `FeatureToggle`, `Review`, `Faq`, `Statistic`, `RevalidationJob`, `UploadObject`, `AbuseWindow`, `MfaRecoveryCode`, `EmailJob`, `IntegrationSetting`, `AuthChallenge`, `Quotation`, `QuotationLineItem`, `CommunicationThread`, `CommunicationMessage`, `MessageAttachment`, `SocialPost`, `SocialContentPlan`, `SocialMetric`, `ProfileChangeRequest`, `ApprovalRequest`, `ApprovalDecision`, `ApprovalPolicy`, `ApprovalPolicyStep`, `ReferenceSequence`, `RequestEvent`, `RequestAssignment`, `RequestComment`, `ExchangeRateSnapshot`, `DocumentFx`, `PaymentAllocation`, `BankSettlement`, `Department`, `Employee`, `EmploymentRecord`, `LeaveType`, `LeaveAdjustment`, `HrPolicy`, `PublicHoliday`, `ShiftType`, `LeaveRequest`, `AttendanceEntry`, `BenefitPlan`, `PayrollRun`, `PayrollItem`, `Payslip`, `SalaryDocument`, `ExpenseClaim`, `SalesAttributionChange`, `CommissionPayout`, `SupportReimbursement`, `AccountChangeRequest`, `SignatureChange`, `ClientSignature`, `TaxRate`, `DocumentTax`, `EmployeeCredential`, `PayrollItemLine`, `EmployeeRecurringPay`, `RecurringExpense`, `AssetCategory`, `Asset`, `AssetHandover`, `EmployeeHandover`, `EmployeeHandoverCase`, `SignaturePolicy`, `SignatureRequest`, `GosiSettings`, `GosiComponent`, `EmployeeGosiRecord`, `SupportProgram`, `SupportProgramRule`, `EmployeeSupport`, `EmployeeSupportEvent`, `FinalSettlement`, `FinalSettlementLine`, `CalendarFeedToken`, `CommunicationSettings`, `Announcement`, `AnnouncementReceipt`, `LetterTemplate`, `OfficialLetter`, `ProductCategory`, `Product`, `ProductVariant`, `Warehouse`, `StockLocation`, `StockItem`, `StockBatch`, `StockLevel`, `StockMovement`, `StockCount`, `StockCountLine`, `PurchaseRequisition`, `PurchaseRequisitionLine`, `Rfq`, `RfqLine`, `RfqQuote`, `PurchaseOrder`, `PurchaseOrderLine`, `GoodsReceipt`, `GoodsReceiptLine`, `SupplierBill`, `SupplierBillLine`, `SupplierPayment`, `Customer`, `CustomerSession`, `CustomerAddress`, `CustomerAuthCode`, `WishlistItem`, `StoreSettings`, `PaymentAttempt`, `PaymentWebhookEvent`, `Coupon`, `SalesOrder`, `SalesOrderLine`, `SalesOrderEvent`, `DeliverySettings`, `DeliveryZone`, `DeliverySlot`, `Shipment`, `ShipmentEvent`, `Vehicle`, `RouteSheet`, `CodSettlement`, `CourierAgency`, `AgencyInvoice`, `Project`, `Task`, `TaskComment`, `ServiceSettings`, `CannedReply`, `Campaign`, `CustomerSegment`, `Broadcast`, `BroadcastRecipient`, `MediaContact`, `MediaCoverage`, `LegalMatter`, `LegalMatterEvent`, `ReportSchedule`
+`User`, `CompanySetting`, `CompanyAsset`, `HeroBanner`, `PortfolioCategory`, `PortfolioItem`, `ClientLogo`, `StudioEquipment`, `Inquiry`, `InquiryNote`, `WebsiteContent`, `CmsPage`, `CmsArticle`, `CrmContact`, `ClientContactPerson`, `CrmDeal`, `DealPipelineStage`, `Invoice`, `InvoiceLineItem`, `Payment`, `ExpenseCategory`, `Expense`, `CalendarEvent`, `ActivityLog`, `Notification`, `Tag`, `Attachment`, `Permission`, `Session`, `DocumentTemplate`, `Contract`, `MinuteOfMeeting`, `GeneratedDocument`, `CompanyDocument`, `Service`, `SocialLink`, `Role`, `RoleDataScope`, `FeatureToggle`, `Review`, `Faq`, `Statistic`, `RevalidationJob`, `UploadObject`, `AbuseWindow`, `MfaRecoveryCode`, `EmailJob`, `IntegrationSetting`, `AuthChallenge`, `Quotation`, `QuotationLineItem`, `CommunicationThread`, `CommunicationMessage`, `MessageAttachment`, `SocialPost`, `SocialPostSnapshot`, `SocialContentPlan`, `SocialMetric`, `ProfileChangeRequest`, `ApprovalRequest`, `ApprovalDecision`, `ApprovalPolicy`, `ApprovalPolicyStep`, `ReferenceSequence`, `RequestEvent`, `RequestAssignment`, `RequestComment`, `ExchangeRateSnapshot`, `DocumentFx`, `PaymentAllocation`, `BankSettlement`, `Department`, `Employee`, `EmploymentRecord`, `LeaveType`, `LeaveAdjustment`, `HrPolicy`, `PublicHoliday`, `ShiftType`, `LeaveRequest`, `AttendanceEntry`, `BenefitPlan`, `PayrollRun`, `PayrollItem`, `Payslip`, `SalaryDocument`, `ExpenseClaim`, `SalesAttributionChange`, `CommissionPayout`, `SupportReimbursement`, `AccountChangeRequest`, `SignatureChange`, `ClientSignature`, `TaxRate`, `DocumentTax`, `EmployeeCredential`, `PayrollItemLine`, `EmployeeRecurringPay`, `RecurringExpense`, `AssetCategory`, `Asset`, `AssetHandover`, `EmployeeHandover`, `EmployeeHandoverCase`, `SignaturePolicy`, `SignatureRequest`, `GosiSettings`, `GosiComponent`, `EmployeeGosiRecord`, `SupportProgram`, `SupportProgramRule`, `EmployeeSupport`, `EmployeeSupportEvent`, `FinalSettlement`, `FinalSettlementLine`, `CalendarFeedToken`, `CommunicationSettings`, `Announcement`, `AnnouncementReceipt`, `LetterTemplate`, `OfficialLetter`, `ProductCategory`, `Product`, `ProductVariant`, `Warehouse`, `StockLocation`, `StockItem`, `StockBatch`, `StockLevel`, `StockMovement`, `StockCount`, `StockCountLine`, `PurchaseRequisition`, `PurchaseRequisitionLine`, `Rfq`, `RfqLine`, `RfqQuote`, `PurchaseOrder`, `PurchaseOrderLine`, `GoodsReceipt`, `GoodsReceiptLine`, `SupplierBill`, `SupplierBillLine`, `SupplierPayment`, `Customer`, `CustomerSession`, `CustomerAddress`, `CustomerAuthCode`, `WishlistItem`, `StoreSettings`, `PaymentAttempt`, `PaymentWebhookEvent`, `Coupon`, `SalesOrder`, `SalesOrderLine`, `SalesOrderEvent`, `DeliverySettings`, `DeliveryZone`, `DeliverySlot`, `Shipment`, `ShipmentEvent`, `Vehicle`, `RouteSheet`, `CodSettlement`, `CourierAgency`, `AgencyInvoice`, `Project`, `Task`, `TaskComment`, `ServiceSettings`, `CannedReply`, `Campaign`, `CustomerSegment`, `Broadcast`, `BroadcastRecipient`, `MediaContact`, `MediaCoverage`, `LegalMatter`, `LegalMatterEvent`, `ReportSchedule`, `DashboardLayout`

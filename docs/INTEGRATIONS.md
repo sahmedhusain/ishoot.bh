@@ -22,6 +22,8 @@ Automatic courier booking supports one measured parcel; DHL also requires its me
 
 Other requested providers and capabilities (GA4 reporting, additional social/scheduling platforms, SMS/WhatsApp gateways, Oman wallets, accounting/banking/AI/document/design services, hardware and two-way calendars) are inventoried with explicit missing/partial status in [the admin polish plan](plans/ADMIN_POLISH_PLAN.md). They are not represented as working connections here.
 
+Payment settlement requires the provider’s captured reference and the exact requested amount/currency. Unverified or conflicting captures stay in review, do not credit the order and block another checkout. Staff can use **Recheck payment** after correcting the connection; customers see a review notice without another pay button. Provider reference uniqueness prevents one capture crediting two attempts. Receipt posting and webhook deduplication share the same transaction, so a failed receipt can be retried safely. Checkout.com status reads are bound to the stored hosted page.
+
 ## Facebook & Instagram (`meta`)
 
 [Official setup documentation](https://developers.facebook.com/docs/pages-api/getting-started)
@@ -660,7 +662,7 @@ Use sk_test_ keys and test webhooks first. Live keys create real charges; wallet
 
 **What the test checks**
 
-Test connection reads account access without charging. Checkout, wallet presentation, event verification and refund acceptance need sandbox transactions.
+Test connection reads account access without charging. Checkout, wallet presentation, event verification and refund acceptance need sandbox transactions. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.
 
 **Common errors**
 
@@ -692,7 +694,7 @@ Card details stay on Stripe hosted checkout. A healthy credential check does not
 
 **ما الذي يفحصه الاختبار**
 
-يقرأ الاختبار وصول الحساب دون خصم. الدفع والمحافظ والتوقيع والاسترداد تتطلب معاملات تجريبية.
+يقرأ الاختبار وصول الحساب دون خصم. الدفع والمحافظ والتوقيع والاسترداد تتطلب معاملات تجريبية. تبقى الدفعات ذات مرجع أو مبلغ أو عملة غير متحقق منها قيد المراجعة. استخدم إعادة فحص الدفع بعد تصحيح الاتصال ولا تخصم مجددًا.
 
 **الأخطاء الشائعة**
 
@@ -728,7 +730,7 @@ sk_test_ identifies test credentials. Live credentials can charge real customers
 
 **What the test checks**
 
-The connection check is a non-charging account request. Tap notifications are verified using the secret key.
+The connection check is a non-charging account request. Tap notifications are verified using the secret key. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.
 
 **Common errors**
 
@@ -760,7 +762,7 @@ BenefitPay, mada, KNET and wallets appear only when Tap enables them for the mer
 
 **ما الذي يفحصه الاختبار**
 
-يفحص الاتصال الحساب دون إنشاء خصم. تتحقق الإشعارات باستخدام المفتاح السري.
+يفحص الاتصال الحساب دون إنشاء خصم. تتحقق الإشعارات باستخدام المفتاح السري. تبقى الدفعات ذات مرجع أو مبلغ أو عملة غير متحقق منها قيد المراجعة. استخدم إعادة فحص الدفع بعد تصحيح الاتصال ولا تخصم مجددًا.
 
 **الأخطاء الشائعة**
 
@@ -796,7 +798,7 @@ Enter sandbox for test accounts, live for live. PayPal does not support every st
 
 **What the test checks**
 
-Test connection obtains an application access token. Payment settlement is recorded only after capture confirmation.
+Test connection obtains an application access token. Payment settlement is recorded only after capture confirmation. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.
 
 **Common errors**
 
@@ -828,7 +830,7 @@ BHD, SAR and KWD are not assumed supported. Available cards and wallets depend o
 
 **ما الذي يفحصه الاختبار**
 
-يستخرج الاختبار رمز وصول للتطبيق. لا تُسجّل التسوية إلا بعد تأكيد التحصيل.
+يستخرج الاختبار رمز وصول للتطبيق. لا تُسجّل التسوية إلا بعد تأكيد التحصيل. تبقى الدفعات ذات مرجع أو مبلغ أو عملة غير متحقق منها قيد المراجعة. استخدم إعادة فحص الدفع بعد تصحيح الاتصال ولا تخصم مجددًا.
 
 **الأخطاء الشائعة**
 
@@ -864,7 +866,7 @@ Use sandbox or live and its matching keys/channel. If the API host is account123
 
 **What the test checks**
 
-Test connection performs a read-only payment query. Billing country is an ISO two-letter code such as BH.
+Test connection performs a read-only payment query. Billing country is an ISO two-letter code such as BH. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.
 
 **Common errors**
 
@@ -896,7 +898,7 @@ An omitted API prefix retains the legacy host for existing accounts. Merchant-sp
 
 **ما الذي يفحصه الاختبار**
 
-ينفّذ الاختبار استعلام دفع للقراءة فقط. بلد الفوترة رمز ISO من حرفين مثل BH.
+ينفّذ الاختبار استعلام دفع للقراءة فقط. بلد الفوترة رمز ISO من حرفين مثل BH. تبقى الدفعات ذات مرجع أو مبلغ أو عملة غير متحقق منها قيد المراجعة. استخدم إعادة فحص الدفع بعد تصحيح الاتصال ولا تخصم مجددًا.
 
 **الأخطاء الشائعة**
 
@@ -932,7 +934,7 @@ The merchant profile controls test/live behavior. The app cannot infer a test pr
 
 **What the test checks**
 
-Test connection runs a transaction query without creating a charge. A no-record/provider error is reported as an error rather than a successful credential test.
+Test connection runs a transaction query without creating a charge. A no-record/provider error is reported as an error rather than a successful credential test. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.
 
 **Common errors**
 
@@ -964,7 +966,7 @@ Confirm test mode with PayTabs directly. Browser return signatures and raw callb
 
 **ما الذي يفحصه الاختبار**
 
-ينفذ الاختبار استعلام معاملة دون خصم. يُعرض عدم وجود سجل أوخطأ المزود كخطأ ولا يعد إثباتًا لسلامة البيانات.
+ينفذ الاختبار استعلام معاملة دون خصم. يُعرض عدم وجود سجل أوخطأ المزود كخطأ ولا يعد إثباتًا لسلامة البيانات. تبقى الدفعات ذات مرجع أو مبلغ أو عملة غير متحقق منها قيد المراجعة. استخدم إعادة فحص الدفع بعد تصحيح الاتصال ولا تخصم مجددًا.
 
 **الأخطاء الشائعة**
 
@@ -1000,7 +1002,7 @@ sk_test_ identifies test keys. Verify the merchant-supported currency and invoic
 
 **What the test checks**
 
-Test connection reads invoice access. The invoice success URL is a browser return; invoice callback_url is not pointed at that browser handler.
+Test connection reads invoice access. The invoice success URL is a browser return; invoice callback_url is not pointed at that browser handler. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.
 
 **Common errors**
 
@@ -1032,7 +1034,7 @@ Invoice creation and payment notifications are separate contracts. The app relie
 
 **ما الذي يفحصه الاختبار**
 
-يقرأ الاختبار وصول الفواتير. عنوان نجاح الفاتورة لعودة المتصفح، ولا يُستخدم ذلك المسار لاستقبال callback_url الخاص بإشعارات الفاتورة.
+يقرأ الاختبار وصول الفواتير. عنوان نجاح الفاتورة لعودة المتصفح، ولا يُستخدم ذلك المسار لاستقبال callback_url الخاص بإشعارات الفاتورة. تبقى الدفعات ذات مرجع أو مبلغ أو عملة غير متحقق منها قيد المراجعة. استخدم إعادة فحص الدفع بعد تصحيح الاتصال ولا تخصم مجددًا.
 
 **الأخطاء الشائعة**
 
@@ -1068,7 +1070,7 @@ Use test with test entity credentials, then live with the approved live entity. 
 
 **What the test checks**
 
-The test performs a non-charging entity request. Status errors stay unavailable and do not cancel unresolved remote payments.
+The test performs a non-charging entity request. Status errors stay unavailable and do not cancel unresolved remote payments. Orders with an unverified captured reference, amount or currency stay in review. Use Recheck payment after fixing the connection; do not charge again.
 
 **Common errors**
 
@@ -1100,7 +1102,7 @@ The current COPYandPAY contract accepts two decimal places. Amounts such as 12.3
 
 **ما الذي يفحصه الاختبار**
 
-ينفّذ الاختبار طلب كيان دون خصم. لا تؤدي أخطاء قراءة الحالة إلى إلغاء دفعات بعيدة غير محسومة.
+ينفّذ الاختبار طلب كيان دون خصم. لا تؤدي أخطاء قراءة الحالة إلى إلغاء دفعات بعيدة غير محسومة. تبقى الدفعات ذات مرجع أو مبلغ أو عملة غير متحقق منها قيد المراجعة. استخدم إعادة فحص الدفع بعد تصحيح الاتصال ولا تخصم مجددًا.
 
 **الأخطاء الشائعة**
 

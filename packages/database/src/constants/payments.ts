@@ -5,8 +5,8 @@ export const PAYMENT_GATEWAY_IDS = ["stripe", "tap", "paypal", "checkout_com", "
 export type PaymentGatewayId = (typeof PAYMENT_GATEWAY_IDS)[number];
 export const isPaymentGateway = (id: string): id is PaymentGatewayId => (PAYMENT_GATEWAY_IDS as readonly string[]).includes(id);
 
-/** created → pending (customer at the gateway) → paid | failed | expired. */
-export const PAYMENT_ATTEMPT_STATUSES = ["created", "pending", "paid", "failed", "expired"] as const;
+/** created → pending (customer at the gateway) → paid | failed | expired; review holds unverified captured payments. */
+export const PAYMENT_ATTEMPT_STATUSES = ["created", "pending", "paid", "failed", "expired", "review"] as const;
 export type PaymentAttemptStatus = (typeof PAYMENT_ATTEMPT_STATUSES)[number];
 
 /** An unpaid online order gives its stock back after this long. */
