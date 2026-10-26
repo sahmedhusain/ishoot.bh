@@ -1,9 +1,10 @@
 "use client";
+import { errorMessage } from "../../lib/error-text";
 import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import type { ServiceItem,ServiceCategory } from "@platform/database/types";
-import { Button,Input,CurrencyDisplay, useDialog } from "@platform/ui";
+import { Button, Input, Select, CurrencyDisplay, Modal } from "@platform/ui";
 import {
 Sparkles,
 Plus,
@@ -12,7 +13,7 @@ Trash2,
 CheckCircle2,
 XCircle,
 Tag,Layers,
-DollarSign,X
+DollarSign
 } from "lucide-react";
 import {
 createServiceAction,
@@ -47,7 +48,9 @@ export function ServicesManagementView({
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const serviceDialog = useDialog(isModalOpen, () => setIsModalOpen(false));
+  const serviceFormId = React.useId();
+  const pendingSave = React.useRef(false);
+  const [saveError, setSaveError] = React.useState("");
   const [editingService, setEditingService] = React.useState<ServiceItem | null>(null);
   const [saving, setSaving] = React.useState(false);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
@@ -64,6 +67,7 @@ export function ServicesManagementView({
   const [formIsActive, setFormIsActive] = React.useState(true);
 
   const openCreateModal = () => {
+    setSaveError("");
     setEditingService(null);
     setFormCode("");
     setFormNameEn("");
@@ -78,6 +82,7 @@ export function ServicesManagementView({
   };
 
   const openEditModal = (s: ServiceItem) => {
+    setSaveError("");
     setEditingService(s);
     setFormCode(s.code || "");
     setFormNameEn(s.name_en);
@@ -93,8 +98,9 @@ export function ServicesManagementView({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formNameEn.trim() || !formNameAr.trim()) return;
-    setSaving(true);
+    if (pendingSave.current) return;
+    if (!formNameEn.trim() || !formNameAr.trim()) { setSaveError(t.servicesView.validationFailed); return; }
+    pendingSave.current = true; setSaveError(""); setSaving(true);
 
     try {
       if (editingService) {
@@ -113,7 +119,7 @@ export function ServicesManagementView({
           setServices((prev) =>
             prev.map((s) => (s.id === res.service.id ? res.service : s)),
           );
-        }
+        } else throw new Error(t.servicesView.saveFailed);
       } else {
         const res = await createServiceAction({
           code: formCode.trim() || undefined,
@@ -128,13 +134,13 @@ export function ServicesManagementView({
         });
         if (res.success && res.service) {
           setServices((prev) => [res.service, ...prev]);
-        }
+        } else throw new Error(t.servicesView.saveFailed);
       }
       setIsModalOpen(false);
     } catch (err) {
-      console.error("Failed to save service:", err);
+      setSaveError(errorMessage(err, t, t.servicesView.saveFailed));
     } finally {
-      setSaving(false);
+      pendingSave.current = false; setSaving(false);
     }
   };
 
@@ -149,7 +155,7 @@ export function ServicesManagementView({
             setServices((prev) => prev.filter((s) => s.id !== id));
           }
         } catch (err) {
-          console.error("Failed to delete service:", err);
+          throw err;
         } finally {
           setDeletingId(null);
         }
@@ -408,42 +414,28 @@ export function ServicesManagementView({
       </div>
 
       {/* Create / Edit Service Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4">
-          <div {...serviceDialog} className="bg-white dark:bg-surface-raised rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-xl w-full p-6 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-accent" />
-                <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  {editingService ? t.servicesView.modalEditTitle : t.servicesView.modalNewTitle}
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSave} className="space-y-4 mt-4">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingService ? t.servicesView.modalEditTitle : t.servicesView.modalNewTitle} busy={saving} className="max-w-xl" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" disabled={saving} onClick={() => setIsModalOpen(false)}>{t.actions.cancel}</Button><Button type="submit" form={serviceFormId} disabled={saving}>{saving ? t.actions.saving : editingService ? t.actions.update : t.actions.add}</Button></div>}>
+        <form id={serviceFormId} onSubmit={handleSave} onInvalidCapture={() => setSaveError(t.servicesView.validationFailed)}>
+          <fieldset disabled={saving} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  <label htmlFor={`${serviceFormId}-code`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                     {t.servicesView.codeLabel}
                   </label>
                   <Input
                     placeholder={t.servicesView.codePlaceholder}
+                    id={`${serviceFormId}-code`}
                     value={formCode}
                     onChange={(e) => setFormCode(e.target.value)}
                     className="text-xs "
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  <label htmlFor={`${serviceFormId}-category`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                     {t.servicesView.categoryLabel} *
                   </label>
-                  <select
+                  <Select
+                    id={`${serviceFormId}-category`}
                     value={formCategory}
                     onChange={(e: any) => setFormCategory(e.target.value)}
                     className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
@@ -452,7 +444,7 @@ export function ServicesManagementView({
                     <option value="post_production">{t.servicesView.categoryPost}</option>
                     <option value="equipment">{t.servicesView.categoryEquipment}</option>
                     <option value="other">{t.servicesView.categoryOther}</option>
-                  </select>
+                  </Select>
                 </div>
               </div>
 
@@ -472,7 +464,7 @@ export function ServicesManagementView({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  <label htmlFor={`${serviceFormId}-rate`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                     {t.servicesView.rateLabel} ({t.financials.currency}) *
                   </label>
                   <Input
@@ -480,6 +472,7 @@ export function ServicesManagementView({
                     step="0.001"
                     min="0"
                     placeholder={t.servicesView.ratePlaceholder}
+                    id={`${serviceFormId}-rate`}
                     value={formRate}
                     onChange={(e) => setFormRate(parseFloat(e.target.value) || 0)}
                     required
@@ -487,10 +480,11 @@ export function ServicesManagementView({
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                  <label htmlFor={`${serviceFormId}-unit`} className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                     {t.servicesView.unitLabel} *
                   </label>
-                  <select
+                  <Select
+                    id={`${serviceFormId}-unit`}
                     value={formUnit}
                     onChange={(e: any) => setFormUnit(e.target.value)}
                     className="w-full text-xs bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-accent"
@@ -500,7 +494,7 @@ export function ServicesManagementView({
                         {isRTL ? u.labelAr : u.labelEn}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
 
@@ -529,29 +523,10 @@ export function ServicesManagementView({
                 </label>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsModalOpen(false)}
-                  disabled={saving}
-                >
-                  {t.actions.cancel}
-                </Button>
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={saving}
-                  className="bg-accent hover:bg-primary text-white"
-                >
-                  {saving ? t.actions.saving : editingService ? t.actions.update : t.actions.add}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </fieldset>
+          {saveError && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{saveError}</p>}
+        </form>
+      </Modal>
     </div>
   );
 }

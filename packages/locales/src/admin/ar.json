@@ -1187,7 +1187,8 @@
       "bank_iban": "رقم الآيبان الدولي",
       "invoice_prefix": "بادئة الفاتورة",
       "invoice_next_number": "رقم الفاتورة القادمة"
-    }
+    },
+    "saveFailed": "تعذّر حفظ إعدادات الشركة. بقيت تغييراتك؛ حاول مرة أخرى."
   },
   "companySettingsTabs": {
     "general": "الملف القانوني والبيانات العامة",
@@ -1246,7 +1247,8 @@
     "swiftPlaceholder": "NBOBBHBM",
     "invPrefixPlaceholder": "INV",
     "rctPrefixPlaceholder": "RCT",
-    "trnPlaceholder": "200000000000003"
+    "trnPlaceholder": "200000000000003",
+    "vatStateLabel": "تفعيل ضريبة القيمة المضافة"
   },
   "deals": {
     "subtitle": "متابعة خط الصفقات التفاعلي مع التحديث اللحظي لحالات المشاريع.",
@@ -1995,7 +1997,9 @@
     "ratePlaceholder": "0.000",
     "descEnPlaceholder": "تفاصيل نطاق ومخرجات الخدمة بالإنجليزية...",
     "nameLabel": "اسم الخدمة",
-    "descLabel": "وصف الخدمة"
+    "descLabel": "وصف الخدمة",
+    "saveFailed": "تعذّر حفظ الخدمة. بقيت البيانات المدخلة؛ حاول مرة أخرى.",
+    "validationFailed": "تحقّق من الأسماء المطلوبة وأدخل سعرًا يساوي صفرًا أو أكثر."
   },
   "invoiceEdit": {
     "title": "تعديل الفاتورة",
@@ -3993,7 +3997,9 @@
     "errorApproving": "خطأ في الاعتماد",
     "errorSettlingPayroll": "خطأ في تسوية الرواتب",
     "calculating": "جارٍ الاحتساب...",
-    "generateRun": "إنشاء الدورة"
+    "generateRun": "إنشاء الدورة",
+    "yearPlaceholder": "مثال: 2026",
+    "invalidPeriod": "اختر شهرًا وأدخل سنة من 2020 إلى 2035."
   },
   "userProfile": {
     "updatingContactDetails": "جارٍ تحديث بيانات الاتصال...",

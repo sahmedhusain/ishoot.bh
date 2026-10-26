@@ -94,7 +94,7 @@ export function testDatabase() {
 
 /** Accept only the shared confirmation dialog; ordinary forms remain under the spec's control. */
 export async function acceptConfirmations(page: Page) {
-  await page.addLocatorHandler(page.locator("[data-confirm-dialog]"), async dialog => {
+  await page.addLocatorHandler(page.getByRole("dialog").filter({ has: page.locator("[data-confirm-dialog]") }), async dialog => {
     const typed = dialog.getByRole("textbox");
     if (await typed.count()) await typed.fill((await typed.getAttribute("placeholder"))!);
     await dialog.getByRole("button").last().click();

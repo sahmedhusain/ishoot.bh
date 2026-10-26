@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@platform/database/constants/routes";
 import type { PayrollRun } from "@platform/database/types";
-import { Card, Button, Modal, useDialog } from "@platform/ui";
+import { Card, Button, Input, Select, Modal } from "@platform/ui";
 import {
   DollarSign,
   Plus,
@@ -69,7 +69,9 @@ export function PayrollManagementView({
 
   // Generate Run Modal
   const [showGenerateModal, setShowGenerateModal] = React.useState(false);
-  const generateDialog = useDialog(showGenerateModal, () => setShowGenerateModal(false));
+  const generateFormId = React.useId();
+  const generatePending = React.useRef(false);
+  const [generateError, setGenerateError] = React.useState("");
   const [generateMonth, setGenerateMonth] = React.useState(
     new Date().getMonth() + 1,
   );
@@ -96,7 +98,8 @@ export function PayrollManagementView({
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setGenerating(true);
+    if (generatePending.current) return;
+    generatePending.current = true; setGenerateError(""); setGenerating(true);
     const toastId = toast.loading(t.hrExtensions.working);
     try {
       const res = await generatePayrollRunAction(generateMonth, generateYear);
@@ -106,14 +109,16 @@ export function PayrollManagementView({
         setExpandedRunId(res.payrollRun.id);
         router.refresh();
       } else {
+        setGenerateError(t.payrollManagement.failedToGeneratePayrollRun);
         toast.error(t.payrollManagement.failedToGeneratePayrollRun, { id: toastId });
       }
     } catch (err: unknown) {
+      setGenerateError(errorMessage(err, t, t.payrollManagement.calculationFailed));
       toast.error(errorMessage(err, t, t.payrollManagement.calculationFailed), {
         id: toastId,
       });
     } finally {
-      setGenerating(false);
+      generatePending.current = false; setGenerating(false);
     }
   };
 
@@ -165,6 +170,7 @@ export function PayrollManagementView({
       toast.success(t.payroll.recalculated, { id: toastId });
       router.refresh();
     } catch (err: unknown) {
+      setGenerateError(errorMessage(err, t, t.payrollManagement.calculationFailed));
       toast.error(errorMessage(err, t, t.payrollManagement.calculationFailed), { id: toastId });
     } finally {
       setLoadingId(null);
@@ -222,7 +228,7 @@ export function PayrollManagementView({
             </Link>
           )}
           {canCreate && <Button
-            onClick={() => setShowGenerateModal(true)}
+            onClick={() => { setGenerateError(""); setShowGenerateModal(true); }}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -283,7 +289,7 @@ export function PayrollManagementView({
             </p>
             {canCreate && (
               <Button
-                onClick={() => setShowGenerateModal(true)}
+                onClick={() => { setGenerateError(""); setShowGenerateModal(true); }}
                 className="bg-primary hover:bg-primary-hover text-white px-4 py-2 text-xs rounded-md"
               >
                 {t.payrollManagement.generateFirstRun}
@@ -543,25 +549,16 @@ export function PayrollManagementView({
       </Modal>
 
       {/* Generate Run Modal */}
-      {showGenerateModal && (
-        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4">
-          <form {...generateDialog}
-            onSubmit={handleGenerate}
-            className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl"
-          >
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              {t.payrollManagement.generateMonthlyPayrollCycle}
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              {t.payrollManagement.calculateSalaryItemsUsingEmployment}
-            </p>
-
+      <Modal isOpen={showGenerateModal} onClose={() => setShowGenerateModal(false)} title={t.payrollManagement.generateMonthlyPayrollCycle} description={t.payrollManagement.calculateSalaryItemsUsingEmployment} busy={generating} className="max-w-md" footer={<div className="flex justify-end gap-3"><Button type="button" variant="ghost" disabled={generating} onClick={() => setShowGenerateModal(false)}>{t.shared.cancel}</Button><Button type="submit" form={generateFormId} disabled={generating}>{generating ? t.payrollManagement.calculating : t.payrollManagement.generateRun}</Button></div>}>
+        <form id={generateFormId} onSubmit={handleGenerate} onInvalidCapture={() => setGenerateError(t.payrollManagement.invalidPeriod)}>
+          <fieldset disabled={generating}>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                <label htmlFor={`${generateFormId}-month`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
                   {t.payrollManagement.month}
                 </label>
-                <select
+                <Select
+                  id={`${generateFormId}-month`}
                   value={generateMonth}
                   onChange={(e) => setGenerateMonth(Number(e.target.value))}
                   className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
@@ -571,14 +568,17 @@ export function PayrollManagementView({
                       {m}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                <label htmlFor={`${generateFormId}-year`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
                   {t.payrollManagement.year}
                 </label>
-                <input
+                <Input
+                  id={`${generateFormId}-year`}
+                  placeholder={t.payrollManagement.yearPlaceholder}
+                  required
                   type="number"
                   min="2020"
                   max="2035"
@@ -589,25 +589,10 @@ export function PayrollManagementView({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowGenerateModal(false)}
-                className="px-3 py-1.5 text-xs text-slate-600 dark:text-neutral-300 hover:bg-slate-100 rounded-md"
-              >
-                {t.shared.cancel}
-              </button>
-              <Button
-                type="submit"
-                disabled={generating}
-                className="bg-primary hover:bg-primary-hover text-white px-4 py-1.5 text-xs rounded-md"
-              >
-                {generating ? t.payrollManagement.calculating : t.payrollManagement.generateRun}
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
+          </fieldset>
+          {generateError && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{generateError}</p>}
+        </form>
+      </Modal>
     </div>
   );
 }

@@ -10,7 +10,7 @@ export interface ConfirmDialogProps {
   onClose: () => void;
   onConfirm: () => Promise<void> | void;
   title: string;
-  description: string;
+  description: React.ReactNode;
   confirmMatchText?: string;
   typePromptLabel?: string;
   confirmLabel?: string;
@@ -75,28 +75,8 @@ export function ConfirmDialog({
   const isDanger = variant === "danger";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} closeLabel={cancelLabel} busy={isSubmitting || loading} description={description} className="max-w-lg">
-      <div data-confirm-dialog className="space-y-4 text-sm text-ink-muted">
-        {confirmMatchText && (
-          <div className="space-y-2">
-            <label htmlFor={inputId} className="block text-xs text-ink-muted">
-              {typePromptLabel || `${copy.typeToConfirm}: ${confirmMatchText}`}
-            </label>
-            <Input
-              id={inputId}
-              type="text"
-              autoComplete="off"
-              disabled={isSubmitting || loading}
-              value={typedInput}
-              onChange={(e) => setTypedInput(e.target.value)}
-              placeholder={confirmMatchText}
-              className="font-mono text-xs border-rose-500/40 focus:border-rose-400"
-            />
-          </div>
-        )}
-
-        {error && <p role="alert" className="text-rose-700 dark:text-rose-300">{errorLabel ?? copy.actionFailed}</p>}
-        <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t border-ink/10">
+    <Modal isOpen={isOpen} onClose={onClose} title={title} busy={isSubmitting || loading} description={description} className="max-w-lg" footer={
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <Button
             type="button"
             variant="ghost"
@@ -117,6 +97,28 @@ export function ConfirmDialog({
             {isSubmitting || loading ? loadingLabel : confirmLabel}
           </Button>
         </div>
+      }>
+      <div data-confirm-dialog className="space-y-4 text-sm text-ink-muted">
+        {confirmMatchText && (
+          <div className="space-y-2">
+            <label htmlFor={inputId} className="block text-xs text-ink-muted">
+              {typePromptLabel || `${copy.typeToConfirm}: ${confirmMatchText}`}
+            </label>
+            <Input
+              id={inputId}
+              type="text"
+              autoComplete="off"
+              disabled={isSubmitting || loading}
+              value={typedInput}
+              onChange={(e) => setTypedInput(e.target.value)}
+              placeholder={confirmMatchText}
+              className="font-mono text-xs border-rose-500/40 focus:border-rose-400"
+            />
+          </div>
+        )}
+
+        {error && <p role="alert" className="text-rose-700 dark:text-rose-300">{errorLabel ?? copy.actionFailed}</p>}
+
       </div>
     </Modal>
   );

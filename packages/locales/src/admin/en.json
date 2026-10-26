@@ -1187,7 +1187,8 @@
       "bank_iban": "IBAN Account Number",
       "invoice_prefix": "Invoice Prefix",
       "invoice_next_number": "Next Invoice Number"
-    }
+    },
+    "saveFailed": "Could not save company settings. Your changes are kept; try again."
   },
   "companySettingsTabs": {
     "general": "General & Legal Profile",
@@ -1246,7 +1247,8 @@
     "swiftPlaceholder": "NBOBBHBM",
     "invPrefixPlaceholder": "INV",
     "rctPrefixPlaceholder": "RCT",
-    "trnPlaceholder": "200000000000003"
+    "trnPlaceholder": "200000000000003",
+    "vatStateLabel": "Enable VAT"
   },
   "deals": {
     "subtitle": "Interactive Kanban workspace with drag-and-drop live database updates.",
@@ -1995,7 +1997,9 @@
     "ratePlaceholder": "0.000",
     "descEnPlaceholder": "Details of what the service includes...",
     "nameLabel": "Service name",
-    "descLabel": "Service scope"
+    "descLabel": "Service scope",
+    "saveFailed": "Could not save the service. Your entries are kept; try again.",
+    "validationFailed": "Check the required names and enter a rate of zero or more."
   },
   "invoiceEdit": {
     "title": "Edit Invoice",
@@ -3993,7 +3997,9 @@
     "errorApproving": "Error approving",
     "errorSettlingPayroll": "Error settling payroll",
     "calculating": "Calculating...",
-    "generateRun": "Generate Run"
+    "generateRun": "Generate Run",
+    "yearPlaceholder": "e.g. 2026",
+    "invalidPeriod": "Select a month and enter a year from 2020 to 2035."
   },
   "userProfile": {
     "updatingContactDetails": "Updating contact details...",
