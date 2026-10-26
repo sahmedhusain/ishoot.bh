@@ -76,7 +76,7 @@ export function ConfirmDialog({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} closeLabel={cancelLabel} busy={isSubmitting || loading} description={description} className="max-w-lg">
-      <div className="space-y-4 text-sm text-ink-muted">
+      <div data-confirm-dialog className="space-y-4 text-sm text-ink-muted">
         {confirmMatchText && (
           <div className="space-y-2">
             <label htmlFor={inputId} className="block text-xs text-ink-muted">
@@ -120,4 +120,41 @@ export function ConfirmDialog({
       </div>
     </Modal>
   );
+}
+
+interface ConfirmationRequest {
+  description: string;
+  onConfirm: () => Promise<unknown> | unknown;
+  title?: string;
+  confirmMatchText?: string;
+  variant?: "danger" | "warning";
+}
+
+const ConfirmationContext = React.createContext<((request: ConfirmationRequest) => void) | null>(null);
+
+/** Shared confirmation host for actions in lists and menus. */
+export function ConfirmationProvider({ children }: { children: React.ReactNode }) {
+  const copy = useUiCopy();
+  const [request, setRequest] = React.useState<ConfirmationRequest | null>(null);
+  const confirm = React.useCallback((next: ConfirmationRequest) => setRequest(current => current ?? next), []);
+  return (
+    <ConfirmationContext.Provider value={confirm}>
+      {children}
+      <ConfirmDialog
+        isOpen={request !== null}
+        title={request?.title ?? copy.confirm}
+        description={request?.description ?? ""}
+        confirmMatchText={request?.confirmMatchText}
+        variant={request?.variant}
+        onClose={() => setRequest(null)}
+        onConfirm={async () => { await request?.onConfirm(); }}
+      />
+    </ConfirmationContext.Provider>
+  );
+}
+
+export function useConfirmation() {
+  const confirm = React.useContext(ConfirmationContext);
+  if (!confirm) throw new Error();
+  return confirm;
 }

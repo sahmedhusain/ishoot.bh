@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import type { ServiceItem,ServiceCategory } from "@platform/database/types";
@@ -33,6 +34,7 @@ export function ServicesManagementView({
   initialServices,
   languages,
 }: ServicesManagementViewProps) {
+  const confirmAction = useConfirmation();
   const { isRTL, t } = useAdminLocale();
   const bilingual = languages.length > 1;
   const { can } = usePermissions();
@@ -137,18 +139,22 @@ export function ServicesManagementView({
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm(t.servicesView.deleteConfirmDesc)) return;
-    setDeletingId(id);
-    try {
-      const res = await deleteServiceAction(id);
-      if (res.success) {
-        setServices((prev) => prev.filter((s) => s.id !== id));
-      }
-    } catch (err) {
-      console.error("Failed to delete service:", err);
-    } finally {
-      setDeletingId(null);
-    }
+    return confirmAction({
+      description: t.servicesView.deleteConfirmDesc,
+      onConfirm: async () => {
+        setDeletingId(id);
+        try {
+          const res = await deleteServiceAction(id);
+          if (res.success) {
+            setServices((prev) => prev.filter((s) => s.id !== id));
+          }
+        } catch (err) {
+          console.error("Failed to delete service:", err);
+        } finally {
+          setDeletingId(null);
+        }
+      },
+    });
   };
 
   // Filtered List

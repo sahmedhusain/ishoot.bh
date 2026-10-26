@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 import { formatMessage } from "@platform/locales";
 import { errorMessage } from "../../lib/error-text";
 import { ROUTES } from "../../constants/routes";
@@ -76,6 +77,7 @@ export function UsersManagementView({
   filters,
   people,
 }: UsersManagementViewProps) {
+  const confirmAction = useConfirmation();
   const { t, isRTL } = useAdminLocale();
   const { role: actorRole } = usePermissions();
 
@@ -89,7 +91,7 @@ export function UsersManagementView({
   const selectable = users.filter((u) => u.role !== "super_admin").map((u) => u.id);
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const pageHref = (next: number) => `${ROUTES.users.list}?${new URLSearchParams({ ...filters, page: String(next) })}`;
-  const applyBulk = async (change: { role?: string; departmentId?: string }) => {
+  const applyBulk = (change: { role?: string; departmentId?: string }) => confirmAction({ description: formatMessage(t.usersBulk.confirmChange, { count: selected.length }), confirmMatchText: String(selected.length), onConfirm: async () => {
     setBulkBusy(true);
     try {
       const result = await bulkUpdateUsersAction({ userIds: selected, ...change });
@@ -101,7 +103,7 @@ export function UsersManagementView({
     } finally {
       setBulkBusy(false);
     }
-  };
+  } });
   const [activeTab, setActiveTab] = React.useState<"users" | "matrix">("users");
   const [showCreateModal, setShowCreateModal] = React.useState(false);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(

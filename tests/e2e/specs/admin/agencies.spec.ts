@@ -1,3 +1,4 @@
+import { acceptConfirmations } from "../../helpers";
 import { expect, test } from "@playwright/test";
 import en from "../../../../packages/locales/src/en.json";
 import { ports } from "../../../../playwright.config";
@@ -32,7 +33,7 @@ test.afterAll(async () => {
 
 test("a shipment handed to a courier agency is tracked at the agency and invoiced as a delivery expense", async ({ page }) => {
   const errors = watchErrors(page);
-  page.on("dialog", (dialog) => void dialog.accept());
+  await acceptConfirmations(page);
   await page.goto("/dashboard/delivery/agencies");
   await page.getByRole("button", { name: copy.agencies.add }).first().click();
   await page.locator('input[name="agencyName"]').fill(AGENCY);

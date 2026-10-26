@@ -1,4 +1,5 @@
 import "./globals.css";
+import { ConfirmationProvider } from "@platform/ui";
 import { googleFontsHref, normalizeTheme, themeStylesheet } from "@platform/database/constants/theme";
 import { companyMetadata } from "../lib/company-metadata";
 import { getCachedCompanySettings } from "../lib/cached-queries";
@@ -33,7 +34,7 @@ export default async function RootLayout({
       <body className="min-h-screen bg-brand-base text-slate-800 dark:text-ink antialiased font-sans selection:bg-accent/30 selection:text-white transition-colors duration-200">
         <AdminThemeProvider defaultTheme={theme.defaultMode}>
           <AdminLocaleProvider activity={company?.business_activity}>
-            {children}
+            <ConfirmationProvider>{children}</ConfirmationProvider>
             <Toaster richColors closeButton position="top-right" />
           </AdminLocaleProvider>
         </AdminThemeProvider>

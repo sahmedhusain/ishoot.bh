@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -27,6 +28,7 @@ interface Rfq {
 
 /** One request for quotation: each supplier's prices side by side, the best marked, and the chosen ones ordered. */
 export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: Rfq; suppliers: { id: string; name: string }[]; currency: string; canEdit: boolean; canOrder: boolean }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.rfqs;
   const router = useRouter();
@@ -86,7 +88,7 @@ export function RfqView({ rfq, suppliers, currency, canEdit, canOrder }: { rfq: 
             </Button>
           )}
           {open && canEdit && (
-            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => window.confirm(t.procurement.common.cancelConfirm) && run(() => cancelRfqAction(rfq.id))}>{t.procurement.common.cancel}</Button>
+            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: t.procurement.common.cancelConfirm, onConfirm: () => run(() => cancelRfqAction(rfq.id)) })}>{t.procurement.common.cancel}</Button>
           )}
         </div>
       </div>

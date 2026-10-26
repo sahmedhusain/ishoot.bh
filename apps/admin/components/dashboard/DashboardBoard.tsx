@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -35,6 +36,7 @@ interface DashboardBoardProps {
 }
 
 export function DashboardBoard({ desk, layout, custom, available, data, loaded, showDepartment }: DashboardBoardProps) {
+  const confirmAction = useConfirmation();
   const { t } = useAdminLocale();
   const b = t.dashboardBoard;
   const router = useRouter();
@@ -87,19 +89,23 @@ export function DashboardBoard({ desk, layout, custom, available, data, loaded, 
     }
   };
   const reset = async () => {
-    if (!window.confirm(b.resetConfirm)) return;
-    setBusy(true);
-    setError("");
-    try {
-      await resetDashboardLayoutAction();
-      setEditing(false);
-      setMessage(b.resetDone);
-      router.refresh();
-    } catch (err) {
-      setError(errorMessage(err, t));
-    } finally {
-      setBusy(false);
-    }
+    return confirmAction({
+      description: b.resetConfirm,
+      onConfirm: async () => {
+        setBusy(true);
+        setError("");
+        try {
+          await resetDashboardLayoutAction();
+          setEditing(false);
+          setMessage(b.resetDone);
+          router.refresh();
+        } catch (err) {
+          setError(errorMessage(err, t));
+        } finally {
+          setBusy(false);
+        }
+      },
+    });
   };
 
   return (

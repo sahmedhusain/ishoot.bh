@@ -1,3 +1,4 @@
+import { acceptConfirmations } from "../../helpers";
 import zlib from "node:zlib";
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import users from "../../fixtures/users.json";
@@ -89,7 +90,7 @@ test("a vehicle is added and the driver is listed", async ({ page }) => {
 
 test("a route sheet puts two shipments in order and sends the driver out", async ({ page }) => {
   const errors = watchErrors(page);
-  page.on("dialog", (dialog) => void dialog.accept());
+  await acceptConfirmations(page);
   shipments.push(await placeDeliveryOrder(page, "Route Buyer A"), await placeDeliveryOrder(page, "Route Buyer B"));
   await page.goto("/dashboard/delivery/routes");
   await page.getByRole("button", { name: copy.routes.new }).first().click();

@@ -1,3 +1,4 @@
+import { acceptConfirmations } from "../../helpers";
 import { expect, test } from "@playwright/test";
 import { testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
@@ -50,7 +51,7 @@ test("delivery zones and times are set up in delivery settings", async ({ page }
 
 test("a phone order's shipment goes out, fails once with a reason, goes out again and is delivered with the cash", async ({ page }) => {
   const errors = watchErrors(page);
-  page.on("dialog", (dialog) => void dialog.accept());
+  await acceptConfirmations(page);
   await page.goto("/dashboard/orders/new");
   await expect(page.getByTestId("sale-search")).toHaveCount(1, { timeout: 30_000 });
   await page.getByTestId("sale-search").fill(SKU);

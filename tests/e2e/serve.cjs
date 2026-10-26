@@ -55,8 +55,9 @@ const child = spawn(path.join(root, `apps/${app}/node_modules/.bin/next`), args,
 });
 // Next writes them while it boots; Playwright may kill the server without an exit event, so restore early too.
 const early = setInterval(restore, 5000);
-setTimeout(() => clearInterval(early), 120_000).unref();
+early.unref();
 child.on("exit", (code) => {
+  clearInterval(early);
   restore();
   process.exit(code ?? 0);
 });

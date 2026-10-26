@@ -1,3 +1,4 @@
+import { acceptConfirmations } from "../../helpers";
 import { expect, test } from "@playwright/test";
 import { testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
@@ -47,7 +48,7 @@ test("a counter sale paid in cash is handed over at once and takes the stock", a
 
 test("a phone order is paid later (which invoices it), packed and shipped, and partly refunded", async ({ page }) => {
   const errors = watchErrors(page);
-  page.on("dialog", (dialog) => void dialog.accept());
+  await acceptConfirmations(page);
   await startSale(page, "1");
   await page.getByLabel(copy.pos.channel).selectOption("phone");
   await page.locator('input[name="saleName"]').fill("Phone Buyer");

@@ -1361,3 +1361,12 @@ All input-like elements without a placeholder are listed for review. Checkboxes,
 - `apps/admin/components/users/UsersManagementView.tsx:572`: `Select`; review label, expected format and validation
 - `apps/admin/components/users/UsersManagementView.tsx:588`: `Select`; review label, expected format and validation
 - `apps/admin/components/users/UsersManagementView.tsx:619`: `Select`; review label, expected format and validation
+
+### G2 execution evidence
+
+- Replaced all 26 `window.confirm` calls (22 component files) with the shared confirmation host: services; requisition/RFQ/PO/supplier bill cancellation; broadcasts; shipment transitions and route departure; stock count post/cancel; support terms/registrations; handover cancellation; article/page/product/category deletion; calendar token rotation/disconnect; department deletion; dashboard/pipeline reset; settlement cancel/pay; GOSI history deletion.
+- Added previously absent confirmations for order refunds (typed order number), stock count posting (typed count number), bulk product availability (typed selected count), bulk user role/department changes (typed selected count), website publication and previous-publication restore (typed revision).
+- Existing ordinary forms keep their shared Modal. Native prompts/alerts and standalone overlays remain open G3 work; a native confirmation count of zero does not mean every destructive path has been audited.
+- Updated six existing lifecycle e2e specs to accept the shared confirmation through a narrowly scoped handler; added real dashboard-reset cancel/success coverage. The three prior confirmation tests and the host reset test passed. A sweep-induced Next restart interrupted one earlier pending request; isolated rerun passed.
+- Runtime sweep currently has 199 route visits across EN/light and EN/dark, with 19 missing dynamic fixtures. It observed mobile overflow on archive, banners, contacts/customer/deal details, employees, GOSI, new invoice and departments, plus unlabelled website-editor fields. Remaining modes, roles, drawers and mutating actions are pending. Raw output: tests/.results/admin-polish-inventory.json (local test artifact).
+- Concurrent calendar rename and plan-formatting edits were detected in the shared checkout and are being left outside this implementation commit.

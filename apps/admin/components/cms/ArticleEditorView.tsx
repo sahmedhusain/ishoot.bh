@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -22,6 +23,7 @@ const fromLocal = (value: string) => (value ? new Date(value).toISOString() : ""
 
 /** The article editor: title, address, category, cover, excerpt, body (per content language), schedule and SEO. */
 export function ArticleEditorView({ article, languages, canPublish, canDelete, articlesSlug }: { article: CmsArticleRecord; languages: readonly ContentLanguage[]; canPublish: boolean; canDelete: boolean; articlesSlug: string }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.cmsArticles;
   const router = useRouter();
@@ -76,9 +78,13 @@ export function ArticleEditorView({ article, languages, canPublish, canDelete, a
   };
 
   const remove = async () => {
-    if (!window.confirm(copy.deleteConfirm)) return;
-    await deleteCmsArticleAction(draft.id);
-    router.replace(ROUTES.cms.articles);
+    return confirmAction({
+      description: copy.deleteConfirm,
+      onConfirm: async () => {
+        await deleteCmsArticleAction(draft.id);
+        router.replace(ROUTES.cms.articles);
+      },
+    });
   };
 
   return (

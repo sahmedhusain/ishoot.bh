@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -17,6 +18,7 @@ import { LatePill, ShipmentStatusPill } from "./ShipmentPills";
 
 /** One shipment: where and when, what is in it, moving it along (with a reason when it fails) and its history. */
 export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drivers, vehicles, agencies, currency }: { shipment: ShipmentRecord; trackingLink: string; canEdit: boolean; canAssign: boolean; drivers: DriverOption[]; vehicles: VehicleRecord[]; agencies: CourierAgencyRecord[]; currency: string }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.detail;
   const router = useRouter();
@@ -50,13 +52,21 @@ export function ShipmentView({ shipment, trackingLink, canEdit, canAssign, drive
       setBusy(false);
     }
   };
-  const move = async (to: string, extra: { reason?: string; codCollected?: number } = {}) => {
+  const move = async (
+    to: string,
+    extra: { reason?: string; codCollected?: number } = {},
+  ) => {
     const confirm = (copy.moveConfirm as Record<string, string>)[to];
-    if (confirm && !window.confirm(confirm)) return;
-    if (await run(() => moveShipmentAction(shipment.id, { to, note, ...extra }))) {
-      setFailing(false);
-      setNote("");
-    }
+    const apply = async () => {
+      if (
+        await run(() => moveShipmentAction(shipment.id, { to, note, ...extra }))
+      ) {
+        setFailing(false);
+        setNote("");
+      }
+    };
+    if (confirm) confirmAction({ description: confirm, onConfirm: apply });
+    else await apply();
   };
 
   return (

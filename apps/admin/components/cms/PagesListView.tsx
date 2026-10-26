@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -18,6 +19,7 @@ type Row = Pick<CmsPageRecord, "id" | "slug" | "page_type" | "title_en" | "title
 
 /** Website → Pages: every page in menu order, shown or hidden, in the header and footer menus or not. */
 export function PagesListView({ pages, canEdit, canCreate, canDelete, canPublish, publication }: { pages: Row[]; canEdit: boolean; canCreate: boolean; canDelete: boolean; canPublish: boolean; publication: { isPublished: boolean; changedSections: WebsiteSnapshotSection[] } }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.cmsPages;
   const router = useRouter();
@@ -111,7 +113,7 @@ export function PagesListView({ pages, canEdit, canCreate, canDelete, canPublish
                   <Link href={ROUTES.cms.page(row.id)} aria-label={formatMessage(copy.editNamed, { name: title })} className="h-8 w-8 grid place-items-center rounded-lg text-ink-muted hover:text-ink hover:bg-ink/5"><Pencil className="w-3.5 h-3.5" /></Link>
                   {canCreate && <button type="button" aria-label={formatMessage(copy.duplicateNamed, { name: title })} disabled={busy} onClick={() => run(() => duplicateCmsPageAction(row.id), copy.duplicated)} className="h-8 w-8 grid place-items-center rounded-lg text-ink-muted hover:text-ink hover:bg-ink/5"><Copy className="w-3.5 h-3.5" /></button>}
                   {canDelete && row.page_type === "custom" && (
-                    <button type="button" aria-label={formatMessage(copy.deleteNamed, { name: title })} disabled={busy} onClick={() => window.confirm(copy.deleteConfirm) && run(() => deleteCmsPageAction(row.id), copy.deleted)} className="h-8 w-8 grid place-items-center rounded-lg text-rose-600 hover:bg-rose-500/10"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button type="button" aria-label={formatMessage(copy.deleteNamed, { name: title })} disabled={busy} onClick={() => confirmAction({ description: copy.deleteConfirm, onConfirm: () => run(() => deleteCmsPageAction(row.id), copy.deleted) })} className="h-8 w-8 grid place-items-center rounded-lg text-rose-600 hover:bg-rose-500/10"><Trash2 className="w-3.5 h-3.5" /></button>
                   )}
                 </div>
               </Card>

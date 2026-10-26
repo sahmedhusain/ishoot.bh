@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -78,6 +79,7 @@ export function SupportProgramsView({
   filters: { program: string; status: string };
   canEdit: boolean;
 }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const s = t.supports;
   const router = useRouter();
@@ -361,11 +363,10 @@ export function SupportProgramsView({
                               aria-label={s.delete}
                               disabled={busy}
                               onClick={() =>
-                                window.confirm(s.deleteTermsConfirm) &&
-                                run(
+                                confirmAction({ description: s.deleteTermsConfirm, onConfirm: () => run(
                                   () => deleteSupportRuleAction(r.id),
                                   s.saved,
-                                )
+                                ) })
                               }
                               className="text-rose-600"
                             >
@@ -917,11 +918,10 @@ export function SupportProgramsView({
                               title={s.delete}
                               disabled={busy}
                               onClick={() =>
-                                window.confirm(s.deleteConfirm) &&
-                                run(
+                                confirmAction({ description: s.deleteConfirm, onConfirm: () => run(
                                   () => deleteEmployeeSupportAction(e.id),
                                   s.saved,
-                                )
+                                ) })
                               }
                               className="rounded-lg p-1.5 text-ink-muted hover:bg-rose-500/10 hover:text-rose-600"
                             >

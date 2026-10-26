@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -27,6 +28,7 @@ interface ProductsListViewProps {
 
 /** Products → list: search, filters, paging and switching several products on or off sale. */
 export function ProductsListView({ rows, total, page, pageSize, filters, categories, currency, canCreate, canEdit }: ProductsListViewProps) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.products;
   const router = useRouter();
@@ -43,7 +45,7 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
   };
   React.useEffect(() => setSelected([]), [rows]);
 
-  const bulk = async (isActive: boolean) => {
+  const bulk = (isActive: boolean) => confirmAction({ description: formatMessage(copy.bulkConfirm, { count: selected.length }), confirmMatchText: String(selected.length), onConfirm: async () => {
     setBusy(true);
     setError("");
     try {
@@ -54,7 +56,7 @@ export function ProductsListView({ rows, total, page, pageSize, filters, categor
     } finally {
       setBusy(false);
     }
-  };
+  } });
 
   const allChecked = rows.length > 0 && rows.every((row) => selected.includes(row.id));
   return (

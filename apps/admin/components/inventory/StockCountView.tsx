@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -34,6 +35,7 @@ interface StockCountViewProps {
 
 /** One stock count: scan or type counts, send for review, then approve the differences into stock. */
 export function StockCountView({ count, locations, canEdit, canApprove }: StockCountViewProps) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.inventory.counts;
   const router = useRouter();
@@ -117,13 +119,13 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
             <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy} onClick={() => run(() => setStockCountStatusAction(count.id, "counting"))}>{copy.reopen}</Button>
           )}
           {count.status === "review" && canApprove && (
-            <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" disabled={busy} onClick={() => window.confirm(copy.approveConfirm) && run(async () => { const result = await approveStockCountAction(count.id); setMessage({ tone: "ok", text: formatMessage(copy.approved, { count: result.adjusted }) }); })} data-testid="count-approve">
+            <Button type="button" variant="primary" size="sm" className="rounded-full gap-1.5" disabled={busy} onClick={() => confirmAction({ description: copy.approveConfirm, confirmMatchText: count.number, onConfirm: () => run(async () => { const result = await approveStockCountAction(count.id); setMessage({ tone: "ok", text: formatMessage(copy.approved, { count: result.adjusted }) }); }) })} data-testid="count-approve">
               <CheckCircle2 className="w-3.5 h-3.5" />
               {copy.approve}
             </Button>
           )}
           {(count.status === "counting" || count.status === "review") && canEdit && (
-            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => window.confirm(copy.cancelConfirm) && run(() => setStockCountStatusAction(count.id, "cancelled"))}>{copy.cancel}</Button>
+            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: copy.cancelConfirm, onConfirm: () => run(() => setStockCountStatusAction(count.id, "cancelled")) })}>{copy.cancel}</Button>
           )}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
         </div>

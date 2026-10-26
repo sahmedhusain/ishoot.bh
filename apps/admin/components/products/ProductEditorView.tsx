@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -62,6 +63,7 @@ interface ProductEditorViewProps {
 
 /** Products → one product: details, price, pictures, options and their variants, and the website. */
 export function ProductEditorView({ product, categories, currency, languages, canEdit, canDelete, canPublish, batchesByDefault = false, stockPanel }: ProductEditorViewProps) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.products.editor;
   const router = useRouter();
@@ -152,7 +154,7 @@ export function ProductEditorView({ product, categories, currency, languages, ca
         </div>
         <div className="flex gap-2">
           {product && canDelete && (
-            <Button type="button" variant="outline" size="sm" className="rounded-full gap-1.5 text-rose-600" disabled={busy} onClick={() => window.confirm(copy.deleteConfirm) && run(async () => { await deleteProductAction(product.id); router.replace(ROUTES.products.list); })}>
+            <Button type="button" variant="outline" size="sm" className="rounded-full gap-1.5 text-rose-600" disabled={busy} onClick={() => confirmAction({ description: copy.deleteConfirm, onConfirm: () => run(async () => { await deleteProductAction(product.id); router.replace(ROUTES.products.list); }) })}>
               <Trash2 className="w-3.5 h-3.5" />
               {copy.delete}
             </Button>

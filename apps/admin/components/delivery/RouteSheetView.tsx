@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -14,13 +15,14 @@ import { ShipmentStatusPill } from "./ShipmentPills";
 
 /** One route sheet: the stops in order, ready to print, and sending the driver out or closing the run. */
 export function RouteSheetView({ sheet }: { sheet: RouteSheetRecord }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.delivery.routes;
   const router = useRouter();
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState("");
-  const run = async (task: () => Promise<unknown>, confirm?: string) => {
-    if (confirm && !window.confirm(confirm)) return;
+  const run = async (task: () => Promise<unknown>, confirm?: string): Promise<void> => {
+    if (confirm) return confirmAction({ description: confirm, onConfirm: () => run(task) });
     setBusy(true);
     setError("");
     try {

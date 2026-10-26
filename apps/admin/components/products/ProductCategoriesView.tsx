@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -22,6 +23,7 @@ interface Draft {
 
 /** Products → categories: a nested list with inline add and edit. */
 export function ProductCategoriesView({ categories, languages, canEdit, canDelete }: { categories: ProductCategoryRecord[]; languages: readonly ContentLanguage[]; canEdit: boolean; canDelete: boolean }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.products.categories;
   const router = useRouter();
@@ -127,7 +129,7 @@ export function ProductCategoriesView({ categories, languages, canEdit, canDelet
                   </button>
                 )}
                 {canDelete && (
-                  <button type="button" aria-label={formatMessage(copy.delete, { name: name(category) })} disabled={busy} onClick={() => window.confirm(copy.deleteConfirm) && run(() => deleteProductCategoryAction(category.id))} className="h-8 w-8 grid place-items-center rounded-lg text-rose-600 hover:bg-rose-500/10">
+                  <button type="button" aria-label={formatMessage(copy.delete, { name: name(category) })} disabled={busy} onClick={() => confirmAction({ description: copy.deleteConfirm, onConfirm: () => run(() => deleteProductCategoryAction(category.id)) })} className="h-8 w-8 grid place-items-center rounded-lg text-rose-600 hover:bg-rose-500/10">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 )}

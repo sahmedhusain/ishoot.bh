@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -61,6 +62,7 @@ export function HandoverWorkspaceView({
   /** Approvers draw their signature when approving. */
   signatureRequired?: boolean;
 }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const e = t.employeeHandovers;
   const router = useRouter();
@@ -193,11 +195,10 @@ export function HandoverWorkspaceView({
               className="self-start text-rose-600"
               disabled={busy}
               onClick={() => {
-                if (window.confirm(e.cancelConfirm))
-                  void run(
+                confirmAction({ description: e.cancelConfirm, onConfirm: () => run(
                     () => cancelEmployeeHandoverAction(handover.id),
                     e.cancelled,
-                  );
+                  ) });
               }}
             >
               {e.cancel}

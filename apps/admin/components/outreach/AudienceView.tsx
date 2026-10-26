@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ import { Field, LanguageFields } from "../setup/LanguageFields";
 
 /** Marketing → segments and e-mail: who to reach, and e-mail broadcasts to those who agreed. */
 export function AudienceView({ segments, broadcasts, campaigns, currency, languages, canEdit }: { segments: SegmentRow[]; broadcasts: BroadcastRow[]; campaigns: { id: string; name: string }[]; currency: string; languages: readonly ContentLanguage[]; canEdit: boolean }) {
+  const confirmAction = useConfirmation();
   const { t } = useAdminLocale();
   const copy = t.marketing.audience;
   const router = useRouter();
@@ -125,7 +127,7 @@ export function AudienceView({ segments, broadcasts, campaigns, currency, langua
                 {canEdit && b.status === "draft" && (
                   <span className="ms-auto flex gap-3">
                     <button type="button" className="text-xs font-semibold text-primary dark:text-mint" onClick={() => setBroadcast({ id: b.id, name: b.name, segmentId: b.segment_id, campaignId: b.campaign_id, subjectEn: b.subject_en, subjectAr: b.subject_ar, bodyEn: b.body_en, bodyAr: b.body_ar })}>{copy.edit}</button>
-                    <button type="button" disabled={busy} className="inline-flex items-center gap-1 text-xs font-semibold text-primary dark:text-mint" onClick={() => { if (window.confirm(copy.sendConfirm)) void run(() => sendBroadcastAction(b.id), (r) => formatMessage(copy.queued, { count: r.count })); }} data-testid="broadcast-send"><Send className="w-3 h-3" />{copy.send}</button>
+                    <button type="button" disabled={busy} className="inline-flex items-center gap-1 text-xs font-semibold text-primary dark:text-mint" onClick={() => { confirmAction({ description: copy.sendConfirm, onConfirm: () => run(() => sendBroadcastAction(b.id), (r) => formatMessage(copy.queued, { count: r.count })) }); }} data-testid="broadcast-send"><Send className="w-3 h-3" />{copy.send}</button>
                   </span>
                 )}
               </li>

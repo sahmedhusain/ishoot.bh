@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -889,6 +890,7 @@ function RegistrationForm({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const g = t.gosi;
   const isAr = locale === "ar";
@@ -962,7 +964,9 @@ function RegistrationForm({
         <div className="flex items-start justify-between">
           <div>
             <h2 id="gosi-reg-title" className="text-base font-bold text-ink">
-              {formatMessage(g.registrationTitle, { name: isAr ? employee.nameAr : employee.nameEn })}
+              {formatMessage(g.registrationTitle, {
+                name: isAr ? employee.nameAr : employee.nameEn,
+              })}
             </h2>
             <p className="text-xs text-ink-muted">{g.registrationHint}</p>
           </div>
@@ -1143,17 +1147,21 @@ function RegistrationForm({
                     disabled={busy}
                     className="font-semibold text-rose-600 hover:underline"
                     onClick={async () => {
-                      if (!window.confirm(g.deleteConfirm)) return;
-                      setBusy(true);
-                      try {
-                        await deleteEmployeeGosiRecordAction(h.id);
-                        toast.success(g.saved);
-                        onDone();
-                      } catch (error) {
-                        toast.error(errorMessage(error, t, g.failed));
-                      } finally {
-                        setBusy(false);
-                      }
+                      return confirmAction({
+                        description: g.deleteConfirm,
+                        onConfirm: async () => {
+                          setBusy(true);
+                          try {
+                            await deleteEmployeeGosiRecordAction(h.id);
+                            toast.success(g.saved);
+                            onDone();
+                          } catch (error) {
+                            toast.error(errorMessage(error, t, g.failed));
+                          } finally {
+                            setBusy(false);
+                          }
+                        },
+                      });
                     }}
                   >
                     {g.delete}

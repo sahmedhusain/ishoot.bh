@@ -1,3 +1,4 @@
+import { acceptConfirmations } from "../../helpers";
 import crypto from "node:crypto";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
@@ -89,7 +90,7 @@ test("a segment of buyers gets a broadcast; only those who agreed, and each can 
   for (const input of await form.locator('input:not([name])').all()) await input.fill("Our Eid offers");
   for (const area of await form.locator("textarea").all()) await area.fill("Twenty percent off this week.");
   await page.getByTestId("broadcast-save").click();
-  page.once("dialog", (d) => void d.accept());
+  await acceptConfirmations(page);
   await page.getByTestId("broadcast-E2E news").getByTestId("broadcast-send").click();
   await expect(page.getByRole("status")).toContainText(/\d+/);
   const broadcast = await db.broadcast.findFirstOrThrow({ where: { name: "E2E news" }, include: { recipients: true } });

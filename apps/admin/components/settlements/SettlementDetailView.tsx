@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -71,6 +72,7 @@ export function SettlementDetailView({
   approvalId: string | null;
   signatureRequired: boolean;
 }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const f = t.settlements;
   const router = useRouter();
@@ -573,8 +575,7 @@ export function SettlementDetailView({
               disabled={busy}
               className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:underline"
               onClick={() =>
-                window.confirm(f.cancelConfirm) &&
-                run(() => cancelFinalSettlementAction(s.id), f.cancelled)
+                confirmAction({ description: f.cancelConfirm, onConfirm: () => run(() => cancelFinalSettlementAction(s.id), f.cancelled) })
               }
             >
               <X className="h-3.5 w-3.5" aria-hidden />
@@ -689,8 +690,7 @@ export function SettlementDetailView({
           className="space-y-3 rounded-3xl border border-emerald-500/30 bg-emerald-500/5 p-5"
           onSubmit={(e) => {
             e.preventDefault();
-            if (window.confirm(f.payConfirm))
-              void run(
+            confirmAction({ description: f.payConfirm, onConfirm: () => run(
                 () =>
                   payFinalSettlementAction(s.id, {
                     method: payment.method,
@@ -698,7 +698,7 @@ export function SettlementDetailView({
                     paid_on: payment.paid_on,
                   }),
                 f.paidToast,
-              );
+              ) });
           }}
         >
           <h2 className="flex items-center gap-2 text-sm font-bold text-ink">

@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import { formatMessage } from "@platform/locales";
 import * as React from "react";
@@ -52,6 +53,7 @@ export function CalendarSyncCard({
   syncEnabled: boolean;
   canManage: boolean;
 }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const c = t.calendarSync;
   const router = useRouter();
@@ -228,7 +230,7 @@ export function CalendarSyncCard({
                   variant="ghost"
                   className="gap-1.5"
                   disabled={busy}
-                  onClick={() => window.confirm(c.rotateConfirm) && create()}
+                  onClick={() => confirmAction({ description: c.rotateConfirm, onConfirm: () => create() })}
                 >
                   <RefreshCw className="h-3.5 w-3.5" aria-hidden />
                   {c.newLink}
@@ -239,10 +241,9 @@ export function CalendarSyncCard({
                   className="ms-auto gap-1.5 text-rose-600"
                   disabled={busy}
                   onClick={() =>
-                    window.confirm(c.disconnectConfirm) &&
-                    run(() => revokeCalendarFeedAction(), c.disconnected).then(
+                    confirmAction({ description: c.disconnectConfirm, onConfirm: () => run(() => revokeCalendarFeedAction(), c.disconnected).then(
                       () => setLink(null),
-                    )
+                    ) })
                   }
                 >
                   <Unlink className="h-3.5 w-3.5" aria-hidden />

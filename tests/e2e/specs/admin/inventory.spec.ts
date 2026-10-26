@@ -1,3 +1,4 @@
+import { acceptConfirmations } from "../../helpers";
 import { expect, test, type Page } from "@playwright/test";
 import { alertMessage, testDatabase, watchErrors } from "../../helpers";
 import { t } from "../../locale";
@@ -96,7 +97,7 @@ test("a stock count is scanned, reviewed and approved into one adjustment", asyn
   await counted.fill("26");
   await page.getByTestId("count-submit").click();
   await expect(page.getByTestId("count-status")).toHaveText(copy.counts.statuses.review);
-  page.once("dialog", (dialog) => dialog.accept());
+  await acceptConfirmations(page);
   await page.getByTestId("count-approve").click();
   await expect(page.getByTestId("count-status")).toHaveText(copy.counts.statuses.approved);
   await expect.poll(onHand).toBe(26);

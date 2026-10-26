@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -29,6 +30,7 @@ const EMPTY: Draft = { code: "", name_en: "", name_ar: "", parent_id: "", manage
 
 /** Settings → Departments: the company's departments as a tree, with head, deputy and cost centre. */
 export function DepartmentsSettingsView({ departments, people, languages, canEdit }: { departments: DepartmentNode[]; people: { id: string; fullName: string }[]; languages: readonly ContentLanguage[]; canEdit: boolean }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.departmentsSettings;
   const router = useRouter();
@@ -172,7 +174,7 @@ export function DepartmentsSettingsView({ departments, people, languages, canEdi
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     {node.user_count + node.employee_count === 0 && (
-                      <button type="button" aria-label={formatMessage(copy.deleteNamed, { name: name(node) })} onClick={() => window.confirm(copy.deleteConfirm) && run(() => deleteDepartmentAction(node.id), copy.deleted)} className="h-8 w-8 grid place-items-center rounded-lg text-rose-600 hover:bg-rose-500/10">
+                      <button type="button" aria-label={formatMessage(copy.deleteNamed, { name: name(node) })} onClick={() => confirmAction({ description: copy.deleteConfirm, onConfirm: () => run(() => deleteDepartmentAction(node.id), copy.deleted) })} className="h-8 w-8 grid place-items-center rounded-lg text-rose-600 hover:bg-rose-500/10">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     )}

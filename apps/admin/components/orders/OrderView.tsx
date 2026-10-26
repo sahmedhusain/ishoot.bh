@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -21,6 +22,7 @@ type Attempt = Awaited<ReturnType<typeof orderPaymentAttempts>>[number];
 type OrderRequest = Awaited<ReturnType<typeof requestsForOrder>>[number];
 
 export function OrderView({ order, attempts, requests, paymentLink, rights }: { order: OrderRecord; attempts: Attempt[]; requests: OrderRequest[]; paymentLink: string; rights: { edit: boolean; refund: boolean; invoice: boolean } }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.orders.detail;
   const router = useRouter();
@@ -70,7 +72,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
         </div>
         <div className="flex flex-wrap gap-2">
           {rights.edit && next.map((status) => (
-            <Button key={status} type="button" size="sm" variant={status === "cancelled" || status === "returned" ? "ghost" : "primary"} className={`rounded-full ${status === "cancelled" ? "text-rose-600" : ""}`} disabled={busy} onClick={() => { const confirm = (copy.moveConfirm as Record<string, string>)[status]; if (confirm && !window.confirm(confirm)) return; void run(() => moveOrderAction(order.id, status, note)); }} data-testid={`order-move-${status}`}>
+            <Button key={status} type="button" size="sm" variant={status === "cancelled" || status === "returned" ? "ghost" : "primary"} className={`rounded-full ${status === "cancelled" ? "text-rose-600" : ""}`} disabled={busy} onClick={() => () => { const description = (copy.moveConfirm as Record<string, string>)[status]; const onConfirm = () => run(() => moveOrderAction(order.id, status, note)); if (description) confirmAction({ description, onConfirm }); else void onConfirm(); }} data-testid={`order-move-${status}`}>
               {(copy.moveTo as Record<string, string>)[status]}
             </Button>
           ))}
@@ -168,7 +170,7 @@ export function OrderView({ order, attempts, requests, paymentLink, rights }: { 
               <Field label={copy.refundReason}>{(id) => <Input id={id} maxLength={500} value={refund.reason} onChange={(e) => setRefund({ ...refund, reason: e.target.value })} className="rounded-lg" />}</Field>
             </div>
             {paidOnline && <p className="text-xs text-ink-muted">{formatMessage(copy.refundOnline, { gateway: gatewayName(paidOnline.gateway) })}</p>}
-            <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy || !refund.amount} onClick={() => run(async () => { await recordOrderRefundAction(order.id, refund.amount, refund.reason); setRefund({ amount: "", reason: "" }); })} data-testid="order-refund">{copy.refund}</Button>
+            <Button type="button" variant="outline" size="sm" className="rounded-full" disabled={busy || !refund.amount} onClick={() => confirmAction({ title: copy.refund, description: formatMessage(copy.refundConfirm, { amount: money(Number(refund.amount)), number: order.number }), confirmMatchText: order.number, onConfirm: () => run(async () => { await recordOrderRefundAction(order.id, refund.amount, refund.reason); setRefund({ amount: "", reason: "" }); }) })} data-testid="order-refund">{copy.refund}</Button>
           </Card>
         )}
         {paymentLink && (

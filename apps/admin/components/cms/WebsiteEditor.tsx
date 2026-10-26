@@ -1,4 +1,6 @@
 "use client";
+import { formatMessage } from "@platform/locales";
+import { useConfirmation } from "@platform/ui";
 import { errorMessage } from "../../lib/error-text";
 import { formatDate } from "@platform/ui";
 import { ROUTES } from "../../constants/routes";
@@ -49,6 +51,7 @@ export function WebsiteEditor({
     imageUrl: string | null;
   }[];
 }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const ar = locale === "ar";
   const router = useRouter();
@@ -141,13 +144,16 @@ export function WebsiteEditor({
         <button
           disabled={busy}
           className={`${button} bg-emerald-900 text-white`}
-          onClick={() =>
-            run(async () => {
+          onClick={() => confirmAction({
+            title: t.websiteEditor.publishWebsite,
+            description: t.websiteEditor.publishConfirm,
+            variant: "warning",
+            onConfirm: () => run(async () => {
               const current = dirty ? await save() : version;
               const result = await publishWebsiteAction(current);
               setVersion(result.revision);
-            })
-          }
+            }),
+          })}
         >
           {t.websiteEditor.publishWebsite}
         </button>
@@ -155,7 +161,7 @@ export function WebsiteEditor({
           <button
             disabled={busy}
             className={button}
-            onClick={() => run(() => restoreWebsiteAction(version))}
+            onClick={() => confirmAction({ title: t.websiteEditor.restorePreviousPublication, description: formatMessage(t.websiteEditor.restoreConfirm, { version }), confirmMatchText: String(version), onConfirm: () => run(() => restoreWebsiteAction(version)) })}
           >
             {t.websiteEditor.restorePreviousPublication}
           </button>

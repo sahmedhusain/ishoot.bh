@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -35,6 +36,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 /** One supplier bill: entered (from an order or by hand), matched, approved into an expense and paid. */
 export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights }: SupplierBillViewProps) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.bills;
   const common = t.procurement.common;
@@ -104,7 +106,7 @@ export function SupplierBillView({ bill, fromOrder, suppliers, currency, rights 
         <div className="flex flex-wrap gap-2">
           {editable && <Button type="button" variant="primary" size="sm" className="rounded-full" disabled={busy} onClick={save} data-testid="bill-save">{common.save}</Button>}
           {bill?.expense_id && <Link href={ROUTES.expenses.list({ highlight: bill.expense_id })} className="inline-flex items-center rounded-full border border-ink/15 px-3 h-9 text-sm hover:border-accent">{copy.expense}</Link>}
-          {bill?.status === "draft" && rights.edit && <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => window.confirm(common.cancelConfirm) && run(() => cancelSupplierBillAction(bill.id))}>{common.cancel}</Button>}
+          {bill?.status === "draft" && rights.edit && <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: common.cancelConfirm, onConfirm: () => run(() => cancelSupplierBillAction(bill.id)) })}>{common.cancel}</Button>}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
         </div>
       </div>

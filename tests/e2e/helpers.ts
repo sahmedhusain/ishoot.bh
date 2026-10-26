@@ -91,3 +91,13 @@ export function testDatabase() {
   url.pathname = `/${process.env.E2E_SEEDED_DATABASE || "platform_e2e_test"}`;
   return new PrismaClient({ datasources: { db: { url: url.toString() } } });
 }
+
+/** Accept only the shared confirmation dialog; ordinary forms remain under the spec's control. */
+export async function acceptConfirmations(page: Page) {
+  await page.addLocatorHandler(page.locator("[data-confirm-dialog]"), async dialog => {
+    const typed = dialog.getByRole("textbox");
+    if (await typed.count()) await typed.fill((await typed.getAttribute("placeholder"))!);
+    await dialog.getByRole("button").last().click();
+    await expect(dialog).toHaveCount(0);
+  });
+}

@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import { ArrowDown, ArrowUp, Lock, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
@@ -39,6 +40,7 @@ const CLOSED = new Set(["closed_won", "closed_lost"]);
 
 /** Settings → Sales pipeline: the stages deals move through, their names, order, colour and win probability. */
 export function PipelineSettingsView({ initialStages, languages, canEdit }: { initialStages: DealPipelineStage[]; languages: readonly ContentLanguage[]; canEdit: boolean }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.pipelineSettings;
   const [rows, setRows] = React.useState<Row[]>(() => initialStages.map(toRow));
@@ -89,16 +91,20 @@ export function PipelineSettingsView({ initialStages, languages, canEdit }: { in
   };
 
   const reset = async () => {
-    if (!window.confirm(copy.resetConfirm)) return;
-    setSaving(true);
-    setMessage(null);
-    try {
-      await resetDealPipelineAction();
-      window.location.reload();
-    } catch (error) {
-      setMessage({ tone: "error", text: errorMessage(error, t) });
-      setSaving(false);
-    }
+    return confirmAction({
+      description: copy.resetConfirm,
+      onConfirm: async () => {
+        setSaving(true);
+        setMessage(null);
+        try {
+          await resetDealPipelineAction();
+          window.location.reload();
+        } catch (error) {
+          setMessage({ tone: "error", text: errorMessage(error, t) });
+          setSaving(false);
+        }
+      },
+    });
   };
 
   return (

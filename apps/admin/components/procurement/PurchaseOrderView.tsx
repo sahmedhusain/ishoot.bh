@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -33,6 +34,7 @@ const lineDraft = (l: { product_id: string | null; variant_key: string; descript
 
 /** One purchase order: edited as a draft, then approved, sent (email, WhatsApp, PDF), received and billed. */
 export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouses, products, company, rights, receivePanel }: PurchaseOrderViewProps) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.orders;
   const common = t.procurement.common;
@@ -147,7 +149,7 @@ export function PurchaseOrderView({ order, fromRequisition, suppliers, warehouse
             <Link href={ROUTES.procurement.newBill({ orderId: order.id })} className="inline-flex items-center rounded-full border border-ink/15 px-3 h-9 text-sm hover:border-accent" data-testid="order-bill">{t.procurement.bills.fromOrder}</Link>
           )}
           {order && rights.cancel && ["draft", "pending_approval", "approved", "sent"].includes(order.status) && (
-            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => window.confirm(common.cancelConfirm) && run(() => cancelPurchaseOrderAction(order.id))}>{copy.cancelOrder}</Button>
+            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: common.cancelConfirm, onConfirm: () => run(() => cancelPurchaseOrderAction(order.id)) })}>{copy.cancelOrder}</Button>
           )}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
         </div>

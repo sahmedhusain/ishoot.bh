@@ -1,4 +1,5 @@
 "use client";
+import { useConfirmation } from "@platform/ui";
 
 import * as React from "react";
 import Link from "next/link";
@@ -33,6 +34,7 @@ const toDraft = (l: ProcurementLineRecord): LineDraft => ({ productId: l.product
 
 /** One requisition: edited while a draft (or after a rejection), then sent for approval and turned into orders. */
 export function RequisitionView({ requisition, products, currency, canEdit, canProcure }: { requisition: Requisition | null; products: ProcurementProductOption[]; currency: string; canEdit: boolean; canProcure: boolean }) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const copy = t.procurement.requisitions;
   const common = t.procurement.common;
@@ -91,7 +93,7 @@ export function RequisitionView({ requisition, products, currency, canEdit, canP
             </>
           )}
           {requisition && canEdit && ["draft", "rejected", "approved"].includes(requisition.status) && (
-            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => window.confirm(common.cancelConfirm) && run(() => cancelRequisitionAction(requisition.id))}>{common.cancel}</Button>
+            <Button type="button" variant="ghost" size="sm" className="rounded-full text-rose-600" disabled={busy} onClick={() => confirmAction({ description: common.cancelConfirm, onConfirm: () => run(() => cancelRequisitionAction(requisition.id)) })}>{common.cancel}</Button>
           )}
           {busy && <Loader2 className="w-4 h-4 animate-spin self-center" aria-hidden="true" />}
         </div>
