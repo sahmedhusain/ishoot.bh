@@ -3914,7 +3914,8 @@
     "tabApproved": "المعتمدة",
     "tabRejected": "المرفوضة",
     "tabCancelled": "الملغاة",
-    "hoursCount": "{n} ساعات"
+    "hoursCount": "{n} ساعات",
+    "cancelConfirmBody": "هل تريد إلغاء الإجازة من {start} إلى {end}؟ سيُسحب هذا الطلب المعلّق."
   },
   "newEmployeeForm": {
     "pleaseFillInAllMandatory": "يرجى تعبئة الاسم والمسمى الوظيفي المطلوبين",

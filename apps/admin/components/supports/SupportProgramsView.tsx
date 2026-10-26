@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import {
   Button,
+  Modal,
   Input,
   Select,
   formatCurrencyValue,
@@ -85,6 +86,9 @@ export function SupportProgramsView({
   const router = useRouter();
   const isAr = locale === "ar";
   const [busy, setBusy] = React.useState(false);
+  const pending = React.useRef(false);
+  const enrolmentFormId = React.useId();
+  const [actionError, setActionError] = React.useState("");
   const [programForm, setProgramForm] = React.useState<{
     id?: string;
     name_en: string;
@@ -112,17 +116,19 @@ export function SupportProgramsView({
   const money = (v: number) => formatCurrencyValue(v, "BHD", isAr);
 
   const run = async (work: () => Promise<unknown>, done: string) => {
-    setBusy(true);
+    if (pending.current) return false;
+    pending.current = true; setActionError(""); setBusy(true);
     try {
       await work();
       toast.success(done);
       router.refresh();
       return true;
     } catch (error) {
+      setActionError(errorMessage(error, t, s.failed));
       toast.error(errorMessage(error, t, s.failed));
       return false;
     } finally {
-      setBusy(false);
+      pending.current = false; setBusy(false);
     }
   };
   const currentRule = (p: Program) => {
@@ -140,7 +146,8 @@ export function SupportProgramsView({
       status: next.status === "all" ? null : next.status,
     });
   };
-  const openEnrolment = (e?: EmployeeSupportRecord) =>
+  const openEnrolment = (e?: EmployeeSupportRecord) => {
+    setActionError("");
     setEnrolment({
       ...(e ? { id: e.id } : {}),
       employee_id: e?.employee.id ?? "",
@@ -159,6 +166,7 @@ export function SupportProgramsView({
       monthly_cap: e?.monthlyCap == null ? "" : String(e.monthlyCap),
       notes: e?.notes ?? "",
     });
+  };
 
   const saveEnrolment = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -363,10 +371,10 @@ export function SupportProgramsView({
                               aria-label={s.delete}
                               disabled={busy}
                               onClick={() =>
-                                confirmAction({ description: s.deleteTermsConfirm, onConfirm: () => run(
+                                confirmAction({ description: s.deleteTermsConfirm, onConfirm: async () => { if (!(await run(
                                   () => deleteSupportRuleAction(r.id),
                                   s.saved,
-                                ) })
+                                ))) throw new Error(s.failed); } })
                               }
                               className="text-rose-600"
                             >
@@ -918,10 +926,10 @@ export function SupportProgramsView({
                               title={s.delete}
                               disabled={busy}
                               onClick={() =>
-                                confirmAction({ description: s.deleteConfirm, onConfirm: () => run(
+                                confirmAction({ description: s.deleteConfirm, onConfirm: async () => { if (!(await run(
                                   () => deleteEmployeeSupportAction(e.id),
                                   s.saved,
-                                ) })
+                                ))) throw new Error(s.failed); } })
                               }
                               className="rounded-lg p-1.5 text-ink-muted hover:bg-rose-500/10 hover:text-rose-600"
                             >
@@ -971,32 +979,13 @@ export function SupportProgramsView({
         )}
       </section>
 
-      {enrolment && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto modal-scrim p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="support-form-title"
-        >
-          <form
-            onSubmit={saveEnrolment}
-            className="my-8 w-full max-w-3xl space-y-4 rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-raised"
-          >
-            <div className="flex items-center justify-between">
-              <h2
-                id="support-form-title"
-                className="text-base font-bold text-ink"
-              >
-                {enrolment.id ? s.editEnrolment : s.addEnrolment}
-              </h2>
-              <button
-                type="button"
-                aria-label={t.actions.close}
-                onClick={() => setEnrolment(null)}
-              >
-                <X className="h-4 w-4 text-ink-muted" />
-              </button>
-            </div>
+      {enrolment && <Modal isOpen onClose={() => setEnrolment(null)} title={enrolment.id ? s.editEnrolment : s.addEnrolment}
+        busy={busy} className="max-w-3xl" footer={<div className="flex justify-end gap-3">
+          <Button type="button" variant="ghost" disabled={busy} onClick={() => setEnrolment(null)}>{t.actions.cancel}</Button>
+          <Button type="submit" form={enrolmentFormId} disabled={busy}>{busy ? t.actions.saving : s.save}</Button>
+        </div>}>
+        <form id={enrolmentFormId} onSubmit={saveEnrolment}>
+          <fieldset disabled={busy} className="space-y-4">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <label>
                 <span className={label}>{s.fields.employee}</span>
@@ -1189,22 +1178,10 @@ export function SupportProgramsView({
                 }
               />
             </label>
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => setEnrolment(null)}
-              >
-                {t.actions.cancel}
-              </Button>
-              <Button type="submit" size="sm" disabled={busy}>
-                {s.save}
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
+          </fieldset>
+          {actionError && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{actionError}</p>}
+        </form>
+      </Modal>}
     </div>
   );
 }

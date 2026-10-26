@@ -28,7 +28,7 @@ import {
   Plus,
   Send,
 } from "lucide-react";
-import { Button, CurrencyDisplay, StatusBadge, useDialog } from "@platform/ui";
+import { Button, CurrencyDisplay, StatusBadge, Modal, Select, Textarea } from "@platform/ui";
 import type { ConsolidatedRequest } from "@platform/database";
 import { useAdminLocale } from "../../hooks/useAdminLocale";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -81,7 +81,9 @@ export function RequestDetailView({
   const [modalType, setModalType] = React.useState<
     "assign" | "return" | "resolve" | null
   >(null);
-  const actionDialog = useDialog(!!modalType, () => setModalType(null));
+  const actionFormId = React.useId();
+  const actionPending = React.useRef(false);
+  const [actionError, setActionError] = React.useState("");
   const [modalAssigneeId, setModalAssigneeId] = React.useState<string>(
     request.assignedToId || users[0]?.id || "",
   );
@@ -149,6 +151,8 @@ export function RequestDetailView({
 
   const handleModalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (actionPending.current || !modalType) return;
+    actionPending.current = true; setActionError("");
     setIsActionSubmitting(true);
     const toastId = toast.loading(
       t.requestDetail.executingAction,
@@ -169,10 +173,12 @@ export function RequestDetailView({
           setModalType(null);
           router.refresh();
         } else {
-          toast.error(res.error || t.requestDetail.failedToAssignRequest, { id: toastId });
+          setActionError(errorMessage(res.error, t, t.requestDetail.failedToAssignRequest));
+          toast.error(errorMessage(res.error, t, t.requestDetail.failedToAssignRequest), { id: toastId });
         }
       } else if (modalType === "return") {
         if (!modalNotes.trim()) {
+          setActionError(t.requestDetail.returnReasonIsRequired);
           toast.error(
             t.requestDetail.returnReasonIsRequired,
             { id: toastId },
@@ -191,10 +197,12 @@ export function RequestDetailView({
           setModalType(null);
           router.refresh();
         } else {
-          toast.error(res.error || t.requestDetail.failedToReturnRequest, { id: toastId });
+          setActionError(errorMessage(res.error, t, t.requestDetail.failedToReturnRequest));
+          toast.error(errorMessage(res.error, t, t.requestDetail.failedToReturnRequest), { id: toastId });
         }
       } else if (modalType === "resolve") {
         if (!modalNotes.trim()) {
+          setActionError(t.requestDetail.resolutionSummaryIsRequired);
           toast.error(
             t.requestDetail.resolutionSummaryIsRequired,
             { id: toastId },
@@ -213,15 +221,17 @@ export function RequestDetailView({
           setModalType(null);
           router.refresh();
         } else {
-          toast.error(res.error || t.requestDetail.failedToResolveRequest, {
+          setActionError(errorMessage(res.error, t, t.requestDetail.failedToResolveRequest));
+          toast.error(errorMessage(res.error, t, t.requestDetail.failedToResolveRequest), {
             id: toastId,
           });
         }
       }
     } catch (err: any) {
+      setActionError(errorMessage(err, t, t.requestDetail.actionFailed));
       toast.error(errorMessage(err, t, t.requestDetail.actionFailed), { id: toastId });
     } finally {
-      setIsActionSubmitting(false);
+      actionPending.current = false; setIsActionSubmitting(false);
     }
   };
 
@@ -330,7 +340,7 @@ export function RequestDetailView({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setModalType("assign")}
+                onClick={() => { setActionError(""); setModalNotes(""); setModalType("assign"); }}
                 className="gap-1.5 text-xs text-blue-600 hover:text-blue-700"
               >
                 <ArrowRightLeft className="w-3.5 h-3.5" />
@@ -386,7 +396,7 @@ export function RequestDetailView({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setModalType("return")}
+                  onClick={() => { setActionError(""); setModalNotes(""); setModalType("return"); }}
                   className="gap-1.5 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -398,7 +408,7 @@ export function RequestDetailView({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setModalType("resolve")}
+                onClick={() => { setActionError(""); setModalNotes(""); setModalType("resolve"); }}
                 className="gap-1.5 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
               >
                 <Check className="w-3.5 h-3.5" />
@@ -921,42 +931,22 @@ export function RequestDetailView({
       )}
 
       {/* Action Modals */}
-      {modalType && (
-        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4">
-          <div {...actionDialog} className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
-              <div className="space-y-0.5">
-                <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-accent" />
-                  <span>
-                    {modalType === "assign" &&
-                      (t.requestDetail.assignOrReassignRequest)}
-                    {modalType === "return" &&
-                      (t.requestDetail.returnRequestWithReason)}
-                    {modalType === "resolve" &&
-                      (t.requestDetail.resolveAndCloseRequest)}
-                  </span>
-                </h3>
-                <span className="text-xs text-slate-400">
-                  {request.reference || `#${request.id.slice(-6)}`}
-                </span>
-              </div>
-              <button
-                onClick={() => setModalType(null)}
-                className="text-slate-400 hover:text-ink text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleModalSubmit} className="space-y-4">
+      <Modal isOpen={!!modalType} onClose={() => setModalType(null)}
+        title={modalType === "assign" ? t.requestDetail.assignOrReassignRequest : modalType === "return" ? t.requestDetail.returnRequestWithReason : t.requestDetail.resolveAndCloseRequest}
+        description={request.reference || `#${request.id.slice(-6)}`} busy={isActionSubmitting} className="max-w-lg"
+        footer={<div className="flex justify-end gap-3">
+          <Button type="button" variant="ghost" disabled={isActionSubmitting} onClick={() => setModalType(null)}>{t.requestDetail.cancel}</Button>
+          <Button type="submit" form={actionFormId} variant={modalType === "return" ? "danger" : "primary"} disabled={isActionSubmitting}>{isActionSubmitting ? t.requestDetail.applying : t.requestDetail.confirmAndApply}</Button>
+        </div>}>
+        <form id={actionFormId} onSubmit={handleModalSubmit} onInvalidCapture={() => setActionError(modalType === "return" ? t.requestDetail.returnReasonIsRequired : t.requestDetail.resolutionSummaryIsRequired)}>
+          <fieldset disabled={isActionSubmitting} className="space-y-4">
               {modalType === "assign" && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label htmlFor={`${actionFormId}-team`} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       {t.requestDetail.assignedTeam2}
                     </label>
-                    <select
+                    <Select id={`${actionFormId}-team`}
                       value={modalTeam}
                       onChange={(e) => setModalTeam(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
@@ -966,14 +956,14 @@ export function RequestDetailView({
                           {t.requestLabels.teams[team]}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label htmlFor={`${actionFormId}-assignee`} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                       {t.requestDetail.assigneePersonCheckedAgainstLeave}
                     </label>
-                    <select
+                    <Select id={`${actionFormId}-assignee`}
                       value={modalAssigneeId}
                       onChange={(e) => setModalAssigneeId(e.target.value)}
                       className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/30 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-accent"
@@ -983,7 +973,7 @@ export function RequestDetailView({
                           {u.name} ({u.role.replace("_", " ")})
                         </option>
                       ))}
-                    </select>
+                    </Select>
                     <span className="text-[11px] text-slate-400 mt-1 block">
                       {t.requestDetail.assignmentWillBeRejectedIf}
                     </span>
@@ -992,14 +982,14 @@ export function RequestDetailView({
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor={`${actionFormId}-notes`} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   {modalType === "return"
                     ? t.requestDetail.reasonForReturnRequired
                     : modalType === "resolve"
                       ? t.requestDetail.resolutionSummaryAndOutput
                       : t.requestDetail.assignmentDirectivesOptional}
                 </label>
-                <textarea
+                <Textarea id={`${actionFormId}-notes`}
                   rows={3}
                   required={modalType === "return" || modalType === "resolve"}
                   value={modalNotes}
@@ -1015,36 +1005,10 @@ export function RequestDetailView({
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setModalType(null)}
-                  disabled={isActionSubmitting}
-                >
-                  {t.requestDetail.cancel}
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  disabled={isActionSubmitting}
-                  className={
-                    modalType === "return"
-                      ? "bg-rose-600 hover:bg-rose-700 text-white"
-                      : "bg-accent hover:bg-accent-pressed text-white"
-                  }
-                >
-                  {isActionSubmitting
-                    ? t.requestDetail.applying
-                    : t.requestDetail.confirmAndApply}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </fieldset>
+          {actionError && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{actionError}</p>}
+        </form>
+      </Modal>
     </div>
   );
 }

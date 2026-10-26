@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import type { LeaveRequest, Employee } from "@platform/database/types";
 import type { LeaveTypeView } from "@platform/database/queries/hr-settings";
 import type { LeaveBalance } from "@platform/database/queries/leave-balances";
-import { Card, Button, useDialog, formatDate } from "@platform/ui";
+import { Card, Button, Input, Select, Textarea, Modal, useConfirmation, formatDate } from "@platform/ui";
 import { Clock, Plus } from "lucide-react";
 import {
   createLeaveRequestAction,
@@ -47,6 +47,7 @@ export function LeaveManagementView({
   decidableIds,
   currentStatus,
 }: LeaveManagementViewProps) {
+  const confirmAction = useConfirmation();
   const { t, locale } = useAdminLocale();
   const router = useRouter();
 
@@ -54,7 +55,9 @@ export function LeaveManagementView({
 
   // Apply Modal state
   const [showApplyModal, setShowApplyModal] = React.useState(false);
-  const applyDialog = useDialog(showApplyModal, () => setShowApplyModal(false));
+  const applyFormId = React.useId();
+  const applyPending = React.useRef(false);
+  const [applyError, setApplyError] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [targetEmployeeId, setTargetEmployeeId] = React.useState(
     myEmployee?.id || "",
@@ -81,7 +84,9 @@ export function LeaveManagementView({
   const [rejectingRequestId, setRejectingRequestId] = React.useState<
     string | null
   >(null);
-  const rejectDialog = useDialog(!!rejectingRequestId, () => setRejectingRequestId(null));
+  const rejectId = React.useId();
+  const decisionPending = React.useRef(false);
+  const [rejectError, setRejectError] = React.useState("");
   const [rejectNotes, setRejectNotes] = React.useState("");
 
   const pendingCount = requests.filter((r) => r.status === "pending").length;
@@ -89,6 +94,8 @@ export function LeaveManagementView({
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (applyPending.current) return;
+    setApplyError("");
     if (
       !targetEmployeeId ||
       !leaveTypeId ||
@@ -96,16 +103,18 @@ export function LeaveManagementView({
       !endDate ||
       !reason.trim()
     ) {
+      setApplyError(t.leaveManagement.pleaseFillInAllRequired);
       toast.error(t.leaveManagement.pleaseFillInAllRequired);
       return;
     }
 
     if (portion === "full" && new Date(endDate) < new Date(startDate)) {
+      setApplyError(t.leaveManagement.endDateCannotBeEarlier);
       toast.error(t.leaveManagement.endDateCannotBeEarlier);
       return;
     }
 
-    setSubmitting(true);
+    applyPending.current = true; setSubmitting(true);
     const toastId = toast.loading(t.leaveManagement.submittingLeaveRequest);
     try {
       const res = await createLeaveRequestAction({
@@ -126,14 +135,16 @@ export function LeaveManagementView({
         setReason("");
         router.refresh();
       } else {
+        setApplyError(t.leaveManagement.failedToSubmitLeaveRequest);
         toast.error(t.leaveManagement.failedToSubmitLeaveRequest, { id: toastId });
       }
     } catch (err: unknown) {
+      setApplyError(errorMessage(err, t, t.leaveManagement.errorSubmittingLeave));
       toast.error(errorMessage(err, t, t.leaveManagement.errorSubmittingLeave), {
         id: toastId,
       });
     } finally {
-      setSubmitting(false);
+      applyPending.current = false; setSubmitting(false);
     }
   };
 
@@ -142,7 +153,8 @@ export function LeaveManagementView({
     decision: "approved" | "rejected",
     notes?: string,
   ) => {
-    setLoadingId(requestId);
+    if (decisionPending.current) return;
+    decisionPending.current = true; setRejectError(""); setLoadingId(requestId);
     const toastId = toast.loading(
       decision === "approved" ? t.leaveManagement.approvingLeaveAndCheckingConflicts : t.leaveManagement.rejectingLeave,
     );
@@ -167,17 +179,19 @@ export function LeaveManagementView({
           toast.success(t.leaveManagement.leaveRequestDecisionRecorded, { id: toastId });
         }
         setRejectingRequestId(null);
-        setRejectNotes("");
+        setRejectNotes(""); setRejectError("");
         router.refresh();
       } else {
+        setRejectError(t.leaveManagement.failedToRecordDecision);
         toast.error(t.leaveManagement.failedToRecordDecision, { id: toastId });
       }
     } catch (err: unknown) {
+      setRejectError(errorMessage(err, t, t.leaveManagement.decisionFailed));
       toast.error(errorMessage(err, t, t.leaveManagement.decisionFailed), {
         id: toastId,
       });
     } finally {
-      setLoadingId(null);
+      decisionPending.current = false; setLoadingId(null);
     }
   };
 
@@ -190,12 +204,13 @@ export function LeaveManagementView({
         toast.success(t.leaveManagement.leaveRequestCancelled, { id: toastId });
         router.refresh();
       } else {
-        toast.error(t.leaveManagement.failedToCancelLeaveRequest, { id: toastId });
+        throw new Error(t.leaveManagement.failedToCancelLeaveRequest);
       }
     } catch (err: unknown) {
       toast.error(errorMessage(err, t, t.leaveManagement.cancellationFailed), {
         id: toastId,
       });
+      throw err;
     } finally {
       setLoadingId(null);
     }
@@ -228,7 +243,7 @@ export function LeaveManagementView({
         <div className="flex items-center gap-3">
           {(myEmployee || canFileForOthers) && (
           <Button
-            onClick={() => setShowApplyModal(true)}
+            onClick={() => { setApplyError(""); setShowApplyModal(true); }}
             className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-md text-xs font-medium active:scale-[0.98] transition-all shadow-xs"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -343,7 +358,7 @@ export function LeaveManagementView({
                     >
                       <td className="py-3.5 px-4">
                         <div className="font-semibold text-slate-900 dark:text-white">
-                          {req.employee?.firstNameEn} {req.employee?.lastNameEn}
+                          {locale === "ar" ? req.employee?.firstNameAr : req.employee?.firstNameEn} {locale === "ar" ? req.employee?.lastNameAr : req.employee?.lastNameEn}
                         </div>
                         <div className="text-xs font-mono text-slate-400">
                           {req.employee?.employeeNumber}
@@ -409,7 +424,7 @@ export function LeaveManagementView({
                             <button
                               onClick={() => {
                                 setRejectingRequestId(req.id);
-                                setRejectNotes("");
+                                setRejectNotes(""); setRejectError("");
                               }}
                               disabled={loadingId === req.id}
                               className="px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 rounded border border-red-200"
@@ -428,7 +443,7 @@ export function LeaveManagementView({
 
                         {isOwn && req.status === "pending" && (
                           <button
-                            onClick={() => handleCancel(req.id)}
+                            onClick={() => confirmAction({ description: formatMessage(t.leaveManagement.cancelConfirmBody, { start: formatDate(req.startDate, locale), end: formatDate(req.endDate, locale) }), onConfirm: () => handleCancel(req.id) })}
                             disabled={loadingId === req.id}
                             className="px-2.5 py-1 text-xs text-slate-500 hover:text-red-600 border border-slate-200 rounded"
                           >
@@ -446,26 +461,21 @@ export function LeaveManagementView({
       </Card>
 
       {/* Apply for Leave Modal */}
-      {showApplyModal && (
-        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4">
-          <form {...applyDialog}
-            onSubmit={handleApply}
-            className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg max-w-lg w-full p-6 space-y-4 shadow-xl"
-          >
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              {t.leaveManagement.applyForLeave}
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              {t.leaveManagement.onceApprovedYourLeaveWindow}
-            </p>
-
+      <Modal isOpen={showApplyModal} onClose={() => setShowApplyModal(false)}
+        title={t.leaveManagement.applyForLeave} description={t.leaveManagement.onceApprovedYourLeaveWindow}
+        busy={submitting} className="max-w-lg" footer={<div className="flex justify-end gap-3">
+          <Button type="button" variant="ghost" disabled={submitting} onClick={() => setShowApplyModal(false)}>{t.shared.cancel}</Button>
+          <Button type="submit" form={applyFormId} disabled={submitting}>{submitting ? t.shared.submitting : t.leaveManagement.submitApplication}</Button>
+        </div>}>
+        <form id={applyFormId} onSubmit={handleApply} onInvalidCapture={() => setApplyError(t.leaveManagement.pleaseFillInAllRequired)}>
+          <fieldset disabled={submitting}>
             <div className="space-y-3">
               {canFileForOthers && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                  <label htmlFor={`${applyFormId}-employee`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
                     {t.shared.employee}
                   </label>
-                  <select
+                  <Select id={`${applyFormId}-employee`}
                     value={targetEmployeeId}
                     onChange={(e) => setTargetEmployeeId(e.target.value)}
                     className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
@@ -476,15 +486,15 @@ export function LeaveManagementView({
                         {e.firstNameEn} {e.lastNameEn} ({e.employeeNumber})
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                <label htmlFor={`${applyFormId}-type`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
                   {t.leaveManagement.leaveType2}
                 </label>
-                <select
+                <Select id={`${applyFormId}-type`}
                   value={leaveTypeId}
                   onChange={(e) => setLeaveTypeId(e.target.value)}
                   className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
@@ -495,7 +505,7 @@ export function LeaveManagementView({
                       {lt.accrual !== "none" ? ` — ${lt.daysAllowedPerYear}${t.leaveManagement.daysAllowed}` : ""}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <fieldset>
@@ -516,17 +526,17 @@ export function LeaveManagementView({
                 {portion === "hours" && (
                   <label className="mt-2 flex items-center gap-2 text-xs text-slate-700 dark:text-neutral-300">
                     {t.leaveForm.hoursCount}
-                    <input type="number" min={0.5} max={7.5} step={0.5} dir="ltr" value={hours} onChange={(e) => setHours(Number(e.target.value))} className="w-20 rounded-md border border-ink/15 bg-white dark:bg-surface p-1.5 text-xs font-mono" />
+                    <Input type="number" min={0.5} max={7.5} step={0.5} dir="ltr" value={hours} onChange={(e) => setHours(Number(e.target.value))} className="w-20 rounded-md border border-ink/15 bg-white dark:bg-surface p-1.5 text-xs font-mono" />
                   </label>
                 )}
               </fieldset>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                  <label htmlFor={`${applyFormId}-start`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
                     {t.leaveManagement.startDate}
                   </label>
-                  <input
+                  <Input id={`${applyFormId}-start`}
                     type="date"
                     required
                     value={startDate}
@@ -536,10 +546,10 @@ export function LeaveManagementView({
                 </div>
                 {portion === "full" && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                  <label htmlFor={`${applyFormId}-end`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
                     {t.leaveManagement.endDate}
                   </label>
-                  <input
+                  <Input id={`${applyFormId}-end`}
                     type="date"
                     required
                     min={startDate}
@@ -554,7 +564,7 @@ export function LeaveManagementView({
               {selectedType?.requiresAttachment && (
                 <label className="block space-y-1 text-xs font-medium text-slate-700 dark:text-neutral-300">
                   {t.leaveForm.attachment}
-                  <input type="url" required dir="ltr" placeholder={t.copy.urlExample} value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white" />
+                  <Input type="url" required dir="ltr" placeholder={t.copy.urlExample} value={attachmentUrl} onChange={(e) => setAttachmentUrl(e.target.value)} className="w-full text-xs rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white" />
                 </label>
               )}
               {(() => {
@@ -569,10 +579,10 @@ export function LeaveManagementView({
               })()}
 
               <div>
-                <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
+                <label htmlFor={`${applyFormId}-reason`} className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
                   {t.leaveManagement.reasonForAbsence}
                 </label>
-                <textarea
+                <Textarea id={`${applyFormId}-reason`}
                   rows={3}
                   required
                   value={reason}
@@ -583,69 +593,21 @@ export function LeaveManagementView({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowApplyModal(false)}
-                className="px-3 py-1.5 text-xs text-ink-muted hover:text-ink hover:bg-ink/5 rounded-md"
-              >
-                {t.shared.cancel}
-              </button>
-              <Button
-                type="submit"
-                disabled={submitting}
-                className="bg-primary hover:bg-primary-hover text-white px-4 py-1.5 text-xs rounded-md"
-              >
-                {submitting ? t.shared.submitting : t.leaveManagement.submitApplication}
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
+          </fieldset>
+          {applyError && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{applyError}</p>}
+        </form>
+      </Modal>
 
       {/* Reject Modal */}
-      {rejectingRequestId && (
-        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4">
-          <div {...rejectDialog} className="bg-white dark:bg-surface-raised border border-ink/10 rounded-lg max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
-              {t.leaveManagement.rejectLeaveApplication}
-            </h3>
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-neutral-300 mb-1">
-                {t.leaveManagement.reasonForRejection}
-              </label>
-              <textarea
-                rows={3}
-                required
-                value={rejectNotes}
-                onChange={(e) => setRejectNotes(e.target.value)}
-                placeholder={t.leaveManagement.eGCriticalCommercialShoot}
-                className="w-full text-xs font-mono rounded-md border border-ink/10 bg-slate-50 dark:bg-neutral-900 p-2 text-slate-900 dark:text-white"
-              />
-            </div>
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setRejectingRequestId(null)}
-                className="px-3 py-1.5 text-xs text-ink-muted hover:text-ink hover:bg-ink/5 rounded-md"
-              >
-                {t.shared.cancel}
-              </button>
-              <Button
-                onClick={() =>
-                  handleDecision(rejectingRequestId, "rejected", rejectNotes)
-                }
-                disabled={
-                  !rejectNotes.trim() || loadingId === rejectingRequestId
-                }
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 text-xs rounded-md"
-              >
-                {t.shared.confirmRejection}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal isOpen={!!rejectingRequestId} onClose={() => setRejectingRequestId(null)} title={t.leaveManagement.rejectLeaveApplication}
+        busy={!!loadingId} className="max-w-md" footer={<div className="flex justify-end gap-3">
+          <Button type="button" variant="ghost" disabled={!!loadingId} onClick={() => setRejectingRequestId(null)}>{t.shared.cancel}</Button>
+          <Button type="button" variant="danger" disabled={!rejectNotes.trim() || !!loadingId} onClick={() => { if (rejectingRequestId) void handleDecision(rejectingRequestId, "rejected", rejectNotes); }}>{loadingId ? t.shared.submitting : t.shared.confirmRejection}</Button>
+        </div>}>
+        <label htmlFor={rejectId} className="block text-xs font-medium text-ink mb-1">{t.leaveManagement.reasonForRejection}</label>
+        <Textarea id={rejectId} rows={3} required value={rejectNotes} disabled={!!loadingId} onChange={event => { setRejectNotes(event.target.value); setRejectError(""); }} placeholder={t.leaveManagement.eGCriticalCommercialShoot} aria-invalid={!!rejectError} aria-describedby={rejectError ? `${rejectId}-error` : undefined} />
+        {rejectError && <p id={`${rejectId}-error`} role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{rejectError}</p>}
+      </Modal>
     </div>
   );
 }

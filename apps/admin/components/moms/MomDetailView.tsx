@@ -17,7 +17,7 @@ import {
   DocumentLetterhead,
   DocumentFooter,
 } from "../shared/DocumentLetterhead";
-import { Button, StatusBadge, useDialog } from "@platform/ui";
+import { Button, Input, Modal, StatusBadge } from "@platform/ui";
 import {
   ArrowLeft,
   ArrowRight,
@@ -66,11 +66,9 @@ export function MomDetailView({
   const { can } = usePermissions();
   const [isApproving, setIsApproving] = React.useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = React.useState(false);
-  const emailDialog = useDialog(isEmailModalOpen, () =>
-    setIsEmailModalOpen(false),
-  );
+  const emailFormId = React.useId();
+  const emailPending = React.useRef(false);
   const [recipientEmail, setRecipientEmail] = React.useState("");
-  const [emailNote, setEmailNote] = React.useState("");
   const [isSendingEmail, setIsSendingEmail] = React.useState(false);
   const [feedbackMessage, setFeedbackMessage] = React.useState<{
     type: "success" | "error";
@@ -176,7 +174,8 @@ export function MomDetailView({
 
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipientEmail) return;
+    if (!recipientEmail || emailPending.current) return;
+    emailPending.current = true;
     setIsSendingEmail(true);
     setFeedbackMessage(null);
     try {
@@ -202,7 +201,7 @@ export function MomDetailView({
         text: t.momDetail.emailFailed,
       });
     } finally {
-      setIsSendingEmail(false);
+      emailPending.current = false; setIsSendingEmail(false);
     }
   };
 
@@ -272,7 +271,7 @@ export function MomDetailView({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setIsEmailModalOpen(true)}
+            onClick={() => { setFeedbackMessage(null); setIsEmailModalOpen(true); }}
             className="gap-1.5 border-blue-500/30 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30"
           >
             <Mail className="w-4 h-4" />
@@ -663,31 +662,18 @@ export function MomDetailView({
       </div>
 
       {/* Share Via Email Modal */}
-      {isEmailModalOpen && (
-        <div className="fixed inset-0 z-50 modal-scrim flex items-center justify-center p-4 no-print">
-          <div
-            {...emailDialog}
-            className="bg-white dark:bg-surface-raised border border-slate-200 dark:border-white/10 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl"
-          >
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
-              <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Mail className="w-4 h-4 text-accent" />
-                <span>{t.momDetail.shareMomViaEmail}</span>
-              </h3>
-              <button
-                onClick={() => setIsEmailModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSendEmail} className="space-y-4">
+      <Modal isOpen={isEmailModalOpen} onClose={() => setIsEmailModalOpen(false)} title={t.momDetail.shareMomViaEmail}
+        busy={isSendingEmail} className="max-w-md no-print" footer={<div className="flex justify-end gap-3">
+          <Button type="button" variant="ghost" disabled={isSendingEmail} onClick={() => setIsEmailModalOpen(false)}>{t.momDetail.cancel}</Button>
+          <Button type="submit" form={emailFormId} disabled={isSendingEmail}>{isSendingEmail ? t.momDetail.sending : t.momDetail.sendEmail}</Button>
+        </div>}>
+        <form id={emailFormId} onSubmit={handleSendEmail}>
+          <fieldset disabled={isSendingEmail}>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor={`${emailFormId}-recipient`} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   {t.momDetail.recipientEmail}
                 </label>
-                <input
+                <Input id={`${emailFormId}-recipient`}
                   type="email"
                   required
                   value={recipientEmail}
@@ -697,42 +683,10 @@ export function MomDetailView({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  {t.momDetail.messageNoteOptional}
-                </label>
-                <textarea
-                  rows={3}
-                  value={emailNote}
-                  onChange={(e) => setEmailNote(e.target.value)}
-                  placeholder={t.momDetail.pleaseFindAttachedTheOfficial}
-                  className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-black/20 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsEmailModalOpen(false)}
-                >
-                  {t.momDetail.cancel}
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  disabled={isSendingEmail}
-                  className="bg-accent hover:bg-accent-pressed text-white"
-                >
-                  {isSendingEmail ? t.momDetail.sending : t.momDetail.sendEmail}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </fieldset>
+          {feedbackMessage?.type === "error" && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{feedbackMessage.text}</p>}
+        </form>
+      </Modal>
     </div>
   );
 }

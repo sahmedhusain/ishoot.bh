@@ -3914,7 +3914,8 @@
     "tabApproved": "Approved",
     "tabRejected": "Rejected",
     "tabCancelled": "Cancelled",
-    "hoursCount": "{n} hours"
+    "hoursCount": "{n} hours",
+    "cancelConfirmBody": "Cancel leave from {start} to {end}? This pending application will be withdrawn."
   },
   "newEmployeeForm": {
     "pleaseFillInAllMandatory": "Please fill in all mandatory English and job title fields",

@@ -903,6 +903,9 @@ function RegistrationForm({
   const isAr = locale === "ar";
   const base = employee.current;
   const [busy, setBusy] = React.useState(false);
+  const pending = React.useRef(false);
+  const formId = React.useId();
+  const [formError, setFormError] = React.useState("");
   const [form, setForm] = React.useState({
     category: (base?.category ??
       (employee.nationality === "BH"
@@ -930,7 +933,8 @@ function RegistrationForm({
   });
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setBusy(true);
+    if (pending.current) return;
+    pending.current = true; setFormError(""); setBusy(true);
     try {
       await saveEmployeeGosiRecordAction(employee.id, {
         category: form.category,
@@ -952,40 +956,20 @@ function RegistrationForm({
       toast.success(g.saved);
       onDone();
     } catch (error) {
+      setFormError(errorMessage(error, t, g.failed));
       toast.error(errorMessage(error, t, g.failed));
     } finally {
-      setBusy(false);
+      pending.current = false; setBusy(false);
     }
   };
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto modal-scrim p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="gosi-reg-title"
-    >
-      <form
-        onSubmit={submit}
-        className="my-8 w-full max-w-3xl space-y-4 rounded-3xl bg-white p-6 shadow-2xl dark:bg-surface-raised"
-      >
-        <div className="flex items-start justify-between">
-          <div>
-            <h2 id="gosi-reg-title" className="text-base font-bold text-ink">
-              {formatMessage(g.registrationTitle, {
-                name: isAr ? employee.nameAr : employee.nameEn,
-              })}
-            </h2>
-            <p className="text-xs text-ink-muted">{g.registrationHint}</p>
-          </div>
-          <button
-            type="button"
-            aria-label={t.actions.close}
-            onClick={onClose}
-            className="rounded-lg p-1 text-ink-muted hover:text-ink"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+    <Modal isOpen onClose={onClose} title={formatMessage(g.registrationTitle, { name: isAr ? employee.nameAr : employee.nameEn })}
+      description={g.registrationHint} busy={busy} className="max-w-3xl" footer={<div className="flex justify-end gap-3">
+        <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>{t.actions.cancel}</Button>
+        <Button type="submit" form={formId} disabled={busy}>{busy ? t.actions.saving : g.saveRegistration}</Button>
+      </div>}>
+      <form id={formId} onSubmit={submit}>
+        <fieldset disabled={busy} className="space-y-4">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label>
             <span className={label}>{g.fields.category}</span>
@@ -1164,6 +1148,7 @@ function RegistrationForm({
                             onDone();
                           } catch (error) {
                             toast.error(errorMessage(error, t, g.failed));
+                            throw error;
                           } finally {
                             setBusy(false);
                           }
@@ -1178,15 +1163,9 @@ function RegistrationForm({
             </ul>
           </div>
         ) : null}
-        <div className="flex justify-end gap-2">
-          <Button type="button" size="sm" variant="outline" onClick={onClose}>
-            {t.actions.cancel}
-          </Button>
-          <Button type="submit" size="sm" disabled={busy}>
-            {g.saveRegistration}
-          </Button>
-        </div>
+        </fieldset>
+        {formError && <p role="alert" className="mt-3 text-sm text-rose-700 dark:text-rose-300">{formError}</p>}
       </form>
-    </div>
+    </Modal>
   );
 }
