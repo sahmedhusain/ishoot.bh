@@ -92,3 +92,14 @@ describe("connection checks fail closed", () => {
     expect(result.error).toContain("Internal server error");
   });
 });
+
+test("sign-in checks distinguish provider reachability/format from a completed authentication", async () => {
+  const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({ issuer: "https://accounts.google.com" }), { status: 200 }));
+  vi.stubGlobal("fetch", fetcher);
+  const result = await checkConnection("google_signin", { clientId: "test.apps.googleusercontent.com", clientSecret: "unverified-client-secret" });
+  expect(result).toEqual({ ok: true, validation: "format" });
+  expect(fetcher.mock.calls[0][0]).toBe("https://accounts.google.com/.well-known/openid-configuration");
+  expect(JSON.stringify(fetcher.mock.calls)).not.toContain("unverified-client-secret");
+  fetcher.mockResolvedValue(new Response("unavailable", { status: 503 }));
+  expect((await checkConnection("google_signin", { clientId: "test.apps.googleusercontent.com", clientSecret: "secret" })).ok).toBe(false);
+});

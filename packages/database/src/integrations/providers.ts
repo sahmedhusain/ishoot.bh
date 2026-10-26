@@ -14,6 +14,7 @@ import { CourierError, courierAdapter, isApiCourier } from "../couriers/adapters
 export type Credentials = Record<string, string>;
 
 export interface ConnectionCheck {
+  validation?: "format";
   ok: boolean;
   accountName?: string;
   error?: string;
@@ -449,7 +450,14 @@ export async function checkConnection(provider: IntegrationProviderId, credentia
   try {
     if (provider === "whatsapp") return await checkWhatsApp(credentials);
     if (provider === "resend") return await checkResend(credentials);
-    if (provider === "google_signin" || provider === "apple_signin") return checkSignInCredentials(provider === "google_signin" ? "google" : "apple", credentials);
+    if (provider === "google_signin" || provider === "apple_signin") {
+      const check = checkSignInCredentials(provider === "google_signin" ? "google" : "apple", credentials);
+      if (!check.ok) return check;
+      const issuer = provider === "google_signin" ? "https://accounts.google.com" : "https://appleid.apple.com";
+      const discovery = await request<{ issuer?: string }>(`${issuer}/.well-known/openid-configuration`, {});
+      if (discovery.issuer !== issuer) throw new ProviderError(serverMessages.providerInvalidResponse);
+      return { ok: true, validation: "format" };
+    }
     if (isPaymentGateway(provider)) return await paymentGateway(provider).check(credentials);
     if (isApiCourier(provider)) return await courierAdapter(provider).check(credentials);
     return await checkSocialConnection(provider, credentials);

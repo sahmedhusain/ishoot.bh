@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { formatMessage, serverMessages, serverTemplates } from "@platform/locales";
 import { getCurrencyDecimals } from "@platform/config/currency";
 import { formatGatewayAmount, fromMinorUnits, type PaymentGatewayId } from "../constants/payments";
+import { PAYTABS_REGIONS } from "../constants/integrations";
 import { toMinorUnits } from "../finance/money";
 import type { ConnectionCheck, Credentials } from "../integrations/providers";
 
@@ -456,18 +457,6 @@ function ckoPayment(payment: Record<string, unknown>): GatewayPayment {
 
 // ---------- PayTabs: Hosted Payment Page ----------
 
-const PAYTABS_REGIONS: Record<string, string> = {
-  ARE: "https://secure.paytabs.com",
-  SAU: "https://secure.paytabs.sa",
-  OMN: "https://secure-oman.paytabs.com",
-  JOR: "https://secure-jordan.paytabs.com",
-  EGY: "https://secure-egypt.paytabs.com",
-  IRQ: "https://secure-iraq.paytabs.com",
-  KWT: "https://secure-kuwait.paytabs.com",
-  MAR: "https://secure-morocco.paytabs.com",
-  QAT: "https://secure-doha.paytabs.com",
-  GLOBAL: "https://secure-global.paytabs.com",
-};
 const paytabsBase = (c: Credentials) => base("paytabs", PAYTABS_REGIONS[(c.region ?? "").trim().toUpperCase()] ?? PAYTABS_REGIONS.GLOBAL);
 
 export const paytabs: PaymentGateway = {

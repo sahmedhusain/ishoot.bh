@@ -52,7 +52,7 @@ export async function testIntegrationAction(provider: string) {
     await requirePermission("settings", "write");
     const result = await testIntegration(provider);
     revalidate();
-    return { ok: result.ok, accountName: result.accountName ?? null, error: result.error ?? null };
+    return { ok: result.ok, validation: result.validation ?? null, accountName: result.accountName ?? null, error: result.error ?? null };
   });
 }
 

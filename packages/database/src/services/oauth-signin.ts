@@ -94,6 +94,7 @@ export function appleClientSecret(input: { teamId: string; keyId: string; servic
   const header = b64url(JSON.stringify({ alg: "ES256", kid: input.keyId }));
   const payload = b64url(JSON.stringify({ iss: input.teamId, iat: now, exp: now + 300, aud: "https://appleid.apple.com", sub: input.serviceId }));
   const key = createPrivateKey(normalizePem(input.privateKey));
+  if (key.asymmetricKeyType !== "ec" || key.asymmetricKeyDetails?.namedCurve !== "prime256v1") throw new SignInRejected("invalid_private_key");
   const signature = signData("sha256", Buffer.from(`${header}.${payload}`), { key, dsaEncoding: "ieee-p1363" });
   return `${header}.${payload}.${b64url(signature)}`;
 }

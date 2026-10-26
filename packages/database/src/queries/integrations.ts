@@ -4,9 +4,12 @@ import { db, runAtomicMutation } from "../db";
 import type { Prisma } from "@prisma/client";
 import {
   INTEGRATION_PROVIDERS,
+  INTEGRATION_ENVIRONMENTS,
+  PAYTABS_REGIONS,
   integrationProvider,
   type IntegrationProviderId,
 } from "../constants/integrations";
+import { checkSignInCredentials } from "../services/oauth-signin";
 import { decryptIntegrationCredentials, encryptIntegrationCredentials } from "../services/integration-credentials";
 import { checkConnection, fetchSocialSnapshot, sendWhatsAppText, ProviderError, type Credentials } from "../integrations/providers";
 
@@ -52,7 +55,7 @@ export async function listIntegrationsForAdmin(): Promise<IntegrationAdminView[]
     return {
       provider: provider.id,
       isActive: record?.isActive ?? false,
-      healthStatus: record?.healthStatus ?? "unknown",
+      healthStatus: record?.healthStatus === "healthy" && provider.kind === "sign_in" ? "configured" : record?.healthStatus ?? "unknown",
       accountName: record?.accountName ?? null,
       lastError: record?.lastError ? provider.fields.filter(field => field.secret).reduce((message, field) => credentials[field.key] ? message.split(credentials[field.key]).join("[redacted]") : message, record.lastError) : null,
       lastCheckedAt: record?.lastCheckedAt?.toISOString() ?? null,
@@ -90,12 +93,24 @@ export async function saveIntegrationSettings(providerId: string, input: SaveInt
     const value = field.secret && !incoming ? current[field.key] ?? "" : incoming;
     if (value) next[field.key] = value;
   }
+  if (next.environment) {
+    next.environment = next.environment.toLowerCase();
+    if (!(INTEGRATION_ENVIRONMENTS as readonly string[]).includes(next.environment)) throw new Error(serverMessages.integrationEnvironmentInvalid);
+  }
+  if (provider.id === "paytabs" && next.region) {
+    next.region = next.region.toUpperCase();
+    if (!Object.keys(PAYTABS_REGIONS).includes(next.region)) throw new Error(serverMessages.integrationRegionInvalid);
+  }
   if (provider.id === "checkout_com" && next.apiPrefix && !/^[a-z0-9]+$/.test(next.apiPrefix)) throw new Error(serverMessages.paymentApiPrefixInvalid);
   if (provider.id === "resend" && next.fromEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(next.fromEmail))
     throw new Error(serverMessages.enterAValidSenderEMail);
   if (input.isActive) {
     const missing = provider.fields.filter((field) => field.required && !next[field.key]);
     if (missing.length) throw new Error(formatMessage(serverTemplates.fillIn0BeforeTurningThisOn, { 0: missing.map((field) => field.key).join(", ") }));
+  }
+  if (input.isActive && (provider.id === "google_signin" || provider.id === "apple_signin")) {
+    const check = checkSignInCredentials(provider.id === "google_signin" ? "google" : "apple", next);
+    if (!check.ok) throw new Error(check.error ?? serverMessages.providerConnectionFailed);
   }
   const changed = JSON.stringify(next) !== JSON.stringify(current);
   const data = {
@@ -139,7 +154,7 @@ export async function testIntegration(providerId: string) {
   await db.integrationSetting.update({
     where: { provider: provider.id },
     data: {
-      healthStatus: result.ok ? "healthy" : "error",
+      healthStatus: result.ok ? result.validation === "format" ? "configured" : "healthy" : "error",
       lastError: result.ok ? null : result.error ?? "Connection check failed",
       accountName: result.accountName ?? record.accountName,
       lastCheckedAt: new Date(),

@@ -257,3 +257,32 @@ export function engagementRate(post: { likes: number | null; comments: number | 
   if (!base || interactions == null) return null;
   return Math.round((interactions / base) * 10000) / 100;
 }
+
+/** Only routes implemented by this installation; invalid/missing origins never become copyable setup URLs. */
+export function integrationSetupLinks(providerId: IntegrationProviderId, website: string, admin: string): Array<{ kind: "callback" | "webhook" | "return"; url: string }> {
+  let origin = "";
+  try {
+    const candidate = new URL(providerId === "resend" ? admin : website);
+    if (["http:", "https:"].includes(candidate.protocol) && !candidate.username && !candidate.password) origin = candidate.origin;
+  } catch { /* A missing public domain is shown by the setup guide. */ }
+  if (!origin) return [];
+  if (providerId === "resend") return [{ kind: "webhook", url: `${origin}/api/webhooks/resend` }];
+  if (providerId === "google_signin" || providerId === "apple_signin") return [{ kind: "callback", url: `${origin}/api/account/${providerId === "google_signin" ? "google" : "apple"}/callback` }];
+  if (integrationProvider(providerId)?.kind === "payments") return [{ kind: "webhook", url: `${origin}/api/store/payment/webhook/${providerId}` }, { kind: "return", url: `${origin}/api/store/payment/return` }];
+  return [];
+}
+
+export const INTEGRATION_ENVIRONMENTS = ["test", "sandbox", "live"] as const;
+
+export const PAYTABS_REGIONS: Record<string, string> = {
+  ARE: "https://secure.paytabs.com",
+  SAU: "https://secure.paytabs.sa",
+  OMN: "https://secure-oman.paytabs.com",
+  JOR: "https://secure-jordan.paytabs.com",
+  EGY: "https://secure-egypt.paytabs.com",
+  IRQ: "https://secure-iraq.paytabs.com",
+  KWT: "https://secure-kuwait.paytabs.com",
+  MAR: "https://secure-morocco.paytabs.com",
+  QAT: "https://secure-doha.paytabs.com",
+  GLOBAL: "https://secure-global.paytabs.com",
+};

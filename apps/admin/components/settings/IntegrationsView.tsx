@@ -6,6 +6,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import {
   ExternalLink,
+  Copy,
   CreditCard,
   Package,
   Mail,
@@ -14,9 +15,20 @@ import {
   Send,
   Unlink,
 } from "lucide-react";
-import { Button, Card, ConfirmDialog, DateDisplay } from "@platform/ui";
+import {
+  Button,
+  Card,
+  ConfirmDialog,
+  DateDisplay,
+  Input,
+  Select,
+  useConfirmation,
+} from "@platform/ui";
 import {
   INTEGRATION_PROVIDERS,
+  INTEGRATION_ENVIRONMENTS,
+  PAYTABS_REGIONS,
+  type integrationSetupLinks,
   type IntegrationKind,
   type IntegrationProvider,
 } from "@platform/database/constants/integrations";
@@ -34,12 +46,22 @@ import { SettingsNavTabs } from "./SettingsNavTabs";
 import { CalendarSyncCard } from "./CalendarSyncCard";
 import type { CalendarLayer } from "@platform/database/types";
 
-const KINDS: IntegrationKind[] = ["social", "messaging", "email", "sign_in", "payments", "couriers"];
+const KINDS: IntegrationKind[] = [
+  "social",
+  "messaging",
+  "email",
+  "sign_in",
+  "payments",
+  "couriers",
+];
 
 const fieldClass =
   "w-full min-w-0 rounded-lg border border-ink/15 bg-white dark:bg-surface px-3 py-2 text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent/40";
 
+type SetupLinks = ReturnType<typeof integrationSetupLinks>;
+
 const statusTone: Record<string, string> = {
+  configured: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30",
   healthy:
     "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
   error: "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30",
@@ -65,7 +87,9 @@ function ProviderIcon({ provider }: { provider: IntegrationProvider }) {
 function IntegrationCard({
   provider,
   view,
+  links,
 }: {
+  links: SetupLinks;
   provider: IntegrationProvider;
   view: IntegrationAdminView;
 }) {
@@ -85,6 +109,66 @@ function IntegrationCard({
       ]),
     ),
   );
+  const [readingKey, setReadingKey] = React.useState(false);
+  const blocked = busy !== null || readingKey;
+  const pending = React.useRef(false);
+  const confirmAction = useConfirmation();
+  const [error, setError] = React.useState("");
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>(
+    {},
+  );
+  const dirty =
+    isActive !== view.isActive ||
+    provider.fields.some((field) =>
+      field.secret
+        ? !!values[field.key]?.trim()
+        : (values[field.key] ?? "").trim() !==
+          (view.values[field.key] ?? "").trim(),
+    );
+  React.useEffect(() => {
+    if (!editing || !dirty) return;
+    const guard = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", guard);
+    return () => window.removeEventListener("beforeunload", guard);
+  }, [editing, dirty]);
+  const resetEditing = () => {
+    setValues(
+      Object.fromEntries(
+        provider.fields.map((field) => [
+          field.key,
+          field.secret ? "" : (view.values[field.key] ?? ""),
+        ]),
+      ),
+    );
+    setIsActive(view.isActive);
+    setFieldErrors({});
+    setError("");
+    setEditing(false);
+  };
+  const discardEditing = () => {
+    if (blocked) return;
+    if (!dirty) {
+      resetEditing();
+      return;
+    }
+    confirmAction({
+      title: c.setup.discardTitle,
+      description: c.setup.discardBody,
+      variant: "warning",
+      onConfirm: resetEditing,
+    });
+  };
+  const copyAddress = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success(c.setup.copied);
+    } catch {
+      setError(c.setup.copyFailed);
+    }
+  };
   const [confirmUnlink, setConfirmUnlink] = React.useState(false);
   const [waTo, setWaTo] = React.useState("");
   const configured = provider.fields.some((field) =>
@@ -96,19 +180,49 @@ function IntegrationCard({
     kind: NonNullable<typeof busy>,
     fn: () => Promise<T>,
   ) => {
+    if (pending.current || readingKey) return undefined;
+    pending.current = true;
+    setError("");
     setBusy(kind);
     try {
       return await fn();
     } catch (error) {
-      toast.error(errorMessage(error, t, c.testFailed));
+      const message = errorMessage(error, t, c.testFailed);
+      setError(message);
+      toast.error(message);
       return undefined;
     } finally {
+      pending.current = false;
       setBusy(null);
     }
   };
 
-  const save = () =>
-    run("save", async () => {
+  const save = () => {
+    if (blocked || fieldErrors.privateKey === c.setup.keyInvalid) return;
+    const missing = Object.fromEntries(
+      provider.fields
+        .filter(
+          (field) =>
+            isActive &&
+            field.required &&
+            !values[field.key]?.trim() &&
+            !(field.secret && view.secrets[field.key]?.set),
+        )
+        .map((field) => [
+          field.key,
+          formatMessage(c.setup.requiredField, {
+            label: c.fields[field.key as keyof typeof c.fields],
+          }),
+        ]),
+    );
+    setFieldErrors(missing);
+    if (Object.keys(missing).length) {
+      document
+        .getElementById(`${provider.id}-${Object.keys(missing)[0]}`)
+        ?.focus();
+      return;
+    }
+    return run("save", async () => {
       await saveIntegration(provider.id, isActive, values);
       toast.success(c.saved);
       setEditing(false);
@@ -121,17 +235,24 @@ function IntegrationCard({
         ),
       );
     });
+  };
 
   const test = () =>
     run("test", async () => {
       const result = await testIntegrationAction(provider.id);
       if (result.ok)
         toast.success(
-          result.accountName ? `${c.testOk} · ${result.accountName}` : c.testOk,
+          result.validation === "format"
+            ? c.setup.formatOk
+            : result.accountName
+              ? `${c.testOk} · ${result.accountName}`
+              : c.testOk,
         );
       else {
         const detail = errorMessage(result.error, t, "");
-        toast.error(detail ? `${c.testFailed}: ${detail}` : c.testFailed);
+        const message = detail ? `${c.testFailed}: ${detail}` : c.testFailed;
+        setError(message);
+        toast.error(message);
       }
     });
 
@@ -142,7 +263,9 @@ function IntegrationCard({
         toast.success(formatMessage(c.syncOk, { posts: String(result.posts) }));
       else {
         const detail = errorMessage(result.error, t, "");
-        toast.error(detail ? `${c.syncFailed}: ${detail}` : c.syncFailed);
+        const message = detail ? `${c.syncFailed}: ${detail}` : c.syncFailed;
+        setError(message);
+        toast.error(message);
       }
     });
 
@@ -153,7 +276,10 @@ function IntegrationCard({
     });
 
   return (
-    <Card className="flex flex-col p-0 overflow-hidden dark:bg-surface-raised">
+    <Card
+      data-testid={`integration-${provider.id}`}
+      className="flex flex-col p-0 overflow-hidden dark:bg-surface-raised"
+    >
       <div className="flex items-start gap-3 p-4 sm:p-5">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:bg-white/10 dark:text-white">
           <ProviderIcon provider={provider} />
@@ -186,7 +312,11 @@ function IntegrationCard({
                 <div className="flex gap-1">
                   <dt>{c.lastChecked}:</dt>
                   <dd>
-                    <DateDisplay date={view.lastCheckedAt} locale={locale} />
+                    <DateDisplay
+                      date={view.lastCheckedAt}
+                      locale={locale}
+                      format="time"
+                    />
                   </dd>
                 </div>
               )}
@@ -195,7 +325,11 @@ function IntegrationCard({
                   <dt>{c.lastSynced}:</dt>
                   <dd>
                     {view.lastSyncedAt ? (
-                      <DateDisplay date={view.lastSyncedAt} locale={locale} />
+                      <DateDisplay
+                        date={view.lastSyncedAt}
+                        locale={locale}
+                        format="time"
+                      />
                     ) : (
                       c.never
                     )}
@@ -209,14 +343,114 @@ function IntegrationCard({
               className="mt-2 rounded-lg bg-rose-500/10 px-2.5 py-1.5 text-[11px] text-rose-700 dark:text-rose-300"
               dir="auto"
             >
-              {view.lastError}
+              {errorMessage(view.lastError, t, c.testFailed)}
             </p>
           )}
         </div>
       </div>
 
+      <details className="border-t border-ink/10 px-4 py-3 text-xs sm:px-5">
+        <summary className="cursor-pointer rounded font-semibold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:text-accent">
+          {c.setup.title}
+        </summary>
+        <div className="mt-3 space-y-3 leading-relaxed text-slate-600 dark:text-slate-300">
+          {(["prerequisites", "permissions", "environment"] as const).map(
+            (key) => (
+              <div key={key}>
+                <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+                  {c.setup[key]}
+                </h4>
+                <p>{copy.guide[key]}</p>
+              </div>
+            ),
+          )}
+          <div>
+            <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+              {c.setup.steps}
+            </h4>
+            <ol className="list-decimal space-y-1 ps-5">
+              {copy.guide.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+          </div>
+          <div className="space-y-2">
+            <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+              {c.setup.addresses}
+            </h4>
+            {links.map((link) => (
+              <div key={link.kind} className="space-y-1">
+                <p className="font-medium">{c.setup[link.kind]}</p>
+                <div className="flex min-w-0 items-start gap-2">
+                  <code
+                    dir="ltr"
+                    className="min-w-0 flex-1 break-all rounded border border-ink/10 p-2 select-all"
+                  >
+                    {link.url}
+                  </code>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    aria-label={formatMessage(c.setup.copyAddress, {
+                      kind: c.setup[link.kind],
+                    })}
+                    onClick={() => void copyAddress(link.url)}
+                  >
+                    <Copy aria-hidden="true" className="me-1 h-3 w-3" />
+                    {c.setup.copy}
+                  </Button>
+                </div>
+                {link.kind === "return" && <p>{c.setup.returnHelp}</p>}
+              </div>
+            ))}
+            {!links.length && (
+              <p>
+                {provider.kind === "payments" ||
+                provider.kind === "sign_in" ||
+                provider.id === "resend"
+                  ? c.setup.missingOrigin
+                  : c.setup.noCallback}
+              </p>
+            )}
+          </div>
+          {(["verify", "errors", "limits"] as const).map((key) => (
+            <div key={key}>
+              <h4 className="font-semibold text-slate-800 dark:text-slate-100">
+                {c.setup[key]}
+              </h4>
+              <p>{copy.guide[key]}</p>
+            </div>
+          ))}
+          <a
+            href={provider.docsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-primary underline dark:text-accent"
+          >
+            {c.docs}
+            <ExternalLink aria-hidden="true" className="h-3 w-3" />
+          </a>
+        </div>
+      </details>
+      {error && (
+        <p
+          role="alert"
+          className="mx-4 my-2 rounded-lg bg-rose-500/10 p-2 text-xs text-rose-700 dark:text-rose-300"
+          dir="auto"
+        >
+          {error}
+        </p>
+      )}
       {editing && (
-        <div className="space-y-3 border-t border-ink/10 bg-slate-50/60 dark:bg-white/[0.02] p-4 sm:p-5">
+        <form
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            void save();
+          }}
+          className="space-y-3 border-t border-ink/10 bg-slate-50/60 dark:bg-white/[0.02] p-4 sm:p-5"
+        >
           {provider.fields.map((field) => {
             const secret = view.secrets[field.key];
             const id = `${provider.id}-${field.key}`;
@@ -229,30 +463,138 @@ function IntegrationCard({
                   {c.fields[field.key as keyof typeof c.fields] ?? field.key}
                   {field.required && <span className="text-rose-500"> *</span>}
                 </label>
-                <input
-                  id={id}
-                  type={
-                    field.secret
-                      ? "password"
-                      : field.key === "fromEmail"
-                        ? "email"
-                        : "text"
-                  }
-                  autoComplete="off"
-                  dir="ltr"
-                  className={fieldClass}
-                  value={values[field.key] ?? ""}
-                  placeholder={
-                    field.secret && secret?.set
-                      ? formatMessage(c.secretSet, { hint: secret.hint })
-                      : formatMessage(c.fieldPlaceholder, { label: c.fields[field.key as keyof typeof c.fields] ?? field.key })
-                  }
-                  onChange={(e) =>
-                    setValues((v) => ({ ...v, [field.key]: e.target.value }))
-                  }
-                />
-                {field.secret && secret?.set && (
-                  <p className="text-[11px] text-slate-500">{c.secretKeep}</p>
+                {field.key === "environment" || field.key === "region" ? (
+                  <Select
+                    id={id}
+                    disabled={blocked}
+                    value={values[field.key] ?? ""}
+                    required={isActive && field.required}
+                    aria-invalid={!!fieldErrors[field.key]}
+                    aria-describedby={`${id}-help${fieldErrors[field.key] ? ` ${id}-error` : ""}`}
+                    onChange={(event) => {
+                      setValues((v) => ({
+                        ...v,
+                        [field.key]: event.target.value,
+                      }));
+                      setFieldErrors((v) => ({ ...v, [field.key]: "" }));
+                    }}
+                  >
+                    <option value="">{c.placeholders[field.key]}</option>
+                    {(field.key === "environment"
+                      ? [...INTEGRATION_ENVIRONMENTS]
+                      : Object.keys(PAYTABS_REGIONS)
+                    ).map((value) => (
+                      <option key={value} value={value}>
+                        {field.key === "environment"
+                          ? c.setup.environments[
+                              value as keyof typeof c.setup.environments
+                            ]
+                          : value}
+                      </option>
+                    ))}
+                  </Select>
+                ) : field.key === "privateKey" ? (
+                  <>
+                    <Input
+                      id={id}
+                      type="file"
+                      accept=".p8,.pem"
+                      disabled={blocked}
+                      aria-label={c.setup.keyUpload}
+                      aria-invalid={!!fieldErrors[field.key]}
+                      aria-describedby={`${id}-help${fieldErrors[field.key] ? ` ${id}-error` : ""}`}
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        setReadingKey(true);
+                        const input = event.currentTarget;
+                        try {
+                          if (file.size > 2000) throw new Error();
+                          const text = await file.text();
+                          if (
+                            !/-----BEGIN PRIVATE KEY-----[\s\S]+-----END PRIVATE KEY-----/.test(
+                              text,
+                            )
+                          )
+                            throw new Error();
+                          setValues((v) => ({ ...v, [field.key]: text }));
+                          setFieldErrors((v) => ({ ...v, [field.key]: "" }));
+                        } catch {
+                          setFieldErrors((v) => ({
+                            ...v,
+                            [field.key]: c.setup.keyInvalid,
+                          }));
+                          setValues((v) => ({ ...v, [field.key]: "" }));
+                          input.value = "";
+                        } finally {
+                          setReadingKey(false);
+                        }
+                      }}
+                    />
+                    {values.privateKey && (
+                      <p
+                        role="status"
+                        className="text-xs text-emerald-700 dark:text-emerald-300"
+                      >
+                        {c.setup.keyReady}
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <Input
+                    id={id}
+                    name={field.key}
+                    type={
+                      field.secret
+                        ? "password"
+                        : field.key === "fromEmail"
+                          ? "email"
+                          : "text"
+                    }
+                    autoComplete="off"
+                    dir="ltr"
+                    disabled={blocked}
+                    value={values[field.key] ?? ""}
+                    required={
+                      isActive &&
+                      field.required &&
+                      !(field.secret && secret?.set)
+                    }
+                    maxLength={2000}
+                    aria-invalid={!!fieldErrors[field.key]}
+                    aria-describedby={`${id}-help${fieldErrors[field.key] ? ` ${id}-error` : ""}`}
+                    placeholder={
+                      field.secret && secret?.set
+                        ? formatMessage(c.secretSet, { hint: secret.hint })
+                        : c.placeholders[
+                            field.key as keyof typeof c.placeholders
+                          ]
+                    }
+                    onChange={(event) => {
+                      setValues((v) => ({
+                        ...v,
+                        [field.key]: event.target.value,
+                      }));
+                      setFieldErrors((v) => ({ ...v, [field.key]: "" }));
+                    }}
+                  />
+                )}
+                <p
+                  id={`${id}-help`}
+                  className="text-[11px] text-slate-500 dark:text-slate-400"
+                >
+                  {field.secret && secret?.set
+                    ? c.secretKeep
+                    : c.placeholders[field.key as keyof typeof c.placeholders]}
+                </p>
+                {fieldErrors[field.key] && (
+                  <p
+                    id={`${id}-error`}
+                    role="alert"
+                    className="text-xs text-rose-700 dark:text-rose-300"
+                  >
+                    {fieldErrors[field.key]}
+                  </p>
                 )}
               </div>
             );
@@ -262,25 +604,26 @@ function IntegrationCard({
               type="checkbox"
               role="switch"
               className="accent-accent"
+              disabled={blocked}
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
             />
             {c.enabled}
           </label>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              size="sm"
-              disabled={busy !== null}
-              onClick={save}
-            >
-              {busy === "save" ? c.saving : c.save}
+            <Button type="submit" size="sm" disabled={blocked}>
+              {readingKey
+                ? c.setup.readingKey
+                : busy === "save"
+                  ? c.saving
+                  : c.save}
             </Button>
             <Button
               type="button"
               size="sm"
               variant="ghost"
-              onClick={() => setEditing(false)}
+              disabled={blocked}
+              onClick={discardEditing}
             >
               {c.cancel}
             </Button>
@@ -294,7 +637,7 @@ function IntegrationCard({
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
-        </div>
+        </form>
       )}
 
       {provider.id === "whatsapp" &&
@@ -336,6 +679,7 @@ function IntegrationCard({
             type="button"
             size="sm"
             variant={configured ? "outline" : "primary"}
+            disabled={blocked}
             onClick={() => setEditing(true)}
           >
             <PlugZap className="w-3.5 h-3.5 me-1" />
@@ -347,7 +691,7 @@ function IntegrationCard({
             type="button"
             size="sm"
             variant="ghost"
-            disabled={busy !== null}
+            disabled={blocked}
             onClick={test}
           >
             {busy === "test" ? c.testing : c.test}
@@ -358,7 +702,7 @@ function IntegrationCard({
             type="button"
             size="sm"
             variant="ghost"
-            disabled={busy !== null}
+            disabled={blocked}
             onClick={sync}
           >
             <RefreshCw
@@ -374,6 +718,7 @@ function IntegrationCard({
             variant="ghost"
             className="ms-auto text-rose-600 dark:text-rose-400"
             aria-label={c.unlink}
+            disabled={blocked}
             onClick={() => setConfirmUnlink(true)}
           >
             <Unlink className="w-3.5 h-3.5" />
@@ -405,9 +750,11 @@ function IntegrationCard({
 export function IntegrationsView({
   integrations,
   canManage = true,
+  setupLinks,
   calendar,
 }: {
   integrations: IntegrationAdminView[];
+  setupLinks: Record<string, SetupLinks>;
   canManage?: boolean;
   /** The viewer's own calendar link; null when they have no calendar access. */
   calendar: {
@@ -461,6 +808,7 @@ export function IntegrationsView({
                   <IntegrationCard
                     key={provider.id}
                     provider={provider}
+                    links={setupLinks[provider.id] ?? []}
                     view={integrations.find(
                       (view) => view.provider === provider.id,
                     )!}

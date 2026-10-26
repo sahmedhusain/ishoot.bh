@@ -78,3 +78,8 @@ describe("customer sign-in", () => {
     }
   });
 });
+
+test("Apple credentials reject keys that cannot produce an ES256 signature", () => {
+  const { privateKey } = generateKeyPairSync("ec", { namedCurve: "secp384r1" });
+  expect(checkSignInCredentials("apple", { teamId: "TEAM123456", keyId: "KEY1234567", serviceId: "com.example.web", privateKey: privateKey.export({ type: "pkcs8", format: "pem" }).toString() }).ok).toBe(false);
+});
