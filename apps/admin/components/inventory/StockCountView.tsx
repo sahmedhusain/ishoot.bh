@@ -78,8 +78,19 @@ export function StockCountView({ count, locations, canEdit, canApprove }: StockC
   };
   const saveCounts = async () => {
     const lines = Array.from(editedLines.current).map(lineId => ({ lineId, counted: counted[lineId] ?? "" }));
-    if (lines.length) await saveCountedAction(count.id, lines);
-    editedLines.current.clear();
+    let saved = 0;
+    try {
+      for (let offset = 0; offset < lines.length; offset += 200) {
+        const batch = lines.slice(offset, offset + 200);
+        await saveCountedAction(count.id, batch);
+        for (const line of batch) editedLines.current.delete(line.lineId);
+        saved += batch.length;
+        setDirty(editedLines.current.size > 0);
+      }
+    } catch (err) {
+      if (saved) throw new Error(`${formatMessage(copy.partialSaved, { saved, total: lines.length })} ${errorMessage(err, t)}`);
+      throw err;
+    }
     markSaved([]);
     setDirty(false);
   };

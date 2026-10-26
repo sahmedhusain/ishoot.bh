@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { Prisma } from "@prisma/client";
+import { Prisma, type StockCount } from "@prisma/client";
 import { getTranslations, serverMessages } from "@platform/locales";
 import { db } from "../db";
 import {
@@ -657,38 +657,47 @@ export async function listStockCounts() {
   }));
 }
 
+// All count writers lock this row so status checks and ledger posting see one current state.
+async function lockStockCount(tx: Tx, countId: string) {
+  const [count] = await tx.$queryRaw<StockCount[]>`SELECT * FROM "StockCount" WHERE "id" = ${countId} FOR UPDATE`;
+  if (!count) throw new Error(serverMessages.stockCountMissing);
+  return count;
+}
+
 /** Saves counted quantities (empty to clear) while the count is open. */
 export async function recordCountedQuantities(countId: string, entries: { lineId: string; counted: string; note?: string }[]) {
-  const count = await db.stockCount.findUnique({ where: { id: countId }, select: { status: true } });
-  if (!count) throw new Error(serverMessages.stockCountMissing);
-  if (count.status !== "counting") throw new Error(serverMessages.stockCountClosed);
-  await db.$transaction(
-    entries.slice(0, 500).map((entry) => {
+  if (entries.length > 200 || new Set(entries.map(entry => entry.lineId)).size !== entries.length) throw new Error(serverMessages.stockCountLinesInvalid);
+  await db.$transaction(async tx => {
+    const count = await lockStockCount(tx, countId);
+    if (count.status !== "counting") throw new Error(serverMessages.stockCountClosed);
+    for (const entry of entries) {
       const text = entry.counted.trim();
       const counted = text === "" ? null : roundQuantity(Number(text));
       if (counted != null && (!Number.isFinite(counted) || counted < 0 || counted > 10_000_000)) throw new Error(serverMessages.stockQuantityInvalid);
-      return db.stockCountLine.updateMany({ where: { id: entry.lineId, countId }, data: { counted, note: entry.note?.trim().slice(0, 200) || null } });
-    }),
-  );
+      const result = await tx.stockCountLine.updateMany({ where: { id: entry.lineId, countId }, data: { counted, note: entry.note === undefined ? undefined : entry.note.trim().slice(0, 200) || null } });
+      if (result.count !== 1) throw new Error(serverMessages.stockCountLinesInvalid);
+    }
+  });
 }
 
 /** Adds an item found during the count that had no line (a product or variant at a location of the warehouse). */
 export async function addCountLine(countId: string, input: { productId: string; variantId?: string; locationId: string }) {
-  const count = await db.stockCount.findUnique({ where: { id: countId }, select: { status: true, warehouseId: true } });
-  if (!count) throw new Error(serverMessages.stockCountMissing);
-  if (count.status !== "counting") throw new Error(serverMessages.stockCountClosed);
-  const location = await db.stockLocation.findFirst({ where: { id: input.locationId, warehouseId: count.warehouseId } });
-  if (!location) throw new Error(serverMessages.stockLocationMissing);
-  const product = await db.product.findUnique({ where: { id: input.productId }, select: { trackStock: true, trackBatches: true, variants: { select: { id: true } } } });
-  if (!product?.trackStock) throw new Error(serverMessages.stockNotTracked);
-  if (product.trackBatches) throw new Error(serverMessages.stockBatchRequired);
-  const variantKey = input.variantId ?? "";
-  if (product.variants.length ? !product.variants.some((v) => v.id === variantKey) : variantKey) throw new Error(serverMessages.stockVariantRequired);
-  const level = await db.stockLevel.findUnique({ where: { productId_variantKey_locationId_batchKey: { productId: input.productId, variantKey, locationId: location.id, batchKey: "" } } });
-  return db.stockCountLine.upsert({
-    where: { countId_productId_variantKey_locationId_batchKey: { countId, productId: input.productId, variantKey, locationId: location.id, batchKey: "" } },
-    update: {},
-    create: { countId, productId: input.productId, variantKey, locationId: location.id, batchKey: "", expected: level?.onHand ?? 0 },
+  return db.$transaction(async tx => {
+    const count = await lockStockCount(tx, countId);
+    if (count.status !== "counting") throw new Error(serverMessages.stockCountClosed);
+    const location = await tx.stockLocation.findFirst({ where: { id: input.locationId, warehouseId: count.warehouseId } });
+    if (!location) throw new Error(serverMessages.stockLocationMissing);
+    const product = await tx.product.findUnique({ where: { id: input.productId }, select: { trackStock: true, trackBatches: true, variants: { select: { id: true } } } });
+    if (!product?.trackStock) throw new Error(serverMessages.stockNotTracked);
+    if (product.trackBatches) throw new Error(serverMessages.stockBatchRequired);
+    const variantKey = input.variantId ?? "";
+    if (product.variants.length ? !product.variants.some((v) => v.id === variantKey) : variantKey) throw new Error(serverMessages.stockVariantRequired);
+    const level = await tx.stockLevel.findUnique({ where: { productId_variantKey_locationId_batchKey: { productId: input.productId, variantKey, locationId: location.id, batchKey: "" } } });
+    return tx.stockCountLine.upsert({
+      where: { countId_productId_variantKey_locationId_batchKey: { countId, productId: input.productId, variantKey, locationId: location.id, batchKey: "" } },
+      update: {},
+      create: { countId, productId: input.productId, variantKey, locationId: location.id, batchKey: "", expected: level?.onHand ?? 0 },
+    });
   });
 }
 
@@ -703,11 +712,12 @@ export async function findByCode(code: string) {
 }
 
 export async function setStockCountStatus(countId: string, status: "review" | "counting" | "cancelled") {
-  const count = await db.stockCount.findUnique({ where: { id: countId }, select: { status: true } });
-  if (!count) throw new Error(serverMessages.stockCountMissing);
-  const allowed: Record<string, string[]> = { review: ["counting"], counting: ["review"], cancelled: ["counting", "review"] };
-  if (!allowed[status].includes(count.status)) throw new Error(serverMessages.stockCountClosed);
-  await db.stockCount.update({ where: { id: countId }, data: { status, submittedAt: status === "review" ? new Date() : undefined } });
+  await db.$transaction(async tx => {
+    const count = await lockStockCount(tx, countId);
+    const allowed: Record<string, string[]> = { review: ["counting"], counting: ["review"], cancelled: ["counting", "review"] };
+    if (!allowed[status].includes(count.status)) throw new Error(serverMessages.stockCountClosed);
+    await tx.stockCount.update({ where: { id: countId }, data: { status, submittedAt: status === "review" ? new Date() : undefined } });
+  });
 }
 
 /**
@@ -716,11 +726,11 @@ export async function setStockCountStatus(countId: string, status: "review" | "c
  */
 export async function approveStockCount(countId: string, userId: string | null) {
   return db.$transaction(async (tx) => {
-    const count = await tx.stockCount.findUnique({ where: { id: countId }, include: { lines: true } });
-    if (!count) throw new Error(serverMessages.stockCountMissing);
+    const count = await lockStockCount(tx, countId);
     if (count.status !== "review") throw new Error(serverMessages.stockCountClosed);
-    const batches = await tx.stockBatch.findMany({ where: { id: { in: count.lines.map((l) => l.batchKey).filter(Boolean) } } });
-    const movements: MovementInput[] = count.lines
+    const lines = await tx.stockCountLine.findMany({ where: { countId } });
+    const batches = await tx.stockBatch.findMany({ where: { id: { in: lines.map((l) => l.batchKey).filter(Boolean) } } });
+    const movements: MovementInput[] = lines
       .map((l) => ({ line: l, variance: countVariance(num(l.expected), numOrNull(l.counted)) }))
       .filter(({ variance }) => variance !== 0)
       .map(({ line, variance }) => ({
@@ -737,7 +747,7 @@ export async function approveStockCount(countId: string, userId: string | null) 
     // Counted stock replaces what the books said, so a count may take reserved stock below its reservation.
     for (const m of movements.filter((m) => m.quantity < 0)) {
       const variantKey = m.variantId ?? "";
-      const batchKey = count.lines.find((l) => l.productId === m.productId && l.variantKey === variantKey && l.locationId === m.locationId)?.batchKey ?? "";
+      const batchKey = lines.find((l) => l.productId === m.productId && l.variantKey === variantKey && l.locationId === m.locationId)?.batchKey ?? "";
       await tx.$executeRaw`UPDATE "StockLevel" SET "reserved" = LEAST("reserved", GREATEST("onHand" + ${m.quantity}, 0)) WHERE "productId" = ${m.productId} AND "variantKey" = ${variantKey} AND "locationId" = ${m.locationId} AND "batchKey" = ${batchKey}`;
     }
     const low = await postMovements(tx, movements, userId);

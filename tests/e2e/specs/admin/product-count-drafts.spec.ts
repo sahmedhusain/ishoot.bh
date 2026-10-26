@@ -187,3 +187,45 @@ for (const locale of ["en", "ar"] as const) {
     expect(await db.stockMovement.count({ where: { productId: { in: productIds } } })).toBe(0);
   });
 }
+
+test("large stock-count saves retain only the failed batch for retry", async ({ page }) => {
+  test.setTimeout(180000);
+  const extra = Array.from({ length: 499 }, (_, i) => ({ id: randomUUID(), sku: `${marker}-EX-${i}`, nameEn: `Count ${i}`, nameAr: `صنف ${i}` }));
+  await db.product.createMany({ data: extra }); productIds.push(...extra.map(row => row.id));
+  const location = await db.stockLocation.findFirstOrThrow({ where: { warehouseId } });
+  await db.stockCountLine.createMany({ data: extra.map(product => ({ productId: product.id, countId, locationId: location.id, expected: 0 })) });
+  await page.addInitScript(() => localStorage.setItem("platform_admin_locale", "en"));
+  const path = `/dashboard/inventory/counts/${countId}`;
+  await page.goto(path);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  const main = page.getByRole("main"), fields = main.getByRole("spinbutton");
+  await expect(fields).toHaveCount(501);
+  // Set up the capacity fixture with native input events; per-field interaction is covered above.
+  await fields.evaluateAll(inputs => {
+    const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    for (const input of inputs) { setValue.call(input, "0"); input.dispatchEvent(new Event("input", { bubbles: true })); }
+  });
+  await expect(fields.first()).toHaveValue("0");
+  await expect(fields.last()).toHaveValue("0");
+  let posts = 0;
+  await page.route(`**${path}`, async route => {
+    if (route.request().method() !== "POST") return route.continue();
+    posts++;
+    if (posts === 2) await route.fulfill({ status: 500, body: "Test second batch failure" });
+    else await route.continue();
+  });
+  await main.getByTestId("count-save").click();
+  await expect(main.getByRole("alert")).toContainText(en.inventory.counts.partialSaved.replace("{saved}", "200").replace("{total}", "501"));
+  expect(await db.stockCountLine.count({ where: { countId, counted: 0 } })).toBe(200);
+  expect(await db.stockCountLine.count({ where: { countId, counted: null } })).toBe(301);
+  await page.getByRole("banner").locator('a[href="/dashboard"]').first().click();
+  const dialog = page.getByRole("dialog", { name: en.unsavedChanges.title, exact: true });
+  await dialog.getByRole("button", { name: en.unsavedChanges.stay, exact: true }).click();
+  await main.getByTestId("count-save").click();
+  await expect(main.getByRole("status")).toHaveText(en.inventory.counts.saved);
+  expect(posts).toBe(4);
+  expect(await db.stockCountLine.count({ where: { countId, counted: 0 } })).toBe(501);
+  await page.getByRole("banner").locator('a[href="/dashboard"]').first().click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+});

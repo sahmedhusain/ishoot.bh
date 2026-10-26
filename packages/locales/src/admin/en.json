@@ -6308,7 +6308,8 @@
       "socialSyncConfigurationChanged": "The integration settings changed. Retry using the current configuration.",
       "socialSyncFailed": "Could not sync this integration.",
       "productOptionsInvalid": "Each option needs a name and distinct nonempty values of up to 40 characters. Use at most 3 options with 20 values each.",
-      "productImagesInvalid": "Use at most 12 valid HTTPS image URLs or uploaded images. URLs cannot include a username or password."
+      "productImagesInvalid": "Use at most 12 valid HTTPS image URLs or uploaded images. URLs cannot include a username or password.",
+      "stockCountLinesInvalid": "Save up to 200 distinct lines from this count at once. Reload the count if a line has been removed."
     },
     "templates": {
       "0MustBeZeroOrMore": "{0} must be zero or more",
@@ -9850,7 +9851,8 @@
       "approvedBy": "Approved by {name}",
       "countedPlaceholder": "e.g. 0 or 12.500",
       "scanPlaceholder": "Barcode or SKU",
-      "pendingReview": "Local quantities have not been saved. Return to counting to save them, or discard the edits before approving."
+      "pendingReview": "Local quantities have not been saved. Return to counting to save them, or discard the edits before approving.",
+      "partialSaved": "Saved {saved} of {total} edited lines. Remaining edits are still here; retry Save."
     },
     "product": {
       "title": "Stock",
